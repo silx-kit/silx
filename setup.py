@@ -5,14 +5,18 @@ __author__ = "Jérôme Kieffer"
 __date__ = "27/11/2015"
 __license__ = "MIT"
 
+
 import sys
 import os
 import shutil
+
+from numpy.distutils.misc_util import Configuration
+
 try:
     from setuptools import setup
     from setuptools.command.build_py import build_py as _build_py
 except ImportError:
-    from distutils.core import setup
+    from numpy.distutils.core import setup  # To support configuration arg
     from distutils.command.build_py import build_py as _build_py
 
 
@@ -115,6 +119,20 @@ if sphinx:
             sys.path.pop(0)
     cmdclass['build_doc'] = build_doc
 
+
+# numpy.distutils Configuration
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration(None, parent_package, top_path)
+    config.set_options(
+        ignore_setup_xxx_py=True,
+        assume_default_configuration=True,
+        delegate_options_to_subpackages=True,
+        quiet=True)
+    config.add_subpackage('silx')
+    return config
+
+
 install_requires = ["numpy", "h5py"]
 setup_requires = ["numpy", "cython"]
 
@@ -131,4 +149,5 @@ setup(name=PROJECT,
       install_requires=install_requires,
       setup_requires=setup_requires,
       cmdclass=cmdclass,
+      configuration=configuration,
       )
