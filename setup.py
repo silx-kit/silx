@@ -10,15 +10,13 @@ import sys
 import os
 import shutil
 
+from numpy.distutils.core import setup
 from numpy.distutils.misc_util import Configuration
 
 try:
-    from setuptools import setup
     from setuptools.command.build_py import build_py as _build_py
 except ImportError:
-    from numpy.distutils.core import setup  # To support configuration arg
     from distutils.command.build_py import build_py as _build_py
-
 
 PROJECT = "silx"
 cmdclass = {}
@@ -136,7 +134,6 @@ def configuration(parent_package='', top_path=None):
 install_requires = ["numpy", "h5py"]
 setup_requires = ["numpy", "cython"]
 
-
 setup(name=PROJECT,
       version=get_version(),
       url="https://github.com/silex-kit/silx",
@@ -145,7 +142,6 @@ setup(name=PROJECT,
       classifiers=classifiers,
       description="Software library for X-Ray data analysis",
       long_description=get_readme(),
-      packages=["silx", "silx.io", "silx.third_party", "silx.visu"],
       install_requires=install_requires,
       setup_requires=setup_requires,
       cmdclass=cmdclass,
