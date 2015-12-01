@@ -1,15 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
+"""Run the tests of the project.
+
+This script expects a suite function in <project_package>.test,
+which returns a unittest.TestSuite.
+
+Test coverage dependencies: coverage, lxml.
+"""
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "30/11/2015"
+__date__ = "01/12/2015"
 __license__ = "MIT"
 
 import distutils
+import importlib
 import logging
 import os
 import subprocess
 import sys
+import unittest
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -86,21 +96,29 @@ def report_rst(cov, package, version="0.0.0", base=""):
     return os.linesep.join(res)
 
 
-def build_project(root_dir):
-    """Run python setup.py build for the project.
+def get_project_name(root_dir):
+    """Retrieve project name by running python setup.py --name in root_dir.
 
-    Build directory can be modified by environment variables.
-
-    :param str root_dir: Root directory of the project
-    :return: The path to the directory were build was performed
+    :param str root_dir: Directory where to run the command.
+    :return: The name of the project stored in root_dir
     """
     logger.debug("Getting project name in %s" % root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
     name, stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s" % p.returncode)
-    logger.info("Project name: %s" % name)
+    return name.strip()
 
+
+def build_project(name, root_dir):
+    """Run python setup.py build for the project.
+
+    Build directory can be modified by environment variables.
+
+    :param str name: Name of the project.
+    :param str root_dir: Root directory of the project
+    :return: The path to the directory were build was performed
+    """
     platform = distutils.util.get_platform()
     architecture = "lib.%s-%i.%i" % (platform,
                                      sys.version_info[0], sys.version_info[1])
@@ -118,6 +136,11 @@ def build_project(root_dir):
                          shell=False, cwd=root_dir)
     logger.debug("subprocess ended with rc= %s" % p.wait())
     return home
+
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info('Project name: %s' % PROJECT_NAME)
 
 
 from argparse import ArgumentParser
@@ -162,26 +185,36 @@ if (os.path.dirname(os.path.abspath(__file__)) ==
     logger.info("Patched sys.path, removed: '%s'" % removed_from_sys_path)
 
 
+# import module
 if not options.insource:
     try:
-        import silx
+        module = importlib.import_module(PROJECT_NAME)
     except:
         logger.warning(
-            "silx missing, using built (i.e. not installed) version")
+            "%s missing, using built (i.e. not installed) version" % \
+            PROJECT_NAME)
         options.insource = True
 
 if options.insource:
-    build_dir = build_project(os.path.dirname(os.path.abspath(__file__)))
+    build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
 
     sys.path.insert(0, build_dir)
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
-    import silx
+    module = importlib.import_module(PROJECT_NAME)
+
+PROJECT_VERSION = getattr(module, 'version', '')
+PROJECT_PATH = module.__path__[0]
 
 
-logger.warning("Test silx %s from %s" % (silx.version, silx.__path__[0]))
-import silx.test
-if silx.test.run_tests():
-    logger.info("Test suite  succeeded")
+# Run the tests
+logger.warning("Test %s %s from %s" % (PROJECT_NAME,
+                                       PROJECT_VERSION,
+                                       PROJECT_PATH))
+test_module = importlib.import_module('.test', PROJECT_NAME)
+test_suite = test_module.suite()
+runner = unittest.TextTestRunner()
+if runner.run(test_suite).wasSuccessful():
+    logger.info("Test suite succeeded")
 else:
     logger.warning("Test suite failed")
 
@@ -190,5 +223,5 @@ if options.coverage:
     cov.stop()
     cov.save()
     with open("coverage.rst", "w") as fn:
-        fn.write(report_rst(cov, "silx", silx.version, silx.__path__[0]))
+        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
     print(cov.report())

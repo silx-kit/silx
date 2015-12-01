@@ -137,7 +137,7 @@ setup_kwargs = configuration().todict()
 install_requires = ["numpy", "h5py"]
 setup_requires = ["numpy", "cython"]
 
-setup_kwargs.update(dict(
+setup_kwargs.update(
     name=PROJECT,
     version=get_version(),
     url="https://github.com/silex-kit/silx",
@@ -149,6 +149,6 @@ setup_kwargs.update(dict(
     install_requires=install_requires,
     setup_requires=setup_requires,
     cmdclass=cmdclass,
-    ))
+    )
 
 setup(**setup_kwargs)
