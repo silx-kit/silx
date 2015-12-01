@@ -185,6 +185,10 @@ parser.add_argument("-m", "--memprofile", dest="memprofile",
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity")
+default_test_name = "%s.test.suite" % PROJECT_NAME
+parser.add_argument("test_name", nargs='*',
+        default=(default_test_name,),
+        help="Test names to run (Default: %s)" % default_test_name)
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -201,11 +205,9 @@ if options.coverage:
     logger.info("Running test-coverage")
     import coverage
     try:
-        cov = coverage.Coverage(source=["silx"],
-                                omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.Coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     except AttributeError:
-        cov = coverage.coverage(source=["silx"],
-                                omit=["*test*", "*third_party*", "*/setup.py"])
+        cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
 
@@ -247,8 +249,11 @@ else:
 logger.warning("Test %s %s from %s" % (PROJECT_NAME,
                                        PROJECT_VERSION,
                                        PROJECT_PATH))
-test_module = importlib.import_module('.test', PROJECT_NAME)
-test_suite = test_module.suite()
+
+test_suite = unittest.TestSuite()
+test_suite.addTest(
+    unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+
 if runner.run(test_suite).wasSuccessful():
     logger.info("Test suite succeeded")
 else:
