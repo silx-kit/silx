@@ -16,13 +16,16 @@ import distutils
 import importlib
 import logging
 import os
+import resource
 import subprocess
 import sys
+import time
 import unittest
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
+logger.setLevel(logging.INFO)
 
 
 logger.info("Python %s %s" % (sys.version, tuple.__itemsize__ * 8))
@@ -43,7 +46,32 @@ else:
     logger.info("h5py %s" % h5py.version.version)
 
 
-def report_rst(cov, package, version="0.0.0", base=""):
+
+class TestResult(unittest.TestResult):
+    logger = logging.getLogger("memProf")
+    logger.setLevel(logging.DEBUG)
+    logger.handlers.append(logging.FileHandler("profile.log"))
+
+    def startTest(self, test):
+        self.__mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        self.__time_start = time.time()
+        unittest.TestResult.startTest(self, test)
+
+    def stopTest(self, test):
+        unittest.TestResult.stopTest(self, test)
+        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
+            time.time() - self.__time_start,
+            (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
+                self.__mem_start) / 1e3,
+            test.id()))
+
+
+class ProfileTestRunner(unittest.TextTestRunner):
+    def _makeResult(self):
+        return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
+
+
+def report_rst(cov, package, version="0.0.0"):
     """
     Generate a report of test coverage in RST (for Sphinx inclusion)
     
@@ -75,8 +103,6 @@ def report_rst(cov, package, version="0.0.0", base=""):
     for cl in classes:
         name = cl.get("name")
         fname = cl.get("filename")
-        if not os.path.abspath(fname).startswith(base):
-            continue
         lines = cl.find("lines").getchildren()
         hits = [int(i.get("hits")) for i in lines]
 
@@ -91,7 +117,7 @@ def report_rst(cov, package, version="0.0.0", base=""):
     res.append("")
     res.append('   "%s total", "%s", "%s", "%.1f %%"' %
                (package, tot_sum_lines, tot_sum_hits,
-                100.0 * tot_sum_hits / tot_sum_lines))
+                100.0 * tot_sum_hits / tot_sum_lines if tot_sum_lines else 0))
     res.append("")
     return os.linesep.join(res)
 
@@ -152,10 +178,13 @@ parser.add_argument("-i", "--insource",
                     help="Use the build source and not the installed version")
 parser.add_argument("-c", "--coverage", dest="coverage",
                     action="store_true", default=False,
-                    help="report coverage of fabio code (requires 'coverage' module)")
+                    help="Report code coverage (requires 'coverage' and 'lxml' module)")
+parser.add_argument("-m", "--memprofile", dest="memprofile",
+                    action="store_true", default=False,
+                    help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
-                    help="increase verbosity")
+                    help="Increase verbosity")
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -172,9 +201,11 @@ if options.coverage:
     logger.info("Running test-coverage")
     import coverage
     try:
-        cov = coverage.Coverage(omit=["*test*", "*third_party*"])
+        cov = coverage.Coverage(source=["silx"],
+                                omit=["*test*", "*third_party*", "*/setup.py"])
     except AttributeError:
-        cov = coverage.coverage(omit=["*test*", "*third_party*"])
+        cov = coverage.coverage(source=["silx"],
+                                omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
 
@@ -202,17 +233,22 @@ if options.insource:
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
     module = importlib.import_module(PROJECT_NAME)
 
+
 PROJECT_VERSION = getattr(module, 'version', '')
 PROJECT_PATH = module.__path__[0]
 
 
 # Run the tests
+if options.memprofile:
+    runner = ProfileTestRunner()
+else:
+    runner = unittest.TextTestRunner()
+
 logger.warning("Test %s %s from %s" % (PROJECT_NAME,
                                        PROJECT_VERSION,
                                        PROJECT_PATH))
 test_module = importlib.import_module('.test', PROJECT_NAME)
 test_suite = test_module.suite()
-runner = unittest.TextTestRunner()
 if runner.run(test_suite).wasSuccessful():
     logger.info("Test suite succeeded")
 else:
@@ -223,5 +259,5 @@ if options.coverage:
     cov.stop()
     cov.save()
     with open("coverage.rst", "w") as fn:
-        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
+        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION))
     print(cov.report())
