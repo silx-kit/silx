@@ -2,7 +2,7 @@
 # coding: utf8
 
 __author__ = "Jérôme Kieffer"
-__date__ = "27/11/2015"
+__date__ = "02/12/2015"
 __license__ = "MIT"
 
 
@@ -58,21 +58,14 @@ classifiers = ["Development Status :: 1 - Planning",
 
 class build_py(_build_py):
     """
-    Enhanced build_py which copies version to the built
+    Enhanced build_py which copies version.py to silx._version.py in the built
     """
-    def build_package_data(self):
-        """Copy data files into build directory
-        Patched in such a way version.py -> silx/_version.py"""
-        print(self.data_files)
-        _build_py.build_package_data(self)
-        for package, src_dir, build_dir, filenames in self.data_files:
-            if package == PROJECT:
-                filename = "version.py"
-                target = os.path.join(build_dir, "_" + filename)
-                self.mkpath(os.path.dirname(target))
-                self.copy_file(os.path.join(filename), target,
-                               preserve_mode=False)
-                break
+    def find_package_modules(self, package, package_dir):
+        modules = _build_py.find_package_modules(self, package, package_dir)
+        if package == 'silx':
+            modules.append(('silx', '_version', 'version.py'))
+        return modules
+
 
 cmdclass['build_py'] = build_py
 
