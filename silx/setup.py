@@ -7,6 +7,14 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('test')
     config.add_subpackage('third_party')
     config.add_subpackage('visu')
+
+    config.add_extension('dummy',
+                         sources=['dummy.pyx'],
+                         extra_compile_args=['-fopenmp'],
+                         extra_link_args=['-fopenmp'],
+                         language='c',
+                         )
+
     return config
 
 
