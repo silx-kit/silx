@@ -58,12 +58,12 @@ classifiers = ["Development Status :: 1 - Planning",
 
 class build_py(_build_py):
     """
-    Enhanced build_py which copies version.py to silx._version.py in the built
+    Enhanced build_py which copies version.py to <PROJECT>._version.py
     """
     def find_package_modules(self, package, package_dir):
         modules = _build_py.find_package_modules(self, package, package_dir)
-        if package == 'silx':
-            modules.append(('silx', '_version', 'version.py'))
+        if package == PROJECT:
+            modules.append((PROJECT, '_version', 'version.py'))
         return modules
 
 
@@ -121,7 +121,7 @@ def configuration(parent_package='', top_path=None):
         assume_default_configuration=True,
         delegate_options_to_subpackages=True,
         quiet=True)
-    config.add_subpackage('silx')
+    config.add_subpackage(PROJECT)
     return config
 
 setup_kwargs = configuration().todict()
