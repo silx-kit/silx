@@ -1,13 +1,14 @@
 #!/usr/bin/python
 # coding: utf8
 
-__author__ = "Jérôme Kieffer"
-__date__ = "02/12/2015"
+__authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
+__date__ = "07/12/2015"
 __license__ = "MIT"
 
 
 import sys
 import os
+import platform
 import shutil
 
 from numpy.distutils.misc_util import Configuration
@@ -15,9 +16,11 @@ from numpy.distutils.misc_util import Configuration
 try:
     from setuptools import setup
     from setuptools.command.build_py import build_py as _build_py
+    from setuptools.command.build_ext import build_ext
 except ImportError:
     from numpy.distutils.core import setup
     from distutils.command.build_py import build_py as _build_py
+    from distutils.command.build_ext import build_ext
 
 PROJECT = "silx"
 cmdclass = {}
@@ -55,6 +58,9 @@ classifiers = ["Development Status :: 1 - Planning",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
 
+# ########## #
+# version.py #
+# ########## #
 
 class build_py(_build_py):
     """
@@ -69,9 +75,11 @@ class build_py(_build_py):
 
 cmdclass['build_py'] = build_py
 
+
 # ################### #
 # build_doc commandes #
 # ################### #
+
 try:
     import sphinx
     import sphinx.util.console
@@ -112,9 +120,15 @@ if sphinx:
     cmdclass['build_doc'] = build_doc
 
 
-# numpy.distutils Configuration
+# ############################# #
+# numpy.distutils Configuration #
+# ############################# #
 
 def configuration(parent_package='', top_path=None):
+    """Recursive construction of package info to be used in setup().
+
+    See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
+    """
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -124,7 +138,164 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage(PROJECT)
     return config
 
-setup_kwargs = configuration().todict()
+
+config = configuration()
+
+
+# ############## #
+# OpenMP support #
+# ############## #
+
+def check_openmp():
+    """Do we compile with OpenMP?
+
+    Store the result in WITH_OPENMP environment variable
+
+    :return: True if available and not disabled.
+    """
+    if "WITH_OPENMP" in os.environ:
+        return os.environ["WITH_OPENMP"] == "False"
+
+    elif "--no-openmp" in sys.argv:
+        sys.argv.remove("--no-openmp")
+        os.environ["WITH_OPENMP"] = "False"
+        print("No OpenMP requested by command line")
+        return False
+
+    if platform.system() == "Darwin":
+        # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
+        osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])
+        if osx >= (10, 8):
+            os.environ["WITH_OPENMP"] = "False"
+            return False
+
+    os.environ["WITH_OPENMP"] = "True"
+    return True
+
+
+USE_OPENMP = check_openmp()
+
+
+# ############## #
+# Compiler flags #
+# ############## #
+
+class BuildExtFlags(build_ext):
+    """Handle compiler and linker flags.
+
+    If OpenMP is disabled, it removes OpenMP compile flags.
+    If building with MSVC, compiler flags are converted from gcc flags.
+    """
+
+    COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
+
+    LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
+
+    def build_extensions(self):
+        # Remove OpenMP flags if OpenMP is disabled
+        if not USE_OPENMP:
+            for ext in self.extensions:
+                ext.extra_compile_args = [
+                    f for f in ext.extra_compile_args if f != '-fopenmp']
+                ext.extra_link_args = [
+                    f for f in ext.extra_link_args if f != '-fopenmp']
+
+        # Convert flags from gcc to MSVC if required
+        if self.compiler.compiler_type == 'msvc':
+            for ext in self.extensions:
+                ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
+                    for f in ext.extra_compile_args]
+                ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
+                    for f in ext.extra_link_args]
+
+        build_ext.build_extensions(self)
+
+
+cmdclass['build_ext'] = BuildExtFlags
+
+
+# ############## #
+# Cython support #
+# ############## #
+
+CYTHON_MIN_VERSION = '0.18'
+
+
+def check_cython():
+    """
+    Check if cython must be activated fron te command line or the environment.
+
+    Store the result in WITH_CYTHON environment variable.
+
+    :return: True if available and not disabled.
+    """
+
+    if "WITH_CYTHON" in os.environ:
+        return os.environ["WITH_CYTHON"] == "False"
+
+    if "--no-cython" in sys.argv:
+        sys.argv.remove("--no-cython")
+        print("No Cython requested by command line")
+        os.environ["WITH_CYTHON"] = "False"
+        return False
+
+    try:
+        import Cython.Compiler.Version
+    except ImportError:
+        os.environ["WITH_CYTHON"] = "False"
+        return False
+    else:
+        if Cython.Compiler.Version.version < CYTHON_MIN_VERSION:
+            os.environ["WITH_CYTHON"] = "False"
+            return False
+
+    os.environ["WITH_CYTHON"] = "True"
+    return True
+
+
+def fake_cythonize(extensions):
+    """Replace cython files by .c or .cpp files in extension's sources.
+
+    It replaces the *.pyx and *.py source files of the extensions
+    to either *.cpp or *.c source files.
+    No compilation is performed.
+
+    :param iterable extensions: List of extensions to patch.
+    """
+    for ext_module in extensions:
+        new_sources = []
+        for source in ext_module.sources:
+            base, ext = os.path.splitext(source)
+            if ext in ('.pyx', '.py'):
+                if ext_module.language == 'c++':
+                    source = base + '.cpp'
+                else:
+                    source = base + '.c'
+                if not os.path.isfile(source):
+                    raise RuntimeError("Source file not found: %s" % source)
+                new_sources.append(source)
+        ext_module.sources = new_sources
+
+
+if check_cython():
+    # Cythonize extensions
+    from Cython.Build import cythonize
+
+    config.ext_modules = cythonize(
+        config.ext_modules,
+        force=True,
+        compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
+    )
+else:
+    # Do not use Cython but convert source names from .pyx to .c or .cpp
+    fake_cythonize(config.ext_modules)
+
+
+# ##### #
+# setup #
+# ##### #
+
+setup_kwargs = config.todict()
 
 
 install_requires = ["numpy", "h5py"]
