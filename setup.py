@@ -26,6 +26,12 @@ PROJECT = "silx"
 cmdclass = {}
 
 
+# Check if action requires build/install
+DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and
+    ('--help' in sys.argv[1:] or sys.argv[1] in (
+    '--help-commands', 'egg_info', '--version', 'clean', '--name')))
+
+
 def get_version():
     import version
     return version.strictversion
@@ -253,6 +259,9 @@ def check_cython():
     return True
 
 
+USE_CYTHON = check_cython()
+
+
 def fake_cythonize(extensions):
     """Replace cython files by .c or .cpp files in extension's sources.
 
@@ -277,7 +286,7 @@ def fake_cythonize(extensions):
         ext_module.sources = new_sources
 
 
-if check_cython():
+if not DRY_RUN and USE_CYTHON:
     # Cythonize extensions
     from Cython.Build import cythonize
 
