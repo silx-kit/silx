@@ -4,7 +4,6 @@ machine:
 dependencies:
     pre:
         - pip install numpy
-        - pip install os
         - pip install sys
 test:
     post:
