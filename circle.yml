@@ -3,4 +3,4 @@ machine:
     version: 2.7.5
 test:
     post:
-		- python run_test.py
+        - python run_test.py
