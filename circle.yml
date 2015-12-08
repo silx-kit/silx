@@ -6,4 +6,4 @@ dependencies:
         - pip install numpy
 test:
     post:
-        - python run_test.py
+        - python run_tests.py
