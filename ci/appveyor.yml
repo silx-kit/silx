@@ -16,8 +16,7 @@ install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
     # Check that we have the expected version and architecture for Python
-    - "python --version"
-    - "python -c \"print(tuple.__itemsize__*8)\""
+    - "python ci\\info_platform.py"
 
     # Install the build and runtime dependencies of the project
     - "pip install wheel"
