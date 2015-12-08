@@ -1,6 +1,9 @@
 os:
     - Visual Studio 2015
 
+cache:
+    - '%LOCALAPPDATA%\pip\Cache'
+
 # fetch repository as zip archive
 shallow_clone: true
 
@@ -10,21 +13,21 @@ environment:
 
     matrix:
         # Python 3.5
-        - PYTHON_DIR: "C:\\Python35-x64"
+        # - PYTHON_DIR: "C:\\Python35-x64"
 
         # Python 3.4
         - PYTHON_DIR: "C:\\Python34-x64"
           WIN_SDK_VERSION: "v7.1"
 
-    # Python 2.7
+        # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
           WIN_SDK_VERSION: "v7.0"
 
 install:
     # Windows SDK setup
-    - "echo Configuring Windows SDK %WIN_SDK_VERSION% on a 64 bit architecture"
-    - "if defined %WIN_SDK_VERSION% call \"%WIN_SDK_ROOT%\\%WIN_SDK_VERSION%\\Setup\\WindowsSdkVer.exe -q -version:%WIN_SDK_VERSION%\""
-    - "if defined %WIN_SDK_VERSION% call \"%WIN_SDK_ROOT%\\%WINDOWS_SDK_VERSION%\\Bin\\SetEnv.cmd /x64 /release\""
+    - "if defined WIN_SDK_VERSION echo Configuring Windows SDK %WIN_SDK_VERSION% on a 64 bits architecture"
+    - "if defined WIN_SDK_VERSION \"%WIN_SDK_ROOT%\\%WIN_SDK_VERSION%\\Setup\\WindowsSdkVer.exe -q -version:%WIN_SDK_VERSION%\""
+    - "if defined WIN_SDK_VERSION \"%WIN_SDK_ROOT%\\%WINDOWS_SDK_VERSION%\\Bin\\SetEnv.cmd /x64 /release\""
 
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
