@@ -8,10 +8,6 @@ environment:
     # Python directory
     PYTHON_DIR: "C:\\Python35-x64"
 
-cache:
-    # Use appveyor cache for wheels
-    - '%CSIDL_LOCAL_APPDATA%\pip\Cache'
-
 install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
