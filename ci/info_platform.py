@@ -18,12 +18,7 @@ try:
     from distutils.sysconfig import get_config_vars
 except ImportError:
     from sysconfig import get_config_vars
-
-config = get_config_vars("CONFIG_ARGS")
-if config is not None:
-    print("Config: " + " ".join(config))
-else:
-    print("Config: None")
+print("Config: " + str(get_config_vars("CONFIG_ARGS")))
 print("")
 
 try:
