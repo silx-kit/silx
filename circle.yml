@@ -5,6 +5,7 @@ dependencies:
     pre:
         - pip install numpy
         - pip install cython
+        - pip install importlib
 test:
     post:
         - python run_tests.py
