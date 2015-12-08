@@ -5,8 +5,11 @@ machine:
 # silx dependencies for build and test
 dependencies:
     pre:
-        - pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython h5py
+        - pip install numpy
+        - pip install cython
+        - pip install h5py
         - pip install wheel
+        - pip freeze
         - pip freeze
 # test to rrun
 test:
