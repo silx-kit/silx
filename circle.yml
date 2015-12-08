@@ -1,11 +1,14 @@
+# machine configuration
 machine:
   python:
     version: 2.7.5
+# silx dependencies for build and test
 dependencies:
     pre:
-        - pip install numpy
-        - pip install cython
-        - pip install importlib
+        - pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython h5py
+        - pip install wheel
+        - pip freeze
+# test to rrun
 test:
     override:
         - python run_tests.py
