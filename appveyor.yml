@@ -21,7 +21,6 @@ install:
 
     # Install the build and runtime dependencies of the project
     - "pip install wheel"
-    - "pip install --trusted-host pypi.anaconda.org -i https://pypi.anaconda.org/carlkl/simple numpy"
     - "pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython"
     - "python setup.py build --no-openmp"
     - "python setup.py bdist_wheel bdist_msi"
@@ -29,6 +28,9 @@ install:
 
     # Install the generated wheel package to test it
     - "pip install --pre --no-index --find-links dist/ silx"
+
+    # Print out installed packages
+    - "pip freeze"
 
 # Not a .NET project, build is done in the install step instead
 build: false
