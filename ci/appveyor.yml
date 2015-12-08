@@ -1,14 +1,33 @@
-# Special OS for MSVC 2015
-os: Visual Studio 2015
-
 # fetch repository as zip archive
 shallow_clone: true
 
 environment:
-    # Python directory
-    PYTHON_DIR: "C:\\Python35-x64"
+    WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
+
+matrix:
+    # Python 3.5
+    - os: Visual Studio 2015
+      environment:
+          PYTHON_DIR: "C:\\Python35-x64"
+
+    # Python 3.4
+    - os: Windows Server 2012 R2
+      environment:
+          PYTHON_DIR: "C:\\Python34-x64"
+          WIN_SDK_VERSION: "v7.1"
+
+    # Python 2.7
+    - os: Windows Server 2012 R2
+      environment:
+          PYTHON_DIR: "C:\Python27-x64"
+          WIN_SDK_VERSION: "v7.0"
 
 install:
+    # Windows SDK setup
+    - "echo Configuring Windows SDK %WIN_SDK_VERSION% on a 64 bit architecture"
+    - "if defined %WIN_SDK_VERSION% %WIN_SDK_ROOT%\%WIN_SDK_VERSION%\Setup\WindowsSdkVer.exe -q -version:%WIN_SDK_VERSION%"
+    - "if defined %WIN_SDK_VERSION% %WIN_SDK_ROOT%\%WINDOWS_SDK_VERSION%\Bin\SetEnv.cmd /x64 /release"
+
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
     # Install the build and runtime dependencies of the project
