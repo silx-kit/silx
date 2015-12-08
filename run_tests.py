@@ -137,7 +137,7 @@ def get_project_name(root_dir):
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
     name, stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s" % p.returncode)
-    return name.split()[-1].strip()
+    return name.split()[-1].decode('ascii')
 
 
 def build_project(name, root_dir):
