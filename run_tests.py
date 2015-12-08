@@ -12,16 +12,14 @@ __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
 __date__ = "01/12/2015"
 __license__ = "MIT"
 
-import distutils
+import distutils.util
 import importlib
 import logging
 import os
-import resource
 import subprocess
 import sys
 import time
 import unittest
-import silx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -29,6 +27,12 @@ logger.setLevel(logging.INFO)
 
 
 logger.info("Python %s %s" % (sys.version, tuple.__itemsize__ * 8))
+
+try:
+    import resource
+except ImportError:
+    resource = None
+    logger.warning("resource module missing")
 
 try:
     import numpy
@@ -133,7 +137,7 @@ def get_project_name(root_dir):
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
     name, stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s" % p.returncode)
-    return name.strip()
+    return name.split()[-1].decode('ascii')
 
 
 def build_project(name, root_dir):

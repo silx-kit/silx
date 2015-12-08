@@ -1,34 +1,43 @@
-# Special OS for MSVC 2015
-os: Visual Studio 2015
+os:
+    - Visual Studio 2015
+
+cache:
+    - '%LOCALAPPDATA%\pip\Cache'
 
 # fetch repository as zip archive
 shallow_clone: true
 
 environment:
-    # Python directory
-    PYTHON_DIR: "C:\\Python35-x64"
+    global:
+        WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
 
-cache:
-    # Use appveyor cache for wheels
-    - '%APPDATA%\pip\Cache'
+    matrix:
+        # Python 3.5
+        - PYTHON_DIR: "C:\\Python35-x64"
+
+        # Python 2.7
+        - PYTHON_DIR: "C:\\Python27-x64"
 
 install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
-    # Check that we have the expected version and architecture for Python
-    - "python --version"
-    - "python -c \"print(tuple.__itemsize__*8)\""
-
     # Install the build and runtime dependencies of the project
     - "pip install wheel"
-    - "pip install --trusted-host pypi.anaconda.org -i https://pypi.anaconda.org/carlkl/simple numpy"
-    - "pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython"
+    - "pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython h5py"
+
+    # Print Python info
+    - "python ci\\info_platform.py"
+    - "pip freeze"
+
+    # Build
     - "python setup.py build --no-openmp"
     - "python setup.py bdist_wheel bdist_msi"
     - ps: "ls dist"
 
     # Install the generated wheel package to test it
     - "pip install --pre --no-index --find-links dist/ silx"
+    - "pip freeze"
+
 
 # Not a .NET project, build is done in the install step instead
 build: false
