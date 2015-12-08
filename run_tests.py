@@ -21,7 +21,7 @@ import subprocess
 import sys
 import time
 import unittest
-
+import silx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -234,7 +234,8 @@ if options.insource:
     sys.path.insert(0, build_dir)
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
     print("try to import " + PROJECT_NAME)
-    module = importlib.import_module(PROJECT_NAME)
+    # module = importlib.import_module(PROJECT_NAME)
+    # module = importlib.import_module(silx)
 
 
 PROJECT_VERSION = getattr(module, 'version', '')
