@@ -4,7 +4,7 @@ machine:
 dependencies:
     pre:
         - pip install numpy
-        - pip install sys
+        - pip install cython
 test:
     post:
         - python run_tests.py
