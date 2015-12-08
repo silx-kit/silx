@@ -15,12 +15,14 @@ cache:
 install:
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
-    # Check that we have the expected version and architecture for Python
-    - "python ci\\info_platform.py"
-
     # Install the build and runtime dependencies of the project
     - "pip install wheel"
     - "pip install --trusted-host www.edna-site.org -f http://www.edna-site.org/pub/wheelhouse numpy cython"
+
+    # Print Python info
+    - "python ci\\info_platform.py"
+    - "pip freeze"
+
     - "python setup.py build --no-openmp"
     - "python setup.py bdist_wheel bdist_msi"
     - ps: "ls dist"
@@ -28,8 +30,6 @@ install:
     # Install the generated wheel package to test it
     - "pip install --pre --no-index --find-links dist/ silx"
 
-    # Print out installed packages
-    - "pip freeze"
 
 # Not a .NET project, build is done in the install step instead
 build: false
