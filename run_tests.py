@@ -237,9 +237,7 @@ if options.insource:
 
     sys.path.insert(0, build_dir)
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
-    print("try to import " + PROJECT_NAME)
-    # TODO : next line is an issue for CircleCI. If removed. Pass the test ok. Otherwise fail.
-    # module = importlib.import_module(PROJECT_NAME)
+    module = importlib.import_module(PROJECT_NAME)
 
 
 PROJECT_VERSION = getattr(module, 'version', '')
