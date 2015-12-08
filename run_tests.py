@@ -16,12 +16,10 @@ import distutils
 import importlib
 import logging
 import os
-import resource
 import subprocess
 import sys
 import time
 import unittest
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -29,6 +27,12 @@ logger.setLevel(logging.INFO)
 
 
 logger.info("Python %s %s" % (sys.version, tuple.__itemsize__ * 8))
+
+try:
+    import resource
+except ImportError:
+    resource = None
+    logger.warning("resource module missing")
 
 try:
     import numpy
