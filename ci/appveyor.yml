@@ -1,25 +1,23 @@
+os:
+    - Visual Studio 2015
+    - Windows Server 2012 R2
+
 # fetch repository as zip archive
 shallow_clone: true
 
 environment:
     WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
 
-matrix:
-    # Python 3.5
-    - os: Visual Studio 2015
-      environment:
-          PYTHON_DIR: "C:\\Python35-x64"
+    matrix:
+        # Python 3.5
+        - PYTHON_DIR: "C:\\Python35-x64"
 
-    # Python 3.4
-    - os: Windows Server 2012 R2
-      environment:
-          PYTHON_DIR: "C:\\Python34-x64"
+        # Python 3.4
+        - PYTHON_DIR: "C:\\Python34-x64"
           WIN_SDK_VERSION: "v7.1"
 
     # Python 2.7
-    - os: Windows Server 2012 R2
-      environment:
-          PYTHON_DIR: "C:\Python27-x64"
+        - PYTHON_DIR: "C:\\Python27-x64"
           WIN_SDK_VERSION: "v7.0"
 
 install:
