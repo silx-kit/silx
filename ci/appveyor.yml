@@ -1,12 +1,12 @@
 os:
     - Visual Studio 2015
-    - Windows Server 2012 R2
 
 # fetch repository as zip archive
 shallow_clone: true
 
 environment:
-    WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
+    global:
+        WIN_SDK_ROOT: "C:\\Program Files\\Microsoft SDKs\\Windows"
 
     matrix:
         # Python 3.5
@@ -23,8 +23,8 @@ environment:
 install:
     # Windows SDK setup
     - "echo Configuring Windows SDK %WIN_SDK_VERSION% on a 64 bit architecture"
-    - "if defined %WIN_SDK_VERSION% %WIN_SDK_ROOT%\\%WIN_SDK_VERSION%\\Setup\\WindowsSdkVer.exe -q -version:%WIN_SDK_VERSION%"
-    - "if defined %WIN_SDK_VERSION% %WIN_SDK_ROOT%\\%WINDOWS_SDK_VERSION%\\Bin\\SetEnv.cmd /x64 /release"
+    - "if defined %WIN_SDK_VERSION% call \"%WIN_SDK_ROOT%\\%WIN_SDK_VERSION%\\Setup\\WindowsSdkVer.exe -q -version:%WIN_SDK_VERSION%\""
+    - "if defined %WIN_SDK_VERSION% call \"%WIN_SDK_ROOT%\\%WINDOWS_SDK_VERSION%\\Bin\\SetEnv.cmd /x64 /release\""
 
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
