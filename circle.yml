@@ -1,6 +1,9 @@
 machine:
   python:
     version: 2.7.5
+dependencies:
+    pre:
+        - pip install numpy
 test:
     post:
         - python run_test.py
