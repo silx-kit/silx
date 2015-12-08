@@ -12,7 +12,7 @@ __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
 __date__ = "01/12/2015"
 __license__ = "MIT"
 
-import distutils
+import distutils.util
 import importlib
 import logging
 import os

@@ -29,6 +29,7 @@ install:
 
     # Install the generated wheel package to test it
     - "pip install --pre --no-index --find-links dist/ silx"
+    - "pip freeze"
 
 
 # Not a .NET project, build is done in the install step instead
