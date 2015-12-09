@@ -1,12 +1,8 @@
 os:
-    - linux
+    #- linux
     - osx
 
-matrix:
-    allow_failures:
-        - os: osx
-
-language: python
+#language: python
 #python:
 #    - "2.7"
 #    - "3.4"
