@@ -20,8 +20,17 @@ environment:
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
 
+init:
+    # Log pip cache
+    - ps: "ls %LOCALAPPDATA%\pip\Cache"
+
 install:
+    # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
+
+    # Upgrade distribution modules and install virtualenv
+    - "pip install --upgrade setuptools"
+    - "pip install --upgrade pip"
     - "pip install virtualenv"
     - "virtualenv --version"
 
@@ -31,9 +40,8 @@ build_script:
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
     # Install build dependencies
-    - "pip install --upgrade setuptools"
-    - "pip install --upgrade wheel pip"
-    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython h5py"
+    - "pip install wheel"
+    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
 
     # Print Python info
     - "python ci\\info_platform.py"
@@ -48,12 +56,12 @@ build_script:
     - "rmdir %VENV_BUILD_DIR% /s /q"
 
 test_script:
-    # Create build virtualenv
+    # Create test virtualenv
     - "virtualenv --clear %VENV_TEST_DIR%"
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # Install the generated wheel package to test it
-    - "pip install --pre --no-index --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
+    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
 
     # Print Python info
     - "python ci\\info_platform.py"
@@ -61,9 +69,12 @@ test_script:
 
     - "python run_tests.py"
 
-    # Leave build virtualenv
+    # Leave test virtualenv
     - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"
     - "rmdir %VENV_TEST_DIR% /s /q"
+
+    # Log pip cache
+    - ps: "ls %LOCALAPPDATA%\pip\Cache"
 
 artifacts:
     # Archive the generated wheel package in the ci.appveyor.com build report.
