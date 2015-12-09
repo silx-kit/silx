@@ -1,12 +1,12 @@
 os:
     - linux
-    - osx
+    #- osx
 
-#language: python
-#python:
-#    - "2.7"
-#    - "3.4"
-#    - "3.5"
+language: python
+python:
+    - "2.7"
+    - "3.4"
+    - "3.5"
 
 cache:
     apt: true
@@ -21,8 +21,8 @@ addons:
 
 install:
     # Upgrade distribution modules
-    #- "pip install --upgrade setuptools"
-    #- "pip install --upgrade pip"
+    - "pip install --upgrade setuptools"
+    - "pip install --upgrade pip"
 
     # Install build dependencies
     - "pip install wheel --user"
