@@ -20,10 +20,6 @@ environment:
         # Python 2.7
         - PYTHON_DIR: "C:\\Python27-x64"
 
-init:
-    # Log pip cache
-    - ps: "ls %LOCALAPPDATA%\pip\Cache"
-
 install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
@@ -72,9 +68,6 @@ test_script:
     # Leave test virtualenv
     - "%VENV_TEST_DIR%\\Scripts\\deactivate.bat"
     - "rmdir %VENV_TEST_DIR% /s /q"
-
-    # Log pip cache
-    - ps: "ls %LOCALAPPDATA%\pip\Cache"
 
 artifacts:
     # Archive the generated wheel package in the ci.appveyor.com build report.
