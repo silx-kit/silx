@@ -10,8 +10,8 @@ dependencies:
         - pip install h5py
         - pip install wheel
         - pip freeze
-        - pip freeze
-# test to rrun
+# test to run
 test:
     override:
+        - python ci/info_platform.py
         - python run_tests.py
