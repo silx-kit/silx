@@ -1,0 +1,47 @@
+os:
+    - linux
+    - osx
+
+matrix:
+    allow_failures:
+        - os: osx
+
+language: python
+python:
+    - "2.7"
+    - "3.4"
+    - "3.5"
+
+addons:
+    apt:
+        packages:
+            - libhdf5-serial-1.8.4
+            - libhdf5-serial-dev
+
+install:
+    # Upgrade distribution modules
+    - "pip install --upgrade setuptools"
+    - "pip install --upgrade pip"
+
+    # Install build dependencies
+    - "pip install wheel"
+    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
+
+    # Print Python info
+    - "python ci/info_platform.py"
+    - "pip freeze"
+
+    # Build
+    - "python setup.py bdist_wheel"
+    - "ls dist"
+
+    # Install generated wheel
+    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
+
+script:
+    # Print Python info
+    - "python ci/info_platform.py"
+    - "pip freeze"
+
+    # Run the tests
+    - "python run_tests.py"
