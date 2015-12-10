@@ -25,8 +25,8 @@ install:
     - "pip install --upgrade pip"
 
     # Install build dependencies
-    - "pip install wheel --user"
-    - "pip install --user --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
+    - "pip install wheel"
+    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
 
     # Print Python info
     - "python ci/info_platform.py"
@@ -37,7 +37,7 @@ install:
     - "ls dist"
 
     # Install generated wheel
-    - "pip install --user --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
+    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
 
 script:
     # Print Python info
