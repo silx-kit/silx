@@ -9,17 +9,24 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "01/12/2015"
+__date__ = "07/01/2016"
 __license__ = "MIT"
 
 import distutils.util
-import importlib
 import logging
 import os
 import subprocess
 import sys
 import time
 import unittest
+
+try:
+    import importlib
+except:
+    importer = __import__
+else:
+    importer = importlib.import_module
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -48,7 +55,6 @@ except Exception as error:
     logger.warning("h5py missing: %s" % error)
 else:
     logger.info("h5py %s" % h5py.version.version)
-
 
 
 class TestResult(unittest.TestResult):
@@ -92,7 +98,6 @@ def report_rst(cov, package, version="0.0.0"):
     xml = etree.parse(fn)
     classes = xml.xpath("//class")
 
-    import time
     line0 = "Test coverage report for %s" % package
     res = [line0, "=" * len(line0), ""]
     res.append("Measured on *%s* version %s, %s" % (package, version, time.strftime("%d/%m/%Y")))
@@ -225,7 +230,7 @@ if (os.path.dirname(os.path.abspath(__file__)) ==
 # import module
 if not options.insource:
     try:
-        module = importlib.import_module(PROJECT_NAME)
+        module = importer(PROJECT_NAME)
     except:
         logger.warning(
             "%s missing, using built (i.e. not installed) version" % \
@@ -237,7 +242,7 @@ if options.insource:
 
     sys.path.insert(0, build_dir)
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
-    module = importlib.import_module(PROJECT_NAME)
+    module = importer(PROJECT_NAME)
 
 
 PROJECT_VERSION = getattr(module, 'version', '')
