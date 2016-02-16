@@ -1,8 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2016 European Synchrotron Radiation Facility, Grenoble, France
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +20,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-#from PyMca5.PyMcaIO.specfilewrapper import Specfile
-
-# General comment: our scan indices go from 0 to N-1 while the C SpecFile 
-# library expects indices between 1 and N. 
-
-__author__ = "P. Knobel - ESRF Data Analysis"
-__contact__ = "pierre.knobel@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
+"""
 This module is a cython binding to wrap the C-library SpecFile.
 
 Classes
@@ -41,6 +29,14 @@ Classes
 - :class:`SpecFile`
 - :class:`Scan`
 """
+
+# General comment: our scan indices go from 0 to N-1 while the C SpecFile 
+# library expects indices between 1 and N. 
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "16/02/2016" 
+
 
 # TODO: 
 # - MCA

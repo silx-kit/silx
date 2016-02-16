@@ -231,8 +231,8 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__silx__io__specfile__specfile
-#define __PYX_HAVE_API__silx__io__specfile__specfile
+#define __PYX_HAVE__specfile
+#define __PYX_HAVE_API__specfile
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -442,7 +442,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "silx/io/specfile/specfile.pyx",
+  "specfile.pyx",
   "__init__.pxd",
   "type.pxd",
 };
@@ -657,7 +657,7 @@ typedef npy_longdouble __pyx_t_5numpy_longdouble_t;
 
 
 /*--- Type declarations ---*/
-struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile;
+struct __pyx_obj_8specfile_SpecFile;
 
 /* "../../../../usr/lib/python2.7/dist-packages/Cython/Includes/numpy/__init__.pxd":762
  * ctypedef npy_longdouble longdouble_t
@@ -702,18 +702,18 @@ typedef npy_cdouble __pyx_t_5numpy_complex_t;
  * 
  * cdef extern from "SpecFileCython.h":
  */
-typedef struct _SpecFile __pyx_t_4silx_2io_8specfile_12specfile_pxd_SpecFileHandle;
+typedef struct _SpecFile __pyx_t_12specfile_pxd_SpecFileHandle;
 
-/* "silx/io/specfile/specfile.pyx":207
+/* "specfile.pyx":211
  * 
  * 
  * cdef class SpecFile(object):             # <<<<<<<<<<<<<<
  *     '''
  *     Class wrapping the C SpecFile library.
  */
-struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile {
+struct __pyx_obj_8specfile_SpecFile {
   PyObject_HEAD
-  __pyx_t_4silx_2io_8specfile_12specfile_pxd_SpecFileHandle *handle;
+  __pyx_t_12specfile_pxd_SpecFileHandle *handle;
   PyObject *filename;
   int __pyx___open_failed;
   int iter_counter;
@@ -1127,14 +1127,14 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, cha
 
 /* Module declarations from 'cython' */
 
-/* Module declarations from 'silx.io.specfile.specfile_pxd' */
+/* Module declarations from 'specfile_pxd' */
 
-/* Module declarations from 'silx.io.specfile.specfile' */
-static PyTypeObject *__pyx_ptype_4silx_2io_8specfile_8specfile_SpecFile = 0;
-#define __Pyx_MODULE_NAME "silx.io.specfile.specfile"
-int __pyx_module_is_main_silx__io__specfile__specfile = 0;
+/* Module declarations from 'specfile' */
+static PyTypeObject *__pyx_ptype_8specfile_SpecFile = 0;
+#define __Pyx_MODULE_NAME "specfile"
+int __pyx_module_is_main_specfile = 0;
 
-/* Implementation of 'silx.io.specfile.specfile' */
+/* Implementation of 'specfile' */
 static PyObject *__pyx_builtin_object;
 static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_IndexError;
@@ -1146,36 +1146,36 @@ static PyObject *__pyx_builtin_map;
 static PyObject *__pyx_builtin_KeyError;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_RuntimeError;
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_msg); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_specfile, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_file_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_line_index); /* proto */
-static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename); /* proto */
-static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename); /* proto */
-static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self); /* proto */
-static Py_ssize_t __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_string(CYTHON_UNUSED struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_error(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_number, PyObject *__pyx_v_scan_order); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_key); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_names(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_positions(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_debug_msg(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_msg); /* proto */
+static PyObject *__pyx_pf_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_specfile, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_4Scan_2record_exists_in_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record); /* proto */
+static PyObject *__pyx_pf_8specfile_4Scan_4record_exists_in_file_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record); /* proto */
+static PyObject *__pyx_pf_8specfile_4Scan_6data_line(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_line_index); /* proto */
+static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename); /* proto */
+static int __pyx_pf_8specfile_8SpecFile_2__init__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename); /* proto */
+static void __pyx_pf_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self); /* proto */
+static Py_ssize_t __pyx_pf_8specfile_8SpecFile_6__len__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_8__iter__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_10__next__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_12_get_error_string(CYTHON_UNUSED struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_14_handle_error(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_16index(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_number, PyObject *__pyx_v_scan_order); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_18number(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_20order(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_22list(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_24__getitem__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_key); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_26data(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_28scan_header(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_30file_header(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_32columns(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_34command(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_36date(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_38labels(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_40all_motor_names(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
+static PyObject *__pyx_pf_8specfile_8SpecFile_42all_motor_positions(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
-static PyObject *__pyx_tp_new_4silx_2io_8specfile_8specfile_SpecFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_8specfile_SpecFile(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static char __pyx_k_B[] = "B";
 static char __pyx_k_H[] = "H";
 static char __pyx_k_I[] = "I";
@@ -1206,6 +1206,7 @@ static char __pyx_k_map[] = "map";
 static char __pyx_k_msg[] = "msg";
 static char __pyx_k_Scan[] = "Scan";
 static char __pyx_k_data[] = "data";
+static char __pyx_k_date[] = "__date__";
 static char __pyx_k_file[] = "file";
 static char __pyx_k_hkey[] = "hkey";
 static char __pyx_k_init[] = "__init__";
@@ -1227,7 +1228,6 @@ static char __pyx_k_shape[] = "shape";
 static char __pyx_k_split[] = "split";
 static char __pyx_k_strip[] = "strip";
 static char __pyx_k_utf_8[] = "utf-8)";
-static char __pyx_k_author[] = "__author__";
 static char __pyx_k_double[] = "double";
 static char __pyx_k_encode[] = "encode";
 static char __pyx_k_hvalue[] = "hvalue";
@@ -1242,22 +1242,23 @@ static char __pyx_k_object[] = "object";
 static char __pyx_k_record[] = "record";
 static char __pyx_k_search[] = "search";
 static char __pyx_k_IOError[] = "IOError";
-static char __pyx_k_contact[] = "__contact__";
+static char __pyx_k_authors[] = "__authors__";
 static char __pyx_k_license[] = "__license__";
 static char __pyx_k_os_path[] = "os.path";
 static char __pyx_k_prepare[] = "__prepare__";
 static char __pyx_k_utf_8_2[] = "utf-8";
 static char __pyx_k_KeyError[] = "KeyError";
+static char __pyx_k_P_Knobel[] = "P. Knobel";
 static char __pyx_k_filename[] = "filename";
 static char __pyx_k_ncolumns[] = "ncolumns";
 static char __pyx_k_qualname[] = "__qualname__";
 static char __pyx_k_specfile[] = "specfile";
 static char __pyx_k_TypeError[] = "TypeError";
-static char __pyx_k_copyright[] = "__copyright__";
 static char __pyx_k_data_line[] = "data_line";
 static char __pyx_k_debug_msg[] = "debug_msg";
 static char __pyx_k_debugging[] = "debugging";
 static char __pyx_k_metaclass[] = "__metaclass__";
+static char __pyx_k_16_02_2016[] = "16/02/2016";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_line_index[] = "line_index";
@@ -1298,34 +1299,30 @@ static char __pyx_k_record_exists_in_hdr[] = "record_exists_in_hdr";
 static char __pyx_k_SF_ERR_LINE_NOT_FOUND[] = "SF_ERR_LINE_NOT_FOUND";
 static char __pyx_k_SF_ERR_SCAN_NOT_FOUND[] = "SF_ERR_SCAN_NOT_FOUND";
 static char __pyx_k_SF_ERR_USER_NOT_FOUND[] = "SF_ERR_USER_NOT_FOUND";
-static char __pyx_k_pierre_knobel_esrf_fr[] = "pierre.knobel@esrf.fr";
 static char __pyx_k_SF_ERR_LABEL_NOT_FOUND[] = "SF_ERR_LABEL_NOT_FOUND";
 static char __pyx_k_SF_ERR_MOTOR_NOT_FOUND[] = "SF_ERR_MOTOR_NOT_FOUND";
 static char __pyx_k_SF_ERR_HEADER_NOT_FOUND[] = "SF_ERR_HEADER_NOT_FOUND";
 static char __pyx_k_SF_ERR_POSITION_NOT_FOUND[] = "SF_ERR_POSITION_NOT_FOUND";
 static char __pyx_k_Scan_record_exists_in_hdr[] = "Scan.record_exists_in_hdr";
 static char __pyx_k_record_exists_in_file_hdr[] = "record_exists_in_file_hdr";
-static char __pyx_k_silx_io_specfile_specfile[] = "silx.io.specfile.specfile";
-static char __pyx_k_P_Knobel_ESRF_Data_Analysis[] = "P. Knobel - ESRF Data Analysis";
 static char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static char __pyx_k_number_and_M_the_order_eg_2_3[] = "number and M the order (eg '2.3')";
 static char __pyx_k_Scan_record_exists_in_file_hdr[] = "Scan.record_exists_in_file_hdr";
 static char __pyx_k_Scan_index_must_be_in_range_0_d[] = "Scan index must be in range 0-%d";
-static char __pyx_k_SpecFile_scan_param_specfile_Pa[] = "\n    SpecFile scan\n\n    :param specfile: Parent SpecFile from which this scan is extracted.\n    :type specfile: :class:SpecFile\n    :param scan_index: Unique index defining the scan in the SpecFile\n    :type scan_index: int\n    ";
+static char __pyx_k_SpecFile_scan_ivar_index_Unique[] = "\n    SpecFile scan\n\n\n\n    :ivar index: Unique scan index 0 - len(specfile)-1\n    :ivar data: Numpy array with actual scan data and the usual nmupy\n        attributes (e.g. data.shape)\n    :ivar header_lines: List of raw header lines, including the leading \"#L\"\n    :ivar header_dict: Dictionary of header strings, keys without leading \"#\"\n    :ivar file_header_lines: List of raw file header lines relevant to this\n        scan, including the leading \"#L\"\n    :ivar file_header_dict: Dictionary of file header strings, keys without\n        leading \"#\"\n\n    :param specfile: Parent SpecFile from which this scan is extracted.\n    :type specfile: :class:SpecFile\n    :param scan_index: Unique index defining the scan in the SpecFile\n    :type scan_index: int\n    ";
 static char __pyx_k_The_scan_identification_key_can[] = "The scan identification key can be an integer representing ";
 static char __pyx_k_This_module_is_a_cython_binding[] = "\nThis module is a cython binding to wrap the C-library SpecFile.\n\nClasses\n=======\n\n- :class:`SpecFile`\n- :class:`Scan`\n";
 static char __pyx_k_home_knobel_workspace_silx_silx[] = "/home/knobel/workspace/silx/silx/io/specfile/specfile.pyx";
 static char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
-static char __pyx_k_European_Synchrotron_Radiation_F[] = "European Synchrotron Radiation Facility, Grenoble, France";
 static char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
 static char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
 static char __pyx_k_Warning_unable_to_parse_file_hea[] = "Warning: unable to parse file header line ";
 static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static char __pyx_k_the_unique_scan_index_or_a_strin[] = "the unique scan index or a string 'N.M' with N being the scan";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
+static PyObject *__pyx_kp_s_16_02_2016;
 static PyObject *__pyx_kp_s_Debug_message;
 static PyObject *__pyx_kp_s_Error_while_closing;
-static PyObject *__pyx_kp_s_European_Synchrotron_Radiation_F;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_n_s_IOError;
@@ -1335,7 +1332,7 @@ static PyObject *__pyx_n_s_L;
 static PyObject *__pyx_n_s_MIT;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
-static PyObject *__pyx_kp_s_P_Knobel_ESRF_Data_Analysis;
+static PyObject *__pyx_kp_s_P_Knobel;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_SF_ERR_COL_NOT_FOUND;
 static PyObject *__pyx_n_s_SF_ERR_FILE_CLOSE;
@@ -1359,10 +1356,9 @@ static PyObject *__pyx_n_s_Scan_data_line;
 static PyObject *__pyx_kp_s_Scan_index_must_be_in_range_0_d;
 static PyObject *__pyx_n_s_Scan_record_exists_in_file_hdr;
 static PyObject *__pyx_n_s_Scan_record_exists_in_hdr;
-static PyObject *__pyx_kp_s_SpecFile_scan_param_specfile_Pa;
+static PyObject *__pyx_kp_s_SpecFile_scan_ivar_index_Unique;
 static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_kp_s_The_scan_identification_key_can;
-static PyObject *__pyx_kp_s_This_module_is_a_cython_binding;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_kp_s_Warning_unable_to_parse_file_hea;
@@ -1370,11 +1366,10 @@ static PyObject *__pyx_kp_s__11;
 static PyObject *__pyx_kp_s__3;
 static PyObject *__pyx_n_s_all_motor_names;
 static PyObject *__pyx_n_s_all_motor_positions;
-static PyObject *__pyx_n_s_author;
-static PyObject *__pyx_n_s_contact;
-static PyObject *__pyx_n_s_copyright;
+static PyObject *__pyx_n_s_authors;
 static PyObject *__pyx_n_s_data;
 static PyObject *__pyx_n_s_data_line;
+static PyObject *__pyx_n_s_date;
 static PyObject *__pyx_n_s_debug_msg;
 static PyObject *__pyx_n_s_debugging;
 static PyObject *__pyx_n_s_doc;
@@ -1425,7 +1420,6 @@ static PyObject *__pyx_n_s_order;
 static PyObject *__pyx_n_s_os;
 static PyObject *__pyx_n_s_os_path;
 static PyObject *__pyx_n_s_path;
-static PyObject *__pyx_kp_s_pierre_knobel_esrf_fr;
 static PyObject *__pyx_n_s_prepare;
 static PyObject *__pyx_n_s_print;
 static PyObject *__pyx_n_s_qualname;
@@ -1441,7 +1435,6 @@ static PyObject *__pyx_n_s_scan_order;
 static PyObject *__pyx_n_s_search;
 static PyObject *__pyx_n_s_self;
 static PyObject *__pyx_n_s_shape;
-static PyObject *__pyx_n_s_silx_io_specfile_specfile;
 static PyObject *__pyx_n_s_specfile;
 static PyObject *__pyx_n_s_specfile_2;
 static PyObject *__pyx_n_s_split;
@@ -1503,7 +1496,7 @@ static PyObject *__pyx_codeobj__31;
 static PyObject *__pyx_codeobj__33;
 static PyObject *__pyx_codeobj__35;
 
-/* "silx/io/specfile/specfile.pyx":64
+/* "specfile.pyx":60
  * debugging = True
  * 
  * def debug_msg(msg):             # <<<<<<<<<<<<<<
@@ -1512,20 +1505,20 @@ static PyObject *__pyx_codeobj__35;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_1debug_msg(PyObject *__pyx_self, PyObject *__pyx_v_msg); /*proto*/
-static PyMethodDef __pyx_mdef_4silx_2io_8specfile_8specfile_1debug_msg = {"debug_msg", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_1debug_msg, METH_O, 0};
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_1debug_msg(PyObject *__pyx_self, PyObject *__pyx_v_msg) {
+static PyObject *__pyx_pw_8specfile_1debug_msg(PyObject *__pyx_self, PyObject *__pyx_v_msg); /*proto*/
+static PyMethodDef __pyx_mdef_8specfile_1debug_msg = {"debug_msg", (PyCFunction)__pyx_pw_8specfile_1debug_msg, METH_O, 0};
+static PyObject *__pyx_pw_8specfile_1debug_msg(PyObject *__pyx_self, PyObject *__pyx_v_msg) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("debug_msg (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(__pyx_self, ((PyObject *)__pyx_v_msg));
+  __pyx_r = __pyx_pf_8specfile_debug_msg(__pyx_self, ((PyObject *)__pyx_v_msg));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_msg) {
+static PyObject *__pyx_pf_8specfile_debug_msg(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_msg) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1536,44 +1529,44 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(CYTHON_UNUSED 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("debug_msg", 0);
 
-  /* "silx/io/specfile/specfile.pyx":65
+  /* "specfile.pyx":61
  * 
  * def debug_msg(msg):
  *     if debugging:             # <<<<<<<<<<<<<<
  *         print("Debug message:" + str(msg))
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_debugging); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_debugging); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 61; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "silx/io/specfile/specfile.pyx":66
+    /* "specfile.pyx":62
  * def debug_msg(msg):
  *     if debugging:
  *         print("Debug message:" + str(msg))             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_msg);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_msg);
     __Pyx_GIVEREF(__pyx_v_msg);
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyNumber_Add(__pyx_kp_s_Debug_message, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyNumber_Add(__pyx_kp_s_Debug_message, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (__Pyx_PrintOne(0, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (__Pyx_PrintOne(0, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":64
+  /* "specfile.pyx":60
  * debugging = True
  * 
  * def debug_msg(msg):             # <<<<<<<<<<<<<<
@@ -1587,7 +1580,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(CYTHON_UNUSED 
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.debug_msg", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.debug_msg", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -1595,18 +1588,18 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_debug_msg(CYTHON_UNUSED 
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":95
+/* "specfile.pyx":103
  *     :type scan_index: int
  *     '''
  *     def __init__(self, specfile, scan_index):             # <<<<<<<<<<<<<<
  *         self._specfile = specfile
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_1__init__ = {"__init__", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_1__init__, METH_VARARGS|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8specfile_4Scan_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_8specfile_4Scan_1__init__ = {"__init__", (PyCFunction)__pyx_pw_8specfile_4Scan_1__init__, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_8specfile_4Scan_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_specfile = 0;
   PyObject *__pyx_v_scan_index = 0;
@@ -1637,16 +1630,16 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_1__init__(PyObject
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_specfile)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_scan_index)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -1661,20 +1654,20 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_1__init__(PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(__pyx_self, __pyx_v_self, __pyx_v_specfile, __pyx_v_scan_index);
+  __pyx_r = __pyx_pf_8specfile_4Scan___init__(__pyx_self, __pyx_v_self, __pyx_v_specfile, __pyx_v_scan_index);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_specfile, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_specfile, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_v_line = NULL;
   PyObject *__pyx_v_match = NULL;
   PyObject *__pyx_v_hkey = NULL;
@@ -1696,32 +1689,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":96
+  /* "specfile.pyx":104
  *     '''
  *     def __init__(self, specfile, scan_index):
  *         self._specfile = specfile             # <<<<<<<<<<<<<<
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  *         self.index = scan_index
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2, __pyx_v_specfile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2, __pyx_v_specfile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":98
+  /* "specfile.pyx":106
  *         self._specfile = specfile
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  *         self.index = scan_index             # <<<<<<<<<<<<<<
  *         # number: first value on #S line
  *         self.number = specfile.number(scan_index)
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_index, __pyx_v_scan_index) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_index, __pyx_v_scan_index) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":100
+  /* "specfile.pyx":108
  *         self.index = scan_index
  *         # number: first value on #S line
  *         self.number = specfile.number(scan_index)             # <<<<<<<<<<<<<<
  *         # order can be > 1 if a same number is used mor than once in specfile
  *         self.order = specfile.order(scan_index)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_specfile, __pyx_n_s_number); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_specfile, __pyx_n_s_number); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1734,31 +1727,31 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_scan_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_scan_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_scan_index);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_scan_index);
     __Pyx_GIVEREF(__pyx_v_scan_index);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_number, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_number, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":102
+  /* "specfile.pyx":110
  *         self.number = specfile.number(scan_index)
  *         # order can be > 1 if a same number is used mor than once in specfile
  *         self.order = specfile.order(scan_index)             # <<<<<<<<<<<<<<
  * 
  *         self.data = self._specfile.data(self.index)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_specfile, __pyx_n_s_order); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_specfile, __pyx_n_s_order); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1771,36 +1764,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_scan_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_scan_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_INCREF(__pyx_v_scan_index);
     PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_scan_index);
     __Pyx_GIVEREF(__pyx_v_scan_index);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_order, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_order, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":104
+  /* "specfile.pyx":112
  *         self.order = specfile.order(scan_index)
  * 
  *         self.data = self._specfile.data(self.index)             # <<<<<<<<<<<<<<
- *         self.nlines, self.ncolumns = self.data.shape
  * 
+ *         self.nlines, self.ncolumns = self.data.shape
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_data); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_data); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -1813,34 +1806,34 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_data, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_data, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":105
- * 
+  /* "specfile.pyx":114
  *         self.data = self._specfile.data(self.index)
+ * 
  *         self.nlines, self.ncolumns = self.data.shape             # <<<<<<<<<<<<<<
  * 
  *         self.header_lines = self._specfile.scan_header(self.index)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_shape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_shape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
@@ -1853,7 +1846,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     #if CYTHON_COMPILING_IN_CPYTHON
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -1866,15 +1859,15 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_INCREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_t_5);
     #else
-    __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     #endif
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_2 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_6 = Py_TYPE(__pyx_t_2)->tp_iternext;
@@ -1882,7 +1875,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_GOTREF(__pyx_t_1);
     index = 1; __pyx_t_5 = __pyx_t_6(__pyx_t_2); if (unlikely(!__pyx_t_5)) goto __pyx_L3_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_5);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_2), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_6(__pyx_t_2), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_t_6 = NULL;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     goto __pyx_L4_unpacking_done;
@@ -1890,27 +1883,27 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_6 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_L4_unpacking_done:;
   }
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_nlines, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_nlines, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_ncolumns, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_ncolumns, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":107
+  /* "specfile.pyx":116
  *         self.nlines, self.ncolumns = self.data.shape
  * 
  *         self.header_lines = self._specfile.scan_header(self.index)             # <<<<<<<<<<<<<<
- *         '''List of raw header lines, including the leading "#L"'''
  * 
+ *         if self.record_exists_in_hdr('L'):
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_scan_header); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_scan_header); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_2 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -1923,53 +1916,53 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_header_lines, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_header_lines, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":110
- *         '''List of raw header lines, including the leading "#L"'''
+  /* "specfile.pyx":118
+ *         self.header_lines = self._specfile.scan_header(self.index)
  * 
  *         if self.record_exists_in_hdr('L'):             # <<<<<<<<<<<<<<
  *             self.labels = self._specfile.labels(self.index)
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_record_exists_in_hdr); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_record_exists_in_hdr); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_7) {
 
-    /* "silx/io/specfile/specfile.pyx":111
+    /* "specfile.pyx":119
  * 
  *         if self.record_exists_in_hdr('L'):
  *             self.labels = self._specfile.labels(self.index)             # <<<<<<<<<<<<<<
  * 
  *         self.header_dict = {}
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_labels); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_labels); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -1982,55 +1975,55 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
       PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
       PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_3);
       __Pyx_GIVEREF(__pyx_t_3);
       __pyx_t_3 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_labels, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_labels, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     goto __pyx_L5;
   }
   __pyx_L5:;
 
-  /* "silx/io/specfile/specfile.pyx":113
+  /* "specfile.pyx":121
  *             self.labels = self._specfile.labels(self.index)
  * 
  *         self.header_dict = {}             # <<<<<<<<<<<<<<
- *         '''Dictionary of header strings, keys without leading "#"'''
  *         for line in self.header_lines:
+ *             match = re.search(r"#(\w+) *(.*)", line)
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_header_dict, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_header_dict, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":115
+  /* "specfile.pyx":122
+ * 
  *         self.header_dict = {}
- *         '''Dictionary of header strings, keys without leading "#"'''
  *         for line in self.header_lines:             # <<<<<<<<<<<<<<
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_4 = __pyx_t_1; __Pyx_INCREF(__pyx_t_4); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -2038,16 +2031,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
       if (likely(PyList_CheckExact(__pyx_t_4))) {
         if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
         if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
@@ -2056,7 +2049,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -2065,16 +2058,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":116
- *         '''Dictionary of header strings, keys without leading "#"'''
+    /* "specfile.pyx":123
+ *         self.header_dict = {}
  *         for line in self.header_lines:
  *             match = re.search(r"#(\w+) *(.*)", line)             # <<<<<<<<<<<<<<
  *             if match:
  *                 # header type
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_search); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_search); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_2 = NULL;
@@ -2089,7 +2082,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         __pyx_t_10 = 1;
       }
     }
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_2) {
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
@@ -2100,42 +2093,42 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_INCREF(__pyx_v_line);
     PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_10, __pyx_v_line);
     __Pyx_GIVEREF(__pyx_v_line);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_XDECREF_SET(__pyx_v_match, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":117
+    /* "specfile.pyx":124
  *         for line in self.header_lines:
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:             # <<<<<<<<<<<<<<
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  */
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_v_match); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_v_match); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (__pyx_t_7) {
 
-      /* "silx/io/specfile/specfile.pyx":119
+      /* "specfile.pyx":126
  *             if match:
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()             # <<<<<<<<<<<<<<
  *                 hvalue = match.group(2).strip()
  *                 self.header_dict[hkey] = hvalue
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_lstrip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_lstrip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_5 = NULL;
@@ -2149,29 +2142,29 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_XDECREF_SET(__pyx_v_hkey, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "silx/io/specfile/specfile.pyx":120
+      /* "specfile.pyx":127
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()             # <<<<<<<<<<<<<<
  *                 self.header_dict[hkey] = hvalue
  *             else:
  */
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_5 = NULL;
@@ -2185,48 +2178,48 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_XDECREF_SET(__pyx_v_hvalue, __pyx_t_1);
       __pyx_t_1 = 0;
 
-      /* "silx/io/specfile/specfile.pyx":121
+      /* "specfile.pyx":128
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()
  *                 self.header_dict[hkey] = hvalue             # <<<<<<<<<<<<<<
  *             else:
  *                 # this shouldn't happen
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_dict); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_dict); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      if (unlikely(PyObject_SetItem(__pyx_t_1, __pyx_v_hkey, __pyx_v_hvalue) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(PyObject_SetItem(__pyx_t_1, __pyx_v_hkey, __pyx_v_hvalue) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       goto __pyx_L8;
     }
     /*else*/ {
 
-      /* "silx/io/specfile/specfile.pyx":124
+      /* "specfile.pyx":131
  *             else:
  *                 # this shouldn't happen
  *                 print("Warning: unable to parse file header line " + line)             # <<<<<<<<<<<<<<
  * 
  *         # Alternative: call dedicated function for each header
  */
-      __pyx_t_1 = PyNumber_Add(__pyx_kp_s_Warning_unable_to_parse_file_hea, __pyx_v_line); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = PyNumber_Add(__pyx_kp_s_Warning_unable_to_parse_file_hea, __pyx_v_line); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      if (__Pyx_PrintOne(0, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (__Pyx_PrintOne(0, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 131; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     }
     __pyx_L8:;
 
-    /* "silx/io/specfile/specfile.pyx":115
+    /* "specfile.pyx":122
+ * 
  *         self.header_dict = {}
- *         '''Dictionary of header strings, keys without leading "#"'''
  *         for line in self.header_lines:             # <<<<<<<<<<<<<<
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:
@@ -2234,19 +2227,19 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":136
+  /* "specfile.pyx":143
  * #             self.header_dict['L'] = self._specfile.labels(self.index)
  * 
  *         self.file_header_lines = self._specfile.file_header(self.index)             # <<<<<<<<<<<<<<
- *         '''List of raw file header lines relevant to this scan,
- *         including the leading "#L"'''
+ * 
+ *         self.file_header_dict = {}
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_file_header); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_file_header); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -2259,52 +2252,52 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":140
- *         including the leading "#L"'''
+  /* "specfile.pyx":145
+ *         self.file_header_lines = self._specfile.file_header(self.index)
  * 
  *         self.file_header_dict = {}             # <<<<<<<<<<<<<<
- *         '''Dictionary of file header strings, keys without leading "#"'''
  *         for line in self.file_header_lines:
+ *             match = re.search(r"#(\w+) *(.*)", line)
  */
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_header_dict, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_file_header_dict, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":142
+  /* "specfile.pyx":146
+ * 
  *         self.file_header_dict = {}
- *         '''Dictionary of file header strings, keys without leading "#"'''
  *         for line in self.file_header_lines:             # <<<<<<<<<<<<<<
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
     __pyx_t_3 = __pyx_t_4; __Pyx_INCREF(__pyx_t_3); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_9 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   for (;;) {
@@ -2312,16 +2305,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
         if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_4); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
@@ -2330,7 +2323,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -2339,16 +2332,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":143
- *         '''Dictionary of file header strings, keys without leading "#"'''
+    /* "specfile.pyx":147
+ *         self.file_header_dict = {}
  *         for line in self.file_header_lines:
  *             match = re.search(r"#(\w+) *(.*)", line)             # <<<<<<<<<<<<<<
  *             if match:
  *                 # header type
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_re); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_search); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_search); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_2 = NULL;
@@ -2363,7 +2356,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         __pyx_t_10 = 1;
       }
     }
-    __pyx_t_5 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     if (__pyx_t_2) {
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
@@ -2374,42 +2367,42 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     __Pyx_INCREF(__pyx_v_line);
     PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_10, __pyx_v_line);
     __Pyx_GIVEREF(__pyx_v_line);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF_SET(__pyx_v_match, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":144
+    /* "specfile.pyx":148
  *         for line in self.file_header_lines:
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:             # <<<<<<<<<<<<<<
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  */
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_v_match); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_v_match); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (__pyx_t_7) {
 
-      /* "silx/io/specfile/specfile.pyx":146
+      /* "specfile.pyx":150
  *             if match:
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()             # <<<<<<<<<<<<<<
  *                 hvalue = match.group(2).strip()
  *                 self.file_header_dict[hkey] = hvalue
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_lstrip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_lstrip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_5 = NULL;
@@ -2423,29 +2416,29 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_XDECREF_SET(__pyx_v_hkey, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "silx/io/specfile/specfile.pyx":147
+      /* "specfile.pyx":151
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()             # <<<<<<<<<<<<<<
  *                 self.file_header_dict[hkey] = hvalue
  *             else:
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_match, __pyx_n_s_group); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_5 = NULL;
@@ -2459,48 +2452,48 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
         }
       }
       if (__pyx_t_5) {
-        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else {
-        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_XDECREF_SET(__pyx_v_hvalue, __pyx_t_4);
       __pyx_t_4 = 0;
 
-      /* "silx/io/specfile/specfile.pyx":148
+      /* "specfile.pyx":152
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()
  *                 self.file_header_dict[hkey] = hvalue             # <<<<<<<<<<<<<<
  *             else:
  *                 # this shouldn't happen
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_dict); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_dict); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
-      if (unlikely(PyObject_SetItem(__pyx_t_4, __pyx_v_hkey, __pyx_v_hvalue) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 148; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(PyObject_SetItem(__pyx_t_4, __pyx_v_hkey, __pyx_v_hvalue) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       goto __pyx_L11;
     }
     /*else*/ {
 
-      /* "silx/io/specfile/specfile.pyx":151
+      /* "specfile.pyx":155
  *             else:
  *                 # this shouldn't happen
  *                 print("Warning: unable to parse file header line " + line)             # <<<<<<<<<<<<<<
  * 
  *         self.motor_names = self._specfile.all_motor_names(self.index)
  */
-      __pyx_t_4 = PyNumber_Add(__pyx_kp_s_Warning_unable_to_parse_file_hea, __pyx_v_line); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyNumber_Add(__pyx_kp_s_Warning_unable_to_parse_file_hea, __pyx_v_line); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
-      if (__Pyx_PrintOne(0, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (__Pyx_PrintOne(0, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __pyx_L11:;
 
-    /* "silx/io/specfile/specfile.pyx":142
+    /* "specfile.pyx":146
+ * 
  *         self.file_header_dict = {}
- *         '''Dictionary of file header strings, keys without leading "#"'''
  *         for line in self.file_header_lines:             # <<<<<<<<<<<<<<
  *             match = re.search(r"#(\w+) *(.*)", line)
  *             if match:
@@ -2508,19 +2501,19 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":153
+  /* "specfile.pyx":157
  *                 print("Warning: unable to parse file header line " + line)
  * 
  *         self.motor_names = self._specfile.all_motor_names(self.index)             # <<<<<<<<<<<<<<
  *         self.motor_positions = self._specfile.all_motor_positions(self.index)
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_all_motor_names); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_all_motor_names); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -2533,37 +2526,37 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_motor_names, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_motor_names, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":154
+  /* "specfile.pyx":158
  * 
  *         self.motor_names = self._specfile.all_motor_names(self.index)
  *         self.motor_positions = self._specfile.all_motor_positions(self.index)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_specfile_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_all_motor_positions); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_all_motor_positions); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_index); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2576,30 +2569,30 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_motor_positions, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_motor_positions, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":95
+  /* "specfile.pyx":103
  *     :type scan_index: int
  *     '''
  *     def __init__(self, specfile, scan_index):             # <<<<<<<<<<<<<<
  *         self._specfile = specfile
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  */
 
   /* function exit code */
@@ -2611,7 +2604,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_line);
@@ -2623,7 +2616,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":157
+/* "specfile.pyx":161
  * 
  * 
  *     def record_exists_in_hdr(self, record):             # <<<<<<<<<<<<<<
@@ -2632,10 +2625,10 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan___init__(CYTHON_UN
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_hdr[] = "Check whether a scan header line  exists.\n        \n        This should be used before attempting to retrieve header information \n        using a C\302\240function that may crash with a \"segmentation fault\" if the \n        header isn't defined in the SpecFile.\n        \n        :param record_type: single upper case letter corresponding to the\n                            header you want to test (e.g. 'L' for labels)\n        :type record_type: str\n        :returns: True or False\n        :rtype: boolean\n        \n        ";
-static PyMethodDef __pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_hdr = {"record_exists_in_hdr", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_hdr, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_hdr};
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8specfile_4Scan_3record_exists_in_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8specfile_4Scan_2record_exists_in_hdr[] = "Check whether a scan header line  exists.\n        \n        This should be used before attempting to retrieve header information \n        using a C\302\240function that may crash with a \"segmentation fault\" if the \n        header isn't defined in the SpecFile.\n        \n        :param record_type: single upper case letter corresponding to the\n                            header you want to test (e.g. 'L' for labels)\n        :type record_type: str\n        :returns: True or False\n        :rtype: boolean\n        \n        ";
+static PyMethodDef __pyx_mdef_8specfile_4Scan_3record_exists_in_hdr = {"record_exists_in_hdr", (PyCFunction)__pyx_pw_8specfile_4Scan_3record_exists_in_hdr, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_4Scan_2record_exists_in_hdr};
+static PyObject *__pyx_pw_8specfile_4Scan_3record_exists_in_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_record = 0;
   int __pyx_lineno = 0;
@@ -2664,11 +2657,11 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_record)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("record_exists_in_hdr", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("record_exists_in_hdr", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "record_exists_in_hdr") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "record_exists_in_hdr") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2681,20 +2674,20 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("record_exists_in_hdr", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("record_exists_in_hdr", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.record_exists_in_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.record_exists_in_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_hdr(__pyx_self, __pyx_v_self, __pyx_v_record);
+  __pyx_r = __pyx_pf_8specfile_4Scan_2record_exists_in_hdr(__pyx_self, __pyx_v_self, __pyx_v_record);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record) {
+static PyObject *__pyx_pf_8specfile_4Scan_2record_exists_in_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record) {
   PyObject *__pyx_v_line = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -2712,22 +2705,22 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("record_exists_in_hdr", 0);
 
-  /* "silx/io/specfile/specfile.pyx":171
+  /* "specfile.pyx":175
  * 
  *         '''
  *         for line in self.header_lines:             # <<<<<<<<<<<<<<
  *             if line.startswith("#" + record):
  *                 return True
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -2735,16 +2728,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
@@ -2753,7 +2746,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -2762,16 +2755,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":172
+    /* "specfile.pyx":176
  *         '''
  *         for line in self.header_lines:
  *             if line.startswith("#" + record):             # <<<<<<<<<<<<<<
  *                 return True
  *         return False
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_line, __pyx_n_s_startswith); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_line, __pyx_n_s_startswith); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyNumber_Add(__pyx_kp_s__3, __pyx_v_record); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyNumber_Add(__pyx_kp_s__3, __pyx_v_record); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_7 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -2784,26 +2777,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
       PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_6);
       __Pyx_GIVEREF(__pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_9 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_9 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_9) {
 
-      /* "silx/io/specfile/specfile.pyx":173
+      /* "specfile.pyx":177
  *         for line in self.header_lines:
  *             if line.startswith("#" + record):
  *                 return True             # <<<<<<<<<<<<<<
@@ -2817,7 +2810,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
       goto __pyx_L0;
     }
 
-    /* "silx/io/specfile/specfile.pyx":171
+    /* "specfile.pyx":175
  * 
  *         '''
  *         for line in self.header_lines:             # <<<<<<<<<<<<<<
@@ -2827,7 +2820,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":174
+  /* "specfile.pyx":178
  *             if line.startswith("#" + record):
  *                 return True
  *         return False             # <<<<<<<<<<<<<<
@@ -2839,7 +2832,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":157
+  /* "specfile.pyx":161
  * 
  * 
  *     def record_exists_in_hdr(self, record):             # <<<<<<<<<<<<<<
@@ -2855,7 +2848,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.record_exists_in_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.record_exists_in_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_line);
@@ -2864,7 +2857,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":176
+/* "specfile.pyx":180
  *         return False
  * 
  *     def record_exists_in_file_hdr(self, record):             # <<<<<<<<<<<<<<
@@ -2873,10 +2866,10 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_2record_exists_in_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_file_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_file_hdr[] = "Check whether a file header line  exists.\n        \n        This should be used before attempting to retrieve header information \n        using a C\302\240function that may crash with a \"segmentation fault\" if the \n        header isn't defined in the SpecFile.\n        \n        :param record_type: single upper case letter corresponding to the\n                            header you want to test (e.g. 'L' for labels)\n        :type record_type: str\n        :returns: True or False\n        :rtype: boolean\n        \n        ";
-static PyMethodDef __pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_file_hdr = {"record_exists_in_file_hdr", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_file_hdr, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_file_hdr};
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_file_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8specfile_4Scan_5record_exists_in_file_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8specfile_4Scan_4record_exists_in_file_hdr[] = "Check whether a file header line  exists.\n        \n        This should be used before attempting to retrieve header information \n        using a C\302\240function that may crash with a \"segmentation fault\" if the \n        header isn't defined in the SpecFile.\n        \n        :param record_type: single upper case letter corresponding to the\n                            header you want to test (e.g. 'L' for labels)\n        :type record_type: str\n        :returns: True or False\n        :rtype: boolean\n        \n        ";
+static PyMethodDef __pyx_mdef_8specfile_4Scan_5record_exists_in_file_hdr = {"record_exists_in_file_hdr", (PyCFunction)__pyx_pw_8specfile_4Scan_5record_exists_in_file_hdr, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_4Scan_4record_exists_in_file_hdr};
+static PyObject *__pyx_pw_8specfile_4Scan_5record_exists_in_file_hdr(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_record = 0;
   int __pyx_lineno = 0;
@@ -2905,11 +2898,11 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_record)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("record_exists_in_file_hdr", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("record_exists_in_file_hdr", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "record_exists_in_file_hdr") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "record_exists_in_file_hdr") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2922,20 +2915,20 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("record_exists_in_file_hdr", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("record_exists_in_file_hdr", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.record_exists_in_file_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.record_exists_in_file_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_file_hdr(__pyx_self, __pyx_v_self, __pyx_v_record);
+  __pyx_r = __pyx_pf_8specfile_4Scan_4record_exists_in_file_hdr(__pyx_self, __pyx_v_self, __pyx_v_record);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_file_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record) {
+static PyObject *__pyx_pf_8specfile_4Scan_4record_exists_in_file_hdr(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_record) {
   PyObject *__pyx_v_line = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -2953,22 +2946,22 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("record_exists_in_file_hdr", 0);
 
-  /* "silx/io/specfile/specfile.pyx":190
+  /* "specfile.pyx":194
  * 
  *         '''
  *         for line in self.file_header_lines:             # <<<<<<<<<<<<<<
  *             if line.startswith("#" + record):
  *                 return True
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_header_lines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -2976,16 +2969,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
@@ -2994,7 +2987,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 194; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -3003,16 +2996,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":191
+    /* "specfile.pyx":195
  *         '''
  *         for line in self.file_header_lines:
  *             if line.startswith("#" + record):             # <<<<<<<<<<<<<<
  *                 return True
  *         return False
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_line, __pyx_n_s_startswith); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_line, __pyx_n_s_startswith); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = PyNumber_Add(__pyx_kp_s__3, __pyx_v_record); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyNumber_Add(__pyx_kp_s__3, __pyx_v_record); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_7 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -3025,26 +3018,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
       PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_6);
       __Pyx_GIVEREF(__pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_9 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_9 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (__pyx_t_9) {
 
-      /* "silx/io/specfile/specfile.pyx":192
+      /* "specfile.pyx":196
  *         for line in self.file_header_lines:
  *             if line.startswith("#" + record):
  *                 return True             # <<<<<<<<<<<<<<
@@ -3058,7 +3051,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
       goto __pyx_L0;
     }
 
-    /* "silx/io/specfile/specfile.pyx":190
+    /* "specfile.pyx":194
  * 
  *         '''
  *         for line in self.file_header_lines:             # <<<<<<<<<<<<<<
@@ -3068,7 +3061,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":193
+  /* "specfile.pyx":197
  *             if line.startswith("#" + record):
  *                 return True
  *         return False             # <<<<<<<<<<<<<<
@@ -3080,7 +3073,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
   __pyx_r = Py_False;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":176
+  /* "specfile.pyx":180
  *         return False
  * 
  *     def record_exists_in_file_hdr(self, record):             # <<<<<<<<<<<<<<
@@ -3096,7 +3089,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.record_exists_in_file_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.record_exists_in_file_hdr", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_line);
@@ -3105,7 +3098,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":195
+/* "specfile.pyx":199
  *         return False
  * 
  *     def data_line(self, line_index):             # <<<<<<<<<<<<<<
@@ -3114,10 +3107,10 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_4record_exists_in_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_7data_line(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_6data_line[] = "Returns data for a given line of this scan.\n        \n        :param line_index: Index of data line to retrieve (starting with 0)\n        :type line_index: int\n        :return: Line data as a 1D\302\240array of doubles\n        :rtype: numpy.ndarray \n        ";
-static PyMethodDef __pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_7data_line = {"data_line", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_7data_line, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_2io_8specfile_8specfile_4Scan_6data_line};
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_7data_line(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8specfile_4Scan_7data_line(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8specfile_4Scan_6data_line[] = "Returns data for a given line of this scan.\n        \n        :param line_index: Index of data line to retrieve (starting with 0)\n        :type line_index: int\n        :return: Line data as a 1D\302\240array of doubles\n        :rtype: numpy.ndarray \n        ";
+static PyMethodDef __pyx_mdef_8specfile_4Scan_7data_line = {"data_line", (PyCFunction)__pyx_pw_8specfile_4Scan_7data_line, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_4Scan_6data_line};
+static PyObject *__pyx_pw_8specfile_4Scan_7data_line(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_line_index = 0;
   int __pyx_lineno = 0;
@@ -3146,11 +3139,11 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_7data_line(PyObjec
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_line_index)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("data_line", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("data_line", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "data_line") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "data_line") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3163,20 +3156,20 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_4Scan_7data_line(PyObjec
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("data_line", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("data_line", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.data_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.data_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(__pyx_self, __pyx_v_self, __pyx_v_line_index);
+  __pyx_r = __pyx_pf_8specfile_4Scan_6data_line(__pyx_self, __pyx_v_self, __pyx_v_line_index);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_line_index) {
+static PyObject *__pyx_pf_8specfile_4Scan_6data_line(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_line_index) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3187,7 +3180,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("data_line", 0);
 
-  /* "silx/io/specfile/specfile.pyx":204
+  /* "specfile.pyx":208
  *         '''
  *         #return self._specfile.data_line(self.index, line_index)
  *         return self.data[line_index, :]             # <<<<<<<<<<<<<<
@@ -3195,9 +3188,9 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_line_index);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_line_index);
@@ -3205,7 +3198,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
   __Pyx_INCREF(__pyx_slice__9);
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_slice__9);
   __Pyx_GIVEREF(__pyx_slice__9);
-  __pyx_t_3 = PyObject_GetItem(__pyx_t_1, __pyx_t_2); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_3 = PyObject_GetItem(__pyx_t_1, __pyx_t_2); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3213,7 +3206,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":195
+  /* "specfile.pyx":199
  *         return False
  * 
  *     def data_line(self, line_index):             # <<<<<<<<<<<<<<
@@ -3226,7 +3219,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.Scan.data_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.Scan.data_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3234,7 +3227,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":222
+/* "specfile.pyx":249
  * 
  * 
  *     def __cinit__(self, filename):             # <<<<<<<<<<<<<<
@@ -3243,8 +3236,8 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_4Scan_6data_line(CYTHON_
  */
 
 /* Python wrapper */
-static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_8specfile_8SpecFile_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_8specfile_8SpecFile_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_filename = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -3270,7 +3263,7 @@ static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_1__cinit__(PyObject 
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__cinit__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -3281,20 +3274,20 @@ static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_1__cinit__(PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), __pyx_v_filename);
+  __pyx_r = __pyx_pf_8specfile_8SpecFile___cinit__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), __pyx_v_filename);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename) {
+static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename) {
   int __pyx_v_error;
   int __pyx_r;
   __Pyx_RefNannyDeclarations
@@ -3311,20 +3304,20 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":223
+  /* "specfile.pyx":250
  * 
  *     def __cinit__(self, filename):
  *         cdef int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  *         self.__open_failed = 0
  *         if os.path.isfile(filename):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 250; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":224
+  /* "specfile.pyx":251
  *     def __cinit__(self, filename):
  *         cdef int error = SF_ERR_NO_ERRORS
  *         self.__open_failed = 0             # <<<<<<<<<<<<<<
@@ -3333,19 +3326,19 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
  */
   __pyx_v_self->__pyx___open_failed = 0;
 
-  /* "silx/io/specfile/specfile.pyx":225
+  /* "specfile.pyx":252
  *         cdef int error = SF_ERR_NO_ERRORS
  *         self.__open_failed = 0
  *         if os.path.isfile(filename):             # <<<<<<<<<<<<<<
  *             self.handle =  SfOpen(filename, &error)
  *         else:
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_isfile); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_isfile); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -3359,38 +3352,38 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_filename); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     __Pyx_INCREF(__pyx_v_filename);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_filename);
     __Pyx_GIVEREF(__pyx_v_filename);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_6) {
 
-    /* "silx/io/specfile/specfile.pyx":226
+    /* "specfile.pyx":253
  *         self.__open_failed = 0
  *         if os.path.isfile(filename):
  *             self.handle =  SfOpen(filename, &error)             # <<<<<<<<<<<<<<
  *         else:
  *             self.__open_failed = 1
  */
-    __pyx_t_7 = __Pyx_PyObject_AsString(__pyx_v_filename); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_AsString(__pyx_v_filename); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 253; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_v_self->handle = SfOpen(__pyx_t_7, (&__pyx_v_error));
     goto __pyx_L3;
   }
   /*else*/ {
 
-    /* "silx/io/specfile/specfile.pyx":228
+    /* "specfile.pyx":255
  *             self.handle =  SfOpen(filename, &error)
  *         else:
  *             self.__open_failed = 1             # <<<<<<<<<<<<<<
@@ -3399,16 +3392,16 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
  */
     __pyx_v_self->__pyx___open_failed = 1;
 
-    /* "silx/io/specfile/specfile.pyx":229
+    /* "specfile.pyx":256
  *         else:
  *             self.__open_failed = 1
  *             self._handle_error(SF_ERR_FILE_OPEN)             # <<<<<<<<<<<<<<
  *         if error:
  *             self.__open_failed = 1
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_OPEN); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_OPEN); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_4 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3421,17 +3414,17 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
       PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_5);
       __pyx_t_5 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
@@ -3440,7 +3433,7 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":230
+  /* "specfile.pyx":257
  *             self.__open_failed = 1
  *             self._handle_error(SF_ERR_FILE_OPEN)
  *         if error:             # <<<<<<<<<<<<<<
@@ -3450,7 +3443,7 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
   __pyx_t_6 = (__pyx_v_error != 0);
   if (__pyx_t_6) {
 
-    /* "silx/io/specfile/specfile.pyx":231
+    /* "specfile.pyx":258
  *             self._handle_error(SF_ERR_FILE_OPEN)
  *         if error:
  *             self.__open_failed = 1             # <<<<<<<<<<<<<<
@@ -3459,16 +3452,16 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
  */
     __pyx_v_self->__pyx___open_failed = 1;
 
-    /* "silx/io/specfile/specfile.pyx":232
+    /* "specfile.pyx":259
  *         if error:
  *             self.__open_failed = 1
  *             self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *     def __init__(self, filename):
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -3481,17 +3474,17 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_8); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_8);
       __pyx_t_8 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
@@ -3501,7 +3494,7 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
   }
   __pyx_L4:;
 
-  /* "silx/io/specfile/specfile.pyx":222
+  /* "specfile.pyx":249
  * 
  * 
  *     def __cinit__(self, filename):             # <<<<<<<<<<<<<<
@@ -3518,14 +3511,14 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":234
+/* "specfile.pyx":261
  *             self._handle_error(error)
  * 
  *     def __init__(self, filename):             # <<<<<<<<<<<<<<
@@ -3534,8 +3527,8 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile___cinit__(struct __p
  */
 
 /* Python wrapper */
-static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_8specfile_8SpecFile_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_8specfile_8SpecFile_3__init__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_filename = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -3561,7 +3554,7 @@ static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_3__init__(PyObject *
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -3572,20 +3565,20 @@ static int __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_3__init__(PyObject *
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), __pyx_v_filename);
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_2__init__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), __pyx_v_filename);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename) {
+static int __pyx_pf_8specfile_8SpecFile_2__init__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_filename) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3594,14 +3587,14 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":235
+  /* "specfile.pyx":262
  * 
  *     def __init__(self, filename):
  *         self.filename = filename             # <<<<<<<<<<<<<<
  *         # iterator counter
  *         self.iter_counter = 0
  */
-  if (!(likely(PyString_CheckExact(__pyx_v_filename))||((__pyx_v_filename) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_filename)->tp_name), 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(PyString_CheckExact(__pyx_v_filename))||((__pyx_v_filename) == Py_None)||(PyErr_Format(PyExc_TypeError, "Expected %.16s, got %.200s", "str", Py_TYPE(__pyx_v_filename)->tp_name), 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_1 = __pyx_v_filename;
   __Pyx_INCREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -3610,7 +3603,7 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __p
   __pyx_v_self->filename = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":237
+  /* "specfile.pyx":264
  *         self.filename = filename
  *         # iterator counter
  *         self.iter_counter = 0             # <<<<<<<<<<<<<<
@@ -3619,7 +3612,7 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __p
  */
   __pyx_v_self->iter_counter = 0;
 
-  /* "silx/io/specfile/specfile.pyx":234
+  /* "specfile.pyx":261
  *             self._handle_error(error)
  * 
  *     def __init__(self, filename):             # <<<<<<<<<<<<<<
@@ -3632,14 +3625,14 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __p
   goto __pyx_L0;
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":239
+/* "specfile.pyx":266
  *         self.iter_counter = 0
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -3648,17 +3641,17 @@ static int __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_2__init__(struct __p
  */
 
 /* Python wrapper */
-static void __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_5__dealloc__(PyObject *__pyx_v_self); /*proto*/
-static void __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_5__dealloc__(PyObject *__pyx_v_self) {
+static void __pyx_pw_8specfile_8SpecFile_5__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_8specfile_8SpecFile_5__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
-  __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self));
+  __pyx_pf_8specfile_8SpecFile_4__dealloc__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
 }
 
-static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self) {
+static void __pyx_pf_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
   int __pyx_lineno = 0;
@@ -3666,7 +3659,7 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":242
+  /* "specfile.pyx":269
  *         '''Destructor:Calls SfClose(self.handle)'''
  *         #SfClose creates a segmentation fault if file failed to open
  *         if not self.__open_failed:             # <<<<<<<<<<<<<<
@@ -3676,7 +3669,7 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
   __pyx_t_1 = ((!(__pyx_v_self->__pyx___open_failed != 0)) != 0);
   if (__pyx_t_1) {
 
-    /* "silx/io/specfile/specfile.pyx":243
+    /* "specfile.pyx":270
  *         #SfClose creates a segmentation fault if file failed to open
  *         if not self.__open_failed:
  *             if SfClose(self.handle):             # <<<<<<<<<<<<<<
@@ -3686,14 +3679,14 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
     __pyx_t_1 = (SfClose(__pyx_v_self->handle) != 0);
     if (__pyx_t_1) {
 
-      /* "silx/io/specfile/specfile.pyx":244
+      /* "specfile.pyx":271
  *         if not self.__open_failed:
  *             if SfClose(self.handle):
  *                 print("Error while closing")             # <<<<<<<<<<<<<<
  * 
  *     def __len__(self):
  */
-      if (__Pyx_PrintOne(0, __pyx_kp_s_Error_while_closing) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (__Pyx_PrintOne(0, __pyx_kp_s_Error_while_closing) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L4;
     }
     __pyx_L4:;
@@ -3701,7 +3694,7 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":239
+  /* "specfile.pyx":266
  *         self.iter_counter = 0
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -3712,12 +3705,12 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
   /* function exit code */
   goto __pyx_L0;
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("silx.io.specfile.specfile.SpecFile.__dealloc__", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("specfile.SpecFile.__dealloc__", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
 }
 
-/* "silx/io/specfile/specfile.pyx":246
+/* "specfile.pyx":273
  *                 print("Error while closing")
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -3726,28 +3719,28 @@ static void __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_4__dealloc__(struct
  */
 
 /* Python wrapper */
-static Py_ssize_t __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_7__len__(PyObject *__pyx_v_self); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_6__len__[] = "Returns the number of scans in the SpecFile";
+static Py_ssize_t __pyx_pw_8specfile_8SpecFile_7__len__(PyObject *__pyx_v_self); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_6__len__[] = "Returns the number of scans in the SpecFile";
 #if CYTHON_COMPILING_IN_CPYTHON
-struct wrapperbase __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_6__len__;
+struct wrapperbase __pyx_wrapperbase_8specfile_8SpecFile_6__len__;
 #endif
-static Py_ssize_t __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_7__len__(PyObject *__pyx_v_self) {
+static Py_ssize_t __pyx_pw_8specfile_8SpecFile_7__len__(PyObject *__pyx_v_self) {
   Py_ssize_t __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__len__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_6__len__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static Py_ssize_t __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self) {
+static Py_ssize_t __pyx_pf_8specfile_8SpecFile_6__len__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self) {
   Py_ssize_t __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__len__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":248
+  /* "specfile.pyx":275
  *     def __len__(self):
  *         '''Returns the number of scans in the SpecFile'''
  *         return SfScanNo(self.handle)             # <<<<<<<<<<<<<<
@@ -3757,7 +3750,7 @@ static Py_ssize_t __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(stru
   __pyx_r = SfScanNo(__pyx_v_self->handle);
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":246
+  /* "specfile.pyx":273
  *                 print("Error while closing")
  * 
  *     def __len__(self):             # <<<<<<<<<<<<<<
@@ -3771,7 +3764,7 @@ static Py_ssize_t __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(stru
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":250
+/* "specfile.pyx":277
  *         return SfScanNo(self.handle)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -3780,24 +3773,24 @@ static Py_ssize_t __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_6__len__(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_9__iter__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_9__iter__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_9__iter__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_8specfile_8SpecFile_9__iter__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__iter__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_8__iter__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_8__iter__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__iter__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":251
+  /* "specfile.pyx":278
  * 
  *     def __iter__(self):
  *         return self             # <<<<<<<<<<<<<<
@@ -3809,7 +3802,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(stru
   __pyx_r = ((PyObject *)__pyx_v_self);
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":250
+  /* "specfile.pyx":277
  *         return SfScanNo(self.handle)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
@@ -3824,7 +3817,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(stru
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":253
+/* "specfile.pyx":280
  *         return self
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -3833,23 +3826,23 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_8__iter__(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_11__next__(PyObject *__pyx_v_self); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_10__next__[] = "Returns the next value till current is lower than high";
+static PyObject *__pyx_pw_8specfile_8SpecFile_11__next__(PyObject *__pyx_v_self); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_10__next__[] = "Returns the next value till current is lower than high";
 #if CYTHON_COMPILING_IN_CPYTHON
-struct wrapperbase __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_10__next__;
+struct wrapperbase __pyx_wrapperbase_8specfile_8SpecFile_10__next__;
 #endif
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_11__next__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_11__next__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__next__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_10__next__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_10__next__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   Py_ssize_t __pyx_t_1;
@@ -3864,18 +3857,18 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__next__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":255
+  /* "specfile.pyx":282
  *     def __next__(self):
  *         'Returns the next value till current is lower than high'
  *         if self.iter_counter >= len(self):             # <<<<<<<<<<<<<<
  *             raise StopIteration
  *         else:
  */
-  __pyx_t_1 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_1 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 255; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_1 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = ((__pyx_v_self->iter_counter >= __pyx_t_1) != 0);
   if (__pyx_t_2) {
 
-    /* "silx/io/specfile/specfile.pyx":256
+    /* "specfile.pyx":283
  *         'Returns the next value till current is lower than high'
  *         if self.iter_counter >= len(self):
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -3883,11 +3876,11 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
  *             self.iter_counter += 1
  */
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   /*else*/ {
 
-    /* "silx/io/specfile/specfile.pyx":258
+    /* "specfile.pyx":285
  *             raise StopIteration
  *         else:
  *             self.iter_counter += 1             # <<<<<<<<<<<<<<
@@ -3896,7 +3889,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
  */
     __pyx_v_self->iter_counter = (__pyx_v_self->iter_counter + 1);
 
-    /* "silx/io/specfile/specfile.pyx":259
+    /* "specfile.pyx":286
  *         else:
  *             self.iter_counter += 1
  *             return Scan(self, self.iter_counter - 1)             # <<<<<<<<<<<<<<
@@ -3904,9 +3897,9 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
  *     def _get_error_string(self, error_code):
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_Scan); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_Scan); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_From_long((__pyx_v_self->iter_counter - 1)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyInt_From_long((__pyx_v_self->iter_counter - 1)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     __pyx_t_1 = 0;
@@ -3920,7 +3913,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
         __pyx_t_1 = 1;
       }
     }
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_6) {
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
@@ -3931,7 +3924,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -3940,7 +3933,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
     goto __pyx_L0;
   }
 
-  /* "silx/io/specfile/specfile.pyx":253
+  /* "specfile.pyx":280
  *         return self
  * 
  *     def __next__(self):             # <<<<<<<<<<<<<<
@@ -3955,7 +3948,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__next__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__next__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3963,7 +3956,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":261
+/* "specfile.pyx":288
  *             return Scan(self, self.iter_counter - 1)
  * 
  *     def _get_error_string(self, error_code):             # <<<<<<<<<<<<<<
@@ -3972,20 +3965,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_10__next__(str
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_13_get_error_string(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_string[] = "Returns the error message corresponding to the error code.\n        \n        :param code: Error code\n        :type code: int\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_13_get_error_string(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_13_get_error_string(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_12_get_error_string[] = "Returns the error message corresponding to the error code.\n        \n        :param code: Error code\n        :type code: int\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_13_get_error_string(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_get_error_string (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_string(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_error_code));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_12_get_error_string(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_error_code));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_string(CYTHON_UNUSED struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_12_get_error_string(CYTHON_UNUSED struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -3996,7 +3989,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_s
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_get_error_string", 0);
 
-  /* "silx/io/specfile/specfile.pyx":267
+  /* "specfile.pyx":294
  *         :type code: int
  *         '''
  *         return (<bytes> SfError(error_code)).encode('utf-8)')             # <<<<<<<<<<<<<<
@@ -4004,20 +3997,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_s
  *     def _handle_error(self, error_code):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_error_code); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyBytes_FromString(SfError(__pyx_t_1)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_As_int(__pyx_v_error_code); if (unlikely((__pyx_t_1 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyBytes_FromString(SfError(__pyx_t_1)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_encode); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":261
+  /* "specfile.pyx":288
  *             return Scan(self, self.iter_counter - 1)
  * 
  *     def _get_error_string(self, error_code):             # <<<<<<<<<<<<<<
@@ -4029,7 +4022,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_s
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile._get_error_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile._get_error_string", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4037,7 +4030,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_s
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":269
+/* "specfile.pyx":296
  *         return (<bytes> SfError(error_code)).encode('utf-8)')
  * 
  *     def _handle_error(self, error_code):             # <<<<<<<<<<<<<<
@@ -4046,20 +4039,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_s
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_15_handle_error(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_error[] = "Inspect error code, raise adequate error type if necessary.\n        \n        :param code: Error code\n        :type code: int\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_15_handle_error(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_15_handle_error(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_14_handle_error[] = "Inspect error code, raise adequate error type if necessary.\n        \n        :param code: Error code\n        :type code: int\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_15_handle_error(PyObject *__pyx_v_self, PyObject *__pyx_v_error_code) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_handle_error (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_error(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_error_code));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_14_handle_error(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_error_code));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_error(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_14_handle_error(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_error_code) {
   PyObject *__pyx_v_error_message = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4074,14 +4067,14 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_handle_error", 0);
 
-  /* "silx/io/specfile/specfile.pyx":277
+  /* "specfile.pyx":304
  *         #TODO:
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)             # <<<<<<<<<<<<<<
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,
  *                            SF_ERR_SCAN_NOT_FOUND,
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_error_string); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_error_string); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4094,16 +4087,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_error_code); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_error_code); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_error_code);
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_error_code);
     __Pyx_GIVEREF(__pyx_v_error_code);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 304; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -4111,7 +4104,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   __pyx_v_error_message = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
@@ -4120,11 +4113,11 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
  */
   __Pyx_INCREF(__pyx_v_error_code);
   __pyx_t_1 = __pyx_v_error_code;
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LINE_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LINE_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4132,26 +4125,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":279
+  /* "specfile.pyx":306
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,
  *                            SF_ERR_SCAN_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_HEADER_NOT_FOUND,
  *                            SF_ERR_LABEL_NOT_FOUND,
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 306; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4159,26 +4152,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":280
+  /* "specfile.pyx":307
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_LABEL_NOT_FOUND,
  *                            SF_ERR_MOTOR_NOT_FOUND,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_HEADER_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_HEADER_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4186,26 +4179,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":281
+  /* "specfile.pyx":308
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  *                            SF_ERR_LABEL_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_MOTOR_NOT_FOUND,
  *                            SF_ERR_POSITION_NOT_FOUND,
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LABEL_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LABEL_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4213,26 +4206,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":282
+  /* "specfile.pyx":309
  *                            SF_ERR_HEADER_NOT_FOUND,
  *                            SF_ERR_LABEL_NOT_FOUND,
  *                            SF_ERR_MOTOR_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_POSITION_NOT_FOUND,
  *                            SF_ERR_USER_NOT_FOUND,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MOTOR_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MOTOR_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4240,26 +4233,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":283
+  /* "specfile.pyx":310
  *                            SF_ERR_LABEL_NOT_FOUND,
  *                            SF_ERR_MOTOR_NOT_FOUND,
  *                            SF_ERR_POSITION_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_USER_NOT_FOUND,
  *                            SF_ERR_COL_NOT_FOUND,
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_POSITION_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_POSITION_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4267,26 +4260,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":284
+  /* "specfile.pyx":311
  *                            SF_ERR_MOTOR_NOT_FOUND,
  *                            SF_ERR_POSITION_NOT_FOUND,
  *                            SF_ERR_USER_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_COL_NOT_FOUND,
  *                            SF_ERR_MCA_NOT_FOUND):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_USER_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 284; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_USER_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4294,26 +4287,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":285
+  /* "specfile.pyx":312
  *                            SF_ERR_POSITION_NOT_FOUND,
  *                            SF_ERR_USER_NOT_FOUND,
  *                            SF_ERR_COL_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_COL_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 285; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_COL_NOT_FOUND); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_6) {
   } else {
@@ -4321,26 +4314,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L4_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":286
+  /* "specfile.pyx":313
  *                            SF_ERR_USER_NOT_FOUND,
  *                            SF_ERR_COL_NOT_FOUND,
  *                            SF_ERR_MCA_NOT_FOUND):             # <<<<<<<<<<<<<<
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MCA_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MCA_NOT_FOUND); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_1, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":278
+  /* "specfile.pyx":305
  *         #  sort error types
  *         error_message = self._get_error_string(error_code)
  *         if error_code in (SF_ERR_LINE_NOT_FOUND,             # <<<<<<<<<<<<<<
  *                            SF_ERR_SCAN_NOT_FOUND,
  *                            SF_ERR_HEADER_NOT_FOUND,
  */
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_5 = __pyx_t_6;
   __pyx_L4_bool_binop_done:;
@@ -4348,27 +4341,27 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   __pyx_t_6 = (__pyx_t_5 != 0);
   if (__pyx_t_6) {
 
-    /* "silx/io/specfile/specfile.pyx":287
+    /* "specfile.pyx":314
  *                            SF_ERR_COL_NOT_FOUND,
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)             # <<<<<<<<<<<<<<
  *         elif error_code in (SF_ERR_FILE_OPEN,
  *                              SF_ERR_FILE_CLOSE,
  */
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_error_message);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_error_message);
     __Pyx_GIVEREF(__pyx_v_error_message);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":288
+  /* "specfile.pyx":315
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,             # <<<<<<<<<<<<<<
@@ -4377,11 +4370,11 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
  */
   __Pyx_INCREF(__pyx_v_error_code);
   __pyx_t_4 = __pyx_v_error_code;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_OPEN); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_OPEN); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_5) {
   } else {
@@ -4389,26 +4382,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L13_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":289
+  /* "specfile.pyx":316
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,
  *                              SF_ERR_FILE_CLOSE,             # <<<<<<<<<<<<<<
  *                              SF_ERR_FILE_READ,
  *                              SF_ERR_FILE_WRITE):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_CLOSE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_CLOSE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":288
+  /* "specfile.pyx":315
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,             # <<<<<<<<<<<<<<
  *                              SF_ERR_FILE_CLOSE,
  *                              SF_ERR_FILE_READ,
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (!__pyx_t_5) {
   } else {
@@ -4416,26 +4409,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L13_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":290
+  /* "specfile.pyx":317
  *         elif error_code in (SF_ERR_FILE_OPEN,
  *                              SF_ERR_FILE_CLOSE,
  *                              SF_ERR_FILE_READ,             # <<<<<<<<<<<<<<
  *                              SF_ERR_FILE_WRITE):
  *             raise IOError(error_message)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_READ); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_READ); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":288
+  /* "specfile.pyx":315
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,             # <<<<<<<<<<<<<<
  *                              SF_ERR_FILE_CLOSE,
  *                              SF_ERR_FILE_READ,
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (!__pyx_t_5) {
   } else {
@@ -4443,26 +4436,26 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
     goto __pyx_L13_bool_binop_done;
   }
 
-  /* "silx/io/specfile/specfile.pyx":291
+  /* "specfile.pyx":318
  *                              SF_ERR_FILE_CLOSE,
  *                              SF_ERR_FILE_READ,
  *                              SF_ERR_FILE_WRITE):             # <<<<<<<<<<<<<<
  *             raise IOError(error_message)
  *         elif error_code in (SF_ERR_LINE_EMPTY,):     #
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_WRITE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_FILE_WRITE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":288
+  /* "specfile.pyx":315
  *                            SF_ERR_MCA_NOT_FOUND):
  *             raise IndexError(error_message)
  *         elif error_code in (SF_ERR_FILE_OPEN,             # <<<<<<<<<<<<<<
  *                              SF_ERR_FILE_CLOSE,
  *                              SF_ERR_FILE_READ,
  */
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = __pyx_t_5;
   __pyx_L13_bool_binop_done:;
@@ -4470,27 +4463,27 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   __pyx_t_5 = (__pyx_t_6 != 0);
   if (__pyx_t_5) {
 
-    /* "silx/io/specfile/specfile.pyx":292
+    /* "specfile.pyx":319
  *                              SF_ERR_FILE_READ,
  *                              SF_ERR_FILE_WRITE):
  *             raise IOError(error_message)             # <<<<<<<<<<<<<<
  *         elif error_code in (SF_ERR_LINE_EMPTY,):     #
  *             raise ValueError(error_message)
  */
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(__pyx_v_error_message);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_error_message);
     __Pyx_GIVEREF(__pyx_v_error_message);
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_IOError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":293
+  /* "specfile.pyx":320
  *                              SF_ERR_FILE_WRITE):
  *             raise IOError(error_message)
  *         elif error_code in (SF_ERR_LINE_EMPTY,):     #             # <<<<<<<<<<<<<<
@@ -4499,37 +4492,37 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
  */
   __Pyx_INCREF(__pyx_v_error_code);
   __pyx_t_1 = __pyx_v_error_code;
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LINE_EMPTY); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_LINE_EMPTY); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_4, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_5 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_6 = (__pyx_t_5 != 0);
   if (__pyx_t_6) {
 
-    /* "silx/io/specfile/specfile.pyx":294
+    /* "specfile.pyx":321
  *             raise IOError(error_message)
  *         elif error_code in (SF_ERR_LINE_EMPTY,):     #
  *             raise ValueError(error_message)             # <<<<<<<<<<<<<<
  *         elif error_code in (SF_ERR_MEMORY_ALLOC,):
  *             raise MemoryError(error_message)
  */
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_error_message);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_error_message);
     __Pyx_GIVEREF(__pyx_v_error_message);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_Raise(__pyx_t_2, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":295
+  /* "specfile.pyx":322
  *         elif error_code in (SF_ERR_LINE_EMPTY,):     #
  *             raise ValueError(error_message)
  *         elif error_code in (SF_ERR_MEMORY_ALLOC,):             # <<<<<<<<<<<<<<
@@ -4538,37 +4531,37 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
  */
   __Pyx_INCREF(__pyx_v_error_code);
   __pyx_t_2 = __pyx_v_error_code;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MEMORY_ALLOC); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_MEMORY_ALLOC); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_2, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_2, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_5 = (__pyx_t_6 != 0);
   if (__pyx_t_5) {
 
-    /* "silx/io/specfile/specfile.pyx":296
+    /* "specfile.pyx":323
  *             raise ValueError(error_message)
  *         elif error_code in (SF_ERR_MEMORY_ALLOC,):
  *             raise MemoryError(error_message)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_v_error_message);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_error_message);
     __Pyx_GIVEREF(__pyx_v_error_message);
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":269
+  /* "specfile.pyx":296
  *         return (<bytes> SfError(error_code)).encode('utf-8)')
  * 
  *     def _handle_error(self, error_code):             # <<<<<<<<<<<<<<
@@ -4584,7 +4577,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile._handle_error", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile._handle_error", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_error_message);
@@ -4593,7 +4586,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":299
+/* "specfile.pyx":326
  * 
  * 
  *     def index(self, scan_number, scan_order=1):             # <<<<<<<<<<<<<<
@@ -4602,9 +4595,9 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_erro
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_17index(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_16index[] = "Returns scan index from scan number and order.\n        \n        :param scan_number: Scan number (possibly non-unique). \n        :type scan_number: int\n        :param scan_order: Scan order. \n        :type scan_order: int default 1\n        :returns: Unique scan index\n        :rtype: int\n        \n        \n        Scan indices are increasing from 0 to len(self)-1 in the order in \n        which they appear in the file.\n        Scan numbers are defined by users and are not necessarily unique.\n        The scan order for a given scan number increments each time the scan \n        number appers in a given file.";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_17index(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_17index(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_16index[] = "Returns scan index from scan number and order.\n        \n        :param scan_number: Scan number (possibly non-unique). \n        :type scan_number: int\n        :param scan_order: Scan order. \n        :type scan_order: int default 1\n        :returns: Unique scan index\n        :rtype: int\n        \n        \n        Scan indices are increasing from 0 to len(self)-1 in the order in \n        which they appear in the file.\n        Scan numbers are defined by users and are not necessarily unique.\n        The scan order for a given scan number increments each time the scan \n        number appers in a given file.";
+static PyObject *__pyx_pw_8specfile_8SpecFile_17index(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_scan_number = 0;
   PyObject *__pyx_v_scan_order = 0;
   int __pyx_lineno = 0;
@@ -4638,7 +4631,7 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_17index(PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "index") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "index") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4653,20 +4646,20 @@ static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_17index(PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("index", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("index", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.index", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.index", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), __pyx_v_scan_number, __pyx_v_scan_order);
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_16index(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), __pyx_v_scan_number, __pyx_v_scan_order);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_number, PyObject *__pyx_v_scan_order) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_16index(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_number, PyObject *__pyx_v_scan_order) {
   PyObject *__pyx_v_idx = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4683,42 +4676,42 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("index", 0);
 
-  /* "silx/io/specfile/specfile.pyx":315
+  /* "specfile.pyx":342
  *         The scan order for a given scan number increments each time the scan
  *         number appers in a given file.'''
  *         idx = SfIndex(self.handle, scan_number, scan_order)             # <<<<<<<<<<<<<<
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
-  __pyx_t_1 = __Pyx_PyInt_As_long(__pyx_v_scan_number); if (unlikely((__pyx_t_1 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_v_scan_order); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_3 = __Pyx_PyInt_From_long(SfIndex(__pyx_v_self->handle, __pyx_t_1, __pyx_t_2)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_As_long(__pyx_v_scan_number); if (unlikely((__pyx_t_1 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_v_scan_order); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_From_long(SfIndex(__pyx_v_self->handle, __pyx_t_1, __pyx_t_2)); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_v_idx = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":316
+  /* "specfile.pyx":343
  *         number appers in a given file.'''
  *         idx = SfIndex(self.handle, scan_number, scan_order)
  *         if idx == -1:             # <<<<<<<<<<<<<<
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return idx - 1
  */
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_idx, __pyx_int_neg_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_idx, __pyx_int_neg_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "silx/io/specfile/specfile.pyx":317
+    /* "specfile.pyx":344
  *         idx = SfIndex(self.handle, scan_number, scan_order)
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return idx - 1
  * 
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_7 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
@@ -4731,17 +4724,17 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_3);
     } else {
-      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
       PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_6);
       __Pyx_GIVEREF(__pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
@@ -4751,7 +4744,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":318
+  /* "specfile.pyx":345
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return idx - 1             # <<<<<<<<<<<<<<
@@ -4759,13 +4752,13 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
  *     def number(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyNumber_Subtract(__pyx_v_idx, __pyx_int_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyNumber_Subtract(__pyx_v_idx, __pyx_int_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":299
+  /* "specfile.pyx":326
  * 
  * 
  *     def index(self, scan_number, scan_order=1):             # <<<<<<<<<<<<<<
@@ -4780,7 +4773,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.index", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.index", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_idx);
@@ -4789,7 +4782,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":320
+/* "specfile.pyx":347
  *         return idx - 1
  * 
  *     def number(self, scan_index):             # <<<<<<<<<<<<<<
@@ -4798,20 +4791,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_16index(struct
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_19number(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_18number[] = "Returns scan number from scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :returns: User defined scan number.\n        :rtype: int\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_19number(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_19number(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_18number[] = "Returns scan number from scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :returns: User defined scan number.\n        :rtype: int\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_19number(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("number (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_18number(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_18number(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   long __pyx_v_idx;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4827,20 +4820,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("number", 0);
 
-  /* "silx/io/specfile/specfile.pyx":328
+  /* "specfile.pyx":355
  *         :rtype: int
  *         '''
  *         idx = SfNumber(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_idx = SfNumber(__pyx_v_self->handle, __pyx_t_2);
 
-  /* "silx/io/specfile/specfile.pyx":329
+  /* "specfile.pyx":356
  *         '''
  *         idx = SfNumber(self.handle, scan_index + 1)
  *         if idx == -1:             # <<<<<<<<<<<<<<
@@ -4850,16 +4843,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
   __pyx_t_3 = ((__pyx_v_idx == -1) != 0);
   if (__pyx_t_3) {
 
-    /* "silx/io/specfile/specfile.pyx":330
+    /* "specfile.pyx":357
  *         idx = SfNumber(self.handle, scan_index + 1)
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return idx
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -4872,17 +4865,17 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_5);
       __pyx_t_5 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
@@ -4892,7 +4885,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":331
+  /* "specfile.pyx":358
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return idx             # <<<<<<<<<<<<<<
@@ -4900,13 +4893,13 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
  *     def order(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_idx); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_idx); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":320
+  /* "specfile.pyx":347
  *         return idx - 1
  * 
  *     def number(self, scan_index):             # <<<<<<<<<<<<<<
@@ -4921,7 +4914,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.number", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.number", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4929,7 +4922,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":333
+/* "specfile.pyx":360
  *         return idx
  * 
  *     def order(self, scan_index):             # <<<<<<<<<<<<<<
@@ -4938,20 +4931,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_18number(struc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_21order(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_20order[] = "Returns scan order from scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :returns: Scan order (sequential number incrementing each time a \n                 non-unique occurrence of a scan number is encountered).\n        :rtype: int\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_21order(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_21order(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_20order[] = "Returns scan order from scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :returns: Scan order (sequential number incrementing each time a \n                 non-unique occurrence of a scan number is encountered).\n        :rtype: int\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_21order(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("order (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_20order(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_20order(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   long __pyx_v_ordr;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -4967,20 +4960,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("order", 0);
 
-  /* "silx/io/specfile/specfile.pyx":342
+  /* "specfile.pyx":369
  *         :rtype: int
  *         '''
  *         ordr = SfOrder(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
  *         if ordr == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_2 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_ordr = SfOrder(__pyx_v_self->handle, __pyx_t_2);
 
-  /* "silx/io/specfile/specfile.pyx":343
+  /* "specfile.pyx":370
  *         '''
  *         ordr = SfOrder(self.handle, scan_index + 1)
  *         if ordr == -1:             # <<<<<<<<<<<<<<
@@ -4990,16 +4983,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
   __pyx_t_3 = ((__pyx_v_ordr == -1) != 0);
   if (__pyx_t_3) {
 
-    /* "silx/io/specfile/specfile.pyx":344
+    /* "specfile.pyx":371
  *         ordr = SfOrder(self.handle, scan_index + 1)
  *         if ordr == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return ordr
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_SCAN_NOT_FOUND); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -5012,17 +5005,17 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_5);
       __pyx_t_5 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
@@ -5032,7 +5025,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":345
+  /* "specfile.pyx":372
  *         if ordr == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return ordr             # <<<<<<<<<<<<<<
@@ -5040,13 +5033,13 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
  *     def list(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_ordr); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_ordr); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 372; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":333
+  /* "specfile.pyx":360
  *         return idx
  * 
  *     def order(self, scan_index):             # <<<<<<<<<<<<<<
@@ -5061,7 +5054,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.order", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.order", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -5069,7 +5062,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":347
+/* "specfile.pyx":374
  *         return ordr
  * 
  *     def list(self):             # <<<<<<<<<<<<<<
@@ -5078,20 +5071,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_20order(struct
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_23list(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_22list[] = "Returns list (1D numpy array) of scan numbers in SpecFile.\n         \n        :return: list of scan numbers (#S n ...) in the same order as in the\n                 original SpecFile.\n        :rtype: numpy array \n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_23list(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_23list(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_22list[] = "Returns list (1D numpy array) of scan numbers in SpecFile.\n         \n        :return: list of scan numbers (#S n ...) in the same order as in the\n                 original SpecFile.\n        :rtype: numpy array \n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_23list(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("list (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_22list(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_22list(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self) {
   long *__pyx_v_scan_numbers;
   int __pyx_v_error;
   PyObject *__pyx_v_ret_list = NULL;
@@ -5112,20 +5105,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("list", 0);
 
-  /* "silx/io/specfile/specfile.pyx":356
+  /* "specfile.pyx":383
  *         cdef:
  *             long *scan_numbers
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         scan_numbers = SfList(self.handle, &error)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":358
+  /* "specfile.pyx":385
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         scan_numbers = SfList(self.handle, &error)             # <<<<<<<<<<<<<<
@@ -5134,16 +5127,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
  */
   __pyx_v_scan_numbers = SfList(__pyx_v_self->handle, (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":359
+  /* "specfile.pyx":386
  * 
  *         scan_numbers = SfList(self.handle, &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         ret_list = []
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -5156,60 +5149,60 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 359; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":361
+  /* "specfile.pyx":388
  *         self._handle_error(error)
  * 
  *         ret_list = []             # <<<<<<<<<<<<<<
  *         for i in range(len(self)):
  *             ret_list.append(scan_numbers[i])
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 361; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ret_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":362
+  /* "specfile.pyx":389
  * 
  *         ret_list = []
  *         for i in range(len(self)):             # <<<<<<<<<<<<<<
  *             ret_list.append(scan_numbers[i])
  * 
  */
-  __pyx_t_7 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_7 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":363
+    /* "specfile.pyx":390
  *         ret_list = []
  *         for i in range(len(self)):
  *             ret_list.append(scan_numbers[i])             # <<<<<<<<<<<<<<
  * 
  *         free(scan_numbers)
  */
-    __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_v_scan_numbers[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 363; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyInt_From_long((__pyx_v_scan_numbers[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_ret_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 363; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_ret_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "silx/io/specfile/specfile.pyx":365
+  /* "specfile.pyx":392
  *             ret_list.append(scan_numbers[i])
  * 
  *         free(scan_numbers)             # <<<<<<<<<<<<<<
@@ -5218,7 +5211,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
  */
   free(__pyx_v_scan_numbers);
 
-  /* "silx/io/specfile/specfile.pyx":366
+  /* "specfile.pyx":393
  * 
  *         free(scan_numbers)
  *         return ret_list             # <<<<<<<<<<<<<<
@@ -5230,7 +5223,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
   __pyx_r = __pyx_v_ret_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":347
+  /* "specfile.pyx":374
  *         return ordr
  * 
  *     def list(self):             # <<<<<<<<<<<<<<
@@ -5245,7 +5238,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.list", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.list", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_ret_list);
@@ -5254,7 +5247,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":368
+/* "specfile.pyx":395
  *         return ret_list
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
@@ -5263,23 +5256,23 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_22list(struct 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_25__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__[] = "Return a Scan object\n        \n        The Scan instance returned here keeps a reference to its parent SpecFile \n        instance in order to use its method to retrieve data and headers.\n        \n        Example:\n        --------\n        \n        .. code-block:: python\n            \n            from specfile import SpecFile\n            sf = SpecFile(\"t.dat\")\n            scan2 = sf[2]\n            nlines, ncolumns = myscan.data.shape\n            labels_list = scan2.header_dict['L']\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_25__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_24__getitem__[] = "Return a Scan object\n        \n        The Scan instance returned here keeps a reference to its parent SpecFile \n        instance in order to use its method to retrieve data and headers.\n        ";
 #if CYTHON_COMPILING_IN_CPYTHON
-struct wrapperbase __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__;
+struct wrapperbase __pyx_wrapperbase_8specfile_8SpecFile_24__getitem__;
 #endif
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_25__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_25__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__getitem__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_key));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_24__getitem__(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_key));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_key) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_24__getitem__(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_key) {
   PyObject *__pyx_v_msg = NULL;
   PyObject *__pyx_v_scan_index = NULL;
   PyObject *__pyx_v_number = NULL;
@@ -5304,8 +5297,8 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__getitem__", 0);
 
-  /* "silx/io/specfile/specfile.pyx":385
- *             labels_list = scan2.header_dict['L']
+  /* "specfile.pyx":401
+ *         instance in order to use its method to retrieve data and headers.
  *         '''
  *         msg = "The scan identification key can be an integer representing "             # <<<<<<<<<<<<<<
  *         msg += "the unique scan index or a string 'N.M' with N being the scan"
@@ -5314,31 +5307,31 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __Pyx_INCREF(__pyx_kp_s_The_scan_identification_key_can);
   __pyx_v_msg = __pyx_kp_s_The_scan_identification_key_can;
 
-  /* "silx/io/specfile/specfile.pyx":386
+  /* "specfile.pyx":402
  *         '''
  *         msg = "The scan identification key can be an integer representing "
  *         msg += "the unique scan index or a string 'N.M' with N being the scan"             # <<<<<<<<<<<<<<
  *         msg += "number and M the order (eg '2.3')"
  * 
  */
-  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_msg, __pyx_kp_s_the_unique_scan_index_or_a_strin); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_msg, __pyx_kp_s_the_unique_scan_index_or_a_strin); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF_SET(__pyx_v_msg, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":387
+  /* "specfile.pyx":403
  *         msg = "The scan identification key can be an integer representing "
  *         msg += "the unique scan index or a string 'N.M' with N being the scan"
  *         msg += "number and M the order (eg '2.3')"             # <<<<<<<<<<<<<<
  * 
  *         if isinstance(key, int):
  */
-  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_msg, __pyx_kp_s_number_and_M_the_order_eg_2_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_msg, __pyx_kp_s_number_and_M_the_order_eg_2_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF_SET(__pyx_v_msg, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":389
+  /* "specfile.pyx":405
  *         msg += "number and M the order (eg '2.3')"
  * 
  *         if isinstance(key, int):             # <<<<<<<<<<<<<<
@@ -5349,7 +5342,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "silx/io/specfile/specfile.pyx":390
+    /* "specfile.pyx":406
  * 
  *         if isinstance(key, int):
  *             scan_index = key             # <<<<<<<<<<<<<<
@@ -5361,7 +5354,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
     goto __pyx_L3;
   }
 
-  /* "silx/io/specfile/specfile.pyx":391
+  /* "specfile.pyx":407
  *         if isinstance(key, int):
  *             scan_index = key
  *         elif isinstance(key, str):             # <<<<<<<<<<<<<<
@@ -5372,7 +5365,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __pyx_t_2 = (__pyx_t_3 != 0);
   if (__pyx_t_2) {
 
-    /* "silx/io/specfile/specfile.pyx":392
+    /* "specfile.pyx":408
  *             scan_index = key
  *         elif isinstance(key, str):
  *             try:             # <<<<<<<<<<<<<<
@@ -5386,19 +5379,19 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
       __Pyx_XGOTREF(__pyx_t_6);
       /*try:*/ {
 
-        /* "silx/io/specfile/specfile.pyx":393
+        /* "specfile.pyx":409
  *         elif isinstance(key, str):
  *             try:
  *                 (number, order) = map(int, key.split("."))             # <<<<<<<<<<<<<<
  *                 scan_index = self.index(number, order)
  *             except (ValueError, IndexError):
  */
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_key, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_key, __pyx_n_s_split); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_INCREF(((PyObject *)((PyObject*)(&PyInt_Type))));
         PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)((PyObject*)(&PyInt_Type))));
@@ -5406,7 +5399,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
         PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_7);
         __pyx_t_7 = 0;
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_1, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_1, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         if ((likely(PyTuple_CheckExact(__pyx_t_7))) || (PyList_CheckExact(__pyx_t_7))) {
@@ -5419,7 +5412,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
           if (unlikely(size != 2)) {
             if (size > 2) __Pyx_RaiseTooManyValuesError(2);
             else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-            {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+            {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           }
           #if CYTHON_COMPILING_IN_CPYTHON
           if (likely(PyTuple_CheckExact(sequence))) {
@@ -5432,15 +5425,15 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
           __Pyx_INCREF(__pyx_t_1);
           __Pyx_INCREF(__pyx_t_8);
           #else
-          __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+          __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_8 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+          __pyx_t_8 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           __Pyx_GOTREF(__pyx_t_8);
           #endif
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
         } else {
           Py_ssize_t index = -1;
-          __pyx_t_9 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+          __pyx_t_9 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           __Pyx_GOTREF(__pyx_t_9);
           __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
           __pyx_t_10 = Py_TYPE(__pyx_t_9)->tp_iternext;
@@ -5448,7 +5441,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
           __Pyx_GOTREF(__pyx_t_1);
           index = 1; __pyx_t_8 = __pyx_t_10(__pyx_t_9); if (unlikely(!__pyx_t_8)) goto __pyx_L12_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_8);
-          if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_9), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+          if (__Pyx_IternextUnpackEndCheck(__pyx_t_10(__pyx_t_9), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           __pyx_t_10 = NULL;
           __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
           goto __pyx_L13_unpacking_done;
@@ -5456,7 +5449,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
           __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
           __pyx_t_10 = NULL;
           if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
           __pyx_L13_unpacking_done:;
         }
         __pyx_v_number = __pyx_t_1;
@@ -5464,14 +5457,14 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
         __pyx_v_order = __pyx_t_8;
         __pyx_t_8 = 0;
 
-        /* "silx/io/specfile/specfile.pyx":394
+        /* "specfile.pyx":410
  *             try:
  *                 (number, order) = map(int, key.split("."))
  *                 scan_index = self.index(number, order)             # <<<<<<<<<<<<<<
  *             except (ValueError, IndexError):
  *                 # self.index can raise an index error
  */
-        __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_index); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_8 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_index); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_8);
         __pyx_t_1 = NULL;
         __pyx_t_11 = 0;
@@ -5485,7 +5478,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
             __pyx_t_11 = 1;
           }
         }
-        __pyx_t_9 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_9 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_9);
         if (__pyx_t_1) {
           PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_1); __Pyx_GIVEREF(__pyx_t_1); __pyx_t_1 = NULL;
@@ -5496,7 +5489,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
         __Pyx_INCREF(__pyx_v_order);
         PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_11, __pyx_v_order);
         __Pyx_GIVEREF(__pyx_v_order);
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_9, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_9, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 410; __pyx_clineno = __LINE__; goto __pyx_L4_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -5513,7 +5506,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
       __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "silx/io/specfile/specfile.pyx":395
+      /* "specfile.pyx":411
  *                 (number, order) = map(int, key.split("."))
  *                 scan_index = self.index(number, order)
  *             except (ValueError, IndexError):             # <<<<<<<<<<<<<<
@@ -5522,30 +5515,30 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
  */
       __pyx_t_12 = PyErr_ExceptionMatches(__pyx_builtin_ValueError) || PyErr_ExceptionMatches(__pyx_builtin_IndexError);
       if (__pyx_t_12) {
-        __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__getitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
-        if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 395; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+        __Pyx_AddTraceback("specfile.SpecFile.__getitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_7, &__pyx_t_8, &__pyx_t_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GOTREF(__pyx_t_8);
         __Pyx_GOTREF(__pyx_t_9);
 
-        /* "silx/io/specfile/specfile.pyx":398
+        /* "specfile.pyx":414
  *                 # self.index can raise an index error
  *                 # int() can raise a value error
  *                 raise KeyError(msg)             # <<<<<<<<<<<<<<
  *         else:
  *             raise TypeError(msg)
  */
-        __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+        __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_INCREF(__pyx_v_msg);
         PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_msg);
         __Pyx_GIVEREF(__pyx_v_msg);
-        __pyx_t_13 = __Pyx_PyObject_Call(__pyx_builtin_KeyError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+        __pyx_t_13 = __Pyx_PyObject_Call(__pyx_builtin_KeyError, __pyx_t_1, NULL); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
         __Pyx_GOTREF(__pyx_t_13);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_Raise(__pyx_t_13, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L6_except_error;}
       }
       goto __pyx_L6_except_error;
       __pyx_L6_except_error:;
@@ -5560,85 +5553,85 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   }
   /*else*/ {
 
-    /* "silx/io/specfile/specfile.pyx":400
+    /* "specfile.pyx":416
  *                 raise KeyError(msg)
  *         else:
  *             raise TypeError(msg)             # <<<<<<<<<<<<<<
  * 
  *         if not 0 <= scan_index < len(self):
  */
-    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_INCREF(__pyx_v_msg);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_v_msg);
     __Pyx_GIVEREF(__pyx_v_msg);
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L3:;
 
-  /* "silx/io/specfile/specfile.pyx":402
+  /* "specfile.pyx":418
  *             raise TypeError(msg)
  * 
  *         if not 0 <= scan_index < len(self):             # <<<<<<<<<<<<<<
  *             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
  *             raise IndexError(msg)
  */
-  __pyx_t_8 = PyObject_RichCompare(__pyx_int_0, __pyx_v_scan_index, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyObject_RichCompare(__pyx_int_0, __pyx_v_scan_index, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__Pyx_PyObject_IsTrue(__pyx_t_8)) {
     __Pyx_DECREF(__pyx_t_8);
-    __pyx_t_11 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_11 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_11 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_11 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyObject_RichCompare(__pyx_v_scan_index, __pyx_t_9, Py_LT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyObject_RichCompare(__pyx_v_scan_index, __pyx_t_9, Py_LT); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_3 = ((!__pyx_t_2) != 0);
   if (__pyx_t_3) {
 
-    /* "silx/io/specfile/specfile.pyx":403
+    /* "specfile.pyx":419
  * 
  *         if not 0 <= scan_index < len(self):
  *             msg = "Scan index must be in range 0-%d" % (len(self) - 1)             # <<<<<<<<<<<<<<
  *             raise IndexError(msg)
  * 
  */
-    __pyx_t_11 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_11 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_8 = PyInt_FromSsize_t((__pyx_t_11 - 1)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_11 = PyObject_Length(((PyObject *)__pyx_v_self)); if (unlikely(__pyx_t_11 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 419; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyInt_FromSsize_t((__pyx_t_11 - 1)); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 419; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = __Pyx_PyString_Format(__pyx_kp_s_Scan_index_must_be_in_range_0_d, __pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyString_Format(__pyx_kp_s_Scan_index_must_be_in_range_0_d, __pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 419; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_msg, __pyx_t_9);
     __pyx_t_9 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":404
+    /* "specfile.pyx":420
  *         if not 0 <= scan_index < len(self):
  *             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
  *             raise IndexError(msg)             # <<<<<<<<<<<<<<
  * 
  *         return Scan(self, scan_index)
  */
-    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_INCREF(__pyx_v_msg);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_v_msg);
     __Pyx_GIVEREF(__pyx_v_msg);
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_IndexError, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":406
+  /* "specfile.pyx":422
  *             raise IndexError(msg)
  * 
  *         return Scan(self, scan_index)             # <<<<<<<<<<<<<<
@@ -5646,7 +5639,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
  *     def data(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_Scan); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_Scan); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   __pyx_t_7 = NULL;
   __pyx_t_11 = 0;
@@ -5660,7 +5653,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
       __pyx_t_11 = 1;
     }
   }
-  __pyx_t_13 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_13 = PyTuple_New(2+__pyx_t_11); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_13);
   if (__pyx_t_7) {
     PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
@@ -5671,7 +5664,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __Pyx_INCREF(__pyx_v_scan_index);
   PyTuple_SET_ITEM(__pyx_t_13, 1+__pyx_t_11, __pyx_v_scan_index);
   __Pyx_GIVEREF(__pyx_v_scan_index);
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_13, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 406; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_13, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -5679,7 +5672,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __pyx_t_8 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":368
+  /* "specfile.pyx":395
  *         return ret_list
  * 
  *     def __getitem__(self, key):             # <<<<<<<<<<<<<<
@@ -5694,7 +5687,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   __Pyx_XDECREF(__pyx_t_8);
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.__getitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.__getitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_msg);
@@ -5706,7 +5699,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":408
+/* "specfile.pyx":424
  *         return Scan(self, scan_index)
  * 
  *     def data(self, scan_index):             # <<<<<<<<<<<<<<
@@ -5715,20 +5708,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__(
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_27data(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_26data[] = "Returns data for the specified scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: Complete scan data as a 2D\302\240array of doubles\n        :rtype: numpy.ndarray\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_27data(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_27data(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_26data[] = "Returns data for the specified scan index.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: Complete scan data as a 2D\302\240array of doubles\n        :rtype: numpy.ndarray\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_27data(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("data (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_26data(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_26data(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   double **__pyx_v_mydata;
   long *__pyx_v_data_info;
   int __pyx_v_i;
@@ -5755,32 +5748,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("data", 0);
 
-  /* "silx/io/specfile/specfile.pyx":420
+  /* "specfile.pyx":436
  *             long* data_info
  *             int i, j
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  *             long nlines, ncolumns, regular
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":424
+  /* "specfile.pyx":440
  * 
  *         sfdata_error = SfData(self.handle,
  *                               scan_index + 1,             # <<<<<<<<<<<<<<
  *                               &mydata,
  *                               &data_info,
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 440; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 440; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":423
+  /* "specfile.pyx":439
  *             long nlines, ncolumns, regular
  * 
  *         sfdata_error = SfData(self.handle,             # <<<<<<<<<<<<<<
@@ -5789,16 +5782,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   __pyx_v_sfdata_error = SfData(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_mydata), (&__pyx_v_data_info), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":429
+  /* "specfile.pyx":445
  *                               &error)
  * 
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         nlines = data_info[0]
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -5811,24 +5804,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":431
+  /* "specfile.pyx":447
  *         self._handle_error(error)
  * 
  *         nlines = data_info[0]             # <<<<<<<<<<<<<<
@@ -5837,7 +5830,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   __pyx_v_nlines = (__pyx_v_data_info[0]);
 
-  /* "silx/io/specfile/specfile.pyx":432
+  /* "specfile.pyx":448
  * 
  *         nlines = data_info[0]
  *         ncolumns = data_info[1]             # <<<<<<<<<<<<<<
@@ -5846,7 +5839,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   __pyx_v_ncolumns = (__pyx_v_data_info[1]);
 
-  /* "silx/io/specfile/specfile.pyx":433
+  /* "specfile.pyx":449
  *         nlines = data_info[0]
  *         ncolumns = data_info[1]
  *         regular = data_info[2]             # <<<<<<<<<<<<<<
@@ -5855,23 +5848,23 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   __pyx_v_regular = (__pyx_v_data_info[2]);
 
-  /* "silx/io/specfile/specfile.pyx":435
+  /* "specfile.pyx":451
  *         regular = data_info[2]
  * 
  *         cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),             # <<<<<<<<<<<<<<
  *                                                    dtype=numpy.double)
  *         for i in range(nlines):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_nlines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_nlines); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = __Pyx_PyInt_From_long(__pyx_v_ncolumns); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyInt_From_long(__pyx_v_ncolumns); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -5879,46 +5872,46 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   __Pyx_GIVEREF(__pyx_t_7);
   __pyx_t_1 = 0;
   __pyx_t_7 = 0;
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "silx/io/specfile/specfile.pyx":436
+  /* "specfile.pyx":452
  * 
  *         cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),
  *                                                    dtype=numpy.double)             # <<<<<<<<<<<<<<
  *         for i in range(nlines):
  *             for j in range(ncolumns):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 452; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_double); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_double); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 452; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":435
+  /* "specfile.pyx":451
  *         regular = data_info[2]
  * 
  *         cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),             # <<<<<<<<<<<<<<
  *                                                    dtype=numpy.double)
  *         for i in range(nlines):
  */
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_5); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_v_ret_array = ((PyArrayObject *)__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":437
+  /* "specfile.pyx":453
  *         cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),
  *                                                    dtype=numpy.double)
  *         for i in range(nlines):             # <<<<<<<<<<<<<<
@@ -5929,7 +5922,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   for (__pyx_t_2 = 0; __pyx_t_2 < __pyx_t_3; __pyx_t_2+=1) {
     __pyx_v_i = __pyx_t_2;
 
-    /* "silx/io/specfile/specfile.pyx":438
+    /* "specfile.pyx":454
  *                                                    dtype=numpy.double)
  *         for i in range(nlines):
  *             for j in range(ncolumns):             # <<<<<<<<<<<<<<
@@ -5940,20 +5933,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
     for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
       __pyx_v_j = __pyx_t_9;
 
-      /* "silx/io/specfile/specfile.pyx":439
+      /* "specfile.pyx":455
  *         for i in range(nlines):
  *             for j in range(ncolumns):
  *                 ret_array[i, j] = mydata[i][j]             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void ***>&mydata, nlines)
  */
-      __pyx_t_6 = PyFloat_FromDouble(((__pyx_v_mydata[__pyx_v_i])[__pyx_v_j])); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_6 = PyFloat_FromDouble(((__pyx_v_mydata[__pyx_v_i])[__pyx_v_j])); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_j); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyInt_From_int(__pyx_v_j); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
       __Pyx_GIVEREF(__pyx_t_5);
@@ -5961,13 +5954,13 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
       __Pyx_GIVEREF(__pyx_t_7);
       __pyx_t_5 = 0;
       __pyx_t_7 = 0;
-      if (unlikely(PyObject_SetItem(((PyObject *)__pyx_v_ret_array), __pyx_t_4, __pyx_t_6) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (unlikely(PyObject_SetItem(((PyObject *)__pyx_v_ret_array), __pyx_t_4, __pyx_t_6) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
   }
 
-  /* "silx/io/specfile/specfile.pyx":441
+  /* "specfile.pyx":457
  *                 ret_array[i, j] = mydata[i][j]
  * 
  *         freeArrNZ(<void ***>&mydata, nlines)             # <<<<<<<<<<<<<<
@@ -5976,7 +5969,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   freeArrNZ(((void ***)(&__pyx_v_mydata)), __pyx_v_nlines);
 
-  /* "silx/io/specfile/specfile.pyx":442
+  /* "specfile.pyx":458
  * 
  *         freeArrNZ(<void ***>&mydata, nlines)
  *         free(data_info)             # <<<<<<<<<<<<<<
@@ -5985,7 +5978,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
   free(__pyx_v_data_info);
 
-  /* "silx/io/specfile/specfile.pyx":445
+  /* "specfile.pyx":461
  * 
  *         # nlines and ncolumns can be accessed as ret_array.shape
  *         return ret_array             # <<<<<<<<<<<<<<
@@ -5997,7 +5990,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   __pyx_r = ((PyObject *)__pyx_v_ret_array);
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":408
+  /* "specfile.pyx":424
  *         return Scan(self, scan_index)
  * 
  *     def data(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6012,7 +6005,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.data", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF((PyObject *)__pyx_v_ret_array);
@@ -6021,7 +6014,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":447
+/* "specfile.pyx":463
  *         return ret_array
  * 
  *     def scan_header(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6030,20 +6023,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_26data(struct 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_29scan_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header[] = "Return list of scan header lines.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: List of raw scan header lines, including the leading \"#L\"\n        :rtype: list of str\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_29scan_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_29scan_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_28scan_header[] = "Return list of scan header lines.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: List of raw scan header lines, including the leading \"#L\"\n        :rtype: list of str\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_29scan_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("scan_header (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_28scan_header(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_28scan_header(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   char **__pyx_v_lines;
   int __pyx_v_error;
   long __pyx_v_nlines;
@@ -6066,32 +6059,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("scan_header", 0);
 
-  /* "silx/io/specfile/specfile.pyx":457
+  /* "specfile.pyx":473
  *         cdef:
  *             char** lines
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         nlines = SfHeader(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 457; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 473; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 457; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 473; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":460
+  /* "specfile.pyx":476
  * 
  *         nlines = SfHeader(self.handle,
  *                           scan_index + 1,             # <<<<<<<<<<<<<<
  *                           "",           # no pattern matching
  *                           &lines,
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 460; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 460; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":459
+  /* "specfile.pyx":475
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         nlines = SfHeader(self.handle,             # <<<<<<<<<<<<<<
@@ -6100,16 +6093,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
  */
   __pyx_v_nlines = SfHeader(__pyx_v_self->handle, __pyx_t_3, __pyx_k__13, (&__pyx_v_lines), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":465
+  /* "specfile.pyx":481
  *                           &error)
  * 
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         lines_list = []
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 465; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 465; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -6122,36 +6115,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 465; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 465; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 465; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":467
+  /* "specfile.pyx":483
  *         self._handle_error(error)
  * 
  *         lines_list = []             # <<<<<<<<<<<<<<
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 467; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 483; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_lines_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":468
+  /* "specfile.pyx":484
  * 
  *         lines_list = []
  *         for i in range(nlines):             # <<<<<<<<<<<<<<
@@ -6162,44 +6155,44 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_3; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":469
+    /* "specfile.pyx":485
  *         lines_list = []
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))             # <<<<<<<<<<<<<<
  *             lines_list.append(line)
  * 
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_lines[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_lines[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(((PyObject*)__pyx_t_1));
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":470
+    /* "specfile.pyx":486
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))
  *             lines_list.append(line)             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&lines, nlines)
  */
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 470; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 486; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":472
+  /* "specfile.pyx":488
  *             lines_list.append(line)
  * 
  *         freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
@@ -6208,7 +6201,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
  */
   freeArrNZ(((void ***)(&__pyx_v_lines)), __pyx_v_nlines);
 
-  /* "silx/io/specfile/specfile.pyx":473
+  /* "specfile.pyx":489
  * 
  *         freeArrNZ(<void***>&lines, nlines)
  *         return lines_list             # <<<<<<<<<<<<<<
@@ -6220,7 +6213,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
   __pyx_r = __pyx_v_lines_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":447
+  /* "specfile.pyx":463
  *         return ret_array
  * 
  *     def scan_header(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6235,7 +6228,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.scan_header", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.scan_header", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_lines_list);
@@ -6245,7 +6238,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":475
+/* "specfile.pyx":491
  *         return lines_list
  * 
  *     def file_header(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6254,20 +6247,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header(
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_31file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_30file_header[] = "Return list of file header lines.\n        \n        A file header contains all lines between a \"#F\" header line and\n        a #S header line (start of scan). We need to specify a scan number\n        because there can be more than one file header in a given file. \n        A file header applies to all subsequent scans, until a new file\n        header is defined.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: List of raw file header lines, including the leading \"#L\"\n        :rtype: list of str\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_31file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_31file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_30file_header[] = "Return list of file header lines.\n        \n        A file header contains all lines between a \"#F\" header line and\n        a #S header line (start of scan). We need to specify a scan number\n        because there can be more than one file header in a given file. \n        A file header applies to all subsequent scans, until a new file\n        header is defined.\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: List of raw file header lines, including the leading \"#L\"\n        :rtype: list of str\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_31file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("file_header (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_30file_header(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_30file_header(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   char **__pyx_v_lines;
   int __pyx_v_error;
   long __pyx_v_nlines;
@@ -6290,32 +6283,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("file_header", 0);
 
-  /* "silx/io/specfile/specfile.pyx":491
+  /* "specfile.pyx":507
  *         cdef:
  *             char** lines
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         nlines = SfFileHeader(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 491; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 507; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 491; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 507; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":494
+  /* "specfile.pyx":510
  * 
  *         nlines = SfFileHeader(self.handle,
  *                              scan_index + 1,             # <<<<<<<<<<<<<<
  *                              "",          # no pattern matching
  *                              &lines,
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 510; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 510; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":493
+  /* "specfile.pyx":509
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         nlines = SfFileHeader(self.handle,             # <<<<<<<<<<<<<<
@@ -6324,16 +6317,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
  */
   __pyx_v_nlines = SfFileHeader(__pyx_v_self->handle, __pyx_t_3, __pyx_k__13, (&__pyx_v_lines), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":498
+  /* "specfile.pyx":514
  *                              &lines,
  *                              &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         lines_list = []
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -6346,36 +6339,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":500
+  /* "specfile.pyx":516
  *         self._handle_error(error)
  * 
  *         lines_list = []             # <<<<<<<<<<<<<<
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 500; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 516; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_lines_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":501
+  /* "specfile.pyx":517
  * 
  *         lines_list = []
  *         for i in range(nlines):             # <<<<<<<<<<<<<<
@@ -6386,44 +6379,44 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_3; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":502
+    /* "specfile.pyx":518
  *         lines_list = []
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))             # <<<<<<<<<<<<<<
  *             lines_list.append(line)
  * 
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_lines[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_lines[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(((PyObject*)__pyx_t_1));
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_XDECREF_SET(__pyx_v_line, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "silx/io/specfile/specfile.pyx":503
+    /* "specfile.pyx":519
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))
  *             lines_list.append(line)             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&lines, nlines)
  */
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 503; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 519; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "silx/io/specfile/specfile.pyx":505
+  /* "specfile.pyx":521
  *             lines_list.append(line)
  * 
  *         freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
@@ -6432,7 +6425,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
  */
   freeArrNZ(((void ***)(&__pyx_v_lines)), __pyx_v_nlines);
 
-  /* "silx/io/specfile/specfile.pyx":506
+  /* "specfile.pyx":522
  * 
  *         freeArrNZ(<void***>&lines, nlines)
  *         return lines_list             # <<<<<<<<<<<<<<
@@ -6444,7 +6437,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
   __pyx_r = __pyx_v_lines_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":475
+  /* "specfile.pyx":491
  *         return lines_list
  * 
  *     def file_header(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6459,7 +6452,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.file_header", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.file_header", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_lines_list);
@@ -6469,7 +6462,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":508
+/* "specfile.pyx":524
  *         return lines_list
  * 
  *     def columns(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6478,20 +6471,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_30file_header(
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_33columns(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_32columns[] = "Return number of columns in a scan from the #N\302\240header line\n        (without #N and scan number)\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: Number of columns in scan from #N\302\240record\n        :rtype: int\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_33columns(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_33columns(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_32columns[] = "Return number of columns in a scan from the #N\302\240header line\n        (without #N and scan number)\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: Number of columns in scan from #N\302\240record\n        :rtype: int\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_33columns(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("columns (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_32columns(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_32columns(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   int __pyx_v_error;
   long __pyx_v_ncolumns;
   PyObject *__pyx_r = NULL;
@@ -6508,32 +6501,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("columns", 0);
 
-  /* "silx/io/specfile/specfile.pyx":518
+  /* "specfile.pyx":534
  *         '''
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         ncolumns = SfNoColumns(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 534; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 534; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":521
+  /* "specfile.pyx":537
  * 
  *         ncolumns = SfNoColumns(self.handle,
  *                                scan_index + 1,             # <<<<<<<<<<<<<<
  *                                &error)
  *         self._handle_error(error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 521; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 537; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 521; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 537; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":520
+  /* "specfile.pyx":536
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         ncolumns = SfNoColumns(self.handle,             # <<<<<<<<<<<<<<
@@ -6542,16 +6535,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
  */
   __pyx_v_ncolumns = SfNoColumns(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":523
+  /* "specfile.pyx":539
  *                                scan_index + 1,
  *                                &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return ncolumns
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -6564,24 +6557,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":525
+  /* "specfile.pyx":541
  *         self._handle_error(error)
  * 
  *         return ncolumns             # <<<<<<<<<<<<<<
@@ -6589,13 +6582,13 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
  *     def command(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_ncolumns); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_ncolumns); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":508
+  /* "specfile.pyx":524
  *         return lines_list
  * 
  *     def columns(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6610,7 +6603,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.columns", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6618,7 +6611,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":527
+/* "specfile.pyx":543
  *         return ncolumns
  * 
  *     def command(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6627,20 +6620,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_32columns(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_35command(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_34command[] = "Return #S line (without #S and scan number)\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: S line\n        :rtype: str\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_35command(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_35command(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_34command[] = "Return #S line (without #S and scan number)\n        \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int\n        :return: S line\n        :rtype: str\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_35command(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("command (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_34command(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_34command(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   int __pyx_v_error;
   PyObject *__pyx_v_s_record = NULL;
   PyObject *__pyx_r = NULL;
@@ -6657,39 +6650,39 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("command", 0);
 
-  /* "silx/io/specfile/specfile.pyx":536
+  /* "specfile.pyx":552
  *         '''
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         s_record = <bytes> SfCommand(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 536; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 536; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":539
+  /* "specfile.pyx":555
  * 
  *         s_record = <bytes> SfCommand(self.handle,
  *                                      scan_index + 1,             # <<<<<<<<<<<<<<
  *                                      &error)
  *         self._handle_error(error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 555; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 555; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":538
+  /* "specfile.pyx":554
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         s_record = <bytes> SfCommand(self.handle,             # <<<<<<<<<<<<<<
  *                                      scan_index + 1,
  *                                      &error)
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(SfCommand(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 538; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBytes_FromString(SfCommand(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 554; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = __pyx_t_1;
   __Pyx_INCREF(__pyx_t_4);
@@ -6697,16 +6690,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
   __pyx_v_s_record = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":541
+  /* "specfile.pyx":557
  *                                      scan_index + 1,
  *                                      &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return str(s_record.encode('utf-8)'))
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -6719,24 +6712,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":543
+  /* "specfile.pyx":559
  *         self._handle_error(error)
  * 
  *         return str(s_record.encode('utf-8)'))             # <<<<<<<<<<<<<<
@@ -6744,24 +6737,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
  *     def date(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s_record, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s_record, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":527
+  /* "specfile.pyx":543
  *         return ncolumns
  * 
  *     def command(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6776,7 +6769,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.command", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.command", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_s_record);
@@ -6785,7 +6778,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":545
+/* "specfile.pyx":561
  *         return str(s_record.encode('utf-8)'))
  * 
  *     def date(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6794,20 +6787,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_34command(stru
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_37date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_36date[] = "Return date from #D line\n\n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int       \n        :return: Date from #D line\n        :rtype: str\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_37date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_37date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_36date[] = "Return date from #D line\n\n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int       \n        :return: Date from #D line\n        :rtype: str\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_37date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("date (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_36date(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_36date(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   int __pyx_v_error;
   PyObject *__pyx_v_d_record = NULL;
   PyObject *__pyx_r = NULL;
@@ -6824,39 +6817,39 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("date", 0);
 
-  /* "silx/io/specfile/specfile.pyx":554
+  /* "specfile.pyx":570
  *         '''
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         d_record = <bytes> SfDate(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 554; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 554; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":557
+  /* "specfile.pyx":573
  * 
  *         d_record = <bytes> SfDate(self.handle,
  *                                   scan_index + 1,             # <<<<<<<<<<<<<<
  *                                   &error)
  *         self._handle_error(error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 573; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 573; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":556
+  /* "specfile.pyx":572
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         d_record = <bytes> SfDate(self.handle,             # <<<<<<<<<<<<<<
  *                                   scan_index + 1,
  *                                   &error)
  */
-  __pyx_t_1 = __Pyx_PyBytes_FromString(SfDate(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 556; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyBytes_FromString(SfDate(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 572; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = __pyx_t_1;
   __Pyx_INCREF(__pyx_t_4);
@@ -6864,16 +6857,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
   __pyx_v_d_record = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":559
+  /* "specfile.pyx":575
  *                                   scan_index + 1,
  *                                   &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return str(d_record.encode('utf-8'))
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
@@ -6886,24 +6879,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":561
+  /* "specfile.pyx":577
  *         self._handle_error(error)
  * 
  *         return str(d_record.encode('utf-8'))             # <<<<<<<<<<<<<<
@@ -6911,24 +6904,24 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
  *     def labels(self, scan_index):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_d_record, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_d_record, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":545
+  /* "specfile.pyx":561
  *         return str(s_record.encode('utf-8)'))
  * 
  *     def date(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6943,7 +6936,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.date", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.date", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_d_record);
@@ -6952,7 +6945,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":563
+/* "specfile.pyx":579
  *         return str(d_record.encode('utf-8'))
  * 
  *     def labels(self, scan_index):             # <<<<<<<<<<<<<<
@@ -6961,20 +6954,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_36date(struct 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_39labels(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_38labels[] = "Return all labels from #L line\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All labels from #L line\n        :rtype: list of strings\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_39labels(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_39labels(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_38labels[] = "Return all labels from #L line\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All labels from #L line\n        :rtype: list of strings\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_39labels(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("labels (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_38labels(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_38labels(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   char **__pyx_v_all_labels;
   int __pyx_v_error;
   long __pyx_v_nlabels;
@@ -6996,32 +6989,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("labels", 0);
 
-  /* "silx/io/specfile/specfile.pyx":573
+  /* "specfile.pyx":589
  *         cdef:
  *             char** all_labels
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         nlabels = SfAllLabels(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 573; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 589; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 573; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 589; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":576
+  /* "specfile.pyx":592
  * 
  *         nlabels = SfAllLabels(self.handle,
  *                               scan_index + 1,             # <<<<<<<<<<<<<<
  *                               &all_labels,
  *                               &error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 576; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 592; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 576; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 592; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":575
+  /* "specfile.pyx":591
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         nlabels = SfAllLabels(self.handle,             # <<<<<<<<<<<<<<
@@ -7030,16 +7023,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
  */
   __pyx_v_nlabels = SfAllLabels(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_all_labels), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":579
+  /* "specfile.pyx":595
  *                               &all_labels,
  *                               &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         #labels_list = [None] * num_labels
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -7052,36 +7045,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":582
+  /* "specfile.pyx":598
  * 
  *         #labels_list = [None] * num_labels
  *         labels_list = []             # <<<<<<<<<<<<<<
  *         for i in range(nlabels):
  *             #labels_list[i] = str(<bytes>all_labels[i].encode('utf-8'))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 582; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 598; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_labels_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":583
+  /* "specfile.pyx":599
  *         #labels_list = [None] * num_labels
  *         labels_list = []
  *         for i in range(nlabels):             # <<<<<<<<<<<<<<
@@ -7092,35 +7085,35 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_3; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":585
+    /* "specfile.pyx":601
  *         for i in range(nlabels):
  *             #labels_list[i] = str(<bytes>all_labels[i].encode('utf-8'))
  *             labels_list.append(str(<bytes>all_labels[i].encode('utf-8')))             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&all_labels, nlabels)
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_all_labels[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_all_labels[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(((PyObject*)__pyx_t_1));
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_labels_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_labels_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "silx/io/specfile/specfile.pyx":587
+  /* "specfile.pyx":603
  *             labels_list.append(str(<bytes>all_labels[i].encode('utf-8')))
  * 
  *         freeArrNZ(<void***>&all_labels, nlabels)             # <<<<<<<<<<<<<<
@@ -7129,7 +7122,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
  */
   freeArrNZ(((void ***)(&__pyx_v_all_labels)), __pyx_v_nlabels);
 
-  /* "silx/io/specfile/specfile.pyx":588
+  /* "specfile.pyx":604
  * 
  *         freeArrNZ(<void***>&all_labels, nlabels)
  *         return labels_list             # <<<<<<<<<<<<<<
@@ -7141,7 +7134,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
   __pyx_r = __pyx_v_labels_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":563
+  /* "specfile.pyx":579
  *         return str(d_record.encode('utf-8'))
  * 
  *     def labels(self, scan_index):             # <<<<<<<<<<<<<<
@@ -7156,7 +7149,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.labels", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.labels", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_labels_list);
@@ -7165,7 +7158,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":590
+/* "specfile.pyx":606
  *         return labels_list
  * 
  *     def all_motor_names(self, scan_index):             # <<<<<<<<<<<<<<
@@ -7174,20 +7167,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_38labels(struc
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_41all_motor_names(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_names[] = "Return all motor names from #O\302\240lines\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All motor names\n        :rtype: list of strings\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_41all_motor_names(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_41all_motor_names(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_40all_motor_names[] = "Return all motor names from #O\302\240lines\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All motor names\n        :rtype: list of strings\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_41all_motor_names(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("all_motor_names (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_names(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_40all_motor_names(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_names(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_40all_motor_names(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   char **__pyx_v_all_motors;
   int __pyx_v_error;
   long __pyx_v_nmotors;
@@ -7209,32 +7202,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("all_motor_names", 0);
 
-  /* "silx/io/specfile/specfile.pyx":600
+  /* "specfile.pyx":616
  *         cdef:
  *             char** all_motors
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         nmotors = SfAllMotors(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 616; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 616; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":603
+  /* "specfile.pyx":619
  * 
  *         nmotors = SfAllMotors(self.handle,
  *                               scan_index + 1,             # <<<<<<<<<<<<<<
  *                               &all_motors,
  *                               &error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 603; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 619; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 603; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 619; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":602
+  /* "specfile.pyx":618
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         nmotors = SfAllMotors(self.handle,             # <<<<<<<<<<<<<<
@@ -7243,16 +7236,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
  */
   __pyx_v_nmotors = SfAllMotors(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_all_motors), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":606
+  /* "specfile.pyx":622
  *                               &all_motors,
  *                               &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         motors_list = []
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 622; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 622; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -7265,36 +7258,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 622; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 622; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 622; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":608
+  /* "specfile.pyx":624
  *         self._handle_error(error)
  * 
  *         motors_list = []             # <<<<<<<<<<<<<<
  *         for i in range(nmotors):
  *             motors_list.append(str(<bytes>all_motors[i].encode('utf-8')))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 608; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 624; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_motors_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":609
+  /* "specfile.pyx":625
  * 
  *         motors_list = []
  *         for i in range(nmotors):             # <<<<<<<<<<<<<<
@@ -7305,35 +7298,35 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_3; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":610
+    /* "specfile.pyx":626
  *         motors_list = []
  *         for i in range(nmotors):
  *             motors_list.append(str(<bytes>all_motors[i].encode('utf-8')))             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&all_motors, nmotors)
  */
-    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_all_motors[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyBytes_FromString((__pyx_v_all_motors[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_encode); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(((PyObject*)__pyx_t_1));
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyString_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_motors_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_motors_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "silx/io/specfile/specfile.pyx":612
+  /* "specfile.pyx":628
  *             motors_list.append(str(<bytes>all_motors[i].encode('utf-8')))
  * 
  *         freeArrNZ(<void***>&all_motors, nmotors)             # <<<<<<<<<<<<<<
@@ -7342,7 +7335,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
  */
   freeArrNZ(((void ***)(&__pyx_v_all_motors)), __pyx_v_nmotors);
 
-  /* "silx/io/specfile/specfile.pyx":613
+  /* "specfile.pyx":629
  * 
  *         freeArrNZ(<void***>&all_motors, nmotors)
  *         return motors_list             # <<<<<<<<<<<<<<
@@ -7354,7 +7347,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
   __pyx_r = __pyx_v_motors_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":590
+  /* "specfile.pyx":606
  *         return labels_list
  * 
  *     def all_motor_names(self, scan_index):             # <<<<<<<<<<<<<<
@@ -7369,7 +7362,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.all_motor_names", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.all_motor_names", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_motors_list);
@@ -7378,7 +7371,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
   return __pyx_r;
 }
 
-/* "silx/io/specfile/specfile.pyx":615
+/* "specfile.pyx":631
  *         return motors_list
  * 
  *     def all_motor_positions(self, scan_index):             # <<<<<<<<<<<<<<
@@ -7387,20 +7380,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_na
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_43all_motor_positions(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_positions[] = "Return all motor positions\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All motor names\n        :rtype: list of double\n        ";
-static PyObject *__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_43all_motor_positions(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_43all_motor_positions(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static char __pyx_doc_8specfile_8SpecFile_42all_motor_positions[] = "Return all motor positions\n          \n        :param scan_index: Unique scan index between 0 and len(self)-1. \n        :type scan_index: int     \n        :return: All motor names\n        :rtype: list of double\n        ";
+static PyObject *__pyx_pw_8specfile_8SpecFile_43all_motor_positions(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("all_motor_positions (wrapper)", 0);
-  __pyx_r = __pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_positions(((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_42all_motor_positions(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_positions(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pf_8specfile_8SpecFile_42all_motor_positions(struct __pyx_obj_8specfile_SpecFile *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   double *__pyx_v_motor_positions;
   int __pyx_v_error;
   long __pyx_v_nmotors;
@@ -7422,32 +7415,32 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("all_motor_positions", 0);
 
-  /* "silx/io/specfile/specfile.pyx":625
+  /* "specfile.pyx":641
  *         cdef:
  *             double* motor_positions
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
  *         nmotors = SfAllMotorPos(self.handle,
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 625; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 641; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 625; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 641; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_error = __pyx_t_2;
 
-  /* "silx/io/specfile/specfile.pyx":628
+  /* "specfile.pyx":644
  * 
  *         nmotors = SfAllMotorPos(self.handle,
  *                                 scan_index + 1,             # <<<<<<<<<<<<<<
  *                                 &motor_positions,
  *                                 &error)
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 628; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 644; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 628; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_As_long(__pyx_t_1); if (unlikely((__pyx_t_3 == (long)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 644; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":627
+  /* "specfile.pyx":643
  *             int error = SF_ERR_NO_ERRORS
  * 
  *         nmotors = SfAllMotorPos(self.handle,             # <<<<<<<<<<<<<<
@@ -7456,16 +7449,16 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
  */
   __pyx_v_nmotors = SfAllMotorPos(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_motor_positions), (&__pyx_v_error));
 
-  /* "silx/io/specfile/specfile.pyx":631
+  /* "specfile.pyx":647
  *                                 &motor_positions,
  *                                 &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         motor_positions_list = []
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 631; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_handle_error); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 631; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_error); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -7478,36 +7471,36 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
     }
   }
   if (!__pyx_t_6) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 631; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 631; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __Pyx_GIVEREF(__pyx_t_6); __pyx_t_6 = NULL;
     PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 631; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 647; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":633
+  /* "specfile.pyx":649
  *         self._handle_error(error)
  * 
  *         motor_positions_list = []             # <<<<<<<<<<<<<<
  *         for i in range(nmotors):
  *             motor_positions_list.append(motor_positions[i])
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 633; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 649; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_motor_positions_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":634
+  /* "specfile.pyx":650
  * 
  *         motor_positions_list = []
  *         for i in range(nmotors):             # <<<<<<<<<<<<<<
@@ -7518,20 +7511,20 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
   for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_3; __pyx_t_8+=1) {
     __pyx_v_i = __pyx_t_8;
 
-    /* "silx/io/specfile/specfile.pyx":635
+    /* "specfile.pyx":651
  *         motor_positions_list = []
  *         for i in range(nmotors):
  *             motor_positions_list.append(motor_positions[i])             # <<<<<<<<<<<<<<
  * 
  *         free(motor_positions)
  */
-    __pyx_t_1 = PyFloat_FromDouble((__pyx_v_motor_positions[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyFloat_FromDouble((__pyx_v_motor_positions[__pyx_v_i])); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 651; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_motor_positions_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyList_Append(__pyx_v_motor_positions_list, __pyx_t_1); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 651; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "silx/io/specfile/specfile.pyx":637
+  /* "specfile.pyx":653
  *             motor_positions_list.append(motor_positions[i])
  * 
  *         free(motor_positions)             # <<<<<<<<<<<<<<
@@ -7540,7 +7533,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
  */
   free(__pyx_v_motor_positions);
 
-  /* "silx/io/specfile/specfile.pyx":638
+  /* "specfile.pyx":654
  * 
  *         free(motor_positions)
  *         return motor_positions_list             # <<<<<<<<<<<<<<
@@ -7552,7 +7545,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
   __pyx_r = __pyx_v_motor_positions_list;
   goto __pyx_L0;
 
-  /* "silx/io/specfile/specfile.pyx":615
+  /* "specfile.pyx":631
  *         return motors_list
  * 
  *     def all_motor_positions(self, scan_index):             # <<<<<<<<<<<<<<
@@ -7567,7 +7560,7 @@ static PyObject *__pyx_pf_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_po
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_AddTraceback("silx.io.specfile.specfile.SpecFile.all_motor_positions", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("specfile.SpecFile.all_motor_positions", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_motor_positions_list);
@@ -9574,8 +9567,8 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   return __pyx_r;
 }
 
-static PyObject *__pyx_tp_new_4silx_2io_8specfile_8specfile_SpecFile(PyTypeObject *t, PyObject *a, PyObject *k) {
-  struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *p;
+static PyObject *__pyx_tp_new_8specfile_SpecFile(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_8specfile_SpecFile *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -9583,16 +9576,16 @@ static PyObject *__pyx_tp_new_4silx_2io_8specfile_8specfile_SpecFile(PyTypeObjec
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)o);
+  p = ((struct __pyx_obj_8specfile_SpecFile *)o);
   p->filename = ((PyObject*)Py_None); Py_INCREF(Py_None);
-  if (unlikely(__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_1__cinit__(o, a, k) < 0)) {
+  if (unlikely(__pyx_pw_8specfile_8SpecFile_1__cinit__(o, a, k) < 0)) {
     Py_DECREF(o); o = 0;
   }
   return o;
 }
 
-static void __pyx_tp_dealloc_4silx_2io_8specfile_8specfile_SpecFile(PyObject *o) {
-  struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *p = (struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile *)o;
+static void __pyx_tp_dealloc_8specfile_SpecFile(PyObject *o) {
+  struct __pyx_obj_8specfile_SpecFile *p = (struct __pyx_obj_8specfile_SpecFile *)o;
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -9602,14 +9595,14 @@ static void __pyx_tp_dealloc_4silx_2io_8specfile_8specfile_SpecFile(PyObject *o)
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
     ++Py_REFCNT(o);
-    __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_5__dealloc__(o);
+    __pyx_pw_8specfile_8SpecFile_5__dealloc__(o);
     --Py_REFCNT(o);
     PyErr_Restore(etype, eval, etb);
   }
   Py_CLEAR(p->filename);
   (*Py_TYPE(o)->tp_free)(o);
 }
-static PyObject *__pyx_sq_item_4silx_2io_8specfile_8specfile_SpecFile(PyObject *o, Py_ssize_t i) {
+static PyObject *__pyx_sq_item_8specfile_SpecFile(PyObject *o, Py_ssize_t i) {
   PyObject *r;
   PyObject *x = PyInt_FromSsize_t(i); if(!x) return 0;
   r = Py_TYPE(o)->tp_as_mapping->mp_subscript(o, x);
@@ -9617,31 +9610,31 @@ static PyObject *__pyx_sq_item_4silx_2io_8specfile_8specfile_SpecFile(PyObject *
   return r;
 }
 
-static PyMethodDef __pyx_methods_4silx_2io_8specfile_8specfile_SpecFile[] = {
-  {"__next__", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_11__next__, METH_NOARGS|METH_COEXIST, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_10__next__},
-  {"_get_error_string", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_13_get_error_string, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_12_get_error_string},
-  {"_handle_error", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_15_handle_error, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_14_handle_error},
-  {"index", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_17index, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_16index},
-  {"number", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_19number, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_18number},
-  {"order", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_21order, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_20order},
-  {"list", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_23list, METH_NOARGS, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_22list},
-  {"data", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_27data, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_26data},
-  {"scan_header", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_29scan_header, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_28scan_header},
-  {"file_header", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_31file_header, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_30file_header},
-  {"columns", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_33columns, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_32columns},
-  {"command", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_35command, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_34command},
-  {"date", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_37date, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_36date},
-  {"labels", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_39labels, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_38labels},
-  {"all_motor_names", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_41all_motor_names, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_40all_motor_names},
-  {"all_motor_positions", (PyCFunction)__pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_43all_motor_positions, METH_O, __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_42all_motor_positions},
+static PyMethodDef __pyx_methods_8specfile_SpecFile[] = {
+  {"__next__", (PyCFunction)__pyx_pw_8specfile_8SpecFile_11__next__, METH_NOARGS|METH_COEXIST, __pyx_doc_8specfile_8SpecFile_10__next__},
+  {"_get_error_string", (PyCFunction)__pyx_pw_8specfile_8SpecFile_13_get_error_string, METH_O, __pyx_doc_8specfile_8SpecFile_12_get_error_string},
+  {"_handle_error", (PyCFunction)__pyx_pw_8specfile_8SpecFile_15_handle_error, METH_O, __pyx_doc_8specfile_8SpecFile_14_handle_error},
+  {"index", (PyCFunction)__pyx_pw_8specfile_8SpecFile_17index, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_8SpecFile_16index},
+  {"number", (PyCFunction)__pyx_pw_8specfile_8SpecFile_19number, METH_O, __pyx_doc_8specfile_8SpecFile_18number},
+  {"order", (PyCFunction)__pyx_pw_8specfile_8SpecFile_21order, METH_O, __pyx_doc_8specfile_8SpecFile_20order},
+  {"list", (PyCFunction)__pyx_pw_8specfile_8SpecFile_23list, METH_NOARGS, __pyx_doc_8specfile_8SpecFile_22list},
+  {"data", (PyCFunction)__pyx_pw_8specfile_8SpecFile_27data, METH_O, __pyx_doc_8specfile_8SpecFile_26data},
+  {"scan_header", (PyCFunction)__pyx_pw_8specfile_8SpecFile_29scan_header, METH_O, __pyx_doc_8specfile_8SpecFile_28scan_header},
+  {"file_header", (PyCFunction)__pyx_pw_8specfile_8SpecFile_31file_header, METH_O, __pyx_doc_8specfile_8SpecFile_30file_header},
+  {"columns", (PyCFunction)__pyx_pw_8specfile_8SpecFile_33columns, METH_O, __pyx_doc_8specfile_8SpecFile_32columns},
+  {"command", (PyCFunction)__pyx_pw_8specfile_8SpecFile_35command, METH_O, __pyx_doc_8specfile_8SpecFile_34command},
+  {"date", (PyCFunction)__pyx_pw_8specfile_8SpecFile_37date, METH_O, __pyx_doc_8specfile_8SpecFile_36date},
+  {"labels", (PyCFunction)__pyx_pw_8specfile_8SpecFile_39labels, METH_O, __pyx_doc_8specfile_8SpecFile_38labels},
+  {"all_motor_names", (PyCFunction)__pyx_pw_8specfile_8SpecFile_41all_motor_names, METH_O, __pyx_doc_8specfile_8SpecFile_40all_motor_names},
+  {"all_motor_positions", (PyCFunction)__pyx_pw_8specfile_8SpecFile_43all_motor_positions, METH_O, __pyx_doc_8specfile_8SpecFile_42all_motor_positions},
   {0, 0, 0, 0}
 };
 
 static PySequenceMethods __pyx_tp_as_sequence_SpecFile = {
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_7__len__, /*sq_length*/
+  __pyx_pw_8specfile_8SpecFile_7__len__, /*sq_length*/
   0, /*sq_concat*/
   0, /*sq_repeat*/
-  __pyx_sq_item_4silx_2io_8specfile_8specfile_SpecFile, /*sq_item*/
+  __pyx_sq_item_8specfile_SpecFile, /*sq_item*/
   0, /*sq_slice*/
   0, /*sq_ass_item*/
   0, /*sq_ass_slice*/
@@ -9651,17 +9644,17 @@ static PySequenceMethods __pyx_tp_as_sequence_SpecFile = {
 };
 
 static PyMappingMethods __pyx_tp_as_mapping_SpecFile = {
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_7__len__, /*mp_length*/
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_25__getitem__, /*mp_subscript*/
+  __pyx_pw_8specfile_8SpecFile_7__len__, /*mp_length*/
+  __pyx_pw_8specfile_8SpecFile_25__getitem__, /*mp_subscript*/
   0, /*mp_ass_subscript*/
 };
 
-static PyTypeObject __pyx_type_4silx_2io_8specfile_8specfile_SpecFile = {
+static PyTypeObject __pyx_type_8specfile_SpecFile = {
   PyVarObject_HEAD_INIT(0, 0)
-  "silx.io.specfile.specfile.SpecFile", /*tp_name*/
-  sizeof(struct __pyx_obj_4silx_2io_8specfile_8specfile_SpecFile), /*tp_basicsize*/
+  "specfile.SpecFile", /*tp_name*/
+  sizeof(struct __pyx_obj_8specfile_SpecFile), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_4silx_2io_8specfile_8specfile_SpecFile, /*tp_dealloc*/
+  __pyx_tp_dealloc_8specfile_SpecFile, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -9681,14 +9674,14 @@ static PyTypeObject __pyx_type_4silx_2io_8specfile_8specfile_SpecFile = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  "\n    Class wrapping the C SpecFile library.\n\n    :param filename: Path of the SpecFile to read\n    :type label_text: string\n    ", /*tp_doc*/
+  "\n    Class wrapping the C SpecFile library.\n\n    A SpecFile instance can be accessed like a dictionary to retrieve a\n    :class:`Scan` instance. If the key is an integer, it will be used as\n    a sequential scan index. If the key is a string representing two values\n    separated by a dot (e.g. \"1.2\"), it will be treated as the scan number\n    (\"#S\" header line) and the scan order.\n\n    .. code-block:: python\n\n        from silx.io.specfile import SpecFile\n\n        sf = SpecFile(\"test.dat\")\n        myscan = sf[\"1.2\"]     # maybe equivalent to myscan = sf[25]\n        nlines, ncolumns = myscan.data.shape\n\n    It is also possible to treat it as an iterator.\n\n    .. code-block:: python\n\n        from silx.io.specfile import SpecFile\n\n        for scan in sf SpecFile(\"test.dat\"):\n            print(scan.header_dict['S'])\n\n    :param filename: Path of the SpecFile to read\n    :type filename: string\n    ", /*tp_doc*/
   0, /*tp_traverse*/
   0, /*tp_clear*/
   0, /*tp_richcompare*/
   0, /*tp_weaklistoffset*/
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_9__iter__, /*tp_iter*/
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_11__next__, /*tp_iternext*/
-  __pyx_methods_4silx_2io_8specfile_8specfile_SpecFile, /*tp_methods*/
+  __pyx_pw_8specfile_8SpecFile_9__iter__, /*tp_iter*/
+  __pyx_pw_8specfile_8SpecFile_11__next__, /*tp_iternext*/
+  __pyx_methods_8specfile_SpecFile, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -9696,9 +9689,9 @@ static PyTypeObject __pyx_type_4silx_2io_8specfile_8specfile_SpecFile = {
   0, /*tp_descr_get*/
   0, /*tp_descr_set*/
   0, /*tp_dictoffset*/
-  __pyx_pw_4silx_2io_8specfile_8specfile_8SpecFile_3__init__, /*tp_init*/
+  __pyx_pw_8specfile_8SpecFile_3__init__, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_4silx_2io_8specfile_8specfile_SpecFile, /*tp_new*/
+  __pyx_tp_new_8specfile_SpecFile, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -9725,7 +9718,7 @@ static struct PyModuleDef __pyx_moduledef = {
     PyModuleDef_HEAD_INIT,
   #endif
     "specfile",
-    0, /* m_doc */
+    __pyx_k_This_module_is_a_cython_binding, /* m_doc */
     -1, /* m_size */
     __pyx_methods /* m_methods */,
     NULL, /* m_reload */
@@ -9736,9 +9729,9 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_s_16_02_2016, __pyx_k_16_02_2016, sizeof(__pyx_k_16_02_2016), 0, 0, 1, 0},
   {&__pyx_kp_s_Debug_message, __pyx_k_Debug_message, sizeof(__pyx_k_Debug_message), 0, 0, 1, 0},
   {&__pyx_kp_s_Error_while_closing, __pyx_k_Error_while_closing, sizeof(__pyx_k_Error_while_closing), 0, 0, 1, 0},
-  {&__pyx_kp_s_European_Synchrotron_Radiation_F, __pyx_k_European_Synchrotron_Radiation_F, sizeof(__pyx_k_European_Synchrotron_Radiation_F), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_n_s_IOError, __pyx_k_IOError, sizeof(__pyx_k_IOError), 0, 0, 1, 1},
@@ -9748,7 +9741,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_MIT, __pyx_k_MIT, sizeof(__pyx_k_MIT), 0, 0, 1, 1},
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
-  {&__pyx_kp_s_P_Knobel_ESRF_Data_Analysis, __pyx_k_P_Knobel_ESRF_Data_Analysis, sizeof(__pyx_k_P_Knobel_ESRF_Data_Analysis), 0, 0, 1, 0},
+  {&__pyx_kp_s_P_Knobel, __pyx_k_P_Knobel, sizeof(__pyx_k_P_Knobel), 0, 0, 1, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_SF_ERR_COL_NOT_FOUND, __pyx_k_SF_ERR_COL_NOT_FOUND, sizeof(__pyx_k_SF_ERR_COL_NOT_FOUND), 0, 0, 1, 1},
   {&__pyx_n_s_SF_ERR_FILE_CLOSE, __pyx_k_SF_ERR_FILE_CLOSE, sizeof(__pyx_k_SF_ERR_FILE_CLOSE), 0, 0, 1, 1},
@@ -9772,10 +9765,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Scan_index_must_be_in_range_0_d, __pyx_k_Scan_index_must_be_in_range_0_d, sizeof(__pyx_k_Scan_index_must_be_in_range_0_d), 0, 0, 1, 0},
   {&__pyx_n_s_Scan_record_exists_in_file_hdr, __pyx_k_Scan_record_exists_in_file_hdr, sizeof(__pyx_k_Scan_record_exists_in_file_hdr), 0, 0, 1, 1},
   {&__pyx_n_s_Scan_record_exists_in_hdr, __pyx_k_Scan_record_exists_in_hdr, sizeof(__pyx_k_Scan_record_exists_in_hdr), 0, 0, 1, 1},
-  {&__pyx_kp_s_SpecFile_scan_param_specfile_Pa, __pyx_k_SpecFile_scan_param_specfile_Pa, sizeof(__pyx_k_SpecFile_scan_param_specfile_Pa), 0, 0, 1, 0},
+  {&__pyx_kp_s_SpecFile_scan_ivar_index_Unique, __pyx_k_SpecFile_scan_ivar_index_Unique, sizeof(__pyx_k_SpecFile_scan_ivar_index_Unique), 0, 0, 1, 0},
   {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_kp_s_The_scan_identification_key_can, __pyx_k_The_scan_identification_key_can, sizeof(__pyx_k_The_scan_identification_key_can), 0, 0, 1, 0},
-  {&__pyx_kp_s_This_module_is_a_cython_binding, __pyx_k_This_module_is_a_cython_binding, sizeof(__pyx_k_This_module_is_a_cython_binding), 0, 0, 1, 0},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_kp_s_Warning_unable_to_parse_file_hea, __pyx_k_Warning_unable_to_parse_file_hea, sizeof(__pyx_k_Warning_unable_to_parse_file_hea), 0, 0, 1, 0},
@@ -9783,11 +9775,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 0},
   {&__pyx_n_s_all_motor_names, __pyx_k_all_motor_names, sizeof(__pyx_k_all_motor_names), 0, 0, 1, 1},
   {&__pyx_n_s_all_motor_positions, __pyx_k_all_motor_positions, sizeof(__pyx_k_all_motor_positions), 0, 0, 1, 1},
-  {&__pyx_n_s_author, __pyx_k_author, sizeof(__pyx_k_author), 0, 0, 1, 1},
-  {&__pyx_n_s_contact, __pyx_k_contact, sizeof(__pyx_k_contact), 0, 0, 1, 1},
-  {&__pyx_n_s_copyright, __pyx_k_copyright, sizeof(__pyx_k_copyright), 0, 0, 1, 1},
+  {&__pyx_n_s_authors, __pyx_k_authors, sizeof(__pyx_k_authors), 0, 0, 1, 1},
   {&__pyx_n_s_data, __pyx_k_data, sizeof(__pyx_k_data), 0, 0, 1, 1},
   {&__pyx_n_s_data_line, __pyx_k_data_line, sizeof(__pyx_k_data_line), 0, 0, 1, 1},
+  {&__pyx_n_s_date, __pyx_k_date, sizeof(__pyx_k_date), 0, 0, 1, 1},
   {&__pyx_n_s_debug_msg, __pyx_k_debug_msg, sizeof(__pyx_k_debug_msg), 0, 0, 1, 1},
   {&__pyx_n_s_debugging, __pyx_k_debugging, sizeof(__pyx_k_debugging), 0, 0, 1, 1},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
@@ -9838,7 +9829,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_os, __pyx_k_os, sizeof(__pyx_k_os), 0, 0, 1, 1},
   {&__pyx_n_s_os_path, __pyx_k_os_path, sizeof(__pyx_k_os_path), 0, 0, 1, 1},
   {&__pyx_n_s_path, __pyx_k_path, sizeof(__pyx_k_path), 0, 0, 1, 1},
-  {&__pyx_kp_s_pierre_knobel_esrf_fr, __pyx_k_pierre_knobel_esrf_fr, sizeof(__pyx_k_pierre_knobel_esrf_fr), 0, 0, 1, 0},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
   {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
   {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
@@ -9854,7 +9844,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_search, __pyx_k_search, sizeof(__pyx_k_search), 0, 0, 1, 1},
   {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
-  {&__pyx_n_s_silx_io_specfile_specfile, __pyx_k_silx_io_specfile_specfile, sizeof(__pyx_k_silx_io_specfile_specfile), 0, 0, 1, 1},
   {&__pyx_n_s_specfile, __pyx_k_specfile, sizeof(__pyx_k_specfile), 0, 0, 1, 1},
   {&__pyx_n_s_specfile_2, __pyx_k_specfile_2, sizeof(__pyx_k_specfile_2), 0, 0, 1, 1},
   {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
@@ -9869,16 +9858,16 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_map = __Pyx_GetBuiltinName(__pyx_n_s_map); if (!__pyx_builtin_map) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_object = __Pyx_GetBuiltinName(__pyx_n_s_object); if (!__pyx_builtin_object) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_IndexError = __Pyx_GetBuiltinName(__pyx_n_s_IndexError); if (!__pyx_builtin_IndexError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_IOError = __Pyx_GetBuiltinName(__pyx_n_s_IOError); if (!__pyx_builtin_IOError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_map = __Pyx_GetBuiltinName(__pyx_n_s_map); if (!__pyx_builtin_map) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 799; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
@@ -9889,163 +9878,163 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "silx/io/specfile/specfile.pyx":110
- *         '''List of raw header lines, including the leading "#L"'''
+  /* "specfile.pyx":118
+ *         self.header_lines = self._specfile.scan_header(self.index)
  * 
  *         if self.record_exists_in_hdr('L'):             # <<<<<<<<<<<<<<
  *             self.labels = self._specfile.labels(self.index)
  * 
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_L); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_L); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 118; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "silx/io/specfile/specfile.pyx":119
+  /* "specfile.pyx":126
  *             if match:
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()             # <<<<<<<<<<<<<<
  *                 hvalue = match.group(2).strip()
  *                 self.header_dict[hkey] = hvalue
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "silx/io/specfile/specfile.pyx":120
+  /* "specfile.pyx":127
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()             # <<<<<<<<<<<<<<
  *                 self.header_dict[hkey] = hvalue
  *             else:
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "silx/io/specfile/specfile.pyx":146
+  /* "specfile.pyx":150
  *             if match:
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()             # <<<<<<<<<<<<<<
  *                 hvalue = match.group(2).strip()
  *                 self.file_header_dict[hkey] = hvalue
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 146; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s__3); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "silx/io/specfile/specfile.pyx":147
+  /* "specfile.pyx":151
  *                 # header type
  *                 hkey = match.group(1).lstrip("#").strip()
  *                 hvalue = match.group(2).strip()             # <<<<<<<<<<<<<<
  *                 self.file_header_dict[hkey] = hvalue
  *             else:
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 147; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 151; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "silx/io/specfile/specfile.pyx":204
+  /* "specfile.pyx":208
  *         '''
  *         #return self._specfile.data_line(self.index, line_index)
  *         return self.data[line_index, :]             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_slice__9 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_slice__9 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_slice__9);
   __Pyx_GIVEREF(__pyx_slice__9);
 
-  /* "silx/io/specfile/specfile.pyx":267
+  /* "specfile.pyx":294
  *         :type code: int
  *         '''
  *         return (<bytes> SfError(error_code)).encode('utf-8)')             # <<<<<<<<<<<<<<
  * 
  *     def _handle_error(self, error_code):
  */
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "silx/io/specfile/specfile.pyx":393
+  /* "specfile.pyx":409
  *         elif isinstance(key, str):
  *             try:
  *                 (number, order) = map(int, key.split("."))             # <<<<<<<<<<<<<<
  *                 scan_index = self.index(number, order)
  *             except (ValueError, IndexError):
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s__11); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s__11); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "silx/io/specfile/specfile.pyx":469
+  /* "specfile.pyx":485
  *         lines_list = []
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))             # <<<<<<<<<<<<<<
  *             lines_list.append(line)
  * 
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "silx/io/specfile/specfile.pyx":502
+  /* "specfile.pyx":518
  *         lines_list = []
  *         for i in range(nlines):
  *             line =  str(<bytes>lines[i].encode('utf-8'))             # <<<<<<<<<<<<<<
  *             lines_list.append(line)
  * 
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__15)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 518; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "silx/io/specfile/specfile.pyx":543
+  /* "specfile.pyx":559
  *         self._handle_error(error)
  * 
  *         return str(s_record.encode('utf-8)'))             # <<<<<<<<<<<<<<
  * 
  *     def date(self, scan_index):
  */
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_utf_8); if (unlikely(!__pyx_tuple__16)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "silx/io/specfile/specfile.pyx":561
+  /* "specfile.pyx":577
  *         self._handle_error(error)
  * 
  *         return str(d_record.encode('utf-8'))             # <<<<<<<<<<<<<<
  * 
  *     def labels(self, scan_index):
  */
-  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 561; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__17)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "silx/io/specfile/specfile.pyx":585
+  /* "specfile.pyx":601
  *         for i in range(nlabels):
  *             #labels_list[i] = str(<bytes>all_labels[i].encode('utf-8'))
  *             labels_list.append(str(<bytes>all_labels[i].encode('utf-8')))             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&all_labels, nlabels)
  */
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
 
-  /* "silx/io/specfile/specfile.pyx":610
+  /* "specfile.pyx":626
  *         motors_list = []
  *         for i in range(nmotors):
  *             motors_list.append(str(<bytes>all_motors[i].encode('utf-8')))             # <<<<<<<<<<<<<<
  * 
  *         freeArrNZ(<void***>&all_motors, nmotors)
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_utf_8_2); if (unlikely(!__pyx_tuple__19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 626; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__19);
   __Pyx_GIVEREF(__pyx_tuple__19);
 
@@ -10115,65 +10104,65 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "silx/io/specfile/specfile.pyx":64
+  /* "specfile.pyx":60
  * debugging = True
  * 
  * def debug_msg(msg):             # <<<<<<<<<<<<<<
  *     if debugging:
  *         print("Debug message:" + str(msg))
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__26)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_n_s_msg); if (unlikely(!__pyx_tuple__26)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_debug_msg, 64, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_debug_msg, 60, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":95
+  /* "specfile.pyx":103
  *     :type scan_index: int
  *     '''
  *     def __init__(self, specfile, scan_index):             # <<<<<<<<<<<<<<
  *         self._specfile = specfile
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  */
-  __pyx_tuple__28 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_specfile, __pyx_n_s_scan_index, __pyx_n_s_line, __pyx_n_s_match, __pyx_n_s_hkey, __pyx_n_s_hvalue); if (unlikely(!__pyx_tuple__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__28 = PyTuple_Pack(7, __pyx_n_s_self, __pyx_n_s_specfile, __pyx_n_s_scan_index, __pyx_n_s_line, __pyx_n_s_match, __pyx_n_s_hkey, __pyx_n_s_hvalue); if (unlikely(!__pyx_tuple__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_init, 95, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_init, 103, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":157
+  /* "specfile.pyx":161
  * 
  * 
  *     def record_exists_in_hdr(self, record):             # <<<<<<<<<<<<<<
  *         '''Check whether a scan header line  exists.
  * 
  */
-  __pyx_tuple__30 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_record, __pyx_n_s_line); if (unlikely(!__pyx_tuple__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__30 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_record, __pyx_n_s_line); if (unlikely(!__pyx_tuple__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_record_exists_in_hdr, 157, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_record_exists_in_hdr, 161, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":176
+  /* "specfile.pyx":180
  *         return False
  * 
  *     def record_exists_in_file_hdr(self, record):             # <<<<<<<<<<<<<<
  *         '''Check whether a file header line  exists.
  * 
  */
-  __pyx_tuple__32 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_record, __pyx_n_s_line); if (unlikely(!__pyx_tuple__32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__32 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_record, __pyx_n_s_line); if (unlikely(!__pyx_tuple__32)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_record_exists_in_file_hdr, 176, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_record_exists_in_file_hdr, 180, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":195
+  /* "specfile.pyx":199
  *         return False
  * 
  *     def data_line(self, line_index):             # <<<<<<<<<<<<<<
  *         '''Returns data for a given line of this scan.
  * 
  */
-  __pyx_tuple__34 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_line_index); if (unlikely(!__pyx_tuple__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__34 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_line_index); if (unlikely(!__pyx_tuple__34)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_data_line, 195, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_knobel_workspace_silx_silx, __pyx_n_s_data_line, 199, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -10252,7 +10241,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
   #endif
   /*--- Module creation code ---*/
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("specfile", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("specfile", __pyx_methods, __pyx_k_This_module_is_a_cython_binding, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -10269,14 +10258,14 @@ PyMODINIT_FUNC PyInit_specfile(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_silx__io__specfile__specfile) {
+  if (__pyx_module_is_main_specfile) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "silx.io.specfile.specfile")) {
-      if (unlikely(PyDict_SetItemString(modules, "silx.io.specfile.specfile", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "specfile")) {
+      if (unlikely(PyDict_SetItemString(modules, "specfile", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -10288,40 +10277,40 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_4silx_2io_8specfile_8specfile_SpecFile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_type_4silx_2io_8specfile_8specfile_SpecFile.tp_print = 0;
+  if (PyType_Ready(&__pyx_type_8specfile_SpecFile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_type_8specfile_SpecFile.tp_print = 0;
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_4silx_2io_8specfile_8specfile_SpecFile, "__len__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8specfile_SpecFile, "__len__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_6__len__ = *((PyWrapperDescrObject *)wrapper)->d_base;
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_6__len__.doc = __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_6__len__;
-      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_6__len__;
+      __pyx_wrapperbase_8specfile_8SpecFile_6__len__ = *((PyWrapperDescrObject *)wrapper)->d_base;
+      __pyx_wrapperbase_8specfile_8SpecFile_6__len__.doc = __pyx_doc_8specfile_8SpecFile_6__len__;
+      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_8specfile_8SpecFile_6__len__;
     }
   }
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_4silx_2io_8specfile_8specfile_SpecFile, "__next__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8specfile_SpecFile, "__next__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_10__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_10__next__.doc = __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_10__next__;
-      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_10__next__;
+      __pyx_wrapperbase_8specfile_8SpecFile_10__next__ = *((PyWrapperDescrObject *)wrapper)->d_base;
+      __pyx_wrapperbase_8specfile_8SpecFile_10__next__.doc = __pyx_doc_8specfile_8SpecFile_10__next__;
+      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_8specfile_8SpecFile_10__next__;
     }
   }
   #endif
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_4silx_2io_8specfile_8specfile_SpecFile, "__getitem__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8specfile_SpecFile, "__getitem__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__ = *((PyWrapperDescrObject *)wrapper)->d_base;
-      __pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__.doc = __pyx_doc_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__;
-      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_4silx_2io_8specfile_8specfile_8SpecFile_24__getitem__;
+      __pyx_wrapperbase_8specfile_8SpecFile_24__getitem__ = *((PyWrapperDescrObject *)wrapper)->d_base;
+      __pyx_wrapperbase_8specfile_8SpecFile_24__getitem__.doc = __pyx_doc_8specfile_8SpecFile_24__getitem__;
+      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_8specfile_8SpecFile_24__getitem__;
     }
   }
   #endif
-  if (PyObject_SetAttrString(__pyx_m, "SpecFile", (PyObject *)&__pyx_type_4silx_2io_8specfile_8specfile_SpecFile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_ptype_4silx_2io_8specfile_8specfile_SpecFile = &__pyx_type_4silx_2io_8specfile_8specfile_SpecFile;
+  if (PyObject_SetAttrString(__pyx_m, "SpecFile", (PyObject *)&__pyx_type_8specfile_SpecFile) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_ptype_8specfile_SpecFile = &__pyx_type_8specfile_SpecFile;
   /*--- Type import code ---*/
   __pyx_ptype_7cpython_4type_type = __Pyx_ImportType(__Pyx_BUILTIN_MODULE_NAME, "type", 
   #if CYTHON_COMPILING_IN_PYPY
@@ -10339,88 +10328,76 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "silx/io/specfile/specfile.pyx":31
+  /* "specfile.pyx":36
  * #library expects indices between 1 and N.
  * 
- * __author__ = "P. Knobel - ESRF Data Analysis"             # <<<<<<<<<<<<<<
- * __contact__ = "pierre.knobel@esrf.fr"
+ * __authors__ = ["P. Knobel"]             # <<<<<<<<<<<<<<
  * __license__ = "MIT"
+ * __date__ = "16/02/2016"
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_author, __pyx_kp_s_P_Knobel_ESRF_Data_Analysis) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 31; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_kp_s_P_Knobel);
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_kp_s_P_Knobel);
+  __Pyx_GIVEREF(__pyx_kp_s_P_Knobel);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_authors, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":32
+  /* "specfile.pyx":37
  * 
- * __author__ = "P. Knobel - ESRF Data Analysis"
- * __contact__ = "pierre.knobel@esrf.fr"             # <<<<<<<<<<<<<<
- * __license__ = "MIT"
- * __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
- */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_contact, __pyx_kp_s_pierre_knobel_esrf_fr) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 32; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-  /* "silx/io/specfile/specfile.pyx":33
- * __author__ = "P. Knobel - ESRF Data Analysis"
- * __contact__ = "pierre.knobel@esrf.fr"
+ * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
- * __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
- * __doc__ = """
- */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-  /* "silx/io/specfile/specfile.pyx":34
- * __contact__ = "pierre.knobel@esrf.fr"
- * __license__ = "MIT"
- * __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"             # <<<<<<<<<<<<<<
- * __doc__ = """
- * This module is a cython binding to wrap the C-library SpecFile.
- */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_copyright, __pyx_kp_s_European_Synchrotron_Radiation_F) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 34; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-  /* "silx/io/specfile/specfile.pyx":35
- * __license__ = "MIT"
- * __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
- * __doc__ = """             # <<<<<<<<<<<<<<
- * This module is a cython binding to wrap the C-library SpecFile.
+ * __date__ = "16/02/2016"
  * 
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_doc, __pyx_kp_s_This_module_is_a_cython_binding) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 35; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":49
+  /* "specfile.pyx":38
+ * __authors__ = ["P. Knobel"]
+ * __license__ = "MIT"
+ * __date__ = "16/02/2016"             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_16_02_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 38; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+  /* "specfile.pyx":45
  * 
  * 
  * import os.path             # <<<<<<<<<<<<<<
  * import re
  * import numpy
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os_path, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_os_path, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_os, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 45; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":50
+  /* "specfile.pyx":46
  * 
  * import os.path
  * import re             # <<<<<<<<<<<<<<
  * import numpy
  * 
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_re, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_re, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 50; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_re, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 46; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":51
+  /* "specfile.pyx":47
  * import os.path
  * import re
  * import numpy             # <<<<<<<<<<<<<<
  * 
  * cimport numpy
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":58
+  /* "specfile.pyx":54
  * from libc.string cimport memcpy
  * 
  * numpy.import_array()             # <<<<<<<<<<<<<<
@@ -10429,254 +10406,254 @@ PyMODINIT_FUNC PyInit_specfile(void)
  */
   import_array();
 
-  /* "silx/io/specfile/specfile.pyx":62
+  /* "specfile.pyx":58
  * from specfile_pxd cimport *
  * 
  * debugging = True             # <<<<<<<<<<<<<<
  * 
  * def debug_msg(msg):
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_debugging, Py_True) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_debugging, Py_True) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 58; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":64
+  /* "specfile.pyx":60
  * debugging = True
  * 
  * def debug_msg(msg):             # <<<<<<<<<<<<<<
  *     if debugging:
  *         print("Debug message:" + str(msg))
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_4silx_2io_8specfile_8specfile_1debug_msg, NULL, __pyx_n_s_silx_io_specfile_specfile); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_8specfile_1debug_msg, NULL, __pyx_n_s_specfile); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_debug_msg, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_debug_msg, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 60; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":69
+  /* "specfile.pyx":65
  * 
  * 
  * SF_ERR_NO_ERRORS = 0             # <<<<<<<<<<<<<<
  * SF_ERR_MEMORY_ALLOC = 1
  * SF_ERR_FILE_OPEN = 2
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_NO_ERRORS, __pyx_int_0) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_NO_ERRORS, __pyx_int_0) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":70
+  /* "specfile.pyx":66
  * 
  * SF_ERR_NO_ERRORS = 0
  * SF_ERR_MEMORY_ALLOC = 1             # <<<<<<<<<<<<<<
  * SF_ERR_FILE_OPEN = 2
  * SF_ERR_FILE_CLOSE = 3
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MEMORY_ALLOC, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 70; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MEMORY_ALLOC, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":71
+  /* "specfile.pyx":67
  * SF_ERR_NO_ERRORS = 0
  * SF_ERR_MEMORY_ALLOC = 1
  * SF_ERR_FILE_OPEN = 2             # <<<<<<<<<<<<<<
  * SF_ERR_FILE_CLOSE = 3
  * SF_ERR_FILE_READ = 4
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_OPEN, __pyx_int_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_OPEN, __pyx_int_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":72
+  /* "specfile.pyx":68
  * SF_ERR_MEMORY_ALLOC = 1
  * SF_ERR_FILE_OPEN = 2
  * SF_ERR_FILE_CLOSE = 3             # <<<<<<<<<<<<<<
  * SF_ERR_FILE_READ = 4
  * SF_ERR_FILE_WRITE = 5
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_CLOSE, __pyx_int_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_CLOSE, __pyx_int_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 68; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":73
+  /* "specfile.pyx":69
  * SF_ERR_FILE_OPEN = 2
  * SF_ERR_FILE_CLOSE = 3
  * SF_ERR_FILE_READ = 4             # <<<<<<<<<<<<<<
  * SF_ERR_FILE_WRITE = 5
  * SF_ERR_LINE_NOT_FOUND = 6
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_READ, __pyx_int_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_READ, __pyx_int_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 69; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":74
+  /* "specfile.pyx":70
  * SF_ERR_FILE_CLOSE = 3
  * SF_ERR_FILE_READ = 4
  * SF_ERR_FILE_WRITE = 5             # <<<<<<<<<<<<<<
  * SF_ERR_LINE_NOT_FOUND = 6
  * SF_ERR_SCAN_NOT_FOUND = 7
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_WRITE, __pyx_int_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_FILE_WRITE, __pyx_int_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 70; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":75
+  /* "specfile.pyx":71
  * SF_ERR_FILE_READ = 4
  * SF_ERR_FILE_WRITE = 5
  * SF_ERR_LINE_NOT_FOUND = 6             # <<<<<<<<<<<<<<
  * SF_ERR_SCAN_NOT_FOUND = 7
  * SF_ERR_HEADER_NOT_FOUND = 8
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LINE_NOT_FOUND, __pyx_int_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LINE_NOT_FOUND, __pyx_int_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":76
+  /* "specfile.pyx":72
  * SF_ERR_FILE_WRITE = 5
  * SF_ERR_LINE_NOT_FOUND = 6
  * SF_ERR_SCAN_NOT_FOUND = 7             # <<<<<<<<<<<<<<
  * SF_ERR_HEADER_NOT_FOUND = 8
  * SF_ERR_LABEL_NOT_FOUND = 9
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_SCAN_NOT_FOUND, __pyx_int_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_SCAN_NOT_FOUND, __pyx_int_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":77
+  /* "specfile.pyx":73
  * SF_ERR_LINE_NOT_FOUND = 6
  * SF_ERR_SCAN_NOT_FOUND = 7
  * SF_ERR_HEADER_NOT_FOUND = 8             # <<<<<<<<<<<<<<
  * SF_ERR_LABEL_NOT_FOUND = 9
  * SF_ERR_MOTOR_NOT_FOUND = 10
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_HEADER_NOT_FOUND, __pyx_int_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_HEADER_NOT_FOUND, __pyx_int_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 73; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":78
+  /* "specfile.pyx":74
  * SF_ERR_SCAN_NOT_FOUND = 7
  * SF_ERR_HEADER_NOT_FOUND = 8
  * SF_ERR_LABEL_NOT_FOUND = 9             # <<<<<<<<<<<<<<
  * SF_ERR_MOTOR_NOT_FOUND = 10
  * SF_ERR_POSITION_NOT_FOUND = 11
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LABEL_NOT_FOUND, __pyx_int_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LABEL_NOT_FOUND, __pyx_int_9) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":79
+  /* "specfile.pyx":75
  * SF_ERR_HEADER_NOT_FOUND = 8
  * SF_ERR_LABEL_NOT_FOUND = 9
  * SF_ERR_MOTOR_NOT_FOUND = 10             # <<<<<<<<<<<<<<
  * SF_ERR_POSITION_NOT_FOUND = 11
  * SF_ERR_LINE_EMPTY = 12
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MOTOR_NOT_FOUND, __pyx_int_10) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MOTOR_NOT_FOUND, __pyx_int_10) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":80
+  /* "specfile.pyx":76
  * SF_ERR_LABEL_NOT_FOUND = 9
  * SF_ERR_MOTOR_NOT_FOUND = 10
  * SF_ERR_POSITION_NOT_FOUND = 11             # <<<<<<<<<<<<<<
  * SF_ERR_LINE_EMPTY = 12
  * SF_ERR_USER_NOT_FOUND = 13
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_POSITION_NOT_FOUND, __pyx_int_11) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_POSITION_NOT_FOUND, __pyx_int_11) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":81
+  /* "specfile.pyx":77
  * SF_ERR_MOTOR_NOT_FOUND = 10
  * SF_ERR_POSITION_NOT_FOUND = 11
  * SF_ERR_LINE_EMPTY = 12             # <<<<<<<<<<<<<<
  * SF_ERR_USER_NOT_FOUND = 13
  * SF_ERR_COL_NOT_FOUND = 14
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LINE_EMPTY, __pyx_int_12) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_LINE_EMPTY, __pyx_int_12) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 77; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":82
+  /* "specfile.pyx":78
  * SF_ERR_POSITION_NOT_FOUND = 11
  * SF_ERR_LINE_EMPTY = 12
  * SF_ERR_USER_NOT_FOUND = 13             # <<<<<<<<<<<<<<
  * SF_ERR_COL_NOT_FOUND = 14
  * SF_ERR_MCA_NOT_FOUND = 15
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_USER_NOT_FOUND, __pyx_int_13) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_USER_NOT_FOUND, __pyx_int_13) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":83
+  /* "specfile.pyx":79
  * SF_ERR_LINE_EMPTY = 12
  * SF_ERR_USER_NOT_FOUND = 13
  * SF_ERR_COL_NOT_FOUND = 14             # <<<<<<<<<<<<<<
  * SF_ERR_MCA_NOT_FOUND = 15
  * 
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_COL_NOT_FOUND, __pyx_int_14) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 83; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_COL_NOT_FOUND, __pyx_int_14) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":84
+  /* "specfile.pyx":80
  * SF_ERR_USER_NOT_FOUND = 13
  * SF_ERR_COL_NOT_FOUND = 14
  * SF_ERR_MCA_NOT_FOUND = 15             # <<<<<<<<<<<<<<
  * 
  * class Scan(object):
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MCA_NOT_FOUND, __pyx_int_15) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 84; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SF_ERR_MCA_NOT_FOUND, __pyx_int_15) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 80; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "silx/io/specfile/specfile.pyx":86
+  /* "specfile.pyx":82
  * SF_ERR_MCA_NOT_FOUND = 15
  * 
  * class Scan(object):             # <<<<<<<<<<<<<<
  *     '''
  *     SpecFile scan
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_builtin_object);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_builtin_object);
   __Pyx_GIVEREF(__pyx_builtin_object);
-  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_Scan, __pyx_n_s_Scan, (PyObject *) NULL, __pyx_n_s_silx_io_specfile_specfile, __pyx_kp_s_SpecFile_scan_param_specfile_Pa); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_2, __pyx_t_1, __pyx_n_s_Scan, __pyx_n_s_Scan, (PyObject *) NULL, __pyx_n_s_specfile, __pyx_kp_s_SpecFile_scan_ivar_index_Unique); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
 
-  /* "silx/io/specfile/specfile.pyx":95
+  /* "specfile.pyx":103
  *     :type scan_index: int
  *     '''
  *     def __init__(self, specfile, scan_index):             # <<<<<<<<<<<<<<
  *         self._specfile = specfile
- *         # unique index 0 - len(specfile)-1
+ *         #: unique index 0 - len(specfile)-1
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_1__init__, 0, __pyx_n_s_Scan___init, NULL, __pyx_n_s_silx_io_specfile_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8specfile_4Scan_1__init__, 0, __pyx_n_s_Scan___init, NULL, __pyx_n_s_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_init, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 95; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_init, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":157
+  /* "specfile.pyx":161
  * 
  * 
  *     def record_exists_in_hdr(self, record):             # <<<<<<<<<<<<<<
  *         '''Check whether a scan header line  exists.
  * 
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_3record_exists_in_hdr, 0, __pyx_n_s_Scan_record_exists_in_hdr, NULL, __pyx_n_s_silx_io_specfile_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8specfile_4Scan_3record_exists_in_hdr, 0, __pyx_n_s_Scan_record_exists_in_hdr, NULL, __pyx_n_s_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_record_exists_in_hdr, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_record_exists_in_hdr, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":176
+  /* "specfile.pyx":180
  *         return False
  * 
  *     def record_exists_in_file_hdr(self, record):             # <<<<<<<<<<<<<<
  *         '''Check whether a file header line  exists.
  * 
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_5record_exists_in_file_hdr, 0, __pyx_n_s_Scan_record_exists_in_file_hdr, NULL, __pyx_n_s_silx_io_specfile_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8specfile_4Scan_5record_exists_in_file_hdr, 0, __pyx_n_s_Scan_record_exists_in_file_hdr, NULL, __pyx_n_s_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_record_exists_in_file_hdr, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_record_exists_in_file_hdr, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":195
+  /* "specfile.pyx":199
  *         return False
  * 
  *     def data_line(self, line_index):             # <<<<<<<<<<<<<<
  *         '''Returns data for a given line of this scan.
  * 
  */
-  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_4silx_2io_8specfile_8specfile_4Scan_7data_line, 0, __pyx_n_s_Scan_data_line, NULL, __pyx_n_s_silx_io_specfile_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_CyFunction_NewEx(&__pyx_mdef_8specfile_4Scan_7data_line, 0, __pyx_n_s_Scan_data_line, NULL, __pyx_n_s_specfile, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_data_line, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetItem(__pyx_t_3, __pyx_n_s_data_line, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":86
+  /* "specfile.pyx":82
  * SF_ERR_MCA_NOT_FOUND = 15
  * 
  * class Scan(object):             # <<<<<<<<<<<<<<
  *     '''
  *     SpecFile scan
  */
-  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_Scan, __pyx_t_1, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_2, __pyx_n_s_Scan, __pyx_t_1, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Scan, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Scan, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "silx/io/specfile/specfile.pyx":1
+  /* "specfile.pyx":1
  * #/[inserted by cython to avoid comment start]*##########################################################################             # <<<<<<<<<<<<<<
- * # Copyright (C) 2004-2016 European Synchrotron Radiation Facility, Grenoble, France
+ * # Copyright (C) 2016 European Synchrotron Radiation Facility
  * #
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -10702,11 +10679,11 @@ PyMODINIT_FUNC PyInit_specfile(void)
   __Pyx_XDECREF(__pyx_t_4);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init silx.io.specfile.specfile", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init specfile", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init silx.io.specfile.specfile");
+    PyErr_SetString(PyExc_ImportError, "init specfile");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
