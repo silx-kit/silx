@@ -1,8 +1,7 @@
-#/*##########################################################################
-# Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
+# -*- coding: utf-8 -*-
+# /*##########################################################################
 #
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,175 +21,132 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-__author__ = "V.A. Sole - ESRF Data Analysis"
-__contact__ = "sole@esrf.fr"
+# ###########################################################################*/
+"""Common wrapper over Python Qt bindings: PyQt5, PyQt4, PySide.
+
+This module provides a flattened namespace over Qt bindings.
+
+If a Qt bindings is already loaded, it will be used, otherwise the different
+bindings are tried in this order: PyQt4, PySide, PyQt5.
+
+The name of the loaded Qt bindings is stored in the BINDING variable.
+
+For an alternative solution providing a structured namespace,
+see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
+provides the namespace of PyQt5 over PyQt4 and PySide.
+"""
+
+__authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "16/02/2016"
+
+
+import logging
 import sys
-"""
-This module simplifies writing code that has to deal with with PySide and PyQt4.
 
-"""
-# force cx_freeze to consider sip among the modules to add
-# to the binary packages
-if (('PySide' in sys.modules) or
-        (hasattr(sys, 'argv') and 'PySide' in sys.argv)):
-        # argv might not be defined for embedded python (e.g., in Qt designer)
-    from PySide.QtCore import *
-    from PySide.QtGui import *
-    try:
-        from PySide.QtSvg import *
-    except:
-        pass
-    try:
-        from PySide.QtOpenGL import *
-    except:
-        pass
-    pyqtSignal = Signal
 
-    #matplotlib has difficulties to identify PySide
+_logger = logging.getLogger(__name__)
+
+
+# First check for an already loaded wrapper
+if 'PySide' in sys.modules:
+    BINDING = 'PySide'
+
+elif 'PyQt5' in sys.modules:
+    BINDING = 'PyQt5'
+
+elif 'PyQt4' in sys.modules:
+    BINDING = 'PyQt4'
+
+else:  # Then try Qt bindings
     try:
-        import matplotlib
-        matplotlib.rcParams['backend.qt4']='PySide'
-    except:
-        pass
-elif "PyQt5" in sys.modules:
-    print("WARNING: PyQt5 is for testing purposes")
-    import sip
-    try:
-        sip.setapi("QString", 2)
-        sip.setapi("QVariant", 2)
-    except:
-        print("API 1 -> Console widget not available")
-    from PyQt5.QtCore import *
-    from PyQt5.QtGui import *
-    from PyQt5.QtWidgets import *
-    from PyQt5.QtPrintSupport import *
-    try:
-        from PyQt5.QtOpenGL import *
-    except:
-        pass
-    try:
-        from PyQt5.QtSvg import *
-    except:
-        pass
-else:
+        import PyQt4  # noqa
+    except ImportError:
+        try:
+            import PySide  # noqa
+        except ImportError:
+            try:
+                import PyQt5  # noqa
+            except ImportError:
+                raise ImportError(
+                    'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
+            else:
+                BINDING = 'PyQt5'
+        else:
+            BINDING = 'PySide'
+    else:
+        BINDING = 'PyQt4'
+
+
+if BINDING == 'PyQt4':
+    _logger.debug('Using PyQt4 bindings')
+
     if sys.version < "3.0.0":
         try:
             import sip
+
             sip.setapi("QString", 2)
             sip.setapi("QVariant", 2)
         except:
-            print("Cannot set sip API") # Console widget not available
+            # Console widget not available
+            _logger.warning("Cannot set sip API")
+
+    from PyQt4.QtCore import *  # noqa
+    from PyQt4.QtGui import *  # noqa
+
     try:
-        from PyQt4.QtCore import *
-        from PyQt4.QtGui import *
-        try:
-            from PyQt4.QtOpenGL import *
-        except:
-            pass
-        try:
-            from PyQt4.QtSvg import *
-        except:
-            pass
+        from PyQt4.QtOpenGL import *  # noqa
     except ImportError:
-        try:
-            # try PySide
-            from PySide.QtCore import *
-            from PySide.QtGui import *
-            try:
-                from PySide.QtSvg import *
-            except:
-                pass
-            try:
-                from PySide.QtOpenGL import *
-            except:
-                pass
-            pyqtSignal = Signal
+        _logger.info("PyQt4.QtOpenGL not available")
 
-            #matplotlib has difficulties to identify PySide
-            try:
-                import matplotlib
-                matplotlib.rcParams['backend.qt4']='PySide'
-            except:
-                pass
-        except ImportError:
-            from PyQt5.QtCore import *
-            from PyQt5.QtGui import *
-            from PyQt5.QtWidgets import *
-            from PyQt5.QtPrintSupport import *
-            try:
-                from PyQt5.QtOpenGL import *
-            except:
-                pass
-            try:
-                from PyQt5.QtSvg import *
-            except:
-                pass
+    try:
+        from PyQt4.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PyQt4.QtSvg not available")
 
+elif BINDING == 'PySide':
+    _logger.debug('Using PyQt4 bindings')
 
-# Overwrite the QFileDialog to make sure that by default it 
-# returns non-native dialogs as it was the traditional behavior of Qt
-_QFileDialog = QFileDialog
-class QFileDialog(_QFileDialog):
-    def __init__(self, *args, **kwargs):
-        try:
-            _QFileDialog.__init__(self, *args, **kwargs)
-        except:
-            # not all versions support kwargs
-            _QFileDialog.__init__(self, *args)
-        try:
-            self.setOptions(_QFileDialog.DontUseNativeDialog)
-        except:
-            print("WARNING: Cannot force default QFileDialog behavior")
+    from PySide.QtCore import *  # noqa
+    from PySide.QtGui import *  # noqa
 
-class HorizontalSpacer(QWidget):
-    def __init__(self, *args):
-        QWidget.__init__(self, *args)
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding,
-                                          QSizePolicy.Fixed))
+    try:
+        from PySide.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PySide.QtSvg not available")
 
-class VerticalSpacer(QWidget):
-    def __init__(self, *args):
-        QWidget.__init__(self, *args)
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Fixed,
-                                          QSizePolicy.Expanding))
+    try:
+        from PySide.QtOpenGL import *  # noqa
+    except ImportError:
+        _logger.info("PySide.QtOpenGL not available")
 
-if sys.version < '3.0':
-    import types
-    # perhaps a better name would be safe unicode?
-    # should this method be a more generic tool to
-    # be found outside PyMcaQt?
-    def safe_str(potentialQString):
-        if type(potentialQString) == types.StringType or\
-           type(potentialQString) == types.UnicodeType:
-            return potentialQString
-        try:
-            # default, just str
-            x = str(potentialQString)
-        except UnicodeEncodeError:
+    pyqtSignal = Signal
 
-            # try user OS file system encoding
-            # expected to be 'mbcs' under windows
-            # and 'utf-8' under MacOS X
-            try:
-                x = unicode(potentialQString, sys.getfilesystemencoding())
-                return x
-            except:
-                # on any error just keep going
-                pass
-            # reasonable tries are 'utf-8' and 'latin-1'
-            # should I really go beyond those?
-            # In fact, 'utf-8' is the default file encoding for python 3
-            encodingOptions = ['utf-8', 'latin-1', 'utf-16', 'utf-32']
-            for encodingOption in encodingOptions:
-                try:
-                    x = unicode(potentialQString, encodingOption)
-                    break
-                except UnicodeDecodeError:
-                    if encodingOption == encodingOptions[-1]:
-                        raise
-        return x
+elif BINDING == 'PyQt5':
+    _logger.debug('Using PyQt4 bindings')
+
+    try:
+        import sip
+
+        sip.setapi("QString", 2)
+        sip.setapi("QVariant", 2)
+    except:
+        _logger.warning("API 1 -> Console widget not available")
+
+    from PyQt5.QtCore import *  # noqa
+    from PyQt5.QtGui import *  # noqa
+    from PyQt5.QtWidgets import *  # noqa
+    from PyQt5.QtPrintSupport import *  # noqa
+
+    try:
+        from PyQt5.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PyQt5.QtSvg not available")
+
+    try:
+        from PyQt5.QtOpenGL import *  # noqa
+    except ImportError:
+        _logger.info("PyQt5.QtOpenGL not available")
+
 else:
-    safe_str = str
+    raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
