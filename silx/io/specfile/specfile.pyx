@@ -87,6 +87,18 @@ class Scan(object):
     '''
     SpecFile scan
 
+
+
+    :ivar index: Unique scan index 0 - len(specfile)-1
+    :ivar data: Numpy array with actual scan data and the usual nmupy
+        attributes (e.g. data.shape)
+    :ivar header_lines: List of raw header lines, including the leading "#L"
+    :ivar header_dict: Dictionary of header strings, keys without leading "#"
+    :ivar file_header_lines: List of raw file header lines relevant to this
+        scan, including the leading "#L"
+    :ivar file_header_dict: Dictionary of file header strings, keys without
+        leading "#"
+
     :param specfile: Parent SpecFile from which this scan is extracted.
     :type specfile: :class:SpecFile
     :param scan_index: Unique index defining the scan in the SpecFile
@@ -94,7 +106,7 @@ class Scan(object):
     '''    
     def __init__(self, specfile, scan_index):
         self._specfile = specfile
-        # unique index 0 - len(specfile)-1
+        #: unique index 0 - len(specfile)-1
         self.index = scan_index
         # number: first value on #S line
         self.number = specfile.number(scan_index)
@@ -102,16 +114,15 @@ class Scan(object):
         self.order = specfile.order(scan_index)
         
         self.data = self._specfile.data(self.index)
+
         self.nlines, self.ncolumns = self.data.shape
         
         self.header_lines = self._specfile.scan_header(self.index)
-        '''List of raw header lines, including the leading "#L"'''
         
         if self.record_exists_in_hdr('L'):
             self.labels = self._specfile.labels(self.index)
         
         self.header_dict = {}
-        '''Dictionary of header strings, keys without leading "#"'''
         for line in self.header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
@@ -134,11 +145,8 @@ class Scan(object):
 #             self.header_dict['L'] = self._specfile.labels(self.index)
             
         self.file_header_lines = self._specfile.file_header(self.index)
-        '''List of raw file header lines relevant to this scan, 
-        including the leading "#L"'''
         
         self.file_header_dict = {}
-        '''Dictionary of file header strings, keys without leading "#"'''
         for line in self.file_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
@@ -208,8 +216,31 @@ cdef class SpecFile(object):
     '''
     Class wrapping the C SpecFile library.
 
+    A SpecFile instance can be accessed like a dictionary to retrieve a
+    :class:`Scan` instance. If the key is an integer, it will be used as
+    a sequential scan index. If the key is a string representing two values
+    separated by a dot (e.g. "1.2"), it will be treated as the scan number
+    ("#S" header line) and the scan order.
+
+    .. code-block:: python
+
+        from silx.io.specfile import SpecFile
+
+        sf = SpecFile("test.dat")
+        myscan = sf["1.2"]     # maybe equivalent to myscan = sf[25]
+        nlines, ncolumns = myscan.data.shape
+
+    It is also possible to treat it as an iterator.
+
+    .. code-block:: python
+
+        from silx.io.specfile import SpecFile
+
+        for scan in sf SpecFile("test.dat"):
+            print(scan.header_dict['S'])
+
     :param filename: Path of the SpecFile to read
-    :type label_text: string
+    :type filename: string
     '''
     
     cdef:
@@ -370,17 +401,6 @@ cdef class SpecFile(object):
         
         The Scan instance returned here keeps a reference to its parent SpecFile 
         instance in order to use its method to retrieve data and headers.
-        
-        Example:
-        --------
-        
-        .. code-block:: python
-            
-            from specfile import SpecFile
-            sf = SpecFile("t.dat")
-            scan2 = sf[2]
-            nlines, ncolumns = myscan.data.shape
-            labels_list = scan2.header_dict['L']
         '''
         msg = "The scan identification key can be an integer representing "
         msg += "the unique scan index or a string 'N.M' with N being the scan"
