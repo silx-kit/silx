@@ -148,21 +148,25 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.header_dict['N'], '4')
         self.assertEqual(self.scan1.header_lines[3], '#G0 0')
         self.assertEqual(len(self.scan1.header_lines), 15)
-        
+        # parsing headers with long keys
+        self.assertEqual(self.scan1.header_dict['UMI0'],
+                         'Current AutoM      Shutter')
+        # parsing empty headers
+        self.assertEqual(self.scan1.header_dict['Q'], '')
+
     def test_file_headers(self):
         self.assertEqual(self.scan1.file_header_lines[1],
                          '#E 1455180875')
-        self.assertEqual(self.scan25.file_header_lines[1],   # fails. why?
-                         '#E 1455180876')
         self.assertEqual(len(self.scan1.file_header_lines), 14)
         # parsing headers with single character key 
         self.assertEqual(self.scan1.file_header_dict['F'],
                          '/tmp/sf.dat')
-        # parsing headers with long keys  
-        self.assertEqual(self.scan1.file_header_dict['UMI0'],
-                         'Current AutoM      Shutter')
-        # parsing empty headers
-        self.assertEqual(self.scan1.file_header_dict['Q'], '')
+
+    def test_multiple_file_headers(self):
+        """Scan 1.2 is after the second file header, with a different
+        Epoch"""
+        self.assertEqual(self.scan1_2.file_header_lines[1],
+                         '#E 1455180876')
         
     def test_scan_labels(self):
         self.assertEqual(self.scan1.labels,
