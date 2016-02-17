@@ -32,7 +32,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/02/2016" 
+__date__ = "17/02/2016"
 
 
 # TODO: 
@@ -51,13 +51,6 @@ from libc.string cimport memcpy
 numpy.import_array()
 
 from specfile_pxd cimport *
-
-debugging = True
-
-def debug_msg(msg):
-    if debugging:
-        print("Debug message: " + str(msg))
-        
 
 SF_ERR_NO_ERRORS = 0
 SF_ERR_MEMORY_ALLOC = 1
@@ -154,6 +147,7 @@ class Scan(object):
 #             self.header_dict['S'] = self._specfile.command(self.index)
 #         if self.record_exists_in_hdr('L'):
 #             self.header_dict['L'] = self._specfile.labels(self.index)
+        # etc...
             
         self.file_header_lines = self._specfile.file_header(self.index)
         
@@ -497,10 +491,7 @@ cdef class SpecFile(object):
             for j in range(ncolumns):
                 ret_array[i, j] = mydata[i][j]
 
-        #freeArrNZ(<void ***>mydata, nlines)
-        for i in range(nlines):
-            free(mydata[i])
-        free(mydata)
+        freeArrNZ(<void ***>&mydata, nlines)
         free(data_info)
         return ret_array
 
@@ -676,11 +667,9 @@ cdef class SpecFile(object):
                               &all_labels,
                               &error)
         self._handle_error(error)
-        
-        #labels_list = [None] * num_labels
+
         labels_list = []
         for i in range(nlabels):
-            #labels_list[i] = str(<bytes>all_labels[i].encode('utf-8'))
             labels_list.append(str(<bytes>all_labels[i].encode('utf-8')))
             
         freeArrNZ(<void***>&all_labels, nlabels)
@@ -743,7 +732,7 @@ cdef class SpecFile(object):
 
         :param scan_index: Unique scan index between 0 and len(self)-1.
         :type scan_index: int
-        
+
         :return: Specified motor position
         :rtype: double
         '''
@@ -755,5 +744,4 @@ cdef class SpecFile(object):
                                           name,
                                           &error)
         self._handle_error(error)
-
         return motor_position
