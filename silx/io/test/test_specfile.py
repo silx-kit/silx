@@ -195,6 +195,9 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(sum(self.scan1.motor_positions),
                                223.385912)
         self.assertEqual(self.scan1.motor_names[1], 'MRTSlit UP')
+        self.assertAlmostEqual(
+            self.scan25.motor_position_by_name('MRTSlit UP'),
+            -1.66875)
 
 
 def suite():

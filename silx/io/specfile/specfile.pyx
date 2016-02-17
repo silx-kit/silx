@@ -183,7 +183,8 @@ class Scan(object):
         :param record_type: single upper case letter corresponding to the
                             header you want to test (e.g. 'L' for labels)
         :type record_type: str
-        :returns: True or False
+
+        :return: True or False
         :rtype: boolean
         
         '''
@@ -202,7 +203,8 @@ class Scan(object):
         :param record_type: single upper case letter corresponding to the
                             header you want to test (e.g. 'L' for labels)
         :type record_type: str
-        :returns: True or False
+
+        :return: True or False
         :rtype: boolean
         
         '''
@@ -216,6 +218,7 @@ class Scan(object):
         
         :param line_index: Index of data line to retrieve (starting with 0)
         :type line_index: int
+
         :return: Line data as a 1D array of doubles
         :rtype: numpy.ndarray 
         '''   
@@ -234,6 +237,17 @@ class Scan(object):
         '''
         return self._specfile.data_column_by_name(self.index, label)
 
+    def motor_position_by_name(self, name):
+        '''Returns position for a given motor.
+
+        :param name: Name of motor, as defined on the #O line of the file
+            header.
+        :type name: str
+
+        :return: Motor position
+        :rtype: float
+        '''
+        return self._specfile.motor_position_by_name(self.index, name)
 
 cdef class SpecFile(object):
     '''
@@ -303,7 +317,6 @@ cdef class SpecFile(object):
         return self
 
     def __next__(self):
-        'Returns the next value till current is lower than high'
         if self.iter_counter >= len(self):
             raise StopIteration
         else:
@@ -385,7 +398,8 @@ cdef class SpecFile(object):
         :type scan_number: int
         :param scan_order: Scan order. 
         :type scan_order: int default 1
-        :returns: Unique scan index
+
+        :return: Unique scan index
         :rtype: int
         
         
@@ -404,7 +418,8 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
-        :returns: User defined scan number.
+
+        :return: User defined scan number.
         :rtype: int
         '''
         idx = SfNumber(self.handle, scan_index + 1)
@@ -417,7 +432,8 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
-        :returns: Scan order (sequential number incrementing each time a 
+
+        :return: Scan order (sequential number incrementing each time a
                  non-unique occurrence of a scan number is encountered).
         :rtype: int
         '''
@@ -526,6 +542,7 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
+
         :return: List of raw scan header lines, including the leading "#L"
         :rtype: list of str
         '''
@@ -560,6 +577,7 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
+
         :return: List of raw file header lines, including the leading "#L"
         :rtype: list of str
         '''
@@ -588,6 +606,7 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
+
         :return: Number of columns in scan from #N record
         :rtype: int
         '''
@@ -606,6 +625,7 @@ cdef class SpecFile(object):
         
         :param scan_index: Unique scan index between 0 and len(self)-1. 
         :type scan_index: int
+
         :return: S line
         :rtype: str
         '''
@@ -623,7 +643,8 @@ cdef class SpecFile(object):
         '''Return date from #D line
 
         :param scan_index: Unique scan index between 0 and len(self)-1. 
-        :type scan_index: int       
+        :type scan_index: int
+
         :return: Date from #D line
         :rtype: str
         '''
@@ -641,7 +662,8 @@ cdef class SpecFile(object):
         '''Return all labels from #L line
           
         :param scan_index: Unique scan index between 0 and len(self)-1. 
-        :type scan_index: int     
+        :type scan_index: int
+
         :return: All labels from #L line
         :rtype: list of strings
         ''' 
@@ -668,7 +690,8 @@ cdef class SpecFile(object):
         '''Return all motor names from #O lines
           
         :param scan_index: Unique scan index between 0 and len(self)-1. 
-        :type scan_index: int     
+        :type scan_index: int
+
         :return: All motor names
         :rtype: list of strings
         ''' 
@@ -693,8 +716,9 @@ cdef class SpecFile(object):
         '''Return all motor positions
           
         :param scan_index: Unique scan index between 0 and len(self)-1. 
-        :type scan_index: int     
-        :return: All motor names
+        :type scan_index: int
+
+        :return: All motor positions
         :rtype: list of double
         ''' 
         cdef: 
@@ -713,5 +737,23 @@ cdef class SpecFile(object):
         
         free(motor_positions)
         return motor_positions_list
-    
 
+    def motor_position_by_name(self, scan_index, name):
+        '''Return motor position
+
+        :param scan_index: Unique scan index between 0 and len(self)-1.
+        :type scan_index: int
+        
+        :return: Specified motor position
+        :rtype: double
+        '''
+        cdef:
+            int error = SF_ERR_NO_ERRORS
+
+        motor_position = SfMotorPosByName(self.handle,
+                                          scan_index + 1,
+                                          name,
+                                          &error)
+        self._handle_error(error)
+
+        return motor_position
