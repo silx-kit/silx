@@ -63,10 +63,11 @@ sftext = """
 
 #S 1 aaaaaa
 #N 2
-#L uno duo
+#L uno  duo
 1 2
 3 4
 """
+
 
 class TestSpecFile(unittest.TestCase):
     def setUp(self):
@@ -82,11 +83,27 @@ class TestSpecFile(unittest.TestCase):
         self.scan1_2 = self.sf["1.2"]
         self.scan25 = self.sf["25.1"]
 
+        fd2, tmp_path2 = tempfile.mkstemp(text=False)
+        if sys.version < '3.0':
+            os.write(fd2, sftext[372:-96])
+        else:
+            os.write(fd2, bytes(sftext[372:-96], 'utf-8'))
+        os.close(fd2)
+        self.fname2 =tmp_path2
+        self.sf_no_fhdr = SpecFile(self.fname2)
+        self.scan1_no_fhdr = self.sf_no_fhdr[0]
+
     def tearDown(self):
-        self.sf = None
-        self.scan1 = None
-        self.scan1_2 = None
-        self.scan25 = None
+        os.unlink(self.fname)
+        os.unlink(self.fname2)
+        del self.fname
+        del self.sf
+        del self.fname2
+        del self.sf_no_fhdr
+        del self.scan1
+        del self.scan1_2
+        del self.scan25
+        del self.scan1_no_fhdr
         gc.collect()
 
     def test_open(self):
@@ -173,7 +190,6 @@ class TestSpecFile(unittest.TestCase):
                          ['first column', 'second column', '3rd_col'])
 
     def test_data(self):
-        # assertAlmostEqual compares 7 decimal places by default
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
         self.assertEqual(self.scan1.data.shape, (4, 3))
@@ -198,6 +214,20 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(
             self.scan25.motor_position_by_name('MRTSlit UP'),
             -1.66875)
+
+    @unittest.skip("SfFileHeader not working as expected in the absence " +
+                   "of a file header")
+    def test_absence_of_file_header(self):
+        self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
+        self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
+                               223.385912)
+        # We get 15 scan header lines as expected
+        self.assertEqual(len(self.scan1_no_fhdr.header_lines), 15)
+        # but the following assertions fails unexpectedly, as the scan
+        # header is also retrieved as the file header by SfFileHeader
+        self.assertEqual(self.scan1_no_fhdr.file_header_lines, [])
+        self.assertEqual(len(self.scan1_no_fhdr.file_header_lines), 0)
+
 
 
 def suite():
