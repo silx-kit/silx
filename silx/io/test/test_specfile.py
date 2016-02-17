@@ -228,6 +228,8 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1_no_fhdr.file_header_lines, [])
         self.assertEqual(len(self.scan1_no_fhdr.file_header_lines), 0)
 
+    def test_mca(self):
+        raise NotImplementedError
 
 
 def suite():

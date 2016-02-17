@@ -44,3 +44,8 @@ cdef extern from "SpecFileCython.h":
     # sftools
     void freeArrNZ(void***, long)
 
+    # sfmca
+    long SfNoMca(SpecFileHandle*, long, int*)
+    int  SfGetMca(SpecFileHandle*, long, long , double**, int*)
+    long SfMcaCalib(SpecFileHandle*, long, double**, int*)
+

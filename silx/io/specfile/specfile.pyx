@@ -36,7 +36,9 @@ __date__ = "17/02/2016"
 
 
 # TODO: 
-# - MCA
+# - MCA property in Scan (+tests)
+# - make Scan.data a property
+# - get rid of SfNoMcaError
 
 
 import os.path
@@ -68,6 +70,14 @@ SF_ERR_LINE_EMPTY = 12
 SF_ERR_USER_NOT_FOUND = 13
 SF_ERR_COL_NOT_FOUND = 14
 SF_ERR_MCA_NOT_FOUND = 15
+
+class SfNoMcaError(Exception):
+    '''Custom exception raised when SfNoMca() returns -1 for an unknown
+    reason.
+    '''
+    # TODO: understand reason why SfNoMca() would return -1 ()
+    #       (if (sfSetCurrent(sf,index,error) == -1 ))
+    pass
 
 class Scan(object):
     '''
@@ -397,7 +407,7 @@ cdef class SpecFile(object):
         :rtype: int
         
         
-        Scan indices are increasing from 0 to len(self)-1 in the order in 
+        Scan indices are increasing from ``0`` to ``len(self)-1`` in the order in
         which they appear in the file.
         Scan numbers are defined by users and are not necessarily unique.
         The scan order for a given scan number increments each time the scan 
@@ -410,7 +420,8 @@ cdef class SpecFile(object):
     def number(self, scan_index):
         '''Returns scan number from scan index.
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: User defined scan number.
@@ -424,7 +435,8 @@ cdef class SpecFile(object):
     def order(self, scan_index):
         '''Returns scan order from scan index.
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: Scan order (sequential number incrementing each time a
@@ -460,7 +472,8 @@ cdef class SpecFile(object):
     def data(self, scan_index):
         '''Returns data for the specified scan index.
 
-        :param scan_index: Unique scan index between 0 and len(self)-1.
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: Complete scan data as a 2D array of doubles
@@ -498,7 +511,8 @@ cdef class SpecFile(object):
     def data_column_by_name(self, scan_index, label):
         '''Returns data column for the specified scan index and column label.
 
-        :param scan_index: Unique scan index between 0 and len(self)-1.
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
         :param label: Label of data column, as defined in the #L line of the
             scan header.
@@ -531,7 +545,8 @@ cdef class SpecFile(object):
     def scan_header(self, scan_index):
         '''Return list of scan header lines.
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: List of raw scan header lines, including the leading "#L"
@@ -566,7 +581,8 @@ cdef class SpecFile(object):
         A file header applies to all subsequent scans, until a new file
         header is defined.
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: List of raw file header lines, including the leading "#L"
@@ -595,7 +611,8 @@ cdef class SpecFile(object):
         '''Return number of columns in a scan from the #N header line
         (without #N and scan number)
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: Number of columns in scan from #N record
@@ -614,7 +631,8 @@ cdef class SpecFile(object):
     def command(self, scan_index): 
         '''Return #S line (without #S and scan number)
         
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: S line
@@ -633,7 +651,8 @@ cdef class SpecFile(object):
     def date(self, scan_index):  
         '''Return date from #D line
 
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: Date from #D line
@@ -652,7 +671,8 @@ cdef class SpecFile(object):
     def labels(self, scan_index):
         '''Return all labels from #L line
           
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: All labels from #L line
@@ -678,7 +698,8 @@ cdef class SpecFile(object):
     def all_motor_names(self, scan_index):
         '''Return all motor names from #O lines
           
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: All motor names
@@ -704,7 +725,8 @@ cdef class SpecFile(object):
     def all_motor_positions(self, scan_index):
         '''Return all motor positions
           
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+        :param scan_index: Unique scan index between ``0``
+            and ``len(self)-1``.
         :type scan_index: int
 
         :return: All motor positions
@@ -730,7 +752,8 @@ cdef class SpecFile(object):
     def motor_position_by_name(self, scan_index, name):
         '''Return motor position
 
-        :param scan_index: Unique scan index between 0 and len(self)-1.
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
         :type scan_index: int
 
         :return: Specified motor position
@@ -744,4 +767,94 @@ cdef class SpecFile(object):
                                           name,
                                           &error)
         self._handle_error(error)
+
         return motor_position
+
+    def number_of_mca(self, scan_index):
+        '''Return number of mca spectra in a scan.
+
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
+        :type scan_index: int
+
+        :return: Number of mca spectra.
+        :rtype: int
+        '''
+        cdef:
+            int error = SF_ERR_NO_ERRORS
+
+        num_mca = SfNoMca(self.handle,
+                        scan_index + 1,
+                        &error)
+        # error code updating isn't implemented in SfMcaCalib
+        if num_mca == -1:
+            raise SfNoMcaError("Failed to retrieve number of MCA " +
+                             "(SfNoMca returned -1)")
+
+
+        return num_mca
+
+    def mca_calibration(self, scan_index):
+        '''Return MCA calibration in the form :math:`a + b x + c x²`
+
+        Raise a KeyError if there is no ```@CALIB``` line in the scan header.
+
+        :param scan_index: Unique scan index between ``0`` and
+            ``len(self)-1``.
+        :type scan_index: int
+
+        :return: MCA calibration as a list of 3 values math:`(a, b, c)`
+        :rtype: list of floats
+        '''
+        cdef:
+            int error = SF_ERR_NO_ERRORS
+            double* mca_calib
+
+        mca_calib_error = SfMcaCalib(self.handle,
+                                     scan_index + 1,
+                                     &mca_calib,
+                                     &error)
+        # error code updating isn't implemented in SfMcaCalib
+        if mca_calib_error:
+            raise KeyError("MCA calibration line (@CALIB) not found")
+
+        mca_calib_list = []
+        for i in range(3):
+            mca_calib_list.append(mca_calib[i])
+
+        free(mca_calib)
+        return mca_calib_list
+
+
+    def get_mca(self, scan_index, mca_index):
+        '''Return MCA data
+
+        :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.
+        :type scan_index: int
+        :param mca_index: Index of MCA in the scan (:math:`0 -- N-1`)
+        :type mca_index: int
+
+        :return: MCA data as a list of floats
+        :rtype: list of floats
+        '''
+        cdef:
+            int error = SF_ERR_NO_ERRORS
+            double* mca_data
+
+        len_mca = SfGetMca(self.handle,
+                           scan_index + 1,
+                           mca_index + 1,
+                           &mca_data,
+                           &error)
+        self._handle_error(error)
+
+        mca_data_list = []
+        for i in range(len_mca):
+            mca_data_list.append(mca_data[i])
+
+        free(mca_data)
+        return mca_data_list
+
+
+
+
