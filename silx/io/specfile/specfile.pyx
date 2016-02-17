@@ -357,21 +357,22 @@ cdef class SpecFile(object):
         #  sort error types            
         error_message = self._get_error_string(error_code)
         if error_code in (SF_ERR_LINE_NOT_FOUND,
-                           SF_ERR_SCAN_NOT_FOUND,
-                           SF_ERR_HEADER_NOT_FOUND,
-                           SF_ERR_LABEL_NOT_FOUND,
-                           SF_ERR_MOTOR_NOT_FOUND,
-                           SF_ERR_POSITION_NOT_FOUND,
-                           SF_ERR_USER_NOT_FOUND,
-                           SF_ERR_COL_NOT_FOUND,
-                           SF_ERR_MCA_NOT_FOUND):
+                          SF_ERR_SCAN_NOT_FOUND,
+                          SF_ERR_HEADER_NOT_FOUND,
+                          SF_ERR_LABEL_NOT_FOUND,
+                          SF_ERR_MOTOR_NOT_FOUND,
+                          SF_ERR_USER_NOT_FOUND,
+                          SF_ERR_MCA_NOT_FOUND):
             raise IndexError(error_message)
+        elif error_code in (SF_ERR_POSITION_NOT_FOUND,  #SfMotorPosByName
+                            SF_ERR_COL_NOT_FOUND):      #SfDataColByName
+            raise KeyError(error_message)
         elif error_code in (SF_ERR_FILE_OPEN,
-                             SF_ERR_FILE_CLOSE,
-                             SF_ERR_FILE_READ,
-                             SF_ERR_FILE_WRITE):
+                            SF_ERR_FILE_CLOSE,
+                            SF_ERR_FILE_READ,
+                            SF_ERR_FILE_WRITE):
             raise IOError(error_message)  
-        elif error_code in (SF_ERR_LINE_EMPTY,):     # 
+        elif error_code in (SF_ERR_LINE_EMPTY,):
             raise ValueError(error_message)   
         elif error_code in (SF_ERR_MEMORY_ALLOC,):
             raise MemoryError(error_message) 

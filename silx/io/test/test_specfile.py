@@ -186,6 +186,8 @@ class TestSpecFile(unittest.TestCase):
                                1.2)
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
                                numpy.sum(self.scan25.data[:, 2]))
+        with self.assertRaises(KeyError):
+            self.scan25.data_column_by_name("ygfxgfyxg")
 
     def test_motors(self):
         self.assertEqual(len(self.scan1.motor_names), 6)
