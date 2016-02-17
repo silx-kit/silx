@@ -222,6 +222,18 @@ class Scan(object):
         #return self._specfile.data_line(self.index, line_index)
         return self.data[line_index, :]
 
+    def data_column_by_name(self, label):
+        '''Returns data for a given column.
+
+        :param label: Label of data column to retrieve, as defined on the #N
+            line of the scan header.
+        :type label: str
+
+        :return: Line data as a 1D array of doubles
+        :rtype: numpy.ndarray
+        '''
+        return self._specfile.data_column_by_name(self.index, label)
+
 
 cdef class SpecFile(object):
     '''
@@ -297,6 +309,35 @@ cdef class SpecFile(object):
         else:
             self.iter_counter += 1
             return Scan(self, self.iter_counter - 1)
+
+    def __getitem__(self, key):
+        '''Return a Scan object
+
+        The Scan instance returned here keeps a reference to its parent SpecFile
+        instance in order to use its method to retrieve data and headers.
+        '''
+        msg = "The scan identification key can be an integer representing "
+        msg += "the unique scan index or a string 'N.M' with N being the scan"
+        msg += "number and M the order (eg '2.3')"
+
+        if isinstance(key, int):
+            scan_index = key
+        elif isinstance(key, str):
+            try:
+                (number, order) = map(int, key.split("."))
+                scan_index = self.index(number, order)
+            except (ValueError, IndexError):
+                # self.index can raise an index error
+                # int() can raise a value error
+                raise KeyError(msg)
+        else:
+            raise TypeError(msg)
+
+        if not 0 <= scan_index < len(self):
+            msg = "Scan index must be in range 0-%d" % (len(self) - 1)
+            raise IndexError(msg)
+
+        return Scan(self, scan_index)
         
     def _get_error_string(self, error_code):
         '''Returns the error message corresponding to the error code.
@@ -404,75 +445,81 @@ cdef class SpecFile(object):
 
         free(scan_numbers)
         return ret_list
-       
-    def __getitem__(self, key):
-        '''Return a Scan object
-        
-        The Scan instance returned here keeps a reference to its parent SpecFile 
-        instance in order to use its method to retrieve data and headers.
-        '''
-        msg = "The scan identification key can be an integer representing "
-        msg += "the unique scan index or a string 'N.M' with N being the scan"
-        msg += "number and M the order (eg '2.3')"
-        
-        if isinstance(key, int):
-            scan_index = key 
-        elif isinstance(key, str):
-            try:
-                (number, order) = map(int, key.split("."))
-                scan_index = self.index(number, order)
-            except (ValueError, IndexError):
-                # self.index can raise an index error
-                # int() can raise a value error
-                raise KeyError(msg)
-        else:
-            raise TypeError(msg) 
-                
-        if not 0 <= scan_index < len(self): 
-            msg = "Scan index must be in range 0-%d" % (len(self) - 1)
-            raise IndexError(msg)
-        
-        return Scan(self, scan_index)
     
-    def data(self, scan_index): 
+    def data(self, scan_index):
         '''Returns data for the specified scan index.
-        
-        :param scan_index: Unique scan index between 0 and len(self)-1. 
+
+        :param scan_index: Unique scan index between 0 and len(self)-1.
         :type scan_index: int
+
         :return: Complete scan data as a 2D array of doubles
         :rtype: numpy.ndarray
-        '''        
-        cdef: 
+        '''
+        cdef:
             double** mydata
             long* data_info
             int i, j
             int error = SF_ERR_NO_ERRORS
             long nlines, ncolumns, regular
 
-        sfdata_error = SfData(self.handle, 
-                              scan_index + 1, 
-                              &mydata, 
-                              &data_info, 
+        sfdata_error = SfData(self.handle,
+                              scan_index + 1,
+                              &mydata,
+                              &data_info,
                               &error)
-                  
+
         self._handle_error(error)
-        
-        nlines = data_info[0] 
+
+        nlines = data_info[0]
         ncolumns = data_info[1]
         regular = data_info[2]
-        
-        cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns), 
+
+        cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),
                                                    dtype=numpy.double)
         for i in range(nlines):
             for j in range(ncolumns):
-                ret_array[i, j] = mydata[i][j]    
-        
-        freeArrNZ(<void ***>&mydata, nlines)
+                ret_array[i, j] = mydata[i][j]
+
+        #freeArrNZ(<void ***>mydata, nlines)
+        for i in range(nlines):
+            free(mydata[i])
+        free(mydata)
         free(data_info)
-        
-        # nlines and ncolumns can be accessed as ret_array.shape
         return ret_array
-    
+
+    def data_column_by_name(self, scan_index, label):
+        '''Returns data column for the specified scan index and column label.
+
+        :param scan_index: Unique scan index between 0 and len(self)-1.
+        :type scan_index: int
+        :param label: Label of data column, as defined in the #L line of the
+            scan header.
+        :type label: str
+
+        :return: Data column as a 1D array of doubles
+        :rtype: numpy.ndarray
+        '''
+        cdef:
+            double* data_column
+            long i, nlines
+            int error = SF_ERR_NO_ERRORS
+
+        nlines = SfDataColByName(self.handle,
+                                 scan_index + 1,
+                                 label,
+                                 &data_column,
+                                 &error)
+
+        self._handle_error(error)
+
+        cdef numpy.ndarray ret_array = numpy.empty((nlines,),
+                                                   dtype=numpy.double)
+        for i in range(nlines):
+            ret_array[i] = data_column[i]
+
+        free(data_column)
+        return ret_array
+
     def scan_header(self, scan_index):
         '''Return list of scan header lines.
         

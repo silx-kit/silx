@@ -24,6 +24,7 @@ cdef extern from "SpecFileCython.h":
     # sfdata
     int SfData(SpecFileHandle*, long, double***, long**, int*)
     long SfDataLine(SpecFileHandle*, long, long, double**, int*)
+    long SfDataColByName(SpecFileHandle*, long, char*, double**, int*)
     
     # sfheader
     #char* SfTitle(SpecFileHandle*, long, int*)

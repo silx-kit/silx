@@ -51,7 +51,7 @@ sftext = """
 #P0 80.005 -1.66875 1.87125
 #P1 4.74255 6.197579 2.238283
 #N 5
-#L column0  column1  col2 col3
+#L column0  column1  col2  col3
 0.0 0.1 0.2 0.3
 1.0 1.1 1.2 1.3
 2.0 2.1 2.2 2.3
@@ -180,7 +180,13 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.nlines, 4)
         self.assertEqual(self.scan1.ncolumns, 3)
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
-        
+
+    def test_data_column_by_name(self):
+        self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1],
+                               1.2)
+        self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
+                               numpy.sum(self.scan25.data[:, 2]))
+
     def test_motors(self):
         self.assertEqual(len(self.scan1.motor_names), 6)
         self.assertEqual(len(self.scan1.motor_positions), 6)
