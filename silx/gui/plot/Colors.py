@@ -1,11 +1,7 @@
-#/*##########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,28 +21,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-__author__ = "V.A. Sole - ESRF Data Analysis"
-__contact__ = "sole@esrf.fr"
+# ###########################################################################*/
+"""Dictionary of common colors."""
+
+__authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-Dictionary of common colors.
-"""
+
 
 COLORDICT = {}
-COLORDICT['b'] = COLORDICT['blue']   = '#0000ff'
-COLORDICT['r'] = COLORDICT['red']    = '#ff0000'
-COLORDICT['g'] = COLORDICT['green']  = '#00ff00'
-COLORDICT['k'] = COLORDICT['black']  = '#000000'
-COLORDICT['white']  = '#ffffff'
-COLORDICT['pink']   = '#ff66ff'
-COLORDICT['brown']  = '#a52a2a'
+COLORDICT['b'] = COLORDICT['blue'] = '#0000ff'
+COLORDICT['r'] = COLORDICT['red'] = '#ff0000'
+COLORDICT['g'] = COLORDICT['green'] = '#00ff00'
+COLORDICT['k'] = COLORDICT['black'] = '#000000'
+COLORDICT['white'] = '#ffffff'
+COLORDICT['pink'] = '#ff66ff'
+COLORDICT['brown'] = '#a52a2a'
 COLORDICT['orange'] = '#ff9900'
 COLORDICT['violet'] = '#6600ff'
-COLORDICT['gray'] = COLORDICT['grey']   = '#a0a0a4'
-#COLORDICT['darkGray'] = COLORDICT['darkGrey']   = '#808080'
-#COLORDICT['lightGray'] = COLORDICT['lightGrey']   = '#c0c0c0'
+COLORDICT['gray'] = COLORDICT['grey'] = '#a0a0a4'
+# COLORDICT['darkGray'] = COLORDICT['darkGrey'] = '#808080'
+# COLORDICT['lightGray'] = COLORDICT['lightGrey'] = '#c0c0c0'
 COLORDICT['y'] = COLORDICT['yellow'] = '#ffff00'
 COLORDICT['m'] = COLORDICT['magenta'] = '#ff00ff'
 COLORDICT['c'] = COLORDICT['cyan'] = '#00ffff'

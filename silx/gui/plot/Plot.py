@@ -1,11 +1,7 @@
-#/*##########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,31 +21,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-__author__ = "V.A. Sole - ESRF Data Analysis"
-__contact__ = "sole@esrf.fr"
+# ###########################################################################*/
+"""Plot API for 1D and 2D data.
+
+The :class:`Plot` implements the plot API initially provided in PyMca.
+"""
+
+__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-This module can be used for plugin testing purposes as well as for doing
-the bookkeeping of actual plot windows.
 
-Functions to be implemented by an actual plotter can be found in the
-abstract class PlotBackend.
 
-"""
+from collections import OrderedDict
+import logging
 import math
-import sys
 import numpy
-from . import PlotBase
-from . import PlotBackend
+
+from . import BackendBase
 from . import Colors
 
-DEBUG = 0
-if DEBUG:
-    PlotBase.DEBUG = True
 
-_COLORDICT =  Colors.COLORDICT
+_logger = logging.getLogger(__name__)
+
+
+_COLORDICT = Colors.COLORDICT
 _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['blue'],
               _COLORDICT['red'],
@@ -61,7 +56,7 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['magenta'],
               _COLORDICT['orange'],
               _COLORDICT['violet'],
-              #_COLORDICT['bluegreen'],
+              # _COLORDICT['bluegreen'],
               _COLORDICT['grey'],
               _COLORDICT['darkBlue'],
               _COLORDICT['darkRed'],
@@ -71,486 +66,310 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['darkYellow'],
               _COLORDICT['darkBrown']]
 
-#PyQtGraph symbols ['o', 's', 't', 'd', '+', 'x']
-#
-#Matplotlib symbols:
-#"." 	point
-#"," 	pixel
-#"o" 	circle
-#"v" 	triangle_down
-#"^" 	triangle_up
-#"<" 	triangle_left
-#">" 	triangle_right
-#"1" 	tri_down
-#"2" 	tri_up
-#"3" 	tri_left
-#"4" 	tri_right
-#"8" 	octagon
-#"s" 	square
-#"p" 	pentagon
-#"*" 	star
-#"h" 	hexagon1
-#"H" 	hexagon2
-#"+" 	plus
-#"x" 	x
-#"D" 	diamond
-#"d" 	thin_diamond
-#"|" 	vline
-#"_" 	hline
-#"None" 	nothing
-#None 	nothing
-#" " 	nothing
-#"" 	nothing
+# PyQtGraph symbols ['o', 's', 't', 'd', '+', 'x']
+
+# Matplotlib symbols:
+# "." 	point
+# "," 	pixel
+# "o" 	circle
+# "v" 	triangle_down
+# "^" 	triangle_up
+# "<" 	triangle_left
+# ">" 	triangle_right
+# "1" 	tri_down
+# "2" 	tri_up
+# "3" 	tri_left
+# "4" 	tri_right
+# "8" 	octagon
+# "s" 	square
+# "p" 	pentagon
+# "*" 	star
+# "h" 	hexagon1
+# "H" 	hexagon2
+# "+" 	plus
+# "x" 	x
+# "D" 	diamond
+# "d" 	thin_diamond
+# "|" 	vline
+# "_" 	hline
+# "None" 	nothing
+# None 	nothing
+# " " 	nothing
+# "" 	nothing
 #
 
-try:
-    from .backends.MatplotlibBackend import MatplotlibBackend
-    DEFAULT_BACKEND = "matplotlib"
-except:
-    DEFAULT_BACKEND = PlotBackend.PlotBackend
+from .MatplotlibBackend import MatplotlibBackend
 
-class Plot(PlotBase.PlotBase):
-    PLUGINS_DIR = None
+
+class Plot(object):
     # give the possibility to set the default backend for all instances
     # via a class attribute.
-    defaultBackend = DEFAULT_BACKEND
+    defaultBackend = MatplotlibBackend
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None, callback=None):
         self._parent = parent
+
         if backend is None:
             backend = self.defaultBackend
-            self._default = True
-        else:
-            self._default = False
+
         if hasattr(backend, "__call__"):
             # to be called
-            self._plot = backend(parent)
-        elif isinstance(backend, PlotBackend.PlotBackend):
+            self._plot = backend(self, parent)
+        elif isinstance(backend, BackendBase.BackendBase):
             self._plot = backend
+            self._plot._setPlot(self)
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
-                from .backends.MatplotlibBackend import MatplotlibBackend as be
-            elif lowerCaseString in ["gl", "opengl"]:
-                from .backends.OpenGLBackend import OpenGLBackend as be
-            elif lowerCaseString in ["pyqtgraph"]:
-                from .backends.PyQtGraphBackend import PyQtGraphBackend as be
-            elif lowerCaseString in ["glut"]:
-                from .backends.GLUTOpenGLBackend import GLUTOpenGLBackend as be
-            elif lowerCaseString in ["osmesa", "mesa"]:
-                from .backends.OSMesaGLBackend import OSMesaGLBackend as be
+                from .MatplotlibBackend import MatplotlibBackend as be
+            # elif lowerCaseString in ["gl", "opengl"]:
+            #     from .backends.OpenGLBackend import OpenGLBackend as be
+            # elif lowerCaseString in ["pyqtgraph"]:
+            #     from .backends.PyQtGraphBackend import PyQtGraphBackend as be
+            # elif lowerCaseString in ["glut"]:
+            #     from .backends.GLUTOpenGLBackend import \
+            #         GLUTOpenGLBackend as be
+            # elif lowerCaseString in ["osmesa", "mesa"]:
+            #     from .backends.OSMesaGLBackend import OSMesaGLBackend as be
             else:
                 raise ValueError("Backend not understood %s" % backend)
-            self._plot = be(parent)
+            self._plot = be(self, parent)
+
         super(Plot, self).__init__()
-        widget = self._plot.getWidgetHandle()
-        if widget is None:
-            self.widget_ = self._plot
-        else:
-            self.widget_ = widget
+
+        self._widget = self._plot.getWidgetHandle()
 
         self.setCallback(callback)
 
-        self.setLimits = self._plot.setLimits
+        # Items handling
+        self._curves = OrderedDict()
+        self._hiddenCurves = set()
 
-        # curve handling
-        self._curveList = []
-        self._curveDict = {}
-        self._activeCurve = None
-        self._hiddenCurves = []
-
-        #image handling
-        self._imageList = []
-        self._imageDict = {}
-        self._activeImage = None
-
-        # marker handling
-        self._markerList = []
-        self._markerDict = {}
-
-        # item handling
-        self._itemList = []
-        self._itemDict = {}
+        self._images = OrderedDict()
+        self._markers = OrderedDict()
+        self._items = OrderedDict()
 
         # line types
         self._styleList = ['-', '--', '-.', ':']
-        self._nColors   = len(self.colorList)
-        self._nStyles   = len(self._styleList)
 
         self._colorIndex = 0
         self._styleIndex = 0
+
+        self._activeCurveHandling = True
+        self._activeCurve = None
         self._activeCurveColor = "#000000"
+        self._activeImage = None
 
         # default properties
         self._logY = False
         self._logX = False
+        self._xAutoScale = True
+        self._yAutoScale = True
+
+        self.setGraphTitle('')
+        self.setGraphXLabel('')
+        self.setGraphYLabel('')
+
+        self.setDefaultColormap()  # Init default colormap
 
         self.setDefaultPlotPoints(False)
         self.setDefaultPlotLines(True)
 
-        # zoom handling (should we take care of it?)
-        self.enableZoom = self.setZoomModeEnabled
         self.setZoomModeEnabled(True)
 
         self._defaultDataMargins = (0., 0., 0., 0.)
 
-    def enableActiveCurveHandling(self, flag=True):
-        activeCurve = None
-        if not flag:
-            if self.isActiveCurveHandlingEnabled():
-                activeCurve = self.getActiveCurve()
-            self._activeCurveHandling = False
-            self._activeCurve = None
-        else:
-            self._activeCurveHandling = True
-        self._plot.enableActiveCurveHandling(self._activeCurveHandling)
-        if activeCurve not in [None, []]:
-            self.addCurve(activeCurve[0],
-                          activeCurve[1],
-                          legend=activeCurve[2],
-                          info=activeCurve[3])
+    # Private stuff called from elsewhere....
 
-    def isZoomModeEnabled(self):
-        return self._plot.isZoomModeEnabled()
+    PLUGINS_DIR = None  # TODO useful?
 
-    def isDrawModeEnabled(self):
-        return self._plot.isDrawModeEnabled()
+    # TODO called from ProfileScanWidget
+    @property
+    def _curveList(self):
+        _logger.warning('depreacted: access a private member of Plot.py')
+        return list(self._curves)
 
-    def getWidgetHandle(self):
-        return self.widget_
-
-    def setCallback(self, callbackFunction):
-        if callbackFunction is None:
-            self._plot.setCallback(self.graphCallback)
-        else:
-            self._plot.setCallback(callbackFunction)
-
-    def graphCallback(self, ddict=None):
+    # TODO called from PlotWindow
+    def _getAllLimits(self):
         """
-        This callback is foing to receive all the events from the plot.
-        Those events will consist on a dictionnary and among the dictionnary
-        keys the key 'event' is mandatory to describe the type of event.
-        This default implementation only handles setting the active curve.
+        Internal method to retrieve the limits based on the curves, not
+        on the plot. It might be of use to reset the zoom when one of the
+        X or Y axes is not set to autoscale.
         """
+        _logger.warning('depreacted: access a private member of Plot.py')
 
-        if ddict is None:
-            ddict = {}
-        if DEBUG:
-            print("Received dict keys = ", ddict.keys())
-            print(ddict)
-        if ddict['event'] in ["legendClicked", "curveClicked"]:
-            if ddict['button'] == "left":
-                self.setActiveCurve(ddict['label'])
+        if not self._curves:
+            return 0.0, 0.0, 100., 100.
 
-    def setDefaultPlotPoints(self, flag):
-        if flag:
-            self._plotPoints = True
-        else:
-            self._plotPoints = False
-        for key in self._curveList:
-            if 'plot_symbol' in self._curveDict[key][3]:
-                del self._curveDict[key][3]['plot_symbol']
-        if len(self._curveList):
-            self._update()
+        # Init to infinity values
+        xmin, ymin = float('inf'), float('inf')
+        xmax, ymax = - float('inf'), - float('inf')
 
-    def setDefaultPlotLines(self, flag):
-        if flag:
-            self._plotLines = True
-        else:
-            self._plotLines = False
-        if len(self._curveList):
-            self._update()
+        for curve in self._curves.values():
+            x, y = curve['x'], curve['y']
 
-    def _getColorAndStyle(self):
-        self._lastColorIndex = self._colorIndex
-        self._lastStyleIndex = self._styleIndex
-        if self._colorIndex >= self._nColors:
-            self._colorIndex = 0
-            self._styleIndex += 1
-            if self._styleIndex >= self._nStyles:
-                self._styleIndex = 0
-        color = self.colorList[self._colorIndex]
-        style = self._styleList[self._styleIndex]
-        if color == self._activeCurveColor:
-            self._colorIndex += 1
-            if self._colorIndex >= self._nColors:
-                self._colorIndex = 0
-                self._styleIndex += 1
-                if self._styleIndex >= self._nStyles:
-                    self._styleIndex = 0
-            color = self.colorList[self._colorIndex]
-            style = self._styleList[self._styleIndex]
-        self._colorIndex += 1
-        return color, style
+            xmin = min(xmin, x.min())
+            ymin = min(ymin, y.min())
+            xmax = max(xmax, x.max())
+            ymax = max(ymax, y.max())
 
-    def setZoomModeEnabled(self, flag=True, color="black"):
-        """
-        Zoom and drawing are not compatible and cannot be enabled simultanelously
+        return xmin, ymin, xmax, ymax
 
-        :param flag: If True, the user can zoom.
-        :type flag: boolean, default True
-        :param color: The color to use to draw the selection area.
-                      Default 'black"
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
-        """
-        self._plot.setZoomModeEnabled(flag=flag, color=color)
+    ##########################
 
-    def setDrawModeEnabled(self, flag=True, shape="polygon", label=None,
-                           color=None, **kw):
-        """
-        Zoom and drawing are not compatible and cannot be enabled simultanelously
+    # Add
 
-        :param flag: Enable drawing mode disabling zoom and picking mode
-        :type flag: boolean, default True
-        :param shape: Type of item to be drawn (line, hline, vline, rectangle...)
-        :type shape: string (default polygon)
-        :param label: Associated text (for identifying the signals)
-        :type label: string, default None
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
-        """
-        self._plot.setDrawModeEnabled(flag=flag, shape=shape, label=label,
-                                      color=color, **kw)
+    # add * input arguments management:
+    # If an arg is set, then use it.
+    # Else:
+    #     If a curve with the same legend exists, then use its arg value
+    #     Else, use a default value.
+    # Store used value.
+    # This value is used when curve is updated either internally or by user.
 
-    def addItem(self, xdata, ydata, legend=None, info=None,
-                replot=True, replace=False,
-                shape="polygon", **kw):
-        #expected to receive the same parameters as the signal
-        if legend is None:
-            key = "Unnamed Item 1.1"
-        else:
-            key = str(legend)
-        if info is None:
-            info = {}
-        item = self._plot.addItem(xdata, ydata,
-                                  legend=legend,
-                                  info=info,
-                                  shape=shape,
-                                  **kw)
-        info['plot_handle'] = item
-        parameters = kw
-        label = kw.get('label', legend)
-        parameters['shape'] = shape
-        parameters['label'] = label
-
-        if legend in self._itemList:
-            idx = self._itemList.index(legend)
-            del self._itemList[idx]
-        self._itemList.append(legend)
-        self._itemDict[legend] = { 'x':xdata,
-                                   'y':ydata,
-                                   'legend':legend,
-                                   'info':info,
-                                   'parameters':parameters}
-        return legend
-
-    def removeItem(self, legend, replot=True):
-        if legend is None:
-            return
-        if legend in self._itemList:
-            idx = self._itemList.index(legend)
-            del self._itemList[idx]
-        if legend in self._itemDict:
-            handle = self._itemDict[legend]['info'].get('plot_handle', None)
-            del self._itemDict[legend]
-            if handle is not None:
-                self._plot.removeItem(handle, replot=replot)
-
-    def getDrawMode(self):
-        """
-        Return a dictionnary (or None) with the parameters passed when setting
-        the draw mode.
-        :key shape: The shape being drawn
-        :key label: Associated text (or None)
-        and any other info
-        """
-        return self._plot.getDrawMode()
-
-    def addCurve(self, x, y, legend=None, info=None, replace=False, replot=True,
+    def addCurve(self, x, y, legend=None, info=None,
+                 replace=False, replot=True,
                  color=None, symbol=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
-                 xerror=None, yerror=None, z=None, selectable=None, **kw):
-        # Convert everything to arrays (not forcing type) in order to avoid
+                 xerror=None, yerror=None, z=None, selectable=None,
+                 fill=None, **kw):
+        # Take care of input parameters: check/conversion, default value
+
+        if kw:
+            _logger.warning('addCurve: deprecated extra arguments')
+
+        legend = "Unnamed curve 1.1" if legend is None else str(legend)
+
+        # Check/Convert input arguments
+
+        # Convert to arrays (not forcing type) in order to avoid
         # problems at unexpected places: missing min or max attributes, problem
         # when using numpy.nonzero on lists, ...
-        received_symbol = symbol
-        received_linestyle = linestyle
         x = numpy.asarray(x)
         y = numpy.asarray(y)
-        if "line_style" in kw:
-            print("DEPRECATION WARNING: line_style deprecated, use linestyle")
-        if legend is None:
-            key = "Unnamed curve 1.1"
-        else:
-            key = str(legend)
-        if info is None:
-            info = {}
-            if key in self._curveDict:
-                # prevent curves from changing attributes when updated
-                oldInfo = self._curveDict[key][3]
-                for savedKey in ["xlabel", "ylabel",
-                                 "plot_symbol", "plot_color",
-                                 "plot_linestyle", "plot_fill",
-                                 "plot_yaxis"]:
-                    info[savedKey] = oldInfo[savedKey]
-        if xlabel is None:
-            xlabel = info.get('xlabel', 'X')
-        if ylabel is None:
-            ylabel = info.get('ylabel', 'Y')
-        info['xlabel'] = str(xlabel)
-        info['ylabel'] = str(ylabel)
-        if xerror is None:
-            xerror = info.get("sigmax", xerror)
-        info['sigmax'] = xerror
-        if yerror is None:
-            yerror = info.get("sigmay", yerror)
-        info['sigmay'] = yerror
 
+        # TODO color
+
+        # assert symbol in (None, '', ' ', 'o')  # TODO complete
+
+        # assert linestyle in (None, '', ' ', '-')  # TODO complete
+
+        if xlabel is not None:
+            xlabel = str(xlabel)
+
+        if ylabel is not None:
+            ylabel = str(ylabel)
+
+        assert yaxis in (None, 'left', 'right')
+
+        if xerror is not None:
+            xerror = numpy.asarray(xerror)
+
+        if yerror is not None:
+            yerror = numpy.asarray(yerror)
+
+        if z is not None:
+            z = int(z)
+
+        if selectable is not None:
+            selectable = bool(selectable)
+
+        if fill is not None:
+            fill = bool(fill)
+
+        # Store all params with defaults in a dict to treat them at once
+        params = {
+            'info': info, 'color': color,
+            'symbol': symbol, 'linestyle': linestyle,
+            'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
+            'xerror': xerror, 'yerror': yerror, 'z': z,
+            'selectable': selectable, 'fill': fill
+        }
+
+        # First, try to get defaults from existing curve with same name
+        previousCurve = self._curves.get(legend, None)
+        if previousCurve is not None:
+            defaults = previousCurve['params']
+
+        else:  # If no existing curve use default values
+            # TODO What to do with x and y, xerror, yerror
+            default_color, default_linestyle = self._getColorAndStyle()
+            defaults = {
+                'info': None, 'color': default_color,
+                'symbol': self._defaultPlotPoints,
+                'linestyle': default_linestyle,
+                'xlabel': 'X', 'ylabel': 'Y', 'yaxis': 'left',
+                'xerror': None, 'yerror': None, 'z': 1,
+                'selectable': True, 'fill': False
+            }
+
+        # If a parameter is not given as argument, use its default value
+        for key in defaults:
+            if params[key] is None:
+                params[key] = defaults[key]
+
+        # Add: replace, filter data, add
+
+        # This must be done after getting params from existing curve
         if replace:
-            self._curveList = []
-            self._curveDict = {}
-            self._colorIndex = 0
-            self._styleIndex = 0
-            self._plot.clearCurves()
-
-        if key in self._curveList:
-            idx = self._curveList.index(key)
-            self._curveList[idx] = key
-            handle = self._curveDict[key][3].get('plot_handle', None)
-            if handle is not None:
-                # this can give errors if it is not present in the plot
-                self._plot.removeCurve(key, replot=False)
-                if received_symbol is None:
-                    symbol = self._curveDict[key][3].get('plot_symbol', symbol)
-                if color is None:
-                    color = self._curveDict[key][3].get('plot_color', color)
-                if received_linestyle is None:
-                    linestyle = self._curveDict[key][3].get( \
-                                        'plot_linestyle', linestyle)
+            self.clearCurves(replot=False)
         else:
-            self._curveList.append(key)
-        #print("TODO: Here we can add properties to the info dictionnary")
-        #print("For instance, color, symbol, style and width if not present")
-        #print("They could come in **kw")
-        #print("The actual plotting stuff should only take care of handling")
-        #print("logarithmic filtering if needed")
-        # deal with the fill
-        fill = info.get("plot_fill", False)
-        fill = kw.get("fill", fill)
-        info["plot_fill"] = fill
+            self.removeCurve(legend, replot=False)
 
-        if yaxis is None:
-            yaxis = info.get("plot_yaxis", "left")
-        info["plot_yaxis"] = yaxis
+        # Filter-out values <= 0
+        x, y, color, xerror, yerror = self._logFilterData(
+            x, y, params['color'], params['xerror'], params['yerror'],
+            self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
-        # deal with the symbol
-        if received_symbol is None:
-            symbol = info.get("plot_symbol", symbol)
-
-        if self._plotPoints and (received_symbol is None):
-            if symbol in [None, "", " "]:
-                symbol = 'o'
-        elif symbol == "":
-            #symbol = None
-            pass
-        info["plot_symbol"] = symbol
-        if color is None:
-            color = info.get("plot_color", color)
-
-        if received_linestyle is None:
-            linestyle = info.get("plot_linestyle", linestyle)
-
-        if self._plotLines and (received_linestyle is None):
-            if (color is None) and (linestyle is None):
-                color, linestyle = self._getColorAndStyle()
-            elif linestyle in [None, " ", ""]:
-                linestyle = '-'
-        elif received_linestyle is None:
-            linestyle = ' '
-        elif linestyle is None:
-            linestyle = ' '
-
-        if (color is None) and (linestyle is None):
-            color, linestyle = self._getColorAndStyle()
-        elif linestyle is None:
-            dummy, linestyle = self._getColorAndStyle()
-        elif color is None:
-            color, dummy = self._getColorAndStyle()
-
-        info["plot_color"] = color
-        info["plot_linestyle"] = linestyle
-        if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
-            if hasattr(color, "size"):
-                xplot, yplot, colorplot = self.logFilterData(x, y, color=color)
-            else:
-                xplot, yplot, colorplot = self.logFilterData(x, y, color=None)
-                colorplot = color
+        if len(x) and not self.isCurveHidden(legend):
+            curveHandle = self._plot.addCurve(x, y, legend,
+                                              color=color,
+                                              symbol=params['symbol'],
+                                              linestyle=params['linestyle'],
+                                              linewidth=1,
+                                              yaxis=params['yaxis'],
+                                              xerror=xerror,
+                                              yerror=yerror,
+                                              z=params['z'],
+                                              selectable=params['selectable'],
+                                              fill=params['fill'])
         else:
-            xplot, yplot = x, y
-            colorplot = color
+            curveHandle = None  # The curve has no points or is hidden
 
-        if z is None:
-            info["plot_z"] = info.get("plot_z", 1)
-        else:
-            info["plot_z"] = z
+        self._curves[legend] = {
+            'handle': curveHandle, 'x': x, 'y': y, 'params': params
+        }
 
-        if selectable is None:
-            selectable = info.get("plot_selectable", True)
-        info["plot_selectable"] = selectable
-        if len(xplot):
-            curveHandle = self._plot.addCurve(xplot, yplot, key, info,
-                                              replot=False, replace=replace,
-                                              color=colorplot,
-                            symbol=info["plot_symbol"],
-                            linestyle=info["plot_linestyle"],
-                            xlabel=info["xlabel"],
-                            ylabel=info["ylabel"],
-                            yaxis=yaxis,
-                            xerror=xerror,
-                            yerror=yerror,
-                            z=info["plot_z"],
-                            selectable=info["plot_selectable"],
-                            **kw)
-            info['plot_handle'] = curveHandle
-        else:
-            info['plot_handle'] = key
-        self._curveDict[key] = [x, y, key, info]
+        if len(self._curves) == 1:
+            self.setActiveCurve(legend)
 
-        if len(self._curveList) == 1:
-            if self.isActiveCurveHandlingEnabled():
-                self._plot.setGraphXLabel(info["xlabel"])
-                self._plot.setGraphYLabel(info["ylabel"])
-                self.setActiveCurve(key)
-
-        if self.isCurveHidden(key):
-            self._plot.removeCurve(key, replot=False)
         if replot:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-            #self.replot()
-        return key
+            # self.replot()
+
+        return legend
 
     def addImage(self, data, legend=None, info=None,
                  replace=True, replot=True,
                  xScale=None, yScale=None, z=None,
                  selectable=False, draggable=False,
-                 colormap=None, pixmap=None, **kw):
+                 colormap=None, pixmap=None,
+                 xlabel=None, ylabel=None, **kw):
         """
-        :param data: (nrows, ncolumns) data or (nrows, ncolumns, RGBA) ubyte array
+        :param data: (nrows, ncolumns) data or
+                     (nrows, ncolumns, RGBA) ubyte array
         :type data: numpy.ndarray
         :param legend: The legend to be associated to the curve
         :type legend: string or None
         :param info: Dictionary of information associated to the image
         :type info: dict or None
-        :param replace: Flag to indicate if already existing images are to be deleted
+        :param replace: indicate if already existing images are to be deleted
         :type replace: boolean default True
         :param replot: Flag to indicate plot is to be immediately updated
         :type replot: boolean default True
@@ -558,75 +377,310 @@ class Plot(PlotBase.PlotBase):
         :type xScale: list or numpy.ndarray
         :param yScale: Two floats defining the y scale
         :type yScale: list or numpy.ndarray
-        :param z: level at which the image is to be located (to allow overlays).
+        :param z: level at which the image is located (to allow overlays)
         :type z: A number bigger than or equal to zero (default)
         :param selectable: Flag to indicate if the image can be selected
         :type selectable: boolean, default False
         :param draggable: Flag to indicate if the image can be moved
         :type draggable: boolean, default False
         :param colormap: Dictionary describing the colormap to use (or None)
-        :type colormap: Dictionnary or None (default). Ignored if data is RGB(A)
+        :type colormap: dict or None (default). Ignored if data is RGB(A)
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
-        :returns: The legend/handle used by the backend to univocally access it.
+        :returns: The legend used by the backend to univocally access it.
         """
-        if legend is None:
-            key = "Unnamed Image 1.1"
-        else:
-            key = str(legend)
-        if info is None:
-            info = {}
-        xlabel = info.get('xlabel', 'Column')
-        ylabel = info.get('ylabel', 'Row')
-        if 'xlabel' in kw:
-            info['xlabel'] = kw['xlabel']
-        if 'ylabel' in kw:
-            info['ylabel'] = kw['ylabel']
-        info['xlabel'] = str(xlabel)
-        info['ylabel'] = str(ylabel)
+        # Take care of input parameters: check/conversion, default value
 
-        if xScale is None:
-            xScale = info.get("plot_xScale", None)
-        if yScale is None:
-            yScale = info.get("plot_yScale", None)
-        if z is None:
-            z = info.get("plot_z", 0)
+        if kw:
+            _logger.warning('addImage: deprecated extra arguments')
+
+        if pixmap is not None:
+            _logger.warning('addImage: deprecated pixmap argument')
+
+        legend = "Unnamed Image 1.1" if legend is None else str(legend)
+
+        # Check/Convert input arguments
+        data = numpy.asarray(data)
+
+        if xScale is not None:
+            xScale = float(xScale[0]), float(xScale[1])
+
+        if yScale is not None:
+            yScale = float(yScale[0]), float(yScale[1])
+
+        if z is not None:
+            z = int(z)
+
+        if selectable is not None:
+            selectable = bool(selectable)
+
+        if draggable is not None:
+            draggable = bool(draggable)
+
+        if pixmap is not None:  # TODO remove this from the API!
+            pixmap = numpy.asarray(pixmap)
+
+        if xlabel is not None:
+            xlabel = str(xlabel)
+
+        if ylabel is not None:
+            ylabel = str(ylabel)
+
+        # Store all params with defaults in a dict to treat them at once
+        params = {
+            'info': info, 'xScale': xScale, 'yScale': yScale, 'z': z,
+            'selectable': selectable, 'draggable': draggable,
+            'colormap': colormap,
+            'xlabel': xlabel, 'ylabel': ylabel
+            # TODO xlabel, ylabel is not used by active image!!
+        }
+
+        # First, try to get defaults from existing curve with same name
+        previousImage = self._images.get(legend, None)
+        if previousImage is not None:
+            defaults = previousImage['params']
+
+        else:  # If no existing curve use default values
+            defaults = {
+                'info': None, 'xScale': (0., 1.), 'yScale': (0., 1.), 'z': 0,
+                'selectable': False, 'draggable': False,
+                'colormap': self.getDefaultColormap(),
+                'xlabel': 'Column', 'ylabel': 'Row'
+            }
+
+        # If a parameter is not given as argument, use its default value
+        for key in defaults:
+            if params[key] is None:
+                params[key] = defaults[key]
+
+        # Add: replace, filter data, add
 
         if replace:
-            self._imageList = []
-            self._imageDict = {}
-        if pixmap is not None:
-            dataToSend = pixmap
+            self.clearImages(replot=False)
         else:
-            dataToSend = data
-        if data is not None:
-            imageHandle = self._plot.addImage(dataToSend, legend=key, info=info,
-                                              replot=False, replace=replace,
-                                              xScale=xScale, yScale=yScale,
-                                              z=z,
-                                              selectable=selectable,
-                                              draggable=draggable,
-                                              colormap=colormap,
-                                              **kw)
-            info['plot_handle'] = imageHandle
+            self.removeImage(legend, replot=False)
+
+        if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
+            _logger.warning('Hide image while axes has log scale.')
+
+        if (data is not None and not self.isXAxisLogarithmic() and
+                not self.isYAxisLogarithmic()):
+            if pixmap is not None:
+                dataToSend = pixmap
+            else:
+                dataToSend = data
+
+            imageHandle = self._plot.addImage(dataToSend, legend=legend,
+                                              xScale=params['xScale'],
+                                              yScale=params['yScale'],
+                                              z=params['z'],
+                                              selectable=params['selectable'],
+                                              draggable=params['draggable'],
+                                              colormap=params['colormap'])
         else:
-            info['plot_handle'] = key
-        info["plot_xScale"] = xScale
-        info["plot_yScale"] = yScale
-        info["plot_z"] = z
-        info["plot_selectable"] = selectable
-        info["plot_draggable"] = draggable
-        info["plot_colormap"] = colormap
-        self._imageDict[key] = [data, key, info, pixmap]
-        if len(self._imageDict) == 1:
-            self.setActiveImage(key)
+            imageHandle = None  # data is None or log scale
+
+        self._images[legend] = {
+            'handle': imageHandle,
+            'data': data,
+            'pixmap': pixmap,
+            'params': params
+        }
+
+        if len(self._images) == 1:
+            self.setActiveImage(legend)
+
         if replot:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-            #self.replot()
-        return key
+            # self.replot()
+        return legend
+
+    def addItem(self, xdata, ydata, legend=None, info=None,
+                replot=True, replace=False,
+                shape="polygon", color='black', fill=True, **kw):
+        # expected to receive the same parameters as the signal
+
+        if kw:
+            _logger.warning('Ignoring extra parameters %s', str(kw))
+
+        legend = "Unnamed Item 1.1" if legend is None else str(legend)
+
+        if replace:
+            self.clearItems(replot=False)
+        else:
+            self.removeItem(legend, replot=False)
+
+        self._items[legend] = self._plot.addItem(
+            xdata, ydata, legend=legend, shape=shape, color=color, fill=fill)
+
+        if replot:
+            self.replot()
+
+        return legend
+
+    def insertXMarker(self, x, legend=None,
+                      text=None,
+                      color=None,
+                      selectable=False,
+                      draggable=False,
+                      **kw):
+        if kw:
+            _logger.warning('Extra parameters ignored: %s', str(kw))
+
+        if text is None:
+            text = kw.get("label", None)
+            if text is not None:
+                _logger.warning(
+                    "insertXMarker deprecation: Use 'text' instead of 'label'")
+
+        if color is None:
+            color = self.colorDict['black']
+        elif color in self.colorDict:
+            color = self.colorDict[color]
+
+        if legend is None:
+            i = 0
+            while legend in self._markers:
+                legend = "Unnamed X Marker %d" % i
+                i += 1
+
+        if legend in self._markers:
+            self.removeMarker(legend, replot=False)
+
+        self._markers[legend] = self._plot.addXMarker(
+            x, legend, text=text, color=color,
+            selectable=selectable, draggable=draggable)
+
+        return legend
+
+    def insertYMarker(self, y,
+                      legend=None,
+                      text=None,
+                      color=None,
+                      selectable=False,
+                      draggable=False,
+                      **kw):
+        if kw:
+            _logger.warning('Extra parameters ignored: %s', str(kw))
+
+        if text is None:
+            text = kw.get("label", None)
+            if text is not None:
+                _logger.warning(
+                    "insertYMarker deprecation: Use 'text' instead of 'label'")
+
+        if color is None:
+            color = self.colorDict['black']
+        elif color in self.colorDict:
+            color = self.colorDict[color]
+
+        if legend is None:
+            i = 0
+            while legend in self._markers:
+                legend = "Unnamed Y Marker %d" % i
+                i += 1
+
+        if legend in self._markers:
+            self.removeMarker(legend, replot=False)
+
+        self._markers[legend] = self._plot.addYMarker(
+            y, legend=legend, text=text, color=color,
+            selectable=selectable, draggable=draggable)
+
+        return legend
+
+    def insertMarker(self, x, y, legend=None,
+                     text=None,
+                     color=None,
+                     selectable=False,
+                     draggable=False,
+                     symbol='+',
+                     constraint=None,
+                     **kw):
+        if kw:
+            _logger.warning('Extra parameters ignored: %s', str(kw))
+
+        if text is None and 'label' in kw:
+            text = kw['label']
+            _logger.warning(
+                "deprecation warning: Use 'text' instead of 'label'")
+
+        if x is None:
+            xmin, xmax = self.getGraphXLimits()
+            x = 0.5 * (xmax + xmin)
+
+        if y is None:
+            ymin, ymax = self.getGraphYLimits()
+            y = 0.5 * (ymax + ymin)
+
+        if legend is None:
+            i = 0
+            while legend in self._markers:
+                legend = "Unnamed Marker %d" % i
+                i += 1
+
+        if color is None:
+            color = self.colorDict['black']
+        elif color in self.colorDict:
+            color = self.colorDict[color]
+
+        if constraint is not None and not callable(constraint):
+            # Then it must be a string
+            if hasattr(constraint, 'lower'):
+                if constraint.lower().startswith('h'):
+                    constraint = lambda xData, yData: (xData, y)
+                elif constraint.lower().startswith('v'):
+                    constraint = lambda xData, yData: (x, yData)
+                else:
+                    raise ValueError(
+                        "Unsupported constraint name: %s" % constraint)
+            else:
+                raise ValueError("Unsupported constraint")
+
+        # Apply constraint to provided position
+        if draggable and constraint is not None:
+            x, y = constraint(x, y)
+
+        if legend in self._markers:
+            self.removeMarker(legend, replot=False)
+
+        self._markers[legend] = self._plot.addMarker(
+            x, y, legend=legend, text=text, color=color,
+            selectable=selectable, draggable=draggable,
+            symbol=symbol, constraint=constraint)
+
+        return legend
+
+    # Hide
+
+    def isCurveHidden(self, legend):
+        return legend in self._hiddenCurves
+
+    def hideCurve(self, legend, flag=True, replot=True):
+        if legend not in self._curves:
+            _logger.warning('Curve not in plot: %s', legend)
+            return
+
+        if flag:
+            handle = self._curves[legend]['handle']
+            if handle is not None:
+                self._plot.remove(handle)
+                self._curves[legend]['handle'] = None
+
+            self._hiddenCurves.add(legend)
+        else:
+            self._hiddenCurves.discard(legend)
+            curve = self._curves[legend]
+            self.addCurve(curve['x'], curve['y'], legend, replot=False,
+                          **curve['params'])
+
+        if replot:
+            self.replot()
+
+    # Remove
 
     def removeCurve(self, legend, replot=True):
         """
@@ -639,17 +693,21 @@ class Plot(PlotBase.PlotBase):
         """
         if legend is None:
             return
-        if legend in self._curveList:
-            idx = self._curveList.index(legend)
-            del self._curveList[idx]
-        if legend in self._curveDict:
-            handle = self._curveDict[legend][3].get('plot_handle', None)
-            del self._curveDict[legend]
+
+        self._hiddenCurves.discard(legend)
+
+        if legend in self._curves:
+            handle = self._curves[legend]['handle']
             if handle is not None:
-                self._plot.removeCurve(handle, replot=replot)
-        if not len(self._curveList):
+                self._plot.remove(handle)
+            del self._curves[legend]
+
+        if not self._curves:
             self._colorIndex = 0
             self._styleIndex = 0
+
+        if replot:
+            self.replot()
 
     def removeImage(self, legend, replot=True):
         """
@@ -662,15 +720,226 @@ class Plot(PlotBase.PlotBase):
         """
         if legend is None:
             return
-        if legend in self._imageList:
-            idx = self._imageList.index(legend)
-            del self._imageList[idx]
-        if legend in self._imageDict:
-            handle = self._imageDict[legend][2].get('plot_handle', None)
-            del self._imageDict[legend]
+
+        if legend in self._images:
+            handle = self._images[legend]['handle']
             if handle is not None:
-                self._plot.removeImage(handle, replot=replot)
-        return
+                self._plot.remove(handle)
+            del self._images[legend]
+
+        if replot:
+            self.replot()
+
+    def removeItem(self, legend, replot=True):
+        if legend is None:
+            return
+
+        handle = self._items.pop(legend, None)
+        if handle is not None:
+            self._plot.remove(handle)
+
+        if replot:
+            self.replot()
+
+    def removeMarker(self, marker, replot=True):
+        handle = self._markers.pop(marker, None)
+        if handle is not None:
+            self._plot.remove(handle)
+
+        if replot:
+            self.replot()
+
+    # Clear
+
+    def clear(self, replot=True):
+        self.clearCurves(replot=False)
+        self.clearMarkers(replot=False)
+        self.clearImages(replot=False)
+        self.clearItems(replot=False)
+
+        self._plot.clear()
+
+        if replot:
+            self.replot()
+
+    def clearCurves(self, replot=True):
+        for legend in list(self._curves):  # Copy as _curves gets changed
+            self.removeCurve(legend, replot=False)
+        self._curves = OrderedDict()
+        self._hiddenCurves = set()
+        self._colorIndex = 0
+        self._styleIndex = 0
+
+        if replot:
+            self.replot()
+
+    def clearImages(self, replot=True):
+        """Clear all images from the plot.
+
+        Not the curves or markers.
+        """
+        for legend in list(self._images):  # Copy as _images gets changed
+            self.removeImage(legend, replot=False)
+        self._images = OrderedDict()
+
+        if replot:
+            self.replot()
+
+    def clearItems(self, replot=True):
+        for legend in list(self._items):  # Copy as _items gets changed
+            self.removeItem(legend, replot=False)
+        self._items = OrderedDict()
+
+        if replot:
+            self.replot()
+
+    def clearMarkers(self, replot=True):
+        for legend in list(self._markers):  # Copy as _markers gets changed
+            self.removeMarker(legend, replot=False)
+        self._markers = OrderedDict()
+
+        if replot:
+            self.replot()
+
+    # Interaction
+
+    def setGraphCursor(self, flag=None, color=None,
+                       linewidth=None, linestyle=None):
+        """
+        Toggle the display of a crosshair cursor and set its attributes.
+
+        :param bool flag: Toggle the display of a crosshair cursor.
+                           The crosshair cursor is hidden by default.
+        :param color: The color to use for the crosshair.
+        :type color: A string (either a predefined color name in Colors.py
+                    or "#RRGGBB")) or a 4 columns unsigned byte array.
+                    Default is black.
+        :param int linewidth: The width of the lines of the crosshair.
+                    Default is 1.
+        :param linestyle: Type of line::
+
+                - ' ' no line
+                - '-' solid line
+                - '--' dashed line
+                - '-.' dash-dot line
+                - ':' dotted line
+
+        :type linestyle: None or one of the predefined styles.
+        """
+        self._plot.setGraphCursor(flag=flag, color=color,
+                                  linewidth=linewidth, linestyle=linestyle)
+
+    def getGraphCursor(self):
+        """
+        Returns the current state of the crosshair cursor.
+
+        :return: None if the crosshair cursor is not active,
+                 else a tuple (color, linewidth, linestyle).
+        """
+        return self._plot.getGraphCursor()
+
+    def isZoomModeEnabled(self):
+        return self._plot.isZoomModeEnabled()
+
+    def setZoomModeEnabled(self, flag=True, color="black"):
+        """Zoom and drawing are not compatible and cannot be enabled
+        simultanelously
+
+        :param flag: If True, the user can zoom.
+        :type flag: boolean, default True
+        :param color: The color to use to draw the selection area.
+                      Default 'black"
+        :param color: The color to use to draw the selection area
+        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        """
+        self._plot.setZoomModeEnabled(flag=flag, color=color)
+
+    def isDrawModeEnabled(self):
+        return self._plot.isDrawModeEnabled()
+
+    def setDrawModeEnabled(self, flag=True, shape="polygon", label=None,
+                           color=None, **kw):
+        """Zoom and drawing are not compatible and cannot be enabled
+        simultanelously
+
+        :param flag: Enable drawing mode disabling zoom and picking mode
+        :type flag: boolean, default True
+        :param shape: Type of item to be drawn in:
+                      hline, vline, rectangle, polygon
+        :type shape: string (default polygon)
+        :param label: Associated text (for identifying the signals)
+        :type label: string, default None
+        :param color: The color to use to draw the selection area
+        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        """
+        self._plot.setDrawModeEnabled(flag=flag, shape=shape, label=label,
+                                      color=color, **kw)
+
+    def getDrawMode(self):
+        """
+        Return a dictionnary (or None) with the parameters passed when setting
+        the draw mode.
+        :key shape: The shape being drawn
+        :key label: Associated text (or None)
+        and any other info
+        """
+        return self._plot.getDrawMode()
+
+    def pan(self, direction, factor=0.1):
+        """Pan the graph in the given direction by the given factor.
+
+        Warning: Pan of right Y axis not implemented!
+
+        :param str direction: One of 'up', 'down', 'left', 'right'.
+        :param float factor: Proportion of the range used to pan the graph.
+                             Must be strictly positive.
+        """
+        assert direction in ('up', 'down', 'left', 'right')
+        assert factor > 0.
+
+        if direction in ('left', 'right'):
+            xFactor = factor if direction == 'right' else - factor
+            xMin, xMax = self.getGraphXLimits()
+
+            xMin, xMax = _applyPan(xMin, xMax, xFactor,
+                                   self.isXAxisLogarithmic())
+            self.setGraphXLimits(xMin, xMax)
+
+        else:  # direction in ('up', 'down')
+            sign = -1. if self.isYAxisInverted() else 1.
+            yFactor = sign * (factor if direction == 'up' else -factor)
+            yMin, yMax = self.getGraphYLimits()
+            yIsLog = self.isYAxisLogarithmic()
+
+            yMin, yMax = _applyPan(yMin, yMax, yFactor, yIsLog)
+            self.setGraphYLimits(yMin, yMax)
+
+            # TODO handle second Y axis
+
+        self.replot()
+
+    # Active Curve/Image
+
+    def isActiveCurveHandlingEnabled(self):
+        return self._activeCurveHandling
+
+    def enableActiveCurveHandling(self, flag=True):
+        if not flag:
+            self.setActiveCurve(None)  # Reset active curve
+
+        self._activeCurveHandling = bool(flag)
+
+    def getActiveCurveColor(self):
+        return self._activeCurveColor
+
+    def setActiveCurveColor(self, color="#000000"):
+        if color is None:
+            color = "black"
+        if color in self.colorDict:
+            color = self.colorDict[color]
+        self._activeCurveColor = color
 
     def getActiveCurve(self, just_legend=False):
         """
@@ -693,14 +962,65 @@ class Plot(PlotBase.PlotBase):
         """
         if not self.isActiveCurveHandlingEnabled():
             return None
-        if self._activeCurve not in self._curveDict:
+
+        if self._activeCurve not in self._curves:
             self._activeCurve = None
-        if just_legend:
-            return self._activeCurve
+
         if self._activeCurve is None:
             return None
+
+        if just_legend:
+            return self._activeCurve
         else:
-            return self._curveDict[self._activeCurve] * 1
+            curve = self._curves[self._activeCurve]
+            return curve['x'], curve['y'], self._activeCurve, curve['params']
+
+    def setActiveCurve(self, legend, replot=True):
+        """Make the curve with the specified legend the active curve.
+
+        :param str legend: The legend associated to the curve
+                           or None to have no active curve.
+        """
+        if not self.isActiveCurveHandlingEnabled():
+            return
+
+        xLabel = self._xLabel
+        yLabel = self._yLabel
+
+        oldActiveCurve = self.getActiveCurve()
+        if oldActiveCurve:  # Reset previous active curve
+            handle = self._curves[oldActiveCurve[2]]['handle']
+            if handle is not None:
+                self._plot.setCurveColor(handle, oldActiveCurve[3]['color'])
+
+        if legend is None:
+            self._activeCurve = None
+        else:
+            legend = str(legend)
+            if legend not in self._curves:
+                _logger.warning("This curve does not exist: %s", legend)
+                self._activeCurve = None
+            else:
+                self._activeCurve = legend
+
+                handle = self._curves[self._activeCurve]['handle']
+                if handle is not None:
+                    self._plot.setCurveColor(handle,
+                                             self.getActiveCurveColor())
+
+                activeCurve = self.getActiveCurve()
+                xLabel = activeCurve[3]['xlabel']
+                yLabel = activeCurve[3]['ylabel']  # TODO y2 axis case
+
+        # Store current labels and update plot
+        self._currentXLabel = xLabel
+        self._plot.setGraphXLabel(xLabel)
+        self._currentYLabel = yLabel
+        self._plot.setGraphYLabel(yLabel)  # TODO handle y2 axis
+
+        if replot:
+            self.replot()
+        return self._activeCurve
 
     def getActiveImage(self, just_legend=False):
         """
@@ -718,17 +1038,45 @@ class Plot(PlotBase.PlotBase):
 
         :param just_legend: Flag to specify the type of output required
         :type just_legend: boolean
-        :return: legend of the active image or list [data, legend, info, pixmap]
+        :return: legend of active image or list [data, legend, info, pixmap]
         :rtype: string or list
         """
-        if self._activeImage not in self._imageDict:
+        if self._activeImage not in self._images:
             self._activeImage = None
+
         if just_legend:
             return self._activeImage
+
         if self._activeImage is None:
             return None
         else:
-            return self._imageDict[self._activeImage] * 1
+            image = self._images[self._activeImage]
+            return image['x'], image['y'], self._activeImage, image['params']
+
+    def setActiveImage(self, legend, replot=True):
+        """Funtion to request the plot window to set the image with the
+        specified legend as the active image.
+
+        :param legend: The legend associated to the image
+        :type legend: string
+        """
+        if legend is None:
+            self._activeImage = None
+        else:
+            legend = str(legend)
+            if legend not in self._images:
+                _logger.warning(
+                    "setActiveImage: This image does not exist: %s", legend)
+                self._activeCurve = None
+            else:
+                self._activeImage = legend
+
+        if replot:
+            self.replot()
+
+        return self._activeImage
+
+    # Getters
 
     def getAllCurves(self, just_legend=False):
         """
@@ -751,15 +1099,14 @@ class Plot(PlotBase.PlotBase):
             or just an empty list.
         """
         output = []
-        keys = list(self._curveDict.keys())
-        for key in self._curveList:
-            if key in keys:
-                if self.isCurveHidden(key):
-                    continue
-                if just_legend:
-                    output.append(key)
-                else:
-                    output.append(self._curveDict[key])
+        for key in self._curves:
+            if self.isCurveHidden(key):
+                continue
+            if just_legend:
+                output.append(key)
+            else:
+                curve = self._curves[key]
+                output.append((curve['x'], curve['y'], key, curve['params']))
         return output
 
     def getCurve(self, legend):
@@ -778,10 +1125,41 @@ class Plot(PlotBase.PlotBase):
             For the time being, only the plot labels associated to the
             curve are warranted to be present under the keys xlabel, ylabel.
         """
-        if legend in self._curveDict:
-            return self._curveDict[legend] * 1
+        if legend in self._curves:
+            curve = self._curves[legend]
+            return curve['x'], curve['y'], legend, curve['params']
         else:
             return None
+
+    # TODO actually not used...
+    def getMonotonicCurves(self):
+        """
+        Convenience method that calls getAllCurves and makes sure that all of
+        the X values are strictly increasing.
+
+        :return: It returns a list of the form:
+                [[xvalues0, yvalues0, legend0, dict0],
+                 [xvalues1, yvalues1, legend1, dict1],
+                 [...],
+                 [xvaluesn, yvaluesn, legendn, dictn]]
+        """
+        allCurves = self.getAllCurves() * 1
+        for i in range(len(allCurves)):
+            curve = allCurves[i]
+            x, y, legend, info = curve[0:4]
+            if self.isCurveHidden(legend):
+                continue
+            # Sort
+            idx = numpy.argsort(x, kind='mergesort')
+            xproc = numpy.take(x, idx)
+            yproc = numpy.take(y, idx)
+            # Ravel, Increase
+            xproc = xproc.ravel()
+            idx = numpy.nonzero((xproc[1:] > xproc[:-1]))[0]
+            xproc = numpy.take(xproc, idx)
+            yproc = numpy.take(yproc, idx)
+            allCurves[i][0:2] = x, y
+        return allCurves
 
     def getImage(self, legend):
         """
@@ -797,44 +1175,277 @@ class Plot(PlotBase.PlotBase):
             image, legend, info, pixmap
             where info is a dictionnary containing image information.
         """
-        if legend in self._imageDict:
-            return self._imageDict[legend] * 1
+        if legend in self._images:
+            image = self._images[legend]
+            return image['x'], image['y'], legend, image['params']
         else:
             return None
 
-    def _getAllLimits(self):
+    # Limits
+
+    def getGraphXLimits(self):
+        """Get the graph X (bottom) limits.
+
+        :return:  Minimum and maximum values of the X axis
         """
-        Internal method to retrieve the limits based on the curves, not
-        on the plot. It might be of use to reset the zoom when one of the
-        X or Y axes is not set to autoscale.
+        return self._plot.getGraphXLimits()
+
+    def setGraphXLimits(self, xmin, xmax, replot=False):
+        self._plot.setGraphXLimits(xmin, xmax)
+        if replot:
+            self.replot()
+
+    def getGraphYLimits(self):
+        """Get the graph Y (left) limits.
+
+        :return:  Minimum and maximum values of the X axis
         """
-        keys = list(self._curveDict.keys())
-        if not len(keys):
-            return 0.0, 0.0, 100., 100.
-        xmin = None
-        ymin = None
-        xmax = None
-        ymax = None
-        for key in keys:
-            x = self._curveDict[key][0]
-            y = self._curveDict[key][1]
-            if xmin is None:
-                xmin = x.min()
+        return self._plot.getGraphYLimits()
+
+    def setGraphYLimits(self, ymin, ymax, replot=False):
+        self._plot.setGraphYLimits(ymin, ymax)
+        if replot:
+            self.replot()
+
+    def setLimits(self, xmin, xmax, ymin, ymax):
+        self._plot.setLimits(xmin, xmax, ymin, ymax)
+
+    # Title and labels
+
+    def getGraphTitle(self):
+        return self._graphTitle
+
+    def setGraphTitle(self, title=""):
+        self._graphTitle = str(title)
+        self._plot.setGraphTitle(title)
+
+    def getGraphXLabel(self):
+        return self._currentXLabel
+
+    def setGraphXLabel(self, label="X"):
+        self._xLabel = label
+        # Current label can differ from input one with active curve handling
+        self._currentXLabel = label
+        self._plot.setGraphXLabel(label)
+
+    def getGraphYLabel(self):
+        return self._currentYLabel
+
+    def setGraphYLabel(self, label="Y"):
+        self._yLabel = label
+        # Current label can differ from input one with active curve handling
+        self._currentYLabel = label
+        self._plot.setGraphYLabel(label)
+
+    # Axes
+
+    def invertYAxis(self, flag=True):
+        self._plot.invertYAxis(flag)
+
+    def isYAxisInverted(self):
+        return self._plot.isYAxisInverted()
+
+    def isXAxisLogarithmic(self):
+        return self._logX
+
+    def setXAxisLogarithmic(self, flag):
+        if bool(flag) == self._logX:
+            return
+        self._logX = bool(flag)
+
+        if self._logX:  # Switch to log scale
+            for image in self._images.values():
+                if image['handle'] is not None:
+                    self._plot.remove(image['handle'])
+                    image['handle'] = None
+
+            for curve in self._curves.values():
+                handle = curve['handle']
+                if handle is not None:
+                    self._plot.remove(handle)
+                    curve['handle'] = None
+
+            # matplotlib 1.5 crashes if the log set is made before
+            # the call to self._update()
+            # TODO: Decide what is better for other backends
+            if (hasattr(self._plot, "matplotlibVersion") and
+                    self._plot.matplotlibVersion >= "1.5"):
+                self._update()
+                self._plot.setXAxisLogarithmic(self._logX)
             else:
-                xmin = min(xmin, x.min())
-            if xmax is None:
-                xmax = x.max()
+                self._plot.setXAxisLogarithmic(self._logX)
+                self._update()
+        else:
+                self._plot.setXAxisLogarithmic(self._logX)
+                self._update()
+
+    def isYAxisLogarithmic(self):
+        return self._logY
+
+    def setYAxisLogarithmic(self, flag):
+        if bool(flag) == self._logY:
+            return
+        self._logY = bool(flag)
+
+        if self._logY:  # Switch to log scale
+            for image in self._images.values():
+                if image['handle'] is not None:
+                    self._plot.remove(image['handle'])
+                    image['handle'] = None
+
+            for curve in self._curves.values():
+                handle = curve['handle']
+                if handle is not None:
+                    self._plot.remove(handle)
+                    curve['handle'] = None
+
+            # matplotlib 1.5 crashes if the log set is made before
+            # the call to self._update()
+            # TODO: Decide what is better for other backends
+            if (hasattr(self._plot, "matplotlibVersion") and
+                    self._plot.matplotlibVersion >= "1.5"):
+                self._update()
+                self._plot.setYAxisLogarithmic(self._logY)
             else:
-                xmax = max(xmax, x.max())
-            if ymin is None:
-                ymin = y.min()
-            else:
-                ymin = min(ymin, y.min())
-            if ymax is None:
-                ymax = y.max()
-            else:
-                ymax = max(ymax, y.max())
-        return xmin, ymin, xmax, ymax
+                self._plot.setYAxisLogarithmic(self._logY)
+                self._update()
+        else:
+                self._plot.setYAxisLogarithmic(self._logY)
+                self._update()
+
+    def isXAxisAutoScale(self):
+        return self._xAutoScale
+
+    def setXAxisAutoScale(self, flag=True):
+        self._xAutoScale = bool(flag)
+
+    def isYAxisAutoScale(self):
+        return self._yAutoScale
+
+    def setYAxisAutoScale(self, flag=True):
+        self._yAutoScale = flag
+
+    def isKeepDataAspectRatio(self):
+        return self.isKeepDataAspectRatio()
+
+    def keepDataAspectRatio(self, flag=True):
+        """
+        :param flag:  True to respect data aspect ratio
+        :type flag: Boolean, default True
+        """
+        self._plot.keepDataAspectRatio(flag=flag)
+        self.resetZoom()
+
+    def showGrid(self, flag=True):
+        _logger.debug("Plot showGrid called")
+        self._plot.showGrid(flag)
+        self.replot()
+
+    # Defaults
+
+    def setDefaultPlotPoints(self, flag):
+        self._defaultPlotPoints = 'o' if flag else ''
+
+        # Reset symbol of all curves
+        for curve in self._curves:
+            curve['params']['symbol'] = self._defaultPlotPoints
+
+        if self._curves:
+            self._update()
+
+    def setDefaultPlotLines(self, flag):
+        self._plotLines = bool(flag)
+
+        if self._curves:
+            self._update()
+
+    def getDefaultColormap(self):
+        """
+        Return the colormap that will be applied by the backend to an image
+        if no colormap is applied to it.
+        A colormap is a dictionnary with the keys:
+        :type name: string
+        :type normalization: string (linear, log)
+        :type autoscale: boolean
+        :type vmin: float, minimum value
+        :type vmax: float, maximum value
+        :type colors: integer (typically 256)
+        """
+        return self._defaultColormap
+
+    def setDefaultColormap(self, colormap=None):
+        """
+        Sets the colormap that will be applied by the backend to an image
+        if no colormap is applied to it.
+        A colormap is a dictionnary with the keys:
+        :type name: string
+        :type normalization: string (linear, log)
+        :type autoscale: boolean
+        :type vmin: float, minimum value
+        :type vmax: float, maximum value
+        :type colors: integer (typically 256)
+
+        If None is passed, the backend will reset to its default colormap.
+        """
+        if colormap is None:
+            colormap = {'name': 'gray', 'normalization': 'linear',
+                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
+                        'colors': 256}
+        self._defaultColormap = colormap
+
+    def getSupportedColormaps(self):
+        """Get a list of strings with the supported colormap names.
+
+        The list should at least contain and start by:
+        ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
+        """
+        return self._plot.getSupportedColormaps()
+
+    def _getColorAndStyle(self):
+        color = self.colorList[self._colorIndex]
+        style = self._styleList[self._styleIndex]
+
+        # Loop over color and then styles
+        self._colorIndex += 1
+        if self._colorIndex >= len(self.colorList):
+            self._colorIndex = 0
+            self._styleIndex = (self._styleIndex + 1) % len(self._styleList)
+
+        # If color is the one of active curve, take the next one
+        if color == self.getActiveCurveColor():
+            color, style = self._getColorAndStyle()
+
+        if not self._plotLines:
+            style = ' '
+
+        return color, style
+
+    # Misc.
+
+    def getWidgetHandle(self):
+        return self._widget
+
+    def setCallback(self, callbackFunction):
+        if callbackFunction is None:
+            self._plot.setCallback(self.graphCallback)
+        else:
+            self._plot.setCallback(callbackFunction)
+
+    def graphCallback(self, ddict=None):
+        """
+        This callback is going to receive all the events from the plot.
+        Those events will consist on a dictionnary and among the dictionnary
+        keys the key 'event' is mandatory to describe the type of event.
+        This default implementation only handles setting the active curve.
+        """
+
+        if ddict is None:
+            ddict = {}
+        _logger.debug("Received dict keys = %s", str(ddict.keys()))
+        _logger.debug(str(ddict))
+        if ddict['event'] in ["legendClicked", "curveClicked"]:
+            if ddict['button'] == "left":
+                self.setActiveCurve(ddict['label'])
 
     def saveGraph(self, filename, fileFormat='svg', dpi=None, **kw):
         """
@@ -843,228 +1454,12 @@ class Plot(PlotBase.PlotBase):
         :param fileFormat:  String specifying the format
         :type fileFormat: String (default 'svg')
         """
+        if kw:
+            _logger.warning('Extra parameters ignored: %s', str(kw))
+
         return self._plot.saveGraph(filename,
                                     fileFormat=fileFormat,
-                                    dpi=dpi,
-                                    **kw)
-
-    def setActiveCurve(self, legend, replot=True):
-        """
-        Funtion to request the plot window to set the curve with the specified legend
-        as the active curve.
-        :param legend: The legend associated to the curve
-        :type legend: string
-        """
-        if not self.isActiveCurveHandlingEnabled():
-            return
-        oldActiveCurve = self.getActiveCurve(just_legend=True)
-        key = str(legend)
-        if key in self._curveDict.keys():
-            self._activeCurve = key
-        if self._activeCurve == oldActiveCurve:
-            # the labels may need to be updated!!!!
-            return self._activeCurve
-        # this was giving troubles in the PyQtGraph binding
-        #if self._activeCurve != oldActiveCurve:
-        self._plot.setActiveCurve(self._activeCurve, replot=replot)
-        return self._activeCurve
-
-    def setActiveCurveColor(self, color="#000000"):
-        if color is None:
-            color = "black"
-        if color in self.colorDict:
-            color = self.colorDict[color]
-        self._activeCurveColor = color
-        self._plot.setActiveCurveColor(color)
-
-    def setActiveImage(self, legend, replot=True):
-        """
-        Funtion to request the plot window to set the image with the specified legend
-        as the active image.
-        :param legend: The legend associated to the image
-        :type legend: string
-        """
-        oldActiveImage = self.getActiveImage(just_legend=True)
-        key = str(legend)
-        if key in self._imageDict.keys():
-            self._activeImage = key
-        self._plot.setActiveImage(self._activeImage, replot=replot)
-        return self._activeImage
-
-    def invertYAxis(self, flag=True):
-        self._plot.invertYAxis(flag)
-
-    def isYAxisInverted(self):
-        return self._plot.isYAxisInverted()
-
-    def isYAxisLogarithmic(self):
-        if self._logY:
-            return True
-        else:
-            return False
-
-    def isXAxisLogarithmic(self):
-        if self._logX:
-            return True
-        else:
-            return False
-
-    def setYAxisLogarithmic(self, flag):
-        if flag:
-            if self._logY:
-                if DEBUG:
-                    print("y axis was already in log mode")
-            else:
-                self._logY = True
-                if DEBUG:
-                    print("y axis was in linear mode")
-                self._plot.clearCurves()
-                # matplotlib 1.5 crashes if the log set is made before
-                # the call to self._update()
-                # TODO: Decide what is better for other backends
-                if hasattr(self._plot, "matplotlibVersion"):
-                    if self._plot.matplotlibVersion < "1.5":
-                        self._plot.setYAxisLogarithmic(self._logY)
-                        self._update()
-                    else:
-                        self._update()
-                        self._plot.setYAxisLogarithmic(self._logY)
-                else:
-                    self._plot.setYAxisLogarithmic(self._logY)
-                    self._update()
-        else:
-            if self._logY:
-                if DEBUG:
-                    print("y axis was in log mode")
-                self._logY = False
-                self._plot.clearCurves()
-                self._plot.setYAxisLogarithmic(self._logY)
-                self._update()
-            else:
-                if DEBUG:
-                    print("y axis was already linear mode")
-        return
-
-    def setXAxisLogarithmic(self, flag):
-        if flag:
-            if self._logX:
-                if DEBUG:
-                    print("x axis was already in log mode")
-            else:
-                self._logX = True
-                if DEBUG:
-                    print("x axis was in linear mode")
-                self._plot.clearCurves()
-                # matplotlib 1.5 crashes if the log set is made before
-                # the call to self._update()
-                # TODO: Decide what is better for other backends
-                if hasattr(self._plot, "matplotlibVersion"):
-                    print(self._plot.matplotlibVersion)
-                    if self._plot.matplotlibVersion < "1.5":
-                        self._plot.setXAxisLogarithmic(self._logX)
-                        self._update()
-                    else:
-                        self._update()
-                        self._plot.setXAxisLogarithmic(self._logX)
-                else:
-                    self._plot.setXAxisLogarithmic(self._logX)
-                    self._update()
-        else:
-            if self._logX:
-                if DEBUG:
-                    print("x axis was in log mode")
-                self._logX = False
-                self._plot.setXAxisLogarithmic(self._logX)
-                self._update()
-            else:
-                if DEBUG:
-                    print("x axis was already linear mode")
-        return
-
-    def logFilterData(self, x, y, xLog=None, yLog=None, color=None):
-        if xLog is None:
-            xLog = self._logX
-        if yLog is None:
-            yLog = self._logY
-
-        if xLog and yLog:
-            idx = numpy.nonzero((x > 0) & (y > 0))[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        elif yLog:
-            idx = numpy.nonzero(y > 0)[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        elif xLog:
-            idx = numpy.nonzero(x > 0)[0]
-            x = numpy.take(x, idx)
-            y = numpy.take(y, idx)
-        if isinstance(color, numpy.ndarray):
-            colors = numpy.zeros((x.size, 4), color.dtype)
-            colors[:, 0] = color[idx, 0]
-            colors[:, 1] = color[idx, 1]
-            colors[:, 2] = color[idx, 2]
-            colors[:, 3] = color[idx, 3]
-        else:
-            colors = color
-        return x, y, colors
-
-    def _update(self):
-        if DEBUG:
-            print("_update called")
-        curveList = self.getAllCurves()
-        activeCurve = self.getActiveCurve(just_legend=True)
-        #self._plot.clearCurves()
-        for curve in curveList:
-            x, y, legend, info = curve[0:4]
-            self.addCurve(x, y, legend, info=info,
-                          replace=False, replot=False)
-        if len(curveList):
-            if activeCurve not in curveList:
-                activeCurve = curveList[0][2]
-            self.setActiveCurve(activeCurve)
-        self.replot()
-
-    def replot(self):
-        if DEBUG:
-            print("replot called")
-        if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
-            for image in self._imageDict.keys():
-                self._plot.removeImage(image[1])
-        if hasattr(self._plot, 'replot_'):
-            self._plot.replot_()
-        else:
-            self._plot.replot()
-
-    def clear(self):
-        self._curveList = []
-        self._curveDict = {}
-        self._colorIndex = 0
-        self._styleIndex = 0
-        self._markerDict = {}
-        self._imageList = []
-        self._imageDict = {}
-        self._markerList = []
-        self._plot.clear()
-        self.replot()
-
-    def clearCurves(self):
-        self._curveList = []
-        self._curveDict = {}
-        self._colorIndex = 0
-        self._styleIndex = 0
-        self._plot.clearCurves()
-        self.replot()
-
-    def clearImages(self):
-        """
-        Clear all images from the plot. Not the curves or markers.
-        """
-        self._imageList = []
-        self._imageDict = {}
-        self._plot.clearImages()
-        self.replot()
-        return
+                                    dpi=dpi)
 
     def getDataMargins(self):
         """Get the default data margin ratios, see :meth:`setDataMargins`.
@@ -1084,300 +1479,97 @@ class Plot(PlotBase.PlotBase):
         self._defaultDataMargins = (xMinMargin, xMaxMargin,
                                     yMinMargin, yMaxMargin)
 
+    def replot(self):
+        _logger.debug("replot called")
+        self._plot.replot()
+
     def resetZoom(self, dataMargins=None):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
         self._plot.resetZoom(dataMargins)
-
-    def setXAxisAutoScale(self, flag=True):
-        self._plot.setXAxisAutoScale(flag)
-
-    def setYAxisAutoScale(self, flag=True):
-        self._plot.setYAxisAutoScale(flag)
-
-    def isXAxisAutoScale(self):
-        return self._plot.isXAxisAutoScale()
-
-    def isYAxisAutoScale(self):
-        return self._plot.isYAxisAutoScale()
-
-    def getGraphTitle(self):
-        return self._plot.getGraphTitle()
-
-    def getGraphXLabel(self):
-        return self._plot.getGraphXLabel()
-
-    def getGraphYLabel(self):
-        return self._plot.getGraphYLabel()
-
-    def setGraphYLimits(self, ymin, ymax, replot=False):
-        self._plot.setGraphYLimits(ymin, ymax)
-        if replot:
-            self.replot()
-
-    def setGraphXLimits(self, xmin, xmax, replot=False):
-        self._plot.setGraphXLimits(xmin, xmax)
-        if replot:
-            self.replot()
-
-    def getGraphXLimits(self):
-        """
-        Get the graph X (bottom) limits.
-        :return:  Minimum and maximum values of the X axis
-        """
-        if hasattr(self._plot, "getGraphXLimits"):
-            xmin, xmax = self._plot.getGraphXLimits()
-        else:
-            xmin, ymin, xmax, ymax = self._getAllLimits()
-        return xmin, xmax
-
-    def getGraphYLimits(self):
-        """
-        Get the graph Y (left) limits.
-        :return:  Minimum and maximum values of the X axis
-        """
-        if hasattr(self._plot, "getGraphYLimits"):
-            ymin, ymax = self._plot.getGraphYLimits()
-        else:
-            xmin, ymin, xmax, ymax = self._getAllLimits()
-        return ymin, ymax
-
-    # Title and labels
-    def setGraphTitle(self, title=""):
-        self._plot.setGraphTitle(title)
-
-    def setGraphXLabel(self, label="X"):
-        self._plot.setGraphXLabel(label)
-
-    def setGraphYLabel(self, label="Y"):
-        self._plot.setGraphYLabel(label)
-
-    # Marker handling
-    def insertXMarker(self, x, legend=None,
-                      text=None,
-                      color=None,
-                      selectable=False,
-                      draggable=False,
-                      **kw):
-        """
-        kw ->symbol
-        """
-        if DEBUG:
-            print("Received legend = %s" % legend)
-        if text is None:
-            text = kw.get("label", None)
-            if text is not None:
-                print("insertXMarker deprecation warning: Use 'text' instead of 'label'")
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
-        if legend is None:
-            i = 0
-            legend = "Unnamed X Marker %d" % i
-            while legend in self._markerList:
-                i += 1
-                legend = "Unnamed X Marker %d" % i
-
-        if legend in self._markerList:
-            self.removeMarker(legend)
-        marker = self._plot.insertXMarker(x, legend,
-                                          text=text,
-                                          color=color,
-                                          selectable=selectable,
-                                          draggable=draggable,
-                                          **kw)
-        self._markerList.append(legend)
-        self._markerDict[legend] = kw
-        self._markerDict[legend]['marker'] = marker
-        return marker
-
-    def insertYMarker(self, y,
-                      legend=None,
-                      text=None,
-                      color=None,
-                      selectable=False,
-                      draggable=False,
-                      **kw):
-        """
-        kw -> color, symbol
-        """
-        if text is None:
-            text = kw.get("label", None)
-            if text is not None:
-                print("insertYMarker deprecation warning: Use 'text' instead of 'label'")
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
-        if legend is None:
-            i = 0
-            legend = "Unnamed Y Marker %d" % i
-            while legend in self._markerList:
-                i += 1
-                legend = "Unnamed Y Marker %d" % i
-        if legend in self._markerList:
-            self.removeMarker(legend)
-        marker = self._plot.insertYMarker(y, legend=legend,
-                                          text=text,
-                                          color=color,
-                                          selectable=selectable,
-                                          draggable=draggable,
-                                          **kw)
-        self._markerList.append(legend)
-        self._markerDict[legend] = kw
-        self._markerDict[legend]['marker'] = marker
-        return marker
-
-    def insertMarker(self, x, y, legend=None,
-                     text=None,
-                     color=None,
-                     selectable=False,
-                     draggable=False,
-                     symbol=None,
-                     constraint=None,
-                     **kw):
-        if text is None:
-            text = kw.get("label", None)
-            if text is not None:
-                print("insertMarker deprecation warning: Use 'text' instead of 'label'")
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
-        if legend is None:
-            i = 0
-            legend = "Unnamed Marker %d" % i
-            while legend in self._markerList:
-                i += 1
-                legend = "Unnamed Marker %d" % i
-
-        if constraint is not None and not callable(constraint):
-            # Then it must be a string
-            if hasattr(constraint, 'lower'):
-                if constraint.lower().startswith('h'):
-                    constraint = lambda xData, yData: (xData, y)
-                elif constraint.lower().startswith('v'):
-                    constraint = lambda xData, yData: (x, yData)
-                else:
-                    raise ValueError(
-                        "Unsupported constraint name: %s" % constraint)
-            else:
-                raise ValueError("Unsupported constraint")
-
-        if legend in self._markerList:
-            self.removeMarker(legend)
-        marker = self._plot.insertMarker(x, y, legend=legend,
-                                          text=text,
-                                          color=color,
-                                          selectable=selectable,
-                                          draggable=draggable,
-                                          symbol=symbol,
-                                          constraint=constraint,
-                                          **kw)
-        self._markerList.append(legend)
-        self._markerDict[legend] = kw
-        self._markerDict[legend]['marker'] = marker
-        return marker
-
-    def keepDataAspectRatio(self, flag=True):
-        """
-        :param flag:  True to respect data aspect ratio
-        :type flag: Boolean, default True
-        """
-        self._plot.keepDataAspectRatio(flag=flag)
-
-    def clearMarkers(self):
-        self._markerDict = {}
-        self._markerList = []
-        self._plot.clearMarkers()
         self.replot()
 
-    def removeMarker(self, marker):
-        if marker in self._markerList:
-            idx = self._markerList.index(marker)
-            del self._markerList[idx]
-            try:
-                self._plot.removeMarker(self._markerDict[marker]['marker'])
-                del self._markerDict[marker]
-            except KeyError:
-                if DEBUG:
-                    print("Marker was not present %s"  %\
-                          self._markerDict[marker]['marker'])
+    # Internal
 
-    def setMarkerFollowMouse(self, marker, boolean):
-        raise NotImplemented("Not necessary?")
-        if marker not in self._markerList:
-            raise ValueError("Marker %s not defined" % marker)
-        pass
+    @staticmethod
+    def _logFilterData(x, y, color, xerror, yerror, xLog, yLog):
+        """Filter out values with x or y <= 0 on log axes
 
-    def enableMarkerMode(self, flag):
-        raise NotImplemented("Not necessary?")
-        pass
+        All arrays are expected to have the same length.
 
-    def isMarkerModeEnabled(self, flag):
-        raise NotImplemented("Not necessary?")
-        pass
-
-    def showGrid(self, flag=True):
-        if DEBUG:
-            print("Plot showGrid called")
-        self._plot.showGrid(flag)
-
-    # colormap related functions
-    def getDefaultColormap(self):
+        :param x: The x coords.
+        :param y: The y coords.
+        :param color: The addCurve color arg (might not be an array).
+        :param xerror: The addCuve xerror arg (might not be an array).
+        :param yerror: The addCuve yerror arg (might not be an array).
+        :param bool xLog: True to filter arrays according to X coords.
+        :param bool yLog: True to filter arrays according to Y coords.
+        :return: The filter arrays or unchanged object if
+        :rtype: (x, y, color, xerror, yerror)
         """
-        Return the colormap that will be applied by the backend to an image
-        if no colormap is applied to it.
-        A colormap is a dictionnary with the keys:
-        :type name: string
-        :type normalization: string (linear, log)
-        :type autoscale: boolean
-        :type vmin: float, minimum value
-        :type vmax: float, maximum value
-        :type colors: integer (typically 256)
-        """
-        return self._plot.getDefaultColormap()
-
-    def setDefaultColormap(self, colormap=None):
-        """
-        Sets the colormap that will be applied by the backend to an image
-        if no colormap is applied to it.
-        A colormap is a dictionnary with the keys:
-        :type name: string
-        :type normalization: string (linear, log)
-        :type autoscale: boolean
-        :type vmin: float, minimum value
-        :type vmax: float, maximum value
-        :type colors: integer (typically 256)
-
-        If None is passed, the backend will reset to its default colormap.
-        """
-        self._plot.setDefaultColormap(colormap)
-
-    def getSupportedColormaps(self):
-        """
-        Get a list of strings with the colormap names supported by the backend.
-        The list should at least contain and start by:
-        ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
-        """
-        return self._plot.getSupportedColormaps()
-
-    def hideCurve(self, legend, flag=True, replot=True):
-        if flag:
-            self._plot.removeCurve(legend, replot=replot)
-            if legend not in self._hiddenCurves:
-                self._hiddenCurves.append(legend)
+        if xLog and yLog:
+            idx = numpy.nonzero((x > 0) & (y > 0))[0]
+        elif yLog:
+            idx = numpy.nonzero(y > 0)[0]
+        elif xLog:
+            idx = numpy.nonzero(x > 0)[0]
         else:
-            while legend in self._hiddenCurves:
-                idx = self._hiddenCurves.index(legend)
-                del self._hiddenCurves[idx]
-            if legend in self._curveDict:
-                x, y, legend, info = self._curveDict[legend][0:4]
-                self.addCurve(x, y, legend, info, replot=replot)
+            return x, y, color, xerror, yerror
 
-    def isCurveHidden(self, legend):
-        return legend in self._hiddenCurves
+        x = numpy.take(x, idx)
+        y = numpy.take(y, idx)
+
+        if isinstance(color, numpy.ndarray) and len(color) == len(x):
+            # Nx(3 or 4) array (do not change RGBA color defined as an array)
+            color = numpy.take(color, idx, axis=0)
+
+        if isinstance(xerror, numpy.ndarray):
+            if len(xerror) == len(x):
+                # N or Nx1 array
+                xerror = numpy.take(xerror, idx, axis=0)
+            elif len(xerror) == 2 and len(xerror.shape) == 2:
+                # 2xN array (+/- error)
+                xerror = xerror[:, idx]
+
+        if isinstance(yerror, numpy.ndarray):
+            if len(yerror) == len(y):
+                # N or Nx1 array
+                yerror = numpy.take(yerror, idx, axis=0)
+            elif len(yerror) == 2 and len(yerror.shape) == 2:
+                # 2xN array (+/- error)
+                yerror = yerror[:, idx]
+
+        return x, y, color, xerror, yerror
+
+    def _update(self):
+        _logger.debug("_update called")
+
+        # curves
+        activeCurve = self.getActiveCurve(just_legend=True)
+        curves = list(self._curves)
+        for legend in curves:
+            curve = self._curves[legend]
+            self.addCurve(curve['x'], curve['y'], legend, replot=False,
+                          **curve['params'])
+
+        if len(curves):
+            if activeCurve not in curves:
+                activeCurve = curves[0]
+        else:
+            activeCurve = None
+        self.setActiveCurve(activeCurve)
+
+        # images
+        if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
+            for legend in list(self._images):  # Copy has images is changed
+                image = self._images[legend]
+                self.addImage(image['data'], legend,
+                              replace=False, replot=False,
+                              pixmap=image['pixmap'], **image['params'])
+
+        self.replot()
+
+    # Coord conversion
 
     def dataToPixel(self, x=None, y=None, axis="left"):
         """
@@ -1412,74 +1604,6 @@ class Plot(PlotBase.PlotBase):
         """
         return self._plot.pixelToData(x, y, axis=axis)
 
-    def setGraphCursor(self, flag=None, color=None,
-                       linewidth=None, linestyle=None):
-        """
-        Toggle the display of a crosshair cursor and set its attributes.
-
-        :param bool flag: Toggle the display of a crosshair cursor.
-                           The crosshair cursor is hidden by default.
-        :param color: The color to use for the crosshair.
-        :type color: A string (either a predefined color name in Colors.py
-                    or "#RRGGBB")) or a 4 columns unsigned byte array.
-                    Default is black.
-        :param int linewidth: The width of the lines of the crosshair.
-                    Default is 1.
-        :param linestyle: Type of line::
-        
-                - ' ' no line
-                - '-' solid line
-                - '--' dashed line
-                - '-.' dash-dot line
-                - ':' dotted line
-
-        :type linestyle: None or one of the predefined styles.
-        """
-        self._plot.setGraphCursor(flag=flag, color=color,
-                                  linewidth=linewidth, linestyle=linestyle)
-    def getGraphCursor(self):
-        """
-        Returns the current state of the crosshair cursor.
-
-        :return: None if the crosshair cursor is not active,
-                 else a tuple (color, linewidth, linestyle).
-        """
-        return self._plot.getGraphCursor()
-
-    # Pan support
-
-    def pan(self, direction, factor=0.1):
-        """Pan the graph in the given direction by the given factor.
-
-        Warning: Pan of right Y axis not implemented!
-
-        :param str direction: One of 'up', 'down', 'left', 'right'.
-        :param float factor: Proportion of the range used to pan the graph.
-                             Must be strictly positive.
-        """
-        assert direction in ('up', 'down', 'left', 'right')
-        assert factor > 0.
-
-        if direction in ('left', 'right'):
-            xFactor = factor if direction == 'right' else - factor
-            xMin, xMax = self.getGraphXLimits()
-
-            xMin, xMax = _applyPan(xMin, xMax, xFactor,
-                                   self.isXAxisLogarithmic())
-            self.setGraphXLimits(xMin, xMax)
-
-        else:  # direction in ('up', 'down')
-            sign = -1. if self.isYAxisInverted() else 1.
-            yFactor  = sign * (factor if direction == 'up' else - factor)
-            yMin, yMax = self.getGraphYLimits()
-            yIsLog = self.isYAxisLogarithmic()
-
-            yMin, yMax = _applyPan(yMin, yMax, yFactor, yIsLog)
-            self.setGraphYLimits(yMin, yMax)
-
-            # TODO handle second Y axis
-
-        self.replot()
 
 def _applyPan(min_, max_, panFactor, isLog10):
     """Returns a new range with applied panning.
@@ -1514,21 +1638,3 @@ def _applyPan(min_, max_, panFactor, isLog10):
         if newMin > - float('inf') and newMax < float('inf'):
             min_, max_ = newMin, newMax
     return min_, max_
-
-def main():
-    x = numpy.arange(100.)
-    y = x * x
-    plot = Plot()
-    plot.addCurve(x, y, "dummy")
-    plot.addCurve(x + 100, -x * x, "To set Active")
-    print("Active curve = ", plot.getActiveCurve())
-    print("X Limits = ", plot.getGraphXLimits())
-    print("Y Limits = ", plot.getGraphYLimits())
-    print("All curves = ", plot.getAllCurves())
-    plot.removeCurve("dummy")
-    plot.setActiveCurve("To set Active")
-    print("All curves = ", plot.getAllCurves())
-    plot.insertXMarker(50.)
-
-if __name__ == "__main__":
-    main()
