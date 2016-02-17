@@ -6,9 +6,10 @@ silx.io.specfile module
     :undoc-members:
     :show-inheritance:
 
+.. autoclass:: silx.io.specfile.SpecFile
+    :members:
+
 .. autoclass:: silx.io.specfile.Scan
     :members:
 
-.. autoclass:: silx.io.specfile.SpecFile
-    :members:
 

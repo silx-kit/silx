@@ -30,9 +30,6 @@ Classes
 - :class:`Scan`
 """
 
-# General comment: our scan indices go from 0 to N-1 while the C SpecFile 
-# library expects indices between 1 and N. 
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "16/02/2016" 
@@ -83,22 +80,40 @@ class Scan(object):
     '''
     SpecFile scan
 
+    A Scan will usually be instantiated by a :class:`SpecFile` instance.
 
+    .. code-block:: python
 
-    :ivar index: Unique scan index 0 - len(specfile)-1
-    :ivar data: Numpy array with actual scan data and the usual nmupy
-        attributes (e.g. data.shape)
-    :ivar header_lines: List of raw header lines, including the leading "#L"
-    :ivar header_dict: Dictionary of header strings, keys without leading "#"
-    :ivar file_header_lines: List of raw file header lines relevant to this
-        scan, including the leading "#L"
-    :ivar file_header_dict: Dictionary of file header strings, keys without
-        leading "#"
+        from silx.io.specfile import SpecFile
+
+        sf = SpecFile("test.dat")
+        # retrieve second scan with number 1 on #S line using "N.M" str key
+        scan_a = sf["1.2"]
+        # retrieve 25th scan in file using integer key (index origin 0)
+        scan_b = sf[24]
 
     :param specfile: Parent SpecFile from which this scan is extracted.
-    :type specfile: :class:SpecFile
+    :type specfile: :class:`SpecFile`
     :param scan_index: Unique index defining the scan in the SpecFile
     :type scan_index: int
+
+    List of public class attributes:
+
+    :ivar index: Unique scan index 0 - len(specfile)-1
+    :vartype index: int
+    :ivar data: Actual scan data with the usual numpy attributes
+        (e.g. data.shape)
+    :vartype data: numpy.ndarray
+    :ivar header_lines: List of raw header lines, including the leading "#L"
+    :vartype header_lines: list of strings
+    :ivar header_dict: Dictionary of header strings, keys without leading "#"
+    :vartype header_dict: dict
+    :ivar file_header_lines: List of raw file header lines relevant to this
+        scan, including the leading "#L"
+    :vartype file_header_lines: list of strings
+    :ivar file_header_dict: Dictionary of file header strings, keys without
+        leading "#"
+    :vartype file_header_dict: dict
     '''    
     def __init__(self, specfile, scan_index):
         self._specfile = specfile
@@ -226,11 +241,9 @@ cdef class SpecFile(object):
         myscan = sf["1.2"]     # maybe equivalent to myscan = sf[25]
         nlines, ncolumns = myscan.data.shape
 
-    It is also possible to treat it as an iterator.
+    It is also possible to use it as an iterator.
 
     .. code-block:: python
-
-        from silx.io.specfile import SpecFile
 
         for scan in sf SpecFile("test.dat"):
             print(scan.header_dict['S'])
