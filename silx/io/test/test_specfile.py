@@ -8,8 +8,7 @@ import numpy
 
 from silx.io.specfile import SpecFile, Scan
 
-sftext = """
-#F /tmp/sf.dat
+sftext = """#F /tmp/sf.dat
 #E 1455180875
 #D Thu Feb 11 09:54:35 2016
 #C imaging  User = opid17
@@ -85,9 +84,9 @@ class TestSpecFile(unittest.TestCase):
 
         fd2, tmp_path2 = tempfile.mkstemp(text=False)
         if sys.version < '3.0':
-            os.write(fd2, sftext[372:-96])
+            os.write(fd2, sftext[370:-97])
         else:
-            os.write(fd2, bytes(sftext[372:-96], 'utf-8'))
+            os.write(fd2, bytes(sftext[370:-97], 'utf-8'))
         os.close(fd2)
         self.fname2 = tmp_path2
         self.sf_no_fhdr = SpecFile(self.fname2)
@@ -213,18 +212,23 @@ class TestSpecFile(unittest.TestCase):
             self.scan25.motor_position_by_name('MRTSlit UP'),
             -1.66875)
 
-    @unittest.skip("SfFileHeader not working as expected in the absence " +
-                   "of a file header")
     def test_absence_of_file_header(self):
+        """We expect Scan.file_header_lines to be an empty list
+
+        Important note: a #S line needs to be preceded  by an empty line,
+        so a SpecFile without a file header needs to start with an empty line.
+
+        Otherwise, this test fails because SfFileHeader() fills
+        Scan.file_header_lines with 15 scan header lines.
+        """
+
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
+        # motor positions can still be read in the scan header
+        # even in the absence of motor names
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
-        # We get 15 scan header lines as expected
         self.assertEqual(len(self.scan1_no_fhdr.header_lines), 15)
-        # but the following assertions fails unexpectedly, as the scan
-        # header is also retrieved as the file header by SfFileHeader
         self.assertEqual(self.scan1_no_fhdr.file_header_lines, [])
-        self.assertEqual(len(self.scan1_no_fhdr.file_header_lines), 0)
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
