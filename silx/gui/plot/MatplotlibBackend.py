@@ -21,18 +21,56 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
-__contact__ = "sole@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-Matplotlib Plot backend.
-"""
+# ###########################################################################*/
+"""Matplotlib Plot backend."""
 
-import weakref
+__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__license__ = "MIT"
+__date__ = "18/02/2016"
+
+
+import logging
+
+import numpy
+
+from .. import qt
 
 import matplotlib
+
+if qt.BINDING == 'PySide':
+    matplotlib.rcParams['backend'] = 'Qt4Agg'
+    matplotlib.rcParams['backend.qt4'] = 'PySide'
+    from matplotlib.backends.backend_qt4agg import \
+        FigureCanvasQTAgg as FigureCanvas
+
+elif qt.BINDING == 'PyQt4':
+    matplotlib.rcParams['backend'] = 'Qt4Agg'
+    from matplotlib.backends.backend_qt4agg import \
+        FigureCanvasQTAgg as FigureCanvas
+
+elif qt.BINDING == 'PyQt5':
+    matplotlib.rcParams['backend'] = 'Qt5Agg'
+    from matplotlib.backends.backend_qt5agg import \
+        FigureCanvasQTAgg as FigureCanvas
+
+from matplotlib import cm
+from matplotlib.widgets import Cursor
+from matplotlib.figure import Figure
+from matplotlib.patches import Rectangle, Polygon
+from matplotlib.lines import Line2D
+from matplotlib.collections import PathCollection
+from matplotlib.text import Text
+from matplotlib.image import AxesImage
+from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
+
+from . import _utils
+from .ModestImage import ModestImage
+from .BackendBase import BackendBase
+
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+
 
 # blitting enabled by default
 # it provides faster response at the cost of missing minor updates
@@ -41,78 +79,11 @@ import matplotlib
 # movement.
 BLITTING = True
 
-import numpy
-from numpy import vstack as numpyvstack
-
-from numpy import nanmax, nanmin
-
-import sys
-
-from matplotlib import cm
-
-from matplotlib.widgets import Cursor
-
-# TODO from .. import qt
-# if qt.BINDING
-
-# TODO make all this simpler and somewhere else
-if ('PySide' in sys.modules) or ('PySide' in sys.argv):
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from PySide import QtCore, QtGui
-elif ("PyQt4" in sys.modules) or ('PyQt4' in sys.argv):
-    from PyQt4 import QtCore, QtGui
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-elif ('PyQt5' in sys.modules):
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from PyQt5 import QtCore, QtGui, QtWidgets
-    QtGui.QApplication = QtWidgets.QApplication
-else:
-    try:
-        from PyQt4 import QtCore, QtGui
-        matplotlib.rcParams['backend'] = 'Qt4Agg'
-    except ImportError:
-        try:
-            from PyQt5 import QtCore, QtGui, QtWidgets
-            QtGui.QApplication = QtWidgets.QApplication
-            matplotlib.rcParams['backend'] = 'Qt5Agg'
-        except ImportError:
-            from PySide import QtCore, QtGui
-
-if ("PyQt4" in sys.modules) or ("PySide" in sys.modules):
-    from matplotlib.backends.backend_qt4agg import \
-        FigureCanvasQTAgg as FigureCanvas
-elif "PyQt5" in sys.modules:
-    from matplotlib.backends.backend_qt5agg import \
-        FigureCanvasQTAgg as FigureCanvas
-
-
-from matplotlib.figure import Figure
-import matplotlib.patches as patches
-Rectangle = patches.Rectangle
-Polygon = patches.Polygon
-
-from matplotlib.lines import Line2D
-from matplotlib.collections import PathCollection
-from matplotlib.text import Text
-from matplotlib.image import AxesImage
-from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
-import time
-
-from . import _utils
-from .ModestImage import ModestImage
-
-import logging
-
-
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-
 
 class MatplotlibGraph(FigureCanvas):
     def __init__(self, parent=None, **kw):
         self.fig = Figure()
-        self._originalCursorShape = QtCore.Qt.ArrowCursor
+        self._originalCursorShape = qt.Qt.ArrowCursor
         FigureCanvas.__init__(self, self.fig)
 
         self.fig.set_facecolor("w")
@@ -130,51 +101,20 @@ class MatplotlibGraph(FigureCanvas):
         self.fig.sca(self.ax)
 
         # This should be independent of Qt
-        if ("PyQt4" in sys.modules) or ("PySide" in sys.modules):
-            FigureCanvas.setSizePolicy(
-                self, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        FigureCanvas.setSizePolicy(
+            self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
 
-        self.__lastMouseClick = ["middle", time.time()]
-        self._zoomEnabled = False
-        self._zoomColor = "black"
-        self.__zooming = False
         self.__picking = False
         self._background = None
-        self.__markerMoving = False
         self._zoomStack = []
 
         # info text
         self._infoText = None
 
         # drawingmode handling
-        self.setDrawModeEnabled(False)
-        self.__drawModeList = \
-            ['line', 'hline', 'vline', 'rectangle', 'polygon']
         self.__drawing = False
         self._drawingPatch = None
         self._drawModePatch = 'line'
-
-        # event handling
-        self._callback = self._dummyCallback
-        self._x0 = None
-        self._y0 = None
-        self._zoomRectangle = None
-        self.fig.canvas.mpl_connect('button_press_event',
-                                    self.onMousePressed)
-        self.fig.canvas.mpl_connect('button_release_event',
-                                    self.onMouseReleased)
-        self.fig.canvas.mpl_connect('motion_notify_event',
-                                    self.onMouseMoved)
-        self.fig.canvas.mpl_connect('scroll_event',
-                                    self.onMouseWheel)
-        self.fig.canvas.mpl_connect('pick_event',
-                                    self.onPick)
-
-    def _dummyCallback(self, ddict):
-        logger.info(str(ddict))
-
-    def setCallback(self, callbackFuntion):
-        self._callback = callbackFuntion
 
     def onPick(self, event):
         # Unfortunately only the artists on the top axes
@@ -296,854 +236,6 @@ class MatplotlibGraph(FigureCanvas):
         else:
             logger.warning("unhandled event %s", str(event.artist))
 
-    def setDrawModeEnabled(self, flag=True, shape="polygon", label=None,
-                           color=None, **kw):
-        if flag:
-            shape = shape.lower()
-            if shape not in self.__drawModeList:
-                self._drawModeEnabled = False
-                raise ValueError("Unsupported shape %s" % shape)
-            else:
-                self._drawModeEnabled = True
-                self.setZoomModeEnabled(False)
-                self._drawModePatch = shape
-            self._drawingParameters = kw
-            if color is not None:
-                self._drawingParameters['color'] = color
-            self._drawingParameters['shape'] = shape
-            self._drawingParameters['label'] = label
-        else:
-            self._drawModeEnabled = False
-
-    def setZoomModeEnabled(self, flag=True, color=None):
-        if color is None:
-            color = self._zoomColor
-        if len(color) == 4:
-            if type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
-                color = numpy.array(color, dtype=numpy.float)/255.
-        self._zoomColor = color
-        if flag:
-            self._zoomEnabled = True
-            self.setDrawModeEnabled(False)
-        else:
-            self._zoomEnabled = False
-
-    def isZoomModeEnabled(self):
-        return self._zoomEnabled
-
-    def isDrawModeEnabled(self):
-        return self._drawModeEnabled
-
-    def getDrawMode(self):
-        if self.isDrawModeEnabled():
-            return self._drawingParameters
-        else:
-            return None
-
-    def onMousePressed(self, event):
-        logger.debug("onMousePressed, event = %f %f", event.xdata, event.ydata)
-        logger.debug("Mouse button = %s", str(event.button))
-        self.__time0 = -1.0
-        if event.inaxes != self.ax:
-            logger.debug("RETURNING")
-            return
-        button = event.button
-        leftButton = 1
-        middleButton = 2
-        rightButton = 3
-
-        self._x0 = event.xdata
-        self._y0 = event.ydata
-
-        if button == middleButton:
-            # by default, do nothing with the middle button
-            return
-
-        self._x0Pixel = event.x
-        self._y0Pixel = event.y
-        self._x1 = event.xdata
-        self._y1 = event.ydata
-        self._x1Pixel = event.x
-        self._y1Pixel = event.y
-
-        self.__movingMarker = 0
-        # picking handling
-        if self.__picking:
-            logger.debug("PICKING, Ignoring zoom")
-            self.__zooming = False
-            self.__drawing = False
-            self.__markerMoving = False
-            if self._pickingInfo['type'] == "marker":
-                if button == rightButton:
-                    # only selection or movement
-                    self._pickingInfo = {}
-                    return
-                artist = self._pickingInfo['artist']
-                if button == leftButton:
-                    if self._pickingInfo['draggable']:
-                        self.__markerMoving = True
-                    if self._pickingInfo['selectable']:
-                        self.__markerMoving = False
-                    if self.__markerMoving:
-                        if 'xmarker' in artist._plot_options:
-                            artist.set_xdata(event.xdata)
-                        elif 'ymarker' in artist._plot_options:
-                            artist.set_ydata(event.ydata)
-                        else:
-                            xData, yData = event.xdata, event.ydata
-                            if artist._constraint is not None:
-                                # Apply marker constraint
-                                xData, yData = artist._constraint(xData, yData)
-                            artist.set_xdata(xData)
-                            artist.set_ydata(yData)
-                    if BLITTING:
-                        canvas = artist.figure.canvas
-                        axes = artist.axes
-                        artist.set_animated(True)
-                        canvas.draw()
-                        self._background = canvas.copy_from_bbox(axes.bbox)
-                        axes.draw_artist(artist)
-                        canvas.blit(axes.bbox)
-                    else:
-                        self.fig.canvas.draw()
-
-                    ddict = {}
-                    ddict['label'] = self._pickingInfo['label']
-                    ddict['type'] = self._pickingInfo['type']
-                    ddict['draggable'] = self._pickingInfo['draggable']
-                    ddict['selectable'] = self._pickingInfo['selectable']
-                    ddict['xpixel'] = self._x0Pixel
-                    ddict['ypixel'] = self._y0Pixel
-                    ddict['xdata'] = artist.get_xdata()
-                    ddict['ydata'] = artist.get_ydata()
-
-                    if self.__markerMoving:
-                        ddict['event'] = "markerMoving"
-                        ddict['x'] = self._x0
-                        ddict['y'] = self._y0
-                    else:
-                        ddict['event'] = "markerClicked"
-                        if hasattr(ddict['xdata'], "__len__"):
-                            ddict['x'] = ddict['xdata'][-1]
-                        else:
-                            ddict['x'] = ddict['xdata']
-                        if hasattr(ddict['ydata'], "__len__"):
-                            ddict['y'] = ddict['ydata'][-1]
-                        else:
-                            ddict['y'] = ddict['ydata']
-
-                    if button == leftButton:
-                        ddict['button'] = "left"
-                    else:
-                        ddict['button'] = "right"
-                    self._callback(ddict)
-                return
-
-            elif self._pickingInfo['type'] == "curve":
-                ddict = {}
-                ddict['event'] = "curveClicked"
-                ddict['label'] = self._pickingInfo['label']
-                ddict['type'] = self._pickingInfo['type']
-                ddict['x'] = self._x0
-                ddict['y'] = self._y0
-                ddict['xpixel'] = self._x0Pixel
-                ddict['ypixel'] = self._y0Pixel
-                ddict['xdata'] = self._pickingInfo['xdata']
-                ddict['ydata'] = self._pickingInfo['ydata']
-                if button == leftButton:
-                    ddict['button'] = "left"
-                else:
-                    ddict['button'] = "right"
-                self._callback(ddict)
-                return
-
-            elif self._pickingInfo['type'] == "image":
-                artist = self._pickingInfo['artist']
-                ddict = {}
-                ddict['event'] = "imageClicked"
-                ddict['label'] = self._pickingInfo['label']
-                ddict['type'] = self._pickingInfo['type']
-                ddict['x'] = self._x0
-                ddict['y'] = self._y0
-                ddict['xpixel'] = self._x0Pixel
-                ddict['ypixel'] = self._y0Pixel
-                xScale = artist._plot_info['xScale']
-                yScale = artist._plot_info['yScale']
-                col = (ddict['x'] - xScale[0])/float(xScale[1])
-                row = (ddict['y'] - yScale[0])/float(yScale[1])
-                ddict['row'] = int(row)
-                ddict['col'] = int(col)
-                if button == leftButton:
-                    ddict['button'] = "left"
-                else:
-                    ddict['button'] = "right"
-                self.__picking = False
-                self._callback(ddict)
-
-        if event.button == rightButton:
-            # right click
-            self.__zooming = False
-            if self._drawingPatch is not None:
-                self._emitDrawingSignal("drawingFinished")
-            return
-
-        self.__time0 = time.time()
-        self.__zooming = self._zoomEnabled
-        self._zoomRect = None
-        self._xmin, self._xmax = self.ax.get_xlim()
-        self._ymin, self._ymax = self.ax.get_ylim()
-        # deal with inverted axis
-        if self._xmin > self._xmax:
-            tmpValue = self._xmin
-            self._xmin = self._xmax
-            self._xmax = tmpValue
-        if self._ymin > self._ymax:
-            tmpValue = self._ymin
-            self._ymin = self._ymax
-            self._ymax = tmpValue
-
-        if self.ax.get_aspect() != 'auto':
-            self._ratio = (self._ymax - self._ymin) / (self._xmax - self._xmin)
-
-        self.__drawing = self._drawModeEnabled
-        if self.__drawing:
-            if self._drawModePatch in ['hline', 'vline']:
-                if self._drawingPatch is None:
-                    self._mouseData = numpy.zeros((2, 2), numpy.float32)
-                    if self._drawModePatch == "hline":
-                        self._mouseData[0, 0] = self._xmin
-                        self._mouseData[0, 1] = self._y0
-                        self._mouseData[1, 0] = self._xmax
-                        self._mouseData[1, 1] = self._y0
-                    else:
-                        self._mouseData[0, 0] = self._x0
-                        self._mouseData[0, 1] = self._ymin
-                        self._mouseData[1, 0] = self._x0
-                        self._mouseData[1, 1] = self._ymax
-                    color = self._getDrawingColor()
-                    self._drawingPatch = Polygon(self._mouseData,
-                                                 closed=True,
-                                                 fill=False,
-                                                 color=color)
-                    self.ax.add_patch(self._drawingPatch)
-
-    def _getDrawingColor(self):
-        color = "black"
-        if "color" in self._drawingParameters:
-            color = self._drawingParameters["color"]
-            if len(color) == 4:
-                if type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
-                    color = numpy.array(color, dtype=numpy.float)/255.
-        return color
-
-    def onMouseMoved(self, event):
-        logger.debug("onMouseMoved, event = %f %f", event.xdata, event.ydata)
-        if event.inaxes != self.ax:
-            logger.debug("RETURNING")
-            return
-
-        button = event.button
-        if button == 1:
-            button = "left"
-        elif button == 2:
-            button = "middle"
-        elif button == 3:
-            button = "right"
-        else:
-            button = None
-        # as default, export the mouse in graph coordenates
-        self._x1 = event.xdata
-        self._y1 = event.ydata
-        self._x1Pixel = event.x
-        self._y1Pixel = event.y
-        ddict = {
-            'event': 'mouseMoved',
-            'x': self._x1,
-            'y': self._y1,
-            'xpixel': self._x1Pixel,
-            'ypixel': self._y1Pixel,
-            'button': button,
-        }
-        self._callback(ddict)
-
-        if button == "middle":
-            return
-
-        # should this be made by Plot1D with the previous call???
-        # The problem is Plot1D does not know if one is zooming or drawing
-        if not (self.__zooming or self.__drawing or self.__picking):
-            # this corresponds to moving without click
-            marker = None
-            for artist in self.ax.lines:
-                label = artist.get_label()
-                if label.startswith("__MARKER__"):
-                    # data = artist.get_xydata()[0:1]
-                    x, y = artist.get_xydata()[-1]
-                    pixels = self.ax.transData.transform(numpyvstack([x, y]).T)
-                    xPixel, yPixel = pixels.T
-                    if 'xmarker' in artist._plot_options:
-                        if abs(xPixel-event.x) < 5:
-                            marker = artist
-                    elif 'ymarker' in artist._plot_options:
-                        if abs(yPixel-event.y) < 5:
-                            marker = artist
-                    elif (abs(xPixel-event.x) < 5) and \
-                         (abs(yPixel-event.y) < 5):
-                        marker = artist
-                if marker is not None:
-                    break
-
-            oldShape = self.cursor().shape()
-            if oldShape not in [QtCore.Qt.SizeHorCursor,
-                                QtCore.Qt.SizeVerCursor,
-                                QtCore.Qt.PointingHandCursor,
-                                QtCore.Qt.OpenHandCursor,
-                                QtCore.Qt.SizeAllCursor]:
-                self._originalCursorShape = oldShape
-
-            if marker is not None:
-                ddict = {}
-                ddict['event'] = 'hover'
-                ddict['type'] = 'marker'
-                ddict['label'] = marker.get_label()[10:]
-                if 'draggable' in marker._plot_options:
-                    ddict['draggable'] = True
-                    if 'ymarker' in artist._plot_options:
-                        self.setCursor(
-                            QtGui.QCursor(QtCore.Qt.SizeVerCursor))
-                    elif 'xmarker' in artist._plot_options:
-                        self.setCursor(
-                            QtGui.QCursor(QtCore.Qt.SizeHorCursor))
-                    else:
-                        self.setCursor(
-                            QtGui.QCursor(QtCore.Qt.SizeAllCursor))
-
-                else:
-                    ddict['draggable'] = False
-                if 'selectable' in marker._plot_options:
-                    ddict['selectable'] = True
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-                else:
-                    ddict['selectable'] = False
-                ddict['x'] = self._x1
-                ddict['y'] = self._y1
-                ddict['xpixel'] = self._x1Pixel
-                ddict['ypixel'] = self._y1Pixel
-                self._callback(ddict)
-            else:
-                cursors = (QtCore.Qt.SizeHorCursor,
-                           QtCore.Qt.SizeVerCursor,
-                           QtCore.Qt.PointingHandCursor,
-                           QtCore.Qt.OpenHandCursor,
-                           QtCore.Qt.SizeAllCursor)
-                if self._originalCursorShape in cursors:
-                    self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-                else:
-                    self.setCursor(QtGui.QCursor(self._originalCursorShape))
-            return
-
-        if self.__picking:
-            if self.__markerMoving:
-                artist = self._pickingInfo['artist']
-                infoText = self._pickingInfo['infoText']
-                if 'xmarker' in artist._plot_options:
-                    artist.set_xdata(event.xdata)
-                    ymin, ymax = self.ax.get_ylim()
-                    delta = abs(ymax - ymin)
-                    ymax = max(ymax, ymin) - 0.005 * delta
-                    if infoText is not None:
-                        infoText.set_position((event.xdata, ymax))
-                elif 'ymarker' in artist._plot_options:
-                    artist.set_ydata(event.ydata)
-                    if infoText is not None:
-                        infoText.set_position((event.xdata, event.ydata))
-                else:
-                    xData, yData = event.xdata, event.ydata
-                    if artist._constraint is not None:
-                        # Apply marker constraint
-                        xData, yData = artist._constraint(xData, yData)
-                    artist.set_xdata(xData)
-                    artist.set_ydata(yData)
-                    if infoText is not None:
-                        xtmp, ytmp = self.ax.transData.transform_point((xData,
-                                                                        yData))
-                        inv = self.ax.transData.inverted()
-                        xtmp, ytmp = inv.transform_point((xtmp, ytmp + 15))
-                        infoText.set_position((xData, ytmp))
-                if BLITTING and (self._background is not None):
-                    canvas = artist.figure.canvas
-                    axes = artist.axes
-                    artist.set_animated(True)
-                    canvas.restore_region(self._background)
-                    axes.draw_artist(artist)
-                    canvas.blit(axes.bbox)
-                else:
-                    self.fig.canvas.draw()
-                ddict = {}
-                ddict['event'] = "markerMoving"
-                ddict['button'] = "left"
-                ddict['label'] = self._pickingInfo['label']
-                ddict['type'] = self._pickingInfo['type']
-                ddict['draggable'] = self._pickingInfo['draggable']
-                ddict['selectable'] = self._pickingInfo['selectable']
-                ddict['x'] = self._x1
-                ddict['y'] = self._y1
-                ddict['xpixel'] = self._x1Pixel
-                ddict['ypixel'] = self._y1Pixel
-                ddict['xdata'] = artist.get_xdata()
-                ddict['ydata'] = artist.get_ydata()
-                self._callback(ddict)
-            return
-        if not self.__zooming and not self.__drawing:
-            return
-
-        if self._x0 is None:
-            # this happened when using the middle button
-            return
-
-        if (self.__zooming or
-                (self.__drawing and self._drawModePatch == 'rectangle')):
-            if self._x1 < self._xmin:
-                self._x1 = self._xmin
-            elif self._x1 > self._xmax:
-                self._x1 = self._xmax
-            if self._y1 < self._ymin:
-                self._y1 = self._ymin
-            elif self._y1 > self._ymax:
-                self._y1 = self._ymax
-
-            if self._x1 < self._x0:
-                x = self._x1
-                w = self._x0 - self._x1
-            else:
-                x = self._x0
-                w = self._x1 - self._x0
-            if self._y1 < self._y0:
-                y = self._y1
-                h = self._y0 - self._y1
-            else:
-                y = self._y0
-                h = self._y1 - self._y0
-            if w == 0:
-                return
-            if (not self.__drawing) and (self.ax.get_aspect() != 'auto'):
-                if (h / w) > self._ratio:
-                    h = w * self._ratio
-                else:
-                    w = h / self._ratio
-                if self._x1 > self._x0:
-                    x = self._x0
-                else:
-                    x = self._x0 - w
-                if self._y1 > self._y0:
-                    y = self._y0
-                else:
-                    y = self._y0 - h
-
-            if self.__zooming:
-                if self._zoomRectangle is None:
-                    self._zoomRectangle = Rectangle(xy=(x, y),
-                                                    width=w,
-                                                    height=h,
-                                                    color=self._zoomColor,
-                                                    fill=False)
-                    self.ax.add_patch(self._zoomRectangle)
-                else:
-                    self._zoomRectangle.set_bounds(x, y, w, h)
-                if BLITTING:
-                    artist = self._zoomRectangle
-                    canvas = artist.figure.canvas
-                    axes = artist.axes
-                    artist.set_animated(True)
-                    if self._background is None:
-                        self._background = canvas.copy_from_bbox(axes.bbox)
-                    canvas.restore_region(self._background)
-                    axes.draw_artist(artist)
-                    canvas.blit(axes.bbox)
-                else:
-                    self.fig.canvas.draw()
-                return
-            else:
-                if self._drawingPatch is None:
-                    color = self._getDrawingColor()
-                    self._drawingPatch = Rectangle(xy=(x, y),
-                                                   width=w,
-                                                   height=h,
-                                                   fill=False,
-                                                   color=color)
-                    self._drawingPatch.set_hatch('.')
-                    self.ax.add_patch(self._drawingPatch)
-                else:
-                    self._drawingPatch.set_bounds(x, y, w, h)
-
-        if self.__drawing:
-            if self._drawingPatch is None:
-                self._mouseData = numpy.zeros((2, 2), numpy.float32)
-                self._mouseData[0, 0] = self._x0
-                self._mouseData[0, 1] = self._y0
-                self._mouseData[1, 0] = self._x1
-                self._mouseData[1, 1] = self._y1
-                color = self._getDrawingColor()
-                self._drawingPatch = Polygon(self._mouseData,
-                                             closed=True,
-                                             fill=False,
-                                             color=color)
-                self.ax.add_patch(self._drawingPatch)
-            elif self._drawModePatch == 'rectangle':
-                # already handled, just for compatibility
-                self._mouseData = numpy.zeros((2, 2), numpy.float32)
-                self._mouseData[0, 0] = self._x0
-                self._mouseData[0, 1] = self._y0
-                self._mouseData[1, 0] = self._x1
-                self._mouseData[1, 1] = self._y1
-            elif self._drawModePatch == 'line':
-                self._mouseData[0, 0] = self._x0
-                self._mouseData[0, 1] = self._y0
-                self._mouseData[1, 0] = self._x1
-                self._mouseData[1, 1] = self._y1
-                self._drawingPatch.set_xy(self._mouseData)
-            elif self._drawModePatch == 'hline':
-                xmin, xmax = self.ax.get_xlim()
-                self._mouseData[0, 0] = xmin
-                self._mouseData[0, 1] = self._y1
-                self._mouseData[1, 0] = xmax
-                self._mouseData[1, 1] = self._y1
-                self._drawingPatch.set_xy(self._mouseData)
-            elif self._drawModePatch == 'vline':
-                ymin, ymax = self.ax.get_ylim()
-                self._mouseData[0, 0] = self._x1
-                self._mouseData[0, 1] = ymin
-                self._mouseData[1, 0] = self._x1
-                self._mouseData[1, 1] = ymax
-                self._drawingPatch.set_xy(self._mouseData)
-            elif self._drawModePatch == 'polygon':
-                self._mouseData[-1, 0] = self._x1
-                self._mouseData[-1, 1] = self._y1
-                self._drawingPatch.set_xy(self._mouseData)
-                if matplotlib.__version__.startswith('1.1.1'):
-                    # Patch for Debian 7
-                    # Workaround matplotlib issue with closed path
-                    # Need to toggle closed path to rebuild points
-                    self._drawingPatch.set_closed(False)
-                self._drawingPatch.set_closed(True)
-                self._drawingPatch.set_hatch('/')
-            if BLITTING:
-                if self._background is None:
-                    artist = self._drawingPatch
-                    canvas = artist.figure.canvas
-                    axes = artist.axes
-                    self._background = canvas.copy_from_bbox(axes.bbox)
-                artist = self._drawingPatch
-                canvas = artist.figure.canvas
-                axes = artist.axes
-                artist.set_animated(True)
-                canvas.restore_region(self._background)
-                axes.draw_artist(artist)
-                canvas.blit(axes.bbox)
-            else:
-                self.fig.canvas.draw()
-            self._emitDrawingSignal(event='drawingProgress')
-
-    def onMouseReleased(self, event):
-        logger.debug("onMouseReleased, event = %f %f",
-                     event.xdata, event.ydata)
-        if self._infoText in self.ax.texts:
-            self._infoText.set_visible(False)
-        if self.__picking:
-            self.__picking = False
-            if self.__markerMoving:
-                self.__markerMoving = False
-                artist = self._pickingInfo['artist']
-                if BLITTING:
-                    artist.set_animated(False)
-                    self._background = None
-                    artist.figure.canvas.draw()
-                ddict = {}
-                ddict['event'] = "markerMoved"
-                ddict['label'] = self._pickingInfo['label']
-                ddict['type'] = self._pickingInfo['type']
-                ddict['draggable'] = self._pickingInfo['draggable']
-                ddict['selectable'] = self._pickingInfo['selectable']
-                # use this and not the current mouse position because
-                # it has to agree with the marker position
-                ddict['x'] = artist.get_xdata()
-                ddict['y'] = artist.get_ydata()
-                ddict['xdata'] = artist.get_xdata()
-                ddict['ydata'] = artist.get_ydata()
-                self._callback(ddict)
-            return
-
-        if not hasattr(self, "__zoomstack"):
-            self.__zoomstack = []
-
-        if event.button == 3:
-            # right click
-            if self.__drawing:
-                self.__drawing = False
-                # self._drawingPatch = None
-                ddict = {}
-                ddict['event'] = 'drawingFinished'
-                ddict['type'] = '%s' % self._drawModePatch
-                ddict['data'] = self._mouseData * 1
-                self._emitDrawingSignal(event='drawingFinished')
-                return
-
-            self.__zooming = False
-            if len(self._zoomStack):
-                xmin, xmax, ymin, ymax, y2min, y2max = self._zoomStack.pop()
-                self.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
-                self.draw()
-
-        if self.__drawing and (self._drawingPatch is not None):
-            nrows, ncols = self._mouseData.shape
-            if self._drawModePatch in ['polygon']:
-                self._mouseData = numpy.resize(self._mouseData, (nrows+1, 2))
-            self._mouseData[-1, 0] = self._x1
-            self._mouseData[-1, 1] = self._y1
-            self._drawingPatch.set_xy(self._mouseData)
-            if self._drawModePatch not in ['polygon']:
-                self._emitDrawingSignal("drawingFinished")
-
-        if self._x0 is None:
-            if event.inaxes != self.ax:
-                logger.debug("on MouseReleased RETURNING")
-            else:
-                logger.warning("How can it be here???")
-            return
-        if self._zoomRectangle is None:
-            currentTime = time.time()
-            deltaT = currentTime - self.__time0
-            if (deltaT < 0.150 or self.__time0 < 0 or not self.__zooming or
-                    (self._x1 == self._x0 and self._y1 == self._y0)):
-                # single or double click, no zooming
-                self.__zooming = False
-                ddict = {'x': event.xdata,
-                         'y': event.ydata,
-                         'xpixel': event.x,
-                         'ypixel': event.y}
-                middleButton = 2
-                rightButton = 3
-                button = event.button
-                if button == rightButton:
-                    ddict['button'] = "right"
-                elif button == middleButton:
-                    ddict['button'] = "middle"
-                else:
-                    ddict['button'] = "left"
-                if (button == self.__lastMouseClick[0]) and\
-                   ((currentTime - self.__lastMouseClick[1]) < 0.6):
-                    ddict['event'] = "mouseDoubleClicked"
-                else:
-                    ddict['event'] = "mouseClicked"
-                self.__lastMouseClick = [button, time.time()]
-                self._callback(ddict)
-                return
-
-        if self._zoomRectangle is not None:
-            x, y = self._zoomRectangle.get_xy()
-            w = self._zoomRectangle.get_width()
-            h = self._zoomRectangle.get_height()
-            self._zoomRectangle.remove()
-            self._x0 = None
-            self._y0 = None
-            if BLITTING:
-                artist = self._zoomRectangle
-                artist.set_animated(False)
-                self._background = None
-            self._zoomRectangle = None
-            if (w != 0) and (h != 0):
-                # don't do anything
-                xmin, xmax = self.ax.get_xlim()
-                ymin, ymax = self.ax.get_ylim()
-                if ymax < ymin:
-                    ymin, ymax = ymax, ymin
-
-                if not self.ax2.get_yaxis().get_visible():
-                    y2min, y2max = None, None
-                    newY2Min, newY2Max = None, None
-                else:
-                    bottom, top = self.ax2.get_ylim()
-                    y2min, y2max = min(bottom, top), max(bottom, top)
-
-                    # Convert corners from ax data to window
-                    pt0 = self.ax.transData.transform_point((x, y))
-                    pt1 = self.ax.transData.transform_point((x + w, y + h))
-                    # Convert corners from window to ax2 data
-                    pt0 = self.ax2.transData.inverted().transform_point(pt0)
-                    pt1 = self.ax2.transData.inverted().transform_point(pt1)
-
-                    # Get min and max on right Y axis
-                    newY2Min, newY2Max = pt0[1], pt1[1]
-                    if newY2Max < newY2Min:
-                        newY2Min, newY2Max = newY2Max, newY2Min
-
-                self._zoomStack.append((xmin, xmax, ymin, ymax, y2min, y2max))
-                self.setLimits(x, x+w, y, y+h, newY2Min, newY2Max)
-            self.draw()
-
-    @staticmethod
-    def _newZoomRange(min_, max_, center, scale, isLog):
-        if isLog:
-            if min_ > 0.:
-                oldMin = numpy.log10(min_)
-            else:
-                # Happens when autoscale is off and switch to log scale
-                # while displaying area < 0.
-                oldMin = numpy.log10(numpy.nextafter(0, 1))
-
-            if center > 0.:
-                center = numpy.log10(center)
-            else:
-                center = numpy.log10(numpy.nextafter(0, 1))
-
-            if max_ > 0.:
-                oldMax = numpy.log10(max_)
-            else:
-                # Should not happen
-                oldMax = 0.
-        else:
-            oldMin, oldMax = min_, max_
-
-        offset = (center - oldMin) / (oldMax - oldMin)
-        range_ = (oldMax - oldMin) / scale
-        newMin = center - offset * range_
-        newMax = center + (1. - offset) * range_
-        if isLog:
-            try:
-                newMin, newMax = 10. ** float(newMin), 10. ** float(newMax)
-            except OverflowError:  # Limit case
-                newMin, newMax = min_, max_
-            if newMin <= 0. or newMax <= 0.:  # Limit case
-                newMin, newMax = min_, max_
-        return newMin, newMax
-
-    def onMouseWheel(self, event):
-        if not self.isZoomModeEnabled():
-            return
-
-        if event.xdata is None or event.ydata is None:
-            return
-
-        scaleF = 1.1 if event.step > 0 else 1 / 1.1
-
-        xLim = self.ax.get_xlim()
-        xMin, xMax = min(xLim), max(xLim)
-        isXLog = (self.ax.get_xscale() == 'log')
-
-        yLim = self.ax.get_ylim()
-        yMin, yMax = min(yLim), max(yLim)
-        isYLog = (self.ax.get_yscale() == 'log')
-
-        # If negative limit and log scale,
-        # try to get a positive limit from the data limits
-        if (isXLog and xMin <= 0.) or (isYLog and yMin <= 0.):
-            bounds = self.getDataLimits()
-            if isXLog:
-                if xMin <= 0. and bounds[0] > 0.:
-                    xMin = bounds[0]
-                if xMax <= 0. and bounds[1] > 0.:
-                    xMax = bounds[1]
-
-            if isYLog:
-                if yMin <= 0. and bounds[2] > 0.:
-                    yMin = bounds[2]
-                if yMax <= 0. and bounds[3] > 0.:
-                    yMax = bounds[3]
-
-        xMin, xMax = self._newZoomRange(xMin, xMax,
-                                        event.xdata, scaleF, isXLog)
-
-        yMin, yMax = self._newZoomRange(yMin, yMax,
-                                        event.ydata, scaleF, isYLog)
-
-        if self.ax2.get_yaxis().get_visible():
-            # Get y position in right axis coords
-            x, y2Data = self.ax2.transData.inverted().transform_point(
-                (event.x, event.y))
-
-            y2Lim = self.ax2.get_ylim()
-            y2Min, y2Max = min(y2Lim), max(y2Lim)
-            isY2Log = (self.ax2.get_yscale() == 'log')
-
-            # If negative limit and log scale,
-            # try to get a positive limit from the data limits
-            if isY2Log and y2Min <= 0.:
-                bounds = self.getDataLimits('right')
-                if yMin <= 0. and bounds[2] > 0.:
-                    y2Min = bounds[2]
-                if yMax <= 0. and bounds[3] > 0.:
-                    y2Max = bounds[3]
-
-            y2Min, y2Max = self._newZoomRange(y2Min, y2Max,
-                                              y2Data, scaleF, isYLog)
-            self.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-        else:
-            self.setLimits(xMin, xMax, yMin, yMax)
-
-        self.draw()
-
-    def _emitDrawingSignal(self, event="drawingFinished"):
-        ddict = {}
-        ddict['event'] = event
-        ddict['type'] = '%s' % self._drawModePatch
-        a = self._drawingPatch.get_xy()
-        ddict['points'] = numpy.array(a)
-        ddict['points'].shape = -1, 2
-        ddict['xdata'] = ddict['points'][:, 0]
-        ddict['ydata'] = ddict['points'][:, 1]
-        if self._drawModePatch in ["rectangle", "circle"]:
-            # we need the rectangle containing it
-            ddict['x'] = ddict['points'][:, 0].min()
-            ddict['y'] = ddict['points'][:, 1].min()
-            ddict['width'] = self._drawingPatch.get_width()
-            ddict['height'] = self._drawingPatch.get_height()
-        elif self._drawModePatch in ["ellipse"]:
-            # we need the rectangle but given the four corners
-            pass
-        ddict['parameters'] = {}
-        for key in self._drawingParameters.keys():
-            ddict['parameters'][key] = self._drawingParameters[key]
-        if event == "drawingFinished":
-            self.__drawingParameters = None
-            self.__drawing = False
-            if self._drawingPatch is not None:
-                if BLITTING:
-                    artist = self._drawingPatch
-                    artist.set_animated(False)
-                    self._background = None
-            self._drawingPatch.remove()
-            self._drawingPatch = None
-            self.draw()
-        self._callback(ddict)
-
-    def emitLimitsChangedSignal(self):
-        # Send event about limits changed
-        left, right = self.ax.get_xlim()
-        xRange = (left, right) if left < right else (right, left)
-
-        bottom, top = self.ax.get_ylim()
-        yRange = (bottom, top) if bottom < top else (top, bottom)
-
-        if hasattr(self.ax2, "get_visible") and self.ax2.get_visible():
-            bottom2, top2 = self.ax2.get_ylim()
-            y2Range = (bottom2, top2) if bottom2 < top2 else (top2, bottom2)
-        else:
-            y2Range = None
-
-        if hasattr(self, "get_tk_widget"):
-            sourceObj = self.get_tk_widget()
-        else:
-            sourceObj = self
-
-        eventDict = {
-            'event': 'limitsChanged',
-            'source': id(sourceObj),
-            'xdata': xRange,
-            'ydata': yRange,
-            'y2data': y2Range,
-        }
-        self._callback(eventDict)
-
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         self.ax.set_xlim(xmin, xmax)
         if ymax < ymin:
@@ -1161,8 +253,6 @@ class MatplotlibGraph(FigureCanvas):
             else:
                 bottom, top = y2min, y2max
             self.ax2.set_ylim(bottom, top)
-
-        self.emitLimitsChangedSignal()
 
     def resetZoom(self, dataMargins=None):
         xmin, xmax, ymin, ymax = self.getDataLimits('left')
@@ -1223,10 +313,10 @@ class MatplotlibGraph(FigureCanvas):
                 y = line2d.get_ydata()
                 if not len(x) or not len(y):
                     continue
-                lineXMin = nanmin(x)
-                lineXMax = nanmax(x)
-                lineYMin = nanmin(y)
-                lineYMax = nanmax(y)
+                lineXMin = numpy.nanmin(x)
+                lineXMax = numpy.nanmax(x)
+                lineYMin = numpy.nanmin(y)
+                lineYMax = numpy.nanmax(y)
             if xmin is None:
                 xmin = lineXMin
                 xmax = lineXMax
@@ -1342,14 +432,17 @@ class MatplotlibGraph(FigureCanvas):
         super(MatplotlibGraph, self).draw()
 
 
-class MatplotlibBackend(object):
+class MatplotlibBackend(BackendBase):
     """Matplotlib backend.
 
     See :class:`Backend.Backend` for the documentation of the public API.
     """
 
     def __init__(self, plot, parent=None):
-        self._setPlot(plot)
+        super(MatplotlibBackend, self).__init__(plot, parent)
+
+        self._overlays = set()
+        self._background = None
 
         self.graph = MatplotlibGraph(parent)
         self.ax2 = self.graph.ax2
@@ -1367,19 +460,31 @@ class MatplotlibBackend(object):
 
         self._enableAxis('right', False)
 
-    # TODO inherit from BackendBase.py
-    @property
-    def _plot(self):
-        if self._plotRef is None:
-            raise RuntimeError('This backend is not attached to a Plot')
+        self.graph.fig.canvas.mpl_connect('button_press_event',
+                                          self._onMousePress)
+        self.graph.fig.canvas.mpl_connect('button_release_event',
+                                          self._onMouseRelease)
+        self.graph.fig.canvas.mpl_connect('motion_notify_event',
+                                          self._onMouseMove)
+        self.graph.fig.canvas.mpl_connect('scroll_event',
+                                          self._onMouseWheel)
 
-        plot = self._plotRef()
-        if plot is None:
-            raise RuntimeError('This backend is no more attached to a Plot')
-        return plot
+    # TODO convert from bottom to top of canvas
+    _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
 
-    def _setPlot(self, plot):
-        self._plotRef = weakref.ref(plot)
+    def _onMousePress(self, event):
+        self._plot.onMousePress(
+            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+
+    def _onMouseMove(self, event):
+        self._plot.onMouseMove(event.x, event.y)
+
+    def _onMouseRelease(self, event):
+        self._plot.onMouseRelease(
+            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+
+    def _onMouseWheel(self, event):
+        self._plot.onMouseWheel(event.x, event.y, event.step)
 
     # Add methods
 
@@ -1453,10 +558,10 @@ class MatplotlibBackend(object):
             'axes': yaxis,
             # this is needed for scatter plots because I do not know
             # how to recover the data yet, it can speed up limits too
-            'xmin': nanmin(x),
-            'xmax': nanmax(x),
-            'ymin': nanmin(y),
-            'ymax': nanmax(y),
+            'xmin': numpy.nanmin(x),
+            'xmax': numpy.nanmax(x),
+            'ymin': numpy.nanmin(y),
+            'ymax': numpy.nanmax(y),
         }
 
         curveList[-1].axes = axes
@@ -1594,27 +699,25 @@ class MatplotlibBackend(object):
 
         return image
 
-    def addItem(self, x, y, legend, shape, color, fill):
+    def addItem(self, x, y, legend, shape, color, fill, overlay):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
         if shape == "hline":  # TODO this code was not active before
             if hasattr(y, "__len__"):
                 y = y[-1]
-            line = self.ax.axhline(y, label=legend, color=color)
-            return line
+            item = self.ax.axhline(y, label=legend, color=color)
 
         elif shape == "vline":  # TODO this code was not active before
             if hasattr(x, "__len__"):
                 x = x[-1]
-            line = self.ax.axvline(x, label=legend, color=color)
-            return line
+            item = self.ax.axvline(x, label=legend, color=color)
 
         elif shape == 'rectangle':
-            xMin = nanmin(xView)
-            xMax = nanmax(xView)
-            yMin = nanmin(yView)
-            yMax = nanmax(yView)
+            xMin = numpy.nanmin(xView)
+            xMax = numpy.nanmax(xView)
+            yMin = numpy.nanmin(yView)
+            yMax = numpy.nanmax(yView)
             w = xMax - xMin
             h = yMax - yMin
             item = Rectangle(xy=(xMin, yMin),
@@ -1626,12 +729,11 @@ class MatplotlibBackend(object):
                 item.set_hatch('.')
 
             self.ax.add_patch(item)
-            return item
 
         elif shape == 'polygon':
             xView.shape = 1, -1
             yView.shape = 1, -1
-            item = Polygon(numpyvstack((xView, yView)).T,
+            item = Polygon(numpy.vstack((xView, yView)).T,
                            closed=True,
                            fill=False,
                            label=legend,
@@ -1640,10 +742,15 @@ class MatplotlibBackend(object):
                 item.set_hatch('/')
 
             self.ax.add_patch(item)
-            return item
 
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
+
+        if overlay:
+            item.set_animated(True)
+            self._overlays.add(item)
+
+        return item
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
@@ -1750,24 +857,10 @@ class MatplotlibBackend(object):
         if hasattr(item, "_infoText"):  # For markers text
             item._infoText.remove()
             item._infoText = None
+        self._overlays.discard(item)
         item.remove()
 
     # Interaction methods
-
-    def isZoomModeEnabled(self, *args, **kwargs):
-        self.graph.isZoomModeEnabled(*args, **kwargs)
-
-    def setZoomModeEnabled(self, *args, **kwargs):
-        self.graph.setZoomModeEnabled(*args, **kwargs)
-
-    def isDrawModeEnabled(self, *args, **kwargs):
-        self.graph.isDrawModeEnabled(*args, **kwargs)
-
-    def setDrawModeEnabled(self, *args, **kwargs):
-        self.graph.setDrawModeEnabled(*args, **kwargs)
-
-    def getDrawMode(self, *args, **kwargs):
-        self.graph.getDrawMode(*args, **kwargs)
 
     def getGraphCursor(self):
         if self._graphCursor is None or not self._graphCursor.visible:
@@ -1811,13 +904,28 @@ class MatplotlibBackend(object):
         axes = self.ax2 if axis == 'right' else self.ax
         axes.get_yaxis().set_visible(flag)
 
-    def replot(self):
+    def replot(self, overlayOnly):
         # TODO images, markers? scatter plot? move in remove?
         # Right Y axis only support curve for now
         # Hide right Y axis if no line is present
         if not self.ax2.lines:
             self._enableAxis('right', False)
-        self.graph.draw()
+
+        if not overlayOnly:  # Need a full redraw
+            self.graph.draw()
+            self._background = None  # Any saved background is dirty
+
+        if self._overlays or overlayOnly:
+            # 2 cases: There are overlays, or they is just no more overlays
+            if self._background is None:  # First store the background
+                self._background = self.graph.fig.canvas.copy_from_bbox(
+                    self.graph.fig.bbox)
+
+            self.graph.fig.canvas.restore_region(self._background)
+            # This assume that items are only on left/bottom Axes
+            for item in self._overlays:
+                self.ax.draw_artist(item)
+            self.graph.fig.canvas.blit(self.ax.bbox)
 
     def saveGraph(self, fileName, fileFormat, dpi=None):
         # fileName can be also a StringIO or file instance
@@ -1825,11 +933,6 @@ class MatplotlibBackend(object):
             self.ax.figure.savefig(fileName, format=fileFormat, dpi=dpi)
         else:
             self.ax.figure.savefig(fileName, format=fileFormat)
-
-    def setCallback(self, callbackFunction):
-        self.graph.setCallback(callbackFunction)
-        # Should I call the base to keep a copy?
-        # It does not seem necessary since the graph will do it.
 
     # Graph labels
 
@@ -1863,13 +966,19 @@ class MatplotlibBackend(object):
 
         self._zoomStack = []
 
-    def setLimits(self, xmin, xmax, ymin, ymax):
+    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         self.ax.set_xlim(xmin, xmax)
         if self.ax.yaxis_inverted():
             self.ax.set_ylim(ymax, ymin)
         else:
             self.ax.set_ylim(ymin, ymax)
-        self.graph.emitLimitsChangedSignal()
+
+        if y2min is not None and y2max is not None:
+            if self.ax2.yaxis_inverted():
+                bottom, top = y2max, y2min
+            else:
+                bottom, top = y2min, y2max
+            self.ax2.set_ylim(bottom, top)
 
     def getGraphXLimits(self):
         vmin, vmax = self.ax.get_xlim()
@@ -1880,11 +989,13 @@ class MatplotlibBackend(object):
 
     def setGraphXLimits(self, xmin, xmax):
         self.ax.set_xlim(xmin, xmax)
-        self.graph.emitLimitsChangedSignal()
 
     def getGraphYLimits(self, axis="left"):
         assert axis in ('left', 'right')
         ax = self.ax2 if axis == 'right' else self.ax
+
+        if not ax.get_visible():
+            return None
 
         vmin, vmax = ax.get_ylim()
         if vmin > vmax:
@@ -1897,7 +1008,6 @@ class MatplotlibBackend(object):
             self.ax.set_ylim(ymax, ymin)
         else:
             self.ax.set_ylim(ymin, ymax)
-        self.graph.emitLimitsChangedSignal()
 
     # Graph axes
 
@@ -1931,8 +1041,7 @@ class MatplotlibBackend(object):
     # colormap
 
     def getSupportedColormaps(self):
-        default = [
-            'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
+        default = super(MatplotlibBackend, self).getSupportedColormaps()
         maps = [m for m in cm.datad]
         maps.sort()
         return default + maps
@@ -2024,7 +1133,7 @@ class MatplotlibBackend(object):
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
-    def pixelToData(self, x=None, y=None, axis="left"):
+    def pixelToData(self, x=None, y=None, axis="left", check=False):
         assert axis in ("left", "right")
         ax = self.ax2 if "axis" == "right" else self.ax
 
@@ -2034,10 +1143,15 @@ class MatplotlibBackend(object):
         xmin, xmax = self.getGraphXLimits()
         ymin, ymax = self.getGraphYLimits(axis=axis)
 
-        if x > xmax or x < xmin:
-            return None
-
-        if y > ymax or y < ymin:
-            return None
+        if check and (x > xmax or x < xmin or y > ymax or y < ymin):
+            return None  # (x, y) is out of plot area
 
         return x, y
+
+    def getPlotBoundsInPixels(self):
+        bbox = self.ax.get_window_extent().transformed(
+            self.graph.fig.dpi_scale_trans.inverted())
+        dpi = self.graph.fig.dpi
+        # Warning this is not returning int...
+        return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
+                bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)

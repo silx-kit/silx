@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2014-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-This module provides an implementation of state machines for interaction.
+"""This module provides an implementation of state machines for interaction.
 
 Sample code of a state machine with two states ('idle' and 'active')
 with transitions on left button press/release:
@@ -84,6 +75,11 @@ In Proceedings of AVI 2006. p 51-58.
 for a discussion of using (hierarchical) state machines for interaction.
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "18/02/2016"
+
+
 import weakref
 
 
@@ -91,11 +87,13 @@ import weakref
 
 class State(object):
     """Base class for the states of a state machine.
+
     This class is meant to be subclassed.
     """
 
     def __init__(self, machine):
         """State instances should be created by the :class:`StateMachine`.
+
         They are not intended to be used outside this context.
 
         :param machine: The state machine instance this state belongs to.
@@ -117,6 +115,7 @@ class State(object):
 
     def goto(self, state, *args, **kwargs):
         """Performs a transition to a new state.
+
         Extra arguments are passed to the :meth:`enter` method of the
         new state.
 
@@ -126,6 +125,7 @@ class State(object):
 
     def enter(self, *args, **kwargs):
         """Called when the state machine enters this state.
+
         Arguments are those provided to the :meth:`goto` method that
         triggered the transition to this state.
         """
@@ -140,6 +140,7 @@ class State(object):
 
 class StateMachine(object):
     """State machine controller.
+
     This is the entry point of a state machine.
     It is in charge of dispatching received event and handling the
     current active state.
@@ -147,6 +148,7 @@ class StateMachine(object):
 
     def __init__(self, states, initState, *args, **kwargs):
         """Create a state machine controller with an initial state.
+
         Extra arguments are passed to the enter method of the initState.
 
         :param states: All states of the state machine
@@ -203,6 +205,7 @@ MIDDLE_BTN = 'middle'
 
 class ClickOrDrag(StateMachine):
     """State machine for left and right click and left drag interaction.
+
     It is intended to be used through subclassing by overriding
     :meth:`click`, :meth:`beginDrag`, :meth:`drag` and :meth:`endDrag`.
     """
@@ -267,6 +270,7 @@ class ClickOrDrag(StateMachine):
 
     def click(self, x, y, btn):
         """Called upon a left or right button click.
+
         To override in a subclass.
         """
         pass
@@ -274,12 +278,14 @@ class ClickOrDrag(StateMachine):
     def beginDrag(self, x, y):
         """Called at the beginning of a drag gesture with left button
         pressed.
+
         To override in a subclass.
         """
         pass
 
     def drag(self, x, y):
         """Called on mouse moved during a drag gesture.
+
         To override in a subclass.
         """
         pass
@@ -287,33 +293,7 @@ class ClickOrDrag(StateMachine):
     def endDrag(self, x, y):
         """Called at the end of a drag gesture when the left button is
         released.
+
         To override in a subclass.
         """
         pass
-
-
-# main ########################################################################
-
-if __name__ == "__main__":
-    class DumpClickOrDrag(ClickOrDrag):
-        def click(self, x, y, btn):
-            print('click', x, y, btn)
-
-        def beginDrag(self, x, y):
-            print('beginDrag', x, y)
-
-        def drag(self, x, y):
-            print('drag', x, y)
-
-        def endDrag(self, x, y):
-            print('endDrag', x, y)
-
-    clickOrDrag = DumpClickOrDrag()
-    for event in (('press', 10, 10, LEFT_BTN),
-                  ('release', 10, 10, LEFT_BTN),
-                  ('press', 10, 10, LEFT_BTN),
-                  ('move', 15, 10),
-                  ('move', 20, 10),
-                  ('release', 20, 10, LEFT_BTN)):
-        print('Event:', event)
-        clickOrDrag.handleEvent(*event)

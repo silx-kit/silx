@@ -37,8 +37,14 @@ import logging
 import math
 import numpy
 
+from .. import qt
+
 from . import BackendBase
 from . import Colors
+from . import PlotInteraction
+from . import PlotEvents
+
+from .MatplotlibBackend import MatplotlibBackend
 
 
 _logger = logging.getLogger(__name__)
@@ -98,7 +104,14 @@ _COLORLIST = [_COLORDICT['black'],
 # "" 	nothing
 #
 
-from .MatplotlibBackend import MatplotlibBackend
+
+def clamp(value, min_=0., max_=1.):  # TODO move elsewhere
+    if value < min_:
+        return min_
+    elif value > max_:
+        return max_
+    else:
+        return value
 
 
 class Plot(object):
@@ -111,6 +124,7 @@ class Plot(object):
 
     def __init__(self, parent=None, backend=None, callback=None):
         self._parent = parent
+        self._dirty = True
 
         if backend is None:
             backend = self.defaultBackend
@@ -140,9 +154,7 @@ class Plot(object):
 
         super(Plot, self).__init__()
 
-        self._widget = self._plot.getWidgetHandle()
-
-        self.setCallback(callback)
+        self.setCallback(callback)  # set _callback
 
         # Items handling
         self._curves = OrderedDict()
@@ -151,6 +163,8 @@ class Plot(object):
         self._images = OrderedDict()
         self._markers = OrderedDict()
         self._items = OrderedDict()
+
+        self._selectionAreas = set()
 
         # line types
         self._styleList = ['-', '--', '-.', ':']
@@ -178,9 +192,15 @@ class Plot(object):
         self.setDefaultPlotPoints(False)
         self.setDefaultPlotLines(True)
 
-        self.setZoomModeEnabled(True)
+        self._eventHandler = PlotInteraction.PlotInteraction(self)
+        self._eventHandler.setInteractiveMode('zoom', color=(0., 0., 0., 1.))
+
+        self._pressedButtons = []  # Currently pressed mouse buttons
 
         self._defaultDataMargins = (0., 0., 0., 0.)
+
+    def _dirtyPlot(self):
+        self._dirty = True
 
     # Private stuff called from elsewhere....
 
@@ -336,6 +356,7 @@ class Plot(object):
                                               z=params['z'],
                                               selectable=params['selectable'],
                                               fill=params['fill'])
+            self._dirtyPlot()
         else:
             curveHandle = None  # The curve has no points or is hidden
 
@@ -477,6 +498,7 @@ class Plot(object):
                                               selectable=params['selectable'],
                                               draggable=params['draggable'],
                                               colormap=params['colormap'])
+            self._dirtyPlot()
         else:
             imageHandle = None  # data is None or log scale
 
@@ -500,7 +522,8 @@ class Plot(object):
 
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replot=True, replace=False,
-                shape="polygon", color='black', fill=True, **kw):
+                shape="polygon", color='black', fill=True,
+                overlay=False, **kw):
         # expected to receive the same parameters as the signal
 
         if kw:
@@ -513,8 +536,14 @@ class Plot(object):
         else:
             self.removeItem(legend, replot=False)
 
-        self._items[legend] = self._plot.addItem(
-            xdata, ydata, legend=legend, shape=shape, color=color, fill=fill)
+        item = self._plot.addItem(xdata, ydata, legend=legend,
+                                  shape=shape, color=color,
+                                  fill=fill, overlay=overlay)
+
+        self._items[legend] = {'handle': item, 'overlay': overlay}
+
+        if not overlay:
+            self._dirtyPlot()
 
         if replot:
             self.replot()
@@ -553,6 +582,7 @@ class Plot(object):
         self._markers[legend] = self._plot.addXMarker(
             x, legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
+        self._dirtyPlot()
 
         return legend
 
@@ -589,6 +619,7 @@ class Plot(object):
         self._markers[legend] = self._plot.addYMarker(
             y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
+        self._dirtyPlot()
 
         return legend
 
@@ -651,6 +682,7 @@ class Plot(object):
             x, y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable,
             symbol=symbol, constraint=constraint)
+        self._dirtyPlot()
 
         return legend
 
@@ -677,6 +709,8 @@ class Plot(object):
             self.addCurve(curve['x'], curve['y'], legend, replot=False,
                           **curve['params'])
 
+        self._dirtyPlot()
+
         if replot:
             self.replot()
 
@@ -700,6 +734,7 @@ class Plot(object):
             handle = self._curves[legend]['handle']
             if handle is not None:
                 self._plot.remove(handle)
+                self._dirtyPlot()
             del self._curves[legend]
 
         if not self._curves:
@@ -725,6 +760,7 @@ class Plot(object):
             handle = self._images[legend]['handle']
             if handle is not None:
                 self._plot.remove(handle)
+                self._dirtyPlot()
             del self._images[legend]
 
         if replot:
@@ -734,9 +770,11 @@ class Plot(object):
         if legend is None:
             return
 
-        handle = self._items.pop(legend, None)
-        if handle is not None:
-            self._plot.remove(handle)
+        item = self._items.pop(legend, None)
+        if item is not None and item['handle'] is not None:
+            self._plot.remove(item['handle'])
+            if not item['overlay']:
+                self._dirtyPlot()
 
         if replot:
             self.replot()
@@ -745,6 +783,7 @@ class Plot(object):
         handle = self._markers.pop(marker, None)
         if handle is not None:
             self._plot.remove(handle)
+            self._dirtyPlot()
 
         if replot:
             self.replot()
@@ -758,6 +797,7 @@ class Plot(object):
         self.clearItems(replot=False)
 
         self._plot.clear()
+        self._dirtyPlot()
 
         if replot:
             self.replot()
@@ -837,55 +877,6 @@ class Plot(object):
                  else a tuple (color, linewidth, linestyle).
         """
         return self._plot.getGraphCursor()
-
-    def isZoomModeEnabled(self):
-        return self._plot.isZoomModeEnabled()
-
-    def setZoomModeEnabled(self, flag=True, color="black"):
-        """Zoom and drawing are not compatible and cannot be enabled
-        simultanelously
-
-        :param flag: If True, the user can zoom.
-        :type flag: boolean, default True
-        :param color: The color to use to draw the selection area.
-                      Default 'black"
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
-        """
-        self._plot.setZoomModeEnabled(flag=flag, color=color)
-
-    def isDrawModeEnabled(self):
-        return self._plot.isDrawModeEnabled()
-
-    def setDrawModeEnabled(self, flag=True, shape="polygon", label=None,
-                           color=None, **kw):
-        """Zoom and drawing are not compatible and cannot be enabled
-        simultanelously
-
-        :param flag: Enable drawing mode disabling zoom and picking mode
-        :type flag: boolean, default True
-        :param shape: Type of item to be drawn in:
-                      hline, vline, rectangle, polygon
-        :type shape: string (default polygon)
-        :param label: Associated text (for identifying the signals)
-        :type label: string, default None
-        :param color: The color to use to draw the selection area
-        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
-                     one of the predefined color names defined in Colors.py
-        """
-        self._plot.setDrawModeEnabled(flag=flag, shape=shape, label=label,
-                                      color=color, **kw)
-
-    def getDrawMode(self):
-        """
-        Return a dictionnary (or None) with the parameters passed when setting
-        the draw mode.
-        :key shape: The shape being drawn
-        :key label: Associated text (or None)
-        and any other info
-        """
-        return self._plot.getDrawMode()
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -992,6 +983,7 @@ class Plot(object):
             handle = self._curves[oldActiveCurve[2]]['handle']
             if handle is not None:
                 self._plot.setCurveColor(handle, oldActiveCurve[3]['color'])
+                self._dirtyPlot()
 
         if legend is None:
             self._activeCurve = None
@@ -1007,6 +999,7 @@ class Plot(object):
                 if handle is not None:
                     self._plot.setCurveColor(handle,
                                              self.getActiveCurveColor())
+                    self._dirtyPlot()
 
                 activeCurve = self.getActiveCurve()
                 xLabel = activeCurve[3]['xlabel']
@@ -1015,11 +1008,14 @@ class Plot(object):
         # Store current labels and update plot
         self._currentXLabel = xLabel
         self._plot.setGraphXLabel(xLabel)
+        self._dirtyPlot()
         self._currentYLabel = yLabel
         self._plot.setGraphYLabel(yLabel)  # TODO handle y2 axis
+        self._dirtyPlot()
 
         if replot:
             self.replot()
+
         return self._activeCurve
 
     def getActiveImage(self, just_legend=False):
@@ -1183,6 +1179,15 @@ class Plot(object):
 
     # Limits
 
+    def _notifyLimitsChanged(self):
+        """Send an event when plot area limits are changed."""
+        xRange = self.getGraphXLimits()
+        yRange = self.getGraphYLimits(axis='left')
+        y2Range = self.getGraphYLimits(axis='right')
+        event = PlotEvents.prepareLimitsChangedSignal(
+            id(self.getWidgetHandle()), xRange, yRange, y2Range)
+        self.notify(event)
+
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
@@ -1192,23 +1197,46 @@ class Plot(object):
 
     def setGraphXLimits(self, xmin, xmax, replot=False):
         self._plot.setGraphXLimits(xmin, xmax)
+        self._dirtyPlot()
+
+        self._notifyLimitsChanged()
+
         if replot:
             self.replot()
 
-    def getGraphYLimits(self):
+    def getGraphYLimits(self, axis='left'):
         """Get the graph Y (left) limits.
 
+        :param str axis: The axis for which to get the limits: left or right
         :return:  Minimum and maximum values of the X axis
         """
-        return self._plot.getGraphYLimits()
+        assert axis in ('left', 'right')
+        return self._plot.getGraphYLimits(axis)
 
     def setGraphYLimits(self, ymin, ymax, replot=False):
         self._plot.setGraphYLimits(ymin, ymax)
+        self._dirtyPlot()
+
+        self._notifyLimitsChanged()
+
         if replot:
             self.replot()
 
-    def setLimits(self, xmin, xmax, ymin, ymax):
-        self._plot.setLimits(xmin, xmax, ymin, ymax)
+    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
+        if xmax < xmin:
+            xmin, xmax = xmax, xmin
+        if ymax < ymin:
+            ymin, ymax = ymax, ymin
+
+        if y2min is None or y2max is None:
+            # if one limit is None, both are ignored
+            y2min, y2max = None, None
+        elif y2max < y2min:
+                y2min, y2max = y2max, y2min
+
+        self._plot.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+        self._dirtyPlot()
+        self._notifyLimitsChanged()
 
     # Title and labels
 
@@ -1218,6 +1246,7 @@ class Plot(object):
     def setGraphTitle(self, title=""):
         self._graphTitle = str(title)
         self._plot.setGraphTitle(title)
+        self._dirtyPlot()
 
     def getGraphXLabel(self):
         return self._currentXLabel
@@ -1227,6 +1256,7 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentXLabel = label
         self._plot.setGraphXLabel(label)
+        self._dirtyPlot()
 
     def getGraphYLabel(self):
         return self._currentYLabel
@@ -1236,11 +1266,13 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
         self._plot.setGraphYLabel(label)
+        self._dirtyPlot()
 
     # Axes
 
     def invertYAxis(self, flag=True):
         self._plot.invertYAxis(flag)
+        self._dirtyPlot()
 
     def isYAxisInverted(self):
         return self._plot.isYAxisInverted()
@@ -1279,6 +1311,9 @@ class Plot(object):
                 self._plot.setXAxisLogarithmic(self._logX)
                 self._update()
 
+        self._dirtyPlot()
+        self.replot()
+
     def isYAxisLogarithmic(self):
         return self._logY
 
@@ -1313,6 +1348,9 @@ class Plot(object):
                 self._plot.setYAxisLogarithmic(self._logY)
                 self._update()
 
+        self._dirtyPlot()
+        self.replot()
+
     def isXAxisAutoScale(self):
         return self._xAutoScale
 
@@ -1326,7 +1364,7 @@ class Plot(object):
         self._yAutoScale = flag
 
     def isKeepDataAspectRatio(self):
-        return self.isKeepDataAspectRatio()
+        return self._plot.isKeepDataAspectRatio()
 
     def keepDataAspectRatio(self, flag=True):
         """
@@ -1334,11 +1372,13 @@ class Plot(object):
         :type flag: Boolean, default True
         """
         self._plot.keepDataAspectRatio(flag=flag)
+        self._dirtyPlot()
         self.resetZoom()
 
     def showGrid(self, flag=True):
         _logger.debug("Plot showGrid called")
         self._plot.showGrid(flag)
+        self._dirtyPlot()
         self.replot()
 
     # Defaults
@@ -1352,12 +1392,16 @@ class Plot(object):
 
         if self._curves:
             self._update()
+            self._dirtyPlot()
+            self.replot()
 
     def setDefaultPlotLines(self, flag):
         self._plotLines = bool(flag)
 
         if self._curves:
             self._update()
+            self._dirtyPlot()
+            self.replot()
 
     def getDefaultColormap(self):
         """
@@ -1423,13 +1467,22 @@ class Plot(object):
     # Misc.
 
     def getWidgetHandle(self):
-        return self._widget
+        return self._plot.getWidgetHandle()
 
-    def setCallback(self, callbackFunction):
+    def setCallback(self, callbackFunction=None):
+        """Attach a listener to the backend.
+
+        Limitation: Only one listener at a time.
+
+        :param callbackFunction: function accepting a dictionnary as input
+                                 to handle the graph events
+                                 If None (default), use a default listener.
+        """
+        # TODO allow multiple listeners, keep a weakref on it
+        # allow register listener by event type
         if callbackFunction is None:
-            self._plot.setCallback(self.graphCallback)
-        else:
-            self._plot.setCallback(callbackFunction)
+            callbackFunction = self.graphCallback
+        self._callback = callbackFunction
 
     def graphCallback(self, ddict=None):
         """
@@ -1481,12 +1534,14 @@ class Plot(object):
 
     def replot(self):
         _logger.debug("replot called")
-        self._plot.replot()
+        self._plot.replot(overlayOnly=not self._dirty)
+        self._dirty = False  # reset dirty flag
 
     def resetZoom(self, dataMargins=None):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
         self._plot.resetZoom(dataMargins)
+        self._dirtyPlot()
         self.replot()
 
     # Internal
@@ -1567,8 +1622,6 @@ class Plot(object):
                               replace=False, replot=False,
                               pixmap=image['pixmap'], **image['params'])
 
-        self.replot()
-
     # Coord conversion
 
     def dataToPixel(self, x=None, y=None, axis="left"):
@@ -1587,7 +1640,7 @@ class Plot(object):
         """
         return self._plot.dataToPixel(x, y, axis=axis)
 
-    def pixelToData(self, x=None, y=None, axis="left"):
+    def pixelToData(self, x=None, y=None, axis="left", check=False):
         """
         Convert a position in pixels in the widget to a position in
         the data space.
@@ -1598,11 +1651,235 @@ class Plot(object):
                             the center of the widget is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
+        :param bool check: Toggle checking if pixel is in plot area.
+                           If False, this method never returns None.
         :returns: The corresponding position in data space or
                   None if the pixel position is not in the plot area.
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
-        return self._plot.pixelToData(x, y, axis=axis)
+        return self._plot.pixelToData(x, y, axis=axis, check=check)
+
+    def getPlotBoundsInPixels(self):
+        """Plot area bounds in widget coordinates in pixels.
+
+        :return: bounds as a 4-tuple of int: (left, top, width, height)
+        """
+        return self._plot.getPlotBoundsInPixels()
+
+    # Interaction support
+
+    def notify(self, event):
+        """Send an event to the listeners.
+
+        The event dict must at least contains an 'event' key which store the
+        type of event.
+        The other keys are event specific.
+
+        :param dict event: The information of the event.
+        """
+        self._callback(event)
+
+    def setSelectionArea(self, points, fill, color, name=''):
+        """Set a polygon selection area overlaid on the plot.
+        Multiple simultaneous areas are supported through the name parameter.
+
+        :param points: The 2D coordinates of the points of the polygon
+        :type points: An iterable of (x, y) coordinates
+        :param str fill: The fill mode: 'hatch', 'solid' or None
+        :param color: RGBA color to use
+        :type color: list or tuple of 4 float in the range [0, 1]
+        :param name: The key associated with this selection area
+        """
+        points = numpy.asarray(points)
+
+        # TODO Not very nice, but as is for now
+        legend = '__SELECTION_AREA__' + name
+
+        fill = bool(fill)  # TODO not very nice either
+
+        # TODO make it an overlay
+        self.addItem(points[:, 0], points[:, 1], legend=legend,
+                     replace=False, replot=False,
+                     shape='polygon', color=color, fill=fill,
+                     overlay=True)
+        self._selectionAreas.add(legend)
+
+    def resetSelectionArea(self):
+        """Remove all selection areas set by setSelectionArea."""
+        for legend in self._selectionAreas:
+            self.removeItem(legend, replot=False)
+        self._selectionAreas = set()
+
+    # TODO move this to backend?
+    _QT_CURSORS = {
+        PlotInteraction.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
+        PlotInteraction.CURSOR_POINTING: qt.Qt.PointingHandCursor,
+        PlotInteraction.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
+        PlotInteraction.CURSOR_SIZE_VER: qt.Qt.SizeVerCursor,
+        PlotInteraction.CURSOR_SIZE_ALL: qt.Qt.SizeAllCursor,
+    }
+
+    def setCursor(self, cursor=PlotInteraction.CURSOR_DEFAULT):
+        """Set the cursor shape.
+
+        :param str cursor: Name of the cursor shape
+        """
+        cursor = self._QT_CURSORS[cursor]
+        self.getWidgetHandle().setCursor(qt.QCursor(cursor))
+
+    def pickMarker(self, *args, **kwargs):
+        return None  # TODO
+
+    def pickImageOrCurve(self, *args, **kwargs):
+        return None  # TODO
+
+    # User event handling #
+
+    def _isPositionInPlotArea(self, x, y):
+        """Project position in pixel to the closest point in the plot area
+
+        :param float x: X coordinate in widget coordinate (in pixel)
+        :param float y: Y coordinate in widget coordinate (in pixel)
+        :return: (x, y) in widget coord (in pixel) in the plot area
+        """
+        left, top, width, height = self.getPlotBoundsInPixels()
+        xPlot = clamp(x, left, left + width)
+        yPlot = clamp(y, top, top + height)
+        return xPlot, yPlot
+
+    def onMousePress(self, xPixel, yPixel, btn):
+        if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
+            self._pressedButtons.append(btn)
+            self._eventHandler.handleEvent('press', xPixel, yPixel, btn)
+
+    def onMouseMove(self, xPixel, yPixel):
+        inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
+        isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
+
+        # crosshair stuff
+        # previousMousePosInPixels = self._mousePosInPixels
+        # self._mousePosInPixels = (xPixel, yPixel) if isCursorInPlot else None
+        # if (self._crosshairCursor is not None and
+        #        previousMousePosInPixels != self._crosshairCursor):
+        #    # Avoid replot when cursor remains outside plot area
+        #    self.replot()
+
+        if isCursorInPlot:
+            # Signal mouse move event
+            dataPos = self.pixelToData(inXPixel, inYPixel)
+            assert dataPos is not None
+
+            btn = self._pressedButtons[-1] if self._pressedButtons else None
+            event = PlotEvents.prepareMouseSignal(
+                'mouseMoved', btn, dataPos[0], dataPos[1], xPixel, yPixel)
+            self.notify(event)
+
+        # Either button was pressed in the plot or cursor is in the plot
+        if isCursorInPlot or self._pressedButtons:
+            self._eventHandler.handleEvent('move', inXPixel, inYPixel)
+
+    def onMouseRelease(self, xPixel, yPixel, btn):
+        try:
+            self._pressedButtons.remove(btn)
+        except ValueError:
+            pass
+        else:
+            xPixel, yPixel = self._isPositionInPlotArea(xPixel, yPixel)
+            self._eventHandler.handleEvent('release', xPixel, yPixel, btn)
+
+    def onMouseWheel(self, xPixel, yPixel, angleInDegrees):
+        if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
+            self._eventHandler.handleEvent(
+                'wheel', xPixel, yPixel, angleInDegrees)
+
+    # Interaction modes #
+
+    def getInteractiveMode(self):
+        """Returns the current interactive mode as a dict.
+
+        The returned dict contains at least the key 'mode'.
+        Mode can be: 'draw', 'pan', 'select', 'zoom'.
+        It can also contains extra keys (e.g., 'color') specific to a mode
+        as provided to :meth:`setInteractiveMode`.
+        """
+        return self._eventHandler.getInteractiveMode()
+
+    def setInteractiveMode(self, mode, color='black',
+                           shape='polygon', label=None):
+        """Switch the interactive mode.
+
+        :param str mode: The name of the interactive mode.
+                         In 'draw', 'pan', 'select', 'zoom'.
+        :param color: Only for 'draw' and 'zoom' modes.
+                      Color to use for drawing selection area. Default black.
+        :type color: Color description: The name as a str or
+                     a tuple of 4 floats.
+        :param str shape: Only for 'draw' mode. The kind of shape to draw.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          Default is 'polygon'.
+        :param str label: Only for 'draw' mode.
+        """
+        self._eventHandler.setInteractiveMode(mode, color, shape, label)
+
+    # TODO deprecate all the following
+
+    def isDrawModeEnabled(self):
+        return self.getInteractiveMode()['mode'] == 'draw'
+
+    def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
+                           color=None, **kwargs):
+        """Zoom and drawing are not compatible and cannot be enabled
+        simultanelously
+
+        :param flag: Enable drawing mode disabling zoom and picking mode
+        :type flag: boolean, default True
+        :param shape: Type of item to be drawn in:
+                      hline, vline, rectangle, polygon
+        :type shape: string (default polygon)
+        :param str label: Associated text for identifying draw signals
+        :param color: The color to use to draw the selection area
+        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        """
+        if kwargs:
+            _logger.warning('setDrawModeEnabled ignores additional parameters')
+
+        if flag:
+            self.setInteractiveMode('draw', shape=shape,
+                                    label=label, color=color)
+        elif self.getInteractiveMode()['mode'] == 'draw':
+            self.setInteractiveMode('select')
+
+    def getDrawMode(self):
+        """
+        Return a dictionnary (or None) with the parameters passed when setting
+        the draw mode.
+        :key shape: The shape being drawn
+        :key label: Associated text (or None)
+        and any other info
+        """
+        mode = self.getInteractiveMode()
+        return mode if mode['mode'] == 'draw' else None
+
+    def isZoomModeEnabled(self):
+        return self.getInteractiveMode()['mode'] == 'zoom'
+
+    def setZoomModeEnabled(self, flag=True, color=None):
+        """Zoom and drawing are not compatible and cannot be enabled
+        simultanelously
+
+        :param flag: If True, the user can zoom.
+        :type flag: boolean, default True
+        :param color: The color to use to draw the selection area.
+                      Default 'black"
+        :param color: The color to use to draw the selection area
+        :type color: string ("#RRGGBB") or 4 column unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        """
+        if flag:
+            self.setInteractiveMode('zoom', color=color)
+        elif self.getInteractiveMode()['mode'] == 'zoom':
+            self.setInteractiveMode('select')
 
 
 def _applyPan(min_, max_, panFactor, isLog10):

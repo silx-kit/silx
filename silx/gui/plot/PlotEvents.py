@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2015 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
+"""Functions to prepare events to be sent to Plot callback."""
+
+__author__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-Functions to prepare events to be sent to backend callback.
-"""
+__date__ = "18/02/2016"
 
-
-# import ######################################################################
 
 import numpy as np
 
-
-# signals #####################################################################
 
 def prepareDrawingSignal(event, type_, points, parameters=None):
     if parameters is None:

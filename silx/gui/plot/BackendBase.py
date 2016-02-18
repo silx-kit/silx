@@ -22,16 +22,16 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
-__contact__ = "sole@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """Base class for Plot backends.
+"""Base class for Plot backends.
 
 It documents the Plot backend API.
 
 This API is a simplified version of PyMca PlotBackend API.
 """
+
+__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__license__ = "MIT"
+__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 
 import weakref
@@ -264,8 +264,12 @@ class BackendBase(object):
         """Return the widget this backend is drawing to."""
         raise NotImplementedError()
 
-    def replot(self):
-        """Redraw the plot."""
+    def replot(self, overlayOnly):
+        """Redraw the plot.
+
+        :param bool overlayOnly: True to redraw overlay only,
+                                 False to redraw everything.
+        """
         raise NotImplementedError()
 
     def saveGraph(self, fileName, fileFormat, dpi=None):
@@ -275,16 +279,6 @@ class BackendBase(object):
         :type fileName: String or StringIO or BytesIO
         :param str fileFormat: String specifying the format
         :param int dpi: The resolution to use.
-        """
-        raise NotImplementedError()
-
-    def setCallback(self, callbackFunction):
-        """Attach a listener to the backend.
-
-        Limitation: Only one listener at a time.
-
-        :param callbackFunction: function accepting a dictionnary as input
-                                 to handle the graph events
         """
         raise NotImplementedError()
 
@@ -330,13 +324,15 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def setLimits(self, xmin, xmax, ymin, ymax):
+    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         """Set the limits of the X and Y axes at once.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         :param float ymin: minimum left axis value
         :param float ymax: maximum left axis value
+        :param float y2min: minimum right axis value
+        :param float y2max: maximum right axis value
         """
         raise NotImplementedError()
 
@@ -457,5 +453,14 @@ class BackendBase(object):
         :returns: The corresponding position in data space or
                   None if the pixel position is not in the plot area.
         :rtype: A tuple of 2 floats: (xData, yData) or None.
+        """
+        raise NotImplementedError()
+
+    # Interaction support
+
+    def getPlotBoundsInPixels(self):
+        """Plot area bounds in widget coordinates in pixels.
+
+        :return: bounds as a 4-tuple of int: (left, top, width, height)
         """
         raise NotImplementedError()
