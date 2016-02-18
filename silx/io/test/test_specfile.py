@@ -70,7 +70,7 @@ sftext = """#F /tmp/sf.dat
 1 2
 @A 0 1 2
 3 4
-@A 3 4 5
+@A 3.1 4 5
 """
 
 
@@ -163,25 +163,25 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
-        self.assertEqual(self.sf[0].header_dict['S'],
-                         self.sf["1.1"].header_dict['S'])
-        self.assertEqual(self.scan25.header_dict['S'],
+        self.assertEqual(self.sf[0].scan_header['S'],
+                         self.sf["1.1"].scan_header['S'])
+        self.assertEqual(self.scan25.scan_header['S'],
                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
-        self.assertEqual(self.scan1.header_dict['N'], '4')
-        self.assertEqual(self.scan1.header_lines[3], '#G0 0')
-        self.assertEqual(len(self.scan1.header_lines), 15)
+        self.assertEqual(self.scan1.scan_header['N'], '4')
+        self.assertEqual(self.scan1.scan_header_lines[3], '#G0 0')
+        self.assertEqual(len(self.scan1.scan_header_lines), 15)
         # parsing headers with long keys
-        self.assertEqual(self.scan1.header_dict['UMI0'],
+        self.assertEqual(self.scan1.scan_header['UMI0'],
                          'Current AutoM      Shutter')
         # parsing empty headers
-        self.assertEqual(self.scan1.header_dict['Q'], '')
+        self.assertEqual(self.scan1.scan_header['Q'], '')
 
     def test_file_headers(self):
         self.assertEqual(self.scan1.file_header_lines[1],
                          '#E 1455180875')
         self.assertEqual(len(self.scan1.file_header_lines), 14)
         # parsing headers with single character key 
-        self.assertEqual(self.scan1.file_header_dict['F'],
+        self.assertEqual(self.scan1.file_header['F'],
                          '/tmp/sf.dat')
 
     def test_multiple_file_headers(self):
@@ -219,28 +219,32 @@ class TestSpecFile(unittest.TestCase):
             -1.66875)
 
     def test_absence_of_file_header(self):
-        """We expect Scan.file_header_lines to be an empty list
+        """We expect Scan.file_header_lines to be an empty list in the absence
+        of a file header.
 
-        Important note: a #S line needs to be preceded  by an empty line,
+        Important note: A #S line needs to be preceded  by an empty line,
         so a SpecFile without a file header needs to start with an empty line.
-
         Otherwise, this test fails because SfFileHeader() fills
         Scan.file_header_lines with 15 scan header lines.
         """
-
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
         # motor positions can still be read in the scan header
         # even in the absence of motor names
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
-        self.assertEqual(len(self.scan1_no_fhdr.header_lines), 15)
+        self.assertEqual(len(self.scan1_no_fhdr.scan_header_lines), 15)
         self.assertEqual(self.scan1_no_fhdr.file_header_lines, [])
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
         self.assertEqual(len(self.scan1_2.mca), 2)
         self.assertEqual(self.scan1_2.mca[1][2], 5)
-        self.assertEqual(sum(self.scan1_2.mca[1]), 12)
+        self.assertEqual(sum(self.scan1_2.mca[1]), 12.1)
+
+    def test_mca_header(self):
+        self.assertEqual(self.scan1.mca_header, {})
+        self.assertEqual(len(self.scan1_2.mca_header), 4)
+        self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
 
 def suite():
     test_suite = unittest.TestSuite()
