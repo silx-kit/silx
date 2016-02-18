@@ -121,10 +121,10 @@ class Plot(object):
 
         if hasattr(backend, "__call__"):
             # to be called
-            self._plot = backend(self, parent)
+            self._backend = backend(self, parent)
         elif isinstance(backend, BackendBase.BackendBase):
-            self._plot = backend
-            self._plot._setPlot(self)
+            self._backend = backend
+            self._backend._setPlot(self)
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
@@ -140,7 +140,7 @@ class Plot(object):
             #     from .backends.OSMesaGLBackend import OSMesaGLBackend as be
             else:
                 raise ValueError("Backend not understood %s" % backend)
-            self._plot = be(self, parent)
+            self._backend = be(self, parent)
 
         super(Plot, self).__init__()
 
@@ -334,23 +334,23 @@ class Plot(object):
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
         if len(x) and not self.isCurveHidden(legend):
-            curveHandle = self._plot.addCurve(x, y, legend,
-                                              color=color,
-                                              symbol=params['symbol'],
-                                              linestyle=params['linestyle'],
-                                              linewidth=1,
-                                              yaxis=params['yaxis'],
-                                              xerror=xerror,
-                                              yerror=yerror,
-                                              z=params['z'],
-                                              selectable=params['selectable'],
-                                              fill=params['fill'])
+            handle = self._backend.addCurve(x, y, legend,
+                                            color=color,
+                                            symbol=params['symbol'],
+                                            linestyle=params['linestyle'],
+                                            linewidth=1,
+                                            yaxis=params['yaxis'],
+                                            xerror=xerror,
+                                            yerror=yerror,
+                                            z=params['z'],
+                                            selectable=params['selectable'],
+                                            fill=params['fill'])
             self._dirty = True
         else:
-            curveHandle = None  # The curve has no points or is hidden
+            handle = None  # The curve has no points or is hidden
 
         self._curves[legend] = {
-            'handle': curveHandle, 'x': x, 'y': y, 'params': params
+            'handle': handle, 'x': x, 'y': y, 'params': params
         }
 
         if len(self._curves) == 1:
@@ -480,19 +480,19 @@ class Plot(object):
             else:
                 dataToSend = data
 
-            imageHandle = self._plot.addImage(dataToSend, legend=legend,
-                                              xScale=params['xScale'],
-                                              yScale=params['yScale'],
-                                              z=params['z'],
-                                              selectable=params['selectable'],
-                                              draggable=params['draggable'],
-                                              colormap=params['colormap'])
+            handle = self._backend.addImage(dataToSend, legend=legend,
+                                            xScale=params['xScale'],
+                                            yScale=params['yScale'],
+                                            z=params['z'],
+                                            selectable=params['selectable'],
+                                            draggable=params['draggable'],
+                                            colormap=params['colormap'])
             self._dirty = True
         else:
-            imageHandle = None  # data is None or log scale
+            handle = None  # data is None or log scale
 
         self._images[legend] = {
-            'handle': imageHandle,
+            'handle': handle,
             'data': data,
             'pixmap': pixmap,
             'params': params
@@ -525,11 +525,11 @@ class Plot(object):
         else:
             self.removeItem(legend, replot=False)
 
-        item = self._plot.addItem(xdata, ydata, legend=legend,
-                                  shape=shape, color=color,
-                                  fill=fill, overlay=overlay)
+        handle = self._backend.addItem(xdata, ydata, legend=legend,
+                                       shape=shape, color=color,
+                                       fill=fill, overlay=overlay)
 
-        self._items[legend] = {'handle': item, 'overlay': overlay}
+        self._items[legend] = {'handle': handle, 'overlay': overlay}
 
         if not overlay:
             self._dirty = True
@@ -568,7 +568,7 @@ class Plot(object):
         if legend in self._markers:
             self.removeMarker(legend, replot=False)
 
-        self._markers[legend] = self._plot.addXMarker(
+        self._markers[legend] = self._backend.addXMarker(
             x, legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
         self._dirty = True
@@ -605,7 +605,7 @@ class Plot(object):
         if legend in self._markers:
             self.removeMarker(legend, replot=False)
 
-        self._markers[legend] = self._plot.addYMarker(
+        self._markers[legend] = self._backend.addYMarker(
             y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
         self._dirty = True
@@ -667,7 +667,7 @@ class Plot(object):
         if legend in self._markers:
             self.removeMarker(legend, replot=False)
 
-        self._markers[legend] = self._plot.addMarker(
+        self._markers[legend] = self._backend.addMarker(
             x, y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable,
             symbol=symbol, constraint=constraint)
@@ -688,7 +688,7 @@ class Plot(object):
         if flag:
             handle = self._curves[legend]['handle']
             if handle is not None:
-                self._plot.remove(handle)
+                self._backend.remove(handle)
                 self._curves[legend]['handle'] = None
 
             self._hiddenCurves.add(legend)
@@ -722,7 +722,7 @@ class Plot(object):
         if legend in self._curves:
             handle = self._curves[legend]['handle']
             if handle is not None:
-                self._plot.remove(handle)
+                self._backend.remove(handle)
                 self._dirty = True
             del self._curves[legend]
 
@@ -748,7 +748,7 @@ class Plot(object):
         if legend in self._images:
             handle = self._images[legend]['handle']
             if handle is not None:
-                self._plot.remove(handle)
+                self._backend.remove(handle)
                 self._dirty = True
             del self._images[legend]
 
@@ -761,7 +761,7 @@ class Plot(object):
 
         item = self._items.pop(legend, None)
         if item is not None and item['handle'] is not None:
-            self._plot.remove(item['handle'])
+            self._backend.remove(item['handle'])
             if not item['overlay']:
                 self._dirty = True
 
@@ -771,7 +771,7 @@ class Plot(object):
     def removeMarker(self, marker, replot=True):
         handle = self._markers.pop(marker, None)
         if handle is not None:
-            self._plot.remove(handle)
+            self._backend.remove(handle)
             self._dirty = True
 
         if replot:
@@ -785,7 +785,7 @@ class Plot(object):
         self.clearImages(replot=False)
         self.clearItems(replot=False)
 
-        self._plot.clear()
+        self._backend.clear()
         self._dirty = True
 
         if replot:
@@ -867,8 +867,8 @@ class Plot(object):
         else:
             self._cursorConfiguration = None
 
-        self._plot.setGraphCursor(flag=flag, color=color,
-                                  linewidth=linewidth, linestyle=linestyle)
+        self._backend.setGraphCursor(flag=flag, color=color,
+                                     linewidth=linewidth, linestyle=linestyle)
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -974,7 +974,7 @@ class Plot(object):
         if oldActiveCurve:  # Reset previous active curve
             handle = self._curves[oldActiveCurve[2]]['handle']
             if handle is not None:
-                self._plot.setCurveColor(handle, oldActiveCurve[3]['color'])
+                self._backend.setCurveColor(handle, oldActiveCurve[3]['color'])
 
         if legend is None:
             self._activeCurve = None
@@ -988,8 +988,8 @@ class Plot(object):
 
                 handle = self._curves[self._activeCurve]['handle']
                 if handle is not None:
-                    self._plot.setCurveColor(handle,
-                                             self.getActiveCurveColor())
+                    self._backend.setCurveColor(handle,
+                                                self.getActiveCurveColor())
 
                 activeCurve = self.getActiveCurve()
                 xLabel = activeCurve[3]['xlabel']
@@ -997,9 +997,9 @@ class Plot(object):
 
         # Store current labels and update plot
         self._currentXLabel = xLabel
-        self._plot.setGraphXLabel(xLabel)
+        self._backend.setGraphXLabel(xLabel)
         self._currentYLabel = yLabel
-        self._plot.setGraphYLabel(yLabel)  # TODO handle y2 axis
+        self._backend.setGraphYLabel(yLabel)  # TODO handle y2 axis
 
         self._dirty = True
 
@@ -1183,10 +1183,10 @@ class Plot(object):
 
         :return:  Minimum and maximum values of the X axis
         """
-        return self._plot.getGraphXLimits()
+        return self._backend.getGraphXLimits()
 
     def setGraphXLimits(self, xmin, xmax, replot=False):
-        self._plot.setGraphXLimits(xmin, xmax)
+        self._backend.setGraphXLimits(xmin, xmax)
         self._dirty = True
 
         self._notifyLimitsChanged()
@@ -1201,10 +1201,10 @@ class Plot(object):
         :return:  Minimum and maximum values of the X axis
         """
         assert axis in ('left', 'right')
-        return self._plot.getGraphYLimits(axis)
+        return self._backend.getGraphYLimits(axis)
 
     def setGraphYLimits(self, ymin, ymax, replot=False):
-        self._plot.setGraphYLimits(ymin, ymax)
+        self._backend.setGraphYLimits(ymin, ymax)
         self._dirty = True
 
         self._notifyLimitsChanged()
@@ -1224,7 +1224,7 @@ class Plot(object):
         elif y2max < y2min:
                 y2min, y2max = y2max, y2min
 
-        self._plot.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
+        self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._dirty = True
         self._notifyLimitsChanged()
 
@@ -1235,7 +1235,7 @@ class Plot(object):
 
     def setGraphTitle(self, title=""):
         self._graphTitle = str(title)
-        self._plot.setGraphTitle(title)
+        self._backend.setGraphTitle(title)
         self._dirty = True
 
     def getGraphXLabel(self):
@@ -1245,7 +1245,7 @@ class Plot(object):
         self._xLabel = label
         # Current label can differ from input one with active curve handling
         self._currentXLabel = label
-        self._plot.setGraphXLabel(label)
+        self._backend.setGraphXLabel(label)
         self._dirty = True
 
     def getGraphYLabel(self):
@@ -1255,17 +1255,17 @@ class Plot(object):
         self._yLabel = label
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
-        self._plot.setGraphYLabel(label)
+        self._backend.setGraphYLabel(label)
         self._dirty = True
 
     # Axes
 
     def invertYAxis(self, flag=True):
-        self._plot.invertYAxis(flag)
+        self._backend.invertYAxis(flag)
         self._dirty = True
 
     def isYAxisInverted(self):
-        return self._plot.isYAxisInverted()
+        return self._backend.isYAxisInverted()
 
     def isXAxisLogarithmic(self):
         return self._logX
@@ -1278,27 +1278,27 @@ class Plot(object):
         if self._logX:  # Switch to log scale
             for image in self._images.values():
                 if image['handle'] is not None:
-                    self._plot.remove(image['handle'])
+                    self._backend.remove(image['handle'])
                     image['handle'] = None
 
             for curve in self._curves.values():
                 handle = curve['handle']
                 if handle is not None:
-                    self._plot.remove(handle)
+                    self._backend.remove(handle)
                     curve['handle'] = None
 
             # matplotlib 1.5 crashes if the log set is made before
             # the call to self._update()
             # TODO: Decide what is better for other backends
-            if (hasattr(self._plot, "matplotlibVersion") and
-                    self._plot.matplotlibVersion >= "1.5"):
+            if (hasattr(self._backend, "matplotlibVersion") and
+                    self._backend.matplotlibVersion >= "1.5"):
                 self._update()
-                self._plot.setXAxisLogarithmic(self._logX)
+                self._backend.setXAxisLogarithmic(self._logX)
             else:
-                self._plot.setXAxisLogarithmic(self._logX)
+                self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
         else:
-                self._plot.setXAxisLogarithmic(self._logX)
+                self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
 
         self._dirty = True
@@ -1315,27 +1315,27 @@ class Plot(object):
         if self._logY:  # Switch to log scale
             for image in self._images.values():
                 if image['handle'] is not None:
-                    self._plot.remove(image['handle'])
+                    self._backend.remove(image['handle'])
                     image['handle'] = None
 
             for curve in self._curves.values():
                 handle = curve['handle']
                 if handle is not None:
-                    self._plot.remove(handle)
+                    self._backend.remove(handle)
                     curve['handle'] = None
 
             # matplotlib 1.5 crashes if the log set is made before
             # the call to self._update()
             # TODO: Decide what is better for other backends
-            if (hasattr(self._plot, "matplotlibVersion") and
-                    self._plot.matplotlibVersion >= "1.5"):
+            if (hasattr(self._backend, "matplotlibVersion") and
+                    self._backend.matplotlibVersion >= "1.5"):
                 self._update()
-                self._plot.setYAxisLogarithmic(self._logY)
+                self._backend.setYAxisLogarithmic(self._logY)
             else:
-                self._plot.setYAxisLogarithmic(self._logY)
+                self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
         else:
-                self._plot.setYAxisLogarithmic(self._logY)
+                self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
 
         self._dirty = True
@@ -1354,20 +1354,20 @@ class Plot(object):
         self._yAutoScale = flag
 
     def isKeepDataAspectRatio(self):
-        return self._plot.isKeepDataAspectRatio()
+        return self._backend.isKeepDataAspectRatio()
 
     def keepDataAspectRatio(self, flag=True):
         """
         :param flag:  True to respect data aspect ratio
         :type flag: Boolean, default True
         """
-        self._plot.keepDataAspectRatio(flag=flag)
+        self._backend.keepDataAspectRatio(flag=flag)
         self._dirty = True
         self.resetZoom()
 
     def showGrid(self, flag=True):
         _logger.debug("Plot showGrid called")
-        self._plot.showGrid(flag)
+        self._backend.showGrid(flag)
         self._dirty = True
         self.replot()
 
@@ -1433,7 +1433,7 @@ class Plot(object):
         The list should at least contain and start by:
         ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
         """
-        return self._plot.getSupportedColormaps()
+        return self._backend.getSupportedColormaps()
 
     def _getColorAndStyle(self):
         color = self.colorList[self._colorIndex]
@@ -1457,7 +1457,7 @@ class Plot(object):
     # Misc.
 
     def getWidgetHandle(self):
-        return self._plot.getWidgetHandle()
+        return self._backend.getWidgetHandle()
 
     def notify(self, event):
         """Send an event to the listeners.
@@ -1511,9 +1511,9 @@ class Plot(object):
         if kw:
             _logger.warning('Extra parameters ignored: %s', str(kw))
 
-        return self._plot.saveGraph(filename,
-                                    fileFormat=fileFormat,
-                                    dpi=dpi)
+        return self._backend.saveGraph(filename,
+                                       fileFormat=fileFormat,
+                                       dpi=dpi)
 
     def getDataMargins(self):
         """Get the default data margin ratios, see :meth:`setDataMargins`.
@@ -1535,13 +1535,13 @@ class Plot(object):
 
     def replot(self):
         _logger.debug("replot called")
-        self._plot.replot()
+        self._backend.replot()
         self._dirty = False  # reset dirty flag
 
     def resetZoom(self, dataMargins=None):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
-        self._plot.resetZoom(dataMargins)
+        self._backend.resetZoom(dataMargins)
         self._dirty = True
         self.replot()
 
@@ -1639,7 +1639,7 @@ class Plot(object):
                   None if the data position is not in the displayed area.
         :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
         """
-        return self._plot.dataToPixel(x, y, axis=axis)
+        return self._backend.dataToPixel(x, y, axis=axis)
 
     def pixelToData(self, x=None, y=None, axis="left", check=False):
         """
@@ -1658,14 +1658,14 @@ class Plot(object):
                   None if the pixel position is not in the plot area.
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
-        return self._plot.pixelToData(x, y, axis=axis, check=check)
+        return self._backend.pixelToData(x, y, axis=axis, check=check)
 
     def getPlotBoundsInPixels(self):
         """Plot area bounds in widget coordinates in pixels.
 
         :return: bounds as a 4-tuple of int: (left, top, width, height)
         """
-        return self._plot.getPlotBoundsInPixels()
+        return self._backend.getPlotBoundsInPixels()
 
     # Interaction support
 
@@ -1706,7 +1706,7 @@ class Plot(object):
 
         :param str cursor: Name of the cursor shape
         """
-        self._plot.setCursor(cursor)
+        self._backend.setCursor(cursor)
 
     def pickMarker(self, *args, **kwargs):
         return None  # TODO
