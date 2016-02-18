@@ -35,46 +35,15 @@ import time
 import weakref
 
 from . import Colors
+from . import _utils
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
                          prepareMarkerSignal, prepareMouseSignal)
 
-from .BackendBase import (CURSOR_DEFAULT, CURSOR_POINTING, CURSOR_SIZE_HOR,
+from .BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                           CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
-
-
-# TODO move in utils
-def rgba(color, colorDict={}):
-    """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
-
-    :param str code: The color code to conver
-    :param dict colorDict: A dictionary of color name conversion to color code
-    :returns: RGBA colors as floats in [0., 1.]
-    :rtype: tuple
-    """
-    if len(color) == 4:
-        r, g, b, a = color
-        if type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
-            return r / 255., g / 255., b / 255., a / 255.
-        if type(color[3]) in [type(1.), numpy.float32, numpy.float64]:
-            assert r >= 0. and r <= 1.
-            assert g >= 0. and g <= 1.
-            assert b >= 0. and b <= 1.
-            assert a >= 0. and a <= 1.
-            return r, g, b, a
-
-    # We assume color is a string
-    if not color.startswith('#'):
-        color = colorDict[color]
-
-    assert len(color) in (7, 9) and color[0] == '#'
-    r = int(color[1:3], 16) / 255.
-    g = int(color[3:5], 16) / 255.
-    b = int(color[5:7], 16) / 255.
-    a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
-    return r, g, b, a
 
 
 # Float 32 info ###############################################################
@@ -1207,7 +1176,7 @@ class PlotInteraction(object):
             parameters = {
                 'shape': shape,
                 'label': label,
-                'color': rgba(color, Colors.COLORDICT)
+                'color': _utils.rgba(color, Colors.COLORDICT)
             }
 
             self._eventHandler.cancel()
@@ -1221,7 +1190,7 @@ class PlotInteraction(object):
         elif mode == 'zoom':
             # Ignores shape and label
             if color != 'video inverted':
-                color = rgba(color, Colors.COLORDICT)
+                color = _utils.rgba(color, Colors.COLORDICT)
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plot, color)
 

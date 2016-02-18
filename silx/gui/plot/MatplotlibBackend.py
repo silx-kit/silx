@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "18/02/2016"
 
@@ -64,9 +64,6 @@ from matplotlib import cm
 from matplotlib.widgets import Cursor
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
-from matplotlib.lines import Line2D
-from matplotlib.collections import PathCollection
-from matplotlib.text import Text
 from matplotlib.image import AxesImage
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
 
@@ -744,7 +741,6 @@ class MatplotlibBackend(BackendBase.BackendBase):
             "CALCULATED LIMITS = %f %f %f %f", xmin, xmax, ymin, ymax)
         return xmin, xmax, ymin, ymax
 
-
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         self.ax.set_xlim(xmin, xmax)
         if self.ax.yaxis_inverted():
@@ -988,18 +984,14 @@ class MatplotlibQtBackend(FigureCanvasQTAgg, MatplotlibBackend):
         if self._plot._dirty:  # Need a full redraw
             FigureCanvasQTAgg.draw(self)
             self._background = None  # Any saved background is dirty
-            self._plot._dirty = False
 
         if self._overlays or self._hadOverlays:
             # 2 cases: There are overlays, or they is just no more overlays
             self._hadOverlays = False
 
-            if self._insideResizeEventMethod:
-                # Specific case: avoid store/restore background in this case
-                # Just draw the overlay
-                # Dirty the plot to avoid the overlay to be in the background
-                self._plot._dirty = True
-            else:
+            # Specific case: called from resizeEvent:
+            # avoid store/restore background, just draw the overlay
+            if not self._insideResizeEventMethod:
                 if self._background is None:  # First store the background
                     self._background = self.copy_from_bbox(self.fig.bbox)
 

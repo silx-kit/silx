@@ -27,9 +27,9 @@
 The :class:`Plot` implements the plot API initially provided in PyMca.
 """
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/02/2016"
 
 
 from collections import OrderedDict
@@ -37,14 +37,13 @@ import logging
 import math
 import numpy
 
-from .. import qt
-
 from . import BackendBase
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
+from . import _utils
 
-from .MatplotlibBackend import MatplotlibBackend, MatplotlibQtBackend
+from .MatplotlibBackend import MatplotlibQtBackend
 
 
 _logger = logging.getLogger(__name__)
@@ -105,15 +104,6 @@ _COLORLIST = [_COLORDICT['black'],
 #
 
 
-def clamp(value, min_=0., max_=1.):  # TODO move elsewhere
-    if value < min_:
-        return min_
-    elif value > max_:
-        return max_
-    else:
-        return value
-
-
 class Plot(object):
     # give the possibility to set the default backend for all instances
     # via a class attribute.
@@ -138,7 +128,7 @@ class Plot(object):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
-                from .MatplotlibBackend import MatplotlibQtBackend as be
+                be = MatplotlibQtBackend
             # elif lowerCaseString in ["gl", "opengl"]:
             #     from .backends.OpenGLBackend import OpenGLBackend as be
             # elif lowerCaseString in ["pyqtgraph"]:
@@ -1734,8 +1724,8 @@ class Plot(object):
         :return: (x, y) in widget coord (in pixel) in the plot area
         """
         left, top, width, height = self.getPlotBoundsInPixels()
-        xPlot = clamp(x, left, left + width)
-        yPlot = clamp(y, top, top + height)
+        xPlot = _utils.clamp(x, left, left + width)
+        yPlot = _utils.clamp(y, top, top + height)
         return xPlot, yPlot
 
     def onMousePress(self, xPixel, yPixel, btn):
@@ -1835,6 +1825,9 @@ class Plot(object):
         if kwargs:
             _logger.warning('setDrawModeEnabled ignores additional parameters')
 
+        if color is None:
+            color = 'black'
+
         if flag:
             self.setInteractiveMode('draw', shape=shape,
                                     label=label, color=color)
@@ -1867,6 +1860,9 @@ class Plot(object):
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
                      one of the predefined color names defined in Colors.py
         """
+        if color is None:
+            color = 'black'
+
         if flag:
             self.setInteractiveMode('zoom', color=color)
         elif self.getInteractiveMode()['mode'] == 'zoom':

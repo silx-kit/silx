@@ -24,9 +24,9 @@
 # ###########################################################################*/
 """Dictionary of common colors."""
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis"]
+__authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/02/2016"
 
 
 COLORDICT = {}

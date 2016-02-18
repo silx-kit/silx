@@ -24,7 +24,7 @@
 # ############################################################################*/
 """Matplotlib computationally modest image class."""
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "16/02/2016"
 

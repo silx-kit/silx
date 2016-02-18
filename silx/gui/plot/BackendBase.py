@@ -29,9 +29,9 @@ It documents the Plot backend API.
 This API is a simplified version of PyMca PlotBackend API.
 """
 
-__authors__ = ["V.A. Sole - ESRF Data Analysis", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/02/2016"
 
 
 import weakref
