@@ -61,10 +61,16 @@ sftext = """#F /tmp/sf.dat
 #D Thu Feb 11 09:54:36 2016
 
 #S 1 aaaaaa
+#@MCADEV 1
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
 #N 2
 #L uno  duo
 1 2
+@A 0 1 2
 3 4
+@A 3 4 5
 """
 
 
@@ -215,7 +221,7 @@ class TestSpecFile(unittest.TestCase):
     def test_absence_of_file_header(self):
         """We expect Scan.file_header_lines to be an empty list
 
-        Important note: a #S line needs to be preceded  by an empty line,
+        Important note: a #S line needs to be preceded  by an empty line,
         so a SpecFile without a file header needs to start with an empty line.
 
         Otherwise, this test fails because SfFileHeader() fills
@@ -232,8 +238,9 @@ class TestSpecFile(unittest.TestCase):
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
-        raise NotImplementedError("Need to find a SpecFile example with a MCA")
-
+        self.assertEqual(len(self.scan1_2.mca), 2)
+        self.assertEqual(self.scan1_2.mca[1][2], 5)
+        self.assertEqual(sum(self.scan1_2.mca[1]), 12)
 
 def suite():
     test_suite = unittest.TestSuite()
