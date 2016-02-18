@@ -24,17 +24,15 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "18/02/2016"
 
 
 import unittest
 
-from ..plot.test import suite as test_plot_suite
-from .test_qt import suite as test_qt_suite
+from .testInteraction import suite as testInteractionSuite
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_qt_suite())
-    test_suite.addTest(test_plot_suite())
+    test_suite.addTest(testInteractionSuite())
     return test_suite

@@ -27,14 +27,17 @@ __license__ = "MIT"
 __date__ = "16/02/2016"
 
 
-import unittest
-
-from ..plot.test import suite as test_plot_suite
-from .test_qt import suite as test_qt_suite
+from numpy.distutils.misc_util import Configuration
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_qt_suite())
-    test_suite.addTest(test_plot_suite())
-    return test_suite
+def configuration(parent_package='', top_path=None):
+    config = Configuration('plot', parent_package, top_path)
+    config.add_subpackage('test')
+
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+
+    setup(configuration=configuration)
