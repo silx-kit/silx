@@ -77,7 +77,7 @@ class TestSpecFile(unittest.TestCase):
         else:
             os.write(fd, bytes(sftext, 'utf-8'))
         os.close(fd)
-        self.fname =tmp_path
+        self.fname = tmp_path
         self.sf = SpecFile(self.fname)
         self.scan1 = self.sf[0]
         self.scan1_2 = self.sf["1.2"]
@@ -89,7 +89,7 @@ class TestSpecFile(unittest.TestCase):
         else:
             os.write(fd2, bytes(sftext[372:-96], 'utf-8'))
         os.close(fd2)
-        self.fname2 =tmp_path2
+        self.fname2 = tmp_path2
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
 
@@ -193,8 +193,6 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
         self.assertEqual(self.scan1.data.shape, (4, 3))
-        self.assertEqual(self.scan1.nlines, 4)
-        self.assertEqual(self.scan1.ncolumns, 3)
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
     def test_data_column_by_name(self):
@@ -229,7 +227,8 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_no_fhdr.file_header_lines), 0)
 
     def test_mca(self):
-        raise NotImplementedError
+        self.assertEqual(len(self.scan1.mca), 0)
+        raise NotImplementedError("Need to find a SpecFile example with a MCA")
 
 
 def suite():
