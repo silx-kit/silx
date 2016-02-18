@@ -80,8 +80,9 @@ __date__ = "18/02/2016"
 
 
 import os.path
-import re
 import numpy
+import re
+import sys
 
 cimport numpy
 cimport cython
@@ -320,6 +321,13 @@ class Scan():
         """
         return self._specfile.motor_position_by_name(self.index, name)
 
+def string_to_char_star(string_):
+    """Convert a string to ASCII encoded bytes if using python3"""
+    if sys.version.startswith("3"):
+        return bytes(string_, "ascii")
+    return string_
+
+
 cdef class SpecFile(object):
     """
     Class wrapping the C SpecFile library.
@@ -338,7 +346,9 @@ cdef class SpecFile(object):
     def __cinit__(self, filename):
         cdef int error = SF_ERR_NO_ERRORS
         self.__open_failed = 0
+
         if os.path.isfile(filename):
+            filename = string_to_char_star(filename)
             self.handle =  SfOpen(filename, &error)
         else:
             self.__open_failed = 1
@@ -354,7 +364,7 @@ cdef class SpecFile(object):
         
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""
-        #SfClose creates a segmentation fault if file failed to open
+        #SfClose makes a segmentation fault if file failed to open
         if not self.__open_failed:            
             if SfClose(self.handle):
                 print("Error while closing")
@@ -408,7 +418,7 @@ cdef class SpecFile(object):
         :param code: Error code
         :type code: int
         """
-        return (<bytes> SfError(error_code)).encode('utf-8)') 
+        return (<bytes> SfError(error_code)).decode()
     
     def _handle_error(self, error_code):
         """Inspect error code, raise adequate error type if necessary.
@@ -573,6 +583,8 @@ cdef class SpecFile(object):
             long i, nlines
             int error = SF_ERR_NO_ERRORS
 
+        label = string_to_char_star(label)
+
         nlines = SfDataColByName(self.handle,
                                  scan_index + 1,
                                  label,
@@ -613,7 +625,7 @@ cdef class SpecFile(object):
         
         lines_list = []
         for i in range(nlines):
-            line =  str(<bytes>lines[i].encode('utf-8'))
+            line =  <bytes>lines[i].decode()
             lines_list.append(line)
                 
         freeArrNZ(<void***>&lines, nlines)
@@ -648,7 +660,7 @@ cdef class SpecFile(object):
 
         lines_list = []
         for i in range(nlines):
-            line =  str(<bytes>lines[i].encode('utf-8'))
+            line =  <bytes>lines[i].decode()
             lines_list.append(line)
                 
         freeArrNZ(<void***>&lines, nlines)
@@ -693,7 +705,7 @@ cdef class SpecFile(object):
                                      &error)
         self._handle_error(error)
 
-        return str(s_record.encode('utf-8)'))
+        return s_record.decode()
     
     def date(self, scan_index):  
         """Return date from ``#D`` line
@@ -708,12 +720,12 @@ cdef class SpecFile(object):
         cdef: 
             int error = SF_ERR_NO_ERRORS
             
-        d_record = <bytes> SfDate(self.handle, 
-                                  scan_index + 1,
-                                  &error)
+        d_line = <bytes> SfDate(self.handle,
+                                scan_index + 1,
+                                &error)
         self._handle_error(error)
         
-        return str(d_record.encode('utf-8'))
+        return d_line.decode()
     
     def labels(self, scan_index):
         """Return all labels from ``#L`` line
@@ -737,7 +749,7 @@ cdef class SpecFile(object):
 
         labels_list = []
         for i in range(nlabels):
-            labels_list.append(str(<bytes>all_labels[i].encode('utf-8')))
+            labels_list.append(<bytes>all_labels[i].decode())
             
         freeArrNZ(<void***>&all_labels, nlabels)
         return labels_list
@@ -764,7 +776,7 @@ cdef class SpecFile(object):
         
         motors_list = []
         for i in range(nmotors):
-            motors_list.append(str(<bytes>all_motors[i].encode('utf-8')))
+            motors_list.append(<bytes>all_motors[i].decode())
         
         freeArrNZ(<void***>&all_motors, nmotors)
         return motors_list
@@ -808,6 +820,8 @@ cdef class SpecFile(object):
         """
         cdef:
             int error = SF_ERR_NO_ERRORS
+
+        name = string_to_char_star(name)
 
         motor_position = SfMotorPosByName(self.handle,
                                           scan_index + 1,
