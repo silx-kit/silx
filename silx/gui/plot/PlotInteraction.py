@@ -41,12 +41,8 @@ from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
                          prepareHoverSignal, prepareImageSignal,
                          prepareMarkerSignal, prepareMouseSignal)
 
-
-CURSOR_DEFAULT = 'default'
-CURSOR_POINTING = 'pointing'
-CURSOR_SIZE_HOR = 'size horizontal'
-CURSOR_SIZE_VER = 'size vertical'
-CURSOR_SIZE_ALL = 'size all'
+from .BackendBase import (CURSOR_DEFAULT, CURSOR_POINTING, CURSOR_SIZE_HOR,
+                          CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
 
 # TODO move in utils

@@ -37,6 +37,14 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 import weakref
 
 
+# Names for setCursor
+CURSOR_DEFAULT = 'default'
+CURSOR_POINTING = 'pointing'
+CURSOR_SIZE_HOR = 'size horizontal'
+CURSOR_SIZE_VER = 'size vertical'
+CURSOR_SIZE_ALL = 'size all'
+
+
 class BackendBase(object):
     """Class defining the API a backend of the Plot should provide."""
 
@@ -225,28 +233,36 @@ class BackendBase(object):
 
     # Interaction methods
 
-    # TODO write proper arguments, move to Plot.py?
-    def isZoomModeEnabled(self, *args, **kwargs):
-        raise NotImplementedError()
+    def setCursor(self, cursor):
+        """Set the cursor shape.
 
-    def setZoomModeEnabled(self, *args, **kwargs):
-        raise NotImplementedError()
+        To override in interactive backends.
 
-    def isDrawModeEnabled(self, *args, **kwargs):
-        raise NotImplementedError()
+        :param str cursor: Name of the cursor shape or None
+        """
+        pass
 
-    def setDrawModeEnabled(self, *args, **kwargs):
-        raise NotImplementedError()
+    def setGraphCursor(self, flag, color, linewidth, linestyle):
+        """Toggle the display of a crosshair cursor and set its attributes.
 
-    def getDrawMode(self, *args, **kwargs):
-        raise NotImplementedError()
+        To override in interactive backends.
 
-    def getGraphCursor(self):
-        raise NotImplementedError()
+        :param bool flag: Toggle the display of a crosshair cursor.
+        :param color: The color to use for the crosshair.
+        :type color: A string (either a predefined color name in Colors.py
+                    or "#RRGGBB")) or a 4 columns unsigned byte array.
+        :param int linewidth: The width of the lines of the crosshair.
+        :param linestyle: Type of line::
 
-    def setGraphCursor(self, flag=True, color='black',
-                       linewidth=1, linestyle='-'):
-        raise NotImplementedError()
+                - ' ' no line
+                - '-' solid line
+                - '--' dashed line
+                - '-.' dash-dot line
+                - ':' dotted line
+
+        :type linestyle: None or one of the predefined styles.
+        """
+        pass
 
     # Active curve
 
@@ -264,12 +280,8 @@ class BackendBase(object):
         """Return the widget this backend is drawing to."""
         raise NotImplementedError()
 
-    def replot(self, overlayOnly):
-        """Redraw the plot.
-
-        :param bool overlayOnly: True to redraw overlay only,
-                                 False to redraw everything.
-        """
+    def replot(self):
+        """Redraw the plot."""
         raise NotImplementedError()
 
     def saveGraph(self, fileName, fileFormat, dpi=None):
@@ -455,8 +467,6 @@ class BackendBase(object):
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
         raise NotImplementedError()
-
-    # Interaction support
 
     def getPlotBoundsInPixels(self):
         """Plot area bounds in widget coordinates in pixels.

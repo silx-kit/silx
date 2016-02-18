@@ -30,8 +30,18 @@ __date__ = "18/02/2016"
 
 
 import logging
+import sys
 
 import numpy
+
+
+logging.basicConfig()
+_logger = logging.getLogger(__name__)
+
+if 'matplotlib' in sys.modules:
+    _logger.warning(
+        'matplotlib already loaded, setting its backend may not work')
+
 
 from .. import qt
 
@@ -40,18 +50,15 @@ import matplotlib
 if qt.BINDING == 'PySide':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
     matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import \
-        FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 
 elif qt.BINDING == 'PyQt4':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import \
-        FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
 
 elif qt.BINDING == 'PyQt5':
     matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import \
-        FigureCanvasQTAgg as FigureCanvas
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from matplotlib import cm
 from matplotlib.widgets import Cursor
@@ -65,27 +72,22 @@ from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
 
 from . import _utils
 from .ModestImage import ModestImage
-from .BackendBase import BackendBase
+from . import BackendBase
 
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)
+class MatplotlibBackend(BackendBase.BackendBase):
+    """Generic Matplotlib backend without a FigureCanvas.
 
+    This class can be used to save a plot to a file.
+    For interactive on screen plot, see :class:`MatplotlibQtBackend`.
 
-# blitting enabled by default
-# it provides faster response at the cost of missing minor updates
-# during movement (only the bounding box of the moving object is updated)
-# For instance, when moving a marker, the label is not updated during the
-# movement.
-BLITTING = True
+    See :class:`BackendBase.BackendBase` for public API documentation.
+    """
 
+    def __init__(self, plot, parent=None):
+        super(MatplotlibBackend, self).__init__(plot, parent)
 
-class MatplotlibGraph(FigureCanvas):
-    def __init__(self, parent=None, **kw):
         self.fig = Figure()
-        self._originalCursorShape = qt.Qt.ArrowCursor
-        FigureCanvas.__init__(self, self.fig)
-
         self.fig.set_facecolor("w")
 
         self.ax = self.fig.add_axes([.15, .15, .75, .75], label="left")
@@ -100,391 +102,19 @@ class MatplotlibGraph(FigureCanvas):
         self.ax.set_axis_bgcolor('none')
         self.fig.sca(self.ax)
 
-        # This should be independent of Qt
-        FigureCanvas.setSizePolicy(
-            self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
-
-        self.__picking = False
-        self._background = None
-        self._zoomStack = []
-
-        # info text
-        self._infoText = None
-
-        # drawingmode handling
-        self.__drawing = False
-        self._drawingPatch = None
-        self._drawModePatch = 'line'
-
-    def onPick(self, event):
-        # Unfortunately only the artists on the top axes
-        # can be picked -> A legend handling widget is
-        # needed
-        middleButton = 2
-        rightButton = 3
-        button = event.mouseevent.button
-
-        if button == middleButton:
-            # do nothing with the midle button
-            return
-        elif button == rightButton:
-            button = "right"
-        else:
-            button = "left"
-
-        if self._drawModeEnabled:
-            # forget about picking or zooming
-            # should one disconnect when setting the mode?
-            return
-
-        self.__picking = False
-        self._pickingInfo = {}
-
-        if isinstance(event.artist, Line2D) or \
-           isinstance(event.artist, PathCollection):
-            # we only handle curves and markers for the time being
-            self.__picking = True
-            artist = event.artist
-            label = artist.get_label()
-            ind = event.ind
-            self._pickingInfo['artist'] = artist
-            self._pickingInfo['event_ind'] = ind
-
-            if label.startswith("__MARKER__"):
-                label = label[10:]
-                self._pickingInfo['type'] = 'marker'
-                self._pickingInfo['label'] = label
-                if 'draggable' in artist._plot_options:
-                    self._pickingInfo['draggable'] = True
-                else:
-                    self._pickingInfo['draggable'] = False
-                if 'selectable' in artist._plot_options:
-                    self._pickingInfo['selectable'] = True
-                else:
-                    self._pickingInfo['selectable'] = False
-                if hasattr(artist, "_infoText"):
-                    self._pickingInfo['infoText'] = artist._infoText
-                else:
-                    self._pickingInfo['infoText'] = None
-
-            elif isinstance(event.artist, PathCollection):
-                # almost identical to line 2D
-                self._pickingInfo['type'] = 'curve'
-                self._pickingInfo['label'] = label
-                self._pickingInfo['artist'] = artist
-                data = artist.get_offsets()
-                xdata = data[:, 0]
-                ydata = data[:, 1]
-                self._pickingInfo['xdata'] = xdata[ind]
-                self._pickingInfo['ydata'] = ydata[ind]
-                self._pickingInfo['infoText'] = None
-
-            else:
-                # line2D
-                self._pickingInfo['type'] = 'curve'
-                self._pickingInfo['label'] = label
-                self._pickingInfo['artist'] = artist
-                xdata = artist.get_xdata()
-                ydata = artist.get_ydata()
-                self._pickingInfo['xdata'] = xdata[ind]
-                self._pickingInfo['ydata'] = ydata[ind]
-                self._pickingInfo['infoText'] = None
-
-            if self._pickingInfo['infoText'] is None:
-                if self._infoText is None:
-                    self._infoText = self.ax.text(event.mouseevent.xdata,
-                                                  event.mouseevent.ydata,
-                                                  label)
-                else:
-                    self._infoText.set_position((event.mouseevent.xdata,
-                                                event.mouseevent.ydata))
-                    self._infoText.set_text(label)
-                self._pickingInfo['infoText'] = self._infoText
-
-            self._pickingInfo['infoText'].set_visible(True)
-
-            logger.debug("%s %s selected",
-                         self._pickingInfo['type'].upper(),
-                         self._pickingInfo['label'])
-
-        elif isinstance(event.artist, Rectangle):
-            patch = event.artist
-            logger.debug('onPick patch: %s', str(patch.get_path()))
-
-        elif isinstance(event.artist, Text):
-            text = event.artist
-            logger.debug('onPick text: %s', text.get_text())
-
-        elif isinstance(event.artist, AxesImage):
-            self.__picking = True
-            artist = event.artist
-            self._pickingInfo['artist'] = artist
-            label = artist.get_label()
-            self._pickingInfo['type'] = 'image'
-            self._pickingInfo['label'] = label
-            self._pickingInfo['draggable'] = False
-            self._pickingInfo['selectable'] = False
-            if hasattr(artist, "_plot_options"):
-                if 'draggable' in artist._plot_options:
-                    self._pickingInfo['draggable'] = True
-                else:
-                    self._pickingInfo['draggable'] = False
-                if 'selectable' in artist._plot_options:
-                    self._pickingInfo['selectable'] = True
-                else:
-                    self._pickingInfo['selectable'] = False
-        else:
-            logger.warning("unhandled event %s", str(event.artist))
-
-    def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        self.ax.set_xlim(xmin, xmax)
-        if ymax < ymin:
-            ymin, ymax = ymax, ymin
-        if self.ax.yaxis_inverted():
-            self.ax.set_ylim(ymax, ymin)
-        else:
-            self.ax.set_ylim(ymin, ymax)
-
-        if y2min is not None and y2max is not None:
-            if y2max < y2min:
-                y2min, y2max = y2max, y2min
-            if self.ax2.yaxis_inverted():
-                bottom, top = y2max, y2min
-            else:
-                bottom, top = y2min, y2max
-            self.ax2.set_ylim(bottom, top)
-
-    def resetZoom(self, dataMargins=None):
-        xmin, xmax, ymin, ymax = self.getDataLimits('left')
-        if hasattr(self.ax2, "get_visible"):
-            if self.ax2.get_visible():
-                xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
-            else:
-                xmin2 = None
-                xmax2 = None
-        else:
-            xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
-
-        if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
-            xmin = min(xmin, xmin2)
-            xmax = max(xmax, xmax2)
-
-        # Add margins around data inside the plot area
-        if xmin2 is None:
-            newLimits = _utils.addMarginsToLimits(
-                dataMargins,
-                self.ax.get_xscale() == 'log', self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax)
-
-            self.setLimits(*newLimits)
-        else:
-            newLimits = _utils.addMarginsToLimits(
-                dataMargins,
-                self.ax.get_xscale() == 'log', self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax, ymin2, ymax2)
-
-            self.setLimits(*newLimits)
-
-        self._zoomStack = []
-
-    def getDataLimits(self, axesLabel='left'):
-        if axesLabel == 'right':
-            axes = self.ax2
-        else:
-            axes = self.ax
-        logger.debug("CALCULATING limits %s", axes.get_label())
-        xmin = None
-        for line2d in axes.lines:
-            label = line2d.get_label()
-            if label.startswith("__MARKER__"):
-                # it is a marker
-                continue
-            lineXMin = None
-            if hasattr(line2d, "_plot_info"):
-                if line2d._plot_info["axes"] != axesLabel:
-                    continue
-                if "xmin" in line2d._plot_info:
-                    lineXMin = line2d._plot_info["xmin"]
-                    lineXMax = line2d._plot_info["xmax"]
-                    lineYMin = line2d._plot_info["ymin"]
-                    lineYMax = line2d._plot_info["ymax"]
-            if lineXMin is None:
-                x = line2d.get_xdata()
-                y = line2d.get_ydata()
-                if not len(x) or not len(y):
-                    continue
-                lineXMin = numpy.nanmin(x)
-                lineXMax = numpy.nanmax(x)
-                lineYMin = numpy.nanmin(y)
-                lineYMax = numpy.nanmax(y)
-            if xmin is None:
-                xmin = lineXMin
-                xmax = lineXMax
-                ymin = lineYMin
-                ymax = lineYMax
-                continue
-            xmin = min(xmin, lineXMin)
-            xmax = max(xmax, lineXMax)
-            ymin = min(ymin, lineYMin)
-            ymax = max(ymax, lineYMax)
-
-        for line2d in axes.collections:
-            label = line2d.get_label()
-            if label.startswith("__MARKER__"):
-                # it is a marker
-                continue
-            lineXMin = None
-            if hasattr(line2d, "_plot_info"):
-                if line2d._plot_info["axes"] != axesLabel:
-                    continue
-                if "xmin" in line2d._plot_info:
-                    lineXMin = line2d._plot_info["xmin"]
-                    lineXMax = line2d._plot_info["xmax"]
-                    lineYMin = line2d._plot_info["ymin"]
-                    lineYMax = line2d._plot_info["ymax"]
-            if lineXMin is None:
-                logger.warning("CANNOT CALCULATE LIMITS")
-                continue
-            if xmin is None:
-                xmin = lineXMin
-                xmax = lineXMax
-                ymin = lineYMin
-                ymax = lineYMax
-                continue
-            xmin = min(xmin, lineXMin)
-            xmax = max(xmax, lineXMax)
-            ymin = min(ymin, lineYMin)
-            ymax = max(ymax, lineYMax)
-
-        for artist in axes.images:
-            x0, x1, y0, y1 = artist.get_extent()
-            if (xmin is None):
-                xmin = x0
-                xmax = x1
-                ymin = min(y0, y1)
-                ymax = max(y0, y1)
-            xmin = min(xmin, x0)
-            xmax = max(xmax, x1)
-            ymin = min(ymin, y0)
-            ymax = max(ymax, y1)
-
-        for artist in axes.artists:
-            label = artist.get_label()
-            if label.startswith("__IMAGE__"):
-                if hasattr(artist, 'get_image_extent'):
-                    x0, x1, y0, y1 = artist.get_image_extent()
-                else:
-                    x0, x1, y0, y1 = artist.get_extent()
-                if (xmin is None):
-                    xmin = x0
-                    xmax = x1
-                    ymin = min(y0, y1)
-                    ymax = max(y0, y1)
-                ymin = min(ymin, y0, y1)
-                ymax = max(ymax, y1, y0)
-                xmin = min(xmin, x0)
-                xmax = max(xmax, x1)
-
-        if xmin is None:
-            xmin = 0
-            xmax = 1
-            ymin = 0
-            ymax = 1
-            if axesLabel == 'right':
-                return None, None, None, None
-
-        xSize = float(xmax - xmin)
-        ySize = float(ymax - ymin)
-        A = self.ax.get_aspect()
-        if A != 'auto':
-            figW, figH = self.ax.get_figure().get_size_inches()
-            figAspect = figH / figW
-
-            dataRatio = (ySize / xSize) * A
-
-            y_expander = dataRatio - figAspect
-            # If y_expander > 0, the dy/dx viewLim ratio needs to increase
-            if abs(y_expander) < 0.005:
-                # good enough
-                pass
-            else:
-                # this works for any data ratio
-                if y_expander < 0:
-                    deltaY = xSize * (figAspect / A) - ySize
-                    yc = 0.5 * (ymin + ymax)
-                    ymin = yc - (ySize + deltaY) * 0.5
-                    ymax = yc + (ySize + deltaY) * 0.5
-                else:
-                    deltaX = ySize * (A / figAspect) - xSize
-                    xc = 0.5 * (xmin + xmax)
-                    xmin = xc - (xSize + deltaX) * 0.5
-                    xmax = xc + (xSize + deltaX) * 0.5
-        logger.debug("CALCULATED LIMITS = %f %f %f %f", xmin, xmax, ymin, ymax)
-        return xmin, xmax, ymin, ymax
-
-    def resizeEvent(self, ev):
-        # we have to get rid of the copy of the underlying image
-        self._background = None
-        FigureCanvas.resizeEvent(self, ev)
-
-    def draw(self):
-        logger.debug("Draw called")
-        super(MatplotlibGraph, self).draw()
-
-
-class MatplotlibBackend(BackendBase):
-    """Matplotlib backend.
-
-    See :class:`Backend.Backend` for the documentation of the public API.
-    """
-
-    def __init__(self, plot, parent=None):
-        super(MatplotlibBackend, self).__init__(plot, parent)
-
         self._overlays = set()
+        self._hadOverlays = False
         self._background = None
 
-        self.graph = MatplotlibGraph(parent)
-        self.ax2 = self.graph.ax2
-        self.ax = self.graph.ax
-
-        self._parent = parent
         self._colormaps = {}
 
         self._graphCursor = None
-        self._graphCursorConfiguration = None
         self.matplotlibVersion = matplotlib.__version__
 
         self.setGraphXLimits(0., 100.)
         self.setGraphYLimits(0., 100.)
 
         self._enableAxis('right', False)
-
-        self.graph.fig.canvas.mpl_connect('button_press_event',
-                                          self._onMousePress)
-        self.graph.fig.canvas.mpl_connect('button_release_event',
-                                          self._onMouseRelease)
-        self.graph.fig.canvas.mpl_connect('motion_notify_event',
-                                          self._onMouseMove)
-        self.graph.fig.canvas.mpl_connect('scroll_event',
-                                          self._onMouseWheel)
-
-    # TODO convert from bottom to top of canvas
-    _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
-
-    def _onMousePress(self, event):
-        self._plot.onMousePress(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
-
-    def _onMouseMove(self, event):
-        self._plot.onMouseMove(event.x, event.y)
-
-    def _onMouseRelease(self, event):
-        self._plot.onMouseRelease(
-            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
-
-    def _onMouseWheel(self, event):
-        self._plot.onMouseWheel(event.x, event.y, event.step)
 
     # Add methods
 
@@ -632,10 +262,10 @@ class MatplotlibBackend(BackendBase):
                         vmax = colormap['vmax']
 
                     if vmin is None or vmax is None:
-                        logger.warning('Log colormap with negative bounds, ' +
-                                       'changing bounds to positive ones.')
+                        _logger.warning('Log colormap with negative bounds, ' +
+                                        'changing bounds to positive ones.')
                     elif vmin > vmax:
-                        logger.warning('Colormap bounds are inverted.')
+                        _logger.warning('Colormap bounds are inverted.')
                         vmin, vmax = vmax, vmin
 
                 # Set unset/negative bounds to positive bounds
@@ -659,7 +289,7 @@ class MatplotlibBackend(BackendBase):
                     vmin = colormap['vmin']
                     vmax = colormap['vmax']
                     if vmin > vmax:
-                        logger.warning('Colormap bounds are inverted.')
+                        _logger.warning('Colormap bounds are inverted.')
                         vmin, vmax = vmax, vmin
 
                 norm = Normalize(vmin, vmax)
@@ -703,12 +333,12 @@ class MatplotlibBackend(BackendBase):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
-        if shape == "hline":  # TODO this code was not active before
+        if shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
             item = self.ax.axhline(y, label=legend, color=color)
 
-        elif shape == "vline":  # TODO this code was not active before
+        elif shape == "vline":
             if hasattr(x, "__len__"):
                 x = x[-1]
             item = self.ax.axvline(x, label=legend, color=color)
@@ -858,20 +488,13 @@ class MatplotlibBackend(BackendBase):
             item._infoText.remove()
             item._infoText = None
         self._overlays.discard(item)
+        if not self._overlays:
+            self._hadOverlays = True
         item.remove()
 
     # Interaction methods
 
-    def getGraphCursor(self):
-        if self._graphCursor is None or not self._graphCursor.visible:
-            return None
-        else:
-            return self._graphCursorConfiguration
-
-    def setGraphCursor(self, flag=True, color='black',
-                       linewidth=1, linestyle='-'):
-        self._graphCursorConfiguration = color, linewidth, linestyle
-
+    def setGraphCursor(self, flag, color, linewidth, linestyle):
         if flag:
             if self._graphCursor is None:
                 self._graphCursor = Cursor(self.ax,
@@ -892,7 +515,7 @@ class MatplotlibBackend(BackendBase):
     # Misc.
 
     def getWidgetHandle(self):
-        return self.graph
+        return self.fig.canvas
 
     def _enableAxis(self, axis, flag=True):
         """Show/hide Y axis
@@ -904,35 +527,23 @@ class MatplotlibBackend(BackendBase):
         axes = self.ax2 if axis == 'right' else self.ax
         axes.get_yaxis().set_visible(flag)
 
-    def replot(self, overlayOnly):
+    def replot(self):
+        """Do not perform rendering.
+
+        Override in subclass to actually draw something.
+        """
         # TODO images, markers? scatter plot? move in remove?
         # Right Y axis only support curve for now
         # Hide right Y axis if no line is present
         if not self.ax2.lines:
             self._enableAxis('right', False)
 
-        if not overlayOnly:  # Need a full redraw
-            self.graph.draw()
-            self._background = None  # Any saved background is dirty
-
-        if self._overlays or overlayOnly:
-            # 2 cases: There are overlays, or they is just no more overlays
-            if self._background is None:  # First store the background
-                self._background = self.graph.fig.canvas.copy_from_bbox(
-                    self.graph.fig.bbox)
-
-            self.graph.fig.canvas.restore_region(self._background)
-            # This assume that items are only on left/bottom Axes
-            for item in self._overlays:
-                self.ax.draw_artist(item)
-            self.graph.fig.canvas.blit(self.ax.bbox)
-
     def saveGraph(self, fileName, fileFormat, dpi=None):
         # fileName can be also a StringIO or file instance
         if dpi is not None:
-            self.ax.figure.savefig(fileName, format=fileFormat, dpi=dpi)
+            self.fig.savefig(fileName, format=fileFormat, dpi=dpi)
         else:
-            self.ax.figure.savefig(fileName, format=fileFormat)
+            self.fig.savefig(fileName, format=fileFormat)
 
     # Graph labels
 
@@ -948,23 +559,191 @@ class MatplotlibBackend(BackendBase):
     # Graph limits
 
     def resetZoom(self, dataMargins=None):
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits()
         xAuto = self._plot.isXAxisAutoScale()
         yAuto = self._plot.isYAxisAutoScale()
 
-        if xAuto and yAuto:
-            self.graph.resetZoom(dataMargins)
-        elif yAuto:
-            self.graph.resetZoom(dataMargins)
-            self.setGraphXLimits(xmin, xmax)
-        elif xAuto:
-            self.graph.resetZoom(dataMargins)
-            self.setGraphYLimits(ymin, ymax)
-        else:
-            logger.debug("Nothing to autoscale")
+        if not xAuto and not yAuto:
+            _logger.debug("Nothing to autoscale")
+        else:  # Some axes to autoscale
+            xmin, xmax = self.getGraphXLimits()
+            ymin, ymax = self.getGraphYLimits()
 
-        self._zoomStack = []
+            self._resetZoom(dataMargins)
+
+            if not xAuto and yAuto:
+                self.setGraphXLimits(xmin, xmax)
+            elif xAuto and not yAuto:
+                self.setGraphYLimits(ymin, ymax)
+
+    def _resetZoom(self, dataMargins=None):
+        xmin, xmax, ymin, ymax = self.getDataLimits('left')
+        if hasattr(self.ax2, "get_visible"):
+            if self.ax2.get_visible():
+                xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
+            else:
+                xmin2 = None
+                xmax2 = None
+        else:
+            xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
+
+        if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
+            xmin = min(xmin, xmin2)
+            xmax = max(xmax, xmax2)
+
+        # Add margins around data inside the plot area
+        if xmin2 is None:
+            newLimits = _utils.addMarginsToLimits(
+                dataMargins,
+                self.ax.get_xscale() == 'log',
+                self.ax.get_yscale() == 'log',
+                xmin, xmax, ymin, ymax)
+
+            self.setLimits(*newLimits)
+        else:
+            newLimits = _utils.addMarginsToLimits(
+                dataMargins,
+                self.ax.get_xscale() == 'log',
+                self.ax.get_yscale() == 'log',
+                xmin, xmax, ymin, ymax, ymin2, ymax2)
+
+            self.setLimits(*newLimits)
+
+    def getDataLimits(self, axesLabel='left'):
+        if axesLabel == 'right':
+            axes = self.ax2
+        else:
+            axes = self.ax
+        _logger.debug("CALCULATING limits %s", axes.get_label())
+        xmin = None
+        for line2d in axes.lines:
+            label = line2d.get_label()
+            if label.startswith("__MARKER__"):
+                # it is a marker
+                continue
+            lineXMin = None
+            if hasattr(line2d, "_plot_info"):
+                if line2d._plot_info["axes"] != axesLabel:
+                    continue
+                if "xmin" in line2d._plot_info:
+                    lineXMin = line2d._plot_info["xmin"]
+                    lineXMax = line2d._plot_info["xmax"]
+                    lineYMin = line2d._plot_info["ymin"]
+                    lineYMax = line2d._plot_info["ymax"]
+            if lineXMin is None:
+                x = line2d.get_xdata()
+                y = line2d.get_ydata()
+                if not len(x) or not len(y):
+                    continue
+                lineXMin = numpy.nanmin(x)
+                lineXMax = numpy.nanmax(x)
+                lineYMin = numpy.nanmin(y)
+                lineYMax = numpy.nanmax(y)
+            if xmin is None:
+                xmin = lineXMin
+                xmax = lineXMax
+                ymin = lineYMin
+                ymax = lineYMax
+                continue
+            xmin = min(xmin, lineXMin)
+            xmax = max(xmax, lineXMax)
+            ymin = min(ymin, lineYMin)
+            ymax = max(ymax, lineYMax)
+
+        for line2d in axes.collections:
+            label = line2d.get_label()
+            if label.startswith("__MARKER__"):
+                # it is a marker
+                continue
+            lineXMin = None
+            if hasattr(line2d, "_plot_info"):
+                if line2d._plot_info["axes"] != axesLabel:
+                    continue
+                if "xmin" in line2d._plot_info:
+                    lineXMin = line2d._plot_info["xmin"]
+                    lineXMax = line2d._plot_info["xmax"]
+                    lineYMin = line2d._plot_info["ymin"]
+                    lineYMax = line2d._plot_info["ymax"]
+            if lineXMin is None:
+                _logger.warning("CANNOT CALCULATE LIMITS")
+                continue
+            if xmin is None:
+                xmin = lineXMin
+                xmax = lineXMax
+                ymin = lineYMin
+                ymax = lineYMax
+                continue
+            xmin = min(xmin, lineXMin)
+            xmax = max(xmax, lineXMax)
+            ymin = min(ymin, lineYMin)
+            ymax = max(ymax, lineYMax)
+
+        for artist in axes.images:
+            x0, x1, y0, y1 = artist.get_extent()
+            if (xmin is None):
+                xmin = x0
+                xmax = x1
+                ymin = min(y0, y1)
+                ymax = max(y0, y1)
+            xmin = min(xmin, x0)
+            xmax = max(xmax, x1)
+            ymin = min(ymin, y0)
+            ymax = max(ymax, y1)
+
+        for artist in axes.artists:
+            label = artist.get_label()
+            if label.startswith("__IMAGE__"):
+                if hasattr(artist, 'get_image_extent'):
+                    x0, x1, y0, y1 = artist.get_image_extent()
+                else:
+                    x0, x1, y0, y1 = artist.get_extent()
+                if (xmin is None):
+                    xmin = x0
+                    xmax = x1
+                    ymin = min(y0, y1)
+                    ymax = max(y0, y1)
+                ymin = min(ymin, y0, y1)
+                ymax = max(ymax, y1, y0)
+                xmin = min(xmin, x0)
+                xmax = max(xmax, x1)
+
+        if xmin is None:
+            xmin = 0
+            xmax = 1
+            ymin = 0
+            ymax = 1
+            if axesLabel == 'right':
+                return None, None, None, None
+
+        xSize = float(xmax - xmin)
+        ySize = float(ymax - ymin)
+        A = self.ax.get_aspect()
+        if A != 'auto':
+            figW, figH = self.fig.get_size_inches()
+            figAspect = figH / figW
+
+            dataRatio = (ySize / xSize) * A
+
+            y_expander = dataRatio - figAspect
+            # If y_expander > 0, the dy/dx viewLim ratio needs to increase
+            if abs(y_expander) < 0.005:
+                # good enough
+                pass
+            else:
+                # this works for any data ratio
+                if y_expander < 0:
+                    deltaY = xSize * (figAspect / A) - ySize
+                    yc = 0.5 * (ymin + ymax)
+                    ymin = yc - (ySize + deltaY) * 0.5
+                    ymax = yc + (ySize + deltaY) * 0.5
+                else:
+                    deltaX = ySize * (A / figAspect) - xSize
+                    xc = 0.5 * (xmin + xmax)
+                    xmin = xc - (xSize + deltaX) * 0.5
+                    xmax = xc + (xSize + deltaX) * 0.5
+        _logger.debug(
+            "CALCULATED LIMITS = %f %f %f %f", xmin, xmax, ymin, ymax)
+        return xmin, xmax, ymin, ymax
+
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         self.ax.set_xlim(xmin, xmax)
@@ -1031,7 +810,6 @@ class MatplotlibBackend(BackendBase):
 
     def keepDataAspectRatio(self, flag=True):
         self.ax.set_aspect(1.0 if flag else 'auto')
-        self.resetZoom()
 
     def showGrid(self, flag=True):
         self.ax.grid(False, which='both')  # Disable all grid first
@@ -1150,8 +928,104 @@ class MatplotlibBackend(BackendBase):
 
     def getPlotBoundsInPixels(self):
         bbox = self.ax.get_window_extent().transformed(
-            self.graph.fig.dpi_scale_trans.inverted())
-        dpi = self.graph.fig.dpi
+            self.fig.dpi_scale_trans.inverted())
+        dpi = self.fig.dpi
         # Warning this is not returning int...
         return (bbox.bounds[0] * dpi, bbox.bounds[1] * dpi,
                 bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
+
+
+class MatplotlibQtBackend(FigureCanvasQTAgg, MatplotlibBackend):
+    """QWidget matplotlib backend using a QtAgg canvas.
+
+    It adds fast overlay drawing and mouse event management.
+    """
+
+    def __init__(self, plot, parent=None):
+        self._insideResizeEventMethod = False
+
+        MatplotlibBackend.__init__(self, plot, parent)
+        FigureCanvasQTAgg.__init__(self, self.fig)
+        self.setParent(parent)
+
+        FigureCanvasQTAgg.setSizePolicy(
+            self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+
+        self.mpl_connect('button_press_event', self._onMousePress)
+        self.mpl_connect('button_release_event', self._onMouseRelease)
+        self.mpl_connect('motion_notify_event', self._onMouseMove)
+        self.mpl_connect('scroll_event', self._onMouseWheel)
+
+    # Mouse event forwarding
+
+    _MPL_TO_PLOT_BUTTONS = {1: 'left', 2: 'middle', 3: 'right'}
+
+    def _onMousePress(self, event):
+        self._plot.onMousePress(
+            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+
+    def _onMouseMove(self, event):
+        self._plot.onMouseMove(event.x, event.y)
+
+    def _onMouseRelease(self, event):
+        self._plot.onMouseRelease(
+            event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
+
+    def _onMouseWheel(self, event):
+        self._plot.onMouseWheel(event.x, event.y, event.step)
+
+    # replot control
+
+    def resizeEvent(self, event):
+        self._insideResizeEventMethod = True
+        # Need to dirty the whole plot on resize.
+        self._plot._dirty = True
+        FigureCanvasQTAgg.resizeEvent(self, event)
+        self._insideResizeEventMethod = False
+
+    def draw(self):
+        """Override canvas draw method to support faster draw of overlays."""
+        if self._plot._dirty:  # Need a full redraw
+            FigureCanvasQTAgg.draw(self)
+            self._background = None  # Any saved background is dirty
+            self._plot._dirty = False
+
+        if self._overlays or self._hadOverlays:
+            # 2 cases: There are overlays, or they is just no more overlays
+            self._hadOverlays = False
+
+            if self._insideResizeEventMethod:
+                # Specific case: avoid store/restore background in this case
+                # Just draw the overlay
+                # Dirty the plot to avoid the overlay to be in the background
+                self._plot._dirty = True
+            else:
+                if self._background is None:  # First store the background
+                    self._background = self.copy_from_bbox(self.fig.bbox)
+
+                self.restore_region(self._background)
+
+            # This assume that items are only on left/bottom Axes
+            for item in self._overlays:
+                self.ax.draw_artist(item)
+            self.blit(self.fig.bbox)
+
+    def replot(self):
+        MatplotlibBackend.replot(self)
+        self.draw()
+
+    # cursor
+
+    _QT_CURSORS = {
+        None: qt.Qt.ArrowCursor,
+        BackendBase.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
+        BackendBase.CURSOR_POINTING: qt.Qt.PointingHandCursor,
+        BackendBase.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
+        BackendBase.CURSOR_SIZE_VER: qt.Qt.SizeVerCursor,
+        BackendBase.CURSOR_SIZE_ALL: qt.Qt.SizeAllCursor,
+    }
+
+    def setCursor(self, cursor):
+        cursor = self._QT_CURSORS[cursor]
+
+        FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))

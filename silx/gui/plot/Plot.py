@@ -44,7 +44,7 @@ from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
 
-from .MatplotlibBackend import MatplotlibBackend
+from .MatplotlibBackend import MatplotlibBackend, MatplotlibQtBackend
 
 
 _logger = logging.getLogger(__name__)
@@ -117,13 +117,13 @@ def clamp(value, min_=0., max_=1.):  # TODO move elsewhere
 class Plot(object):
     # give the possibility to set the default backend for all instances
     # via a class attribute.
-    defaultBackend = MatplotlibBackend
+    defaultBackend = MatplotlibQtBackend
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None, callback=None):
-        self._parent = parent
+        # Can be accessed by backend to check the dirty state
         self._dirty = True
 
         if backend is None:
@@ -138,7 +138,7 @@ class Plot(object):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
-                from .MatplotlibBackend import MatplotlibBackend as be
+                from .MatplotlibBackend import MatplotlibQtBackend as be
             # elif lowerCaseString in ["gl", "opengl"]:
             #     from .backends.OpenGLBackend import OpenGLBackend as be
             # elif lowerCaseString in ["pyqtgraph"]:
@@ -178,6 +178,8 @@ class Plot(object):
         self._activeImage = None
 
         # default properties
+        self._cursorConfiguration = None
+
         self._logY = False
         self._logX = False
         self._xAutoScale = True
@@ -198,9 +200,6 @@ class Plot(object):
         self._pressedButtons = []  # Currently pressed mouse buttons
 
         self._defaultDataMargins = (0., 0., 0., 0.)
-
-    def _dirtyPlot(self):
-        self._dirty = True
 
     # Private stuff called from elsewhere....
 
@@ -356,7 +355,7 @@ class Plot(object):
                                               z=params['z'],
                                               selectable=params['selectable'],
                                               fill=params['fill'])
-            self._dirtyPlot()
+            self._dirty = True
         else:
             curveHandle = None  # The curve has no points or is hidden
 
@@ -498,7 +497,7 @@ class Plot(object):
                                               selectable=params['selectable'],
                                               draggable=params['draggable'],
                                               colormap=params['colormap'])
-            self._dirtyPlot()
+            self._dirty = True
         else:
             imageHandle = None  # data is None or log scale
 
@@ -543,7 +542,7 @@ class Plot(object):
         self._items[legend] = {'handle': item, 'overlay': overlay}
 
         if not overlay:
-            self._dirtyPlot()
+            self._dirty = True
 
         if replot:
             self.replot()
@@ -582,7 +581,7 @@ class Plot(object):
         self._markers[legend] = self._plot.addXMarker(
             x, legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
-        self._dirtyPlot()
+        self._dirty = True
 
         return legend
 
@@ -619,7 +618,7 @@ class Plot(object):
         self._markers[legend] = self._plot.addYMarker(
             y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
-        self._dirtyPlot()
+        self._dirty = True
 
         return legend
 
@@ -682,7 +681,7 @@ class Plot(object):
             x, y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable,
             symbol=symbol, constraint=constraint)
-        self._dirtyPlot()
+        self._dirty = True
 
         return legend
 
@@ -709,7 +708,7 @@ class Plot(object):
             self.addCurve(curve['x'], curve['y'], legend, replot=False,
                           **curve['params'])
 
-        self._dirtyPlot()
+        self._dirty = True
 
         if replot:
             self.replot()
@@ -734,7 +733,7 @@ class Plot(object):
             handle = self._curves[legend]['handle']
             if handle is not None:
                 self._plot.remove(handle)
-                self._dirtyPlot()
+                self._dirty = True
             del self._curves[legend]
 
         if not self._curves:
@@ -760,7 +759,7 @@ class Plot(object):
             handle = self._images[legend]['handle']
             if handle is not None:
                 self._plot.remove(handle)
-                self._dirtyPlot()
+                self._dirty = True
             del self._images[legend]
 
         if replot:
@@ -774,7 +773,7 @@ class Plot(object):
         if item is not None and item['handle'] is not None:
             self._plot.remove(item['handle'])
             if not item['overlay']:
-                self._dirtyPlot()
+                self._dirty = True
 
         if replot:
             self.replot()
@@ -783,7 +782,7 @@ class Plot(object):
         handle = self._markers.pop(marker, None)
         if handle is not None:
             self._plot.remove(handle)
-            self._dirtyPlot()
+            self._dirty = True
 
         if replot:
             self.replot()
@@ -797,7 +796,7 @@ class Plot(object):
         self.clearItems(replot=False)
 
         self._plot.clear()
-        self._dirtyPlot()
+        self._dirty = True
 
         if replot:
             self.replot()
@@ -843,10 +842,17 @@ class Plot(object):
 
     # Interaction
 
-    def setGraphCursor(self, flag=None, color=None,
-                       linewidth=None, linestyle=None):
+    def getGraphCursor(self):
+        """Returns the current state of the crosshair cursor.
+
+        :return: None if the crosshair cursor is not active,
+                 else a tuple (color, linewidth, linestyle).
         """
-        Toggle the display of a crosshair cursor and set its attributes.
+        return self._cursorConfiguration
+
+    def setGraphCursor(self, flag=None, color='black',
+                       linewidth=1, linestyle='-'):
+        """Toggle the display of a crosshair cursor and set its attributes.
 
         :param bool flag: Toggle the display of a crosshair cursor.
                            The crosshair cursor is hidden by default.
@@ -866,17 +872,13 @@ class Plot(object):
 
         :type linestyle: None or one of the predefined styles.
         """
+        if flag:
+            self._cursorConfiguration = color, linewidth, linestyle
+        else:
+            self._cursorConfiguration = None
+
         self._plot.setGraphCursor(flag=flag, color=color,
                                   linewidth=linewidth, linestyle=linestyle)
-
-    def getGraphCursor(self):
-        """
-        Returns the current state of the crosshair cursor.
-
-        :return: None if the crosshair cursor is not active,
-                 else a tuple (color, linewidth, linestyle).
-        """
-        return self._plot.getGraphCursor()
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -983,7 +985,6 @@ class Plot(object):
             handle = self._curves[oldActiveCurve[2]]['handle']
             if handle is not None:
                 self._plot.setCurveColor(handle, oldActiveCurve[3]['color'])
-                self._dirtyPlot()
 
         if legend is None:
             self._activeCurve = None
@@ -999,7 +1000,6 @@ class Plot(object):
                 if handle is not None:
                     self._plot.setCurveColor(handle,
                                              self.getActiveCurveColor())
-                    self._dirtyPlot()
 
                 activeCurve = self.getActiveCurve()
                 xLabel = activeCurve[3]['xlabel']
@@ -1008,10 +1008,10 @@ class Plot(object):
         # Store current labels and update plot
         self._currentXLabel = xLabel
         self._plot.setGraphXLabel(xLabel)
-        self._dirtyPlot()
         self._currentYLabel = yLabel
         self._plot.setGraphYLabel(yLabel)  # TODO handle y2 axis
-        self._dirtyPlot()
+
+        self._dirty = True
 
         if replot:
             self.replot()
@@ -1197,7 +1197,7 @@ class Plot(object):
 
     def setGraphXLimits(self, xmin, xmax, replot=False):
         self._plot.setGraphXLimits(xmin, xmax)
-        self._dirtyPlot()
+        self._dirty = True
 
         self._notifyLimitsChanged()
 
@@ -1215,7 +1215,7 @@ class Plot(object):
 
     def setGraphYLimits(self, ymin, ymax, replot=False):
         self._plot.setGraphYLimits(ymin, ymax)
-        self._dirtyPlot()
+        self._dirty = True
 
         self._notifyLimitsChanged()
 
@@ -1235,7 +1235,7 @@ class Plot(object):
                 y2min, y2max = y2max, y2min
 
         self._plot.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
-        self._dirtyPlot()
+        self._dirty = True
         self._notifyLimitsChanged()
 
     # Title and labels
@@ -1246,7 +1246,7 @@ class Plot(object):
     def setGraphTitle(self, title=""):
         self._graphTitle = str(title)
         self._plot.setGraphTitle(title)
-        self._dirtyPlot()
+        self._dirty = True
 
     def getGraphXLabel(self):
         return self._currentXLabel
@@ -1256,7 +1256,7 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentXLabel = label
         self._plot.setGraphXLabel(label)
-        self._dirtyPlot()
+        self._dirty = True
 
     def getGraphYLabel(self):
         return self._currentYLabel
@@ -1266,13 +1266,13 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
         self._plot.setGraphYLabel(label)
-        self._dirtyPlot()
+        self._dirty = True
 
     # Axes
 
     def invertYAxis(self, flag=True):
         self._plot.invertYAxis(flag)
-        self._dirtyPlot()
+        self._dirty = True
 
     def isYAxisInverted(self):
         return self._plot.isYAxisInverted()
@@ -1311,7 +1311,7 @@ class Plot(object):
                 self._plot.setXAxisLogarithmic(self._logX)
                 self._update()
 
-        self._dirtyPlot()
+        self._dirty = True
         self.replot()
 
     def isYAxisLogarithmic(self):
@@ -1348,7 +1348,7 @@ class Plot(object):
                 self._plot.setYAxisLogarithmic(self._logY)
                 self._update()
 
-        self._dirtyPlot()
+        self._dirty = True
         self.replot()
 
     def isXAxisAutoScale(self):
@@ -1372,13 +1372,13 @@ class Plot(object):
         :type flag: Boolean, default True
         """
         self._plot.keepDataAspectRatio(flag=flag)
-        self._dirtyPlot()
+        self._dirty = True
         self.resetZoom()
 
     def showGrid(self, flag=True):
         _logger.debug("Plot showGrid called")
         self._plot.showGrid(flag)
-        self._dirtyPlot()
+        self._dirty = True
         self.replot()
 
     # Defaults
@@ -1392,7 +1392,7 @@ class Plot(object):
 
         if self._curves:
             self._update()
-            self._dirtyPlot()
+            self._dirty = True
             self.replot()
 
     def setDefaultPlotLines(self, flag):
@@ -1400,7 +1400,7 @@ class Plot(object):
 
         if self._curves:
             self._update()
-            self._dirtyPlot()
+            self._dirty = True
             self.replot()
 
     def getDefaultColormap(self):
@@ -1469,6 +1469,17 @@ class Plot(object):
     def getWidgetHandle(self):
         return self._plot.getWidgetHandle()
 
+    def notify(self, event):
+        """Send an event to the listeners.
+
+        The event dict must at least contains an 'event' key which store the
+        type of event.
+        The other keys are event specific.
+
+        :param dict event: The information of the event.
+        """
+        self._callback(event)
+
     def setCallback(self, callbackFunction=None):
         """Attach a listener to the backend.
 
@@ -1534,14 +1545,14 @@ class Plot(object):
 
     def replot(self):
         _logger.debug("replot called")
-        self._plot.replot(overlayOnly=not self._dirty)
+        self._plot.replot()
         self._dirty = False  # reset dirty flag
 
     def resetZoom(self, dataMargins=None):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
         self._plot.resetZoom(dataMargins)
-        self._dirtyPlot()
+        self._dirty = True
         self.replot()
 
     # Internal
@@ -1668,17 +1679,7 @@ class Plot(object):
 
     # Interaction support
 
-    def notify(self, event):
-        """Send an event to the listeners.
-
-        The event dict must at least contains an 'event' key which store the
-        type of event.
-        The other keys are event specific.
-
-        :param dict event: The information of the event.
-        """
-        self._callback(event)
-
+    # TODO make this in PlotInteraction using addItem/remove directly
     def setSelectionArea(self, points, fill, color, name=''):
         """Set a polygon selection area overlaid on the plot.
         Multiple simultaneous areas are supported through the name parameter.
@@ -1710,22 +1711,12 @@ class Plot(object):
             self.removeItem(legend, replot=False)
         self._selectionAreas = set()
 
-    # TODO move this to backend?
-    _QT_CURSORS = {
-        PlotInteraction.CURSOR_DEFAULT: qt.Qt.ArrowCursor,
-        PlotInteraction.CURSOR_POINTING: qt.Qt.PointingHandCursor,
-        PlotInteraction.CURSOR_SIZE_HOR: qt.Qt.SizeHorCursor,
-        PlotInteraction.CURSOR_SIZE_VER: qt.Qt.SizeVerCursor,
-        PlotInteraction.CURSOR_SIZE_ALL: qt.Qt.SizeAllCursor,
-    }
-
-    def setCursor(self, cursor=PlotInteraction.CURSOR_DEFAULT):
+    def setCursor(self, cursor=None):
         """Set the cursor shape.
 
         :param str cursor: Name of the cursor shape
         """
-        cursor = self._QT_CURSORS[cursor]
-        self.getWidgetHandle().setCursor(qt.QCursor(cursor))
+        self._plot.setCursor(cursor)
 
     def pickMarker(self, *args, **kwargs):
         return None  # TODO

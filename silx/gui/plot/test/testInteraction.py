@@ -36,6 +36,7 @@ from silx.gui.plot import Interaction
 
 class TestInteraction(unittest.TestCase):
     def testClickOrDrag(self):
+        """Minimalistic test for click or drag state machine."""
         events = []
 
         class TestClickOrDrag(Interaction.ClickOrDrag):
