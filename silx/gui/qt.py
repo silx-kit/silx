@@ -88,7 +88,6 @@ if BINDING == 'PyQt4':
             sip.setapi("QString", 2)
             sip.setapi("QVariant", 2)
         except:
-            # Console widget not available
             _logger.warning("Cannot set sip API")
 
     from PyQt4.QtCore import *  # noqa
@@ -131,7 +130,7 @@ elif BINDING == 'PyQt5':
         sip.setapi("QString", 2)
         sip.setapi("QVariant", 2)
     except:
-        _logger.warning("API 1 -> Console widget not available")
+        _logger.warning("Cannot set sip API")
 
     from PyQt5.QtCore import *  # noqa
     from PyQt5.QtGui import *  # noqa
