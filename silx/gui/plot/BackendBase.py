@@ -143,7 +143,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def addItem(self, x, y, legend, shape, color, fill):
+    def addItem(self, x, y, legend, shape, color, fill, overlay):
         """Add an item (i.e. a shape) to the plot.
 
         :param numpy.ndarray x: The X coords of the points of the shape
@@ -152,6 +152,7 @@ class BackendBase(object):
         :param str shape: Type of item to be drawn in
                           hline, polygon, rectangle, vline
         :param bool fill: True to fill the shape
+        :param bool overlay: True if item is an overlay, False otherwise
         :returns: The handle used by the backend to univocally access the item
         """
         raise NotImplementedError()
@@ -284,13 +285,13 @@ class BackendBase(object):
         """Redraw the plot."""
         raise NotImplementedError()
 
-    def saveGraph(self, fileName, fileFormat, dpi=None):
+    def saveGraph(self, fileName, fileFormat, dpi):
         """Save the graph to a file (or a StringIO)
 
         :param fileName: Destination
         :type fileName: String or StringIO or BytesIO
         :param str fileFormat: String specifying the format
-        :param int dpi: The resolution to use.
+        :param int dpi: The resolution to use or None.
         """
         raise NotImplementedError()
 
@@ -319,7 +320,7 @@ class BackendBase(object):
 
     # Graph limits
 
-    def resetZoom(self, dataMargins=None):
+    def resetZoom(self, dataMargins):
         """Reset the displayed area of the plot.
 
         Autoscale any axis that is in autoscale mode.
@@ -331,7 +332,7 @@ class BackendBase(object):
         For log scale, extra margins are applied in log10 of the data.
 
         :param dataMargins: Ratios of margins to add around the data inside
-                            the plot area for each side (Default: no margins).
+                            the plot area for each side
         :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
         """
         raise NotImplementedError()
@@ -363,7 +364,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def getGraphYLimits(self, axis="left"):
+    def getGraphYLimits(self, axis):
         """Get the graph Y (left) limits.
 
         :param str axis: The axis for which to get the limits: left or right
@@ -410,14 +411,14 @@ class BackendBase(object):
         """Returns whether the plot is keeping data aspect ratio or not."""
         raise NotImplementedError()
 
-    def keepDataAspectRatio(self, flag=True):
+    def keepDataAspectRatio(self, flag):
         """
         :param flag:  True to respect data aspect ratio
         :type flag: Boolean, default True
         """
         raise NotImplementedError()
 
-    def showGrid(self, flag=True):
+    def showGrid(self, flag):
         """Set grid
 
         :param flag: False to disable grid, 1 or True for major grid,
@@ -436,13 +437,13 @@ class BackendBase(object):
 
     # Data <-> Pixel coordinates conversion
 
-    def dataToPixel(self, x=None, y=None, axis="left"):
+    def dataToPixel(self, x, y, axis):
         """Convert a position in data space to a position in pixels
         in the widget.
 
-        :param float x: The X coordinate in data space. If None (default)
+        :param float x: The X coordinate in data space. If None
                             the middle position of the displayed data is used.
-        :param float y: The Y coordinate in data space. If None (default)
+        :param float y: The Y coordinate in data space. If None
                             the middle position of the displayed data is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
@@ -452,13 +453,13 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def pixelToData(self, x=None, y=None, axis="left"):
+    def pixelToData(self, x, y, axis):
         """Convert a position in pixels in the widget to a position in
         the data space.
 
-        :param float x: The X coordinate in pixels. If None (default)
+        :param float x: The X coordinate in pixels. If None
                             the center of the widget is used.
-        :param float y: The Y coordinate in pixels. If None (default)
+        :param float y: The Y coordinate in pixels. If None
                             the center of the widget is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').

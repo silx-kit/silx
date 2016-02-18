@@ -109,7 +109,8 @@ class MatplotlibBackend(BackendBase.BackendBase):
         self.matplotlibVersion = matplotlib.__version__
 
         self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100.)
+        self.setGraphYLimits(0., 100., axis='left')
+        self.setGraphYLimits(0., 100., axis='right')
 
         self._enableAxis('right', False)
 
@@ -427,7 +428,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
 
         if text is not None:
             text = " " + text
-            ymin, ymax = self.getGraphYLimits()
+            ymin, ymax = self.getGraphYLimits(axis='left')
             delta = abs(ymax - ymin)
             if ymin > ymax:
                 ymax = ymin
@@ -445,8 +446,8 @@ class MatplotlibBackend(BackendBase.BackendBase):
 
         return line
 
-    def addYMarker(self, y, legend=None, text=None,
-                   color='k', selectable=False, draggable=False):
+    def addYMarker(self, y, legend, text,
+                   color, selectable, draggable):
         legend = "__MARKER__" + legend  # TODO useful?
 
         line = self.ax.axhline(y, label=legend, color=color)
@@ -535,7 +536,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
         if not self.ax2.lines:
             self._enableAxis('right', False)
 
-    def saveGraph(self, fileName, fileFormat, dpi=None):
+    def saveGraph(self, fileName, fileFormat, dpi):
         # fileName can be also a StringIO or file instance
         if dpi is not None:
             self.fig.savefig(fileName, format=fileFormat, dpi=dpi)
@@ -555,7 +556,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
 
     # Graph limits
 
-    def resetZoom(self, dataMargins=None):
+    def resetZoom(self, dataMargins):
         xAuto = self._plot.isXAxisAutoScale()
         yAuto = self._plot.isYAxisAutoScale()
 
@@ -563,25 +564,29 @@ class MatplotlibBackend(BackendBase.BackendBase):
             _logger.debug("Nothing to autoscale")
         else:  # Some axes to autoscale
             xmin, xmax = self.getGraphXLimits()
-            ymin, ymax = self.getGraphYLimits()
+            ymin, ymax = self.getGraphYLimits(axis='left')
+            y2min, y2max = self.getGraphYLimits(axis='right')
 
             self._resetZoom(dataMargins)
 
             if not xAuto and yAuto:
                 self.setGraphXLimits(xmin, xmax)
             elif xAuto and not yAuto:
-                self.setGraphYLimits(ymin, ymax)
+                self.setGraphYLimits(ymin, ymax, axis='left')
+                self.setGraphYLimits(y2min, y2max, axis='right')
 
-    def _resetZoom(self, dataMargins=None):
-        xmin, xmax, ymin, ymax = self.getDataLimits('left')
+            self._plot._notifyLimitsChanged()  # TODO not very nice
+
+    def _resetZoom(self, dataMargins):
+        xmin, xmax, ymin, ymax = self._getDataLimits('left')
         if hasattr(self.ax2, "get_visible"):
             if self.ax2.get_visible():
-                xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
+                xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
             else:
                 xmin2 = None
                 xmax2 = None
         else:
-            xmin2, xmax2, ymin2, ymax2 = self.getDataLimits('right')
+            xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
 
         if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
             xmin = min(xmin, xmin2)
@@ -605,7 +610,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
 
             self.setLimits(*newLimits)
 
-    def getDataLimits(self, axesLabel='left'):
+    def _getDataLimits(self, axesLabel='left'):
         if axesLabel == 'right':
             axes = self.ax2
         else:
@@ -742,18 +747,11 @@ class MatplotlibBackend(BackendBase.BackendBase):
         return xmin, xmax, ymin, ymax
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        self.ax.set_xlim(xmin, xmax)
-        if self.ax.yaxis_inverted():
-            self.ax.set_ylim(ymax, ymin)
-        else:
-            self.ax.set_ylim(ymin, ymax)
+        self.setGraphXLimits(xmin, xmax)
+        self.setGraphYLimits(ymin, ymax, axis='left')
 
         if y2min is not None and y2max is not None:
-            if self.ax2.yaxis_inverted():
-                bottom, top = y2max, y2min
-            else:
-                bottom, top = y2min, y2max
-            self.ax2.set_ylim(bottom, top)
+            self.setGraphYLimits(ymin, ymax, axis='right')
 
     def getGraphXLimits(self):
         vmin, vmax = self.ax.get_xlim()
@@ -763,9 +761,11 @@ class MatplotlibBackend(BackendBase.BackendBase):
             return vmin, vmax
 
     def setGraphXLimits(self, xmin, xmax):
+        if xmax < xmin:
+            xmin, xmax = xmax, xmin
         self.ax.set_xlim(xmin, xmax)
 
-    def getGraphYLimits(self, axis="left"):
+    def getGraphYLimits(self, axis):
         assert axis in ('left', 'right')
         ax = self.ax2 if axis == 'right' else self.ax
 
@@ -778,11 +778,14 @@ class MatplotlibBackend(BackendBase.BackendBase):
         else:
             return vmin, vmax
 
-    def setGraphYLimits(self, ymin, ymax):
-        if self.ax.yaxis_inverted():
-            self.ax.set_ylim(ymax, ymin)
+    def setGraphYLimits(self, ymin, ymax, axis):
+        ax = self.ax2 if axis == 'right' else self.ax
+        if ymax < ymin:
+            ymin, ymax = ymax, ymin
+        if ax.yaxis_inverted():
+            ax.set_ylim(ymax, ymin)
         else:
-            self.ax.set_ylim(ymin, ymax)
+            ax.set_ylim(ymin, ymax)
 
     # Graph axes
 
@@ -804,10 +807,10 @@ class MatplotlibBackend(BackendBase.BackendBase):
     def isKeepDataAspectRatio(self):
         return self.ax.get_aspect() in (1.0, 'equal')
 
-    def keepDataAspectRatio(self, flag=True):
+    def keepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else 'auto')
 
-    def showGrid(self, flag=True):
+    def showGrid(self, flag):
         self.ax.grid(False, which='both')  # Disable all grid first
         if flag:
             self.ax.grid(True, which='both' if flag == 2 else 'major')
@@ -885,7 +888,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
 
     # Data <-> Pixel coordinates conversion
 
-    def dataToPixel(self, x=None, y=None, axis="left"):
+    def dataToPixel(self, x, y, axis):
         assert axis in ("left", "right")
         ax = self.ax2 if "axis" == "right" else self.ax
 
@@ -907,7 +910,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
-    def pixelToData(self, x=None, y=None, axis="left", check=False):
+    def pixelToData(self, x, y, axis, check):
         assert axis in ("left", "right")
         ax = self.ax2 if "axis" == "right" else self.ax
 

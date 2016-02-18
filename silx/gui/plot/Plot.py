@@ -154,8 +154,6 @@ class Plot(object):
         self._markers = OrderedDict()
         self._items = OrderedDict()
 
-        self._selectionAreas = set()
-
         # line types
         self._styleList = ['-', '--', '-.', ':']
 
@@ -1668,38 +1666,6 @@ class Plot(object):
         return self._backend.getPlotBoundsInPixels()
 
     # Interaction support
-
-    # TODO make this in PlotInteraction using addItem/remove directly
-    def setSelectionArea(self, points, fill, color, name=''):
-        """Set a polygon selection area overlaid on the plot.
-        Multiple simultaneous areas are supported through the name parameter.
-
-        :param points: The 2D coordinates of the points of the polygon
-        :type points: An iterable of (x, y) coordinates
-        :param str fill: The fill mode: 'hatch', 'solid' or None
-        :param color: RGBA color to use
-        :type color: list or tuple of 4 float in the range [0, 1]
-        :param name: The key associated with this selection area
-        """
-        points = numpy.asarray(points)
-
-        # TODO Not very nice, but as is for now
-        legend = '__SELECTION_AREA__' + name
-
-        fill = bool(fill)  # TODO not very nice either
-
-        # TODO make it an overlay
-        self.addItem(points[:, 0], points[:, 1], legend=legend,
-                     replace=False, replot=False,
-                     shape='polygon', color=color, fill=fill,
-                     overlay=True)
-        self._selectionAreas.add(legend)
-
-    def resetSelectionArea(self):
-        """Remove all selection areas set by setSelectionArea."""
-        for legend in self._selectionAreas:
-            self.removeItem(legend, replot=False)
-        self._selectionAreas = set()
 
     def setCursor(self, cursor=None):
         """Set the cursor shape.

@@ -56,6 +56,58 @@ FLOAT32_SAFE_MAX = 1e37
 # TODO double support
 
 
+# Base class ##################################################################
+
+class _PlotInteraction(object):
+    """Base class for interaction handler.
+
+    It provides a weakref to the plot and methods to set/reset overlay.
+    """
+    def __init__(self, plot):
+        """Init.
+
+        :param plot: The plot to apply modifications to.
+        """
+        self._selectionAreas = set()
+        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+
+    @property
+    def plot(self):
+        plot = self._plot()
+        assert plot is not None
+        return plot
+
+    def setSelectionArea(self, points, fill, color, name=''):
+        """Set a polygon selection area overlaid on the plot.
+        Multiple simultaneous areas are supported through the name parameter.
+
+        :param points: The 2D coordinates of the points of the polygon
+        :type points: An iterable of (x, y) coordinates
+        :param str fill: The fill mode: 'hatch', 'solid' or None
+        :param color: RGBA color to use
+        :type color: list or tuple of 4 float in the range [0, 1]
+        :param name: The key associated with this selection area
+        """
+        points = numpy.asarray(points)
+
+        # TODO Not very nice, but as is for now
+        legend = '__SELECTION_AREA__' + name
+
+        fill = bool(fill)  # TODO not very nice either
+
+        self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
+                          replace=False, replot=False,
+                          shape='polygon', color=color, fill=fill,
+                          overlay=True)
+        self._selectionAreas.add(legend)
+
+    def resetSelectionArea(self):
+        """Remove all selection areas set by setSelectionArea."""
+        for legend in self._selectionAreas:
+            self.plot.removeItem(legend, replot=False)
+        self._selectionAreas = set()
+
+
 # Zoom/Pan ####################################################################
 
 def _scale1DRange(min_, max_, center, scale, isLog):
@@ -129,7 +181,7 @@ def _applyZoomToPlot(plot, cx, cy, scaleF):
     plot.replot()
 
 
-class _ZoomOnWheel(ClickOrDrag):
+class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
 
     Base class for :class:`Pan` and :class:`Zoom`
@@ -144,7 +196,7 @@ class _ZoomOnWheel(ClickOrDrag):
 
         :param plot: The plot to apply modifications to.
         """
-        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+        _PlotInteraction.__init__(self, plot)
 
         states = {
             'idle': _ZoomOnWheel.ZoomIdle,
@@ -153,12 +205,6 @@ class _ZoomOnWheel(ClickOrDrag):
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
-
-    @property
-    def plot(self):
-        plot = self._plot()
-        assert plot is not None
-        return plot
 
 
 # Pan #########################################################################
@@ -358,10 +404,10 @@ class Zoom(_ZoomOnWheel):
             else:
                 areaColor = [1., 1., 1., 1.]
 
-            self.plot.setSelectionArea(areaPoints,
-                                       fill=None,
-                                       color=areaColor,
-                                       name="zoomedArea")
+            self.setSelectionArea(areaPoints,
+                                  fill=None,
+                                  color=areaColor,
+                                  name="zoomedArea")
 
         corners = ((self.x0, self.y0),
                    (self.x0, y1),
@@ -370,7 +416,7 @@ class Zoom(_ZoomOnWheel):
         corners = numpy.array([self.plot.pixelToData(x, y, check=False)
                                for (x, y) in corners])
 
-        self.plot.setSelectionArea(corners, fill=None, color=self.color)
+        self.setSelectionArea(corners, fill=None, color=self.color)
         self.plot.replot()
 
     def endDrag(self, startPos, endPos):
@@ -406,18 +452,18 @@ class Zoom(_ZoomOnWheel):
 
             self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
     def cancel(self):
         if isinstance(self.state, self.states['drag']):
-            self.plot.resetSelectionArea()
+            self.resetSelectionArea()
             self.plot.replot()
 
 
 # Select ######################################################################
 
-class Select(StateMachine):
+class Select(StateMachine, _PlotInteraction):
     """Base class for drawing selection areas."""
 
     def __init__(self, plot, parameters, states, state):
@@ -428,19 +474,13 @@ class Select(StateMachine):
         :param dict states: The states of the state machine.
         :param str state: The name of the initial state.
         """
-        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+        _PlotInteraction.__init__(self, plot)
         self.parameters = parameters
-        super(Select, self).__init__(states, state)
+        StateMachine.__init__(self, states, state)
 
     def onWheel(self, x, y, angle):
         scaleF = 1.1 if angle > 0 else 1./1.1
         _applyZoomToPlot(self.plot, x, y, scaleF)
-
-    @property
-    def plot(self):
-        plot = self._plot()
-        assert plot is not None
-        return plot
 
     @property
     def color(self):
@@ -462,9 +502,9 @@ class SelectPolygon(Select):
             self.points = [dataPos, dataPos]
 
         def updateSelectionArea(self):
-            self.machine.plot.setSelectionArea(self.points,
-                                               fill='hatch',
-                                               color=self.machine.color)
+            self.machine.setSelectionArea(self.points,
+                                          fill='hatch',
+                                          color=self.machine.color)
             self.machine.plot.replot()
             eventDict = prepareDrawingSignal('drawingProgress',
                                              'polygon',
@@ -490,7 +530,7 @@ class SelectPolygon(Select):
 
         def onPress(self, x, y, btn):
             if btn == RIGHT_BTN:
-                self.machine.plot.resetSelectionArea()
+                self.machine.resetSelectionArea()
                 self.machine.plot.replot()
 
                 dataPos = self.machine.plot.pixelToData(x, y)
@@ -517,7 +557,7 @@ class SelectPolygon(Select):
 
     def cancel(self):
         if isinstance(self.state, self.states['select']):
-            self.plot.resetSelectionArea()
+            self.resetSelectionArea()
             self.plot.replot()
 
 
@@ -589,12 +629,12 @@ class SelectRectangle(Select2Points):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
 
-        self.plot.setSelectionArea((self.startPt,
-                                   (self.startPt[0], dataPos[1]),
-                                   dataPos,
-                                   (dataPos[0], self.startPt[1])),
-                                   fill='hatch',
-                                   color=self.color)
+        self.setSelectionArea((self.startPt,
+                              (self.startPt[0], dataPos[1]),
+                              dataPos,
+                              (dataPos[0], self.startPt[1])),
+                              fill='hatch',
+                              color=self.color)
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
@@ -604,7 +644,7 @@ class SelectRectangle(Select2Points):
         self.plot.notify(eventDict)
 
     def endSelect(self, x, y):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
         dataPos = self.plot.pixelToData(x, y)
@@ -617,7 +657,7 @@ class SelectRectangle(Select2Points):
         self.plot.notify(eventDict)
 
     def cancelSelect(self):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
 
@@ -631,9 +671,9 @@ class SelectLine(Select2Points):
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
 
-        self.plot.setSelectionArea((self.startPt, dataPos),
-                                   fill='hatch',
-                                   color=self.color)
+        self.setSelectionArea((self.startPt, dataPos),
+                              fill='hatch',
+                              color=self.color)
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
@@ -643,7 +683,7 @@ class SelectLine(Select2Points):
         self.plot.notify(eventDict)
 
     def endSelect(self, x, y):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
         dataPos = self.plot.pixelToData(x, y)
@@ -656,7 +696,7 @@ class SelectLine(Select2Points):
         self.plot.notify(eventDict)
 
     def cancelSelect(self):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
 
@@ -720,7 +760,7 @@ class SelectHLine(Select1Point):
 
     def select(self, x, y):
         points = self._hLine(y)
-        self.plot.setSelectionArea(points, fill='hatch', color=self.color)
+        self.setSelectionArea(points, fill='hatch', color=self.color)
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
@@ -730,7 +770,7 @@ class SelectHLine(Select1Point):
         self.plot.notify(eventDict)
 
     def endSelect(self, x, y):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingFinished',
@@ -740,7 +780,7 @@ class SelectHLine(Select1Point):
         self.plot.notify(eventDict)
 
     def cancelSelect(self):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
 
@@ -759,7 +799,7 @@ class SelectVLine(Select1Point):
 
     def select(self, x, y):
         points = self._vLine(x)
-        self.plot.setSelectionArea(points, fill='hatch', color=self.color)
+        self.setSelectionArea(points, fill='hatch', color=self.color)
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
@@ -769,7 +809,7 @@ class SelectVLine(Select1Point):
         self.plot.notify(eventDict)
 
     def endSelect(self, x, y):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingFinished',
@@ -779,13 +819,13 @@ class SelectVLine(Select1Point):
         self.plot.notify(eventDict)
 
     def cancelSelect(self):
-        self.plot.resetSelectionArea()
+        self.resetSelectionArea()
         self.plot.replot()
 
 
 # ItemInteraction #############################################################
 
-class ItemsInteraction(ClickOrDrag):
+class ItemsInteraction(ClickOrDrag, _PlotInteraction):
     class Idle(ClickOrDrag.Idle):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
@@ -849,7 +889,7 @@ class ItemsInteraction(ClickOrDrag):
             return True
 
     def __init__(self, plot):
-        self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+        _PlotInteraction.__init__(self, plot)
 
         states = {
             'idle': ItemsInteraction.Idle,
@@ -857,12 +897,6 @@ class ItemsInteraction(ClickOrDrag):
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
-
-    @property
-    def plot(self):
-        plot = self._plot()
-        assert plot is not None
-        return plot
 
     def click(self, x, y, btn):
         # Signal mouse clicked event
