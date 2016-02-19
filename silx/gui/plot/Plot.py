@@ -43,7 +43,7 @@ from . import PlotInteraction
 from . import PlotEvents
 from . import _utils
 
-from .MatplotlibBackend import MatplotlibQtBackend
+from .BackendMatplotlib import BackendMatplotlibQt
 
 
 _logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ _COLORLIST = [_COLORDICT['black'],
 class Plot(object):
     # give the possibility to set the default backend for all instances
     # via a class attribute.
-    defaultBackend = MatplotlibQtBackend
+    defaultBackend = BackendMatplotlibQt
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
@@ -128,7 +128,7 @@ class Plot(object):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ["matplotlib", "mpl"]:
-                be = MatplotlibQtBackend
+                be = BackendMatplotlibQt
             # elif lowerCaseString in ["gl", "opengl"]:
             #     from .backends.OpenGLBackend import OpenGLBackend as be
             # elif lowerCaseString in ["pyqtgraph"]:

@@ -72,17 +72,17 @@ from .ModestImage import ModestImage
 from . import BackendBase
 
 
-class MatplotlibBackend(BackendBase.BackendBase):
+class BackendMatplotlib(BackendBase.BackendBase):
     """Generic Matplotlib backend without a FigureCanvas.
 
     This class can be used to save a plot to a file.
-    For interactive on screen plot, see :class:`MatplotlibQtBackend`.
+    For interactive on screen plot, see :class:`BackendMatplotlibQt`.
 
     See :class:`BackendBase.BackendBase` for public API documentation.
     """
 
     def __init__(self, plot, parent=None):
-        super(MatplotlibBackend, self).__init__(plot, parent)
+        super(BackendMatplotlib, self).__init__(plot, parent)
 
         self.fig = Figure()
         self.fig.set_facecolor("w")
@@ -818,7 +818,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
     # colormap
 
     def getSupportedColormaps(self):
-        default = super(MatplotlibBackend, self).getSupportedColormaps()
+        default = super(BackendMatplotlib, self).getSupportedColormaps()
         maps = [m for m in cm.datad]
         maps.sort()
         return default + maps
@@ -934,7 +934,7 @@ class MatplotlibBackend(BackendBase.BackendBase):
                 bbox.bounds[2] * dpi, bbox.bounds[3] * dpi)
 
 
-class MatplotlibQtBackend(FigureCanvasQTAgg, MatplotlibBackend):
+class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     """QWidget matplotlib backend using a QtAgg canvas.
 
     It adds fast overlay drawing and mouse event management.
@@ -943,7 +943,7 @@ class MatplotlibQtBackend(FigureCanvasQTAgg, MatplotlibBackend):
     def __init__(self, plot, parent=None):
         self._insideResizeEventMethod = False
 
-        MatplotlibBackend.__init__(self, plot, parent)
+        BackendMatplotlib.__init__(self, plot, parent)
         FigureCanvasQTAgg.__init__(self, self.fig)
         self.setParent(parent)
 
@@ -1006,7 +1006,7 @@ class MatplotlibQtBackend(FigureCanvasQTAgg, MatplotlibBackend):
             self.blit(self.fig.bbox)
 
     def replot(self):
-        MatplotlibBackend.replot(self)
+        BackendMatplotlib.replot(self)
         self.draw()
 
     # cursor

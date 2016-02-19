@@ -29,7 +29,7 @@ with transitions on left button press/release:
 
 .. code-block:: python
 
-   from PyMca5.PyMcaGraph.backends.GLSupport.Interaction import *
+   from silx.gui.plot.Interaction import *
 
    class SampleStateMachine(StateMachine):
 
