@@ -65,12 +65,14 @@ sftext = """#F /tmp/sf.dat
 #@MCA %16C
 #@CHANN 3 0 2 1
 #@CALIB 1 2 3
-#N 2
+#N 3
 #L uno  duo
 1 2
 @A 0 1 2
 3 4
 @A 3.1 4 5
+5 6
+@A 6 7.7 8
 """
 
 
@@ -148,7 +150,7 @@ class TestSpecFile(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.sf["3.2"]
 
-    def test_iterator(self):
+    def test_specfile_iterator(self):
         i=0
         for scan in self.sf:
             if i == 1:
@@ -237,9 +239,22 @@ class TestSpecFile(unittest.TestCase):
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
-        self.assertEqual(len(self.scan1_2.mca), 2)
+        self.assertEqual(len(self.scan1_2.mca), 3)
         self.assertEqual(self.scan1_2.mca[1][2], 5)
-        self.assertEqual(sum(self.scan1_2.mca[1]), 12.1)
+        self.assertEqual(sum(self.scan1_2.mca[2]), 21.7)
+
+        #Negative indexing
+        self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca)-1]),
+                         sum(self.scan1_2.mca[-1]))
+
+        # Test iterator
+        line_count, total_sum = (0, 0)
+        for mca_line in self.scan1_2.mca:
+            line_count += 1
+            total_sum += sum(mca_line)
+        self.assertEqual(line_count, 3)
+        self.assertAlmostEqual(total_sum, 36.8)
+
 
     def test_mca_header(self):
         self.assertEqual(self.scan1.mca_header, {})
