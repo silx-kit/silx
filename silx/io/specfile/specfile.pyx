@@ -26,18 +26,22 @@ This module is a cython binding to wrap the C library SpecFile.
 Examples
 ========
 
-A :class:`SpecFile` instance can be accessed like a dictionary to obtain a
-:class:`Scan` instance.
-
-If the key is a string representing two values
-separated by a dot (e.g. ``1.2``), they will be treated as the scan number
-(``#S`` header line) and the scan order:
+Start by importing :class:`SpecFile` and instantiate it:
 
 .. code-block:: python
 
     from silx.io.specfile import SpecFile
 
     sf = SpecFile("test.dat")
+
+A :class:`SpecFile` instance can be accessed like a dictionary to obtain a
+:class:`Scan` instance.
+
+If the key is a string representing two values
+separated by a dot (e.g. ``"1.2"``), they will be treated as the scan number
+(``#S`` header line) and the scan order:
+
+.. code-block:: python
 
     # get second occurrence of scan "#S 1"
     myscan = sf["1.2"]
@@ -49,9 +53,6 @@ If the key is an integer, it will be treated as a 0-based index:
 
 .. code-block:: python
 
-    from silx.io.specfile import SpecFile
-
-    sf = SpecFile("test.dat")
     first_scan = sf[0]
     second_scan = sf[1]
 
@@ -60,24 +61,32 @@ an iterator:
 
 .. code-block:: python
 
-    for scan in SpecFile("test.dat"):
+    for scan in sf:
         print(scan.scan_header['S'])
+
+MCA data can be selectively loaded using an instance of :class:`MCA` provided
+by :class:`Scan`:
+
+.. code-block:: python
+
+    # Only one MCA line is loaded in memory
+    second_mca = first_scan.mca[1]
+
+    # Iterating trough all MCA in a scan:
+    for mca_data in first_scan.mca:
+        print(sum(mca_data))
 
 Classes
 =======
 
 - :class:`SpecFile`
 - :class:`Scan`
+- :class:`MCA`
 """
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
-
-
-# TODO:
-# - get rid of SfNoMcaError
-
+__date__ = "19/02/2016"
 
 import os.path
 import numpy
@@ -114,9 +123,58 @@ class SfNoMcaError(Exception):
     """Custom exception raised when ``SfNoMca()`` returns ``-1`` for an
     unknown reason.
     """
-    # TODO: understand reason why SfNoMca() would return -1 ()
+    # TODO: understand reason why SfNoMca() would return -1
     #       (if (sfSetCurrent(sf,index,error) == -1 ))
     pass
+
+class MCA():
+    """
+    MCA data in a Scan.
+
+    This class is defined to allow lazy loading of a single MCA from within
+    a :class:`Scan` instance.
+
+    :param scan: Parent Scan instance
+    :type scan: :class:`Scan`
+    """
+    def __init__(self, scan):
+        self._scan = scan
+
+    def __len__(self):
+        """
+        :return: Number of mca in Scan
+        :rtype: int
+        """
+        return self._scan._specfile.number_of_mca(self._scan.index)
+
+    def __getitem__(self, key):
+        """
+        :param key: Index of MCA within Scan
+        :type key: int
+
+        :return: Single MCA
+        :rtype: 1D numpy array
+        """
+        if isinstance(key, int):
+            mca_index = key
+            # allow negative index, like lists
+            if mca_index < 0:
+                mca_index = len(self) + mca_index
+        else:
+            raise TypeError("MCA index should be an integer (%s provided)" %
+                            (type(key)))
+
+        if not 0 <= mca_index < len(self):
+            msg = "MCA index must be in range 0-%d" % (len(self) - 1)
+            raise IndexError(msg)
+
+        return self._scan._specfile.get_mca(self._scan.index,
+                                            mca_index)
+
+    def __iter__(self):
+        for mca_index in range(len(self)):
+            yield self._scan._specfile.get_mca(self._scan.index, mca_index)
+
 
 class Scan():
     """
@@ -135,7 +193,7 @@ class Scan():
         ``#``
     :vartype scan_header_lines: list of strings
     :ivar scan_header: Dictionary of header strings, keys without leading
-        ``#``.  Note: this does not include MCA header lines starting with
+        ``#``.  Note: this does not include MCA header lines starting with
         ``#@``.
     :vartype scan_header: dict
     :ivar file_header_lines: List of raw file header lines relevant to this
@@ -208,18 +266,18 @@ class Scan():
         self.motor_names = self._specfile.all_motor_names(self.index)
         self.motor_positions = self._specfile.all_motor_positions(self.index)
 
-        self._data_generated = False
-        self._mca_generated = False
+        self._data_loaded = False
+        self._mca_instantiated = False
 
     @property
     def data(self):
         """Scan data as a numpy.ndarray with the usual attributes
         (e.g. data.shape).
         """
-        if not self._data_generated:
+        if not self._data_loaded:
             self._data = self._specfile.data(self.index)
 #            self.nlines, self.ncolumns = self._data.shape
-            self._data_generated = True
+            self._data_loaded = True
         return self._data
 
     @data.setter
@@ -228,17 +286,17 @@ class Scan():
 
     @property
     def mca(self):
-        """List of MCA in this scan.
+        """MCA data in this scan.
 
         Each multichannel analysis is a 1D numpy array. Metadata about
-        MCA data - ``#@...`` scan header lines - is to be found in
+        MCA data - ``#@...`` scan header lines - is to be found in
         :py:attr:`mca_header`.
+
+        :rtype: :class:`MCA`
         """
-        if not self._mca_generated:
-            self._mca = []
-            for i in range(self._specfile.number_of_mca(self.index)):
-                self._mca.append(self._specfile.get_mca(self.index, i))
-            self._mca_generated = True
+        if not self._mca_instantiated:
+            self._mca = MCA(self)
+            self._mca_instantiated = True
         return self._mca
 
     @mca.setter
@@ -340,7 +398,6 @@ cdef class SpecFile(object):
         SpecFileHandle *handle
         str filename
         int __open_failed
-        int iter_counter
     
    
     def __cinit__(self, filename):
@@ -359,29 +416,21 @@ cdef class SpecFile(object):
        
     def __init__(self, filename):
         self.filename = filename
-        # iterator counter
-        self.iter_counter = 0
         
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""
         #SfClose makes a segmentation fault if file failed to open
         if not self.__open_failed:            
             if SfClose(self.handle):
-                print("Error while closing")
+                print("Warning: Error while closing")
                                         
     def __len__(self):
         """Returns the number of scans in the SpecFile"""
         return SfScanNo(self.handle)
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        if self.iter_counter >= len(self):
-            raise StopIteration
-        else:
-            self.iter_counter += 1
-            return Scan(self, self.iter_counter - 1)
+        for scan_index in range(len(self)):
+            yield Scan(self, scan_index)
 
     def __getitem__(self, key):
         """Return a Scan object
@@ -395,6 +444,9 @@ cdef class SpecFile(object):
 
         if isinstance(key, int):
             scan_index = key
+            # allow negative index, like lists
+            if scan_index < 0:
+                scan_index = len(self) + scan_index
         elif isinstance(key, str):
             try:
                 (number, order) = map(int, key.split("."))
@@ -895,8 +947,8 @@ cdef class SpecFile(object):
         :param mca_index: Index of MCA in the scan
         :type mca_index: int
 
-        :return: MCA data as a list of floats
-        :rtype: list of floats
+        :return: MCA data
+        :rtype: numpy array
         """
         cdef:
             int error = SF_ERR_NO_ERRORS
