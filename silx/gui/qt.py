@@ -102,6 +102,11 @@ if BINDING == 'PyQt4':
         from PyQt4.QtSvg import *  # noqa
     except ImportError:
         _logger.info("PyQt4.QtSvg not available")
+        HAS_SVG = False
+    else:
+        HAS_SVG = True
+
+    Signal = pyqtSignal
 
 elif BINDING == 'PySide':
     _logger.debug('Using PyQt4 bindings')
@@ -110,16 +115,17 @@ elif BINDING == 'PySide':
     from PySide.QtGui import *  # noqa
 
     try:
-        from PySide.QtSvg import *  # noqa
-    except ImportError:
-        _logger.info("PySide.QtSvg not available")
-
-    try:
         from PySide.QtOpenGL import *  # noqa
     except ImportError:
         _logger.info("PySide.QtOpenGL not available")
 
-    pyqtSignal = Signal
+    try:
+        from PySide.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PySide.QtSvg not available")
+        HAS_SVG = False
+    else:
+        HAS_SVG = True
 
 elif BINDING == 'PyQt5':
     _logger.debug('Using PyQt4 bindings')
@@ -138,14 +144,19 @@ elif BINDING == 'PyQt5':
     from PyQt5.QtPrintSupport import *  # noqa
 
     try:
-        from PyQt5.QtSvg import *  # noqa
-    except ImportError:
-        _logger.info("PyQt5.QtSvg not available")
-
-    try:
         from PyQt5.QtOpenGL import *  # noqa
     except ImportError:
         _logger.info("PyQt5.QtOpenGL not available")
+
+    try:
+        from PyQt5.QtSvg import *  # noqa
+    except ImportError:
+        _logger.info("PyQt5.QtSvg not available")
+        HAS_SVG = False
+    else:
+        HAS_SVG = True
+
+    Signal = pyqtSignal
 
 else:
     raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
