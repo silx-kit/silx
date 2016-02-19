@@ -12,4 +12,7 @@ silx.io.specfile module
 .. autoclass:: silx.io.specfile.Scan
     :members:
 
+.. autoclass:: silx.io.specfile.MCA
+    :members:
+
 
