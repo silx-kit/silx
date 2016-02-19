@@ -89,6 +89,41 @@ def addMarginsToLimits(margins, isXLog, isYLog,
         return xMin, xMax, yMin, yMax, y2Min, y2Max
 
 
+def applyPan(min_, max_, panFactor, isLog10):
+    """Returns a new range with applied panning.
+
+    Moves the range according to panFactor.
+    If isLog10 is True, converts to log10 before moving.
+
+    :param float min_: Min value of the data range to pan.
+    :param float max_: Max value of the data range to pan.
+                       Must be >= min_.
+    :param float panFactor: Signed proportion of the range to use for pan.
+    :param bool isLog10: True if log10 scale, False if linear scale.
+    :return: New min and max value with pan applied.
+    :rtype: 2-tuple of float.
+    """
+    if isLog10 and min_ > 0.:
+        # Negative range and log scale can happen with matplotlib
+        logMin, logMax = math.log10(min_), math.log10(max_)
+        logOffset = panFactor * (logMax - logMin)
+        newMin = pow(10., logMin + logOffset)
+        newMax = pow(10., logMax + logOffset)
+
+        # Takes care of out-of-range values
+        if newMin > 0. and newMax < float('inf'):
+            min_, max_ = newMin, newMax
+
+    else:
+        offset = panFactor * (max_ - min_)
+        newMin, newMax = min_ + offset, max_ + offset
+
+        # Takes care of out-of-range values
+        if newMin > - float('inf') and newMax < float('inf'):
+            min_, max_ = newMin, newMax
+    return min_, max_
+
+
 def clamp(value, min_=0., max_=1.):
     """Clip a value to a range [min, max].
 

@@ -73,9 +73,8 @@ from . import BackendBase
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
-    """Generic Matplotlib backend without a FigureCanvas.
+    """Base class for Matplotlib backend without a FigureCanvas.
 
-    This class can be used to save a plot to a file.
     For interactive on screen plot, see :class:`BackendMatplotlibQt`.
 
     See :class:`BackendBase.BackendBase` for public API documentation.
@@ -949,6 +948,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
         FigureCanvasQTAgg.setSizePolicy(
             self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
+        FigureCanvasQTAgg.updateGeometry(self)
 
         self.mpl_connect('button_press_event', self._onMousePress)
         self.mpl_connect('button_release_event', self._onMouseRelease)

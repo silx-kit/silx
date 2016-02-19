@@ -884,8 +884,8 @@ class Plot(object):
             xFactor = factor if direction == 'right' else - factor
             xMin, xMax = self.getGraphXLimits()
 
-            xMin, xMax = _applyPan(xMin, xMax, xFactor,
-                                   self.isXAxisLogarithmic())
+            xMin, xMax = _utils.applyPan(xMin, xMax, xFactor,
+                                         self.isXAxisLogarithmic())
             self.setGraphXLimits(xMin, xMax)
 
         else:  # direction in ('up', 'down')
@@ -894,7 +894,7 @@ class Plot(object):
             yMin, yMax = self.getGraphYLimits()
             yIsLog = self.isYAxisLogarithmic()
 
-            yMin, yMax = _applyPan(yMin, yMax, yFactor, yIsLog)
+            yMin, yMax = _utils.applyPan(yMin, yMax, yFactor, yIsLog)
             self.setGraphYLimits(yMin, yMax)
 
             # TODO handle second Y axis
@@ -1499,19 +1499,35 @@ class Plot(object):
             if ddict['button'] == "left":
                 self.setActiveCurve(ddict['label'])
 
-    def saveGraph(self, filename, fileFormat='svg', dpi=None, **kw):
+    def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """
         :param fileName: Destination
-        :type fileName: String or StringIO or BytesIO
-        :param fileFormat:  String specifying the format
-        :type fileFormat: String (default 'svg')
+        :type fileName: str or StringIO or BytesIO
+        :param str fileFormat:  String specifying the format
+        :return: False if cannot save, True otherwise
         """
         if kw:
             _logger.warning('Extra parameters ignored: %s', str(kw))
 
-        return self._backend.saveGraph(filename,
-                                       fileFormat=fileFormat,
-                                       dpi=dpi)
+        if fileFormat is None:
+            if not hasattr(filename, 'lower'):
+                _logger.warning(
+                    'saveGraph cancelled, cannot define file format.')
+                return False
+            else:
+                fileFormat = (fileName.split(".")[-1]).lower()
+
+        supportedFormats = ("png", "svg", "pdf", "ps", "eps",
+                            "tif", "tiff", "jpeg", "jpg")
+
+        if fileFormat not in supportedFormats:
+            _logger.warning('Unsupported format %s', fileFormat)
+            return False
+        else:
+            self._backend.saveGraph(filename,
+                                    fileFormat=fileFormat,
+                                    dpi=dpi)
+            return True
 
     def getDataMargins(self):
         """Get the default data margin ratios, see :meth:`setDataMargins`.
@@ -1833,38 +1849,3 @@ class Plot(object):
             self.setInteractiveMode('zoom', color=color)
         elif self.getInteractiveMode()['mode'] == 'zoom':
             self.setInteractiveMode('select')
-
-
-def _applyPan(min_, max_, panFactor, isLog10):
-    """Returns a new range with applied panning.
-
-    Moves the range according to panFactor.
-    If isLog10 is True, converts to log10 before moving.
-
-    :param float min_: Min value of the data range to pan.
-    :param float max_: Max value of the data range to pan.
-                       Must be >= min_.
-    :param float panFactor: Signed proportion of the range to use for pan.
-    :param bool isLog10: True if log10 scale, False if linear scale.
-    :return: New min and max value with pan applied.
-    :rtype: 2-tuple of float.
-    """
-    if isLog10 and min_ > 0.:
-        # Negative range and log scale can happen with matplotlib
-        logMin, logMax = math.log10(min_), math.log10(max_)
-        logOffset = panFactor * (logMax - logMin)
-        newMin = pow(10., logMin + logOffset)
-        newMax = pow(10., logMax + logOffset)
-
-        # Takes care of out-of-range values
-        if newMin > 0. and newMax < float('inf'):
-            min_, max_ = newMin, newMax
-
-    else:
-        offset = panFactor * (max_ - min_)
-        newMin, newMax = min_ + offset, max_ + offset
-
-        # Takes care of out-of-range values
-        if newMin > - float('inf') and newMax < float('inf'):
-            min_, max_ = newMin, newMax
-    return min_, max_
