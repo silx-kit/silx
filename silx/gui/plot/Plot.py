@@ -113,8 +113,7 @@ class Plot(object):
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None, callback=None):
-        # Can be accessed by backend to check the dirty state
-        self._dirty = True
+        self._dirty = False
 
         if backend is None:
             backend = self.defaultBackend
@@ -173,9 +172,9 @@ class Plot(object):
         self._xAutoScale = True
         self._yAutoScale = True
 
-        self.setGraphTitle('')
-        self.setGraphXLabel('')
-        self.setGraphYLabel('')
+        self.setGraphTitle()
+        self.setGraphXLabel()
+        self.setGraphYLabel()
 
         self.setDefaultColormap()  # Init default colormap
 
@@ -188,6 +187,30 @@ class Plot(object):
         self._pressedButtons = []  # Currently pressed mouse buttons
 
         self._defaultDataMargins = (0., 0., 0., 0.)
+
+    def _getDirtyPlot(self):
+        """Return the plot dirty flag.
+
+        If False, the plot has not changed since last replot.
+        If True, the full plot need to be redrawn.
+        If 'overlay', only the overlay has changed since last replot.
+
+        It can be accessed by backend to check the dirty state.
+
+        :return: False, True, 'overlay'
+        """
+        return self._dirty
+
+    def _setDirtyPlot(self, overlayOnly=False):
+        """Mark the plot as needing redraw
+
+        :param bool overlayOnly: True to redraw only the overlay,
+                                 False to redraw everything
+        """
+        if not self._dirty and overlayOnly:
+            self._dirty = 'overlay'
+        else:
+            self._dirty = True
 
     # Private stuff called from elsewhere....
 
@@ -343,7 +366,7 @@ class Plot(object):
                                             z=params['z'],
                                             selectable=params['selectable'],
                                             fill=params['fill'])
-            self._dirty = True
+            self._setDirtyPlot()
         else:
             handle = None  # The curve has no points or is hidden
 
@@ -485,7 +508,7 @@ class Plot(object):
                                             selectable=params['selectable'],
                                             draggable=params['draggable'],
                                             colormap=params['colormap'])
-            self._dirty = True
+            self._setDirtyPlot()
         else:
             handle = None  # data is None or log scale
 
@@ -526,11 +549,10 @@ class Plot(object):
         handle = self._backend.addItem(xdata, ydata, legend=legend,
                                        shape=shape, color=color,
                                        fill=fill, overlay=overlay)
+        self._setDirtyPlot(overlayOnly=overlay)
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}
 
-        if not overlay:
-            self._dirty = True
 
         if replot:
             self.replot()
@@ -569,7 +591,7 @@ class Plot(object):
         self._markers[legend] = self._backend.addXMarker(
             x, legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
-        self._dirty = True
+        self._setDirtyPlot()
 
         return legend
 
@@ -606,7 +628,7 @@ class Plot(object):
         self._markers[legend] = self._backend.addYMarker(
             y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable)
-        self._dirty = True
+        self._setDirtyPlot()
 
         return legend
 
@@ -669,7 +691,7 @@ class Plot(object):
             x, y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable,
             symbol=symbol, constraint=constraint)
-        self._dirty = True
+        self._setDirtyPlot()
 
         return legend
 
@@ -696,7 +718,7 @@ class Plot(object):
             self.addCurve(curve['x'], curve['y'], legend, replot=False,
                           **curve['params'])
 
-        self._dirty = True
+        self._setDirtyPlot()
 
         if replot:
             self.replot()
@@ -721,7 +743,7 @@ class Plot(object):
             handle = self._curves[legend]['handle']
             if handle is not None:
                 self._backend.remove(handle)
-                self._dirty = True
+                self._setDirtyPlot()
             del self._curves[legend]
 
         if not self._curves:
@@ -747,7 +769,7 @@ class Plot(object):
             handle = self._images[legend]['handle']
             if handle is not None:
                 self._backend.remove(handle)
-                self._dirty = True
+                self._setDirtyPlot()
             del self._images[legend]
 
         if replot:
@@ -760,8 +782,7 @@ class Plot(object):
         item = self._items.pop(legend, None)
         if item is not None and item['handle'] is not None:
             self._backend.remove(item['handle'])
-            if not item['overlay']:
-                self._dirty = True
+            self._setDirtyPlot(overlayOnly=item['overlay'])
 
         if replot:
             self.replot()
@@ -770,7 +791,7 @@ class Plot(object):
         handle = self._markers.pop(marker, None)
         if handle is not None:
             self._backend.remove(handle)
-            self._dirty = True
+            self._setDirtyPlot()
 
         if replot:
             self.replot()
@@ -784,7 +805,7 @@ class Plot(object):
         self.clearItems(replot=False)
 
         self._backend.clear()
-        self._dirty = True
+        self._setDirtyPlot()
 
         if replot:
             self.replot()
@@ -999,7 +1020,7 @@ class Plot(object):
         self._currentYLabel = yLabel
         self._backend.setGraphYLabel(yLabel)  # TODO handle y2 axis
 
-        self._dirty = True
+        self._setDirtyPlot()
 
         if replot:
             self.replot()
@@ -1185,7 +1206,7 @@ class Plot(object):
 
     def setGraphXLimits(self, xmin, xmax, replot=False):
         self._backend.setGraphXLimits(xmin, xmax)
-        self._dirty = True
+        self._setDirtyPlot()
 
         self._notifyLimitsChanged()
 
@@ -1203,7 +1224,7 @@ class Plot(object):
 
     def setGraphYLimits(self, ymin, ymax, replot=False):
         self._backend.setGraphYLimits(ymin, ymax)
-        self._dirty = True
+        self._setDirtyPlot()
 
         self._notifyLimitsChanged()
 
@@ -1223,7 +1244,7 @@ class Plot(object):
                 y2min, y2max = y2max, y2min
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
-        self._dirty = True
+        self._setDirtyPlot()
         self._notifyLimitsChanged()
 
     # Title and labels
@@ -1234,7 +1255,7 @@ class Plot(object):
     def setGraphTitle(self, title=""):
         self._graphTitle = str(title)
         self._backend.setGraphTitle(title)
-        self._dirty = True
+        self._setDirtyPlot()
 
     def getGraphXLabel(self):
         return self._currentXLabel
@@ -1244,7 +1265,7 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentXLabel = label
         self._backend.setGraphXLabel(label)
-        self._dirty = True
+        self._setDirtyPlot()
 
     def getGraphYLabel(self):
         return self._currentYLabel
@@ -1254,13 +1275,13 @@ class Plot(object):
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
         self._backend.setGraphYLabel(label)
-        self._dirty = True
+        self._setDirtyPlot()
 
     # Axes
 
     def invertYAxis(self, flag=True):
         self._backend.invertYAxis(flag)
-        self._dirty = True
+        self._setDirtyPlot()
 
     def isYAxisInverted(self):
         return self._backend.isYAxisInverted()
@@ -1299,7 +1320,7 @@ class Plot(object):
                 self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
 
-        self._dirty = True
+        self._setDirtyPlot()
         self.replot()
 
     def isYAxisLogarithmic(self):
@@ -1336,7 +1357,7 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
 
-        self._dirty = True
+        self._setDirtyPlot()
         self.replot()
 
     def isXAxisAutoScale(self):
@@ -1360,13 +1381,13 @@ class Plot(object):
         :type flag: Boolean, default True
         """
         self._backend.keepDataAspectRatio(flag=flag)
-        self._dirty = True
+        self._setDirtyPlot()
         self.resetZoom()
 
     def showGrid(self, flag=True):
         _logger.debug("Plot showGrid called")
         self._backend.showGrid(flag)
-        self._dirty = True
+        self._setDirtyPlot()
         self.replot()
 
     # Defaults
@@ -1380,7 +1401,7 @@ class Plot(object):
 
         if self._curves:
             self._update()
-            self._dirty = True
+            self._setDirtyPlot()
             self.replot()
 
     def setDefaultPlotLines(self, flag):
@@ -1388,7 +1409,7 @@ class Plot(object):
 
         if self._curves:
             self._update()
-            self._dirty = True
+            self._setDirtyPlot()
             self.replot()
 
     def getDefaultColormap(self):
@@ -1556,7 +1577,7 @@ class Plot(object):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
         self._backend.resetZoom(dataMargins)
-        self._dirty = True
+        self._setDirtyPlot()
         self.replot()
 
     # Internal

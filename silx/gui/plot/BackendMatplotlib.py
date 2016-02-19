@@ -99,7 +99,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.fig.sca(self.ax)
 
         self._overlays = set()
-        self._hadOverlays = False
         self._background = None
 
         self._colormaps = {}
@@ -485,8 +484,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             item._infoText.remove()
             item._infoText = None
         self._overlays.discard(item)
-        if not self._overlays:
-            self._hadOverlays = True
         item.remove()
 
     # Interaction methods
@@ -978,19 +975,18 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def resizeEvent(self, event):
         self._insideResizeEventMethod = True
         # Need to dirty the whole plot on resize.
-        self._plot._dirty = True
+        self._plot._setDirtyPlot()
         FigureCanvasQTAgg.resizeEvent(self, event)
         self._insideResizeEventMethod = False
 
     def draw(self):
         """Override canvas draw method to support faster draw of overlays."""
-        if self._plot._dirty:  # Need a full redraw
+        if self._plot._getDirtyPlot():  # Need a full redraw
             FigureCanvasQTAgg.draw(self)
             self._background = None  # Any saved background is dirty
 
-        if self._overlays or self._hadOverlays:
+        if self._overlays or self._plot._getDirtyPlot() == 'overlay':
             # 2 cases: There are overlays, or they is just no more overlays
-            self._hadOverlays = False
 
             # Specific case: called from resizeEvent:
             # avoid store/restore background, just draw the overlay
