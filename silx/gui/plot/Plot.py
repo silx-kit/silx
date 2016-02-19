@@ -1576,9 +1576,19 @@ class Plot(object):
     def resetZoom(self, dataMargins=None):
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
+
+        xlim = self.getGraphXLimits()
+        ylim = self.getGraphYLimits(axis='left')
+        y2lim = self.getGraphYLimits(axis='right')
+
         self._backend.resetZoom(dataMargins)
         self._setDirtyPlot()
         self.replot()
+
+        if (xlim != self.getGraphXLimits() or
+                ylim != self.getGraphYLimits(axis='left') or
+                y2lim != self.getGraphYLimits(axis='right')):
+            self._notifyLimitsChanged()
 
     # Internal
 

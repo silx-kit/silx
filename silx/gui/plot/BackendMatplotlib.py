@@ -559,54 +559,54 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not xAuto and not yAuto:
             _logger.debug("Nothing to autoscale")
         else:  # Some axes to autoscale
-            xmin, xmax = self.getGraphXLimits()
-            ymin, ymax = self.getGraphYLimits(axis='left')
-            y2min, y2max = self.getGraphYLimits(axis='right')
+            xLimits = self.getGraphXLimits()
+            yLimits = self.getGraphYLimits(axis='left')
+            y2Limits = self.getGraphYLimits(axis='right')
 
-            self._resetZoom(dataMargins)
+            xmin, xmax, ymin, ymax = self._getDataLimits('left')
+            if hasattr(self.ax2, "get_visible"):
+                if self.ax2.get_visible():
+                    xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
+                else:
+                    xmin2 = None
+                    xmax2 = None
+            else:
+                xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
+
+            if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
+                xmin = min(xmin, xmin2)
+                xmax = max(xmax, xmax2)
+
+            # Add margins around data inside the plot area
+            if xmin2 is None:
+                newLimits = _utils.addMarginsToLimits(
+                    dataMargins,
+                    self.ax.get_xscale() == 'log',
+                    self.ax.get_yscale() == 'log',
+                    xmin, xmax, ymin, ymax)
+
+            else:
+                newLimits = _utils.addMarginsToLimits(
+                    dataMargins,
+                    self.ax.get_xscale() == 'log',
+                    self.ax.get_yscale() == 'log',
+                    xmin, xmax, ymin, ymax, ymin2, ymax2)
+
+            self.setLimits(*newLimits)
 
             if not xAuto and yAuto:
-                self.setGraphXLimits(xmin, xmax)
+                self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
-                self.setGraphYLimits(ymin, ymax, axis='left')
-                self.setGraphYLimits(y2min, y2max, axis='right')
-
-            self._plot._notifyLimitsChanged()  # TODO not very nice
-
-    def _resetZoom(self, dataMargins):
-        xmin, xmax, ymin, ymax = self._getDataLimits('left')
-        if hasattr(self.ax2, "get_visible"):
-            if self.ax2.get_visible():
-                xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
-            else:
-                xmin2 = None
-                xmax2 = None
-        else:
-            xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
-
-        if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
-            xmin = min(xmin, xmin2)
-            xmax = max(xmax, xmax2)
-
-        # Add margins around data inside the plot area
-        if xmin2 is None:
-            newLimits = _utils.addMarginsToLimits(
-                dataMargins,
-                self.ax.get_xscale() == 'log',
-                self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax)
-
-            self.setLimits(*newLimits)
-        else:
-            newLimits = _utils.addMarginsToLimits(
-                dataMargins,
-                self.ax.get_xscale() == 'log',
-                self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax, ymin2, ymax2)
-
-            self.setLimits(*newLimits)
+                self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
+                self.setGraphYLimits(y2Limits[0], y2Limits[1], axis='right')
 
     def _getDataLimits(self, axesLabel='left'):
+        """Returns the bounds of the data.
+
+        :param str axesLabel: The Y axis to consider in 'left', 'right'
+        :return: The data bounds
+        :rtype: 4-tuple of float (xmin, xmax, ymin, ymax)
+        """
         if axesLabel == 'right':
             axes = self.ax2
         else:
