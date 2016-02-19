@@ -294,12 +294,12 @@ class TestSFLocale(unittest.TestCase):
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
         self.fname = tmp_path
-        self.loc = locale.getlocale()
+        self.loc = locale.getlocale(locale.LC_NUMERIC)
 
     def tearDown(self):
         os.unlink(self.fname)
         del self.fname
-        locale.setlocale(locale.LC_ALL, self.loc) # restore saved locale
+        locale.setlocale(locale.LC_NUMERIC, self.loc) # restore saved locale
         del self.loc
         gc.collect()
 
@@ -312,15 +312,15 @@ class TestSFLocale(unittest.TestCase):
     def test_locale_de_DE(self):
         # Not sure if this test is good enough. Maybe locale should
         # be changed at compilation time
-        locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+        locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
         self.crunch_data()
 
     def test_locale_user(self):
-        locale.setlocale(locale.LC_ALL, '') # use user's preferred locale
+        locale.setlocale(locale.LC_NUMERIC, '') # use user's preferred locale
         self.crunch_data()
 
     def test_locale_C(self):
-        locale.setlocale(locale.LC_ALL, 'C') # use default (C) locale
+        locale.setlocale(locale.LC_NUMERIC, 'C') # use default (C) locale
         self.crunch_data()
 
 
