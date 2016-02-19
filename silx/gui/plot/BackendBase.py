@@ -241,6 +241,22 @@ class BackendBase(object):
         """
         pass
 
+    def pickItems(self, x, y):
+        """Get a list of items at a pixel position.
+
+
+        :param float x: The x pixel coord where to pick.
+        :param float y: The y pixel coord where to pick.
+        :return: All picked items from back to front.
+                 One dict per item,
+                 with 'kind' key in 'curve', 'marker', 'image';
+                 'legend' key, the item legend.
+                 and for curves, 'xdata' and 'ydata' keys storing picked
+                 position on the curve.
+        :rtype: list of dict
+        """
+        return []
+
     # Active curve
 
     def setCurveColor(self, curve, color):

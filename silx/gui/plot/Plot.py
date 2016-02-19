@@ -1700,7 +1700,11 @@ class Plot(object):
         if test is None:
             test = lambda marker: True
 
-        for legend in reversed(self._backend.pickItem(x, y, kinds=['marker'])):
+        markers = self._backend.pickItems(x, y)
+        markers = [item for item in markers if item['kind'] == 'marker']
+
+        for item in reversed(markers):
+            kind, legend = item['kind'], item['legend']
             marker = self._markers.get(legend, None)
             if marker is not None:
                 params = marker['params'].copy()  # shallow copy
@@ -1719,8 +1723,45 @@ class Plot(object):
         params['legend'] = legend
         self._addMarker(**params)
 
-    def pickImageOrCurve(self, *args, **kwargs):
-        return None  # TODO
+    def pickImageOrCurve(self, x, y, test=None):
+        if test is None:
+            test = lambda item: True
+
+        items = self._backend.pickItems(x, y)
+        items = [item for item in items if item['kind'] in ['curve', 'image']]
+
+        for item in reversed(items):
+            kind, legend = item['kind'], item['legend']
+            if kind == 'curve':
+                curve = self._curves.get(legend, None)
+                if curve is not None:
+                    params = curve['params'].copy()  # shallow copy
+                    if test(params):
+                        params['legend'] = legend
+                        return kind, params, item['xdata'], item['ydata']
+
+            elif kind == 'image':
+                image = self._images.get(legend, None)
+                if image is not None:
+                    params = image['params'].copy()  # shallow copy
+                    if test(params):
+                        params['legend'] = legend
+                        return kind, params, None
+
+            else:
+                _logger.warning('Unsupported kind: %s', kind)
+
+        return None
+
+    def moveImage(self, legend, dx, dy):
+        # TODO: poor implementation, better to do move image in backend...
+        image = self._images[legend]
+        params = image['params'].copy()
+        params['xScale'] = params['xScale'][0] + dx, params['xScale'][1]
+        params['yScale'] = params['yScale'][0] + dy, params['yScale'][1]
+        self.addImage(image['data'], legend,
+                      replace=False, replot=False,
+                      pixmap=image['pixmap'], **params)
 
     # User event handling #
 

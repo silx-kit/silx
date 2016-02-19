@@ -850,7 +850,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     picked = self.machine.plot.pickImageOrCurve(
                         x,
                         y,
-                        lambda item: item.info['behaviors'] & testBehaviors)
+                        lambda item: item['selectable'] or item.get('draggable', False))
                     if picked is not None:
                         self.goto('clickOrDrag', x, y)
                         return True
@@ -929,35 +929,41 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 self.plot.replot()
             else:
-                picked = self.plot.pickImageOrCurve(
-                    x,
-                    y,
-                    lambda item: 'selectable' in item.info['behaviors'])
+                picked = self.plot.pickImageOrCurve(x, y,
+                                                    lambda item: item['selectable'])
 
                 if picked is None:
                     pass
                 elif picked[0] == 'curve':
-                    _, curve, indices = picked
+                    curve = picked[1]
+
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
+
                     eventDict = prepareCurveSignal('left',
-                                                   curve.info['legend'],
+                                                   curve['legend'],
                                                    'curve',
-                                                   curve.xData[indices],
-                                                   curve.yData[indices],
+                                                   picked[2], picked[3],
                                                    dataPos[0], dataPos[1],
                                                    x, y)
                     self.plot.notify(eventDict)
 
                 elif picked[0] == 'image':
-                    _, image, posImg = picked
+                    image = picked[1]
 
                     dataPos = self.plot.pixelToData(x, y)
                     assert dataPos is not None
+
+                    # Get corresponding coordinate in image
+                    column = int((dataPos[0] - image['xScale'][0]) /
+                                 float(image['xScale'][1]))
+                    row = int((dataPos[1] - image['yScale'][0]) /
+                              float(image['yScale'][1]))
+
                     eventDict = prepareImageSignal('left',
-                                                   image.info['legend'],
+                                                   image['legend'],
                                                    'image',
-                                                   posImg[0], posImg[1],
+                                                   column, row,
                                                    dataPos[0], dataPos[1],
                                                    x, y)
                     self.plot.notify(eventDict)
@@ -989,7 +995,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self._lastPos = self.plot.pixelToData(x, y)
         assert self._lastPos is not None
 
-        self.image = None
+        self.imageLegend = None
         self.marker = self.plot.pickMarker(
             x, y, lambda marker: marker['draggable'])
         if self.marker is not None:
@@ -998,13 +1004,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             picked = self.plot.pickImageOrCurve(
                 x,
                 y,
-                lambda item: 'draggable' in item.info['behaviors'])
+                lambda item: item.get('draggable', False))
             if picked is None:
-                self.image = None
+                self.imageLegend = None
                 self.plot.setGraphCursorShape()
             else:
-                assert picked[0] == 'image'  # For now, only drag images
-                self.image = picked[1]
+                assert picked[0] == 'image'  # For now only drag images
+                self.imageLegend = picked[1]['legend']
 
     def drag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -1021,10 +1027,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
             self.plot.replot()
 
-        if self.image is not None:
+        if self.imageLegend is not None:
             dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
-            self.image.xMin += dx
-            self.image.yMin += dy
+            self.plot.moveImage(self.imageLegend, dx, dy)
 
             self.plot.replot()
 
@@ -1051,7 +1056,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.setGraphCursorShape()
 
         del self.marker
-        del self.image
+        del self.imageLegend
         del self._lastPos
 
     def cancel(self):

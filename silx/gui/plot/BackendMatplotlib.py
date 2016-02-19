@@ -67,6 +67,8 @@ from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
 from matplotlib.backend_bases import MouseEvent
+from matplotlib.lines import Line2D
+from matplotlib.collections import PathCollection
 
 from . import _utils
 from .ModestImage import ModestImage
@@ -943,9 +945,30 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     # picking
 
     def _onPick(self, event):
-        self._picked.append(event.artist)
+        # TODO not very nice and fragile, find a better way?
+        # Make a selection according to kind
+        label = event.artist.get_label()
+        if label.startswith('__MARKER__'):
+            self._picked.append({'kind': 'marker', 'legend': label[10:]})
 
-    def pickItem(self, x, y, kinds):
+        elif label.startswith('__IMAGE__'):
+            self._picked.append({'kind': 'image', 'legend': label[9:]})
+
+        else:  # it's a curve, item have no picker for now
+            if isinstance(event.artist, PathCollection):
+                data = event.artist.get_offsets()[event.ind, :]
+                xdata, ydata = data[:, 0], data[:, 1]
+            elif isinstance(event.artist, Line2D):
+                xdata = event.artist.get_xdata()[event.ind]
+                ydata = event.artist.get_ydata()[event.ind]
+            else:
+                _logger.info('Unsupported artist, ignored')
+                return
+
+            self._picked.append({'kind': 'curve', 'legend': label,
+                                 'xdata': xdata, 'ydata': ydata})
+
+    def pickItems(self, x, y):
         self._picked = []
 
         # Weird way to do an explicit picking: Simulate a button press event
@@ -956,23 +979,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         picked = self._picked
         del self._picked
 
-        # TODO not very nice and fragile, find a better way?
-        # Make a selection according to kind
-        selected = []
-        for artist in picked:
-            label = artist.get_label()
-            if 'marker' in kinds and label.startswith('__MARKER__'):
-                selected.append(label[10:])
-
-            if 'image' in kinds and label.startswith('__IMAGE__'):
-                selected.append(artist[9:])
-
-            if ('curve' in kinds and not label.startswith('__MARKER__') and
-                    not label.startswith('__IMAGE__')):
-                # its curve, item have no picker for now...
-                selected.append(artist)
-
-        return selected
+        return picked
 
     # replot control
 
