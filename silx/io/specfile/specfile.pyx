@@ -90,7 +90,6 @@ __date__ = "19/02/2016"
 
 import os.path
 import logging
-import locale
 import numpy
 import re
 import sys
@@ -596,18 +595,11 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             long nlines, ncolumns, regular
 
-        # Can this cause side effects for programs importing this module ?
-        # How bad is the overhead?
-        loc = locale.getlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-
         sfdata_error = SfData(self.handle,
                               scan_index + 1,
                               &mydata,
                               &data_info,
                               &error)
-
-        locale.setlocale(locale.LC_NUMERIC, loc)
         self._handle_error(error)
 
         nlines = data_info[0]
@@ -644,18 +636,11 @@ cdef class SpecFile(object):
 
         label = string_to_char_star(label)
 
-        # Remember locale, change it to default C
-        loc = locale.getlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-
         nlines = SfDataColByName(self.handle,
                                  scan_index + 1,
                                  label,
                                  &data_column,
                                  &error)
-
-        # Restore previous locale
-        locale.setlocale(locale.LC_NUMERIC, loc)
         self._handle_error(error)
 
         cdef numpy.ndarray ret_array = numpy.empty((nlines,),
@@ -860,15 +845,10 @@ cdef class SpecFile(object):
             double* motor_positions
             int error = SF_ERR_NO_ERRORS
 
-        loc = locale.getlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-
         nmotors = SfAllMotorPos(self.handle, 
                                 scan_index + 1, 
                                 &motor_positions,
                                 &error)
-
-        locale.setlocale(locale.LC_NUMERIC, loc)
         self._handle_error(error)
 
         motor_positions_list = []
@@ -893,16 +873,10 @@ cdef class SpecFile(object):
 
         name = string_to_char_star(name)
 
-        loc = locale.getlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-
-        self._handle_error(error)
         motor_position = SfMotorPosByName(self.handle,
                                           scan_index + 1,
                                           name,
                                           &error)
-
-        locale.setlocale(locale.LC_NUMERIC, loc)
         self._handle_error(error)
 
         return motor_position
@@ -947,15 +921,11 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             double* mca_calib
 
-        loc = locale.getlocale(locale.LC_NUMERIC)
-        locale.setlocale(locale.LC_NUMERIC, 'C')
-
         mca_calib_error = SfMcaCalib(self.handle,
                                      scan_index + 1,
                                      &mca_calib,
                                      &error)
 
-        locale.setlocale(locale.LC_NUMERIC, loc)
         # error code updating isn't implemented in SfMcaCalib
         if mca_calib_error:
             raise KeyError("MCA calibration line (@CALIB) not found")
