@@ -566,34 +566,13 @@ class Plot(object):
                       draggable=False,
                       **kw):
         if kw:
-            _logger.warning('Extra parameters ignored: %s', str(kw))
+            _logger.warning(
+                'insertXMarker extra parameters ignored: %s', str(kw))
 
-        if text is None:
-            text = kw.get("label", None)
-            if text is not None:
-                _logger.warning(
-                    "insertXMarker deprecation: Use 'text' instead of 'label'")
-
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
-
-        if legend is None:
-            i = 0
-            while legend in self._markers:
-                legend = "Unnamed X Marker %d" % i
-                i += 1
-
-        if legend in self._markers:
-            self.removeMarker(legend, replot=False)
-
-        self._markers[legend] = self._backend.addXMarker(
-            x, legend, text=text, color=color,
-            selectable=selectable, draggable=draggable)
-        self._setDirtyPlot()
-
-        return legend
+        return self._addMarker(x=x, y=None, legend=legend,
+                               text=text, color=color,
+                               selectable=selectable, draggable=draggable,
+                               symbol=None, constraint=None)
 
     def insertYMarker(self, y,
                       legend=None,
@@ -605,32 +584,10 @@ class Plot(object):
         if kw:
             _logger.warning('Extra parameters ignored: %s', str(kw))
 
-        if text is None:
-            text = kw.get("label", None)
-            if text is not None:
-                _logger.warning(
-                    "insertYMarker deprecation: Use 'text' instead of 'label'")
-
-        if color is None:
-            color = self.colorDict['black']
-        elif color in self.colorDict:
-            color = self.colorDict[color]
-
-        if legend is None:
-            i = 0
-            while legend in self._markers:
-                legend = "Unnamed Y Marker %d" % i
-                i += 1
-
-        if legend in self._markers:
-            self.removeMarker(legend, replot=False)
-
-        self._markers[legend] = self._backend.addYMarker(
-            y, legend=legend, text=text, color=color,
-            selectable=selectable, draggable=draggable)
-        self._setDirtyPlot()
-
-        return legend
+        return self._addMarker(x=None, y=y, legend=legend,
+                               text=text, color=color,
+                               selectable=selectable, draggable=draggable,
+                               symbol=None, constraint=None)
 
     def insertMarker(self, x, y, legend=None,
                      text=None,
@@ -641,12 +598,8 @@ class Plot(object):
                      constraint=None,
                      **kw):
         if kw:
-            _logger.warning('Extra parameters ignored: %s', str(kw))
-
-        if text is None and 'label' in kw:
-            text = kw['label']
             _logger.warning(
-                "deprecation warning: Use 'text' instead of 'label'")
+                'insertMarker Extra parameters ignored: %s', str(kw))
 
         if x is None:
             xmin, xmax = self.getGraphXLimits()
@@ -656,6 +609,19 @@ class Plot(object):
             ymin, ymax = self.getGraphYLimits()
             y = 0.5 * (ymax + ymin)
 
+        return self._addMarker(x=x, y=y, legend=legend,
+                               text=text, color=color,
+                               selectable=selectable, draggable=draggable,
+                               symbol=symbol, constraint=constraint)
+
+    def _addMarker(self, x, y, legend,
+                      text, color,
+                      selectable, draggable,
+                      symbol, constraint):
+        """Common method for adding point, vline and hline marker.
+
+        See :meth:`insertMarker` for argument documentation.
+        """
         if legend is None:
             i = 0
             while legend in self._markers:
@@ -687,11 +653,20 @@ class Plot(object):
         if legend in self._markers:
             self.removeMarker(legend, replot=False)
 
-        self._markers[legend] = self._backend.addMarker(
-            x, y, legend=legend, text=text, color=color,
+        handle = self._backend.addMarker(
+            x=x, y=y, legend=legend, text=text, color=color,
             selectable=selectable, draggable=draggable,
-            symbol=symbol, constraint=constraint)
-        self._setDirtyPlot()
+            symbol=symbol, constraint=constraint,
+            overlay=draggable)
+
+        self._markers[legend] = {'handle': handle, 'params': {
+            'x': x, 'y': y,
+            'text': text, 'color': color,
+            'selectable': selectable, 'draggable': draggable,
+            'symbol': symbol, 'constraint': constraint}
+        }
+
+        self._setDirtyPlot(overlayOnly=draggable)
 
         return legend
 
@@ -788,10 +763,10 @@ class Plot(object):
             self.replot()
 
     def removeMarker(self, marker, replot=True):
-        handle = self._markers.pop(marker, None)
-        if handle is not None:
-            self._backend.remove(handle)
-            self._setDirtyPlot()
+        marker = self._markers.pop(marker, None)
+        if marker is not None and marker['handle'] is not None:
+            self._backend.remove(marker['handle'])
+            self._setDirtyPlot(overlayOnly=marker['params']['draggable'])
 
         if replot:
             self.replot()
@@ -1714,15 +1689,35 @@ class Plot(object):
 
     # Interaction support
 
-    def setCursor(self, cursor=None):
+    def setGraphCursorShape(self, cursor=None):
         """Set the cursor shape.
 
         :param str cursor: Name of the cursor shape
         """
-        self._backend.setCursor(cursor)
+        self._backend.setGraphCursorShape(cursor)
 
-    def pickMarker(self, *args, **kwargs):
-        return None  # TODO
+    def pickMarker(self, x, y, test=None):
+        if test is None:
+            test = lambda marker: True
+
+        for legend in reversed(self._backend.pickItem(x, y, kinds=['marker'])):
+            marker = self._markers.get(legend, None)
+            if marker is not None:
+                params = marker['params'].copy()  # shallow copy
+                if test(params):
+                    params['legend'] = legend
+                    return params
+        return None
+
+    def moveMarker(self, legend, x, y):
+        marker = self._markers[legend]
+        params = marker['params'].copy()
+        if params['x'] is not None:
+            params['x'] = x
+        if params['y'] is not None:
+            params['y'] = y
+        params['legend'] = legend
+        self._addMarker(**params)
 
     def pickImageOrCurve(self, *args, **kwargs):
         return None  # TODO

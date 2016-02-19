@@ -66,6 +66,7 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
+from matplotlib.backend_bases import MouseEvent
 
 from . import _utils
 from .ModestImage import ModestImage
@@ -317,11 +318,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax.add_artist(image)
 
         image._plot_info = {'xScale': xScale, 'yScale': yScale}
-        image._plot_options = []
-        if draggable:
-            image._plot_options.append('draggable')
-        if selectable:
-            image._plot_options.append('selectable')
 
         return image
 
@@ -380,95 +376,69 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, constraint, overlay):
         legend = "__MARKER__" + legend  # TODO useful?
 
         # Apply constraint to provided position
         if draggable and constraint is not None:
             x, y = constraint(x, y)
 
-        line = self.ax.plot(x, y, label=legend,
-                            linestyle=" ",
-                            color=color,
-                            marker=symbol,
-                            markersize=10.)[-1]
+        # TODO issues with text placement when changing limits..
+        if x is not None and y is not None:
+            line = self.ax.plot(x, y, label=legend,
+                                linestyle=" ",
+                                color=color,
+                                marker=symbol,
+                                markersize=10.)[-1]
+
+            if text is not None:
+                xtmp, ytmp = self.ax.transData.transform((x, y))
+                inv = self.ax.transData.inverted()
+                xtmp, ytmp = inv.transform((xtmp, ytmp + 15))
+                text = " " + text
+                line._infoText = self.ax.text(x, ytmp, text,
+                                              color=color,
+                                              horizontalalignment='left',
+                                              verticalalignment='top')
+
+        elif x is not None:
+            line = self.ax.axvline(x, label=legend, color=color)
+            if text is not None:
+                text = " " + text
+                ymin, ymax = self.getGraphYLimits(axis='left')
+                delta = abs(ymax - ymin)
+                if ymin > ymax:
+                    ymax = ymin
+                ymax -= 0.005 * delta
+                line._infoText = self.ax.text(x, ymax, text,
+                                              color=color,
+                                              horizontalalignment='left',
+                                              verticalalignment='top')
+
+        elif y is not None:
+            line = self.ax.axhline(y, label=legend, color=color)
+
+            if text is not None:
+                text = " " + text
+                xmin, xmax = self.getGraphXLimits()
+                delta = abs(xmax - xmin)
+                if xmin > xmax:
+                    xmax = xmin
+                xmax -= 0.005 * delta
+                line._infoText = self.ax.text(xmax, y, text,
+                                              color=color,
+                                              horizontalalignment='right',
+                                              verticalalignment='top')
+
+        else:
+            raise RuntimeError('A marker must at least have one coordinate')
 
         if selectable or draggable:
             line.set_picker(5)
 
-        if text is not None:
-            xtmp, ytmp = self.ax.transData.transform((x, y))
-            inv = self.ax.transData.inverted()
-            xtmp, ytmp = inv.transform((xtmp, ytmp + 15))
-            text = " " + text
-            line._infoText = self.ax.text(x, ytmp, text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment='top')
-
-        line._constraint = constraint if draggable else None
-
-        line._plot_options = ["marker"]
-        if selectable:
-            line._plot_options.append('selectable')
-        if draggable:
-            line._plot_options.append('draggable')
-
-        return line
-
-    def addXMarker(self, x, legend, text,
-                   color, selectable, draggable):
-        legend = "__MARKER__" + legend  # TODO useful?
-
-        line = self.ax.axvline(x, label=legend, color=color)
-        if selectable or draggable:
-            line.set_picker(5)
-
-        if text is not None:
-            text = " " + text
-            ymin, ymax = self.getGraphYLimits(axis='left')
-            delta = abs(ymax - ymin)
-            if ymin > ymax:
-                ymax = ymin
-            ymax -= 0.005 * delta
-            line._infoText = self.ax.text(x, ymax, text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment='top')
-
-        line._plot_options = ["xmarker"]
-        if selectable:
-            line._plot_options.append('selectable')
-        if draggable:
-            line._plot_options.append('draggable')
-
-        return line
-
-    def addYMarker(self, y, legend, text,
-                   color, selectable, draggable):
-        legend = "__MARKER__" + legend  # TODO useful?
-
-        line = self.ax.axhline(y, label=legend, color=color)
-        if selectable or draggable:
-            line.set_picker(5)
-
-        if text is not None:
-            text = " " + text
-            xmin, xmax = self.getGraphXLimits()
-            delta = abs(xmax - xmin)
-            if xmin > xmax:
-                xmax = xmin
-            xmax -= 0.005 * delta
-            line._infoText = self.ax.text(y, xmax, text,
-                                          color=color,
-                                          horizontalalignment='left',
-                                          verticalalignment='top')
-
-        line._plot_options = ["ymarker"]
-        if selectable:
-            line._plot_options.append('selectable')
-        if draggable:
-            line._plot_options.append('draggable')
+        if overlay:
+            line.set_animated(True)
+            self._overlays.add(line)
 
         return line
 
@@ -970,6 +940,40 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onMouseWheel(self, event):
         self._plot.onMouseWheel(event.x, event.y, event.step)
 
+    # picking
+
+    def _onPick(self, event):
+        self._picked.append(event.artist)
+
+    def pickItem(self, x, y, kinds):
+        self._picked = []
+
+        # Weird way to do an explicit picking: Simulate a button press event
+        mouseEvent = MouseEvent('button_press_event', self, x, y)
+        cid = self.mpl_connect('pick_event', self._onPick)
+        self.fig.pick(mouseEvent)
+        self.mpl_disconnect(cid)
+        picked = self._picked
+        del self._picked
+
+        # TODO not very nice and fragile, find a better way?
+        # Make a selection according to kind
+        selected = []
+        for artist in picked:
+            label = artist.get_label()
+            if 'marker' in kinds and label.startswith('__MARKER__'):
+                selected.append(label[10:])
+
+            if 'image' in kinds and label.startswith('__IMAGE__'):
+                selected.append(artist[9:])
+
+            if ('curve' in kinds and not label.startswith('__MARKER__') and
+                    not label.startswith('__IMAGE__')):
+                # its curve, item have no picker for now...
+                selected.append(artist)
+
+        return selected
+
     # replot control
 
     def resizeEvent(self, event):
@@ -1016,7 +1020,7 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         BackendBase.CURSOR_SIZE_ALL: qt.Qt.SizeAllCursor,
     }
 
-    def setCursor(self, cursor):
+    def setGraphCursorShape(self, cursor):
         cursor = self._QT_CURSORS[cursor]
 
         FigureCanvasQTAgg.setCursor(self, qt.QCursor(cursor))

@@ -837,16 +837,16 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                testBehaviors = set(('selectable', 'draggable'))
-
                 marker = self.machine.plot.pickMarker(
                     x, y,
-                    lambda marker: marker['behaviors'] & testBehaviors)
+                    lambda marker: marker['selectable'] or marker['draggable'])
                 if marker is not None:
                     self.goto('clickOrDrag', x, y)
                     return True
 
                 else:
+                    testBehaviors = set(('selectable', 'draggable'))
+
                     picked = self.machine.plot.pickImageOrCurve(
                         x,
                         y,
@@ -865,26 +865,26 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 eventDict = prepareHoverSignal(
                     marker['legend'], 'marker',
                     dataPos, (x, y),
-                    'draggable' in marker['behaviors'],
-                    'selectable' in marker['behaviors'])
+                    marker['draggable'],
+                    marker['selectable'])
                 self.machine.plot.notify(eventDict)
 
             if marker != self._hoverMarker:
                 self._hoverMarker = marker
 
                 if marker is None:
-                    self.machine.plot.setCursor()
+                    self.machine.plot.setGraphCursorShape()
 
-                elif 'draggable' in marker['behaviors']:
+                elif marker['draggable']:
                     if marker['x'] is None:
-                        self.machine.plot.setCursor(CURSOR_SIZE_VER)
+                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_VER)
                     elif marker['y'] is None:
-                        self.machine.plot.setCursor(CURSOR_SIZE_HOR)
+                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_HOR)
                     else:
-                        self.machine.plot.setCursor(CURSOR_SIZE_ALL)
+                        self.machine.plot.setGraphCursorShape(CURSOR_SIZE_ALL)
 
-                elif 'selectable' in marker['behaviors']:
-                    self.machine.plot.setCursor(CURSOR_POINTING)
+                elif marker['selectable']:
+                    self.machine.plot.setGraphCursorShape(CURSOR_POINTING)
 
             return True
 
@@ -909,7 +909,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         if btn == LEFT_BTN:
             marker = self.plot.pickMarker(
-                x, y, lambda marker: 'selectable' in marker['behaviors'])
+                x, y, lambda marker: marker['selectable'])
             if marker is not None:
                 xData, yData = marker['x'], marker['y']
                 if xData is None:
@@ -917,14 +917,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 if yData is None:
                     yData = [0, 1]
 
-                draggable = 'draggable' in marker['behaviors']
-                selectable = 'selectable' in marker['behaviors']
                 eventDict = prepareMarkerSignal('markerClicked',
                                                 'left',
                                                 marker['legend'],
                                                 'marker',
-                                                draggable,
-                                                selectable,
+                                                marker['draggable'],
+                                                marker['selectable'],
                                                 (xData, yData),
                                                 (x, y), None)
                 self.plot.notify(eventDict)
@@ -980,8 +978,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                         'left',
                                         marker['legend'],
                                         'marker',
-                                        'draggable' in marker['behaviors'],
-                                        'selectable' in marker['behaviors'],
+                                        marker['draggable'],
+                                        marker['selectable'],
                                         (xData, yData),
                                         (x, y),
                                         posDataCursor)
@@ -993,7 +991,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         self.image = None
         self.marker = self.plot.pickMarker(
-            x, y, lambda marker: 'draggable' in marker['behaviors'])
+            x, y, lambda marker: marker['draggable'])
         if self.marker is not None:
             self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
         else:
@@ -1003,7 +1001,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 lambda item: 'draggable' in item.info['behaviors'])
             if picked is None:
                 self.image = None
-                self.plot.setCursor()
+                self.plot.setGraphCursorShape()
             else:
                 assert picked[0] == 'image'  # For now, only drag images
                 self.image = picked[1]
@@ -1017,10 +1015,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if self.marker['constraint'] is not None:
                 xData, yData = self.marker['constraint'](xData, yData)
 
-            if self.marker['x'] is not None:
-                self.marker['x'] = xData
-            if self.marker['y'] is not None:
-                self.marker['y'] = yData
+            self.plot.moveMarker(self.marker['legend'], xData, yData)
 
             self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
 
@@ -1048,19 +1043,19 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 'left',
                 self.marker['legend'],
                 'marker',
-                'draggable' in self.marker['behaviors'],
-                'selectable' in self.marker['behaviors'],
+                self.marker['draggable'],
+                self.marker['selectable'],
                 posData)
             self.plot.notify(eventDict)
 
-        self.plot.setCursor()
+        self.plot.setGraphCursorShape()
 
         del self.marker
         del self.image
         del self._lastPos
 
     def cancel(self):
-        self.plot.setCursor()
+        self.plot.setGraphCursorShape()
 
 
 # FocusManager ################################################################

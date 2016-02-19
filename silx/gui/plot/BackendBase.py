@@ -160,16 +160,20 @@ class BackendBase(object):
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
                   symbol, constraint):
-        """Add a point marker to the plot.
+        """Add a point, vertical line or horizontal line marker to the plot.
 
-        :param float x: Horizontal position of the marker in graph coordinates
-        :param float y: Vertical position of the marker in graph coordinates
+        :param float x: Horizontal position of the marker in graph coordinates.
+                        If None, the marker is a horizontal line.
+        :param float y: Vertical position of the marker in graph coordinates.
+                        If None, the marker is a vertical line.
         :param str legend: Legend associated to the marker
         :param str text: Text associated to the marker (or None for no text)
         :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
         :param bool selectable: indicate if the marker can be selected
         :param bool draggable: indicate if the marker can be moved
-        :param str symbol: Symbol representing the marker in:
+        :param str symbol: Symbol representing the marker.
+        Only relevant for point markers where X and Y are not None.
+        Value in:
 
             - 'o' circle
             - '.' point
@@ -191,34 +195,6 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def addXMarker(self, x, legend, text,
-                   color, selectable, draggable):
-        """Add a vertical line marker to the plot.
-
-        :param float x: Horizontal position of the marker in graph coordinates
-        :param str legend: Legend associated to the marker
-        :param str text: Text associated to the marker (or None for no text)
-        :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
-        :param bool selectable: indicate if the marker can be selected
-        :param bool draggable: indicate if the marker can be moved
-        :return: Handle used by the backend to univocally access the marker
-        """
-        raise NotImplementedError()
-
-    def addYMarker(self, y, legend, text,
-                   color, selectable, draggable):
-        """Add a horizontal line marker to the plot.
-
-        :param float y: Vertical position of the marker in graph coordinates
-        :param str legend: Legend associated to the marker
-        :param str text: Text associated to the marker (or None for no text)
-        :param str color: Color to be used for instance 'blue', 'b', '#FF0000'
-        :param bool selectable:indicate if the marker can be selected
-        :param bool draggable: indicate if the marker can be moved
-        :return: Handle used by the backend to univocally access the marker
-        """
-        raise NotImplementedError()
-
     # Remove methods
 
     def clear(self):
@@ -234,7 +210,7 @@ class BackendBase(object):
 
     # Interaction methods
 
-    def setCursor(self, cursor):
+    def setGraphCursorShape(self, cursor):
         """Set the cursor shape.
 
         To override in interactive backends.
