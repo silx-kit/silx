@@ -1,10 +1,12 @@
 """Tests for specfile wrapper"""
-import unittest
-import tempfile
+
+import gc
+import locale
+import numpy
 import os
 import sys
-import gc
-import numpy
+import tempfile
+import unittest
 
 from silx.io.specfile import SpecFile, Scan
 
@@ -82,7 +84,7 @@ class TestSpecFile(unittest.TestCase):
         if sys.version < '3.0':
             os.write(fd, sftext)
         else:
-            os.write(fd, bytes(sftext, 'utf-8'))
+            os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
         self.fname = tmp_path
         self.sf = SpecFile(self.fname)
@@ -94,7 +96,7 @@ class TestSpecFile(unittest.TestCase):
         if sys.version < '3.0':
             os.write(fd2, sftext[370:-97])
         else:
-            os.write(fd2, bytes(sftext[370:-97], 'utf-8'))
+            os.write(fd2, bytes(sftext[370:-97], 'ascii'))
         os.close(fd2)
         self.fname2 = tmp_path2
         self.sf_no_fhdr = SpecFile(self.fname2)
@@ -122,9 +124,6 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(3, len(self.sf))
         
     def test_list_of_scan_indices(self):
-        # self.assertEqual(len(self.sf.list()), 3)
-        # self.assertEqual(max(self.sf.list()), 25)
-        # self.assertEqual(min(self.sf.list()), 1)
         self.assertEqual(self.sf.list(),
                          [1, 25, 1])
 
@@ -154,7 +153,8 @@ class TestSpecFile(unittest.TestCase):
         i=0
         for scan in self.sf:
             if i == 1:
-                self.assertEqual(scan.motor_positions, self.sf[1].motor_positions)
+                self.assertEqual(scan.motor_positions,
+                                 self.sf[1].motor_positions)
             i += 1
         # number of returned scans
         self.assertEqual(i, len(self.sf))
@@ -182,7 +182,6 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.file_header_lines[1],
                          '#E 1455180875')
         self.assertEqual(len(self.scan1.file_header_lines), 14)
-        # parsing headers with single character key 
         self.assertEqual(self.scan1.file_header['F'],
                          '/tmp/sf.dat')
 
@@ -255,16 +254,82 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(line_count, 3)
         self.assertAlmostEqual(total_sum, 36.8)
 
-
     def test_mca_header(self):
         self.assertEqual(self.scan1.mca_header, {})
         self.assertEqual(len(self.scan1_2.mca_header), 4)
         self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
+    #
+    # def test_locale(self):
+    #     # Not sure if this test is good enough. Maybe locale should
+    #     # be changed at compilation time?
+    #     loc = locale.getlocale()
+    #     print(loc)
+    #
+    #     #locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+    #     self.sf3 = SpecFile(self.fname)
+    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
+    #                            1.56)
+    #     del self.sf3
+    #
+    #     locale.setlocale(locale.LC_ALL, '') # use user's preferred locale
+    #     self.sf3 = SpecFile(self.fname)
+    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
+    #                            1.56)
+    #     del self.sf3
+    #
+    #     locale.setlocale(locale.LC_ALL, 'C') # use default (C) locale
+    #     self.sf3 = SpecFile(self.fname)
+    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
+    #                            1.56)
+    #     del self.sf3
+    #
+    #     locale.setlocale(locale.LC_ALL, loc) # restore saved locale
+
+class TestSFLocale(unittest.TestCase):
+    def setUp(self):
+        fd, tmp_path = tempfile.mkstemp(text=False)
+        if sys.version < '3.0':
+            os.write(fd, sftext)
+        else:
+            os.write(fd, bytes(sftext, 'ascii'))
+        os.close(fd)
+        self.fname = tmp_path
+        self.loc = locale.getlocale()
+
+    def tearDown(self):
+        os.unlink(self.fname)
+        del self.fname
+        locale.setlocale(locale.LC_ALL, self.loc) # restore saved locale
+        del self.loc
+        gc.collect()
+
+    def crunch_data(self):
+        self.sf3 = SpecFile(self.fname)
+        self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
+                               1.56)
+        del self.sf3
+
+    def test_locale_de_DE(self):
+        # Not sure if this test is good enough. Maybe locale should
+        # be changed at compilation time
+        locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
+        self.crunch_data()
+
+    def test_locale_user(self):
+        locale.setlocale(locale.LC_ALL, '') # use user's preferred locale
+        self.crunch_data()
+
+    def test_locale_C(self):
+        locale.setlocale(locale.LC_ALL, 'C') # use default (C) locale
+        self.crunch_data()
+
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecFile))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSFLocale))
     return test_suite
 
 
