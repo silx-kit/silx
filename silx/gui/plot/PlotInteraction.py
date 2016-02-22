@@ -67,6 +67,7 @@ class _PlotInteraction(object):
 
         :param plot: The plot to apply modifications to.
         """
+        self._needReplot = False
         self._selectionAreas = set()
         self._plot = weakref.ref(plot)  # Avoid cyclic-ref
 
@@ -177,7 +178,6 @@ def _applyZoomToPlot(plot, cx, cy, scaleF):
                                  plot.isYAxisLogarithmic())
 
     plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-    plot.replot()
 
 
 class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
@@ -281,7 +281,6 @@ class Pan(_ZoomOnWheel):
         self.plot.setLimits(newXMin, newXMax,
                             newYMin, newYMax,
                             newY2Min, newY2Max)
-        self.plot.replot()
 
         self._previousDataPos = self._pixelToData(x, y)
 
@@ -376,7 +375,6 @@ class Zoom(_ZoomOnWheel):
                 self.plot.notify(eventDict)
             else:
                 self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-            self.plot.replot()
 
     def beginDrag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -416,7 +414,6 @@ class Zoom(_ZoomOnWheel):
                                for (x, y) in corners])
 
         self.setSelectionArea(corners, fill=None, color=self.color)
-        self.plot.replot()
 
     def endDrag(self, startPos, endPos):
         x0, y0 = startPos
@@ -452,12 +449,10 @@ class Zoom(_ZoomOnWheel):
             self.plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
         self.resetSelectionArea()
-        self.plot.replot()
 
     def cancel(self):
         if isinstance(self.state, self.states['drag']):
             self.resetSelectionArea()
-            self.plot.replot()
 
 
 # Select ######################################################################
@@ -504,7 +499,6 @@ class SelectPolygon(Select):
             self.machine.setSelectionArea(self.points,
                                           fill='hatch',
                                           color=self.machine.color)
-            self.machine.plot.replot()
             eventDict = prepareDrawingSignal('drawingProgress',
                                              'polygon',
                                              self.points,
@@ -530,7 +524,6 @@ class SelectPolygon(Select):
         def onPress(self, x, y, btn):
             if btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
-                self.machine.plot.replot()
 
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
@@ -557,7 +550,6 @@ class SelectPolygon(Select):
     def cancel(self):
         if isinstance(self.state, self.states['select']):
             self.resetSelectionArea()
-            self.plot.replot()
 
 
 class Select2Points(Select):
@@ -634,7 +626,6 @@ class SelectRectangle(Select2Points):
                               (dataPos[0], self.startPt[1])),
                               fill='hatch',
                               color=self.color)
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
                                          'rectangle',
@@ -644,7 +635,6 @@ class SelectRectangle(Select2Points):
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
-        self.plot.replot()
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -657,7 +647,6 @@ class SelectRectangle(Select2Points):
 
     def cancelSelect(self):
         self.resetSelectionArea()
-        self.plot.replot()
 
 
 class SelectLine(Select2Points):
@@ -673,7 +662,6 @@ class SelectLine(Select2Points):
         self.setSelectionArea((self.startPt, dataPos),
                               fill='hatch',
                               color=self.color)
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
                                          'line',
@@ -683,7 +671,6 @@ class SelectLine(Select2Points):
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
-        self.plot.replot()
 
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -696,7 +683,6 @@ class SelectLine(Select2Points):
 
     def cancelSelect(self):
         self.resetSelectionArea()
-        self.plot.replot()
 
 
 class Select1Point(Select):
@@ -760,7 +746,6 @@ class SelectHLine(Select1Point):
     def select(self, x, y):
         points = self._hLine(y)
         self.setSelectionArea(points, fill='hatch', color=self.color)
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
                                          'hline',
@@ -770,7 +755,6 @@ class SelectHLine(Select1Point):
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingFinished',
                                          'hline',
@@ -780,7 +764,6 @@ class SelectHLine(Select1Point):
 
     def cancelSelect(self):
         self.resetSelectionArea()
-        self.plot.replot()
 
 
 class SelectVLine(Select1Point):
@@ -799,7 +782,6 @@ class SelectVLine(Select1Point):
     def select(self, x, y):
         points = self._vLine(x)
         self.setSelectionArea(points, fill='hatch', color=self.color)
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingProgress',
                                          'vline',
@@ -809,7 +791,6 @@ class SelectVLine(Select1Point):
 
     def endSelect(self, x, y):
         self.resetSelectionArea()
-        self.plot.replot()
 
         eventDict = prepareDrawingSignal('drawingFinished',
                                          'vline',
@@ -819,7 +800,6 @@ class SelectVLine(Select1Point):
 
     def cancelSelect(self):
         self.resetSelectionArea()
-        self.plot.replot()
 
 
 # ItemInteraction #############################################################
@@ -925,7 +905,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                                 (x, y), None)
                 self.plot.notify(eventDict)
 
-                self.plot.replot()
             else:
                 picked = self.plot.pickImageOrCurve(
                     x, y, lambda item: item['selectable'])
@@ -1023,13 +1002,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
             self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
 
-            self.plot.replot()
-
         if self.imageLegend is not None:
             dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
             self.plot.moveImage(self.imageLegend, dx, dy)
-
-            self.plot.replot()
 
         self._lastPos = xData, yData
 

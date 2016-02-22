@@ -61,7 +61,6 @@ elif qt.BINDING == 'PyQt5':
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from matplotlib import cm
-from matplotlib.widgets import Cursor
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
@@ -106,7 +105,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         self._colormaps = {}
 
-        self._graphCursor = None
+        self._graphCursor = tuple()
         self.matplotlibVersion = matplotlib.__version__
 
         self.setGraphXLimits(0., 100.)
@@ -462,16 +461,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setGraphCursor(self, flag, color, linewidth, linestyle):
         if flag:
-            if self._graphCursor is None:
-                self._graphCursor = Cursor(self.ax,
-                                           useblit=False,
-                                           color=color,
-                                           linewidth=linewidth,
-                                           linestyle=linestyle)
-            self._graphCursor.visible = True
+            lineh = self.ax.axhline(
+                self.ax.get_ybound()[0], visible=False, color=color,
+                linewidth=linewidth, linestyle=linestyle)
+            lineh.set_animated(True)
+
+            linev = self.ax.axvline(
+                self.ax.get_xbound()[0], visible=False, color=color,
+                linewidth=linewidth, linestyle=linestyle)
+            linev.set_animated(True)
+
+            self._graphCursor = lineh, linev
         else:
             if self._graphCursor is not None:
-                self._graphCursor.visible = False
+                lineh, linev = self._graphCursor
+                lineh.remove()
+                linev.remove()
+                self._graphCursor = tuple()
 
     # Active curve
 
@@ -933,6 +939,20 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             event.x, event.y, self._MPL_TO_PLOT_BUTTONS[event.button])
 
     def _onMouseMove(self, event):
+        if self._graphCursor:
+            lineh, linev = self._graphCursor
+            if event.inaxes != self.ax and lineh.get_visible():
+                lineh.set_visible(False)
+                linev.set_visible(False)
+                self._plot._setDirtyPlot(overlayOnly=True)
+            else:
+                linev.set_visible(True)
+                linev.set_xdata((event.xdata, event.xdata))
+                lineh.set_visible(True)
+                lineh.set_ydata((event.ydata, event.ydata))
+                self._plot._setDirtyPlot(overlayOnly=True)
+
+        # TODO: Fragile: relies on onMouseMove dirty flag check to replot
         self._plot.onMouseMove(event.x, event.y)
 
     def _onMouseRelease(self, event):
@@ -996,8 +1016,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             FigureCanvasQTAgg.draw(self)
             self._background = None  # Any saved background is dirty
 
-        if self._overlays or self._plot._getDirtyPlot() == 'overlay':
-            # 2 cases: There are overlays, or they is just no more overlays
+        if (self._overlays or self._graphCursor or
+                self._plot._getDirtyPlot() == 'overlay'):
+            # There are overlays or crosshair, or they is just no more overlays
 
             # Specific case: called from resizeEvent:
             # avoid store/restore background, just draw the overlay
@@ -1010,6 +1031,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             # This assume that items are only on left/bottom Axes
             for item in self._overlays:
                 self.ax.draw_artist(item)
+
+            for item in self._graphCursor:
+                self.ax.draw_artist(item)
+
             self.blit(self.fig.bbox)
 
     def replot(self):

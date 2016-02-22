@@ -862,6 +862,7 @@ class Plot(object):
 
         self._backend.setGraphCursor(flag=flag, color=color,
                                      linewidth=linewidth, linestyle=linestyle)
+        self._setDirtyPlot()
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
@@ -1781,6 +1782,8 @@ class Plot(object):
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._pressedButtons.append(btn)
             self._eventHandler.handleEvent('press', xPixel, yPixel, btn)
+            if self._getDirtyPlot():
+                self.replot()
 
     def onMouseMove(self, xPixel, yPixel):
         inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
@@ -1808,6 +1811,9 @@ class Plot(object):
         if isCursorInPlot or self._pressedButtons:
             self._eventHandler.handleEvent('move', inXPixel, inYPixel)
 
+        if self._getDirtyPlot():
+            self.replot()
+
     def onMouseRelease(self, xPixel, yPixel, btn):
         try:
             self._pressedButtons.remove(btn)
@@ -1817,10 +1823,16 @@ class Plot(object):
             xPixel, yPixel = self._isPositionInPlotArea(xPixel, yPixel)
             self._eventHandler.handleEvent('release', xPixel, yPixel, btn)
 
+            if self._getDirtyPlot():
+                self.replot()
+
     def onMouseWheel(self, xPixel, yPixel, angleInDegrees):
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
+
+            if self._getDirtyPlot():
+                self.replot()
 
     # Interaction modes #
 

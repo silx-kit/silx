@@ -29,4 +29,4 @@ __license__ = "MIT"
 __date__ = "22/02/2016"
 
 
-from .PlotWidget import PlotWidget
+from .PlotWidget import PlotWidget  # noqa

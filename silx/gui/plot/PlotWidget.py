@@ -131,7 +131,6 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         Overrides base class implementation.
         """
         key = event.key()
-        print('PlotWidget key press', key)
         if self._panWithArrowKeys and key in self._ARROWS_TO_PAN_DIRECTION:
             self.pan(self._ARROWS_TO_PAN_DIRECTION[key], factor=0.1)
         else:
