@@ -168,6 +168,12 @@ def check_openmp():
         print("No OpenMP requested by command line")
         return False
 
+    elif ("--openmp" in sys.argv):
+        sys.argv.remove("--openmp")
+        os.environ["WITH_OPENMP"] = "True"
+        print("OpenMP requested by command line")
+        return True
+
     if platform.system() == "Darwin":
         # By default Xcode5 & XCode6 do not support OpenMP, Xcode4 is OK.
         osx = tuple([int(i) for i in platform.mac_ver()[0].split(".")])

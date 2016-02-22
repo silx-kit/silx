@@ -1,17 +1,57 @@
-# machine configuration
 machine:
   python:
-    version: 2.7.5
-# silx dependencies for build and test
+    version: 2.7
+
+checkout:
+    post:
+        # Clean-up to make sure we start from a fresh build env
+        - rm -rf dist/ build/
+
 dependencies:
     pre:
-        - pip install numpy
-        - pip install cython
-        - pip install h5py
-        - pip install wheel
+        # Install deb packages
+        #- sudo apt-get update
+        - sudo apt-get install libhdf5-serial-1.8.4 libhdf5-serial-dev
+
+        # Upgrade distribution modules
+        - pip install --upgrade setuptools
+        - pip install --upgrade pip
+
+        # Install build dependencies
+        - pip install --upgrade wheel
+        - pip install --upgrade numpy cython
+
+        # Print Python info
+        - python ./ci/info_platform.py
         - pip freeze
-        - pip freeze
-# test to rrun
-test:
+
     override:
+        # Build
+        - python setup.py sdist bdist_wheel
+
+        # Copy source tarball to artifacts
+        - cp dist/*.tar.gz $CIRCLE_ARTIFACTS
+
+        # Install generated wheel and its dependencies
+        - pip install --upgrade --pre --find-links dist/ silx
+
+    post:
+        # Clean-up
+        - python setup.py clean --all
+
+        # Uninstall silx before caching
+        # Hack to avoid caching installed package
+        - pip uninstall --yes silx
+
+test:
+    pre:
+        # Install generated wheel
+        - pip install --pre --find-links dist/ silx
+
+    override:
+        # Print Python info
+        - python ci/info_platform.py
+        - pip freeze
+
+        # Run the tests
         - python run_tests.py
