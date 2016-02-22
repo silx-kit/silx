@@ -26,8 +26,10 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "22/02/2016"
 
+
+import math
 
 import numpy
 

@@ -34,7 +34,7 @@ __date__ = "18/02/2016"
 
 from collections import OrderedDict
 import logging
-import math
+
 import numpy
 
 from . import BackendBase
@@ -553,7 +553,6 @@ class Plot(object):
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}
 
-
         if replot:
             self.replot()
 
@@ -615,9 +614,9 @@ class Plot(object):
                                symbol=symbol, constraint=constraint)
 
     def _addMarker(self, x, y, legend,
-                      text, color,
-                      selectable, draggable,
-                      symbol, constraint):
+                   text, color,
+                   selectable, draggable,
+                   symbol, constraint):
         """Common method for adding point, vline and hline marker.
 
         See :meth:`insertMarker` for argument documentation.
@@ -1497,8 +1496,8 @@ class Plot(object):
 
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """
-        :param fileName: Destination
-        :type fileName: str or StringIO or BytesIO
+        :param filename: Destination
+        :type filename: str or StringIO or BytesIO
         :param str fileFormat:  String specifying the format
         :return: False if cannot save, True otherwise
         """
@@ -1511,7 +1510,7 @@ class Plot(object):
                     'saveGraph cancelled, cannot define file format.')
                 return False
             else:
-                fileFormat = (fileName.split(".")[-1]).lower()
+                fileFormat = (filename.split(".")[-1]).lower()
 
         supportedFormats = ("png", "svg", "pdf", "ps", "eps",
                             "tif", "tiff", "jpeg", "jpg")
@@ -1704,7 +1703,7 @@ class Plot(object):
         markers = [item for item in markers if item['kind'] == 'marker']
 
         for item in reversed(markers):
-            kind, legend = item['kind'], item['legend']
+            legend = item['legend']
             marker = self._markers.get(legend, None)
             if marker is not None:
                 params = marker['params'].copy()  # shallow copy

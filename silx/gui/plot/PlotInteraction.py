@@ -845,12 +845,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     return True
 
                 else:
-                    testBehaviors = set(('selectable', 'draggable'))
-
                     picked = self.machine.plot.pickImageOrCurve(
                         x,
                         y,
-                        lambda item: item['selectable'] or item.get('draggable', False))
+                        lambda item: (item['selectable'] or
+                                      item.get('draggable', False)))
                     if picked is not None:
                         self.goto('clickOrDrag', x, y)
                         return True
@@ -929,8 +928,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
                 self.plot.replot()
             else:
-                picked = self.plot.pickImageOrCurve(x, y,
-                                                    lambda item: item['selectable'])
+                picked = self.plot.pickImageOrCurve(
+                    x, y, lambda item: item['selectable'])
 
                 if picked is None:
                     pass
