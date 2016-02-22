@@ -121,11 +121,8 @@ SF_ERR_COL_NOT_FOUND = 14
 SF_ERR_MCA_NOT_FOUND = 15
 
 class SfNoMcaError(Exception):
-    """Custom exception raised when ``SfNoMca()`` returns ``-1`` for an
-    unknown reason.
+    """Custom exception raised when ``SfNoMca()`` returns ``-1``
     """
-    # TODO: understand reason why SfNoMca() would return -1
-    #       (if (sfSetCurrent(sf,index,error) == -1 ))
     pass
 
 class MCA():
@@ -897,7 +894,7 @@ cdef class SpecFile(object):
         num_mca = SfNoMca(self.handle,
                         scan_index + 1,
                         &error)
-        # error code updating isn't implemented in SfMcaCalib
+        # error code updating isn't implemented in SfNoMCA
         if num_mca == -1:
             raise SfNoMcaError("Failed to retrieve number of MCA " +
                              "(SfNoMca returned -1)")

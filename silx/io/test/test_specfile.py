@@ -258,32 +258,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.mca_header, {})
         self.assertEqual(len(self.scan1_2.mca_header), 4)
         self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
-    #
-    # def test_locale(self):
-    #     # Not sure if this test is good enough. Maybe locale should
-    #     # be changed at compilation time?
-    #     loc = locale.getlocale()
-    #     print(loc)
-    #
-    #     #locale.setlocale(locale.LC_ALL, 'de_DE.utf8')
-    #     self.sf3 = SpecFile(self.fname)
-    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
-    #                            1.56)
-    #     del self.sf3
-    #
-    #     locale.setlocale(locale.LC_ALL, '') # use user's preferred locale
-    #     self.sf3 = SpecFile(self.fname)
-    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
-    #                            1.56)
-    #     del self.sf3
-    #
-    #     locale.setlocale(locale.LC_ALL, 'C') # use default (C) locale
-    #     self.sf3 = SpecFile(self.fname)
-    #     self.assertAlmostEqual(self.sf3[0].data_line(1)[2],
-    #                            1.56)
-    #     del self.sf3
-    #
-    #     locale.setlocale(locale.LC_ALL, loc) # restore saved locale
+
 
 class TestSFLocale(unittest.TestCase):
     def setUp(self):
@@ -310,8 +285,6 @@ class TestSFLocale(unittest.TestCase):
         del self.sf3
 
     def test_locale_de_DE(self):
-        # Not sure if this test is good enough. Maybe locale should
-        # be changed at compilation time
         locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
         self.crunch_data()
 
