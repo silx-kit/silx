@@ -26,4 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "22/02/2016"
+
+
+from .PlotWidget import PlotWidget
