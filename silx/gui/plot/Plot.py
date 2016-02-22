@@ -890,7 +890,7 @@ class Plot(object):
             yIsLog = self.isYAxisLogarithmic()
 
             yMin, yMax = _utils.applyPan(yMin, yMax, yFactor, yIsLog)
-            self.setGraphYLimits(yMin, yMax)
+            self.setGraphYLimits(yMin, yMax, axis='left')
 
             # TODO handle second Y axis
 
@@ -1196,8 +1196,9 @@ class Plot(object):
         assert axis in ('left', 'right')
         return self._backend.getGraphYLimits(axis)
 
-    def setGraphYLimits(self, ymin, ymax, replot=False):
-        self._backend.setGraphYLimits(ymin, ymax)
+    def setGraphYLimits(self, ymin, ymax, axis='left', replot=False):
+        assert axis in ('left', 'right')
+        self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
 
         self._notifyLimitsChanged()
@@ -1295,7 +1296,7 @@ class Plot(object):
                 self._update()
 
         self._setDirtyPlot()
-        self.replot()
+        self.resetZoom()
 
     def isYAxisLogarithmic(self):
         return self._logY
@@ -1332,7 +1333,7 @@ class Plot(object):
                 self._update()
 
         self._setDirtyPlot()
-        self.replot()
+        self.resetZoom()
 
     def isXAxisAutoScale(self):
         return self._xAutoScale

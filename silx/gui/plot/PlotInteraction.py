@@ -169,7 +169,7 @@ def _applyZoomToPlot(plot, cx, cy, scaleF):
     yMin, yMax = _scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
                                plot.isYAxisLogarithmic())
 
-    dataPos = plot.pixelToData(y=cy, axis="right")
+    dataPos = plot.pixelToData(cx, cy, axis="right")
     assert dataPos is not None
     y2Center = dataPos[1]
     y2Min, y2Max = plot.getGraphYLimits(axis="right")
@@ -436,13 +436,13 @@ class Zoom(_ZoomOnWheel):
             x0, y0 = self.plot.pixelToData(x0, y0, check=False)
 
             dataPos = self.plot.pixelToData(
-                y=startPos[1], axis="right", check=False)
+                startPos[0], startPos[1], axis="right", check=False)
             y2_0 = dataPos[1]
 
             x1, y1 = self.plot.pixelToData(x1, y1, check=False)
 
             dataPos = self.plot.pixelToData(
-                y=endPos[1], axis="right", check=False)
+                endPos[0], endPos[1], axis="right", check=False)
             y2_1 = dataPos[1]
 
             xMin, xMax = min(x0, x1), max(x0, x1)

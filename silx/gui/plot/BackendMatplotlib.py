@@ -874,7 +874,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if y > ymax or y < ymin:
             return None
 
-        pixels = ax.transData.transform([x, y])
+        pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
@@ -883,7 +883,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         ax = self.ax2 if "axis" == "right" else self.ax
 
         inv = ax.transData.inverted()
-        x, y = inv.transform((x, y))
+        x, y = inv.transform_point((x, y))
 
         xmin, xmax = self.getGraphXLimits()
         ymin, ymax = self.getGraphYLimits(axis=axis)

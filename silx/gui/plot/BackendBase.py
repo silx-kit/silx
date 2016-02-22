@@ -364,11 +364,12 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def setGraphYLimits(self, ymin, ymax):
+    def setGraphYLimits(self, ymin, ymax, axis):
         """Set the limits of the Y axis.
 
         :param float ymin: minimum left axis value
         :param float ymax: maximum left axis value
+        :param str axis: The axis for which to get the limits: left or right
         """
         raise NotImplementedError()
 
