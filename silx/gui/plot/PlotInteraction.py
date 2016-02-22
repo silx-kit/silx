@@ -35,7 +35,6 @@ import time
 import weakref
 
 from . import Colors
-from . import _utils
 from .Interaction import (ClickOrDrag, LEFT_BTN, RIGHT_BTN,
                           State, StateMachine)
 from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
@@ -1209,7 +1208,7 @@ class PlotInteraction(object):
             parameters = {
                 'shape': shape,
                 'label': label,
-                'color': _utils.rgba(color, Colors.COLORDICT)
+                'color': Colors.rgba(color)
             }
 
             self._eventHandler.cancel()
@@ -1223,7 +1222,7 @@ class PlotInteraction(object):
         elif mode == 'zoom':
             # Ignores shape and label
             if color != 'video inverted':
-                color = _utils.rgba(color, Colors.COLORDICT)
+                color = Colors.rgba(color)
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plot, color)
 
