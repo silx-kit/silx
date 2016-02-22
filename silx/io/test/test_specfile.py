@@ -2,6 +2,7 @@
 
 import gc
 import locale
+import logging
 import numpy
 import os
 import sys
@@ -77,37 +78,51 @@ sftext = """#F /tmp/sf.dat
 @A 6 7.7 8
 """
 
+loc = locale.getlocale(locale.LC_NUMERIC)
+try:
+    locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
+except locale.Error:
+    try_DE = False
+    logging.warn("de_DE.utf8 locale not installed on your system. " +
+                 "An important i18n test will be skipped.")
+else:
+    try_DE = True
+    locale.setlocale(locale.LC_NUMERIC, loc)
 
 class TestSpecFile(unittest.TestCase):
-    def setUp(self):
-        fd, tmp_path = tempfile.mkstemp(text=False)
+    @classmethod
+    def setUpClass(cls):
+        fd, cls.fname1 = tempfile.mkstemp(text=False)
         if sys.version < '3.0':
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
-        self.fname = tmp_path
-        self.sf = SpecFile(self.fname)
-        self.scan1 = self.sf[0]
-        self.scan1_2 = self.sf["1.2"]
-        self.scan25 = self.sf["25.1"]
 
-        fd2, tmp_path2 = tempfile.mkstemp(text=False)
+        fd2, cls.fname2 = tempfile.mkstemp(text=False)
         if sys.version < '3.0':
             os.write(fd2, sftext[370:-97])
         else:
             os.write(fd2, bytes(sftext[370:-97], 'ascii'))
         os.close(fd2)
-        self.fname2 = tmp_path2
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.fname1)
+        os.unlink(cls.fname2)
+
+
+    def setUp(self):
+        self.sf = SpecFile(self.fname1)
+        self.scan1 = self.sf[0]
+        self.scan1_2 = self.sf["1.2"]
+        self.scan25 = self.sf["25.1"]
+
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
 
     def tearDown(self):
-        os.unlink(self.fname)
-        os.unlink(self.fname2)
-        del self.fname
         del self.sf
-        del self.fname2
         del self.sf_no_fhdr
         del self.scan1
         del self.scan1_2
@@ -259,23 +274,20 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_2.mca_header), 4)
         self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
 
-
 class TestSFLocale(unittest.TestCase):
-    def setUp(self):
-        fd, tmp_path = tempfile.mkstemp(text=False)
+    @classmethod
+    def setUpClass(cls):
+        fd, cls.fname = tempfile.mkstemp(text=False)
         if sys.version < '3.0':
             os.write(fd, sftext)
         else:
             os.write(fd, bytes(sftext, 'ascii'))
         os.close(fd)
-        self.fname = tmp_path
-        self.loc = locale.getlocale(locale.LC_NUMERIC)
 
-    def tearDown(self):
-        os.unlink(self.fname)
-        del self.fname
-        locale.setlocale(locale.LC_NUMERIC, self.loc) # restore saved locale
-        del self.loc
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.fname)
+        locale.setlocale(locale.LC_NUMERIC, loc) # restore saved locale
         gc.collect()
 
     def crunch_data(self):
@@ -284,6 +296,7 @@ class TestSFLocale(unittest.TestCase):
                                1.56)
         del self.sf3
 
+    @unittest.skipIf(not try_DE, "de_DE.utf8 locale not installed")
     def test_locale_de_DE(self):
         locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
         self.crunch_data()
