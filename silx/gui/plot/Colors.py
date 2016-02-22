@@ -29,6 +29,9 @@ __license__ = "MIT"
 __date__ = "22/02/2016"
 
 
+import numpy
+
+
 COLORDICT = {}
 """Dictionary of common colors."""
 
