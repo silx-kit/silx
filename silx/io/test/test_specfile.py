@@ -184,8 +184,8 @@ class TestSpecFile(unittest.TestCase):
     def test_scan_headers(self):
         self.assertEqual(self.scan25.scan_header['S'],
                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
-        self.assertEqual(self.scan1.scan_header_lines[3], '#G0 0')
-        self.assertEqual(len(self.scan1.scan_header_lines), 15)
+        self.assertEqual(self.scan1.header[17], '#G0 0')
+        self.assertEqual(len(self.scan1.header), 29)
         # parsing headers with long keys
         self.assertEqual(self.scan1.scan_header['UMI0'],
                          'Current AutoM      Shutter')
@@ -193,16 +193,15 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.scan_header['Q'], '')
 
     def test_file_headers(self):
-        self.assertEqual(self.scan1.file_header_lines[1],
+        self.assertEqual(self.scan1.header[1],
                          '#E 1455180875')
-        self.assertEqual(len(self.scan1.file_header_lines), 14)
         self.assertEqual(self.scan1.file_header['F'],
                          '/tmp/sf.dat')
 
     def test_multiple_file_headers(self):
         """Scan 1.2 is after the second file header, with a different
         Epoch"""
-        self.assertEqual(self.scan1_2.file_header_lines[1],
+        self.assertEqual(self.scan1_2.header[1],
                          '#E 1455180876')
         
     def test_scan_labels(self):
@@ -247,8 +246,7 @@ class TestSpecFile(unittest.TestCase):
         # even in the absence of motor names
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
-        self.assertEqual(len(self.scan1_no_fhdr.scan_header_lines), 15)
-        self.assertEqual(self.scan1_no_fhdr.file_header_lines, [])
+        self.assertEqual(len(self.scan1_no_fhdr.header), 15)
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)

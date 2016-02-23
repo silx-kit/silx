@@ -189,16 +189,13 @@ class Scan():
 
     :ivar index: Unique scan index 0 - len(specfile)-1
     :vartype index: int
-    :ivar scan_header_lines: List of raw header lines, including the leading
-        ``#``
-    :vartype scan_header_lines: list of strings
+    :ivar header: List of raw header lines, including the leading ``#``
+        (file header + scan header)
+    :vartype header: list of strings
     :ivar scan_header: Dictionary of header strings, keys without leading
         ``#``.  Note: this does not include MCA header lines starting with
         ``#@``.
     :vartype scan_header: dict
-    :ivar file_header_lines: List of raw file header lines relevant to this
-        scan, including the leading ``#``
-    :vartype file_header_lines: list of strings
     :ivar file_header: Dictionary of file header strings, keys without
         the leading ``#``
     :vartype file_header: dict
@@ -215,14 +212,17 @@ class Scan():
         # order can be > 1 if a same number is used mor than once in specfile
         self.order = specfile.order(scan_index)
 
-        self.scan_header_lines = self._specfile.scan_header(self.index)
-        
+        scan_header_lines = self._specfile.scan_header(self.index)
+        file_header_lines = self._specfile.file_header(self.index)
+
+        self.header = file_header_lines + scan_header_lines
+
         if self.record_exists_in_hdr('L'):
             self.labels = self._specfile.labels(self.index)
 
         self.scan_header = {}
         self.mca_header = {}
-        for line in self.scan_header_lines:
+        for line in scan_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             match_mca = re.search(r"#@(\w+) *(.*)", line)
             if match:
@@ -237,10 +237,9 @@ class Scan():
                 # this shouldn't happen
                 logging.warn("Unable to parse scan header line " + line)
 
-        self.file_header_lines = self._specfile.file_header(self.index)
 
         self.file_header = {}
-        for line in self.file_header_lines:
+        for line in file_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
                 # header type
@@ -307,33 +306,11 @@ class Scan():
         :rtype: boolean
         
         """
-        for line in self.scan_header_lines:
+        for line in self.header:
             if line.startswith("#" + record):
                 return True
         return False
-    
-    def record_exists_in_file_hdr(self, record):
-        """record_exists_in_file_hdr(record)
 
-        Check whether a file header line  exists.
-        
-        This should be used before attempting to retrieve header information 
-        using a C function that may crash with a *segmentation fault* if the
-        header isn't defined in the SpecFile.
-        
-        :param record: single upper case letter corresponding to the
-                            header you want to test
-        :type record: str
-
-        :return: True or False
-        :rtype: boolean
-        
-        """
-        for line in self.file_header_lines:
-            if line.startswith("#" + record):
-                return True
-        return False
-    
     def data_line(self, line_index):
         """data_line(line_index)
 
