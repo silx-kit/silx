@@ -863,29 +863,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):
-        assert axis in ("left", "right")
         ax = self.ax2 if "axis" == "right" else self.ax
-
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis=axis)
-
-        if x is None:
-            x = 0.5 * (xmax - xmin)
-        if y is None:
-            y = 0.5 * (ymax - ymin)
-
-        if x > xmax or x < xmin:
-            return None
-
-        if y > ymax or y < ymin:
-            return None
 
         pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
     def pixelToData(self, x, y, axis, check):
-        assert axis in ("left", "right")
         ax = self.ax2 if "axis" == "right" else self.ax
 
         inv = ax.transData.inverted()

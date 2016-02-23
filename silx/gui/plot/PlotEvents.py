@@ -33,6 +33,9 @@ import numpy as np
 
 
 def prepareDrawingSignal(event, type_, points, parameters=None):
+    """See Plot documentation for content of events"""
+    assert event in ('drawingProgress', 'drawingFinished')
+
     if parameters is None:
         parameters = {}
 
@@ -54,6 +57,7 @@ def prepareDrawingSignal(event, type_, points, parameters=None):
 
 
 def prepareMouseSignal(eventType, button, xData, yData, xPixel, yPixel):
+    """See Plot documentation for content of events"""
     assert eventType in ('mouseMoved', 'mouseClicked', 'mouseDoubleClicked')
     assert button in (None, 'left', 'right')
 
@@ -66,6 +70,7 @@ def prepareMouseSignal(eventType, button, xData, yData, xPixel, yPixel):
 
 
 def prepareHoverSignal(label, type_, posData, posPixel, draggable, selectable):
+    """See Plot documentation for content of events"""
     return {'event': 'hover',
             'label': label,
             'type': type_,
@@ -81,6 +86,7 @@ def prepareMarkerSignal(eventType, button, label, type_,
                         draggable, selectable,
                         posDataMarker,
                         posPixelCursor=None, posDataCursor=None):
+    """See Plot documentation for content of events"""
     if eventType == 'markerClicked':
         assert posPixelCursor is not None
         assert posDataCursor is None
@@ -123,6 +129,7 @@ def prepareMarkerSignal(eventType, button, label, type_,
 
 def prepareImageSignal(button, label, type_, col, row,
                        x, y, xPixel, yPixel):
+    """See Plot documentation for content of events"""
     return {'event': 'imageClicked',
             'button': button,
             'label': label,
@@ -137,6 +144,7 @@ def prepareImageSignal(button, label, type_, col, row,
 
 def prepareCurveSignal(button, label, type_, xData, yData,
                        x, y, xPixel, yPixel):
+    """See Plot documentation for content of events"""
     return {'event': 'curveClicked',
             'button': button,
             'label': label,
@@ -150,6 +158,7 @@ def prepareCurveSignal(button, label, type_, xData, yData,
 
 
 def prepareLimitsChangedSignal(sourceObj, xRange, yRange, y2Range):
+    """See Plot documentation for content of events"""
     return {'event': 'limitsChanged',
             'source': id(sourceObj),
             'xdata': xRange,

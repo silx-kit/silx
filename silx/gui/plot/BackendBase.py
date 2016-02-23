@@ -434,10 +434,8 @@ class BackendBase(object):
         """Convert a position in data space to a position in pixels
         in the widget.
 
-        :param float x: The X coordinate in data space. If None
-                            the middle position of the displayed data is used.
-        :param float y: The Y coordinate in data space. If None
-                            the middle position of the displayed data is used.
+        :param float x: The X coordinate in data space.
+        :param float y: The Y coordinate in data space.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :returns: The corresponding position in pixels or
@@ -450,10 +448,8 @@ class BackendBase(object):
         """Convert a position in pixels in the widget to a position in
         the data space.
 
-        :param float x: The X coordinate in pixels. If None
-                            the center of the widget is used.
-        :param float y: The Y coordinate in pixels. If None
-                            the center of the widget is used.
+        :param float x: The X coordinate in pixels.
+        :param float y: The Y coordinate in pixels.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :returns: The corresponding position in data space or

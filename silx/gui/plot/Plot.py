@@ -25,6 +25,132 @@
 """Plot API for 1D and 2D data.
 
 The :class:`Plot` implements the plot API initially provided in PyMca.
+
+
+.. colormap_def:
+
+  A colormap is a dictionnary with the following keys::
+
+    - name: str, name of the colormap. Available colormap are returned by
+          :meth:`getSupportedColormaps`.
+          At least 'gray', 'reversed gray', 'temperature',
+          'red', 'green', 'blue' are supported.
+    - normalization: Either 'linear' or 'log'
+    - autoscale: bool, True to get bounds from the min and max of the
+               data, False to use [vmin, vmax]
+    - vmin: float, min value, ignored if autoscale is True
+    - vmax: float, max value, ignored if autoscale is True
+
+
+Plot Events
+-----------
+
+The Plot sends some event to the registered callback (See :meth:`Plot.setCallback`).
+Those events are sent as a dictionary with a key 'event' describing the kind
+of event.
+
+Drawing events
+..............
+
+'drawingProgress' and 'drawingFinished' events are sent during drawing
+interaction (See :meth:`Plot.setInteractiveMode`).
+
+- 'event': 'drawingProgress' or 'drawingFinished'
+- 'parameters': dict of parameters used by the drawing mode.
+                It has the following keys: 'shape', 'label', 'color'.
+                See :meth:`Plot.setInteractiveMode`.
+- 'points': Points (x, y) in data coordinates of the drawn shape.
+            For 'hline' and 'vline', it is the 2 points defining the line.
+            For 'line' and 'rectangle', it is the coordinates of the start
+            drawing point and the latest drawing point.
+            For 'polygon', it is the coordinates of all points of the shape.
+- 'type': The type of drawing in 'line', 'hline', 'polygon', 'rectangle',
+          'vline'.
+- 'xdata' and 'ydata': X coords and Y coords of shape points in data
+                       coordinates (as in 'points').
+
+When the type is 'rectangle', the following additional keys are provided:
+
+- 'x' and 'y': The origin of the rectangle in data coordinates
+- 'widht' and 'height': The size of the rectangle in data coordinates
+
+
+Mouse events
+............
+
+'mouseMoved', 'mouseClicked' and 'mouseDoubleClicked' events are sent for
+mouse events.
+
+They provide the following keys:
+
+- 'event': 'mouseMoved', 'mouseClicked' or 'mouseDoubleClicked'
+- 'button': the mouse button that was pressed in 'left', 'middle', 'right'
+- 'x' and 'y': The mouse position in data coordinates
+- 'xpixel' and 'ypixel': The mouse position in pixels
+
+
+Marker events
+.............
+
+'hover', 'markerClicked', 'markerMoving' and 'markerMoved' events are
+sent during interaction with markers.
+
+'hover' is sent when the mouse cursor is over a marker.
+'markerClicker' is sent when the user click on a selectable marker.
+'markerMoving' and 'markerMoved' are sent when a draggable marker is moved.
+
+They provide the following keys:
+
+- 'event': 'hover', 'markerClicked', 'markerMoving' or 'markerMoved'
+- 'button': the mouse button that is pressed in 'left', 'middle', 'right'
+- 'draggable': True if the marker is draggable, False otherwise
+- 'label': The legend associated with the clicked image or curve
+- 'selectable': True if the marker is selectable, False otherwise
+- 'type': 'marker'
+- 'x' and 'y': The mouse position in data coordinates
+- 'xdata' and 'ydata': The marker position in data coordinates
+
+'markerClicked' and 'markerMoving' events have a 'xpixel' and a 'ypixel'
+additional keys, that provide the mouse position in pixels.
+
+
+Image and curve events
+......................
+
+'curveClicked' and 'imageClicked' events are sent when a selectable curve
+or image is clicked.
+
+Both share the following keys:
+
+- 'event': 'curveClicked' or 'imageClicked'
+- 'button': the mouse button that was pressed in 'left', 'middle', 'right'
+- 'label': The legend associated with the clicked image or curve
+- 'type': The type of item in 'curve', 'image'
+- 'x' and 'y': The clicked position in data coordinates
+- 'xpixel' and 'ypixel': The clicked position in pixels
+
+'curveClicked' events have a 'xdata' and a 'ydata' additional keys, that
+provide the coordinates of the picked points of the curve.
+There can be more than one point of the curve being picked, and if a line of
+the curve is picked, only the first point of the line is included in the list.
+
+'imageClicked' have a 'col' and a 'row' additional keys, that provide
+the column and row index in the image array that was clicked.
+
+
+Limits changed events
+.....................
+
+'limitsChanged' events are sent when the limits of the plot are changed.
+This can results from user interaction or API calls.
+
+It provides the following keys:
+
+- 'event': 'limitsChanged'
+- 'source': id of the widget that emitted this event.
+- 'xdata': Range of X in graph coordinates: (xMin, xMax).
+- 'ydata': Range of Y in graph coordinates: (yMin, yMax).
+- 'y2data': Range of right axis in graph coordinates (y2Min, y2Max) or None.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -266,6 +392,57 @@ class Plot(object):
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, **kw):
+        """Add a 1D curve given by x an y to the graph.
+
+        :param numpy.ndarray x: The data corresponding to the x coordinates
+        :param numpy.ndarray y: The data corresponding to the y coordinates
+        :param str legend: The legend to be associated to the curve (or None)
+        :param info: User-defined information associated to the curve
+        :param bool replace: True (the default) to delete already existing
+                             curves
+        :param bool replot: True (the default) to immediately redraw the plot
+        :param color: color(s) to be used
+        :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        :param str symbol: Symbol to be drawn at each (x, y) position::
+
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+            - None (the default) to use default symbol
+
+        :param float linewidth: The width of the curve in pixels (Default: 1).
+        :param str linestyle: Type of line::
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+            - None (the default) to use default line style
+
+        :param str xlabel: Label to show on the X axis when the curve is active
+        :param str ylabel: Label to show on the Y axis when the curve is active
+        :param str yaxis: The Y axis this curve is attached to.
+                          Either 'left' (the default) or 'right'
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: A float, or a numpy.ndarray of float32.
+                      If it is an array, it can either be a 1D array of
+                      same length as the data or a 2D array with 2 rows
+                      of same length as the data: row 0 for positive errors,
+                      row 1 for negative errors.
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: A float, or a numpy.ndarray of float32. See xerror.
+        :param int z: Layer on which to draw the curve (default: 1)
+                      This allows to control the overlay.
+        :param bool selectable: Indicate if the curve can be selected.
+                                (Default: True)
+        :returns: The key string identify this curve
+        """
         # Take care of input parameters: check/conversion, default value
 
         if kw:
@@ -392,33 +569,35 @@ class Plot(object):
                  selectable=False, draggable=False,
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None, **kw):
-        """
-        :param data: (nrows, ncolumns) data or
-                     (nrows, ncolumns, RGBA) ubyte array
-        :type data: numpy.ndarray
-        :param legend: The legend to be associated to the curve
-        :type legend: string or None
-        :param info: Dictionary of information associated to the image
-        :type info: dict or None
-        :param replace: indicate if already existing images are to be deleted
-        :type replace: boolean default True
-        :param replot: Flag to indicate plot is to be immediately updated
-        :type replot: boolean default True
-        :param xScale: Two floats defining the x scale
-        :type xScale: list or numpy.ndarray
-        :param yScale: Two floats defining the y scale
-        :type yScale: list or numpy.ndarray
-        :param z: level at which the image is located (to allow overlays)
-        :type z: A number bigger than or equal to zero (default)
-        :param selectable: Flag to indicate if the image can be selected
-        :type selectable: boolean, default False
-        :param draggable: Flag to indicate if the image can be moved
-        :type draggable: boolean, default False
-        :param colormap: Dictionary describing the colormap to use (or None)
-        :type colormap: dict or None (default). Ignored if data is RGB(A)
+        """Add a 2D dataset or an image to the plot.
+
+        It displays either an array of data using a colormap or a RGB(A) image.
+
+        :param numpy.ndarray data: (nrows, ncolumns) data or
+                                   (nrows, ncolumns, RGBA) ubyte array
+        :param str legend: The legend to be associated to the image (or None)
+        :param info: User-defined information associated to the image
+        :param bool replace: True (default) to delete already existing images
+        :param bool replot: True (default) to immediately redraw the plot
+        :param xscale: (origin, scale) of the data on the X axis
+                       Default: (0., 1.)
+        :type xscale: 2-tuple of float
+        :param yscale: (origin, scale) of the data on the Y axis.
+                       Default: (0., 1.)
+        :type yscale: 2-tuple of float
+        :param int z: Layer on which to draw the image (default: 0)
+                      This allows to control the overlay.
+        :param bool selectable: Indicate if the image can be selected.
+                                (default: False)
+        :param bool draggable: Indicate if the image can be moved.
+                               (default: False)
+        :param dict colormap: Description of the colormap to use (or None)
+                              This is ignored if data is a RGB(A) image.
+                              See :ref:`colormap_def` for the documentation
+                              of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
-        :returns: The legend used by the backend to univocally access it.
+        :returns: The key string identify this image
         """
         # Take care of input parameters: check/conversion, default value
 
@@ -534,6 +713,24 @@ class Plot(object):
                 replot=True, replace=False,
                 shape="polygon", color='black', fill=True,
                 overlay=False, **kw):
+        """Add an item (i.e. a shape) to the plot.
+
+        :param numpy.ndarray xdata: The X coords of the points of the shape
+        :param numpy.ndarray ydata: The Y coords of the points of the shape
+        :param str legend: The legend to be associated to the item
+        :param info: User-defined information associated to the image
+        :param bool replace: True (default) to delete already existing images
+        :param bool replot: True (default) to immediately redraw the plot
+        :param str shape: Type of item to be drawn in
+                          hline, polygon (the default), rectangle, vline
+        :param str color: Color of the item, e.g., 'blue', 'b', '#FF0000'
+                          (Default: 'black')
+        :param bool fill: True (the default) to fill the shape
+        :param bool overlay: True if item is an overlay (Default: False).
+                             This allows for rendering optimization if this
+                             item is changed often.
+        :returns: The key string identify this item
+        """
         # expected to receive the same parameters as the signal
 
         if kw:
@@ -564,6 +761,20 @@ class Plot(object):
                       selectable=False,
                       draggable=False,
                       **kw):
+        """Add a vertical line marker to the plot.
+
+        :param float x: Position of the marker on the X axis in data
+                        coordinates
+        :param str legend: Legend associated to the marker to identify it
+        :param str text: Text to display on the marker.
+        :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'
+                          (Default: 'black')
+        :param bool selectable: Indicate if the marker can be selected.
+                                (default: False)
+        :param bool draggable: Indicate if the marker can be moved.
+                               (default: False)
+        :return: The key string identify this marker
+        """
         if kw:
             _logger.warning(
                 'insertXMarker extra parameters ignored: %s', str(kw))
@@ -580,6 +791,20 @@ class Plot(object):
                       selectable=False,
                       draggable=False,
                       **kw):
+        """Add a horizontal line marker to the plot.
+
+        :param float y: Position of the marker on the Y axis in data
+                        coordinates
+        :param str legend: Legend associated to the marker to identify it
+        :param str text: Text to display next to the marker.
+        :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'
+                          (Default: 'black')
+        :param bool selectable: Indicate if the marker can be selected.
+                                (default: False)
+        :param bool draggable: Indicate if the marker can be moved.
+                               (default: False)
+        :return: The key string identify this marker
+        """
         if kw:
             _logger.warning('Extra parameters ignored: %s', str(kw))
 
@@ -596,6 +821,40 @@ class Plot(object):
                      symbol='+',
                      constraint=None,
                      **kw):
+        """Add a point marker to the plot.
+
+        :param float x: Position of the marker on the X axis in data
+                        coordinates
+        :param float y: Position of the marker on the Y axis in data
+                        coordinates
+        :param str legend: Legend associated to the marker to identify it
+        :param str text: Text to display next to the marker
+        :param str color: Color of the marker, e.g., 'blue', 'b', '#FF0000'
+                          (Default: 'black')
+        :param bool selectable: Indicate if the marker can be selected.
+                                (default: False)
+        :param bool draggable: Indicate if the marker can be moved.
+                               (default: False)
+        :param str symbol: Symbol representing the marker in::
+
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross (the default)
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+
+        :param constraint: A function filtering marker displacement by
+                           dragging operations or None for no filter.
+                           This function is called each time a marker is
+                           moved.
+                           This parameter is only used if draggable is True.
+        :type constraint: None or a callable that takes the coordinates of
+                          the current cursor position in the plot as input
+                          and that returns the filtered coordinates.
+        :return: The key string identify this marker
+        """
         if kw:
             _logger.warning(
                 'insertMarker Extra parameters ignored: %s', str(kw))
@@ -672,9 +931,22 @@ class Plot(object):
     # Hide
 
     def isCurveHidden(self, legend):
+        """Returns True if the curve associated to legend is hidden, else False
+
+        :param str legend: The legend key identifying the curve
+        :return: True if the associated curve is hidden, False otherwise
+        """
         return legend in self._hiddenCurves
 
     def hideCurve(self, legend, flag=True, replot=True):
+        """Show/Hide the curve associated to legend.
+
+        Even when hidden, the curve is kept in the list of curves.
+
+        :param str legend: The legend associated to the curve to be hidden
+        :param bool flag: True (default) to hide the curve, False to show it
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         if legend not in self._curves:
             _logger.warning('Curve not in plot: %s', legend)
             return
@@ -700,13 +972,10 @@ class Plot(object):
     # Remove
 
     def removeCurve(self, legend, replot=True):
-        """
-        Remove the curve associated to the supplied legend from the graph.
-        The graph will be updated if replot is true.
-        :param legend: The legend associated to the curve to be deleted
-        :type legend: string or None
-        :param replot: Flag to indicate plot is to be immediately updated
-        :type replot: boolean default True
+        """Remove the curve associated to legend from the graph.
+
+        :param str legend: The legend associated to the curve to be deleted
+        :param bool replot: True (default) to immediately redraw the plot
         """
         if legend is None:
             return
@@ -728,13 +997,10 @@ class Plot(object):
             self.replot()
 
     def removeImage(self, legend, replot=True):
-        """
-        Remove the image associated to the supplied legend from the graph.
-        The graph will be updated if replot is true.
-        :param legend: The legend associated to the image to be deleted
-        :type legend: string or handle
-        :param replot: Flag to indicate plot is to be immediately updated
-        :type replot: boolean default True
+        """Remove the image associated to legend from the graph.
+
+        :param str legend: The legend associated to the image to be deleted
+        :param bool replot: True (default) to immediately redraw the plot
         """
         if legend is None:
             return
@@ -750,6 +1016,11 @@ class Plot(object):
             self.replot()
 
     def removeItem(self, legend, replot=True):
+        """Remove the item associated to legend from the graph.
+
+        :param str legend: The legend associated to the item to be deleted
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         if legend is None:
             return
 
@@ -762,6 +1033,11 @@ class Plot(object):
             self.replot()
 
     def removeMarker(self, marker, replot=True):
+        """Remove the marker associated to legend from the graph.
+
+        :param str legend: The legend associated to the marker to be deleted
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         marker = self._markers.pop(marker, None)
         if marker is not None and marker['handle'] is not None:
             self._backend.remove(marker['handle'])
@@ -773,6 +1049,10 @@ class Plot(object):
     # Clear
 
     def clear(self, replot=True):
+        """Remove everything from the plot.
+
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         self.clearCurves(replot=False)
         self.clearMarkers(replot=False)
         self.clearImages(replot=False)
@@ -785,6 +1065,10 @@ class Plot(object):
             self.replot()
 
     def clearCurves(self, replot=True):
+        """Remove all the curves from the plot.
+
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         for legend in list(self._curves):  # Copy as _curves gets changed
             self.removeCurve(legend, replot=False)
         self._curves = OrderedDict()
@@ -796,9 +1080,9 @@ class Plot(object):
             self.replot()
 
     def clearImages(self, replot=True):
-        """Clear all images from the plot.
+        """Remove all the images from the plot.
 
-        Not the curves or markers.
+        :param bool replot: True (default) to immediately redraw the plot
         """
         for legend in list(self._images):  # Copy as _images gets changed
             self.removeImage(legend, replot=False)
@@ -808,6 +1092,10 @@ class Plot(object):
             self.replot()
 
     def clearItems(self, replot=True):
+        """Remove all the items from the plot.
+
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         for legend in list(self._items):  # Copy as _items gets changed
             self.removeItem(legend, replot=False)
         self._items = OrderedDict()
@@ -816,6 +1104,10 @@ class Plot(object):
             self.replot()
 
     def clearMarkers(self, replot=True):
+        """Remove all the markers from the plot.
+
+        :param bool replot: True (default) to immediately redraw the plot
+        """
         for legend in list(self._markers):  # Copy as _markers gets changed
             self.removeMarker(legend, replot=False)
         self._markers = OrderedDict()
@@ -826,7 +1118,9 @@ class Plot(object):
     # Interaction
 
     def getGraphCursor(self):
-        """Returns the current state of the crosshair cursor.
+        """Returns the state of the crosshair cursor.
+
+        See :meth:`setGraphCursor`.
 
         :return: None if the crosshair cursor is not active,
                  else a tuple (color, linewidth, linestyle).
@@ -838,22 +1132,20 @@ class Plot(object):
         """Toggle the display of a crosshair cursor and set its attributes.
 
         :param bool flag: Toggle the display of a crosshair cursor.
-                           The crosshair cursor is hidden by default.
+                          The crosshair cursor is hidden by default.
         :param color: The color to use for the crosshair.
         :type color: A string (either a predefined color name in Colors.py
-                    or "#RRGGBB")) or a 4 columns unsigned byte array.
-                    Default is black.
-        :param int linewidth: The width of the lines of the crosshair.
-                    Default is 1.
-        :param linestyle: Type of line::
+                    or "#RRGGBB")) or a 4 columns unsigned byte array
+                    (Default: black).
+        :param int linewidth: The width of the lines of the crosshair
+                    (Default: 1).
+        :param str linestyle: Type of line::
 
                 - ' ' no line
-                - '-' solid line
+                - '-' solid line (the default)
                 - '--' dashed line
                 - '-.' dash-dot line
                 - ':' dotted line
-
-        :type linestyle: None or one of the predefined styles.
         """
         if flag:
             self._cursorConfiguration = color, linewidth, linestyle
@@ -900,18 +1192,32 @@ class Plot(object):
     # Active Curve/Image
 
     def isActiveCurveHandlingEnabled(self):
+        """Returns True if active curve selection is enabled."""
         return self._activeCurveHandling
 
     def enableActiveCurveHandling(self, flag=True):
+        """Enable/Disable active curve selection.
+
+        :param bool flag: True (the default) to enable active curve selection.
+        """
         if not flag:
             self.setActiveCurve(None)  # Reset active curve
 
         self._activeCurveHandling = bool(flag)
 
     def getActiveCurveColor(self):
+        """Get the color used to display the currently active curve.
+
+        See :meth:`setActiveCurveColor`.
+        """
         return self._activeCurveColor
 
     def setActiveCurveColor(self, color="#000000"):
+        """Set the color to use to display the currently active curve.
+
+        :param str color: Color of the active curve,
+                          e.g., 'blue', 'b', '#FF0000' (Default: 'black')
+        """
         if color is None:
             color = "black"
         if color in self.colorDict:
@@ -919,23 +1225,17 @@ class Plot(object):
         self._activeCurveColor = color
 
     def getActiveCurve(self, just_legend=False):
-        """
-        :param just_legend: Flag to specify the type of output required
-        :type just_legend: boolean
-        :return: legend of the active curve or list [x, y, legend, info]
-        :rtype: string or list
+        """Return the currently active curve.
 
-        Function to access the graph currently active curve.
         It returns None in case of not having an active curve.
+        Default output has the form: [xvalues, yvalues, legend, dict]
+        where dict is a dictionary containing curve parameters.
 
-        Default output has the form:
-            xvalues, yvalues, legend, dict
-            where dict is a dictionnary containing curve info.
-            For the time being, only the plot labels associated to the
-            curve are warranted to be present under the keys xlabel, ylabel.
-
-        If just_legend is True:
-            The legend of the active curve (or None) is returned.
+        :param bool just_legend: True to get the legend of the curve,
+                                 False (the default) to get the curve data
+                                 and info.
+        :return: legend of the active curve or list [x, y, legend, params]
+        :rtype: str or list
         """
         if not self.isActiveCurveHandlingEnabled():
             return None
@@ -953,10 +1253,11 @@ class Plot(object):
             return curve['x'], curve['y'], self._activeCurve, curve['params']
 
     def setActiveCurve(self, legend, replot=True):
-        """Make the curve with the specified legend the active curve.
+        """Make the curve associated to legend the active curve.
 
         :param str legend: The legend associated to the curve
                            or None to have no active curve.
+        :param bool replot: True (default) to immediately redraw the plot
         """
         if not self.isActiveCurveHandlingEnabled():
             return
@@ -1003,23 +1304,18 @@ class Plot(object):
         return self._activeCurve
 
     def getActiveImage(self, just_legend=False):
-        """
-        Function to access the plot currently active image.
+        """Returns the currently active image.
+
         It returns None in case of not having an active image.
 
-        Default output has the form:
-            data, legend, dict, pixmap
-            where dict is a dictionnary containing image info.
-            For the time being, only the plot labels associated to the
-            image are warranted to be present under the keys xlabel, ylabel.
+        Default output has the form: [data, legend, dict, pixmap]
+        where dict is a dictionnary containing image parameters.
 
-        If just_legend is True:
-            The legend of the active imagee (or None) is returned.
-
-        :param just_legend: Flag to specify the type of output required
-        :type just_legend: boolean
+        :param bool just_legend: True to get the legend of the image,
+                                 False (the default) to get the image data
+                                 and info.
         :return: legend of active image or list [data, legend, info, pixmap]
-        :rtype: string or list
+        :rtype: str or list
         """
         if self._activeImage not in self._images:
             self._activeImage = None
@@ -1034,11 +1330,11 @@ class Plot(object):
             return image['x'], image['y'], self._activeImage, image['params']
 
     def setActiveImage(self, legend, replot=True):
-        """Funtion to request the plot window to set the image with the
-        specified legend as the active image.
+        """Make the image associated to legend the active image.
 
-        :param legend: The legend associated to the image
-        :type legend: string
+        :param str legend: The legend associated to the image
+                           or None to have no active image.
+        :param bool replot: True (default) to immediately redraw the plot
         """
         if legend is None:
             self._activeImage = None
@@ -1059,24 +1355,23 @@ class Plot(object):
     # Getters
 
     def getAllCurves(self, just_legend=False):
-        """
-        :param just_legend: Flag to specify the type of output required
-        :type just_legend: boolean
-        :return: legend of the curves or list [[x, y, legend, info], ...]
-        :rtype: list of strings or list of curves
+        """Returns all curves legend or info and data.
 
         It returns an empty list in case of not having any curve.
-        If just_legend is False:
-            It returns a list of the form:
-                [[xvalues0, yvalues0, legend0, dict0],
-                 [xvalues1, yvalues1, legend1, dict1],
-                 [...],
-                 [xvaluesn, yvaluesn, legendn, dictn]]
-            or just an empty list.
-        If just_legend is True:
-            It returns a list of the form:
-                [legend0, legend1, ..., legendn]
-            or just an empty list.
+
+        If just_legend is False, it returns a list of the form:
+            [[xvalues0, yvalues0, legend0, dict0],
+             [xvalues1, yvalues1, legend1, dict1],
+             [...],
+             [xvaluesn, yvaluesn, legendn, dictn]]
+        If just_legend is True, it returns a list of the form:
+            [legend0, legend1, ..., legendn]
+
+        :param bool just_legend: True to get the legend of the curves,
+                                 False (the default) to get the curves' data
+                                 and info.
+        :return: list of legends or list of [x, y, legend, params]
+        :rtype: list of str or list of list
         """
         output = []
         for key in self._curves:
@@ -1090,20 +1385,12 @@ class Plot(object):
         return output
 
     def getCurve(self, legend):
-        """
-        :param legend: legend associated to the curve
-        :type legend: boolean
-        :return: list [x, y, legend, info]
-        :rtype: list
+        """Return the data and info of a specific curve.
 
-        Function to access the graph specified curve.
         It returns None in case of not having the curve.
 
-        Default output has the form:
-            xvalues, yvalues, legend, info
-            where info is a dictionnary containing curve info.
-            For the time being, only the plot labels associated to the
-            curve are warranted to be present under the keys xlabel, ylabel.
+        :param str legend: legend associated to the curve
+        :return: None or list [x, y, legend, parameters]
         """
         if legend in self._curves:
             curve = self._curves[legend]
@@ -1111,17 +1398,14 @@ class Plot(object):
         else:
             return None
 
-    # TODO actually not used...
     def getMonotonicCurves(self):
-        """
-        Convenience method that calls getAllCurves and makes sure that all of
-        the X values are strictly increasing.
+        """Returns all curves with X values strictly increasing.
 
-        :return: It returns a list of the form:
-                [[xvalues0, yvalues0, legend0, dict0],
-                 [xvalues1, yvalues1, legend1, dict1],
-                 [...],
-                 [xvaluesn, yvaluesn, legendn, dictn]]
+        :return: A list of the form:
+                 [[xvalues0, yvalues0, legend0, dict0],
+                  [xvalues1, yvalues1, legend1, dict1],
+                  [...],
+                  [xvaluesn, yvaluesn, legendn, dictn]]
         """
         allCurves = self.getAllCurves() * 1
         for i in range(len(allCurves)):
@@ -1142,22 +1426,16 @@ class Plot(object):
         return allCurves
 
     def getImage(self, legend):
-        """
-        :param legend: legend associated to the curve
-        :type legend: boolean
-        :return: list [image, legend, info, pixmap]
-        :rtype: list
+        """Return the data and info of a specific image.
 
-        Function to access the graph currently active curve.
         It returns None in case of not having an active curve.
 
-        Default output has the form:
-            image, legend, info, pixmap
-            where info is a dictionnary containing image information.
+        :param str legend: legend associated to the curve
+        :return: None or list [image, legend, parameters, pixmap]
         """
         if legend in self._images:
             image = self._images[legend]
-            return image['x'], image['y'], legend, image['params']
+            return image['data'], legend, image['params'], image['pixmap']
         else:
             return None
 
@@ -1175,11 +1453,17 @@ class Plot(object):
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
-        :return:  Minimum and maximum values of the X axis
+        :return: Minimum and maximum values of the X axis
         """
         return self._backend.getGraphXLimits()
 
     def setGraphXLimits(self, xmin, xmax, replot=False):
+        """Set the graph X (bottom) limits.
+
+        :param float xmin: minimum bottom axis value
+        :param float xmax: maximum bottom axis value
+        :param bool replot: True (the default) to immediately redraw the plot
+        """
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
 
@@ -1189,15 +1473,24 @@ class Plot(object):
             self.replot()
 
     def getGraphYLimits(self, axis='left'):
-        """Get the graph Y (left) limits.
+        """Get the graph Y limits.
 
-        :param str axis: The axis for which to get the limits: left or right
-        :return:  Minimum and maximum values of the X axis
+        :param str axis: The axis for which to get the limits:
+                         Either 'left' or 'right'
+        :return: Minimum and maximum values of the X axis
         """
         assert axis in ('left', 'right')
         return self._backend.getGraphYLimits(axis)
 
     def setGraphYLimits(self, ymin, ymax, axis='left', replot=False):
+        """Set the graph Y limits.
+
+        :param float xmin: minimum bottom axis value
+        :param float xmax: maximum bottom axis value
+        :param str axis: The axis for which to get the limits:
+                         Either 'left' or 'right'
+        :param bool replot: True (the default) to immediately redraw the plot
+        """
         assert axis in ('left', 'right')
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
@@ -1208,6 +1501,17 @@ class Plot(object):
             self.replot()
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
+        """Set the limits of the X and Y axes at once.
+
+        If y2min or y2max is None, the right Y axis limits are not updated.
+
+        :param float xmin: minimum bottom axis value
+        :param float xmax: maximum bottom axis value
+        :param float ymin: minimum left axis value
+        :param float ymax: maximum left axis value
+        :param float y2min: minimum right axis value or None (the default)
+        :param float y2max: maximum right axis value or None (the default)
+        """
         if xmax < xmin:
             xmin, xmax = xmax, xmin
         if ymax < ymin:
@@ -1226,17 +1530,30 @@ class Plot(object):
     # Title and labels
 
     def getGraphTitle(self):
+        """Return the plot main title as a str."""
         return self._graphTitle
 
     def setGraphTitle(self, title=""):
+        """Set the plot main title.
+
+        :param str title: Main title of the plot (default: '')
+        """
         self._graphTitle = str(title)
         self._backend.setGraphTitle(title)
         self._setDirtyPlot()
 
     def getGraphXLabel(self):
+        """Return the current X axis label as a str."""
         return self._currentXLabel
 
     def setGraphXLabel(self, label="X"):
+        """Set the plot X axis label.
+
+        The provided label can be temporarily replaced by the X label of the
+        active curve if any.
+
+        :param str label: The X axis label (default: 'X')
+        """
         self._xLabel = label
         # Current label can differ from input one with active curve handling
         self._currentXLabel = label
@@ -1244,9 +1561,17 @@ class Plot(object):
         self._setDirtyPlot()
 
     def getGraphYLabel(self):
+        """Return the current Y axis label as a str."""
         return self._currentYLabel
 
     def setGraphYLabel(self, label="Y"):
+        """Set the plot Y axis label.
+
+        The provided label can be temporarily replaced by the Y label of the
+        active curve if any.
+
+        :param str label: The Y axis label (default: 'Y')
+        """
         self._yLabel = label
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
@@ -1256,16 +1581,27 @@ class Plot(object):
     # Axes
 
     def invertYAxis(self, flag=True):
+        """Set the Y axis orientation.
+
+        :param bool flag: True for Y axis going from top to bottom,
+                          False for Y axis going from bottom to top
+        """
         self._backend.invertYAxis(flag)
         self._setDirtyPlot()
 
     def isYAxisInverted(self):
+        """Return True if Y axis goes from top to bottom, False otherwise."""
         return self._backend.isYAxisInverted()
 
     def isXAxisLogarithmic(self):
+        """Return True if X axis scale is logarithmic, False if linear."""
         return self._logX
 
     def setXAxisLogarithmic(self, flag):
+        """Set the bottom X axis scale (either linear or logarithmic).
+
+        :param bool flag: True to use a logarithmic scale, False for linear.
+        """
         if bool(flag) == self._logX:
             return
         self._logX = bool(flag)
@@ -1300,9 +1636,14 @@ class Plot(object):
         self.resetZoom()
 
     def isYAxisLogarithmic(self):
+        """Return True if Y axis scale is logarithmic, False if linear."""
         return self._logY
 
     def setYAxisLogarithmic(self, flag):
+        """Set the Y axes scale (either linear or logarithmic).
+
+        :param bool flag: True to use a logarithmic scale, False for linear.
+        """
         if bool(flag) == self._logY:
             return
         self._logY = bool(flag)
@@ -1337,30 +1678,48 @@ class Plot(object):
         self.resetZoom()
 
     def isXAxisAutoScale(self):
+        """Return True if X axis is automatically adjusting its limits."""
         return self._xAutoScale
 
     def setXAxisAutoScale(self, flag=True):
+        """Set the X axis limits adjusting behavior upon :meth:`resetZoom`.
+
+        :param bool flag: True to resize limits automatically,
+                          False to disable it.
+        """
         self._xAutoScale = bool(flag)
 
     def isYAxisAutoScale(self):
+        """Return True if Y axes are automatically adjusting its limits."""
         return self._yAutoScale
 
     def setYAxisAutoScale(self, flag=True):
+        """Set the Y axis limits adjusting behavior upon :meth:`resetZoom`.
+
+        :param bool flag: True to resize limits automatically,
+                          False to disable it.
+        """
         self._yAutoScale = flag
 
     def isKeepDataAspectRatio(self):
+        """Returns whether the plot is keeping data aspect ratio or not."""
         return self._backend.isKeepDataAspectRatio()
 
     def keepDataAspectRatio(self, flag=True):
-        """
-        :param flag:  True to respect data aspect ratio
-        :type flag: Boolean, default True
+        """Set whether the plot keeps data aspect ratio or not.
+
+        :param bool flag: True to respect data aspect ratio
         """
         self._backend.keepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self.resetZoom()
 
     def showGrid(self, flag=True):
+        """Set the plot grid display.
+
+        :param flag: False to disable grid, 1 or True for major grid,
+                     2 for major and minor grid
+        """
         _logger.debug("Plot showGrid called")
         self._backend.showGrid(flag)
         self._setDirtyPlot()
@@ -1369,6 +1728,13 @@ class Plot(object):
     # Defaults
 
     def setDefaultPlotPoints(self, flag):
+        """Set the default symbol of all curves.
+
+        When called, this reset the symbol of all existing curves.
+
+        :param bool flag: True to use 'o' as the default curve symbol,
+                          False to use no symbol.
+        """
         self._defaultPlotPoints = 'o' if flag else ''
 
         # Reset symbol of all curves
@@ -1381,6 +1747,11 @@ class Plot(object):
             self.replot()
 
     def setDefaultPlotLines(self, flag):
+        """Toggle the use of lines as the default curve line style.
+
+        :param bool flag: True to use a line as the default line style,
+                          False to use no line as the default line style.
+        """
         self._plotLines = bool(flag)
 
         if self._curves:
@@ -1389,32 +1760,20 @@ class Plot(object):
             self.replot()
 
     def getDefaultColormap(self):
-        """
-        Return the colormap that will be applied by the backend to an image
-        if no colormap is applied to it.
-        A colormap is a dictionnary with the keys:
-        :type name: string
-        :type normalization: string (linear, log)
-        :type autoscale: boolean
-        :type vmin: float, minimum value
-        :type vmax: float, maximum value
-        :type colors: integer (typically 256)
+        """Return the default colormap used by :meth:`addImage` as a dict.
+
+        See :ref:`colormap_def` for the documentation of the colormap dict.
         """
         return self._defaultColormap
 
     def setDefaultColormap(self, colormap=None):
-        """
-        Sets the colormap that will be applied by the backend to an image
-        if no colormap is applied to it.
-        A colormap is a dictionnary with the keys:
-        :type name: string
-        :type normalization: string (linear, log)
-        :type autoscale: boolean
-        :type vmin: float, minimum value
-        :type vmax: float, maximum value
-        :type colors: integer (typically 256)
+        """Set the default colormap used by :meth:`addImage`.
 
-        If None is passed, the backend will reset to its default colormap.
+        :param dict colormap: The description of the default colormap, or
+                            None to set the colormap to a linear autoscale
+                            gray colormap.
+                            See :ref:`colormap_def` for the documentation
+                            of the colormap dict.
         """
         if colormap is None:
             colormap = {'name': 'gray', 'normalization': 'linear',
@@ -1423,10 +1782,10 @@ class Plot(object):
         self._defaultColormap = colormap
 
     def getSupportedColormaps(self):
-        """Get a list of strings with the supported colormap names.
+        """Get the supported colormap names as a tuple of str.
 
         The list should at least contain and start by:
-        ['gray', 'reversed gray', 'temperature', 'red', 'green', 'blue']
+        ('gray', 'reversed gray', 'temperature', 'red', 'green', 'blue')
         """
         return self._backend.getSupportedColormaps()
 
@@ -1452,6 +1811,10 @@ class Plot(object):
     # Misc.
 
     def getWidgetHandle(self):
+        """Return the widget the plot is displayed in.
+
+        This widget is owned by the backend.
+        """
         return self._backend.getWidgetHandle()
 
     def notify(self, event):
@@ -1481,8 +1844,8 @@ class Plot(object):
         self._callback = callbackFunction
 
     def graphCallback(self, ddict=None):
-        """
-        This callback is going to receive all the events from the plot.
+        """This callback is going to receive all the events from the plot.
+
         Those events will consist on a dictionnary and among the dictionnary
         keys the key 'event' is mandatory to describe the type of event.
         This default implementation only handles setting the active curve.
@@ -1497,11 +1860,12 @@ class Plot(object):
                 self.setActiveCurve(ddict['label'])
 
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
-        """
+        """Save a snapshot of the plot.
+
         :param filename: Destination
-        :type filename: str or StringIO or BytesIO
+        :type filename: str, StringIO or BytesIO
         :param str fileFormat:  String specifying the format
-        :return: False if cannot save, True otherwise
+        :return: False if cannot save the plot, True otherwise
         """
         if kw:
             _logger.warning('Extra parameters ignored: %s', str(kw))
@@ -1545,11 +1909,27 @@ class Plot(object):
                                     yMinMargin, yMaxMargin)
 
     def replot(self):
+        """Redraw the plot immediately."""
         _logger.debug("replot called")
         self._backend.replot()
         self._dirty = False  # reset dirty flag
 
     def resetZoom(self, dataMargins=None):
+        """Reset the plot limits to the bounds of the data and redraw the plot.
+
+        It automatically scale limits of axes that are in autoscale mode
+        (See :meth:`setXAxisAutoScale`, :meth:`setYAxisAutoScale`).
+        It keeps current limits on axes that are not in autoscale mode.
+
+        Extra margins can be added around the data inside the plot area.
+        Margins are given as one ratio of the data range per limit of the
+        data (xMin, xMax, yMin and yMax limits).
+        For log scale, extra margins are applied in log10 of the data.
+
+        :param dataMargins: Ratios of margins to add around the data inside
+                            the plot area for each side (Default: no margins).
+        :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
+        """
         if dataMargins is None:
             dataMargins = self._defaultDataMargins
 
@@ -1647,25 +2027,38 @@ class Plot(object):
     # Coord conversion
 
     def dataToPixel(self, x=None, y=None, axis="left"):
-        """
-        Convert a position in data space to a position in pixels in the widget.
+        """Convert a position in data coordinates to a position in pixels.
 
         :param float x: The X coordinate in data space. If None (default)
-                            the middle position of the displayed data is used.
+                        the middle position of the displayed data is used.
         :param float y: The Y coordinate in data space. If None (default)
-                            the middle position of the displayed data is used.
+                        the middle position of the displayed data is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
         :returns: The corresponding position in pixels or
                   None if the data position is not in the displayed area.
         :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
         """
+        assert axis in ("left", "right")
+
+        xmin, xmax = self.getGraphXLimits()
+        ymin, ymax = self.getGraphYLimits(axis=axis)
+
+        if x is None:
+            x = 0.5 * (xmax - xmin)
+        if y is None:
+            y = 0.5 * (ymax - ymin)
+
+        if x > xmax or x < xmin:
+            return None
+
+        if y > ymax or y < ymin:
+            return None
+
         return self._backend.dataToPixel(x, y, axis=axis)
 
-    def pixelToData(self, x=None, y=None, axis="left", check=False):
-        """
-        Convert a position in pixels in the widget to a position in
-        the data space.
+    def pixelToData(self, x, y, axis="left", check=False):
+        """Convert a position in pixels to a position in data coordinates.
 
         :param float x: The X coordinate in pixels. If None (default)
                             the center of the widget is used.
@@ -1679,6 +2072,7 @@ class Plot(object):
                   None if the pixel position is not in the plot area.
         :rtype: A tuple of 2 floats: (xData, yData) or None.
         """
+        assert axis in ("left", "right")
         return self._backend.pixelToData(x, y, axis=axis, check=check)
 
     def getPlotBoundsInPixels(self):
@@ -1698,6 +2092,15 @@ class Plot(object):
         self._backend.setGraphCursorShape(cursor)
 
     def pickMarker(self, x, y, test=None):
+        """Pick a marker at the given position.
+
+        To use for interaction implementation.
+
+        :param float x: X position in pixels.
+        :param float y: Y position in pixels.
+        :param test: A callable to call for each picked marker to filter
+                     picked markers. If None (default), do not filter markers.
+        """
         if test is None:
             test = lambda marker: True
 
@@ -1715,6 +2118,14 @@ class Plot(object):
         return None
 
     def moveMarker(self, legend, x, y):
+        """Move a marker to a position.
+
+        To use for interaction implementation.
+
+        :param str legend: The legend associated to the marker.
+        :param float x: The new X position of the marker in data coordinates.
+        :param float y: The new Y position of the marker in data coordinates.
+        """
         marker = self._markers[legend]
         params = marker['params'].copy()
         if params['x'] is not None:
@@ -1725,6 +2136,15 @@ class Plot(object):
         self._addMarker(**params)
 
     def pickImageOrCurve(self, x, y, test=None):
+        """Pick an image or a curve at the given position.
+
+        To use for interaction implementation.
+
+        :param float x: X position in pixels.
+        :param float y: Y position in pixels.
+        :param test: A callable to call for each picked item to filter
+                     picked items. If None (default), do not filter items.
+        """
         if test is None:
             test = lambda item: True
 
@@ -1755,6 +2175,14 @@ class Plot(object):
         return None
 
     def moveImage(self, legend, dx, dy):
+        """Move an image to a position.
+
+        To use for interaction implementation.
+
+        :param str legend: The legend associated to the image.
+        :param float dx: The X offset to apply to the image in data coords.
+        :param float dy: The Y offset to apply to the image in data coords.
+        """
         # TODO: poor implementation, better to do move image in backend...
         image = self._images[legend]
         params = image['params'].copy()
@@ -1779,6 +2207,12 @@ class Plot(object):
         return xPlot, yPlot
 
     def onMousePress(self, xPixel, yPixel, btn):
+        """Handle mouse press event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        :param str btn: Mouse button in 'left', 'middle', 'right'
+        """
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._pressedButtons.append(btn)
             self._eventHandler.handleEvent('press', xPixel, yPixel, btn)
@@ -1786,6 +2220,11 @@ class Plot(object):
                 self.replot()
 
     def onMouseMove(self, xPixel, yPixel):
+        """Handle mouse move event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        """
         inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
         isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
 
@@ -1811,10 +2250,17 @@ class Plot(object):
         if isCursorInPlot or self._pressedButtons:
             self._eventHandler.handleEvent('move', inXPixel, inYPixel)
 
+        print('event', xPixel, yPixel)
         if self._getDirtyPlot():
             self.replot()
 
     def onMouseRelease(self, xPixel, yPixel, btn):
+        """Handle mouse release event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        :param str btn: Mouse button in 'left', 'middle', 'right'
+        """
         try:
             self._pressedButtons.remove(btn)
         except ValueError:
@@ -1827,6 +2273,14 @@ class Plot(object):
                 self.replot()
 
     def onMouseWheel(self, xPixel, yPixel, angleInDegrees):
+        """Handle mouse wheel event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        :param float angleInDegrees: Angle corresponding to wheel motion.
+                                     Positive for movement away from the user,
+                                     negative for movement toward the user.
+        """
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
@@ -1859,25 +2313,28 @@ class Plot(object):
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
                           In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
                           Default is 'polygon'.
-        :param str label: Only for 'draw' mode.
+        :param str label: Only for 'draw' mode, sent in drawing events.
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
 
     # TODO deprecate all the following
 
     def isDrawModeEnabled(self):
+        """Return True if the current interactive state is drawing."""
         return self.getInteractiveMode()['mode'] == 'draw'
 
     def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
                            color=None, **kwargs):
-        """Zoom and drawing are not compatible and cannot be enabled
-        simultanelously
+        """Set the drawing mode if flag is True and its parameters.
 
-        :param flag: Enable drawing mode disabling zoom and picking mode
-        :type flag: boolean, default True
-        :param shape: Type of item to be drawn in:
-                      hline, vline, rectangle, polygon
-        :type shape: string (default polygon)
+        If flag is False, only item selection is enabled.
+
+        Warning: Zoom and drawing are not compatible and cannot be enabled
+        simultanelously.
+
+        :param bool flag: True to enable drawing and disable zoom and select.
+        :param str shape: Type of item to be drawn in:
+                          hline, vline, rectangle, polygon (default)
         :param str label: Associated text for identifying draw signals
         :param color: The color to use to draw the selection area
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
@@ -1896,27 +2353,28 @@ class Plot(object):
             self.setInteractiveMode('select')
 
     def getDrawMode(self):
-        """
-        Return a dictionnary (or None) with the parameters passed when setting
-        the draw mode.
-        :key shape: The shape being drawn
-        :key label: Associated text (or None)
-        and any other info
+        """Return the draw mode parameters as a dict of None.
+
+        It returns None if the interactive moed is not a drawing mode,
+        otherwise, it returns a dict containing the drawing mode parameters
+        as provided to :meth:`setDrawModeEnabled`.
         """
         mode = self.getInteractiveMode()
         return mode if mode['mode'] == 'draw' else None
 
     def isZoomModeEnabled(self):
+        """Return True if the current interactive state is zooming."""
         return self.getInteractiveMode()['mode'] == 'zoom'
 
     def setZoomModeEnabled(self, flag=True, color=None):
-        """Zoom and drawing are not compatible and cannot be enabled
+        """Set the zoom mode if flag is True, else item selection is enabled.
+
+        Warning: Zoom and drawing are not compatible and cannot be enabled
         simultanelously
 
-        :param flag: If True, the user can zoom.
-        :type flag: boolean, default True
+        :param bool flag: If True, enable zoom and select mode.
         :param color: The color to use to draw the selection area.
-                      Default 'black"
+                      (Default: 'black')
         :param color: The color to use to draw the selection area
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
                      one of the predefined color names defined in Colors.py
