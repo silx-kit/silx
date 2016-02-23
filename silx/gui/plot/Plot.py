@@ -458,11 +458,11 @@ class Plot(object):
         x = numpy.asarray(x)
         y = numpy.asarray(y)
 
-        # TODO color
+        # TODO check color
 
-        # assert symbol in (None, '', ' ', 'o')  # TODO complete
+        assert symbol in ('o', '.', ',', '+', 'x', 'd', 's', '', None)
 
-        # assert linestyle in (None, '', ' ', '-')  # TODO complete
+        assert linestyle in ('', ' ', '-', '--', '-.', ':', None)
 
         if xlabel is not None:
             xlabel = str(xlabel)
@@ -642,7 +642,6 @@ class Plot(object):
             'selectable': selectable, 'draggable': draggable,
             'colormap': colormap,
             'xlabel': xlabel, 'ylabel': ylabel
-            # TODO xlabel, ylabel is not used by active image!!
         }
 
         # First, try to get defaults from existing curve with same name
@@ -1185,7 +1184,10 @@ class Plot(object):
             yMin, yMax = _utils.applyPan(yMin, yMax, yFactor, yIsLog)
             self.setGraphYLimits(yMin, yMax, axis='left')
 
-            # TODO handle second Y axis
+            y2Min, y2Max = self.getGraphYLimits(axis='right')
+
+            y2Min, y2Max = _utils.applyPan(y2Min, y2Max, yFactor, yIsLog)
+            self.setGraphYLimits(y2Min, y2Max, axis='right')
 
         self.replot()
 
@@ -1294,7 +1296,7 @@ class Plot(object):
         self._currentXLabel = xLabel
         self._backend.setGraphXLabel(xLabel)
         self._currentYLabel = yLabel
-        self._backend.setGraphYLabel(yLabel)  # TODO handle y2 axis
+        self._backend.setGraphYLabel(yLabel, axis='left')  # TODO y2 axis
 
         self._setDirtyPlot()
 
@@ -1575,7 +1577,7 @@ class Plot(object):
         self._yLabel = label
         # Current label can differ from input one with active curve handling
         self._currentYLabel = label
-        self._backend.setGraphYLabel(label)
+        self._backend.setGraphYLabel(label, axis='left')
         self._setDirtyPlot()
 
     # Axes
@@ -2250,7 +2252,6 @@ class Plot(object):
         if isCursorInPlot or self._pressedButtons:
             self._eventHandler.handleEvent('move', inXPixel, inYPixel)
 
-        print('event', xPixel, yPixel)
         if self._getDirtyPlot():
             self.replot()
 

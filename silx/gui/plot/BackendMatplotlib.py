@@ -525,8 +525,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def setGraphXLabel(self, label):
         self.ax.set_xlabel(label)
 
-    def setGraphYLabel(self, label):
-        self.ax.set_ylabel(label)
+    def setGraphYLabel(self, label, axis):
+        axes = self.ax if axis == 'left' else self.ax2
+        axes.set_ylabel(label)
 
     # Graph limits
 
@@ -935,8 +936,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
                 lineh.set_visible(True)
                 lineh.set_ydata((event.ydata, event.ydata))
                 self._plot._setDirtyPlot(overlayOnly=True)
+            # onMouseMove must trigger replot if dirty flag is raised
 
-        # TODO: Fragile: relies on onMouseMove dirty flag check to replot
         self._plot.onMouseMove(event.x, event.y)
 
     def _onMouseRelease(self, event):

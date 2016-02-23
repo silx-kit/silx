@@ -303,10 +303,11 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def setGraphYLabel(self, label):
+    def setGraphYLabel(self, label, axis):
         """Set the left Y axis label.
 
         :param str label: label associated to the plot left Y axis
+        :param str axis: The axis for which to get the limits: left or right
         """
         raise NotImplementedError()
 
