@@ -86,7 +86,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/02/2016"
+__date__ = "23/02/2016"
 
 import os.path
 import logging
@@ -130,7 +130,9 @@ class MCA():
     MCA data in a Scan.
 
     This class is defined to allow lazy loading of a single MCA from within
-    a :class:`Scan` instance.
+    a :class:`Scan` instance. It implements following special methods to
+    behave like an iterator and a dictionary:
+    func:`__getitem__(key)`, :func:`__len__`, :func:`__iter__`
 
     :param scan: Parent Scan instance
     :type scan: :class:`Scan`
@@ -172,6 +174,13 @@ class MCA():
     def __iter__(self):
         for mca_index in range(len(self)):
             yield self._scan._specfile.get_mca(self._scan.index, mca_index)
+
+    def keys(self):
+        """
+        :return: List of MCA indices
+        :rtype: list of int
+        """
+        return list(range(len(self)))
 
 
 class Scan():
@@ -217,14 +226,13 @@ class Scan():
         
         if self.record_exists_in_hdr('L'):
             self.labels = self._specfile.labels(self.index)
-        
+
         self.scan_header = {}
         self.mca_header = {}
         for line in self.scan_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             match_mca = re.search(r"#@(\w+) *(.*)", line)
             if match:
-                # header type 
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
                 self.scan_header[hkey] = hvalue
@@ -235,31 +243,20 @@ class Scan():
             else:
                 # this shouldn't happen
                 logging.warn("Unable to parse scan header line " + line)
-        
-        # Alternative: call dedicated function for each header
-        # (results will be different from previous solution, value types may
-        # be integers or arrays instead of just strings)
-#         if self.record_exists_in_hdr('N'):
-#             self.scan_header['N'] = self._specfile.columns(self.index)
-#         if self.record_exists_in_hdr('S'):
-#             self.scan_header['S'] = self._specfile.command(self.index)
-#         if self.record_exists_in_hdr('L'):
-#             self.scan_header['L'] = self._specfile.labels(self.index)
-        # etc...
-            
+
         self.file_header_lines = self._specfile.file_header(self.index)
-        
+
         self.file_header = {}
         for line in self.file_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
-                # header type 
+                # header type
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
                 self.file_header[hkey] = hvalue
             else:
                 logging.warn("Unable to parse file header line " + line)
-                
+
         self.motor_names = self._specfile.all_motor_names(self.index)
         self.motor_positions = self._specfile.all_motor_positions(self.index)
 
@@ -301,7 +298,9 @@ class Scan():
         raise NotImplementedError("Scan.mca is a read-only attribute")
             
     def record_exists_in_hdr(self, record):
-        """Check whether a scan header line  exists.
+        """record_exists_in_hdr(record)
+
+        Check whether a scan header line  exists.
         
         This should be used before attempting to retrieve header information 
         using a C function that may crash with a *segmentation fault* if the
@@ -321,15 +320,17 @@ class Scan():
         return False
     
     def record_exists_in_file_hdr(self, record):
-        """Check whether a file header line  exists.
+        """record_exists_in_file_hdr(record)
+
+        Check whether a file header line  exists.
         
         This should be used before attempting to retrieve header information 
         using a C function that may crash with a *segmentation fault* if the
         header isn't defined in the SpecFile.
         
-        :param record_type: single upper case letter corresponding to the
+        :param record: single upper case letter corresponding to the
                             header you want to test
-        :type record_type: str
+        :type record: str
 
         :return: True or False
         :rtype: boolean
@@ -341,7 +342,9 @@ class Scan():
         return False
     
     def data_line(self, line_index):
-        """Returns data for a given line of this scan.
+        """data_line(line_index)
+
+        Returns data for a given line of this scan.
         
         :param line_index: Index of data line to retrieve (starting with 0)
         :type line_index: int
@@ -353,10 +356,12 @@ class Scan():
         return self.data[line_index, :]
 
     def data_column_by_name(self, label):
-        """Returns data for a given column.
+        """data_column_by_name(label)
+
+        Returns a data column
 
         :param label: Label of data column to retrieve, as defined on the
-            ``#N`` line of the scan header.
+            ``#L`` line of the scan header.
         :type label: str
 
         :return: Line data as a 1D array of doubles
@@ -365,7 +370,9 @@ class Scan():
         return self._specfile.data_column_by_name(self.index, label)
 
     def motor_position_by_name(self, name):
-        """Returns position for a given motor.
+        """motor_position_by_name(name)
+
+        Returns the position for a given motor
 
         :param name: Name of motor, as defined on the ``#O`` line of the
            file header.
@@ -377,7 +384,9 @@ class Scan():
         return self._specfile.motor_position_by_name(self.index, name)
 
 def string_to_char_star(string_):
-    """Convert a string to ASCII encoded bytes if using python3"""
+    """string_to_char_star(string_)
+
+    Convert a string to ASCII encoded bytes if using python3"""
     if sys.version.startswith("3"):
         return bytes(string_, "ascii")
     return string_
@@ -501,7 +510,9 @@ cdef class SpecFile(object):
         
     
     def index(self, scan_number, scan_order=1):
-        """Returns scan index from scan number and order.
+        """index(scan_number, scan_order=1)
+
+        Returns scan index from scan number and order.
         
         :param scan_number: Scan number (possibly non-unique). 
         :type scan_number: int
@@ -524,7 +535,9 @@ cdef class SpecFile(object):
         return idx - 1
     
     def number(self, scan_index):
-        """Returns scan number from scan index.
+        """number(scan_index)
+
+        Returns scan number from scan index.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -539,7 +552,9 @@ cdef class SpecFile(object):
         return idx
     
     def order(self, scan_index):
-        """Returns scan order from scan index.
+        """order(scan_index)
+
+        Returns scan order from scan index.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -576,7 +591,9 @@ cdef class SpecFile(object):
         return ret_list
     
     def data(self, scan_index):
-        """Returns data for the specified scan index.
+        """data(scan_index)
+
+        Returns data for the specified scan index.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -614,7 +631,9 @@ cdef class SpecFile(object):
         return ret_array
 
     def data_column_by_name(self, scan_index, label):
-        """Returns data column for the specified scan index and column label.
+        """data_column_by_name(scan_index, label)
+
+        Returns data column for the specified scan index and column label.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -649,7 +668,9 @@ cdef class SpecFile(object):
         return ret_array
 
     def scan_header(self, scan_index):
-        """Return list of scan header lines.
+        """scan_header(scan_index)
+
+        Return list of scan header lines.
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -679,7 +700,9 @@ cdef class SpecFile(object):
         return lines_list
     
     def file_header(self, scan_index):
-        """Return list of file header lines.
+        """file_header(scan_index)
+
+        Return list of file header lines.
         
         A file header contains all lines between a ``#F`` header line and
         a ``#S`` header line (start of scan). We need to specify a scan
@@ -714,7 +737,9 @@ cdef class SpecFile(object):
         return lines_list     
     
     def columns(self, scan_index): 
-        """Return number of columns in a scan from the ``#N`` header line
+        """columns(scan_index
+
+        Return number of columns in a scan from the ``#N`` header line
         (without ``#N`` and scan number)
         
         :param scan_index: Unique scan index between ``0`` and
@@ -735,7 +760,9 @@ cdef class SpecFile(object):
         return ncolumns
         
     def command(self, scan_index): 
-        """Return ``#S`` line (without ``#S`` and scan number)
+        """command(scan_index)
+
+        Return ``#S`` line (without ``#S`` and scan number)
         
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -755,7 +782,9 @@ cdef class SpecFile(object):
         return s_record.decode()
     
     def date(self, scan_index):  
-        """Return date from ``#D`` line
+        """date(scan_index)
+
+        Return date from ``#D`` line
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -775,7 +804,9 @@ cdef class SpecFile(object):
         return d_line.decode()
     
     def labels(self, scan_index):
-        """Return all labels from ``#L`` line
+        """labels(scan_index)
+
+        Return all labels from ``#L`` line
           
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -802,7 +833,9 @@ cdef class SpecFile(object):
         return labels_list
      
     def all_motor_names(self, scan_index):
-        """Return all motor names from ``#O`` lines
+        """all_motor_names(scan_index)
+
+        Return all motor names from ``#O`` lines
           
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -829,7 +862,9 @@ cdef class SpecFile(object):
         return motors_list
          
     def all_motor_positions(self, scan_index):
-        """Return all motor positions
+        """all_motor_positions(scan_index)
+
+        Return all motor positions
           
         :param scan_index: Unique scan index between ``0``
             and ``len(self)-1``.
@@ -856,7 +891,9 @@ cdef class SpecFile(object):
         return motor_positions_list
 
     def motor_position_by_name(self, scan_index, name):
-        """Return motor position
+        """motor_position_by_name(scan_index, name)
+
+        Return motor position
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -879,7 +916,9 @@ cdef class SpecFile(object):
         return motor_position
 
     def number_of_mca(self, scan_index):
-        """Return number of mca spectra in a scan.
+        """number_of_mca(scan_index)
+
+        Return number of mca spectra in a scan.
 
         :param scan_index: Unique scan index between ``0`` and
             ``len(self)-1``.
@@ -897,13 +936,15 @@ cdef class SpecFile(object):
         # error code updating isn't implemented in SfNoMCA
         if num_mca == -1:
             raise SfNoMcaError("Failed to retrieve number of MCA " +
-                             "(SfNoMca returned -1)")
+                               "(SfNoMca returned -1)")
 
 
         return num_mca
 
     def mca_calibration(self, scan_index):
-        """Return MCA calibration in the form :math:`a + b x + c x²`
+        """mca_calibration(scan_index)
+
+        Return MCA calibration in the form :math:`a + b x + c x²`
 
         Raise a KeyError if there is no ``@CALIB`` line in the scan header.
 
@@ -936,7 +977,9 @@ cdef class SpecFile(object):
 
 
     def get_mca(self, scan_index, mca_index):
-        """Return MCA data
+        """get_mca(scan_index, mca_index)
+
+        Return MCA data
 
         :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.
         :type scan_index: int
