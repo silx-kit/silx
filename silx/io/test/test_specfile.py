@@ -64,6 +64,8 @@ sftext = """#F /tmp/sf.dat
 #D Thu Feb 11 09:54:36 2016
 
 #S 1 aaaaaa
+#U first duplicate line
+#U second duplicate line
 #@MCADEV 1
 #@MCA %16C
 #@CHANN 3 0 2 1
@@ -191,6 +193,10 @@ class TestSpecFile(unittest.TestCase):
                          'Current AutoM      Shutter')
         # parsing empty headers
         self.assertEqual(self.scan1.scan_header['Q'], '')
+        # duplicate headers: concatenated (with newline)
+        self.assertEqual(self.scan1_2.scan_header["U"],
+                         "first duplicate line\nsecond duplicate line")
+
 
     def test_file_headers(self):
         self.assertEqual(self.scan1.header[1],

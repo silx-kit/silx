@@ -176,6 +176,22 @@ class MCA():
             yield self._scan._specfile.get_mca(self._scan.index, mca_index)
 
 
+def add_or_concatenate(dictionary, key, value):
+    """
+    add_or_concatenate(dictionary, key, value)
+
+    If key doesn't exist in dictionary, create a new ``key: value`` pair.
+    Else append/concatenate the new value to the existing one
+    """
+    try:
+        if not key in dictionary:
+            dictionary[key] = value
+        else:
+            dictionary[key] += "\n" + value
+    except TypeError:
+        raise TypeError("Parameter value has to be a string.")
+
+
 class Scan():
     """
     SpecFile scan
@@ -228,11 +244,11 @@ class Scan():
             if match:
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                self.scan_header[hkey] = hvalue
+                add_or_concatenate(self.scan_header, hkey, hvalue)
             elif match_mca:
                 hkey = match_mca.group(1).lstrip("#").strip()
                 hvalue = match_mca.group(2).strip()
-                self.mca_header[hkey] = hvalue
+                add_or_concatenate(self.mca_header, hkey, hvalue)
             else:
                 # this shouldn't happen
                 logging.warn("Unable to parse scan header line " + line)
@@ -245,7 +261,7 @@ class Scan():
                 # header type
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                self.file_header[hkey] = hvalue
+                add_or_concatenate(self.file_header, hkey, hvalue)
             else:
                 logging.warn("Unable to parse file header line " + line)
 
@@ -352,6 +368,7 @@ class Scan():
         :rtype: float
         """
         return self._specfile.motor_position_by_name(self.index, name)
+
 
 def string_to_char_star(string_):
     """string_to_char_star(string_)
