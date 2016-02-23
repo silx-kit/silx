@@ -156,7 +156,7 @@ It provides the following keys:
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "23/02/2016"
 
 
 from collections import OrderedDict
@@ -164,13 +164,10 @@ import logging
 
 import numpy
 
-from . import BackendBase
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
 from . import _utils
-
-from .BackendMatplotlib import BackendMatplotlibQt
 
 
 _logger = logging.getLogger(__name__)
@@ -198,79 +195,47 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['darkYellow'],
               _COLORDICT['darkBrown']]
 
-# PyQtGraph symbols ['o', 's', 't', 'd', '+', 'x']
-
-# Matplotlib symbols:
-# "." 	point
-# "," 	pixel
-# "o" 	circle
-# "v" 	triangle_down
-# "^" 	triangle_up
-# "<" 	triangle_left
-# ">" 	triangle_right
-# "1" 	tri_down
-# "2" 	tri_up
-# "3" 	tri_left
-# "4" 	tri_right
-# "8" 	octagon
-# "s" 	square
-# "p" 	pentagon
-# "*" 	star
-# "h" 	hexagon1
-# "H" 	hexagon2
-# "+" 	plus
-# "x" 	x
-# "D" 	diamond
-# "d" 	thin_diamond
-# "|" 	vline
-# "_" 	hline
-# "None" 	nothing
-# None 	nothing
-# " " 	nothing
-# "" 	nothing
-#
-
 
 class Plot(object):
-    # give the possibility to set the default backend for all instances
-    # via a class attribute.
-    defaultBackend = BackendMatplotlibQt
+    """This class implements the plot API initially provided in PyMca."""
+
+    defaultBackend = 'matplotlib'
+    """Class attribute setting the default backend for all instances."""
 
     colorList = _COLORLIST
     colorDict = _COLORDICT
 
-    def __init__(self, parent=None, backend=None, callback=None):
+    def __init__(self, parent=None, backend=None):
+        """Init.
+
+        :param parent: The parent widget of the plot (Default: None)
+        :param backend: The backend to use. A str in:
+                        'matplotlib', 'mpl'
+                        or a :class:`BackendBase.BackendBase` class
+        """
         self._dirty = False
 
         if backend is None:
             backend = self.defaultBackend
 
         if hasattr(backend, "__call__"):
-            # to be called
             self._backend = backend(self, parent)
-        elif isinstance(backend, BackendBase.BackendBase):
-            self._backend = backend
-            self._backend._setPlot(self)
+
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
-            if lowerCaseString in ["matplotlib", "mpl"]:
-                be = BackendMatplotlibQt
-            # elif lowerCaseString in ["gl", "opengl"]:
-            #     from .backends.OpenGLBackend import OpenGLBackend as be
-            # elif lowerCaseString in ["pyqtgraph"]:
-            #     from .backends.PyQtGraphBackend import PyQtGraphBackend as be
-            # elif lowerCaseString in ["glut"]:
-            #     from .backends.GLUTOpenGLBackend import \
-            #         GLUTOpenGLBackend as be
-            # elif lowerCaseString in ["osmesa", "mesa"]:
-            #     from .backends.OSMesaGLBackend import OSMesaGLBackend as be
+            if lowerCaseString in ("matplotlib", "mpl"):
+                from .BackendMatplotlib import BackendMatplotlibQt as \
+                    backendClass
             else:
-                raise ValueError("Backend not understood %s" % backend)
-            self._backend = be(self, parent)
+                raise ValueError("Backend not supported %s" % backend)
+            self._backend = backendClass(self, parent)
+
+        else:
+            raise ValueError("Backend not supported %s" % str(backend))
 
         super(Plot, self).__init__()
 
-        self.setCallback(callback)  # set _callback
+        self.setCallback()  # set _callback
 
         # Items handling
         self._curves = OrderedDict()
