@@ -175,13 +175,6 @@ class MCA():
         for mca_index in range(len(self)):
             yield self._scan._specfile.get_mca(self._scan.index, mca_index)
 
-    def keys(self):
-        """
-        :return: List of MCA indices
-        :rtype: list of int
-        """
-        return list(range(len(self)))
-
 
 class Scan():
     """
@@ -469,7 +462,26 @@ cdef class SpecFile(object):
             raise IndexError(msg)
 
         return Scan(self, scan_index)
+
+    def keys(self):
+        """Returns list of scan keys (eg ``['1.1', '2.1',...]``).
+
+        :return: list of scan keys
+        :rtype: list of strings
+        """
+        ret_list = []
+        list_of_numbers = self.list()
+        count = {}
         
+        for number in list_of_numbers:
+            if not number in count:
+                count[number] = 1
+            else:
+                count[number] += 1
+            ret_list.append('%d.%d' % (number, count[number]))
+
+        return ret_list
+
     def _get_error_string(self, error_code):
         """Returns the error message corresponding to the error code.
         

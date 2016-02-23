@@ -141,6 +141,8 @@ class TestSpecFile(unittest.TestCase):
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sf.list(),
                          [1, 25, 1])
+        self.assertEqual(self.sf.keys(),
+                         ["1.1", "25.1", "1.2"])
 
     def test_index_number_order(self):
         self.assertEqual(self.sf.index(1, 2), 2)  #sf["1.2"]==sf[2]
@@ -180,11 +182,8 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
-        self.assertEqual(self.sf[0].scan_header['S'],
-                         self.sf["1.1"].scan_header['S'])
         self.assertEqual(self.scan25.scan_header['S'],
                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
-        self.assertEqual(self.scan1.scan_header['N'], '4')
         self.assertEqual(self.scan1.scan_header_lines[3], '#G0 0')
         self.assertEqual(len(self.scan1.scan_header_lines), 15)
         # parsing headers with long keys
@@ -273,6 +272,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.mca_header, {})
         self.assertEqual(len(self.scan1_2.mca_header), 4)
         self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
+
 
 class TestSFLocale(unittest.TestCase):
     @classmethod
