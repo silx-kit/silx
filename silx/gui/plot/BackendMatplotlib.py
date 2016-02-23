@@ -61,13 +61,14 @@ elif qt.BINDING == 'PyQt5':
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from matplotlib import cm
+from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
-from matplotlib.collections import PathCollection
+from matplotlib.collections import PathCollection, LineCollection
 
 from . import _utils
 from .ModestImage import ModestImage
@@ -137,6 +138,20 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         picker = 3 if selectable else None
 
+        artists = []  # All the artists composing the curve
+
+        # First add errorbars if any so they are behind the curve
+        if xerror is not None or yerror is not None:
+            if hasattr(color, 'dtype') and len(color) == len(x):
+                errorbarColor = 'k'
+            else:
+                errorbarColor = color
+
+            errorbars = axes.errorbar(x, y, label=legend,
+                                      xerr=xerror, yerr=yerror,
+                                      linestyle=' ', color=errorbarColor)
+            artists += list(errorbars.get_children())
+
         if hasattr(color, 'dtype') and len(color) == len(x):
             # scatter plot
             if color.dtype not in [numpy.float32, numpy.float]:
@@ -144,13 +159,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 actualColor = color
 
-            pathObject = axes.scatter(x, y,
-                                      label=legend,
-                                      color=actualColor,
-                                      marker=symbol,
-                                      picker=picker)
-
-            if linestyle not in [" ", None]:
+            if linestyle not in ["", " ", None]:
                 # scatter plot with an actual line ...
                 # we need to assign a color ...
                 curveList = axes.plot(x, y, label=legend,
@@ -159,30 +168,30 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                       linewidth=linewidth,
                                       picker=picker,
                                       marker=None)
-                # TODO what happen to curveList????
+                artists += list(curveList)
 
-            # scatter plot is a collection
-            curveList = [pathObject]
+            scatter = axes.scatter(x, y,
+                                   label=legend,
+                                   color=actualColor,
+                                   marker=symbol,
+                                   picker=picker)
+            artists.append(scatter)
 
-        else:
+        else:  # Curve
             curveList = axes.plot(x, y,
                                   label=legend,
                                   linestyle=linestyle,
                                   color=color,
                                   linewidth=linewidth,
+                                  marker=symbol,
                                   picker=picker)
-
-        # errorbar is a container?
-        # axes.errorbar(x,y, label=legend,yerr=numpy.sqrt(y),
-        #               linestyle=" ",color='b')
+            artists += list(curveList)
 
         if fill:
             axes.fill_between(x, 1.0e-8, y)
 
-        if hasattr(curveList[-1], "set_marker"):
-            curveList[-1].set_marker(symbol)
-
-        curveList[-1]._plot_info = {
+        # This complies with _getDataLimits
+        artists[-1]._plot_info = {
             'axes': yaxis,
             # this is needed for scatter plots because I do not know
             # how to recover the data yet, it can speed up limits too
@@ -192,10 +201,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
             'ymax': numpy.nanmax(y),
         }
 
-        curveList[-1].axes = axes
-        curveList[-1].set_zorder(z)
+        artists[-1].axes = axes
 
-        return curveList[-1]
+        for artist in artists:
+            artist.set_zorder(z)
+
+        return Container(artists)
 
     def addImage(self, data, legend,
                  xScale, yScale, z,
@@ -481,8 +492,31 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Active curve
 
-    def setCurveColor(self, curve, color):
-        curve.set_color(color)
+    def setActiveCurve(self, curve, active, color=None):
+        # Store Line2D and PathCollection
+        for artist in curve.get_children():
+            if active:
+                if isinstance(artist, (Line2D, LineCollection)):
+                    artist._initialColor = artist.get_color()
+                    artist.set_color(color)
+                elif isinstance(artist, PathCollection):
+                    artist._initialColor = artist.get_facecolors()
+                    artist.set_facecolors(color)
+                    artist.set_edgecolors(color)
+                else:
+                    _logger.warning(
+                        'setActiveCurve ignoring artist %s', str(artist))
+            else:
+                if hasattr(artist, '_initialColor'):
+                    if isinstance(artist, (Line2D, LineCollection)):
+                        artist.set_color(artist._initialColor)
+                    elif isinstance(artist, PathCollection):
+                        artist.set_facecolors(artist._initialColor)
+                        artist.set_edgecolors(artist._initialColor)
+                    else:
+                        _logger.info(
+                            'setActiveCurve ignoring artist %s', str(artist))
+                    del artist._initialColor
 
     # Misc.
 

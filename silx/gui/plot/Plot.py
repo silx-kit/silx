@@ -45,7 +45,8 @@ The :class:`Plot` implements the plot API initially provided in PyMca.
 Plot Events
 -----------
 
-The Plot sends some event to the registered callback (See :meth:`Plot.setCallback`).
+The Plot sends some event to the registered callback
+(See :meth:`Plot.setCallback`).
 Those events are sent as a dictionary with a key 'event' describing the kind
 of event.
 
@@ -471,6 +472,8 @@ class Plot(object):
             ylabel = str(ylabel)
 
         assert yaxis in (None, 'left', 'right')
+
+        # TODO check xerror, yerror
 
         if xerror is not None:
             xerror = numpy.asarray(xerror)
@@ -1271,7 +1274,7 @@ class Plot(object):
         if oldActiveCurve:  # Reset previous active curve
             handle = self._curves[oldActiveCurve[2]]['handle']
             if handle is not None:
-                self._backend.setCurveColor(handle, oldActiveCurve[3]['color'])
+                self._backend.setActiveCurve(handle, False)
 
         if legend is None:
             self._activeCurve = None
@@ -1285,8 +1288,8 @@ class Plot(object):
 
                 handle = self._curves[self._activeCurve]['handle']
                 if handle is not None:
-                    self._backend.setCurveColor(handle,
-                                                self.getActiveCurveColor())
+                    self._backend.setActiveCurve(handle, True,
+                                                 self.getActiveCurveColor())
 
                 activeCurve = self.getActiveCurve()
                 xLabel = activeCurve[3]['xlabel']
@@ -1345,7 +1348,7 @@ class Plot(object):
             if legend not in self._images:
                 _logger.warning(
                     "setActiveImage: This image does not exist: %s", legend)
-                self._activeCurve = None
+                self._activeImage = None
             else:
                 self._activeImage = legend
 

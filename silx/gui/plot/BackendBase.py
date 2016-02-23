@@ -259,10 +259,12 @@ class BackendBase(object):
 
     # Active curve
 
-    def setCurveColor(self, curve, color):
-        """Set the color of a curve.
+    def setActiveCurve(self, curve, active, color=None):
+        """Set/Reset the color of a curve to show that it is active.
 
         :param curve: The curve handle
+        :param bool active: True to set curve to color, False to reset curve
+                            to its initial color.
         :param str color: The color to use.
         """
         raise NotImplementedError()
