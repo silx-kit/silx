@@ -1,4 +1,5 @@
 #/*##########################################################################
+# coding: utf-8
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -94,14 +95,26 @@ import numpy
 import re
 import sys
 
+logger1 = logging.getLogger('silx.io.specfile')
+
 cimport numpy
 cimport cython
-from libc.stdlib cimport free, malloc
-from libc.string cimport memcpy
+from libc.stdlib cimport free
+
+from specfile cimport *
+
+# hack to avoid C compiler warnings about unused functions in the NumPy header files
+# Sources: Cython test suite.
+cdef extern from *:
+    bint FALSE "0"
+    void import_array()
+    void import_umath()
+
+if FALSE:
+    import_array()
+    import_umath()
 
 numpy.import_array()
-
-from specfile_pxd cimport *
 
 SF_ERR_NO_ERRORS = 0
 SF_ERR_MEMORY_ALLOC = 1
@@ -125,7 +138,7 @@ class SfNoMcaError(Exception):
     """
     pass
 
-class MCA():
+class MCA(object):
     """
     MCA data in a Scan.
 
@@ -176,9 +189,9 @@ class MCA():
             yield self._scan._specfile.get_mca(self._scan.index, mca_index)
 
 
-def add_or_concatenate(dictionary, key, value):
+def _add_or_concatenate(dictionary, key, value):
     """
-    add_or_concatenate(dictionary, key, value)
+    _add_or_concatenate(dictionary, key, value)
 
     If key doesn't exist in dictionary, create a new ``key: value`` pair.
     Else append/concatenate the new value to the existing one
@@ -189,10 +202,10 @@ def add_or_concatenate(dictionary, key, value):
         else:
             dictionary[key] += "\n" + value
     except TypeError:
-        raise TypeError("Parameter value has to be a string.")
+        raise TypeError("Parameter value must be a string.")
 
 
-class Scan():
+class Scan(object):
     """
     SpecFile scan
 
@@ -244,14 +257,14 @@ class Scan():
             if match:
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                add_or_concatenate(self.scan_header, hkey, hvalue)
+                _add_or_concatenate(self.scan_header, hkey, hvalue)
             elif match_mca:
                 hkey = match_mca.group(1).lstrip("#").strip()
                 hvalue = match_mca.group(2).strip()
-                add_or_concatenate(self.mca_header, hkey, hvalue)
+                _add_or_concatenate(self.mca_header, hkey, hvalue)
             else:
                 # this shouldn't happen
-                logging.warn("Unable to parse scan header line " + line)
+                logger1.warning("Unable to parse scan header line " + line)
 
 
         self.file_header = {}
@@ -261,30 +274,24 @@ class Scan():
                 # header type
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                add_or_concatenate(self.file_header, hkey, hvalue)
+                _add_or_concatenate(self.file_header, hkey, hvalue)
             else:
-                logging.warn("Unable to parse file header line " + line)
+                logger1.warning("Unable to parse file header line " + line)
 
         self.motor_names = self._specfile.all_motor_names(self.index)
         self.motor_positions = self._specfile.all_motor_positions(self.index)
 
-        self._data_loaded = False
-        self._mca_instantiated = False
+        self._data = None
+        self._mca = None
 
     @property
     def data(self):
         """Scan data as a numpy.ndarray with the usual attributes
         (e.g. data.shape).
         """
-        if not self._data_loaded:
+        if self._data is None:
             self._data = self._specfile.data(self.index)
-#            self.nlines, self.ncolumns = self._data.shape
-            self._data_loaded = True
         return self._data
-
-    @data.setter
-    def data(self, data):
-        raise NotImplementedError("Scan.data is a read-only attribute")
 
     @property
     def mca(self):
@@ -296,15 +303,10 @@ class Scan():
 
         :rtype: :class:`MCA`
         """
-        if not self._mca_instantiated:
+        if self._mca is None:
             self._mca = MCA(self)
-            self._mca_instantiated = True
         return self._mca
 
-    @mca.setter
-    def mca(self, mca):
-        raise NotImplementedError("Scan.mca is a read-only attribute")
-            
     def record_exists_in_hdr(self, record):
         """record_exists_in_hdr(record)
 
@@ -320,7 +322,6 @@ class Scan():
 
         :return: True or False
         :rtype: boolean
-        
         """
         for line in self.header:
             if line.startswith("#" + record):
@@ -370,10 +371,10 @@ class Scan():
         return self._specfile.motor_position_by_name(self.index, name)
 
 
-def string_to_char_star(string_):
-    """string_to_char_star(string_)
+def _string_to_char_star(string_):
+    """_string_to_char_star(string_)
 
-    Convert a string to ASCII encoded bytes if using python3"""
+    Convert a string to ASCII encoded bytes when using python3"""
     if sys.version.startswith("3"):
         return bytes(string_, "ascii")
     return string_
@@ -398,7 +399,7 @@ cdef class SpecFile(object):
         self.__open_failed = 0
 
         if os.path.isfile(filename):
-            filename = string_to_char_star(filename)
+            filename = _string_to_char_star(filename)
             self.handle =  SfOpen(filename, &error)
         else:
             self.__open_failed = 1
@@ -415,7 +416,7 @@ cdef class SpecFile(object):
         #SfClose makes a segmentation fault if file failed to open
         if not self.__open_failed:            
             if SfClose(self.handle):
-                logging.warn("Error while closing SpecFile")
+                logger1.warning("Error while closing SpecFile")
                                         
     def __len__(self):
         """Returns the number of scans in the SpecFile"""
@@ -490,8 +491,6 @@ cdef class SpecFile(object):
         :param code: Error code
         :type code: int
         """
-        # TODO:
-        #  sort error types            
         error_message = self._get_error_string(error_code)
         if error_code in (SF_ERR_LINE_NOT_FOUND,
                           SF_ERR_SCAN_NOT_FOUND,
@@ -656,7 +655,7 @@ cdef class SpecFile(object):
             long i, nlines
             int error = SF_ERR_NO_ERRORS
 
-        label = string_to_char_star(label)
+        label = _string_to_char_star(label)
 
         nlines = SfDataColByName(self.handle,
                                  scan_index + 1,
@@ -743,7 +742,7 @@ cdef class SpecFile(object):
         return lines_list     
     
     def columns(self, scan_index): 
-        """columns(scan_index
+        """columns(scan_index)
 
         Return number of columns in a scan from the ``#N`` header line
         (without ``#N`` and scan number)
@@ -911,7 +910,7 @@ cdef class SpecFile(object):
         cdef:
             int error = SF_ERR_NO_ERRORS
 
-        name = string_to_char_star(name)
+        name = _string_to_char_star(name)
 
         motor_position = SfMotorPosByName(self.handle,
                                           scan_index + 1,

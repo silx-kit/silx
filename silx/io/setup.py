@@ -9,7 +9,7 @@ SPECFILE_USE_GNU_SOURCE = os.getenv("SPECFILE_USE_GNU_SOURCE")
 if SPECFILE_USE_GNU_SOURCE is None:
     SPECFILE_USE_GNU_SOURCE = 0
     if sys.platform.lower().startswith("linux"):
-        print("WARNING:")
+        print("silx.io.specfile WARNING:")
         print("A cleaner locale independent implementation")
         print("may be achieved setting SPECFILE_USE_GNU_SOURCE to 1")
         print("For instance running this script as:")
