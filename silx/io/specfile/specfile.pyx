@@ -188,8 +188,9 @@ class MCA(object):
         return self._scan._specfile.number_of_mca(self._scan.index)
 
     def __getitem__(self, key):
-        """
-        :param key: Index of MCA within Scan
+        """Return a single MCA data line
+
+        :param key: 0-based index of MCA within Scan
         :type key: int
 
         :return: Single MCA
@@ -212,6 +213,11 @@ class MCA(object):
                                             mca_index)
 
     def __iter__(self):
+        """Return the next MCA data line each time this method is called.
+
+        :return: Single MCA
+        :rtype: 1D numpy array
+        """
         for mca_index in range(len(self)):
             yield self._scan._specfile.get_mca(self._scan.index, mca_index)
 
@@ -476,7 +482,8 @@ cdef class SpecFile(object):
     :param filename: Path of the SpecFile to read
     :type filename: string
 
-    Class wrapping the C SpecFile library.
+    This class wraps the main data and header access functions of the C
+    SpecFile library.
     """
     
     cdef:
@@ -510,18 +517,37 @@ cdef class SpecFile(object):
                 logger1.warning("Error while closing SpecFile")
                                         
     def __len__(self):
-        """Returns the number of scans in the SpecFile"""
+        """Return the number of scans in the SpecFile
+
+        This function is called when the python built-in ``len()`` function
+        is called with a :class:`SpecFile` instance as a parameter.
+        """
         return SfScanNo(self.handle)
 
     def __iter__(self):
+        """Return the next :class:`Scan` in a SpecFile each time this method
+        is called.
+
+        This usually happens when the python built-in function ``next()`` is
+        called with a :class:`SpecFile` instance as a parameter, or when a
+        :class:`SpecFile` instance is used as an iterator (e.g. in a ``for``
+        loop).
+        """
         for scan_index in range(len(self)):
             yield Scan(self, scan_index)
 
     def __getitem__(self, key):
-        """Return a Scan object
+        """Return a :class:`Scan` object.
 
-        The Scan instance returned here keeps a reference to its parent SpecFile
-        instance in order to use its method to retrieve data and headers.
+        The Scan instance returned keeps a reference to its parent SpecFile
+        instance, in order to use its method to retrieve data and headers.
+
+        :param key: 0-based scan index or ``n.m`` key, where ``n`` is the scan
+            number defined on the ``#S`` header line and ``m`` is the order
+        :type key: int or str
+
+        :return: Scan defined by its 0-based index or its ``"n.m"`` key
+        :rtype: :class:`Scan`
         """
         msg = "The scan identification key can be an integer representing "
         msg += "the unique scan index or a string 'N.M' with N being the scan"
