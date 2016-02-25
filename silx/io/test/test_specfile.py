@@ -120,6 +120,7 @@ else:
     try_DE = True
     locale.setlocale(locale.LC_NUMERIC, loc)
 
+
 class TestSpecFile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
