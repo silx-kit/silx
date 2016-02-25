@@ -278,6 +278,7 @@ class Scan(object):
 
         self._header = file_header_lines + scan_header_lines
 
+        self.labels = None
         if self.record_exists_in_hdr('L'):
             self.labels = self._specfile.labels(self._index)
 
