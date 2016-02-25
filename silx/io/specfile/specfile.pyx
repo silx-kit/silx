@@ -551,7 +551,7 @@ cdef class SpecFile(object):
         """
         msg = "The scan identification key can be an integer representing "
         msg += "the unique scan index or a string 'N.M' with N being the scan"
-        msg += "number and M the order (eg '2.3')"
+        msg += " number and M the order (eg '2.3')."
 
         if isinstance(key, int):
             scan_index = key
@@ -565,7 +565,8 @@ cdef class SpecFile(object):
             except (ValueError, IndexError):
                 # self.index can raise an index error
                 # int() can raise a value error
-                raise KeyError(msg)
+                raise KeyError(msg + "\nValid keys: '" +
+                               "', '".join( self.keys()) + "'")
         else:
             raise TypeError(msg)
 
