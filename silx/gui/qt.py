@@ -48,6 +48,12 @@ import sys
 _logger = logging.getLogger(__name__)
 
 
+BINDING = None
+"""The Python Qt binding that is used (One of: 'PySide', 'PyQt5', 'PyQt4')."""
+
+HAS_SVG = False
+"""True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
+
 # First check for an already loaded wrapper
 if 'PySide' in sys.modules:
     BINDING = 'PySide'

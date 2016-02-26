@@ -24,7 +24,8 @@
 # ###########################################################################*/
 """Qt widget providing Plot API for 1D and 2D data.
 
-The plot API is documented in :class:`Plot`.
+This provides the plot API of :class:`silx.gui.plot.Plot.Plot` as a
+Qt widget.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -48,6 +49,11 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     This widget is a QMainWindow.
     It provides Qt signals for the Plot and add supports for panning
     with arrow keys.
+
+    :param parent: The parent of this widget or None.
+    :param backend: The backend to use for the plot.
+                    The default is to use matplotlib.
+    :type backend: str or :class:`BackendBase.BackendBase`
     """
 
     sigPlotSignal = qt.Signal(object)
@@ -59,13 +65,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
 
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, **kw):
-        """Init.
 
-        :param parent: The parent of this widget or None.
-        :param backend: The backend to use for the plot.
-                        The default is to use matplotlib.
-        :type backend: str or :class:`BackendBase.BackendBase`
-        """
         if kw:
             _logger.warning(
                 'deprecated: __init__ extra arguments: %s', str(kw))

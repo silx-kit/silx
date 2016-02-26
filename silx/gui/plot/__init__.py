@@ -22,7 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt widgets 1D and 2D plotting."""
+"""Qt widgets 1D and 2D plotting.
+
+This module provides a set of widgets for plotting curve and images.
+Those widgets supports interaction (e.g., zoom, pan, selections).
+
+List of Qt widgets:
+
+- :class:`PlotWidget`: A widget displaying a single plot.
+- :class:`PlotWindow`: Build on :class:`PlotWidget` it adds a configurable
+  set of tools.
+"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"

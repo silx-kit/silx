@@ -27,19 +27,21 @@
 The :class:`Plot` implements the plot API initially provided in PyMca.
 
 
-.. colormap_def:
+Colormap
+--------
 
-  A colormap is a dictionnary with the following keys::
+The :class:`Plot` uses a dictionary to describe a colormap.
+This dictionary has the following keys:
 
-    - name: str, name of the colormap. Available colormap are returned by
-          :meth:`getSupportedColormaps`.
-          At least 'gray', 'reversed gray', 'temperature',
-          'red', 'green', 'blue' are supported.
-    - normalization: Either 'linear' or 'log'
-    - autoscale: bool, True to get bounds from the min and max of the
-               data, False to use [vmin, vmax]
-    - vmin: float, min value, ignored if autoscale is True
-    - vmax: float, max value, ignored if autoscale is True
+- name: str, name of the colormap. Available colormap are returned by
+        :meth:`Plot.getSupportedColormaps`.
+        At least 'gray', 'reversed gray', 'temperature',
+        'red', 'green', 'blue' are supported.
+- normalization: Either 'linear' or 'log'
+- autoscale: bool, True to get bounds from the min and max of the
+             data, False to use [vmin, vmax]
+- vmin: float, min value, ignored if autoscale is True
+- vmax: float, max value, ignored if autoscale is True
 
 
 Plot Events
@@ -197,7 +199,13 @@ _COLORLIST = [_COLORDICT['black'],
 
 
 class Plot(object):
-    """This class implements the plot API initially provided in PyMca."""
+    """This class implements the plot API initially provided in PyMca.
+
+    :param parent: The parent widget of the plot (Default: None)
+    :param backend: The backend to use. A str in:
+                    'matplotlib', 'mpl'
+                    or a :class:`BackendBase.BackendBase` class
+    """
 
     defaultBackend = 'matplotlib'
     """Class attribute setting the default backend for all instances."""
@@ -206,13 +214,6 @@ class Plot(object):
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None):
-        """Init.
-
-        :param parent: The parent widget of the plot (Default: None)
-        :param backend: The backend to use. A str in:
-                        'matplotlib', 'mpl'
-                        or a :class:`BackendBase.BackendBase` class
-        """
         self._dirty = False
 
         if backend is None:
@@ -561,7 +562,7 @@ class Plot(object):
                                (default: False)
         :param dict colormap: Description of the colormap to use (or None)
                               This is ignored if data is a RGB(A) image.
-                              See :ref:`colormap_def` for the documentation
+                              See `Colormap`_ for the documentation
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
@@ -1652,7 +1653,7 @@ class Plot(object):
         return self._xAutoScale
 
     def setXAxisAutoScale(self, flag=True):
-        """Set the X axis limits adjusting behavior upon :meth:`resetZoom`.
+        """Set the X axis limits adjusting behavior of :meth:`resetZoom`.
 
         :param bool flag: True to resize limits automatically,
                           False to disable it.
@@ -1664,7 +1665,7 @@ class Plot(object):
         return self._yAutoScale
 
     def setYAxisAutoScale(self, flag=True):
-        """Set the Y axis limits adjusting behavior upon :meth:`resetZoom`.
+        """Set the Y axis limits adjusting behavior of :meth:`resetZoom`.
 
         :param bool flag: True to resize limits automatically,
                           False to disable it.
@@ -1732,7 +1733,7 @@ class Plot(object):
     def getDefaultColormap(self):
         """Return the default colormap used by :meth:`addImage` as a dict.
 
-        See :ref:`colormap_def` for the documentation of the colormap dict.
+        See `Colormap`_ for the documentation of the colormap dict.
         """
         return self._defaultColormap
 
@@ -1742,7 +1743,7 @@ class Plot(object):
         :param dict colormap: The description of the default colormap, or
                             None to set the colormap to a linear autoscale
                             gray colormap.
-                            See :ref:`colormap_def` for the documentation
+                            See `Colormap`_ for the documentation
                             of the colormap dict.
         """
         if colormap is None:
