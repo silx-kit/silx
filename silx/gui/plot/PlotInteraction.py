@@ -816,7 +816,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                marker = self.machine.plot.pickMarker(
+                marker = self.machine.plot._pickMarker(
                     x, y,
                     lambda marker: marker['selectable'] or marker['draggable'])
                 if marker is not None:
@@ -824,7 +824,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     return True
 
                 else:
-                    picked = self.machine.plot.pickImageOrCurve(
+                    picked = self.machine.plot._pickImageOrCurve(
                         x,
                         y,
                         lambda item: (item['selectable'] or
@@ -836,7 +836,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             return False
 
         def onMove(self, x, y):
-            marker = self.machine.plot.pickMarker(x, y)
+            marker = self.machine.plot._pickMarker(x, y)
             if marker is not None:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
@@ -886,7 +886,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.notify(eventDict)
 
         if btn == LEFT_BTN:
-            marker = self.plot.pickMarker(
+            marker = self.plot._pickMarker(
                 x, y, lambda marker: marker['selectable'])
             if marker is not None:
                 xData, yData = marker['x'], marker['y']
@@ -906,7 +906,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 self.plot.notify(eventDict)
 
             else:
-                picked = self.plot.pickImageOrCurve(
+                picked = self.plot._pickImageOrCurve(
                     x, y, lambda item: item['selectable'])
 
                 if picked is None:
@@ -973,12 +973,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         assert self._lastPos is not None
 
         self.imageLegend = None
-        self.marker = self.plot.pickMarker(
+        self.marker = self.plot._pickMarker(
             x, y, lambda marker: marker['draggable'])
         if self.marker is not None:
             self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
         else:
-            picked = self.plot.pickImageOrCurve(
+            picked = self.plot._pickImageOrCurve(
                 x,
                 y,
                 lambda item: item.get('draggable', False))
@@ -998,13 +998,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if self.marker['constraint'] is not None:
                 xData, yData = self.marker['constraint'](xData, yData)
 
-            self.plot.moveMarker(self.marker['legend'], xData, yData)
+            self.plot._moveMarker(self.marker['legend'], xData, yData)
 
             self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
 
         if self.imageLegend is not None:
             dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
-            self.plot.moveImage(self.imageLegend, dx, dy)
+            self.plot._moveImage(self.imageLegend, dx, dy)
 
         self._lastPos = xData, yData
 

@@ -2062,7 +2062,7 @@ class Plot(object):
         """
         self._backend.setGraphCursorShape(cursor)
 
-    def pickMarker(self, x, y, test=None):
+    def _pickMarker(self, x, y, test=None):
         """Pick a marker at the given position.
 
         To use for interaction implementation.
@@ -2088,7 +2088,7 @@ class Plot(object):
                     return params
         return None
 
-    def moveMarker(self, legend, x, y):
+    def _moveMarker(self, legend, x, y):
         """Move a marker to a position.
 
         To use for interaction implementation.
@@ -2106,7 +2106,7 @@ class Plot(object):
         params['legend'] = legend
         self._addMarker(**params)
 
-    def pickImageOrCurve(self, x, y, test=None):
+    def _pickImageOrCurve(self, x, y, test=None):
         """Pick an image or a curve at the given position.
 
         To use for interaction implementation.
@@ -2145,7 +2145,7 @@ class Plot(object):
 
         return None
 
-    def moveImage(self, legend, dx, dy):
+    def _moveImage(self, legend, dx, dy):
         """Move an image to a position.
 
         To use for interaction implementation.
