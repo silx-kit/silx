@@ -35,7 +35,7 @@ import unittest
 
 logger1 = logging.getLogger('silx.io.test')
 
-from silx.io.specfileh5 import SpecFileH5
+from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -119,17 +119,38 @@ class TestSpecFileH5(unittest.TestCase):
     #                      "25  ascan  c3th 1.33245 1.52245  40 0.15")
         
     def test_list_of_scan_indices(self):
-        self.assertEqual(self.sfh5["/"].keys(),
-                         ["1.1", "25.1", "1.2"])
-
-    def test_list_of_scan_indices(self):
-        self.assertEqual(self.sfh5["/"].keys(),
+        self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
 
     def test_number_of_mca_analysers(self):
         """Scan 1.2 has 2 data columns + 3 mca spectra per data line"""
-        self.assertEqual(len(self.sfh5["/1.2/measurement/"]),
+        self.assertEqual(len(self.sfh5["1.2"]["measurement"]),
                          5)
+
+    def test_group_get_item(self):
+        group = self.sfh5["1.2"]["instrument"]
+        self.assertEqual(group["positioners"].keys(),
+                         ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
+                          "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
+        with self.assertRaises(KeyError):
+            group["Holy Grail"]
+
+    def test_visit(self):
+        name_list = []
+        self.sfh5.visit(name_list.append)
+        self.assertIn(u"Pslit HGap", name_list)
+        self.assertEqual(len(name_list), 54)
+
+    def test_visit_items(self):
+        dataset_name_list = []
+        def func(name, obj):
+            if isinstance(obj, SpecFileH5Dataset):
+                dataset_name_list.append(name)
+
+        self.sfh5.visititems(func)
+        self.assertIn(u"Pslit HGap", dataset_name_list)
+        self.assertEqual(len(dataset_name_list), 39)
+
 
     #
     # def test_date(self):
