@@ -1,14 +1,18 @@
 
-.. currentmodule:: silx.gui.plot.PlotWidget
+.. currentmodule:: silx.gui.plot
 
-:class:`PlotWidget`
-+++++++++++++++++++
+:mod:`PlotWidget`
+=================
+
+.. module:: silx.gui.plot.PlotWidget
+
+.. currentmodule:: silx.gui.plot.PlotWidget
 
 The :class:`PlotWidget` is a Qt widget providing the plot API initially
 provided in `PyMca <http://pymca.sourceforge.net/>`_.
 
 Examples
-++++++++
+--------
 
 As this widget is a Qt widget, a Qt application must be running in order to
 use this widget.
@@ -57,10 +61,14 @@ Displaying an image:
    plot.show()  # Make the PlotWidget visible
 
 API
-+++
+---
 
-This is a structured subset of the complete plot API, the full API is
-documented in :class:`silx.gui.plot.Plot.Plot`.
+.. currentmodule:: silx.gui.plot.Plot
+
+This is a choosen subset of the complete plot API, the full API is
+documented in :class:`silx.gui.plot.Plot`.
+
+.. currentmodule:: silx.gui.plot.PlotWidget
 
 .. autoclass:: PlotWidget
    :show-inheritance:
@@ -79,13 +87,6 @@ Images
 .. automethod:: PlotWidget.addImage
 .. automethod:: PlotWidget.removeImage
 .. automethod:: PlotWidget.clearImages
-
-Items
-.....
-
-.. automethod:: PlotWidget.addItem
-.. automethod:: PlotWidget.removeItem
-.. automethod:: PlotWidget.clearItems
 
 Markers
 .......
@@ -129,7 +130,7 @@ Axes
 .. automethod:: PlotWidget.invertYAxis
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.keepDataAspectRatio
-.. automethod:: showGrid
+.. automethod:: PlotWidget.showGrid
 
 Reset zoom settings
 ...................
@@ -169,6 +170,7 @@ of the plot and to toggle the use of a crosshair cursor.
 
 
 .. Not documented:
+   addItem, removeItem, clearItems
    isActiveCurveHandling, enableActiveCurveHandling,
    getActiveCurveColor, setActiveCurveColor,
    getActiveCurve, setActiveCurve,

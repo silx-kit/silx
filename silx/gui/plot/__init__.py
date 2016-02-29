@@ -29,8 +29,10 @@ Those widgets supports interaction (e.g., zoom, pan, selections).
 
 List of Qt widgets:
 
-- :class:`PlotWidget`: A widget displaying a single plot.
-- :class:`PlotWindow`: Build on :class:`PlotWidget` it adds a configurable
+.. currentmodule:: silx.gui.plot
+
+- :mod:`.PlotWidget`: A widget displaying a single plot.
+- :mod:`.PlotWindow`: Build on :mod:`PlotWidget` it adds a configurable
   set of tools.
 """
 

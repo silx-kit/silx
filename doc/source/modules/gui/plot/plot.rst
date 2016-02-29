@@ -2,7 +2,7 @@
 .. currentmodule:: silx.gui.plot
 
 :mod:`Plot`
-+++++++++++
+===========
 
 .. automodule:: silx.gui.plot.Plot
    :members:

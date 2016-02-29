@@ -16,3 +16,5 @@ Modules:
 
    plot.rst
    plotwidget.rst
+
+For insights, see :doc:`dev`.
