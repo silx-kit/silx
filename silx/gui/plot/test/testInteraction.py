@@ -56,25 +56,26 @@ class TestInteraction(unittest.TestCase):
 
         # click
         clickOrDrag.handleEvent('press', 10, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 0)
+        self.assertEqual(len(events), 0)
 
         clickOrDrag.handleEvent('release', 10, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 1)
-        self.assertEqual(events[0] == ('click', 10, 10, Interaction.LEFT_BTN))
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0], ('click', 10, 10, Interaction.LEFT_BTN))
 
         # drag
         events = []
         clickOrDrag.handleEvent('press', 10, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 0)
-        clickOrDrag.handleEvent('move', 15, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 1)
-        self.assertEqual(events[-1] == ('beginDrag', 15, 10))
-        clickOrDrag.handleEvent('move', 20, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 2)
-        self.assertEqual(events[-1] == ('drag', 20, 10))
+        self.assertEqual(len(events), 0)
+        clickOrDrag.handleEvent('move', 15, 10)
+        self.assertEqual(len(events), 2)  # Received beginDrag and drag
+        self.assertEqual(events[0], ('beginDrag', 10, 10))
+        self.assertEqual(events[1], ('drag', 15, 10))
+        clickOrDrag.handleEvent('move', 20, 10)
+        self.assertEqual(len(events), 3)
+        self.assertEqual(events[-1], ('drag', 20, 10))
         clickOrDrag.handleEvent('release', 20, 10, Interaction.LEFT_BTN)
-        self.assertTrue(len(events) == 3)
-        self.assertEqual(events[-1] == ('endDrag', 20, 10))
+        self.assertEqual(len(events), 4)
+        self.assertEqual(events[-1], ('endDrag',(10, 10), (20, 10)))
 
 
 def suite():
