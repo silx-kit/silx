@@ -4,7 +4,6 @@ silx.io.specfile module
 .. automodule:: silx.io.specfile
     :members:
     :undoc-members:
-    :show-inheritance:
 
 .. autoclass:: silx.io.specfile.SpecFile
     :members:
@@ -26,3 +25,13 @@ silx.io.specfile module
     .. automethod:: __iter__()
 
     .. automethod:: __getitem__(key)
+
+
+silx.io.specfileh5 module
+----------------------------
+
+.. automodule:: silx.io.specfileh5
+    :members:
+    :undoc-members:
+    :special-members: __getitem__, __len__
+
