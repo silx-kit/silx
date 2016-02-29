@@ -1238,13 +1238,13 @@ class Plot(object):
         """Return the currently active curve.
 
         It returns None in case of not having an active curve.
-        Default output has the form: [xvalues, yvalues, legend, dict]
+        Default output has the form: [xvalues, yvalues, legend, info, params]
         where dict is a dictionary containing curve parameters.
 
         :param bool just_legend: True to get the legend of the curve,
                                  False (the default) to get the curve data
                                  and info.
-        :return: legend of the active curve or list [x, y, legend, params]
+        :return: legend of the active curve or [x, y, legend, info, params]
         :rtype: str or list
         """
         if not self.isActiveCurveHandlingEnabled():
@@ -1260,7 +1260,8 @@ class Plot(object):
             return self._activeCurve
         else:
             curve = self._curves[self._activeCurve]
-            return curve['x'], curve['y'], self._activeCurve, curve['params']
+            return (curve['x'], curve['y'], self._activeCurve,
+                    curve['params']['info'] or {}, curve['params'])
 
     def setActiveCurve(self, legend, replot=True):
         """Make the curve associated to legend the active curve.
@@ -1275,9 +1276,9 @@ class Plot(object):
         xLabel = self._xLabel
         yLabel = self._yLabel
 
-        oldActiveCurve = self.getActiveCurve()
-        if oldActiveCurve:  # Reset previous active curve
-            handle = self._curves[oldActiveCurve[2]]['handle']
+        oldActiveCurveLegend = self.getActiveCurve(just_legend=True)
+        if oldActiveCurveLegend:  # Reset previous active curve
+            handle = self._curves[oldActiveCurveLegend]['handle']
             if handle is not None:
                 self._backend.setActiveCurve(handle, False)
 
@@ -1296,9 +1297,9 @@ class Plot(object):
                     self._backend.setActiveCurve(handle, True,
                                                  self.getActiveCurveColor())
 
-                activeCurve = self.getActiveCurve()
-                xLabel = activeCurve[3]['xlabel']
-                yLabel = activeCurve[3]['ylabel']  # TODO y2 axis case
+                xLabel = self._curves[self._activeCurve]['xlabel']
+                yLabel = self._curves[self._activeCurve]['ylabel']
+                # TODO y2 axis case
 
         # Store current labels and update plot
         self._currentXLabel = xLabel
@@ -1318,13 +1319,13 @@ class Plot(object):
 
         It returns None in case of not having an active image.
 
-        Default output has the form: [data, legend, dict, pixmap]
+        Default output has the form: [data, legend, info, pixmap, params]
         where dict is a dictionnary containing image parameters.
 
         :param bool just_legend: True to get the legend of the image,
                                  False (the default) to get the image data
                                  and info.
-        :return: legend of active image or list [data, legend, info, pixmap]
+        :return: legend of active image or [data, legend, info, pixmap, params]
         :rtype: str or list
         """
         if self._activeImage not in self._images:
@@ -1337,7 +1338,9 @@ class Plot(object):
             return None
         else:
             image = self._images[self._activeImage]
-            return image['x'], image['y'], self._activeImage, image['params']
+            return (image['data'], self._activeImage,
+                    image['params']['info'] or {}, image['pixmap'],
+                    image['params'])
 
     def setActiveImage(self, legend, replot=True):
         """Make the image associated to legend the active image.
@@ -1370,17 +1373,17 @@ class Plot(object):
         It returns an empty list in case of not having any curve.
 
         If just_legend is False, it returns a list of the form:
-            [[xvalues0, yvalues0, legend0, dict0],
-             [xvalues1, yvalues1, legend1, dict1],
+            [[xvalues0, yvalues0, legend0, info0, params0],
+             [xvalues1, yvalues1, legend1, info1, params1],
              [...],
-             [xvaluesn, yvaluesn, legendn, dictn]]
+             [xvaluesn, yvaluesn, legendn, infon, paramsn]]
         If just_legend is True, it returns a list of the form:
             [legend0, legend1, ..., legendn]
 
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
                                  and info.
-        :return: list of legends or list of [x, y, legend, params]
+        :return: list of legends or list of [x, y, legend, info, params]
         :rtype: list of str or list of list
         """
         output = []
@@ -1391,7 +1394,8 @@ class Plot(object):
                 output.append(key)
             else:
                 curve = self._curves[key]
-                output.append((curve['x'], curve['y'], key, curve['params']))
+                output.append((curve['x'], curve['y'], key,
+                               curve['params']['info'] or {}, curve['params']))
         return output
 
     def getCurve(self, legend):
@@ -1404,36 +1408,10 @@ class Plot(object):
         """
         if legend in self._curves:
             curve = self._curves[legend]
-            return curve['x'], curve['y'], legend, curve['params']
+            return (curve['x'], curve['y'], legend,
+                    curve['params']['info'] or {}, curve['params'])
         else:
             return None
-
-    def getMonotonicCurves(self):
-        """Returns all curves with X values strictly increasing.
-
-        :return: A list of the form:
-                 [[xvalues0, yvalues0, legend0, dict0],
-                  [xvalues1, yvalues1, legend1, dict1],
-                  [...],
-                  [xvaluesn, yvaluesn, legendn, dictn]]
-        """
-        allCurves = self.getAllCurves() * 1
-        for i in range(len(allCurves)):
-            curve = allCurves[i]
-            x, y, legend, info = curve[0:4]
-            if self.isCurveHidden(legend):
-                continue
-            # Sort
-            idx = numpy.argsort(x, kind='mergesort')
-            xproc = numpy.take(x, idx)
-            yproc = numpy.take(y, idx)
-            # Ravel, Increase
-            xproc = xproc.ravel()
-            idx = numpy.nonzero((xproc[1:] > xproc[:-1]))[0]
-            xproc = numpy.take(xproc, idx)
-            yproc = numpy.take(yproc, idx)
-            allCurves[i][0:2] = x, y
-        return allCurves
 
     def getImage(self, legend):
         """Return the data and info of a specific image.
@@ -1441,11 +1419,12 @@ class Plot(object):
         It returns None in case of not having an active curve.
 
         :param str legend: legend associated to the curve
-        :return: None or list [image, legend, parameters, pixmap]
+        :return: None or list [image, legend, info, pixmap, params]
         """
         if legend in self._images:
             image = self._images[legend]
-            return image['data'], legend, image['params'], image['pixmap']
+            return (image['data'], legend, image['params']['info'] or {},
+                    image['pixmap'], image['params'])
         else:
             return None
 
