@@ -285,8 +285,10 @@ test_suite.addTest(
 
 if runner.run(test_suite).wasSuccessful():
     logger.info("Test suite succeeded")
+    exit_status = 0
 else:
     logger.warning("Test suite failed")
+    exit_status = 1
 
 
 if options.coverage:
@@ -295,3 +297,5 @@ if options.coverage:
     with open("coverage.rst", "w") as fn:
         fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION))
     print(cov.report())
+
+sys.exit(exit_status)
