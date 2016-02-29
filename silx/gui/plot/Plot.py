@@ -361,6 +361,15 @@ class Plot(object):
                  fill=None, **kw):
         """Add a 1D curve given by x an y to the graph.
 
+        Curves are uniquely identified by their legend.
+        To add multiple curves, call :meth:`addCurve` multiple times with
+        different legend argument.
+        To replace/update an existing curve, call :meth:`addCurve` with the
+        existing curve legend.
+
+        When curve parameters are not provided, if a curve with the
+        same legend is displayed in the plot, its parameters are used.
+
         :param numpy.ndarray x: The data corresponding to the x coordinates
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
@@ -542,6 +551,15 @@ class Plot(object):
 
         It displays either an array of data using a colormap or a RGB(A) image.
 
+        Images are uniquely identified by their legend.
+        To add multiple images, call :meth:`addImage` multiple times with
+        different legend argument.
+        To replace/update an existing image, call :meth:`addImage` with the
+        existing image legend.
+
+        When image parameters are not provided, if an image with the
+        same legend is displayed in the plot, its parameters are used.
+
         :param numpy.ndarray data: (nrows, ncolumns) data or
                                    (nrows, ncolumns, RGBA) ubyte array
         :param str legend: The legend to be associated to the image (or None)
@@ -683,6 +701,12 @@ class Plot(object):
                 overlay=False, **kw):
         """Add an item (i.e. a shape) to the plot.
 
+        Items are uniquely identified by their legend.
+        To add multiple items, call :meth:`addItem` multiple times with
+        different legend argument.
+        To replace/update an existing item, call :meth:`addImage` with the
+        existing item legend.
+
         :param numpy.ndarray xdata: The X coords of the points of the shape
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
@@ -731,6 +755,11 @@ class Plot(object):
                       **kw):
         """Add a vertical line marker to the plot.
 
+        Markers are uniquely identified by their legend.
+        As opposed to curves, images and items, two calls to
+        :meth:`insertXMarker` without legend argument adds two markers with
+        different identifying legends.
+
         :param float x: Position of the marker on the X axis in data
                         coordinates
         :param str legend: Legend associated to the marker to identify it
@@ -761,6 +790,11 @@ class Plot(object):
                       **kw):
         """Add a horizontal line marker to the plot.
 
+        Markers are uniquely identified by their legend.
+        As opposed to curves, images and items, two calls to
+        :meth:`insertYMarker` without legend argument adds two markers with
+        different identifying legends.
+
         :param float y: Position of the marker on the Y axis in data
                         coordinates
         :param str legend: Legend associated to the marker to identify it
@@ -790,6 +824,11 @@ class Plot(object):
                      constraint=None,
                      **kw):
         """Add a point marker to the plot.
+
+        Markers are uniquely identified by their legend.
+        As opposed to curves, images and items, two calls to
+        :meth:`insertMarker` without legend argument adds two markers with
+        different identifying legends.
 
         :param float x: Position of the marker on the X axis in data
                         coordinates
