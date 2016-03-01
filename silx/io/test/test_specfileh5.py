@@ -114,11 +114,18 @@ class TestSpecFileH5(unittest.TestCase):
     def tearDown(self):
         del self.sfh5
 
-    # def test_date(self):
-    #     self.assertEqual(self.sfh5["/1.1/start_time"],
-    #                     "Thu Feb 11 09:55:20 2016")
+    def test_data_column(self):
+        self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
+                               12.0)
+        self.assertAlmostEqual(sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]),
+                               87.891)
 
-    def test__get_item_group(self):
+    def test_date(self):
+        # start time is in Iso8601 format
+        self.assertEqual(self.sfh5["/1.1/start_time"],
+                        "2016-02-11T09:55:20")
+
+    def test_get_item_group(self):
         group = self.sfh5["1.2"]["instrument"]
         self.assertEqual(group["positioners"].keys(),
                          ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
@@ -127,21 +134,24 @@ class TestSpecFileH5(unittest.TestCase):
             group["Holy Grail"]
 
     def test_getitem_SpecFileH5(self):
-        self.assertEqual(self.sfh5["/1.2/instrument/positioners"].keys(),
-                         self.sfh5["1.2"]["instrument"]["positioners"].keys())
+        self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
+                         self.sfh5["1.2"]["instrument"]["positioners"])
 
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
 
+    def test_motor_position(self):
+        self.assertAlmostEqual(self.sfh5["/1.1/instrument/positioners/MRTSlit UP"],
+                              -0.66875)
+
     def test_number_of_mca_analysers(self):
         """Scan 1.2 has 2 data columns + 3 mca spectra per data line."""
         self.assertEqual(len(self.sfh5["1.2"]["measurement"]), 5)
-    #
-    # def test_title(self):
-    #     self.assertEqual(self.sfh5["/25.1/title"],
-    #                      "25  ascan  c3th 1.33245 1.52245  40 0.15")
 
+    def test_title(self):
+         self.assertEqual(self.sfh5["/25.1/title"],
+                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
 
     def test_visit(self):
         name_list = []

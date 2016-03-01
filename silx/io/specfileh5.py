@@ -51,8 +51,13 @@ API structure:
 # make all strings unicode
 from __future__ import unicode_literals
 
+import logging
+logger1 = logging.getLogger('silx.io.specfileh5')
+
+import numpy
 import os.path
 import re
+
 from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
@@ -72,9 +77,9 @@ mca_group_pattern  = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
 
 title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
-positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/.+$")
-measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/.+$")
-mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/data$")
+positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/(.+)$")
+measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
+mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
 mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info$")
 
 def is_group(name):
@@ -104,7 +109,7 @@ def is_dataset(name):
            mca_info_pattern.match(name)  # FIXME: this one is probably a group
 
 
-def specDateToIso8601(self, date, zone=None):
+def specDateToIso8601(date, zone=None):
     """Convert SpecFile date to Iso8601.
 
     Example:
@@ -122,6 +127,85 @@ def specDateToIso8601(self, date, zone=None):
         return "%s-%s-%sT%s" % (year, month, day, hour)
     else:
         return "%s-%s-%sT%s%s" % (year, month, day, hour, zone)
+
+
+# For documentation on subclassing numpy.ndarray,
+# cf http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
+class SpecFileH5Dataset(numpy.ndarray):
+    """Emulate :class:`h5py.Dataset` for a SpecFile object
+
+    :param input_array: Array of data
+    :type input_array: :class:`numpy.ndarray`
+    :param name: Dataset full name (posix path format, starting with /)
+    :type name: str
+
+    This class inherits from :class:`numpy.array` and adds `name` and
+    `value` attributes for HDF5 compatibility. `value` is just a reference to
+    the class instance (`value=self`).
+    """
+    def __new__(cls, input_array, name):
+        obj = numpy.asarray(input_array).view(cls)
+        obj.name = name
+        # self reference
+        obj.value = obj
+        return obj
+
+
+def _dataset_builder(name, specfileh5):
+    """Retrieve dataset from :class:`SpecFile`, based on dataset name, as a
+    subclass of :class:`numpy.ndarray`.
+
+    :param name: Datatset full name (posix path format, starting with /)
+    :type name: str
+    :param specfileh5: parent :class:`SpecFileH5` object
+    :type specfileh5: :class:`SpecFileH5`
+
+    :return: Array with the requested data
+    :rtype: :class:`SpecFileH5Dataset`.
+    """
+    scan_match = re.match(r"/([0-9]+\.[0-9]+)", name)
+    if not scan_match:
+        raise KeyError("Cannot parse scan key (e.g. '1.1') in dataset name " +
+                       name)
+    scan = specfileh5._sf[scan_match.group(1)]
+
+    arr = None
+    if title_pattern.match(name):
+        arr = numpy.array(scan.scan_header["S"])
+
+    elif start_time_pattern.match(name):
+        try:
+            spec_date = scan.scan_header["D"]
+        except KeyError:
+            logger1.warn("No #D line in scan header. Trying file header.")
+            spec_date = scan.file_header["D"]
+        arr = numpy.array(specDateToIso8601(spec_date))
+
+    elif positioners_data_pattern.match(name):
+        m = positioners_data_pattern.match(name)
+        motor_name = m.group(1)
+        arr = scan.motor_position_by_name(motor_name)
+        # TODO/FIXME: when motor name is reapeted in labels, get corresponding data column instead of header value
+
+    elif measurement_data_pattern.match(name):
+        m = measurement_data_pattern.match(name)
+        column_name = m.group(1)
+        arr = scan.data_column_by_name(column_name)
+
+    elif mca_data_pattern.match(name):
+        m = mca_data_pattern.match(name)
+        mca_number = m.group(1)
+        #arr = ?
+        # TODO: demultiplex mca data
+        # TODO: test
+
+    elif mca_info_pattern:
+        raise NotImplementedError
+
+    if arr is None:
+        raise KeyError("Name " + name + " does not match any known dataset.")
+    return SpecFileH5Dataset(arr, name)
+
 
 class SpecFileH5Group(object):
     """Emulate :class:`h5py.Group` for a SpecFile object
@@ -143,13 +227,18 @@ class SpecFileH5Group(object):
         self._sfh5 = specfileh5
         """Parent SpecFileH5 object"""
 
-
         match = re.match(r"/([0-9]+\.[0-9]+)", name)
         if name != "/":
             self._scan = self._sfh5._sf[match.group(1)]
 
     def __repr__(self):
         return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
+
+    def __eq__(self, other):
+        return isinstance(other, SpecFileH5Group) and \
+               self.name == other.name and \
+               self._sfh5.filename == other._sfh5.filename and \
+               self.keys() == other.keys()
 
     def __len__(self):
         """Return number of members attached to this group"""
@@ -175,10 +264,8 @@ class SpecFileH5Group(object):
 
         if is_group(full_key):
             return SpecFileH5Group(full_key, self._sfh5)
-
         elif is_dataset(full_key):
-            return SpecFileH5Dataset(full_key, self._sfh5)
-
+            return _dataset_builder(full_key, self._sfh5)
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
 
@@ -210,11 +297,9 @@ class SpecFileH5Group(object):
         number_of_data_lines = self._scan.data.shape[0]
         number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
 
-
         if measurement_group_pattern.match(self.name):
             mca_list = ["mca_%d" % (i) for i in range(number_of_MCA_analysers)]
             return self._scan.labels + mca_list
-
 
     def visit(self, func):
         """Recursively visit all names in this group and subgroups.
@@ -287,16 +372,33 @@ class SpecFileH5Group(object):
 class SpecFileH5(SpecFileH5Group):
     """Special :class:`SpecFileH5Group` representing the root of a SpecFile.
 
-    This group's children are SpecFile scans.
+    :param filename: Path to SpecFile in filesystem
+    :type filename: str
 
-    In addition to :class:`SpecFileH5Group` attributes, this class keeps a
+    In addition to all :class:`SpecFileH5Group` attributes, this class keeps a
     reference to the original :class:`SpecFile` object.
+
+    Its immediate children are scans, but it also allows access to any group
+    or dataset in the entire SpecFile tree using the full path.
+
+    Example:
+
+    .. code-block:: python
+
+        sfh5 = SpecFileH5("test.dat")
+
+        # method 1: using SpecFileH5 as a regular group
+        scan1group = sfh5["1.1"]
+        instrument_group = scan1group["instrument"]
+
+        # method 2: full path access
+        instrument_group = sfh5["/1.1/instrument"]
+
     """
     def __init__(self, filename):
-        #
         super(SpecFileH5, self).__init__("/", self)
 
-        self._filename = filename
+        self.filename = filename
         self._sf = SpecFile(filename)
         #self._scan = None
 
@@ -305,11 +407,15 @@ class SpecFileH5(SpecFileH5Group):
         :return: List of all scan keys in this SpecFile (e.g. 1.1, 2.1...)
         :rtype: list of strings
         """
-        # return scan keys
         return self._sf.keys()
 
     def __repr__(self):
-        return '<SpecFileH5 "%s" (%d members)>' % (self._filename, len(self))
+        return '<SpecFileH5 "%s" (%d members)>' % (self.filename, len(self))
+
+    def __eq__(self, other):
+        return isinstance(other, SpecFileH5) and \
+               self.filename == other.filename and \
+               self.keys() == other.keys()
 
     def __getitem__(self, key):
         """In addition to :func:`SpecFileH5Group.__getitem__` (inherited),
@@ -329,22 +435,6 @@ class SpecFileH5(SpecFileH5Group):
                 if is_group(key):
                     return SpecFileH5Group(key, self._sfh5)
                 elif is_dataset(key):
-                    return SpecFileH5Dataset(key, self._sfh5)
+                    return _dataset_builder(key, self._sfh5)
                 else:
                     raise KeyError("unrecognized group or dataset: " + key)
-
-
-class SpecFileH5Dataset(object):
-    """Emulate :class:`h5py.Dataset` for a SpecFile object
-
-    :param name: Datatset full name (posix path format, starting with /)
-    :type name: str
-    :param specfileh5: parent :class:`SpecFileH5` object
-    :type specfileh5: :class:`SpecFileH5`
-    """
-    def __init__(self, name, specfileh5):
-        self.name = name
-        """Full name/path of group"""
-
-        self._sfh5 = specfileh5
-        """Parent SpecFileH5 object"""
