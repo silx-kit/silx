@@ -214,10 +214,9 @@ parser.add_argument("-m", "--memprofile", dest="memprofile",
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity")
-default_test_name = "%s.test.suite" % PROJECT_NAME
-parser.add_argument("test_name", nargs='*',
-                    default=(default_test_name,),
-                    help="Test names to run (Default: %s)" % default_test_name)
+parser.add_argument(
+    "test_name", nargs='*', default=(),
+    help="Test names to run (Default: %s.test.suite)" % PROJECT_NAME)
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -253,7 +252,7 @@ if not options.insource:
         module = importlib.import_module(PROJECT_NAME)
     except:
         logger.warning(
-            "%s missing, using built (i.e. not installed) version" %
+            "%s missing, using built (i.e. not installed) version",
             PROJECT_NAME)
         options.insource = True
 
@@ -275,13 +274,22 @@ if options.memprofile:
 else:
     runner = unittest.TextTestRunner()
 
-logger.warning("Test %s %s from %s" % (PROJECT_NAME,
-                                       PROJECT_VERSION,
-                                       PROJECT_PATH))
+logger.warning(
+    "Test %s %s from %s", PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
 
 test_suite = unittest.TestSuite()
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+if not options.test_name:
+    # Do not use test loader to avoid cryptic exception
+    # when an error occur during import
+    test_module_name = PROJECT_NAME + '.test'
+    logger.info('Import %s', test_module_name)
+    test_module = importlib.import_module(test_module_name)
+    project_test_suite = getattr(test_module, 'suite')
+    test_suite.addTest(project_test_suite())
+else:
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+
 
 if runner.run(test_suite).wasSuccessful():
     logger.info("Test suite succeeded")
