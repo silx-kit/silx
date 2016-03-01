@@ -75,7 +75,7 @@ class TestInteraction(unittest.TestCase):
         self.assertEqual(events[-1], ('drag', 20, 10))
         clickOrDrag.handleEvent('release', 20, 10, Interaction.LEFT_BTN)
         self.assertEqual(len(events), 4)
-        self.assertEqual(events[-1], ('endDrag',(10, 10), (20, 10)))
+        self.assertEqual(events[-1], ('endDrag', (10, 10), (20, 10)))
 
 
 def suite():

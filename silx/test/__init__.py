@@ -7,7 +7,7 @@ To disable them, set WITH_QT_TEST environement variable to 'False'.
 import logging
 import os
 import unittest
- 
+
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
