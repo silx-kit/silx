@@ -559,7 +559,7 @@ cdef class SpecFile(object):
             # allow negative index, like lists
             if scan_index < 0:
                 scan_index = len(self) + scan_index
-        elif isinstance(key, str):
+        else:
             try:
                 (number, order) = map(int, key.split("."))
                 scan_index = self.index(number, order)
@@ -568,8 +568,9 @@ cdef class SpecFile(object):
                 # int() can raise a value error
                 raise KeyError(msg + "\nValid keys: '" +
                                "', '".join( self.keys()) + "'")
-        else:
-            raise TypeError(msg)
+            except AttributeError:
+                # e.g. "AttrErr: 'float' object has no attribute 'split'"
+                raise TypeError(msg)
 
         if not 0 <= scan_index < len(self):
             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
