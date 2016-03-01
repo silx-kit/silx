@@ -48,6 +48,9 @@ API structure:
           …
 
 """
+# make all strings unicode
+from __future__ import unicode_literals
+
 import os.path
 import re
 from .specfile import SpecFile
@@ -163,6 +166,9 @@ class SpecFileH5Group(object):
         if not key in self.keys():
             msg = key + " is not a valid member of " + self.__repr__() + "."
             msg += " List of valid keys: " + ", ".join(self.keys())
+            if key.startswith("/"):
+                msg += "\nYou can access a dataset using its full path from "
+                msg += "a SpecFileH5 object, but not from a SpecFileH5Group."
             raise KeyError(msg)
 
         full_key = os.path.join(self.name, key)
@@ -281,7 +287,7 @@ class SpecFileH5Group(object):
 class SpecFileH5(SpecFileH5Group):
     """Special :class:`SpecFileH5Group` representing the root of a SpecFile.
 
-    Members of this group are SpecFile scans.
+    This group's children are SpecFile scans.
 
     In addition to :class:`SpecFileH5Group` attributes, this class keeps a
     reference to the original :class:`SpecFile` object.
@@ -305,6 +311,27 @@ class SpecFileH5(SpecFileH5Group):
     def __repr__(self):
         return '<SpecFileH5 "%s" (%d members)>' % (self._filename, len(self))
 
+    def __getitem__(self, key):
+        """In addition to :func:`SpecFileH5Group.__getitem__` (inherited),
+        :func:`SpecFileH5.__getitem__` allows access to groups or datasets
+        using their full path.
+
+        :param key: Scan key (e.g ``"1.1"``) or full name of group or dataset
+            (e.g. ``"/2.1/instrument/positioners"``)
+        :return: Requested :class:`SpecFileH5Group` or  :class:`SpecFileH5Dataset`
+        """
+        try:
+            # access a scan as defined in self.keys()
+            return SpecFileH5Group.__getitem__(self, key)
+        except KeyError:
+            # access a member using an absolute path
+            if key.startswith("/"):
+                if is_group(key):
+                    return SpecFileH5Group(key, self._sfh5)
+                elif is_dataset(key):
+                    return SpecFileH5Dataset(key, self._sfh5)
+                else:
+                    raise KeyError("unrecognized group or dataset: " + key)
 
 
 class SpecFileH5Dataset(object):

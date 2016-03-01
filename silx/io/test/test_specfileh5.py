@@ -55,7 +55,7 @@ sftext = """#F /tmp/sf.dat
 #P0 180.005 -0.66875 0.87125
 #P1 14.74255 16.197579 12.238283
 #N 4
-#L first column  second column  3rd_col
+#L MRTSlit UP  second column  3rd_col
 -1.23 5.89  8
 8.478100E+01  5 1.56
 3.14 2.73 -3.14
@@ -113,27 +113,35 @@ class TestSpecFileH5(unittest.TestCase):
 
     def tearDown(self):
         del self.sfh5
-    #
-    # def test_title(self):
-    #     self.assertEqual(self.sfh5["/25.1/title"],
-    #                      "25  ascan  c3th 1.33245 1.52245  40 0.15")
-        
-    def test_list_of_scan_indices(self):
-        self.assertEqual(self.sfh5.keys(),
-                         ["1.1", "25.1", "1.2"])
 
-    def test_number_of_mca_analysers(self):
-        """Scan 1.2 has 2 data columns + 3 mca spectra per data line"""
-        self.assertEqual(len(self.sfh5["1.2"]["measurement"]),
-                         5)
+    # def test_date(self):
+    #     self.assertEqual(self.sfh5["/1.1/start_time"],
+    #                     "Thu Feb 11 09:55:20 2016")
 
-    def test_group_get_item(self):
+    def test__get_item_group(self):
         group = self.sfh5["1.2"]["instrument"]
         self.assertEqual(group["positioners"].keys(),
                          ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
                           "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
         with self.assertRaises(KeyError):
             group["Holy Grail"]
+
+    def test_getitem_SpecFileH5(self):
+        self.assertEqual(self.sfh5["/1.2/instrument/positioners"].keys(),
+                         self.sfh5["1.2"]["instrument"]["positioners"].keys())
+
+    def test_list_of_scan_indices(self):
+        self.assertEqual(self.sfh5.keys(),
+                         ["1.1", "25.1", "1.2"])
+
+    def test_number_of_mca_analysers(self):
+        """Scan 1.2 has 2 data columns + 3 mca spectra per data line."""
+        self.assertEqual(len(self.sfh5["1.2"]["measurement"]), 5)
+    #
+    # def test_title(self):
+    #     self.assertEqual(self.sfh5["/25.1/title"],
+    #                      "25  ascan  c3th 1.33245 1.52245  40 0.15")
+
 
     def test_visit(self):
         name_list = []
@@ -150,13 +158,6 @@ class TestSpecFileH5(unittest.TestCase):
         self.sfh5.visititems(func)
         self.assertIn(u"Pslit HGap", dataset_name_list)
         self.assertEqual(len(dataset_name_list), 39)
-
-
-    #
-    # def test_date(self):
-    #     self.assertEqual(self.sfh5["/1.1/start_time"],
-    #                     "Thu Feb 11 09:55:20 2016")
-
 
 
 def suite():
