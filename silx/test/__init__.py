@@ -20,7 +20,7 @@ from ..io.test import suite as test_io_suite
 if os.environ.get('WITH_QT_TEST', 'True') == 'True':
     from ..gui.test import suite as test_gui_suite
 else:
-    logger.warn('silx.gui tests are disabled (WITH_QT_TEST=False)')
+    logger.warning('silx.gui tests are disabled (WITH_QT_TEST=False)')
     test_gui_suite = None
 
 
