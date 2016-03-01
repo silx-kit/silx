@@ -1,5 +1,28 @@
 #!/usr/bin/python
 # coding: utf8
+# /*##########################################################################
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
 __date__ = "07/12/2015"
@@ -9,7 +32,6 @@ __license__ = "MIT"
 import sys
 import os
 import platform
-import shutil
 
 from numpy.distutils.misc_util import Configuration
 
@@ -27,9 +49,10 @@ cmdclass = {}
 
 
 # Check if action requires build/install
-DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and
-    ('--help' in sys.argv[1:] or sys.argv[1] in (
-    '--help-commands', 'egg_info', '--version', 'clean', '--name')))
+DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
+    '--help' in sys.argv[1:] or
+    sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                    'clean', '--name')))
 
 
 def get_version():
@@ -63,6 +86,7 @@ classifiers = ["Development Status :: 1 - Planning",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
+
 
 # ########## #
 # version.py #
@@ -106,7 +130,8 @@ if sphinx:
             sys.path.insert(0, os.path.abspath(build.build_lib))
 
 #             # Copy gui files to the path:
-#             dst = os.path.join(os.path.abspath(build.build_lib), "pyFAI", "gui")
+#             dst = os.path.join(
+#                 os.path.abspath(build.build_lib), "pyFAI", "gui")
 #             if not os.path.isdir(dst):
 #                 os.makedirs(dst)
 #             for i in os.listdir("gui"):
@@ -134,7 +159,7 @@ def configuration(parent_package='', top_path=None):
     """Recursive construction of package info to be used in setup().
 
     See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """
+    """  # noqa
     config = Configuration(None, parent_package, top_path)
     config.set_options(
         ignore_setup_xxx_py=True,
@@ -216,9 +241,9 @@ class BuildExtFlags(build_ext):
         if self.compiler.compiler_type == 'msvc':
             for ext in self.extensions:
                 ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
-                    for f in ext.extra_compile_args]
+                                          for f in ext.extra_compile_args]
                 ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
-                    for f in ext.extra_link_args]
+                                       for f in ext.extra_link_args]
 
         build_ext.build_extensions(self)
 
