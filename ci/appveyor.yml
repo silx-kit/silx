@@ -59,6 +59,9 @@ test_script:
     - "virtualenv --clear %VENV_TEST_DIR%"
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
+    # Install PyQt4 and matplotlib (until they are dependencies in setup.py)
+    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse PyQt4 matplotlib"
+
     # Install the generated wheel package to test it
     - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
 

@@ -64,8 +64,8 @@ script:
     - python ci/info_platform.py
     - pip freeze
 
-    # Run the tests
-    - python run_tests.py
+    # Run the tests (disable silx.gui tests)
+    - WITH_QT_TEST=False python run_tests.py
 
     # Mac OS X specific cleanup
     - travis_osx_run_end
