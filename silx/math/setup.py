@@ -35,6 +35,23 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
 
+    # =====================================
+    # histogramnd
+    # =====================================
+    histo_dir = 'histogramnd'
+    histo_src = ['/'.join([histo_dir, srcf])
+                 for srcf in ['histogramnd.pyx',
+                              'src/histogramnd_c.c']]
+    histo_inc = ['/'.join([histo_dir, 'include']),
+                 numpy.get_include()]
+
+    config.add_extension('histogramnd',
+                         sources=histo_src,
+                         include_dirs=histo_inc,
+                         language='c')
+    # =====================================
+    # =====================================
+
     return config
 
 
