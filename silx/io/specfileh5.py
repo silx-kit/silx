@@ -23,6 +23,8 @@
 #############################################################################*/
 """h5py-like API to SpecFile
 
+API description
+===============
 Specfile data structure exposed by this API:
 
 ::
@@ -30,7 +32,7 @@ Specfile data structure exposed by this API:
   /
       1.1/
           title = "…"
-          start_time = "2016-02-23T22:49:05Z"
+          start_time = "…"
           instrument/
               positioners/
                   motor_name = value
@@ -46,6 +48,21 @@ Specfile data structure exposed by this API:
               mca_1/
       2.1/
           …
+
+The title is the content of the ``#S`` scan header line without the leading
+``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
+
+The start time is formatted in ISO8601 (e.g. ``"2016-02-23T22:49:05Z"``)
+
+Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
+scalars defined in ``#P`` scan header lines, or 1D numpy arrays if they
+are measured as scan data (a simple test is done to check if the motor name
+is also a data column header defined in the ``#L`` scan header line).
+
+MCA data is exposed as a 2D numpy array containing all spectra for a given
+analyser. The number of analysers is deducted from the scan data (number of
+MCA spectra per scan data line), and demultiplexing is performed
+to assign the correct spectra to a given analyser.
 
 Classes
 =======
@@ -92,8 +109,8 @@ def is_group(name):
 
     :param name: Full name of member
     :type name: str
-    :return: ``True`` if this member is a group
-    :rtype: boolean
+    :return: ``True`` if this member is a group
+    :rtype: boolean
     """
     return name == "/" or \
            scan_pattern.match(name) or\
@@ -107,15 +124,15 @@ def is_dataset(name):
 
     :param name: Full name of member
     :type name: str
-    :return: ``True`` if this member is a dataset
-    :rtype: boolean
+    :return: ``True`` if this member is a dataset
+    :rtype: boolean
     """
     return title_pattern.match(name) or\
            start_time_pattern.match(name) or\
            positioners_data_pattern.match(name) or\
            measurement_data_pattern.match(name) or\
            mca_data_pattern.match(name) or\
-           mca_info_pattern.match(name)  # FIXME: this one is probably a group
+           mca_info_pattern.match(name)  # FIXME: this one is probably a group
 
 
 def specDateToIso8601(date, zone=None):
@@ -197,8 +214,13 @@ def _dataset_builder(name, specfileh5):
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
         motor_name = m.group(1)
-        arr = scan.motor_position_by_name(motor_name)
-        # TODO/FIXME: when motor name is reapeted in labels, get corresponding data column instead of header value
+        # if a motor is recorded as a data column, ignore its position in header and
+        # return the data column
+        if motor_name in scan.labels:
+            arr = scan.data_column_by_name(motor_name)
+        else:
+            arr = scan.motor_position_by_name(motor_name)
+        # TODO: test motor as data column
 
     elif measurement_data_pattern.match(name):
         m = measurement_data_pattern.match(name)
@@ -212,7 +234,7 @@ def _dataset_builder(name, specfileh5):
         arr = _demultiplex_mca(scan, analyser_index)
 
     elif mca_info_pattern:
-        raise NotImplementedError # TODO: implement (maybe as a group)
+        raise NotImplementedError # TODO: implement (maybe as a group)
 
     if arr is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -221,9 +243,9 @@ def _dataset_builder(name, specfileh5):
 def _demultiplex_mca(scan, analyser_index):
     """Return MCA data for a single analyser.
 
-    Each MCA spectrum is a 1D array. For each analyser, there is one
+    Each MCA spectrum is a 1D array. For each analyser, there is one
     spectrum recorded per scan data line. When there are more than a single
-    MCA analyser in a scan, the data will be multiplexed. For instance if
+    MCA analyser in a scan, the data will be multiplexed. For instance if
     there are 3 analysers, the consecutive spectra for the first analyser must
     be accessed as ``mca[0], mca[3], mca[6]…``.
 
@@ -237,7 +259,7 @@ def _demultiplex_mca(scan, analyser_index):
     number_of_MCA_spectra = len(mca_data)
     number_of_scan_data_lines = scan.data.shape[0]
 
-    # Number of MCA spectra must be a multiple of number of scan data lines
+    # Number of MCA spectra must be a multiple of number of scan data lines
     assert number_of_MCA_spectra % number_of_scan_data_lines == 0
     number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
 
@@ -337,7 +359,7 @@ class SpecFileH5Group(object):
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[0]
 
-        # Number of MCA spectra must be a multiple of number of data lines
+        # Number of MCA spectra must be a multiple of number of data lines
         assert number_of_MCA_spectra % number_of_data_lines == 0
         number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
 
@@ -435,7 +457,7 @@ class SpecFileH5(SpecFileH5Group):
         scan1group = sfh5["1.1"]
         instrument_group = scan1group["instrument"]
 
-        # method 2: full path access
+        # method 2: full path access
         instrument_group = sfh5["/1.1/instrument"]
 
     """
