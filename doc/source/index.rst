@@ -13,6 +13,7 @@ Contents:
 
    modules/gui/index.rst
    modules/io.rst
+   modules/math.rst
 
 
 Indices and tables
