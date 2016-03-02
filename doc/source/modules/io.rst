@@ -7,6 +7,7 @@ silx.io.specfile module
 
 .. autoclass:: silx.io.specfile.SpecFile
     :members:
+    :undoc-members:
 
     .. automethod:: __len__()
 
@@ -16,9 +17,11 @@ silx.io.specfile module
 
 .. autoclass:: silx.io.specfile.Scan
     :members:
+    :undoc-members:
 
 .. autoclass:: silx.io.specfile.MCA
     :members:
+    :undoc-members:
 
     .. automethod:: __len__()
 

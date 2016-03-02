@@ -23,7 +23,7 @@
 #############################################################################*/
 """h5py-like API to SpecFile
 
-API structure:
+Specfile data structure exposed by this API:
 
 ::
 
@@ -38,15 +38,21 @@ API structure:
           measurement/
               colname0 = 1D_data_array
               colname1 = …
-              mca0/
+              mca_0/
                   data = (nlines, nchannels) 2D array
                   info = {"CALIB": ""
                           …
                          }
-            mca1/
+              mca_1/
       2.1/
           …
 
+Classes
+=======
+
+- :class:`SpecFileH5`
+- :class:`SpecFileH5Group`
+- :class:`SpecFileH5Dataset`
 """
 # make all strings unicode
 from __future__ import unicode_literals
@@ -63,7 +69,6 @@ from .specfile import SpecFile
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "29/02/2016"
-
 
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
 instrument_subgroups = ["positioners"]
@@ -83,9 +88,11 @@ mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
 mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info$")
 
 def is_group(name):
-    """Check if ``name`` is a valid group in a generic :class:`SpecFileH5`.
+    """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
 
-    :return: True or False
+    :param name: Full name of member
+    :type name: str
+    :return: ``True`` if this member is a group
     :rtype: boolean
     """
     return name == "/" or \
@@ -96,9 +103,11 @@ def is_group(name):
            mca_group_pattern.match(name)
 
 def is_dataset(name):
-    """Check if ``name`` is a valid dataset in a generic :class:`SpecFileH5`.
+    """Check if ``name`` is a valid dataset in a :class:`SpecFileH5`.
 
-    :return: True or False
+    :param name: Full name of member
+    :type name: str
+    :return: ``True`` if this member is a dataset
     :rtype: boolean
     """
     return title_pattern.match(name) or\
@@ -112,9 +121,13 @@ def is_dataset(name):
 def specDateToIso8601(date, zone=None):
     """Convert SpecFile date to Iso8601.
 
+    :param date: Date in SpecFile format
+    :type date: str
+
     Example:
 
-        specDateToIso8601("Thu Feb 11 09:54:35 2016") -> "2016-02-11T09:54:35"
+        ``specDateToIso8601("Thu Feb 11 09:54:35 2016")``
+        `` => "2016-02-11T09:54:35"``
     """
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
               'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -136,12 +149,12 @@ class SpecFileH5Dataset(numpy.ndarray):
 
     :param input_array: Array of data
     :type input_array: :class:`numpy.ndarray`
-    :param name: Dataset full name (posix path format, starting with /)
+    :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
 
-    This class inherits from :class:`numpy.array` and adds `name` and
-    `value` attributes for HDF5 compatibility. `value` is just a reference to
-    the class instance (`value=self`).
+    This class inherits from :class:`numpy.ndarray` and adds ``name`` and
+    ``value`` attributes for HDF5 compatibility. ``value`` is a reference
+    to the class instance (``value = self``).
     """
     def __new__(cls, input_array, name):
         obj = numpy.asarray(input_array).view(cls)
@@ -155,7 +168,7 @@ def _dataset_builder(name, specfileh5):
     """Retrieve dataset from :class:`SpecFile`, based on dataset name, as a
     subclass of :class:`numpy.ndarray`.
 
-    :param name: Datatset full name (posix path format, starting with /)
+    :param name: Datatset full name (posix path format, starting with ``/``)
     :type name: str
     :param specfileh5: parent :class:`SpecFileH5` object
     :type specfileh5: :class:`SpecFileH5`
@@ -194,23 +207,53 @@ def _dataset_builder(name, specfileh5):
 
     elif mca_data_pattern.match(name):
         m = mca_data_pattern.match(name)
-        mca_number = m.group(1)
-        #arr = ?
-        # TODO: demultiplex mca data
-        # TODO: test
+        analyser_index = int(m.group(1))
+        # retrieve 2D array of all MCA spectra from one analyzers
+        arr = _demultiplex_mca(scan, analyser_index)
 
     elif mca_info_pattern:
-        raise NotImplementedError
+        raise NotImplementedError # TODO: implement (maybe as a group)
 
     if arr is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
     return SpecFileH5Dataset(arr, name)
 
+def _demultiplex_mca(scan, analyser_index):
+    """Return MCA data for a single analyser.
+
+    Each MCA spectrum is a 1D array. For each analyser, there is one
+    spectrum recorded per scan data line. When there are more than a single
+    MCA analyser in a scan, the data will be multiplexed. For instance if
+    there are 3 analysers, the consecutive spectra for the first analyser must
+    be accessed as ``mca[0], mca[3], mca[6]…``.
+
+    :param scan: :class:`Scan` instance containing the MCA data
+    :param analyser_index: 0-based index referencing the analyser
+    :type analyser_index: int
+    :return: 2D numpy array containing all spectra for one analyser
+    """
+    mca_data = scan.mca
+
+    number_of_MCA_spectra = len(mca_data)
+    number_of_scan_data_lines = scan.data.shape[0]
+
+    # Number of MCA spectra must be a multiple of number of scan data lines
+    assert number_of_MCA_spectra % number_of_scan_data_lines == 0
+    number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
+
+    list_of_1D_arrays = []
+    for i in range(analyser_index,
+                   number_of_MCA_spectra,
+                   number_of_analysers):
+        list_of_1D_arrays.append(mca_data[i])
+    # convert list to 2D array
+    return numpy.array(list_of_1D_arrays)
+
 
 class SpecFileH5Group(object):
     """Emulate :class:`h5py.Group` for a SpecFile object
 
-    :param name: Group full name (posix path format, starting with /)
+    :param name: Group full name (posix path format, starting with ``/``)
     :type name: str
     :param specfileh5: parent :class:`SpecFileH5` object
     :type specfileh5: :class:`SpecFileH5`
@@ -275,7 +318,6 @@ class SpecFileH5Group(object):
 
     def keys(self):
         """:return: List of all names of members attached to this group
-        :rtype: list of strings
         """
         if scan_pattern.match(self.name):
             return scan_subgroups
@@ -289,12 +331,14 @@ class SpecFileH5Group(object):
         if mca_group_pattern.match(self.name):
             return mca_subgroups
 
-        # consistency check: number of data columns must be equal to number of
-        # labels
+        # number of data columns must be equal to number of labels
         assert self._scan.data.shape[1] == len(self._scan.labels)
 
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[0]
+
+        # Number of MCA spectra must be a multiple of number of data lines
+        assert number_of_MCA_spectra % number_of_data_lines == 0
         number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
 
         if measurement_group_pattern.match(self.name):
@@ -311,9 +355,9 @@ class SpecFileH5Group(object):
         will be called exactly once for each link in this group and every
         group below it. Your callable must conform to the signature:
 
-            func(<member name>) => <None or return value>
+            ``func(<member name>) => <None or return value>``
 
-        Returning None continues iteration, returning anything else stops
+        Returning ``None`` continues iteration, returning anything else stops
         and immediately returns that value from the visit method.  No
         particular order of iteration within groups is guaranteed.
 
@@ -321,7 +365,7 @@ class SpecFileH5Group(object):
 
         .. code-block:: python
 
-            # Get a list of all contents in a SpecFile
+            # Get a list of all contents (groups and datasets) in a SpecFile
             mylist = []
             f = File('foo.dat')
             f.visit(mylist.append)
@@ -341,9 +385,9 @@ class SpecFileH5Group(object):
         will be called exactly once for each link in this group and every
         group below it. Your callable must conform to the signature:
 
-            func(<member name>, <object>) => <None or return value>
+            ``func(<member name>, <object>) => <None or return value>``
 
-        Returning None continues iteration, returning anything else stops
+        Returning ``None`` continues iteration, returning anything else stops
         and immediately returns that value from the visit method.  No
         particular order of iteration within groups is guaranteed.
 
@@ -375,8 +419,8 @@ class SpecFileH5(SpecFileH5Group):
     :param filename: Path to SpecFile in filesystem
     :type filename: str
 
-    In addition to all :class:`SpecFileH5Group` attributes, this class keeps a
-    reference to the original :class:`SpecFile` object.
+    In addition to all generic :class:`SpecFileH5Group` attributes, this class
+    keeps a reference to the original :class:`SpecFile` object.
 
     Its immediate children are scans, but it also allows access to any group
     or dataset in the entire SpecFile tree using the full path.
@@ -404,8 +448,8 @@ class SpecFileH5(SpecFileH5Group):
 
     def keys(self):
         """
-        :return: List of all scan keys in this SpecFile (e.g. 1.1, 2.1...)
-        :rtype: list of strings
+        :return: List of all scan keys in this SpecFile
+            (e.g. ``["1.1", "2.1"…]``)
         """
         return self._sf.keys()
 
