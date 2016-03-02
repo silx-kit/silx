@@ -82,7 +82,7 @@ sftext = """#F /tmp/sf.dat
 1 2
 @A 0 1 2
 @A 10 9 8
-@A 1 1 1
+@A 1 1 1.1
 3 4
 @A 3.1 4 5
 @A 7 6 5
@@ -140,6 +140,17 @@ class TestSpecFileH5(unittest.TestCase):
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
+
+    def test_mca_data(self):
+        # sum 1st MCA in scan 1.2 over rows
+        mca_0_data = self.sfh5["/1.2/measurement/mca_0/data"]
+        self.assertEqual(mca_0_data.sum(axis=1).tolist(),
+                         [3, 12.1, 21.7])
+        # sum 3rd MCA in scan 1.2 along both axis
+        mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
+        self.assertAlmostEqual(mca_2_data.sum(),
+                               9.1)
+
 
     def test_motor_position(self):
         self.assertAlmostEqual(self.sfh5["/1.1/instrument/positioners/MRTSlit UP"],
