@@ -278,9 +278,9 @@ class Scan(object):
 
         self._header = file_header_lines + scan_header_lines
 
-        self.labels = None
+        self._labels = None
         if self.record_exists_in_hdr('L'):
-            self.labels = self._specfile.labels(self._index)
+            self._labels = self._specfile.labels(self._index)
 
         self._scan_header = {}
         self._mca_header = {}
@@ -366,9 +366,17 @@ class Scan(object):
     def file_header(self):
         """
         Dictionary of file header strings, keys without the leading ``#``
-        (e.g. ``file_header["F"]``)..
+        (e.g. ``file_header["F"]``).
         """
         return self._file_header
+
+    @property
+    def labels(self):
+        """
+        List of data column headers from ``#L`` scan header
+        """
+        return self._labels
+
 
     @property
     def data(self):
