@@ -13,7 +13,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
                     HISTO_WEIGHT_T *i_weigths,
                     int i_n_dim,
                     int i_n_elem,
-                    double *i_bin_ranges,
+                    HISTO_SAMPLE_T *i_bin_ranges,
                     int *i_n_bin,
                     uint32_t *o_histo,
                     double *o_cumul,
@@ -64,11 +64,14 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
      * (mostly for the sake of clarity)
      * (maybe faster access too?)
      */
-    double * g_min = (double *) malloc(i_n_dim * sizeof(double));
-    double * g_max = (double *) malloc(i_n_dim * sizeof(double));
+    HISTO_SAMPLE_T * g_min =
+            (HISTO_SAMPLE_T *) malloc(i_n_dim *sizeof(HISTO_SAMPLE_T));
+    HISTO_SAMPLE_T * g_max =
+            (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
     
     /* range used to convert from i_coords to bin indices in the grid */
-    double * range = (double *) malloc(i_n_dim * sizeof(double));
+    HISTO_SAMPLE_T * range = 
+            (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
     
     for(i=0; i<i_n_dim; i++)
     {
