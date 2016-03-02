@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    modules/io.rst
+   modules/math.rst
 
 
 
