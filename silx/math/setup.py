@@ -1,7 +1,6 @@
-# coding: utf-8
 # /*##########################################################################
-#
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# coding: utf-8
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,21 +20,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
+# ############################################################################*/
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
+__date__ = "01/02/2016"
+
+import numpy
 
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('io')
+    config = Configuration('math', parent_package, top_path)
     config.add_subpackage('test')
-    config.add_subpackage('third_party')
-    config.add_subpackage('visu')
 
     return config
 

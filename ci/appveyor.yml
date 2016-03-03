@@ -24,9 +24,12 @@ install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
-    # Upgrade distribution modules and install virtualenv
-    - "pip install --upgrade setuptools"
-    - "pip install --upgrade pip"
+    # Upgrade distribution modules
+    # Disabled as pip uprade fails
+    # - "pip install --upgrade setuptools"
+    # - "pip install --upgrade pip"
+
+    # Install virtualenv
     - "pip install virtualenv"
     - "virtualenv --version"
 
@@ -35,7 +38,7 @@ build_script:
     - "virtualenv --clear %VENV_BUILD_DIR%"
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
-    # Install build dependencies
+    # Install buils dependencies
     - "pip install wheel"
     - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
 

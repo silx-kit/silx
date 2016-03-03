@@ -1,5 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
 """Run the tests of the project.
 
 This script expects a suite function in <project_package>.test,
@@ -56,7 +79,6 @@ except Exception as error:
 else:
     logger.info("h5py %s" % h5py.version.version)
 
-
 class TestResult(unittest.TestResult):
     logger = logging.getLogger("memProf")
     logger.setLevel(logging.DEBUG)
@@ -84,7 +106,7 @@ class ProfileTestRunner(unittest.TextTestRunner):
 def report_rst(cov, package, version="0.0.0"):
     """
     Generate a report of test coverage in RST (for Sphinx inclusion)
-    
+
     :param cov: test coverage instance
     :param str package: Name of the package
     :return: RST string
@@ -100,7 +122,8 @@ def report_rst(cov, package, version="0.0.0"):
 
     line0 = "Test coverage report for %s" % package
     res = [line0, "=" * len(line0), ""]
-    res.append("Measured on *%s* version %s, %s" % (package, version, time.strftime("%d/%m/%Y")))
+    res.append("Measured on *%s* version %s, %s" %
+               (package, version, time.strftime("%d/%m/%Y")))
     res += ["",
             ".. csv-table:: Test suite coverage",
             '   :header: "Name", "Stmts", "Exec", "Cover"',
@@ -111,7 +134,7 @@ def report_rst(cov, package, version="0.0.0"):
 
     for cl in classes:
         name = cl.get("name")
-        fname = cl.get("filename")
+        # fname = cl.get("filename")
         lines = cl.find("lines").getchildren()
         hits = [int(i.get("hits")) for i in lines]
 
@@ -120,7 +143,8 @@ def report_rst(cov, package, version="0.0.0"):
 
         cover = 100.0 * sum_hits / sum_lines if sum_lines else 0
 
-        res.append('   "%s", "%s", "%s", "%.1f %%"' % (name, sum_lines, sum_hits, cover))
+        res.append('   "%s", "%s", "%s", "%.1f %%"' %
+                   (name, sum_lines, sum_hits, cover))
         tot_sum_lines += sum_lines
         tot_sum_hits += sum_hits
     res.append("")
@@ -187,17 +211,17 @@ parser.add_argument("-i", "--insource",
                     help="Use the build source and not the installed version")
 parser.add_argument("-c", "--coverage", dest="coverage",
                     action="store_true", default=False,
-                    help="Report code coverage (requires 'coverage' and 'lxml' module)")
+                    help=("Report code coverage" +
+                          "(requires 'coverage' and 'lxml' module)"))
 parser.add_argument("-m", "--memprofile", dest="memprofile",
                     action="store_true", default=False,
                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity")
-default_test_name = "%s.test.suite" % PROJECT_NAME
-parser.add_argument("test_name", nargs='*',
-        default=(default_test_name,),
-        help="Test names to run (Default: %s)" % default_test_name)
+parser.add_argument(
+    "test_name", nargs='*', default=(),
+    help="Test names to run (Default: %s.test.suite)" % PROJECT_NAME)
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -233,7 +257,7 @@ if not options.insource:
         module = importer(PROJECT_NAME)
     except:
         logger.warning(
-            "%s missing, using built (i.e. not installed) version" % \
+            "%s missing, using built (i.e. not installed) version",
             PROJECT_NAME)
         options.insource = True
 
@@ -255,18 +279,29 @@ if options.memprofile:
 else:
     runner = unittest.TextTestRunner()
 
-logger.warning("Test %s %s from %s" % (PROJECT_NAME,
-                                       PROJECT_VERSION,
-                                       PROJECT_PATH))
+logger.warning(
+    "Test %s %s from %s", PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
 
 test_suite = unittest.TestSuite()
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+if not options.test_name:
+    # Do not use test loader to avoid cryptic exception
+    # when an error occur during import
+    test_module_name = PROJECT_NAME + '.test'
+    logger.info('Import %s', test_module_name)
+    test_module = importlib.import_module(test_module_name)
+    project_test_suite = getattr(test_module, 'suite')
+    test_suite.addTest(project_test_suite())
+else:
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+
 
 if runner.run(test_suite).wasSuccessful():
     logger.info("Test suite succeeded")
+    exit_status = 0
 else:
     logger.warning("Test suite failed")
+    exit_status = 1
 
 
 if options.coverage:
@@ -275,3 +310,5 @@ if options.coverage:
     with open("coverage.rst", "w") as fn:
         fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION))
     print(cov.report())
+
+sys.exit(exit_status)

@@ -11,6 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   modules/io.rst
+   modules/math.rst
+
 
 
 Indices and tables
