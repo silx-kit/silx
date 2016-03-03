@@ -306,6 +306,16 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1.mca_header, {})
         self.assertEqual(len(self.scan1_2.mca_header), 4)
         self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
+        self.assertEqual(self.scan1_2.mca.calibration,
+                         [1., 2., 3.])
+        # default calib in the absence of #@CALIB
+        self.assertEqual(self.scan25.mca.calibration,
+                         [0., 1., 0.])
+        self.assertEqual(self.scan1_2.mca.channels,
+                         [0, 1, 2])
+        # absence of #@CHANN and spectra
+        self.assertIs(self.scan25.mca.channels,
+                      None)
 
 
 class TestSFLocale(unittest.TestCase):

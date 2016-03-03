@@ -149,6 +149,15 @@ class MCA(object):
     :param scan: Parent Scan instance
     :type scan: :class:`Scan`
 
+    :var calibration: MCA calibration :math:`(a, b, c)` (as in
+        :math:`a + b x + c x²`) from ``#@CALIB`` scan header.
+    :type calibration: list of 3 floats, default ``[0., 1., 0.]``
+    :var channels: MCA channels list from ``#@CHANN`` scan header.
+        In the absence of a ``#@CHANN`` header, this attribute is a list
+        ``[0, …, N-1]`` where ``N`` is the length of the first spectrum.
+        In the absence of MCA spectra, this attribute defaults to ``None``.
+    :type channels: list of int
+
     This class provides access to Multi-Channel Analysis data stored in a
     SpecFile scan.
 
@@ -180,6 +189,36 @@ class MCA(object):
     def __init__(self, scan):
         self._scan = scan
 
+        # Header dict
+        self._header = scan.mca_header
+
+        # SpecFile C library provides a function for getting calibration
+        try:
+            self.calibration = scan._specfile.mca_calibration(scan.index)
+        # default calibration in the absence of #@CALIB
+        except KeyError:
+            self.calibration = [0., 1., 0.]
+
+        # Channels list
+        if "CHANN" in self._header:
+            chann_values = self._header["CHANN"].split()
+            length, start, stop, increment = map(int, chann_values)
+        elif len(self):
+            # Channels list
+            if "CHANN" in self._header:
+                chann_values = self._header["CHANN"].split()
+                length, start, stop, increment = map(int, chann_values)
+            else:
+                # in the absence of #@CHANN, use shape of first MCA
+                length = self[0].shape[0]
+                start, stop, increment = (0, length - 1, 1)
+        else:
+            length = None
+
+        self.channels = None
+        if length is not None:
+            self.channels = list(range(start, stop + 1, increment))
+
     def __len__(self):
         """
         :return: Number of mca in Scan
@@ -196,6 +235,9 @@ class MCA(object):
         :return: Single MCA
         :rtype: 1D numpy array
         """
+        if not len(self):
+            raise IndexError("No MCA spectrum found in this scan")
+
         if isinstance(key, int):
             mca_index = key
             # allow negative index, like lists
@@ -1070,8 +1112,6 @@ cdef class SpecFile(object):
         if num_mca == -1:
             raise SfNoMcaError("Failed to retrieve number of MCA " +
                                "(SfNoMca returned -1)")
-
-
         return num_mca
 
     def mca_calibration(self, scan_index):
