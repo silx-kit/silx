@@ -94,7 +94,6 @@ Classes
 from __future__ import unicode_literals
 import logging
 import numpy
-import os.path
 import re
 
 from .specfile import SpecFile
@@ -214,24 +213,26 @@ class SpecFileH5Dataset(numpy.ndarray):
     Data is stored in float32 format, unless it is a string.
     """
     def __new__(cls, array_like, name):
-        # Ensure our data is a numpy.ndarray
-        array = numpy.array(array_like)
+        if not isinstance(array_like, numpy.ndarray):
+            # Ensure our data is a numpy.ndarray
+            array = numpy.array(array_like)
+        else:
+            array = array_like
 
-        # get the general kind of data
-        dt = array.dtype.kind
+        # general kind of data
+        data_kind = array.dtype.kind
         # byte-string or unicode: leave unchanged
-        if dt in ["S", "U"]:
+        if data_kind in ["S", "U"]:
             obj = array.view(cls)
         # enforce float32 for int, unsigned int, float
-        elif dt in ["i", "u", "f"]:
+        elif data_kind in ["i", "u", "f"]:
             obj = numpy.asarray(array, dtype=numpy.float32).view(cls)
         # reject boolean (b), complex (c), object (O), void/data block (V)
         else:
-            raise TypeError("Unexpected data type " + dt +
+            raise TypeError("Unexpected data type " + data_kind +
                             " (expected int-, string- or float-like data)")
 
         obj.name = name
-        # self reference
         obj.value = obj
         return obj
 
@@ -276,12 +277,12 @@ def _dataset_builder(name, specfileh5):
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
         motor_name = m.group(1)
-        # if a motor is recorded as a data column, ignore its position in header and
-        # return the data column
+        # if a motor is recorded as a data column, ignore its position in
+        # header and return the data column instead
         if motor_name in scan.labels:
             array_like = scan.data_column_by_name(motor_name)
         else:
-            # can return float("inf") if #P line is missing from scan hdr
+            # may return float("inf") if #P line is missing from scan hdr
             array_like = scan.motor_position_by_name(motor_name)
 
     elif measurement_data_pattern.match(name):
@@ -296,7 +297,7 @@ def _dataset_builder(name, specfileh5):
             m = mca_data_pattern2.match(name)
 
         analyser_index = int(m.group(1))
-        # retrieve 2D array of all MCA spectra from one analyzers
+        # retrieve 2D array of all MCA spectra from one analyser
         array_like = _demultiplex_mca(scan, analyser_index)
 
     elif (mca_calib_pattern.match(name) or
@@ -398,7 +399,7 @@ class SpecFileH5Group(object):
                 msg += "a SpecFileH5 object, but not from a SpecFileH5Group."
             raise KeyError(msg)
 
-        full_key = os.path.join(self.name, key)
+        full_key = self.name.rstrip("/") + "/" + key
 
         if is_group(full_key):
             return SpecFileH5Group(full_key, self._sfh5)
