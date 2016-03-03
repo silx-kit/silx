@@ -32,7 +32,6 @@ cimport numpy as np
 import numpy as np
 
 cimport histogramnd_c
-from libc.stdlib cimport malloc, free
 from libc.stdint cimport uint32_t, int32_t
 
 
