@@ -28,6 +28,7 @@ __license__ = "MIT"
 __date__ = "25/02/2016"
 
 import logging
+from numpy import float32
 import os
 import sys
 import tempfile
@@ -118,7 +119,7 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
                                12.0)
         self.assertAlmostEqual(sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]),
-                               87.891)
+                               87.891, places=4)
 
     def test_date(self):
         # start time is in Iso8601 format
@@ -126,7 +127,7 @@ class TestSpecFileH5(unittest.TestCase):
                         "2016-02-11T09:55:20")
 
     def test_get_item_group(self):
-        group = self.sfh5["1.2"]["instrument"]
+        group = self.sfh5["25.1"]["instrument"]
         self.assertEqual(group["positioners"].keys(),
                          ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
                           "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
@@ -141,15 +142,37 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
 
+    def test_mca_calib(self):
+        mca0_calib = self.sfh5["/1.2/measurement/mca_0/info/calibration"]
+        mca1_calib = self.sfh5["/1.2/measurement/mca_1/info/calibration"]
+        self.assertEqual(mca0_calib.tolist(),
+                         [1, 2, 3])
+        # calibration is unique in a given scan and applies to all analysers
+        self.assertEqual(mca0_calib.tolist(),
+                         mca1_calib.tolist())
+
+    def test_mca_channels(self):
+        mca0_chann = self.sfh5["/1.2/measurement/mca_0/info/channels"]
+        mca1_chann = self.sfh5["/1.2/measurement/mca_1/info/channels"]
+        self.assertEqual(mca0_chann.tolist(),
+                         [0., 1., 2.])
+        # channels is unique in a given scan and applies to all analysers
+        self.assertEqual(mca0_chann.tolist(),
+                         mca1_chann.tolist())
+
+        self.assertIs(mca0_chann.dtype.type,
+                      float32)
+
     def test_mca_data(self):
         # sum 1st MCA in scan 1.2 over rows
         mca_0_data = self.sfh5["/1.2/measurement/mca_0/data"]
-        self.assertEqual(mca_0_data.sum(axis=1).tolist(),
-                         [3, 12.1, 21.7])
+        for summed_row, expected in zip(mca_0_data.sum(axis=1).tolist(),
+                                        [3.0, 12.1, 21.7]):
+            self.assertAlmostEqual(summed_row, expected, places=4)
+
         # sum 3rd MCA in scan 1.2 along both axis
         mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
-        self.assertAlmostEqual(mca_2_data.sum(),
-                               9.1)
+        self.assertAlmostEqual(mca_2_data.sum(), 9.1, places=4)
 
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
@@ -157,8 +180,9 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertAlmostEqual(positioners_group["MRTSlit DOWN"],
                               0.87125)
         # MRTSlit UP position is defined in first data column
-        self.assertEqual(positioners_group["MRTSlit UP"].tolist(),
-                              [-1.23, 8.478100E+01, 3.14, 1.2])
+        for a, b in zip(positioners_group["MRTSlit UP"].tolist(),
+                        [-1.23, 8.478100E+01, 3.14, 1.2]):
+            self.assertAlmostEqual(a, b, places=4)
 
     def test_number_of_mca_analysers(self):
         """Scan 1.2 has 2 data columns + 3 mca spectra per data line."""
@@ -169,12 +193,20 @@ class TestSpecFileH5(unittest.TestCase):
                           "25  ascan  c3th 1.33245 1.52245  40 0.15")
 
     def test_visit(self):
+        # scan 1.1 has 15 members (6 generic + 3 data cols + 6 motors)
+        # scan 25.1 has 16 members (6 generic + 4 data cols + 6 motors)
+        # scan 1.2 has 44 members (6 generic + 2 data cols + 6 motors +
+        #                          3*5*2 MCA members)
         name_list = []
         self.sfh5.visit(name_list.append)
         self.assertIn(u"Pslit HGap", name_list)
-        self.assertEqual(len(name_list), 54)
+        self.assertEqual(len(name_list), 75)
 
     def test_visit_items(self):
+        # scan 1.1 has 11 datasets (title + date + 6 motors + 3 data cols)
+        # scan 25.1 has 12 datasets (title + date + 6 motors + 4 data cols)
+        # scan 1.2 has 28 datasets (title + date + 6 motors + 2 data cols
+        #                           3*3*2 MCA datasets)
         dataset_name_list = []
         def func(name, obj):
             if isinstance(obj, SpecFileH5Dataset):
@@ -182,7 +214,7 @@ class TestSpecFileH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn(u"Pslit HGap", dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 39)
+        self.assertEqual(len(dataset_name_list), 51)
 
 
 def suite():

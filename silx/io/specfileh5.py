@@ -37,16 +37,20 @@ Specfile data structure exposed by this API:
               positioners/
                   motor_name = value
                   …
-          measurement/
-              colname0 = 1D_data_array
-              colname1 = …
               mca_0/
-                  data = (nlines, nchannels) 2D array
-                  info = {"CALIB": ""
-                          …
-                         }
+                  data = …
+                  info/
+                      calibration = …
+                      channels = …
+
               mca_1/
                   …
+              …
+          measurement/
+              colname0 = …
+              colname1 = …
+              mca_0 -> /1.1/instrument/mca_0/ (link)
+              …
       2.1/
           …
 
@@ -55,15 +59,29 @@ The title is the content of the ``#S`` scan header line without the leading
 
 The start time is in the ISO8601 format (``"2016-02-23T22:49:05Z"``)
 
+All datasets that are not strings are formatted as `float32`.
+
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
 scalars as defined in ``#P`` scan header lines, or 1D numpy arrays if they
 are measured as scan data. A simple test is done to check if the motor name
 is also a data column header defined in the ``#L`` scan header line.
 
+Scan data  (e.g. ``/1.1/measurement/colname0``) is accessed by column,
+the dataset name ``colname0`` being the column label as defined in the ``#L``
+scan header line.
+
 MCA data is exposed as a 2D numpy array containing all spectra for a given
 analyser. The number of analysers is calculated as the number of MCA spectra
 per scan data line. Demultiplexing is then performed to assign the correct
 spectra to a given analyser.
+
+MCA calibration is an array of 3 scalars, from the ``#@CALIB`` header line.
+It is considered identical for all MCA analysers, as there can be only one
+``#@CALIB`` line per scan.
+
+MCA channels is an array containing all channel numbers. This information is
+computed from the ``#@CHANN`` scan header line (if present), or computed from
+the shape of the first spectrum in a scan (``[0, … len(first_spectrum] - 1]``).
 
 Classes
 =======
@@ -74,36 +92,47 @@ Classes
 """
 # make all strings unicode
 from __future__ import unicode_literals
-
 import logging
-logger1 = logging.getLogger('silx.io.specfileh5')
-
 import numpy
 import os.path
 import re
 
 from .specfile import SpecFile
 
+logger1 = logging.getLogger('silx.io.specfileh5')
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "03/03/2016"
 
+# Static subgroups
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
-instrument_subgroups = ["positioners"]
+instrument_subgroups = ["positioners"]  # also dynamic subgroups: mca_0…
 mca_subgroups = ["data", "info"]
+mca_info_subgroups = ["calibration", "channels"]
 
+# Patterns for group keys
 scan_pattern = re.compile(r"/[0-9]+\.[0-9]+/?$")
 instrument_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/?$")
 positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/?$")
-measurement_group_pattern  = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
-mca_group_pattern  = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
+measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
+mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
+mca_group_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
+mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info$")
+mca_info_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/info$")
 
+# Patterns for dataset keys
 title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/(.+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
 mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info$")
+mca_data_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
+mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/calibration$")
+mca_calib_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/calibration$")
+mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/channels$")
+mca_chann_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/channels$")
+
 
 def is_group(name):
     """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
@@ -113,12 +142,16 @@ def is_group(name):
     :return: ``True`` if this member is a group
     :rtype: boolean
     """
-    return name == "/" or \
-           scan_pattern.match(name) or\
-           instrument_pattern.match(name) or\
-           positioners_group_pattern.match(name) or\
-           measurement_group_pattern.match(name) or\
-           mca_group_pattern.match(name)
+    return (name == "/" or
+            scan_pattern.match(name) or
+            instrument_pattern.match(name) or
+            positioners_group_pattern.match(name) or
+            measurement_group_pattern.match(name) or
+            mca_group_pattern.match(name) or
+            mca_group_pattern2.match(name) or
+            mca_info_pattern.match(name) or
+            mca_info_pattern2.match(name))
+
 
 def is_dataset(name):
     """Check if ``name`` is a valid dataset in a :class:`SpecFileH5`.
@@ -128,15 +161,19 @@ def is_dataset(name):
     :return: ``True`` if this member is a dataset
     :rtype: boolean
     """
-    return title_pattern.match(name) or\
-           start_time_pattern.match(name) or\
-           positioners_data_pattern.match(name) or\
-           measurement_data_pattern.match(name) or\
-           mca_data_pattern.match(name) or\
-           mca_info_pattern.match(name)  # FIXME: this one is probably a group
+    return (title_pattern.match(name) or
+            start_time_pattern.match(name) or
+            positioners_data_pattern.match(name) or
+            measurement_data_pattern.match(name) or
+            mca_data_pattern.match(name) or
+            mca_data_pattern2.match(name) or
+            mca_calib_pattern.match(name) or
+            mca_calib_pattern2.match(name) or
+            mca_chann_pattern.match(name) or
+            mca_chann_pattern2.match(name))
 
 
-def specDateToIso8601(date, zone=None):
+def spec_date_to_iso8601(date, zone=None):
     """Convert SpecFile date to Iso8601.
 
     :param date: Date in SpecFile format
@@ -144,7 +181,7 @@ def specDateToIso8601(date, zone=None):
 
     Example:
 
-        ``specDateToIso8601("Thu Feb 11 09:54:35 2016")``
+        ``spec_date_to_iso8601("Thu Feb 11 09:54:35 2016")``
 
         `` => "2016-02-11T09:54:35"``
     """
@@ -153,7 +190,7 @@ def specDateToIso8601(date, zone=None):
     items = date.split()
     year = items[-1]
     hour = items[-2]
-    day  = items[-3]
+    day = items[-3]
     month = "%02d" % (int(months.index(items[-4])) + 1)
     if zone is None:
         return "%s-%s-%sT%s" % (year, month, day, hour)
@@ -166,21 +203,43 @@ def specDateToIso8601(date, zone=None):
 class SpecFileH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
-    :param input_array: Array of data
-    :type input_array: :class:`numpy.ndarray`
+    :param array_like: Input dataset in an array like format (string, list…)
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
 
     This class inherits from :class:`numpy.ndarray` and adds ``name`` and
     ``value`` attributes for HDF5 compatibility. ``value`` is a reference
     to the class instance (``value = self``).
+
+    Data is stored in float32 format, unless it is a string.
     """
-    def __new__(cls, input_array, name):
-        obj = numpy.asarray(input_array).view(cls)
+    def __new__(cls, array_like, name):
+        # Ensure our data is a numpy.ndarray
+        array = numpy.array(array_like)
+
+        # get the general kind of data
+        dt = array.dtype.kind
+        # byte-string or unicode: leave unchanged
+        if dt in ["S", "U"]:
+            obj = array.view(cls)
+        # enforce float32 for int, unsigned int, float
+        elif dt in ["i", "u", "f"]:
+            obj = numpy.asarray(array, dtype=numpy.float32).view(cls)
+        # reject boolean (b), complex (c), object (O), void/data block (V)
+        else:
+            raise TypeError("Unexpected data type " + dt +
+                            " (expected int-, string- or float-like data)")
+
         obj.name = name
         # self reference
         obj.value = obj
         return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self.name = getattr(obj, 'name', None)
+        self.value = getattr(obj, 'value', None)
 
 
 def _dataset_builder(name, specfileh5):
@@ -201,9 +260,10 @@ def _dataset_builder(name, specfileh5):
                        name)
     scan = specfileh5._sf[scan_match.group(1)]
 
-    arr = None
+    # get dataset in an array-like format (ndarray, str, list…)
+    array_like = None
     if title_pattern.match(name):
-        arr = numpy.array(scan.scan_header["S"])
+        array_like = scan.scan_header["S"]
 
     elif start_time_pattern.match(name):
         try:
@@ -211,7 +271,7 @@ def _dataset_builder(name, specfileh5):
         except KeyError:
             logger1.warn("No #D line in scan header. Trying file header.")
             spec_date = scan.file_header["D"]
-        arr = numpy.array(specDateToIso8601(spec_date))
+        array_like = spec_date_to_iso8601(spec_date)
 
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
@@ -219,28 +279,39 @@ def _dataset_builder(name, specfileh5):
         # if a motor is recorded as a data column, ignore its position in header and
         # return the data column
         if motor_name in scan.labels:
-            arr = scan.data_column_by_name(motor_name)
+            array_like = scan.data_column_by_name(motor_name)
         else:
-            arr = scan.motor_position_by_name(motor_name)
-        # TODO: test motor as data column
+            # can return float("inf") if #P line is missing from scan hdr
+            array_like = scan.motor_position_by_name(motor_name)
 
     elif measurement_data_pattern.match(name):
         m = measurement_data_pattern.match(name)
         column_name = m.group(1)
-        arr = scan.data_column_by_name(column_name)
+        array_like = scan.data_column_by_name(column_name)
 
-    elif mca_data_pattern.match(name):
+    elif (mca_data_pattern.match(name) or
+          mca_data_pattern2.match(name)):
         m = mca_data_pattern.match(name)
+        if not m:
+            m = mca_data_pattern2.match(name)
+
         analyser_index = int(m.group(1))
         # retrieve 2D array of all MCA spectra from one analyzers
-        arr = _demultiplex_mca(scan, analyser_index)
+        array_like = _demultiplex_mca(scan, analyser_index)
 
-    elif mca_info_pattern:
-        raise NotImplementedError # TODO: implement (maybe as a group)
+    elif (mca_calib_pattern.match(name) or
+          mca_calib_pattern2.match(name)):
+        array_like = scan.mca.calibration
 
-    if arr is None:
+    elif (mca_chann_pattern.match(name) or
+          mca_chann_pattern2.match(name)):
+        array_like = scan.mca.channels
+
+    if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
-    return SpecFileH5Dataset(arr, name)
+
+    return SpecFileH5Dataset(array_like, name)
+
 
 def _demultiplex_mca(scan, analyser_index):
     """Return MCA data for a single analyser.
@@ -319,7 +390,7 @@ class SpecFileH5Group(object):
         :param key: Name of member
         :type key: str
         """
-        if not key in self.keys():
+        if key not in self.keys():
             msg = key + " is not a valid member of " + self.__repr__() + "."
             msg += " List of valid keys: " + ", ".join(self.keys())
             if key.startswith("/"):
@@ -346,14 +417,16 @@ class SpecFileH5Group(object):
         if scan_pattern.match(self.name):
             return scan_subgroups
 
-        if instrument_pattern.match(self.name):
-            return instrument_subgroups
-
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
 
-        if mca_group_pattern.match(self.name):
+        if mca_group_pattern.match(self.name) or\
+           mca_group_pattern2.match(self.name):
             return mca_subgroups
+
+        if mca_info_pattern.match(self.name) or \
+           mca_info_pattern2.match(self.name):
+            return mca_info_subgroups
 
         # number of data columns must be equal to number of labels
         assert self._scan.data.shape[1] == len(self._scan.labels)
@@ -364,10 +437,13 @@ class SpecFileH5Group(object):
         # Number of MCA spectra must be a multiple of number of data lines
         assert number_of_MCA_spectra % number_of_data_lines == 0
         number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
+        mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
         if measurement_group_pattern.match(self.name):
-            mca_list = ["mca_%d" % (i) for i in range(number_of_MCA_analysers)]
             return self._scan.labels + mca_list
+
+        if instrument_pattern.match(self.name):
+            return instrument_subgroups + mca_list
 
     def visit(self, func):
         """Recursively visit all names in this group and subgroups.
@@ -467,7 +543,7 @@ class SpecFileH5(SpecFileH5Group):
 
         self.filename = filename
         self._sf = SpecFile(filename)
-        #self._scan = None
+        # self._scan = None
 
     def keys(self):
         """
