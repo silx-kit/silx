@@ -1457,7 +1457,7 @@ static char __pyx_k_getLogger[] = "getLogger";
 static char __pyx_k_match_mca[] = "match_mca";
 static char __pyx_k_mca_index[] = "mca_index";
 static char __pyx_k_metaclass[] = "__metaclass__";
-static char __pyx_k_23_02_2016[] = "23/02/2016";
+static char __pyx_k_02_03_2016[] = "02/03/2016";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_MCA___init[] = "MCA.__init__";
 static char __pyx_k_MCA___iter[] = "MCA.__iter__";
@@ -1553,7 +1553,7 @@ static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran
 static char __pyx_k_the_unique_scan_index_or_a_strin[] = "the unique scan index or a string 'N.M' with N being the scan";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
 static PyObject *__pyx_kp_s_;
-static PyObject *__pyx_kp_s_23_02_2016;
+static PyObject *__pyx_kp_s_02_03_2016;
 static PyObject *__pyx_kp_s_3;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_kp_s_Custom_exception_raised_when_SfN;
@@ -6514,7 +6514,7 @@ static PyObject *__pyx_gb_8specfile_8SpecFile_10generator1(__pyx_GeneratorObject
 
 /* Python wrapper */
 static PyObject *__pyx_pw_8specfile_8SpecFile_12__getitem__(PyObject *__pyx_v_self, PyObject *__pyx_v_key); /*proto*/
-static char __pyx_doc_8specfile_8SpecFile_11__getitem__[] = "Return a :class:`Scan` object.\n\n        The Scan instance returned keeps a reference to its parent SpecFile\n        instance, in order to use its method to retrieve data and headers.\n\n        :param key: 0-based scan index or ``n.m`` key, where ``n`` is the scan\n            number defined on the ``#S`` header line and ``m`` is the order\n        :type key: int or str\n\n        :return: Scan defined by its 0-based index or its ``\"n.m\"`` key\n        :rtype: :class:`Scan`\n        ";
+static char __pyx_doc_8specfile_8SpecFile_11__getitem__[] = "Return a :class:`Scan` object.\n\n        This special method is called when a :class:`SpecFile` instance is\n        accessed as a dictionary (e.g. ``sf[key]``).\n\n        :param key: 0-based scan index or ``\"n.m\"`` key, where ``n`` is the scan\n            number defined on the ``#S`` header line and ``m`` is the order\n        :type key: int or str\n\n        :return: Scan defined by its 0-based index or its ``\"n.m\"`` key\n        :rtype: :class:`Scan`\n        ";
 #if CYTHON_COMPILING_IN_CPYTHON
 struct wrapperbase __pyx_wrapperbase_8specfile_8SpecFile_11__getitem__;
 #endif
@@ -11191,7 +11191,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_49number_of_mca(struct __pyx_obj_8
 
 /* Python wrapper */
 static PyObject *__pyx_pw_8specfile_8SpecFile_52mca_calibration(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
-static char __pyx_doc_8specfile_8SpecFile_51mca_calibration[] = "mca_calibration(scan_index)\n\n        Return MCA calibration in the form :math:`a + b x + c x\302\262`\n\n        Raise a KeyError if there is no ``@CALIB`` line in the scan header.\n\n        :param scan_index: Unique scan index between ``0`` and\n            ``len(self)-1``.\n        :type scan_index: int\n\n        :return: MCA calibration as a list of 3 values math:`(a, b, c)`\n        :rtype: list of floats\n        ";
+static char __pyx_doc_8specfile_8SpecFile_51mca_calibration[] = "mca_calibration(scan_index)\n\n        Return MCA calibration in the form :math:`a + b x + c x\302\262`\n\n        Raise a KeyError if there is no ``@CALIB`` line in the scan header.\n\n        :param scan_index: Unique scan index between ``0`` and\n            ``len(self)-1``.\n        :type scan_index: int\n\n        :return: MCA calibration as a list of 3 values :math:`(a, b, c)`\n        :rtype: list of floats\n        ";
 static PyObject *__pyx_pw_8specfile_8SpecFile_52mca_calibration(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
@@ -11365,7 +11365,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_51mca_calibration(struct __pyx_obj
 
 /* Python wrapper */
 static PyObject *__pyx_pw_8specfile_8SpecFile_54get_mca(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_8specfile_8SpecFile_53get_mca[] = "get_mca(scan_index, mca_index)\n\n        Return MCA data\n\n        :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.\n        :type scan_index: int\n        :param mca_index: Index of MCA in the scan\n        :type mca_index: int\n\n        :return: MCA data\n        :rtype: numpy array\n        ";
+static char __pyx_doc_8specfile_8SpecFile_53get_mca[] = "get_mca(scan_index, mca_index)\n\n        Return one MCA spectrum\n\n        :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.\n        :type scan_index: int\n        :param mca_index: Index of MCA in the scan\n        :type mca_index: int\n\n        :return: MCA spectrum\n        :rtype: 1D\302\240numpy array\n        ";
 static PyObject *__pyx_pw_8specfile_8SpecFile_54get_mca(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_scan_index = 0;
   PyObject *__pyx_v_mca_index = 0;
@@ -14030,7 +14030,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
-  {&__pyx_kp_s_23_02_2016, __pyx_k_23_02_2016, sizeof(__pyx_k_23_02_2016), 0, 0, 1, 0},
+  {&__pyx_kp_s_02_03_2016, __pyx_k_02_03_2016, sizeof(__pyx_k_02_03_2016), 0, 0, 1, 0},
   {&__pyx_kp_s_3, __pyx_k_3, sizeof(__pyx_k_3), 0, 0, 1, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Custom_exception_raised_when_SfN, __pyx_k_Custom_exception_raised_when_SfN, sizeof(__pyx_k_Custom_exception_raised_when_SfN), 0, 0, 1, 0},
@@ -14932,7 +14932,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]             # <<<<<<<<<<<<<<
  * __license__ = "MIT"
- * __date__ = "23/02/2016"
+ * __date__ = "02/03/2016"
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -14946,7 +14946,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
- * __date__ = "23/02/2016"
+ * __date__ = "02/03/2016"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14954,14 +14954,14 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /* "specfile.pyx":94
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"
- * __date__ = "23/02/2016"             # <<<<<<<<<<<<<<
+ * __date__ = "02/03/2016"             # <<<<<<<<<<<<<<
  * 
  * import os.path
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_23_02_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_02_03_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "specfile.pyx":96
- * __date__ = "23/02/2016"
+ * __date__ = "02/03/2016"
  * 
  * import os.path             # <<<<<<<<<<<<<<
  * import logging

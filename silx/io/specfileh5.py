@@ -46,23 +46,24 @@ Specfile data structure exposed by this API:
                           …
                          }
               mca_1/
+                  …
       2.1/
           …
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
-The start time is formatted in ISO8601 (e.g. ``"2016-02-23T22:49:05Z"``)
+The start time is in the ISO8601 format (``"2016-02-23T22:49:05Z"``)
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
-scalars defined in ``#P`` scan header lines, or 1D numpy arrays if they
-are measured as scan data (a simple test is done to check if the motor name
-is also a data column header defined in the ``#L`` scan header line).
+scalars as defined in ``#P`` scan header lines, or 1D numpy arrays if they
+are measured as scan data. A simple test is done to check if the motor name
+is also a data column header defined in the ``#L`` scan header line.
 
 MCA data is exposed as a 2D numpy array containing all spectra for a given
-analyser. The number of analysers is deducted from the scan data (number of
-MCA spectra per scan data line), and demultiplexing is performed
-to assign the correct spectra to a given analyser.
+analyser. The number of analysers is calculated as the number of MCA spectra
+per scan data line. Demultiplexing is then performed to assign the correct
+spectra to a given analyser.
 
 Classes
 =======
@@ -85,7 +86,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/02/2016"
+__date__ = "03/03/2016"
 
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
 instrument_subgroups = ["positioners"]
@@ -144,6 +145,7 @@ def specDateToIso8601(date, zone=None):
     Example:
 
         ``specDateToIso8601("Thu Feb 11 09:54:35 2016")``
+
         `` => "2016-02-11T09:54:35"``
     """
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
@@ -160,7 +162,7 @@ def specDateToIso8601(date, zone=None):
 
 
 # For documentation on subclassing numpy.ndarray,
-# cf http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
+# see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
 class SpecFileH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
@@ -277,8 +279,7 @@ class SpecFileH5Group(object):
 
     :param name: Group full name (posix path format, starting with ``/``)
     :type name: str
-    :param specfileh5: parent :class:`SpecFileH5` object
-    :type specfileh5: :class:`SpecFileH5`
+    :param specfileh5: parent :class:`SpecFileH5` instance
 
     """
 
@@ -306,7 +307,8 @@ class SpecFileH5Group(object):
                self.keys() == other.keys()
 
     def __len__(self):
-        """Return number of members attached to this group"""
+        """Return number of members attached to this group,
+        subgroups and datasets."""
         return len(self.keys())
 
     def __getitem__(self, key):
@@ -459,7 +461,6 @@ class SpecFileH5(SpecFileH5Group):
 
         # method 2: full path access
         instrument_group = sfh5["/1.1/instrument"]
-
     """
     def __init__(self, filename):
         super(SpecFileH5, self).__init__("/", self)

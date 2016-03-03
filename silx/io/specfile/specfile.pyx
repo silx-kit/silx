@@ -91,7 +91,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "02/03/2016"
 
 import os.path
 import logging
@@ -548,10 +548,10 @@ cdef class SpecFile(object):
     def __getitem__(self, key):
         """Return a :class:`Scan` object.
 
-        The Scan instance returned keeps a reference to its parent SpecFile
-        instance, in order to use its method to retrieve data and headers.
+        This special method is called when a :class:`SpecFile` instance is
+        accessed as a dictionary (e.g. ``sf[key]``).
 
-        :param key: 0-based scan index or ``n.m`` key, where ``n`` is the scan
+        :param key: 0-based scan index or ``"n.m"`` key, where ``n`` is the scan
             number defined on the ``#S`` header line and ``m`` is the order
         :type key: int or str
 
@@ -1085,7 +1085,7 @@ cdef class SpecFile(object):
             ``len(self)-1``.
         :type scan_index: int
 
-        :return: MCA calibration as a list of 3 values math:`(a, b, c)`
+        :return: MCA calibration as a list of 3 values :math:`(a, b, c)`
         :rtype: list of floats
         """
         cdef:
@@ -1112,15 +1112,15 @@ cdef class SpecFile(object):
     def get_mca(self, scan_index, mca_index):
         """get_mca(scan_index, mca_index)
 
-        Return MCA data
+        Return one MCA spectrum
 
         :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.
         :type scan_index: int
         :param mca_index: Index of MCA in the scan
         :type mca_index: int
 
-        :return: MCA data
-        :rtype: numpy array
+        :return: MCA spectrum
+        :rtype: 1D numpy array
         """
         cdef:
             int error = SF_ERR_NO_ERRORS
