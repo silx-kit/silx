@@ -32,7 +32,7 @@ cimport numpy as np
 import numpy as np
 
 cimport histogramnd_c
-from libc.stdint cimport uint32_t, int32_t
+from numpy cimport int32_t, uint32_t
 
 
 def histogramnd(sample,
@@ -250,7 +250,6 @@ def histogramnd(sample,
 
     sample_type = sample.dtype
 
-#    n_dim = sample.size // weights.size
     n_elem = sample.size // n_dims
 
     # wanted to store the functions in a dict (with the supported types
