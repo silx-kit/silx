@@ -30,9 +30,11 @@ __date__ = "18/02/2016"
 import unittest
 
 from .testInteraction import suite as testInteractionSuite
+from .testPlotWidget import suite as testPlotWidgetSuite
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(testInteractionSuite())
+    test_suite.addTest(testPlotWidgetSuite())
     return test_suite
