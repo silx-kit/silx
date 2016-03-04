@@ -172,8 +172,8 @@ class BackendBase(object):
         :param bool selectable: indicate if the marker can be selected
         :param bool draggable: indicate if the marker can be moved
         :param str symbol: Symbol representing the marker.
-        Only relevant for point markers where X and Y are not None.
-        Value in:
+            Only relevant for point markers where X and Y are not None.
+            Value in:
 
             - 'o' circle
             - '.' point

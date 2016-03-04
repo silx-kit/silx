@@ -15,7 +15,7 @@ It provides different interaction modes.
 The plotting API in defined in :mod:`.Plot`.
 The different interaction modes (zoom, drawing, pan) are implemented in :mod:`.PlotInteraction`.
 Each interaction mode is implemented with a state machine structure (implemented in :mod:`.Interaction`).
-The different events emitted by :class:`Plot` and by the interaction modes are created with helper functions defined in :mode:`PlotEvents`.
+The different events emitted by :class:`Plot` and by the interaction modes are created with helper functions defined in :mod:`.PlotEvents`.
 
 :mod:`.BackendBase` defines the API any plot backend should provide in :class:`BackendBase`.
 :mod:`.BackendMatplotlib` implements a `matplotlib <http://matplotlib.org/>`_ backend.

@@ -33,15 +33,15 @@ Colormap
 The :class:`Plot` uses a dictionary to describe a colormap.
 This dictionary has the following keys:
 
-- name: str, name of the colormap. Available colormap are returned by
-        :meth:`Plot.getSupportedColormaps`.
-        At least 'gray', 'reversed gray', 'temperature',
-        'red', 'green', 'blue' are supported.
-- normalization: Either 'linear' or 'log'
-- autoscale: bool, True to get bounds from the min and max of the
-             data, False to use [vmin, vmax]
-- vmin: float, min value, ignored if autoscale is True
-- vmax: float, max value, ignored if autoscale is True
+- 'name': str, name of the colormap. Available colormap are returned by
+          :meth:`Plot.getSupportedColormaps`.
+          At least 'gray', 'reversed gray', 'temperature',
+          'red', 'green', 'blue' are supported.
+- 'normalization': Either 'linear' or 'log'
+- 'autoscale': bool, True to get bounds from the min and max of the
+               data, False to use [vmin, vmax]
+- 'vmin': float, min value, ignored if autoscale is True
+- 'vmax': float, max value, ignored if autoscale is True
 
 
 Plot Events
@@ -580,7 +580,7 @@ class Plot(object):
                                (default: False)
         :param dict colormap: Description of the colormap to use (or None)
                               This is ignored if data is a RGB(A) image.
-                              See `Colormap`_ for the documentation
+                              See :ref:`Colormap` for the documentation
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)

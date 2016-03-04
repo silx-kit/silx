@@ -5,9 +5,11 @@
 ===========
 
 .. automodule:: silx.gui.plot.Plot
-   :members:
 
 .. currentmodule:: silx.gui.plot.Plot
+
+:class:`Plot` class
+-------------------
 
 .. autoclass:: Plot
    :show-inheritance:
