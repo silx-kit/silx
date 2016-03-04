@@ -90,7 +90,7 @@ Classes
 - :class:`SpecFileH5Group`
 - :class:`SpecFileH5Dataset`
 """
-# make all strings unicode
+
 from __future__ import unicode_literals
 import logging
 import numpy
@@ -102,7 +102,7 @@ logger1 = logging.getLogger('silx.io.specfileh5')
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/03/2016"
+__date__ = "04/03/2016"
 
 # Static subgroups
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
@@ -133,7 +133,7 @@ mca_calib_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/cal
 mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/channels$")
 mca_chann_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/channels$")
 
-# Associate pattern to its attributes
+# Associate group and dataset patterns to their attributes
 pattern_attrs = {
     root_pattern:
         {"NX_class": "NXroot", },
@@ -256,7 +256,8 @@ def _get_attrs_dict(name):
 class SpecFileH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
-    :param array_like: Input dataset in an array like format (string, list…)
+    :param array_like: Input dataset in a type that can be digested by
+        ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
 
@@ -434,10 +435,10 @@ class SpecFileH5Group(object):
         return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
 
     def __eq__(self, other):
-        return isinstance(other, SpecFileH5Group) and \
-               self.name == other.name and \
-               self._sfh5.filename == other._sfh5.filename and \
-               self.keys() == other.keys()
+        return (isinstance(other, SpecFileH5Group) and
+                self.name == other.name and
+                self._sfh5.filename == other._sfh5.filename and
+                self.keys() == other.keys())
 
     def __len__(self):
         """Return number of members attached to this group,
@@ -482,12 +483,12 @@ class SpecFileH5Group(object):
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
 
-        if mca_group_pattern.match(self.name) or\
-           mca_group_pattern2.match(self.name):
+        if (mca_group_pattern.match(self.name) or
+            mca_group_pattern2.match(self.name)):
             return mca_subgroups
 
-        if mca_info_pattern.match(self.name) or \
-           mca_info_pattern2.match(self.name):
+        if (mca_info_pattern.match(self.name) or
+            mca_info_pattern2.match(self.name)):
             return mca_info_subgroups
 
         # number of data columns must be equal to number of labels
@@ -620,9 +621,9 @@ class SpecFileH5(SpecFileH5Group):
         return '<SpecFileH5 "%s" (%d members)>' % (self.filename, len(self))
 
     def __eq__(self, other):
-        return isinstance(other, SpecFileH5) and \
-               self.filename == other.filename and \
-               self.keys() == other.keys()
+        return (isinstance(other, SpecFileH5) and
+                self.filename == other.filename and
+                self.keys() == other.keys())
 
     def __getitem__(self, key):
         """In addition to :func:`SpecFileH5Group.__getitem__` (inherited),
@@ -640,8 +641,10 @@ class SpecFileH5(SpecFileH5Group):
             # access a member using an absolute path
             if key.startswith("/"):
                 if is_group(key):
-                    return SpecFileH5Group(key, self._sfh5)
+                    return SpecFileH5Group(name=key,
+                                           specfileh5=self)
                 elif is_dataset(key):
-                    return _dataset_builder(key, self._sfh5)
+                    return _dataset_builder(name=key,
+                                            specfileh5=self)
                 else:
                     raise KeyError("unrecognized group or dataset: " + key)
