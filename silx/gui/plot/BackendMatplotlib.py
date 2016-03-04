@@ -391,10 +391,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                   symbol, constraint, overlay):
         legend = "__MARKER__" + legend  # TODO useful?
 
-        # Apply constraint to provided position
-        if draggable and constraint is not None:
-            x, y = constraint(x, y)
-
         # TODO issues with text placement when changing limits..
         if x is not None and y is not None:
             line = self.ax.plot(x, y, label=legend,
@@ -404,9 +400,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                 markersize=10.)[-1]
 
             if text is not None:
-                xtmp, ytmp = self.ax.transData.transform((x, y))
+                xtmp, ytmp = self.ax.transData.transform_point((x, y))
                 inv = self.ax.transData.inverted()
-                xtmp, ytmp = inv.transform((xtmp, ytmp + 15))
+                xtmp, ytmp = inv.transform_point((xtmp, ytmp + 15))
                 text = " " + text
                 line._infoText = self.ax.text(x, ytmp, text,
                                               color=color,
