@@ -64,7 +64,8 @@ def commpare_results(txt,
         hits_cmp = np.array_equal(result_c[0], result_np[0])
     else:
         hits_cmp = None
-    if result_np_w:
+
+    if result_np_w and result_c[1] is not None:
         weights_cmp = np.array_equal(result_c[1], result_np_w[0])
     else:
         weights_cmp = None
@@ -100,6 +101,7 @@ def benchmark(n_loops,
               weight_max,
               last_bin_closed,
               dtype=np.double,
+              do_weights=True,
               do_numpy=True):
 
     int_min = 0
@@ -113,14 +115,18 @@ def benchmark(n_loops,
               (sample_rng[1]-sample_rng[0]) /
               (int_max-int_min))
     sample = sample.astype(dtype)
-    weights = np.random.random_integers(int_min,
-                                        high=int_max,
-                                        size=(sample_shape[0],))
-    weights = weights.astype(np.double)
-    weights = (weights_rng[0] +
-               (weights - int_min) *
-               (weights_rng[1] - weights_rng[0]) /
-               (int_max-int_min))
+
+    if do_weights:
+        weights = np.random.random_integers(int_min,
+                                            high=int_max,
+                                            size=(sample_shape[0],))
+        weights = weights.astype(np.double)
+        weights = (weights_rng[0] +
+                   (weights - int_min) *
+                   (weights_rng[1] - weights_rng[0]) /
+                   (int_max-int_min))
+    else:
+        weights = None
 
     t0s = []
     t1s = []
@@ -130,9 +136,9 @@ def benchmark(n_loops,
     for i in range(n_loops):
         t0s.append(time.time())
         result_c = histogramnd(sample,
-                               weights,
                                bins_rng,
                                n_bins,
+                               weights=weights,
                                weight_min=weight_min,
                                weight_max=weight_max,
                                last_bin_closed=last_bin_closed)
@@ -165,6 +171,7 @@ def benchmark(n_loops,
 
 
 def run_benchmark(dtype=np.double,
+                  do_weights=True,
                   do_numpy=True):
     n_loops = 5
 
@@ -198,6 +205,7 @@ def run_benchmark(dtype=np.double,
               weight_max,
               last_bin_closed,
               dtype=dtype,
+              do_weights=True,
               do_numpy=do_numpy)
 
     # ====================================================
@@ -223,6 +231,7 @@ def run_benchmark(dtype=np.double,
               weight_max,
               last_bin_closed,
               dtype=dtype,
+              do_weights=True,
               do_numpy=do_numpy)
 
     # ====================================================
@@ -248,10 +257,13 @@ def run_benchmark(dtype=np.double,
               weight_max,
               last_bin_closed,
               dtype=dtype,
+              do_weights=True,
               do_numpy=do_numpy)
 
 if __name__ == '__main__':
     types = (np.double, np.int32, np.float32,)
 
     for t in types:
-        run_benchmark(t, do_numpy=True)
+        run_benchmark(t,
+                      do_weights=True,
+                      do_numpy=True)
