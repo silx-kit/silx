@@ -5,12 +5,21 @@
 
 #include "templates.h"
 
+/** Allowed flag values for the i_opt_flags arguments. 
+ */
 typedef enum {
-    HISTO_NONE              = 0,
-    HISTO_WEIGHT_MIN        = 1,
-    HISTO_WEIGHT_MAX       = 1<<1,
-    HISTO_LAST_BIN_CLOSED   = 1<<2
+    HISTO_NONE              = 0,    /**< No options. */
+    HISTO_WEIGHT_MIN        = 1,    /**< Filter weights with i_weight_min. */
+    HISTO_WEIGHT_MAX        = 1<<1, /**< Filter weights with i_weight_max. */
+    HISTO_LAST_BIN_CLOSED   = 1<<2  /**< Last bin is closed. */
 } histo_opt_type;
+
+/** Return codees for the histogramnd function. 
+ */
+typedef enum {
+    HISTO_OK         = 0, /**< No error. */
+    HISTO_ERR_ALLOC       /**< Failed to allocate memory. */
+} histo_rc_t;
 
 /*=====================
  * double sample
