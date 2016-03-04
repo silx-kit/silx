@@ -30,20 +30,25 @@ __date__ = "01/02/2016"
 from libc.stdint cimport int32_t, uint32_t
 
 cdef extern from "include/histogramnd_c.h":
-    
+
     ctypedef enum histo_opt_type:
         HISTO_NONE
         HISTO_WEIGHT_MIN
         HISTO_WEIGHT_MAX
         HISTO_LAST_BIN_CLOSED
-    
+
+    ctypedef enum histo_rc_t:
+        HISTO_OK
+        HISTO_ERR_ALLOC
+
     ctypedef struct histo_opt_str:
         int opt_type
         double opt_value
-        
-    #=====================
+
+    # =====================
     # double sample
-    #=====================
+    # =====================
+
     int histogramnd_double_double(double *i_sample,
                                   double *i_weigths,
                                   int i_n_dim,
@@ -55,7 +60,7 @@ cdef extern from "include/histogramnd_c.h":
                                   int i_opt_flags,
                                   double i_weight_min,
                                   double i_weight_max) nogil
-                                
+
     int histogramnd_double_float(double *i_sample,
                                  float *i_weigths,
                                  int i_n_dim,
@@ -67,7 +72,7 @@ cdef extern from "include/histogramnd_c.h":
                                  int i_opt_flags,
                                  float i_weight_min,
                                  float i_weight_max) nogil
-                                    
+
     int histogramnd_double_int32_t(double *i_sample,
                                    int32_t *i_weigths,
                                    int i_n_dim,
@@ -79,10 +84,11 @@ cdef extern from "include/histogramnd_c.h":
                                    int i_opt_flags,
                                    int32_t i_weight_min,
                                    int32_t i_weight_max) nogil
-                            
-    #=====================
+
+    # =====================
     # float sample
-    #=====================
+    # =====================
+
     int histogramnd_float_double(float *i_sample,
                                  double *i_weigths,
                                  int i_n_dim,
@@ -94,7 +100,7 @@ cdef extern from "include/histogramnd_c.h":
                                  int i_opt_flags,
                                  double i_weight_min,
                                  double i_weight_max) nogil
-                                
+
     int histogramnd_float_float(float *i_sample,
                                 float *i_weigths,
                                 int i_n_dim,
@@ -106,7 +112,7 @@ cdef extern from "include/histogramnd_c.h":
                                 int i_opt_flags,
                                 float i_weight_min,
                                 float i_weight_max) nogil
-                                    
+
     int histogramnd_float_int32_t(float *i_sample,
                                   int32_t *i_weigths,
                                   int i_n_dim,
@@ -119,9 +125,10 @@ cdef extern from "include/histogramnd_c.h":
                                   int32_t i_weight_min,
                                   int32_t i_weight_max) nogil
 
-    #=====================
+    # =====================
     # int32_t sample
-    #=====================
+    # =====================
+
     int histogramnd_int32_t_double(int32_t *i_sample,
                                    double *i_weigths,
                                    int i_n_dim,
@@ -133,7 +140,7 @@ cdef extern from "include/histogramnd_c.h":
                                    int i_opt_flags,
                                    double i_weight_min,
                                    double i_weight_max) nogil
-                                
+
     int histogramnd_int32_t_float(int32_t *i_sample,
                                   float *i_weigths,
                                   int i_n_dim,
@@ -145,7 +152,7 @@ cdef extern from "include/histogramnd_c.h":
                                   int i_opt_flags,
                                   float i_weight_min,
                                   float i_weight_max) nogil
-                                    
+
     int histogramnd_int32_t_int32_t(int32_t *i_sample,
                                     int32_t *i_weigths,
                                     int i_n_dim,

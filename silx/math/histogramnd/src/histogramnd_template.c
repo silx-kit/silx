@@ -65,10 +65,17 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
             (HISTO_SAMPLE_T *) malloc(i_n_dim *sizeof(HISTO_SAMPLE_T));
     HISTO_SAMPLE_T * g_max =
             (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
-    
     /* range used to convert from i_coords to bin indices in the grid */
     HISTO_SAMPLE_T * range = 
             (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
+            
+    if(!g_min || !g_max || !range)
+    {
+        free(g_min);
+        free(g_max);
+        free(range);
+        return HISTO_ERR_ALLOC;
+    }
     
     for(i=0; i<i_n_dim; i++)
     {
@@ -211,7 +218,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
      * python. This might change later if people want to call this
      * function directly from C (might have to implement error codes).
      */
-    return 0;
+    return HISTO_OK;
 }
 
 #endif

@@ -156,7 +156,6 @@ def histogramnd(sample,
         weights_type = weights.dtype
     else:
         weights_type = None
-#        weights = NULL
 
     # just in case those arent numpy arrays
     # (this allows the user to provide native python lists,
@@ -279,50 +278,52 @@ def histogramnd(sample,
     else:
         cumul_c = None
 
+    histo_rc = 0
+
     # this aint pretty...
     if sample_type == np.float64:
 
         if weights_type == np.float64 or weights_type is None:
 
-            _histogramnd_double_double(sample_c,
-                                       weights_c,
-                                       n_dims,
-                                       n_elem,
-                                       bins_rng_c,
-                                       n_bins_c,
-                                       histo_c,
-                                       cumul_c,
-                                       option_flags,
-                                       weight_min=weight_min,
-                                       weight_max=weight_max)
+            histo_rc = _histogramnd_double_double(sample_c,
+                                                  weights_c,
+                                                  n_dims,
+                                                  n_elem,
+                                                  bins_rng_c,
+                                                  n_bins_c,
+                                                  histo_c,
+                                                  cumul_c,
+                                                  option_flags,
+                                                  weight_min=weight_min,
+                                                  weight_max=weight_max)
 
         elif weights_type == np.float32:
 
-            _histogramnd_double_float(sample_c,
-                                      weights_c,
-                                      n_dims,
-                                      n_elem,
-                                      bins_rng_c,
-                                      n_bins_c,
-                                      histo_c,
-                                      cumul_c,
-                                      option_flags,
-                                      weight_min=weight_min,
-                                      weight_max=weight_max)
+            histo_rc = _histogramnd_double_float(sample_c,
+                                                 weights_c,
+                                                 n_dims,
+                                                 n_elem,
+                                                 bins_rng_c,
+                                                 n_bins_c,
+                                                 histo_c,
+                                                 cumul_c,
+                                                 option_flags,
+                                                 weight_min=weight_min,
+                                                 weight_max=weight_max)
 
         elif weights_type == np.int32:
 
-            _histogramnd_double_int32_t(sample_c,
-                                        weights_c,
-                                        n_dims,
-                                        n_elem,
-                                        bins_rng_c,
-                                        n_bins_c,
-                                        histo_c,
-                                        cumul_c,
-                                        option_flags,
-                                        weight_min=weight_min,
-                                        weight_max=weight_max)
+            histo_rc = _histogramnd_double_int32_t(sample_c,
+                                                   weights_c,
+                                                   n_dims,
+                                                   n_elem,
+                                                   bins_rng_c,
+                                                   n_bins_c,
+                                                   histo_c,
+                                                   cumul_c,
+                                                   option_flags,
+                                                   weight_min=weight_min,
+                                                   weight_max=weight_max)
 
         else:
             raise_unsupported_type()
@@ -331,45 +332,45 @@ def histogramnd(sample,
 
         if weights_type == np.float64 or weights_type is None:
 
-            _histogramnd_float_double(sample_c,
-                                      weights_c,
-                                      n_dims,
-                                      n_elem,
-                                      bins_rng_c,
-                                      n_bins_c,
-                                      histo_c,
-                                      cumul_c,
-                                      option_flags,
-                                      weight_min=weight_min,
-                                      weight_max=weight_max)
+            histo_rc = _histogramnd_float_double(sample_c,
+                                                 weights_c,
+                                                 n_dims,
+                                                 n_elem,
+                                                 bins_rng_c,
+                                                 n_bins_c,
+                                                 histo_c,
+                                                 cumul_c,
+                                                 option_flags,
+                                                 weight_min=weight_min,
+                                                 weight_max=weight_max)
 
         elif weights_type == np.float32:
 
-            _histogramnd_float_float(sample_c,
-                                     weights_c,
-                                     n_dims,
-                                     n_elem,
-                                     bins_rng_c,
-                                     n_bins_c,
-                                     histo_c,
-                                     cumul_c,
-                                     option_flags,
-                                     weight_min=weight_min,
-                                     weight_max=weight_max)
+            histo_rc = _histogramnd_float_float(sample_c,
+                                                weights_c,
+                                                n_dims,
+                                                n_elem,
+                                                bins_rng_c,
+                                                n_bins_c,
+                                                histo_c,
+                                                cumul_c,
+                                                option_flags,
+                                                weight_min=weight_min,
+                                                weight_max=weight_max)
 
         elif weights_type == np.int32:
 
-            _histogramnd_float_int32_t(sample_c,
-                                       weights_c,
-                                       n_dims,
-                                       n_elem,
-                                       bins_rng_c,
-                                       n_bins_c,
-                                       histo_c,
-                                       cumul_c,
-                                       option_flags,
-                                       weight_min=weight_min,
-                                       weight_max=weight_max)
+            histo_rc = _histogramnd_float_int32_t(sample_c,
+                                                  weights_c,
+                                                  n_dims,
+                                                  n_elem,
+                                                  bins_rng_c,
+                                                  n_bins_c,
+                                                  histo_c,
+                                                  cumul_c,
+                                                  option_flags,
+                                                  weight_min=weight_min,
+                                                  weight_max=weight_max)
 
         else:
             raise_unsupported_type()
@@ -378,51 +379,58 @@ def histogramnd(sample,
 
         if weights_type == np.float64 or weights_type is None:
 
-            _histogramnd_int32_t_double(sample_c,
-                                        weights_c,
-                                        n_dims,
-                                        n_elem,
-                                        bins_rng_c,
-                                        n_bins_c,
-                                        histo_c,
-                                        cumul_c,
-                                        option_flags,
-                                        weight_min=weight_min,
-                                        weight_max=weight_max)
+            histo_rc = _histogramnd_int32_t_double(sample_c,
+                                                   weights_c,
+                                                   n_dims,
+                                                   n_elem,
+                                                   bins_rng_c,
+                                                   n_bins_c,
+                                                   histo_c,
+                                                   cumul_c,
+                                                   option_flags,
+                                                   weight_min=weight_min,
+                                                   weight_max=weight_max)
 
         elif weights_type == np.float32:
 
-            _histogramnd_int32_t_float(sample_c,
-                                       weights_c,
-                                       n_dims,
-                                       n_elem,
-                                       bins_rng_c,
-                                       n_bins_c,
-                                       histo_c,
-                                       cumul_c,
-                                       option_flags,
-                                       weight_min=weight_min,
-                                       weight_max=weight_max)
+            histo_rc = _histogramnd_int32_t_float(sample_c,
+                                                  weights_c,
+                                                  n_dims,
+                                                  n_elem,
+                                                  bins_rng_c,
+                                                  n_bins_c,
+                                                  histo_c,
+                                                  cumul_c,
+                                                  option_flags,
+                                                  weight_min=weight_min,
+                                                  weight_max=weight_max)
 
         elif weights_type == np.int32:
 
-            _histogramnd_int32_t_int32_t(sample_c,
-                                         weights_c,
-                                         n_dims,
-                                         n_elem,
-                                         bins_rng_c,
-                                         n_bins_c,
-                                         histo_c,
-                                         cumul_c,
-                                         option_flags,
-                                         weight_min=weight_min,
-                                         weight_max=weight_max)
+            histo_rc = _histogramnd_int32_t_int32_t(sample_c,
+                                                    weights_c,
+                                                    n_dims,
+                                                    n_elem,
+                                                    bins_rng_c,
+                                                    n_bins_c,
+                                                    histo_c,
+                                                    cumul_c,
+                                                    option_flags,
+                                                    weight_min=weight_min,
+                                                    weight_max=weight_max)
 
         else:
             raise_unsupported_type()
 
     else:
         raise_unsupported_type()
+
+    if histo_rc != histogramnd_c.HISTO_OK:
+        if histo_rc == histogramnd_c.HISTO_ERR_ALLOC:
+            raise MemoryError('histogramnd failed to allocate memory.')
+        else:
+            raise Exception('histogramnd returned an error : {0}'
+                            ''.format(histo_rc))
 
     return histo, cumul
 
