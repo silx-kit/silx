@@ -117,12 +117,75 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.weights,
                                    self.bins_rng,
-                                   self.n_bins)
+                                   self.n_bins,
+                                   weights=self.weights)
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
+
+    def test_nominal_wo_weights(self):
+        """
+        """
+        expected_h_tpl = np.array([2, 1, 1, 1, 1])
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+
+        histo, cumul = histogramnd(self.sample,
+                                   self.bins_rng,
+                                   self.n_bins,
+                                   weights=None)
+
+        self.assertTrue(np.array_equal(histo, expected_h))
+        self.assertTrue(cumul is None)
+
+    def test_nominal_wo_weights_w_cumul(self):
+        """
+        """
+        expected_h_tpl = np.array([2, 1, 1, 1, 1])
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        cumul_in = np.zeros(self.n_bins, dtype=np.double)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+
+        histo, cumul = histogramnd(self.sample,
+                                   self.bins_rng,
+                                   self.n_bins,
+                                   weights=None,
+                                   cumul=cumul_in)
+
+        self.assertTrue(np.array_equal(histo, expected_h))
+        self.assertTrue(cumul is None)
+        self.assertTrue(np.array_equal(cumul_in,
+                                       np.zeros(shape=self.n_bins,
+                                                dtype=np.double)))
+
+    def test_nominal_wo_weights_w_histo(self):
+        """
+        """
+        expected_h_tpl = np.array([2, 1, 1, 1, 1])
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        # creating an array of ones just to make sure that
+        # it is not cleared by histogramnd
+        histo_in = np.ones(self.n_bins, dtype=np.uint32)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+
+        histo, cumul = histogramnd(self.sample,
+                                   self.bins_rng,
+                                   self.n_bins,
+                                   weights=None,
+                                   histo=histo_in)
+
+        self.assertTrue(np.array_equal(histo, expected_h + 1))
+        self.assertTrue(cumul is None)
+        self.assertEqual(id(histo), id(histo_in))
 
     def test_nominal_last_bin_closed(self):
         """
@@ -137,9 +200,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.weights,
                                    self.bins_rng,
                                    self.n_bins,
+                                   weights=self.weights,
                                    last_bin_closed=True)
 
         self.assertTrue(np.array_equal(histo, expected_h))
@@ -161,9 +224,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.weights.astype(np.int32),
                                    self.bins_rng,
                                    self.n_bins,
+                                   weights=self.weights.astype(np.int32),
                                    weight_min=weight_min,
                                    weight_max=weight_max)
 
@@ -184,9 +247,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.weights,
                                    self.bins_rng,
-                                   self.n_bins)
+                                   self.n_bins,
+                                   weights=self.weights)
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
@@ -197,9 +260,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo_2, cumul = histogramnd(sample_2,          # <==== !!
-                                     10 * self.weights,  # <==== !!
                                      self.bins_rng,
                                      self.n_bins,
+                                     weights=10 * self.weights,  # <==== !!
                                      histo=histo)
 
         self.assertTrue(np.array_equal(histo, expected_h))
@@ -220,9 +283,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.weights,
                                    self.bins_rng,
-                                   self.n_bins)
+                                   self.n_bins,
+                                   weights=self.weights)
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
@@ -233,9 +296,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo, cumul_2 = histogramnd(sample_2,           # <==== !!
-                                     10 * self.weights,  # <==== !!
                                      self.bins_rng,
                                      self.n_bins,
+                                     weights=10 * self.weights,  # <==== !!
                                      cumul=cumul)
 
         self.assertTrue(np.array_equal(histo, expected_h))

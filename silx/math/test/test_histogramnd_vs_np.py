@@ -153,9 +153,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.weights,
                                self.bins_rng,
                                self.n_bins,
+                               weights=self.weights,
                                last_bin_closed=True)
 
         result_np = np.histogramdd(self.sample,
@@ -195,9 +195,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.weights,
                                self.bins_rng,
                                self.n_bins,
+                               weights=self.weights,
                                last_bin_closed=False)
 
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -238,9 +238,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.weights,
                                self.bins_rng,
                                self.n_bins,
+                               weights=self.weights,
                                last_bin_closed=True,
                                weight_min=self.filter_min)
 
@@ -286,9 +286,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.weights,
                                self.bins_rng,
                                self.n_bins,
+                               weights=self.weights,
                                last_bin_closed=True,
                                weight_max=self.filter_max)
 
@@ -334,9 +334,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.weights,
                                self.bins_rng,
                                self.n_bins,
+                               weights=self.weights,
                                last_bin_closed=True,
                                weight_min=self.filter_min,
                                weight_max=self.filter_max)
@@ -385,9 +385,9 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c_1 = histogramnd(self.sample,
-                                 self.weights,
                                  self.bins_rng,
                                  self.n_bins,
+                                 weights=self.weights,
                                  last_bin_closed=True)
 
         result_np_1 = np.histogramdd(self.sample,
@@ -402,9 +402,9 @@ class _TestHistogramnd(unittest.TestCase):
         sample_2, weights_2 = self.generate_data()
 
         result_c_2 = histogramnd(sample_2,
-                                 weights_2,
                                  self.bins_rng,
                                  self.n_bins,
+                                 weights=weights_2,
                                  last_bin_closed=True,
                                  histo=result_c_1[0])
 

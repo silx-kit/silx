@@ -9,17 +9,17 @@
 #ifdef HISTO_WEIGHT_T
 
 int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
-                (HISTO_SAMPLE_T *i_sample,
-                    HISTO_WEIGHT_T *i_weigths,
-                    int i_n_dim,
-                    int i_n_elem,
-                    HISTO_SAMPLE_T *i_bin_ranges,
-                    int *i_n_bin,
-                    uint32_t *o_histo,
-                    double *o_cumul,
-                    int i_opt_flags,
-                    HISTO_WEIGHT_T i_weight_min,
-                    HISTO_WEIGHT_T i_weight_max)
+                        (HISTO_SAMPLE_T *i_sample,
+                         HISTO_WEIGHT_T *i_weights,
+                         int i_n_dim,
+                         int i_n_elem,
+                         HISTO_SAMPLE_T *i_bin_ranges,
+                         int *i_n_bin,
+                         uint32_t *o_histo,
+                         double *o_cumul,
+                         int i_opt_flags,
+                         HISTO_WEIGHT_T i_weight_min,
+                         HISTO_WEIGHT_T i_weight_max)
 {
     /* some counters */
     int i = 0;
@@ -28,7 +28,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
     HISTO_WEIGHT_T * weight_ptr = 0;
     HISTO_SAMPLE_T elem_coord = 0.;
     
-    /* computed bin index (i_sample -> i_grid) */
+    /* computed bin index (i_sample -> grid) */
     long bin_idx;
     
     /* ================================
@@ -36,13 +36,11 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
      * ================================
      */
     
-    short filt_min_weight = 0;
-    short filt_max_weight = 0;
-    short last_bin_closed = 0;
+    int filt_min_weight = 0;
+    int filt_max_weight = 0;
+    int last_bin_closed = 0;
     
-    /*
-     * Testing the option flags
-    */
+    /* Testing the option flags */
     if(i_opt_flags & HISTO_WEIGHT_MIN)
     {
         filt_min_weight = 1;
@@ -58,9 +56,8 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
         last_bin_closed = 1;
     }
     
-    /* ================================ */
-    
-    /* storing the min & max bin coordinates in their own arrays
+    /* storing the min & max bin coordinates in their own arrays because
+     * i_bin_ranges = [[min0, max0], [min1, max1], ...]
      * (mostly for the sake of clarity)
      * (maybe faster access too?)
      */
@@ -80,7 +77,23 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
         range[i] = g_max[i]-g_min[i];
     }
     
-    weight_ptr = i_weigths;
+    weight_ptr = i_weights;
+    
+    if(!i_weights)
+    {
+        /* if weights are not provided there no point in trying to filter them
+         * (!! careful if you change this, some code below relies on it !!)
+         */
+        filt_min_weight = 0;
+        filt_max_weight = 0;
+        
+        /* If the weights array is not provided then there is no point
+         * updating the weighted histogram, only the bin counts (o_histo)
+         * will be filled.
+         * (!! careful if you change this, some code below relies on it !!)
+         */
+        o_cumul = 0;
+    }
     
     /* tried to use pointers instead of indices here, but it didn't
      * seem any faster (probably because the compiler 
@@ -91,6 +104,10 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
         elem_idx<i_n_elem*i_n_dim;
         elem_idx+=i_n_dim, weight_ptr++)
     {
+        /* no testing the validity of weight_ptr here, because if it is NULL
+         * then filt_min_weight/filt_max_weight will be 0.
+         * (see code above)
+         */
         if(filt_min_weight && *weight_ptr<i_weight_min)
         {
             continue;
@@ -127,8 +144,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
              */
             if(elem_coord<g_max[i])
             {
-                /*
-                 * Warning : the following factorization seems to
+                /* Warning : the following factorization seems to
                  *  increase the effect of precision error.
                  * bin_idx = (long)floor(
                  *                   (bin_idx +
@@ -179,6 +195,9 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
         }
         if(o_cumul)
         {
+            /* not testing the pointer since o_cumul is null if 
+             * i_weights is null. 
+             */
             o_cumul[bin_idx] += *weight_ptr;
         }
         
@@ -188,10 +207,9 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
     free(g_max);
     free(range);
     
-    /*
-     * For now just returning 0 (OK) since all the checks are done in
+    /* For now just returning 0 (OK) since all the checks are done in
      * python. This might change later if people want to call this
-     * function directly from C (mights have to implement error codes).
+     * function directly from C (might have to implement error codes).
      */
     return 0;
 }
