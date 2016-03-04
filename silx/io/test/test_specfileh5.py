@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Tests for specfileh5r"""
+"""Tests for specfileh5"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -75,6 +75,7 @@ sftext = """#F /tmp/sf.dat
 3.0 3.1 3.2 3.3
 
 #S 1 aaaaaa
+#D Thu Feb 11 10:00:32 2016
 #@MCADEV 1
 #@MCA %16C
 #@CHANN 3 0 2 1
@@ -199,6 +200,8 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/25.1/title"],
                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
 
+    # MCA groups and datasets are duplicated:
+    # /1.2/measurement/mca_0/ and /1.2/instrument/mca_0/
     def test_visit(self):
         # scan 1.1 has 15 members (6 generic + 3 data cols + 6 motors)
         # scan 25.1 has 16 members (6 generic + 4 data cols + 6 motors)
