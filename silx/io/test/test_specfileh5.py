@@ -177,7 +177,7 @@ class TestSpecFileH5(unittest.TestCase):
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
         # MRTSlit DOWN position is defined in #P0 san header line
-        self.assertAlmostEqual(positioners_group["MRTSlit DOWN"],
+        self.assertAlmostEqual(float(positioners_group["MRTSlit DOWN"]),
                                0.87125)
         # MRTSlit UP position is defined in first data column
         for a, b in zip(positioners_group["MRTSlit UP"].tolist(),
