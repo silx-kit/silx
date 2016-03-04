@@ -261,19 +261,21 @@ def histogramnd(sample,
                         'and weights:{1}.'
                         ''.format(sample_type, weights_type))
 
-    sample_c = sample.reshape((sample.size,))
+    sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
 
-    weights_c = (weights.reshape((weights.size,))
+    weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
                  if weights is not None else None)
 
-    bins_rng_c = bins_rng.reshape((bins_rng.size,)).astype(sample_type)
+    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
+                                      dtype=sample_type)
 
-    n_bins_c = n_bins.reshape((n_bins.size,)).astype(np.int32)
+    n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
+                                    dtype=np.int32)
 
-    histo_c = histo.reshape((histo.size,))
+    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
 
     if cumul is not None:
-        cumul_c = cumul.reshape((cumul.size,))
+        cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))
     else:
         cumul_c = None
 
