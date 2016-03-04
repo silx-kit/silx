@@ -25,8 +25,9 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/02/2016"
+__date__ = "04/03/2016"
 
+import gc
 import logging
 from numpy import float32
 import os
@@ -113,7 +114,10 @@ class TestSpecFileH5(unittest.TestCase):
         self.sfh5 = SpecFileH5(self.fname)
 
     def tearDown(self):
+        # attempt to fix Win32 permission error when deleting temp file
+        del self.sfh5._sf
         del self.sfh5
+        gc.collect()
 
     def test_data_column(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
