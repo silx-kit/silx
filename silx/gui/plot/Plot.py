@@ -1297,8 +1297,8 @@ class Plot(object):
                     self._backend.setActiveCurve(handle, True,
                                                  self.getActiveCurveColor())
 
-                xLabel = self._curves[self._activeCurve]['xlabel']
-                yLabel = self._curves[self._activeCurve]['ylabel']
+                xLabel = self._curves[self._activeCurve]['params']['xlabel']
+                yLabel = self._curves[self._activeCurve]['params']['ylabel']
                 # TODO y2 axis case
 
         # Store current labels and update plot
