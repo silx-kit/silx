@@ -37,6 +37,12 @@ from silx.gui.test.utils import TestCaseQt
 
 from silx.gui.plot import PlotWidget
 
+SIZE = 1024
+"""Size of the test image"""
+
+DATA_2D = numpy.arange(SIZE ** 2).reshape(SIZE, SIZE)
+"""Image data set"""
+
 
 class _PlotWidgetTest(TestCaseQt):
     """Base class for tests of PlotWidget, not a TestCase in itself.
@@ -80,12 +86,8 @@ class TestPlotWidget(_PlotWidgetTest):
 class TestPlotImage(_PlotWidgetTest):
     """Basic tests for addImage"""
 
-    SIZE = 1024
-    """Size of the test image"""
-
     def setUp(self):
         super(TestPlotImage, self).setUp()
-        self.data = numpy.arange(self.SIZE ** 2).reshape(self.SIZE, self.SIZE)
 
         self.plot.setGraphYLabel('Rows')
         self.plot.setGraphXLabel('Columns')
@@ -96,7 +98,7 @@ class TestPlotImage(_PlotWidgetTest):
         colormap = {'name': 'temperature', 'normalization': 'linear',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -109,7 +111,7 @@ class TestPlotImage(_PlotWidgetTest):
         colormap = {'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -121,7 +123,7 @@ class TestPlotImage(_PlotWidgetTest):
         colormap = {'name': 'temperature', 'normalization': 'log',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -156,6 +158,12 @@ class TestPlotImage(_PlotWidgetTest):
 class TestPlotCurve(_PlotWidgetTest):
     """Basic tests for addCurve."""
 
+    # Test data sets
+    xData = numpy.arange(1000)
+    yData = -500 + 100 * numpy.sin(xData)
+    xData2 = xData + 1000
+    yData2 = xData - 1000 + 200 * numpy.random.random(1000)
+
     def setUp(self):
         super(TestPlotCurve, self).setUp()
         self.plot.setGraphTitle('Curve')
@@ -163,11 +171,6 @@ class TestPlotCurve(_PlotWidgetTest):
         self.plot.setGraphXLabel('Columns')
 
         self.plot.enableActiveCurveHandling(False)
-
-        self.xData = numpy.arange(1000)
-        self.yData = -500 + 100 * numpy.sin(self.xData)
-        self.xData2 = self.xData + 1000
-        self.yData2 = self.xData - 1000 + 200 * numpy.random.random(1000)
 
     def testPlotCurveColorFloat(self):
         color = numpy.array(numpy.random.random(3 * 1000),
@@ -295,32 +298,32 @@ class TestPlotMarker(_PlotWidgetTest):
 class TestPlotItem(_PlotWidgetTest):
     """Basic tests for addItem."""
 
+    # Polygon coordinates and color
+    polygons = [  # legend, x coords, y coords, color
+        ('triangle', numpy.array((10, 30, 50)),
+         numpy.array((55, 70, 55)), 'red'),
+        ('square', numpy.array((10, 10, 50, 50)),
+         numpy.array((10, 50, 50, 10)), 'green'),
+        ('star', numpy.array((60, 70, 80, 60, 80)),
+         numpy.array((25, 50, 25, 40, 40)), 'blue'),
+    ]
+
+    # Rectangle coordinantes and color
+    rectangles = [  # legend, x coords, y coords, color
+        ('square 1', numpy.array((1., 10.)),
+         numpy.array((1., 10.)), 'red'),
+        ('square 2', numpy.array((10., 20.)),
+         numpy.array((10., 20.)), 'green'),
+        ('square 3', numpy.array((20., 30.)),
+         numpy.array((20., 30.)), 'blue'),
+        ('rect 1', numpy.array((1., 30.)),
+         numpy.array((35., 40.)), 'black'),
+        ('line h', numpy.array((1., 30.)),
+         numpy.array((45., 45.)), 'darkRed'),
+    ]
+
     def setUp(self):
         super(TestPlotItem, self).setUp()
-
-        # Polygon coordinates and color
-        self.polygons = [  # legend, x coords, y coords, color
-            ('triangle', numpy.array((10, 30, 50)),
-             numpy.array((55, 70, 55)), 'red'),
-            ('square', numpy.array((10, 10, 50, 50)),
-             numpy.array((10, 50, 50, 10)), 'green'),
-            ('star', numpy.array((60, 70, 80, 60, 80)),
-             numpy.array((25, 50, 25, 40, 40)), 'blue'),
-        ]
-
-        # Rectangle coordinantes and color
-        self.rectangles = [  # legend, x coords, y coords, color
-            ('square 1', numpy.array((1., 10.)),
-             numpy.array((1., 10.)), 'red'),
-            ('square 2', numpy.array((10., 20.)),
-             numpy.array((10., 20.)), 'green'),
-            ('square 3', numpy.array((20., 30.)),
-             numpy.array((20., 30.)), 'blue'),
-            ('rect 1', numpy.array((1., 30.)),
-             numpy.array((35., 40.)), 'black'),
-            ('line h', numpy.array((1., 30.)),
-             numpy.array((45., 45.)), 'darkRed'),
-        ]
 
         self.plot.setGraphYLabel('Rows')
         self.plot.setGraphXLabel('Columns')
@@ -389,10 +392,12 @@ class TestPlotEmptyLog(_PlotWidgetTest):
 class TestPlotCurveLog(_PlotWidgetTest):
     """Basic tests for addCurve with log scale axes"""
 
+    # Test data
+    xData = numpy.arange(1000) + 1
+    yData = xData ** 2
+
     def setUp(self):
         super(TestPlotCurveLog, self).setUp()
-        self.xData = numpy.arange(1000) + 1
-        self.yData = self.xData ** 2
 
         self.plot.setGraphXLabel('X')
         self.plot.setGraphYLabel('X * X')
@@ -437,12 +442,8 @@ class TestPlotCurveLog(_PlotWidgetTest):
 class TestPlotImageLog(_PlotWidgetTest):
     """Basic tests for addImage with log scale axes."""
 
-    SIZE = 1024
-    """Size of the test image"""
-
     def setUp(self):
         super(TestPlotImageLog, self).setUp()
-        self.data = numpy.arange(self.SIZE ** 2).reshape(self.SIZE, self.SIZE)
 
         self.plot.setGraphXLabel('Columns')
         self.plot.setGraphYLabel('Rows')
@@ -454,7 +455,7 @@ class TestPlotImageLog(_PlotWidgetTest):
         colormap = {'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -467,7 +468,7 @@ class TestPlotImageLog(_PlotWidgetTest):
         colormap = {'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -481,7 +482,7 @@ class TestPlotImageLog(_PlotWidgetTest):
         colormap = {'name': 'gray', 'normalization': 'linear',
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
-        self.plot.addImage(self.data, legend="image 1",
+        self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
                            replace=False, replot=False, colormap=colormap)
         self.plot.resetZoom()
@@ -516,17 +517,17 @@ class TestPlotImageLog(_PlotWidgetTest):
 class TestPlotMarkerLog(_PlotWidgetTest):
     """Basic tests for markers on log scales"""
 
+    # Test marker parameters
+    markers = [  # x, y, color, selectable, draggable
+        (10., 10., 'blue', False, False),
+        (20., 20., 'red', False, False),
+        (40., 100., 'green', True, False),
+        (40., 500., 'gray', True, True),
+        (60., 800., 'black', False, True),
+    ]
+
     def setUp(self):
         super(TestPlotMarkerLog, self).setUp()
-
-        # Test marker parameters
-        self.markers = [  # x, y, color, selectable, draggable
-            (10., 10., 'blue', False, False),
-            (20., 20., 'red', False, False),
-            (40., 100., 'green', True, False),
-            (40., 500., 'gray', True, True),
-            (60., 800., 'black', False, True),
-        ]
 
         self.plot.setGraphYLabel('Rows')
         self.plot.setGraphXLabel('Columns')
@@ -580,32 +581,32 @@ class TestPlotMarkerLog(_PlotWidgetTest):
 class TestPlotItemLog(_PlotWidgetTest):
     """Basic tests for items with log scale axes"""
 
+    # Polygon coordinates and color
+    polygons = [  # legend, x coords, y coords, color
+        ('triangle', numpy.array((10, 30, 50)),
+         numpy.array((55, 70, 55)), 'red'),
+        ('square', numpy.array((10, 10, 50, 50)),
+         numpy.array((10, 50, 50, 10)), 'green'),
+        ('star', numpy.array((60, 70, 80, 60, 80)),
+         numpy.array((25, 50, 25, 40, 40)), 'blue'),
+    ]
+
+    # Rectangle coordinantes and color
+    rectangles = [  # legend, x coords, y coords, color
+        ('square 1', numpy.array((1., 10.)),
+         numpy.array((1., 10.)), 'red'),
+        ('square 2', numpy.array((10., 20.)),
+         numpy.array((10., 20.)), 'green'),
+        ('square 3', numpy.array((20., 30.)),
+         numpy.array((20., 30.)), 'blue'),
+        ('rect 1', numpy.array((1., 30.)),
+         numpy.array((35., 40.)), 'black'),
+        ('line h', numpy.array((1., 30.)),
+         numpy.array((45., 45.)), 'darkRed'),
+    ]
+
     def setUp(self):
         super(TestPlotItemLog, self).setUp()
-
-        # Polygon coordinates and color
-        self.polygons = [  # legend, x coords, y coords, color
-            ('triangle', numpy.array((10, 30, 50)),
-             numpy.array((55, 70, 55)), 'red'),
-            ('square', numpy.array((10, 10, 50, 50)),
-             numpy.array((10, 50, 50, 10)), 'green'),
-            ('star', numpy.array((60, 70, 80, 60, 80)),
-             numpy.array((25, 50, 25, 40, 40)), 'blue'),
-        ]
-
-        # Rectangle coordinantes and color
-        self.rectangles = [  # legend, x coords, y coords, color
-            ('square 1', numpy.array((1., 10.)),
-             numpy.array((1., 10.)), 'red'),
-            ('square 2', numpy.array((10., 20.)),
-             numpy.array((10., 20.)), 'green'),
-            ('square 3', numpy.array((20., 30.)),
-             numpy.array((20., 30.)), 'blue'),
-            ('rect 1', numpy.array((1., 30.)),
-             numpy.array((35., 40.)), 'black'),
-            ('line h', numpy.array((1., 30.)),
-             numpy.array((45., 45.)), 'darkRed'),
-        ]
 
         self.plot.setGraphYLabel('Rows')
         self.plot.setGraphXLabel('Columns')
