@@ -197,10 +197,6 @@ class BackendBase(object):
 
     # Remove methods
 
-    def clear(self):
-        """Remove all items from the plot."""
-        raise NotImplementedError()
-
     def remove(self, item):
         """Remove an existing item from the plot.
 

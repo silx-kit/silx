@@ -1065,7 +1065,6 @@ class Plot(object):
         self.clearImages(replot=False)
         self.clearItems(replot=False)
 
-        self._backend.clear()
         self._setDirtyPlot()
 
         if replot:

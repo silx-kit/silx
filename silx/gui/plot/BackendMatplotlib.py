@@ -456,10 +456,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     # Remove methods
 
-    def clear(self):
-        self.ax.clear()
-        self.ax2.clear()
-
     def remove(self, item):
         # Warning: It also needs to remove extra stuff if added as for markers
         if hasattr(item, "_infoText"):  # For markers text
@@ -581,8 +577,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 if self.ax2.get_visible():
                     xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
                 else:
-                    xmin2 = None
-                    xmax2 = None
+                    xmin2, xmax2, ymin2, ymax2 = None, None, None, None
             else:
                 xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
 
@@ -591,19 +586,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 xmax = max(xmax, xmax2)
 
             # Add margins around data inside the plot area
-            if xmin2 is None:
-                newLimits = _utils.addMarginsToLimits(
-                    dataMargins,
-                    self.ax.get_xscale() == 'log',
-                    self.ax.get_yscale() == 'log',
-                    xmin, xmax, ymin, ymax)
-
-            else:
-                newLimits = _utils.addMarginsToLimits(
-                    dataMargins,
-                    self.ax.get_xscale() == 'log',
-                    self.ax.get_yscale() == 'log',
-                    xmin, xmax, ymin, ymax, ymin2, ymax2)
+            newLimits = _utils.addMarginsToLimits(
+                dataMargins,
+                self.ax.get_xscale() == 'log',
+                self.ax.get_yscale() == 'log',
+                xmin, xmax, ymin, ymax, ymin2, ymax2)
 
             self.setLimits(*newLimits)
 
@@ -626,6 +613,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             axes = self.ax
         _logger.debug("CALCULATING limits %s", axes.get_label())
         xmin = None
+
         for line2d in axes.lines:
             label = line2d.get_label()
             if label.startswith("__MARKER__"):
@@ -718,11 +706,13 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 xmax = max(xmax, x1)
 
         if xmin is None:
-            xmin = 0
-            xmax = 1
-            ymin = 0
-            ymax = 1
+            _logger.debug('Did not found any limits, set to default')
+            xmin = 1
+            xmax = 100
+            ymin = 1
+            ymax = 100
             if axesLabel == 'right':
+                _logger.debug('Returning None')
                 return None, None, None, None
 
         xSize = float(xmax - xmin)
