@@ -114,8 +114,7 @@ class TestSpecFileH5(unittest.TestCase):
         self.sfh5 = SpecFileH5(self.fname)
 
     def tearDown(self):
-        # attempt to fix Win32 permission error when deleting temp file
-        del self.sfh5._sf
+        # fix Win32 permission error when deleting temp file
         del self.sfh5
         gc.collect()
 
@@ -145,6 +144,8 @@ class TestSpecFileH5(unittest.TestCase):
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
+        self.assertEqual(self.sfh5["1.2"].attrs,
+                         {"NX_class": "NXentry", })
 
     def test_mca_calib(self):
         mca0_calib = self.sfh5["/1.2/measurement/mca_0/info/calibration"]
@@ -177,6 +178,8 @@ class TestSpecFileH5(unittest.TestCase):
         # sum 3rd MCA in scan 1.2 along both axis
         mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
         self.assertAlmostEqual(sum(sum(mca_2_data)), 9.1, places=5)
+        # attrs
+        self.assertEqual(mca_0_data.attrs, {"intepretation": "spectrum"})
 
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
@@ -193,8 +196,8 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(len(self.sfh5["1.2"]["measurement"]), 5)
 
     def test_title(self):
-         self.assertEqual(self.sfh5["/25.1/title"],
-                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
+        self.assertEqual(self.sfh5["/25.1/title"],
+                         "25  ascan  c3th 1.33245 1.52245  40 0.15")
 
     def test_visit(self):
         # scan 1.1 has 15 members (6 generic + 3 data cols + 6 motors)

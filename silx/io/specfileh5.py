@@ -111,6 +111,7 @@ mca_subgroups = ["data", "info"]
 mca_info_subgroups = ["calibration", "channels"]
 
 # Patterns for group keys
+root_pattern = re.compile(r"/$")
 scan_pattern = re.compile(r"/[0-9]+\.[0-9]+/?$")
 instrument_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/?$")
 positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/?$")
@@ -131,6 +132,48 @@ mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/cal
 mca_calib_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/calibration$")
 mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/channels$")
 mca_chann_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/channels$")
+
+# Associate pattern to its attributes
+pattern_attrs = {
+    root_pattern:
+        {"NX_class": "NXroot", },
+    scan_pattern:
+        {"NX_class": "NXentry", },
+    instrument_pattern:
+        {"NX_class": "NXinstrument", },
+    positioners_group_pattern:
+        {"NX_class": "", },
+    measurement_group_pattern:
+        {"NX_class": "measurement", },
+    mca_group_pattern:
+        {"NX_class": "NXsubentry", },
+    mca_group_pattern2:
+        {"NX_class": "NXsubentry", },
+    mca_info_pattern:
+        {"NX_class": "", },
+    mca_info_pattern2:
+        {"NX_class": "", },
+    title_pattern:
+        {},
+    start_time_pattern:
+        {},
+    positioners_data_pattern:
+        {},
+    measurement_data_pattern:
+        {},
+    mca_data_pattern:
+        {"intepretation": "spectrum", },
+    mca_data_pattern2:
+        {"intepretation": "spectrum", },
+    mca_calib_pattern:
+        {},
+    mca_calib_pattern2:
+        {},
+    mca_chann_pattern:
+        {},
+    mca_chann_pattern2:
+        {},
+}
 
 
 def is_group(name):
@@ -177,12 +220,11 @@ def spec_date_to_iso8601(date, zone=None):
 
     :param date: Date in SpecFile format
     :type date: str
+    :param zone: Time zone as it appears in a ISO8601 date
 
     Example:
 
-        ``spec_date_to_iso8601("Thu Feb 11 09:54:35 2016")``
-
-        `` => "2016-02-11T09:54:35"``
+        ``spec_date_to_iso8601("Thu Feb 11 09:54:35 2016") => "2016-02-11T09:54:35"``
     """
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
               'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -195,6 +237,18 @@ def spec_date_to_iso8601(date, zone=None):
         return "%s-%s-%sT%s" % (year, month, day, hour)
     else:
         return "%s-%s-%sT%s%s" % (year, month, day, hour, zone)
+
+
+def _get_attrs_dict(name):
+    """Return attributes dictionary corresponding to the group or dataset
+    pointed to by name.
+
+    :param name: Full name/path to data or group
+    :return: attributes dictionary
+    """
+    for pattern in pattern_attrs:
+        if pattern.match(name):
+            return pattern_attrs[pattern]
 
 
 # For documentation on subclassing numpy.ndarray,
@@ -234,6 +288,9 @@ class SpecFileH5Dataset(numpy.ndarray):
 
         obj.name = name
         obj.value = obj
+
+        obj.attrs = _get_attrs_dict(name)
+
         return obj
 
     def __array_finalize__(self, obj):
@@ -241,6 +298,7 @@ class SpecFileH5Dataset(numpy.ndarray):
             return
         self.name = getattr(obj, 'name', None)
         self.value = getattr(obj, 'value', None)
+        self.attrs = getattr(obj, 'attrs', None)
 
 
 def _dataset_builder(name, specfileh5):
@@ -364,6 +422,9 @@ class SpecFileH5Group(object):
 
         self._sfh5 = specfileh5
         """Parent SpecFileH5 object"""
+
+        self.attrs = _get_attrs_dict(name)
+        """Attributes dictionary"""
 
         match = re.match(r"/([0-9]+\.[0-9]+)", name)
         if name != "/":
@@ -540,9 +601,11 @@ class SpecFileH5(SpecFileH5Group):
         instrument_group = sfh5["/1.1/instrument"]
     """
     def __init__(self, filename):
-        super(SpecFileH5, self).__init__("/", self)
+        super(SpecFileH5, self).__init__(name="/",
+                                         specfileh5=self)
 
         self.filename = filename
+        self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
         # self._scan = None
 
