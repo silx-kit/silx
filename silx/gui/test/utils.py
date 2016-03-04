@@ -63,6 +63,10 @@ else:
     _qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
+# Init QApplication once for all
+_qapp = qt.QApplication([])
+
+
 class TestCaseQt(unittest.TestCase):
     """Base class to write test for Qt stuff.
 
@@ -70,8 +74,6 @@ class TestCaseQt(unittest.TestCase):
     WARNING: The QApplication is shared by all tests, which might have side
     effects.
     """
-
-    _qapp = None  # Placeholder for the QApplication
 
     DEFAULT_TIMEOUT_WAIT = 100
     """Default timeout for qWait"""
@@ -87,20 +89,20 @@ class TestCaseQt(unittest.TestCase):
     QTest = QTest
     """The Qt QTest class from the used Qt binding."""
 
-    def setUp(self):
-        """Test fixture making sure a QApplication is running."""
-        if self._qapp is None:
-            TestCaseQt._qapp = qt.QApplication([])  # Store as a class attr
-
     def tearDown(self):
         """Test fixture checking that no more widgets exists."""
         gc.collect()
 
-        widgets = [widget for widget in self._qapp.allWidgets()
-                   if widget != self._qapp.desktop()]
+        widgets = [widget for widget in self.qapp.allWidgets()
+                   if widget != self.qapp.desktop()]
         if widgets:
             raise RuntimeError(
                 "Test ended with widgets alive: %s", str(widgets))
+
+    @property
+    def qapp(self):
+        """The QApplication currently running."""
+        return qt.QApplication.instance()
 
     # Proxy to QTest
 
