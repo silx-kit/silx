@@ -172,17 +172,17 @@ class TestSpecFileH5(unittest.TestCase):
 
         # sum 3rd MCA in scan 1.2 along both axis
         mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
-        self.assertAlmostEqual(mca_2_data.sum(), 9.1, places=4)
+        self.assertAlmostEqual(sum(sum(mca_2_data)), 9.1, places=5)
 
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
         # MRTSlit DOWN position is defined in #P0 san header line
         self.assertAlmostEqual(positioners_group["MRTSlit DOWN"],
-                              0.87125)
+                               0.87125)
         # MRTSlit UP position is defined in first data column
         for a, b in zip(positioners_group["MRTSlit UP"].tolist(),
                         [-1.23, 8.478100E+01, 3.14, 1.2]):
-            self.assertAlmostEqual(a, b, places=4)
+            self.assertAlmostEqual(float(a), b, places=4)
 
     def test_number_of_mca_analysers(self):
         """Scan 1.2 has 2 data columns + 3 mca spectra per data line."""
