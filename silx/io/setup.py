@@ -58,8 +58,8 @@ elif os.name.lower().startswith('posix'):
 else:
     define_macros = []
 
-current_dir = os.path.dirname(__file__)
 def configuration(parent_package='', top_path=None):
+    current_dir = os.path.dirname(__file__)
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('test')
 
