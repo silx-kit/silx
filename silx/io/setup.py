@@ -23,9 +23,9 @@
 #
 # ###########################################################################*/
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "V.A. Solé"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
+__date__ = "05/03/2016"
 
 import os
 import sys
@@ -50,9 +50,6 @@ if sys.platform == "win32":
     define_macros = [('WIN32',None)]
 elif os.name.lower().startswith('posix'):
     define_macros = [('SPECFILE_POSIX', None)]
-    #this one is more efficient but keeps the locale
-    #changed for longer time
-    #define_macros = [('PYMCA_POSIX', None)]
     #the best choice is to have _GNU_SOURCE defined
     #as a compilation flag because that allows the
     #use of strtod_l
@@ -61,21 +58,22 @@ elif os.name.lower().startswith('posix'):
 else:
     define_macros = []
 
-
 def configuration(parent_package='', top_path=None):
+    current_dir = os.path.dirname(__file__)
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('test')
 
     srcfiles = ['sfheader','sfinit','sflists','sfdata','sfindex',
                 'sflabel' ,'sfmca', 'sftools','locale_management']
-    sources = ['specfile/src/'+ffile+'.c' for ffile in srcfiles]
-    sources.append('specfile/specfile.pyx')
+    sources = [os.path.join(current_dir, 'specfile', 'src', ffile+'.c') for ffile in srcfiles]
+    sources.append(os.path.join(current_dir, 'specfile', 'specfile.pyx'))
 
 
     config.add_extension('specfile',
                          sources=sources,
                          define_macros = define_macros,
-                         include_dirs = ['specfile/include', numpy.get_include()],
+                         include_dirs = [os.path.join(current_dir, 'specfile', 'include'),
+                                         numpy.get_include()],
                          language='c')
 
     return config
