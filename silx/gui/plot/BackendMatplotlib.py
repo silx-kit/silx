@@ -337,7 +337,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
-        if shape == "hline":
+        if shape == "line":
+            item = self.ax.plot(x, y, label=legend, color=color,
+                                linestyle='-', marker=None)[0]
+
+        elif shape == "hline":
             if hasattr(y, "__len__"):
                 y = y[-1]
             item = self.ax.axhline(y, label=legend, color=color)
