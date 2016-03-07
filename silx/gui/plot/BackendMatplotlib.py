@@ -663,7 +663,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     lineYMin = line2d._plot_info["ymin"]
                     lineYMax = line2d._plot_info["ymax"]
             if lineXMin is None:
-                _logger.warning("CANNOT CALCULATE LIMITS")
+                _logger.debug("CANNOT CALCULATE LIMITS")
                 continue
             if xmin is None:
                 xmin = lineXMin

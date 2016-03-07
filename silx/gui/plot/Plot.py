@@ -591,9 +591,6 @@ class Plot(object):
         if kw:
             _logger.warning('addImage: deprecated extra arguments')
 
-        if pixmap is not None:
-            _logger.warning('addImage: deprecated pixmap argument')
-
         legend = "Unnamed Image 1.1" if legend is None else str(legend)
 
         # Check/Convert input arguments
@@ -614,7 +611,7 @@ class Plot(object):
         if draggable is not None:
             draggable = bool(draggable)
 
-        if pixmap is not None:  # TODO remove this from the API!
+        if pixmap is not None:
             pixmap = numpy.asarray(pixmap)
 
         if xlabel is not None:
@@ -657,7 +654,7 @@ class Plot(object):
             self.removeImage(legend, replot=False)
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
-            _logger.warning('Hide image while axes has log scale.')
+            _logger.info('Hide image while axes has log scale.')
 
         if (data is not None and not self.isXAxisLogarithmic() and
                 not self.isYAxisLogarithmic()):
