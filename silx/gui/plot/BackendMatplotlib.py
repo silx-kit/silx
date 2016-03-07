@@ -122,8 +122,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                  yaxis,
                  xerror, yerror, z, selectable,
                  fill):
-        assert None not in (x, y, legend, color, symbol, linewidth, linestyle,
-                            yaxis, z, selectable, fill)
+        for parameter in (x, y, legend, color, symbol, linewidth, linestyle,
+                          yaxis, z, selectable, fill):
+            assert parameter is not None
         assert yaxis in ('left', 'right')
 
         if (len(color) == 4 and
@@ -216,8 +217,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        assert None not in (data, legend, xScale, yScale, z,
-                            selectable, draggable)
+        for parameter in (data, legend, xScale, yScale, z,
+                          selectable, draggable):
+            assert parameter is not None
 
         h, w = data.shape[0:2]
         xmin = xScale[0]
