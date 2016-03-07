@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Solé"]
 __license__ = "MIT"
-__date__ = "05/03/2016"
+__date__ = "07/03/2016"
 
 import os
 import sys
@@ -81,4 +81,4 @@ def configuration(parent_package='', top_path=None):
 if __name__ == "__main__":
     from numpy.distutils.core import setup
 
-    setup(configuration=configuration())
+    setup(configuration=configuration)
