@@ -201,9 +201,14 @@ _COLORLIST = [_COLORDICT['black'],
 class Plot(object):
     """This class implements the plot API initially provided in PyMca.
 
+    Supported backends:
+
+    - 'matplotlib' and 'mpl': Matplotlib with Qt.
+    - 'none': No backend, to run headless for testing purpose.
+
     :param parent: The parent widget of the plot (Default: None)
     :param backend: The backend to use. A str in:
-                    'matplotlib', 'mpl'
+                    'matplotlib', 'mpl', 'none'
                     or a :class:`BackendBase.BackendBase` class
     """
 
@@ -227,6 +232,8 @@ class Plot(object):
             if lowerCaseString in ("matplotlib", "mpl"):
                 from .BackendMatplotlib import BackendMatplotlibQt as \
                     backendClass
+            elif lowerCaseString == 'none':
+                from .BackendBase import BackendBase as backendClass
             else:
                 raise ValueError("Backend not supported %s" % backend)
             self._backend = backendClass(self, parent)

@@ -22,21 +22,54 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for Plot"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "02/03/2016"
 
 
 import unittest
 
-from .testInteraction import suite as testInteractionSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlot import suite as testPlotSuite
+import numpy
+
+from silx.gui.plot.Plot import Plot
+
+
+class TestPlot(unittest.TestCase):
+    """Basic tests of Plot without backend"""
+
+    def testPlotTitleLabels(self):
+        """Create a Plot and set the labels"""
+
+        plot = Plot(backend='none')
+
+        title, xlabel, ylabel = 'the title', 'x label', 'y label'
+        plot.setGraphTitle(title)
+        plot.setGraphXLabel(xlabel)
+        plot.setGraphYLabel(ylabel)
+
+        self.assertEqual(plot.getGraphTitle(), title)
+        self.assertEqual(plot.getGraphXLabel(), xlabel)
+        self.assertEqual(plot.getGraphYLabel(), ylabel)
+
+    def testAddNoRemove(self):
+        """add objects to the Plot"""
+
+        plot = Plot(backend='none')
+        plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))
+        plot.addImage(numpy.arange(100.).reshape(10, -1))
+        plot.addItem(
+            numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
+        plot.insertXMarker(10.)
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(testInteractionSuite())
-    test_suite.addTest(testPlotWidgetSuite())
-    test_suite.addTest(testPlotSuite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlot))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

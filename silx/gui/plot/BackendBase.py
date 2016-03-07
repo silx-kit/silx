@@ -54,6 +54,10 @@ class BackendBase(object):
         :param Plot plot: The Plot this backend is attached to
         :param parent: The parent widget of the plot widget.
         """
+        self.__xLimits = 1., 100.
+        self.__yLimits = {'left': (1., 100.), 'right': (1., 100.)}
+        self.__yAxisInverted = False
+        self.__keepDataAspectRatio = False
         # Store a weakref to get access to the plot state.
         self._setPlot(plot)
 
@@ -118,7 +122,7 @@ class BackendBase(object):
         :param bool selectable: indicate if the curve can be selected
         :returns: The handle used by the backend to univocally access the curve
         """
-        raise NotImplementedError()
+        return legend
 
     def addImage(self, data, legend,
                  xScale, yScale, z,
@@ -141,7 +145,7 @@ class BackendBase(object):
         :type colormap: dict or None
         :returns: The handle used by the backend to univocally access the image
         """
-        raise NotImplementedError()
+        return legend
 
     def addItem(self, x, y, legend, shape, color, fill, overlay):
         """Add an item (i.e. a shape) to the plot.
@@ -155,11 +159,11 @@ class BackendBase(object):
         :param bool overlay: True if item is an overlay, False otherwise
         :returns: The handle used by the backend to univocally access the item
         """
-        raise NotImplementedError()
+        return legend
 
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
-                  symbol, constraint):
+                  symbol, constraint, overlay):
         """Add a point, vertical line or horizontal line marker to the plot.
 
         :param float x: Horizontal position of the marker in graph coordinates.
@@ -191,9 +195,12 @@ class BackendBase(object):
         :type constraint: None or a callable that takes the coordinates of
                           the current cursor position in the plot as input
                           and that returns the filtered coordinates.
+        :param bool overlay: True if marker is an overlay (Default: False).
+                             This allows for rendering optimization if this
+                             marker is changed often.
         :return: Handle used by the backend to univocally access the marker
         """
-        raise NotImplementedError()
+        return legend
 
     # Remove methods
 
@@ -202,7 +209,7 @@ class BackendBase(object):
 
         :param item: A backend specific item handle returned by a add* method
         """
-        raise NotImplementedError()
+        pass
 
     # Interaction methods
 
@@ -263,17 +270,17 @@ class BackendBase(object):
                             to its initial color.
         :param str color: The color to use.
         """
-        raise NotImplementedError()
+        pass
 
     # Misc.
 
     def getWidgetHandle(self):
         """Return the widget this backend is drawing to."""
-        raise NotImplementedError()
+        return None
 
     def replot(self):
         """Redraw the plot."""
-        raise NotImplementedError()
+        pass
 
     def saveGraph(self, fileName, fileFormat, dpi):
         """Save the graph to a file (or a StringIO)
@@ -283,7 +290,7 @@ class BackendBase(object):
         :param str fileFormat: String specifying the format
         :param int dpi: The resolution to use or None.
         """
-        raise NotImplementedError()
+        pass
 
     # Graph labels
 
@@ -292,14 +299,14 @@ class BackendBase(object):
 
         :param str title: Title associated to the plot
         """
-        raise NotImplementedError()
+        pass
 
     def setGraphXLabel(self, label):
         """Set the X axis label.
 
         :param str label: label associated to the plot bottom X axis
         """
-        raise NotImplementedError()
+        pass
 
     def setGraphYLabel(self, label, axis):
         """Set the left Y axis label.
@@ -307,7 +314,7 @@ class BackendBase(object):
         :param str label: label associated to the plot left Y axis
         :param str axis: The axis for which to get the limits: left or right
         """
-        raise NotImplementedError()
+        pass
 
     # Graph limits
 
@@ -326,7 +333,7 @@ class BackendBase(object):
                             the plot area for each side
         :type dataMargins: A 4-tuple of float as (xMin, xMax, yMin, yMax).
         """
-        raise NotImplementedError()
+        pass
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         """Set the limits of the X and Y axes at once.
@@ -338,14 +345,17 @@ class BackendBase(object):
         :param float y2min: minimum right axis value
         :param float y2max: maximum right axis value
         """
-        raise NotImplementedError()
+        self.__xLimits = xmin, xmax
+        self.__yLimits['left'] = ymin, ymax
+        if ymin2 is not None and y2max is not None:
+            self.__yLimits['right'] = y2min, y2max
 
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
 
         :return:  Minimum and maximum values of the X axis
         """
-        raise NotImplementedError()
+        return self.__xLimits
 
     def setGraphXLimits(self, xmin, xmax):
         """Set the limits of X axis.
@@ -353,7 +363,7 @@ class BackendBase(object):
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         """
-        raise NotImplementedError()
+        self.__xLimits = xmin, xmax
 
     def getGraphYLimits(self, axis):
         """Get the graph Y (left) limits.
@@ -361,7 +371,7 @@ class BackendBase(object):
         :param str axis: The axis for which to get the limits: left or right
         :return: Minimum and maximum values of the Y axis
         """
-        raise NotImplementedError()
+        return self.__yLimits[axis]
 
     def setGraphYLimits(self, ymin, ymax, axis):
         """Set the limits of the Y axis.
@@ -370,7 +380,7 @@ class BackendBase(object):
         :param float ymax: maximum left axis value
         :param str axis: The axis for which to get the limits: left or right
         """
-        raise NotImplementedError()
+        self.__yLimits[axis] = ymin, ymax
 
     # Graph axes
 
@@ -379,43 +389,43 @@ class BackendBase(object):
 
         :param bool flag: If True, the bottom axis will use a log scale
         """
-        raise NotImplementedError()
+        pass
 
     def setYAxisLogarithmic(self, flag):
         """Set the Y axis scale between linear and log.
 
         :param bool flag: If True, the left axis will use a log scale
         """
-        raise NotImplementedError()
+        pass
 
     def invertYAxis(self, flag):
         """Invert the Y axis.
 
         :param bool flag: If True, put the vertical axis origin on the top
         """
-        raise NotImplementedError()
+        self.__yAxisInverted = bool(flag)
 
     def isYAxisInverted(self):
         """Return True if left Y axis is inverted, False otherwise."""
-        raise NotImplementedError()
+        return self.__yAxisInverted
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
-        raise NotImplementedError()
+        return self.__keepDataAspectRatio
 
     def keepDataAspectRatio(self, flag):
         """
         :param flag:  True to respect data aspect ratio
         :type flag: Boolean, default True
         """
-        raise NotImplementedError()
+        self.__keepDataAspectRatio = bool(flag)
 
     def showGrid(self, flag):
         """Set grid
 
         :param flag: False to disable grid, 1 or True for major grid,
                      2 for major and minor grid"""
-        raise NotImplementedError()
+        pass
 
     # colormap
 
