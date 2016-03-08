@@ -25,7 +25,13 @@
 #ifndef HISTOGRAMND_C_H
 #define HISTOGRAMND_C_H
 
-#include <inttypes.h>
+/* checking for MSVC version because VS 2008 doesnt fully support C99
+   so inttypes.h and stdint.h are not provided with the compiler. */
+#if defined(_MSC_VER) && _MSC_VER < 1600
+    #include "msvc/stdint.h"
+#else
+    #include <inttypes.h>
+#endif
 
 #include "templates.h"
 
