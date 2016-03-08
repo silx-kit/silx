@@ -268,7 +268,7 @@ def check_cython():
     """
 
     if "WITH_CYTHON" in os.environ:
-        return os.environ["WITH_CYTHON"] == "False"
+        return os.environ["WITH_CYTHON"] == "True"
 
     if "--no-cython" in sys.argv:
         sys.argv.remove("--no-cython")
