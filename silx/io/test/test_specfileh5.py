@@ -119,6 +119,26 @@ class TestSpecFileH5(unittest.TestCase):
         del self.sfh5
         gc.collect()
 
+    def test_contains_file(self):
+        self.assertIn("/1.2/measurement", self.sfh5)
+        self.assertIn("/25.1", self.sfh5)
+        self.assertIn("25.1", self.sfh5)
+        self.assertNotIn("25.2", self.sfh5)
+        self.assertNotIn("measurement", self.sfh5)
+        # Groups can have a trailing /, or omit it
+        self.assertIn("/1.2/measurement/mca_1/", self.sfh5)
+        self.assertIn("/1.2/measurement/mca_1", self.sfh5)
+        self.assertNotIn("/1.2/measurement/mca_8/info/calibration", self.sfh5)
+        self.assertIn("/1.2/measurement/mca_0/info/calibration", self.sfh5)
+        # Datasets can't have a trailing /
+        self.assertNotIn("/1.2/measurement/mca_0/info/calibration/ ", self.sfh5)
+
+    def test_contains_group(self):
+        self.assertIn("measurement", self.sfh5["/1.2/"])
+        self.assertIn("measurement", self.sfh5["/1.2"])
+        self.assertIn("25.1", self.sfh5["/"])
+        self.assertNotIn("25.2", self.sfh5["/"])
+
     def test_data_column(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
                                12.0)
