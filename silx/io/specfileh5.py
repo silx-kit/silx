@@ -157,7 +157,7 @@ def is_group(name):
     :rtype: boolean
     """
     list_of_group_patterns = (
-        scan_pattern, instrument_pattern,
+        root_pattern, scan_pattern, instrument_pattern,
         positioners_group_pattern, measurement_group_pattern,
         mca_group_pattern, mca_group_pattern2,
         mca_info_pattern, mca_info_pattern2
@@ -556,19 +556,14 @@ class SpecFileH5Group(object):
             scan_key = _get_scan_key_in_name(name)
             self._scan = self._sfh5._sf[scan_key]
 
-    def __repr__(self):
-        return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
+    def __contains__(self, key):
+        return key in self.keys()
 
     def __eq__(self, other):
         return (isinstance(other, SpecFileH5Group) and
                 self.name == other.name and
                 self._sfh5.filename == other._sfh5.filename and
                 self.keys() == other.keys())
-
-    def __len__(self):
-        """Return number of members attached to this group,
-        subgroups and datasets."""
-        return len(self.keys())
 
     def __getitem__(self, key):
         """Return a :class:`SpecFileH5Group` or a :class:`SpecFileH5Dataset`
@@ -600,9 +595,20 @@ class SpecFileH5Group(object):
         for key in self.keys():
             yield key
 
+    def __len__(self):
+        """Return number of members attached to this group,
+        subgroups and datasets."""
+        return len(self.keys())
+
+    def __repr__(self):
+        return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
+
     def keys(self):
         """:return: List of all names of members attached to this group
         """
+        if self.name == "/":
+            return self._sfh5.keys()
+
         if scan_pattern.match(self.name):
             return scan_subgroups
 
@@ -791,13 +797,11 @@ class SpecFileH5(SpecFileH5Group):
 
         # invalid key
         if not is_group(key) and not is_dataset(key):
-            print 1
             return False
 
         #  nonexistent scan in specfile
         scan_key = _get_scan_key_in_name(key)
         if not scan_in_specfile(self._sf, scan_key):
-            print 2
             return False
 
         #  nonexistent MCA analyser in scan
@@ -806,7 +810,6 @@ class SpecFileH5(SpecFileH5Group):
             if not mca_analyser_in_scan(self._sf,
                                         scan_key,
                                         mca_analyser_index):
-                print 3
                 return False
 
         #  nonexistent motor name
@@ -815,7 +818,6 @@ class SpecFileH5(SpecFileH5Group):
             if not motor_in_scan(self._sf,
                                  scan_key,
                                  motor_name):
-                print 4
                 return False
 
         #  nonexistent data column
@@ -824,7 +826,6 @@ class SpecFileH5(SpecFileH5Group):
             if not column_label_in_scan(self._sf,
                                         scan_key,
                                         column_label):
-                print 5
                 return False
 
         # title, start_time, existing scan/mca/motor/measurement
