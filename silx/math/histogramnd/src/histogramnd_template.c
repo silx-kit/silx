@@ -55,6 +55,10 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
     /* computed bin index (i_sample -> grid) */
     long bin_idx;
     
+    HISTO_SAMPLE_T * g_min = 0;
+    HISTO_SAMPLE_T * g_max = 0;
+    HISTO_SAMPLE_T * range = 0;
+    
     /* ================================
      * Parsing options, if any.
      * ================================
@@ -85,13 +89,10 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
      * (mostly for the sake of clarity)
      * (maybe faster access too?)
      */
-    HISTO_SAMPLE_T * g_min =
-            (HISTO_SAMPLE_T *) malloc(i_n_dim *sizeof(HISTO_SAMPLE_T));
-    HISTO_SAMPLE_T * g_max =
-            (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
+    g_min = (HISTO_SAMPLE_T *) malloc(i_n_dim *sizeof(HISTO_SAMPLE_T));
+    g_max = (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
     /* range used to convert from i_coords to bin indices in the grid */
-    HISTO_SAMPLE_T * range = 
-            (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
+    range = (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
             
     if(!g_min || !g_max || !range)
     {
