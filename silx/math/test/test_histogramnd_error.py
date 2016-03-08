@@ -29,7 +29,8 @@ __date__ = "01/02/2016"
 """
 Tests of the histogramnd function, error cases.
 """
-
+import sys
+import platform
 import unittest
 
 import numpy as np
@@ -155,6 +156,13 @@ class _TestHistogramnd_errors(unittest.TestCase):
         """
         """
         for err_h_shape in self.err_histo_shapes:
+
+            # windows & python 2.7 : numpy shapes are long values
+            if platform.system() == 'Windows':
+                version = (sys.version_info.major, sys.version_info.minor)
+                if version <= (2, 7):
+                    err_h_shape = tuple([long(val) for val in err_h_shape])
+
             test_msg = ('Testing invalid histo shape : {0}'
                         ''.format(err_h_shape))
 
@@ -210,6 +218,13 @@ class _TestHistogramnd_errors(unittest.TestCase):
         """
         # using the same values as histo
         for err_h_shape in self.err_histo_shapes:
+
+            # windows & python 2.7 : numpy shapes are long values
+            if platform.system() == 'Windows':
+                version = (sys.version_info.major, sys.version_info.minor)
+                if version <= (2, 7):
+                    err_h_shape = tuple([long(val) for val in err_h_shape])
+
             test_msg = ('Testing invalid cumul shape : {0}'
                         ''.format(err_h_shape))
 
@@ -408,7 +423,8 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
 # ==============================================================
 
 
-test_cases = (TestHistogramnd_ND_errors,)
+test_cases = (TestHistogramnd_1D_errors,
+              TestHistogramnd_ND_errors,)
 
 
 def suite():
