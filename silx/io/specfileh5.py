@@ -76,7 +76,7 @@ per scan data line. Demultiplexing is then performed to assign the correct
 spectra to a given analyser.
 
 MCA calibration is an array of 3 scalars, from the ``#@CALIB`` header line.
-It is considered identical for all MCA analysers, as there can be only one
+It is identical for all MCA analysers, as there can be only one
 ``#@CALIB`` line per scan.
 
 MCA channels is an array containing all channel numbers. This information is
@@ -133,10 +133,66 @@ mca_calib_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/cal
 mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/channels$")
 mca_chann_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/channels$")
 
+# MCA pattern used to find MCA analyser index
+general_mca_pattern = re.compile(r"/.*/mca_([0-9]+)[^0-9]*")
+
+def _bulk_match(string_, list_of_patterns):
+    """Check whether a string matches any regular expression pattern in a list
+
+    :param string_: String to match
+    :param list_of_patterns: List of regular expressions
+    :return: True or False
+    """
+    for pattern in list_of_patterns:
+        if pattern.match(string_):
+            return True
+    return False
+
+def is_group(name):
+    """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
+
+    :param name: Full name of member
+    :type name: str
+    :return: ``True`` if this member is a group
+    :rtype: boolean
+    """
+    list_of_group_patterns = (
+        scan_pattern, instrument_pattern,
+        positioners_group_pattern, measurement_group_pattern,
+        mca_group_pattern, mca_group_pattern2,
+        mca_info_pattern, mca_info_pattern2
+    )
+    return _bulk_match(name, list_of_group_patterns)
+
+
+def is_dataset(name):
+    """Check if ``name`` is a valid dataset in a :class:`SpecFileH5`.
+
+    :param name: Full name of member
+    :type name: str
+    :return: ``True`` if this member is a dataset
+    :rtype: boolean
+    """
+    # /1.1/measurement/mca_0 could be interpreted as a data column
+    # with label "mca_0"
+    if mca_group_pattern.match(name):
+        return False
+
+    list_of_data_patterns = (
+        title_pattern, start_time_pattern,
+        positioners_data_pattern, measurement_data_pattern,
+        mca_data_pattern, mca_data_pattern2,
+        mca_calib_pattern, mca_calib_pattern2,
+        mca_chann_pattern, mca_chann_pattern2
+    )
+    return _bulk_match(name, list_of_data_patterns)
+
+
 # Associate group and dataset patterns to their attributes
 pattern_attrs = {
     root_pattern:
-        {"NX_class": "NXroot", },
+        {"NX_class": "NXroot",
+         },
     scan_pattern:
         {"NX_class": "NXentry", },
     instrument_pattern:
@@ -176,43 +232,128 @@ pattern_attrs = {
 }
 
 
-def is_group(name):
-    """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
+def _get_attrs_dict(name):
+    """Return attributes dictionary corresponding to the group or dataset
+    pointed to by name.
 
-    :param name: Full name of member
-    :type name: str
-    :return: ``True`` if this member is a group
-    :rtype: boolean
+    :param name: Full name/path to data or group
+    :return: attributes dictionary
     """
-    return (name == "/" or
-            scan_pattern.match(name) or
-            instrument_pattern.match(name) or
-            positioners_group_pattern.match(name) or
-            measurement_group_pattern.match(name) or
-            mca_group_pattern.match(name) or
-            mca_group_pattern2.match(name) or
-            mca_info_pattern.match(name) or
-            mca_info_pattern2.match(name))
+    for pattern in pattern_attrs:
+        if pattern.match(name):
+            return pattern_attrs[pattern]
 
 
-def is_dataset(name):
-    """Check if ``name`` is a valid dataset in a :class:`SpecFileH5`.
-
-    :param name: Full name of member
-    :type name: str
-    :return: ``True`` if this member is a dataset
-    :rtype: boolean
+def _get_scan_key_in_name(item_name):
     """
-    return (title_pattern.match(name) or
-            start_time_pattern.match(name) or
-            positioners_data_pattern.match(name) or
-            measurement_data_pattern.match(name) or
-            mca_data_pattern.match(name) or
-            mca_data_pattern2.match(name) or
-            mca_calib_pattern.match(name) or
-            mca_calib_pattern2.match(name) or
-            mca_chann_pattern.match(name) or
-            mca_chann_pattern2.match(name))
+    :param item_name: Name of a group or dataset
+    :return: Scan identification key (e.g. ``"1.1"``)
+    :rtype: str on None
+    """
+    scan_match = re.match(r"/([0-9]+\.[0-9]+)", item_name)
+    if not scan_match:
+        return None
+    return scan_match.group(1)
+
+
+def _get_mca_index_in_name(item_name):
+    """
+    :param item_name: Name of a group or dataset
+    :return: MCA analyser index, ``None`` if item name does not reference
+        a mca dataset
+    :rtype: int or None
+    """
+    mca_match = general_mca_pattern.match(item_name)
+    if not mca_match:
+        return None
+    return int(mca_match.group(1))
+
+
+def _get_motor_in_name(item_name):
+    """
+    :param item_name: Name of a group or dataset
+    :return: Motor name or ``None``
+    :rtype: str on None
+    """
+    motor_match = positioners_data_pattern.match(item_name)
+    if not motor_match:
+        return None
+    return motor_match.group(1)
+
+def _get_data_column_label_in_name(item_name):
+    """
+    :param item_name: Name of a group or dataset
+    :return: Data column label or ``None``
+    :rtype: str on None
+    """
+    # /1.1/measurement/mca_0 should not be interpreted as the label of a
+    # data column (let's hope no-one ever uses mca_0 as a label)
+    if mca_group_pattern.match(item_name):
+        return None
+    data_column_match = measurement_data_pattern.match(item_name)
+    if not data_column_match:
+        return None
+    return data_column_match.group(1)
+
+
+def scan_in_specfile(sf, scan_key):
+    """
+    :param sf: :class:`SpecFile` instance
+    :param scan_key: Scan identification key (e.g. ``1.1``)
+    :return: ``True`` if scan exists in SpecFile, else ``False``
+    """
+    return scan_key in sf.keys()
+
+
+def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
+    """
+    :param sf: :class:`SpecFile` instance
+    :param scan_key: Scan identification key (e.g. ``1.1``)
+    :param mca_analyser_index: 0-based index of MCA analyser
+    :return: ``True`` if MCA analyser exists in Scan, else ``False``
+    :raise: ``KeyError`` if scan_key not found in SpecFile
+    :raise: ``AssertionError`` if number of MCA spectra is not a multiple
+          of the number of data lines
+    """
+    if not scan_in_specfile(sf, scan_key):
+        raise KeyError("Scan key %s " % scan_key +
+                       "does not exist in SpecFile %s" % sf.filename)
+
+    number_of_MCA_spectra = len(sf[scan_key].mca)
+    number_of_data_lines = sf[scan_key].data.shape[0]
+
+    # Number of MCA spectra must be a multiple of number of data lines
+    assert number_of_MCA_spectra % number_of_data_lines == 0
+    number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
+
+    return 0 <= mca_analyser_index < number_of_MCA_analysers
+
+def motor_in_scan(sf, scan_key, motor_name):
+    """
+    :param sf: :class:`SpecFile` instance
+    :param scan_key: Scan identification key (e.g. ``1.1``)
+    :param motor_name: Name of motor as defined in file header lines
+    :return: ``True`` if motor exists in scan, else ``False``
+    :raise: ``KeyError`` if scan_key not found in SpecFile
+    """
+    if not scan_in_specfile(sf, scan_key):
+        raise KeyError("Scan key %s " % scan_key +
+                       "does not exist in SpecFile %s" % sf.filename)
+    return motor_name in sf[scan_key].motor_names
+
+
+def column_label_in_scan(sf, scan_key, column_label):
+    """
+    :param sf: :class:`SpecFile` instance
+    :param scan_key: Scan identification key (e.g. ``1.1``)
+    :param column_label: Column label as defined in scan header
+    :return: ``True`` if data column label exists in scan, else ``False``
+    :raise: ``KeyError`` if scan_key not found in SpecFile
+    """
+    if not scan_in_specfile(sf, scan_key):
+        raise KeyError("Scan key %s " % scan_key +
+                       "does not exist in SpecFile %s" % sf.filename)
+    return column_label in sf[scan_key].labels
 
 
 def spec_date_to_iso8601(date, zone=None):
@@ -239,20 +380,6 @@ def spec_date_to_iso8601(date, zone=None):
         return "%s-%s-%sT%s%s" % (year, month, day, hour, zone)
 
 
-def _get_attrs_dict(name):
-    """Return attributes dictionary corresponding to the group or dataset
-    pointed to by name.
-
-    :param name: Full name/path to data or group
-    :return: attributes dictionary
-    """
-    for pattern in pattern_attrs:
-        if pattern.match(name):
-            return pattern_attrs[pattern]
-
-
-# For documentation on subclassing numpy.ndarray,
-# see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
 class SpecFileH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
@@ -267,6 +394,8 @@ class SpecFileH5Dataset(numpy.ndarray):
 
     Data is stored in float32 format, unless it is a string.
     """
+    # For documentation on subclassing numpy.ndarray,
+    # see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
     def __new__(cls, array_like, name):
         if not isinstance(array_like, numpy.ndarray):
             # Ensure our data is a numpy.ndarray
@@ -314,11 +443,8 @@ def _dataset_builder(name, specfileh5):
     :return: Array with the requested data
     :rtype: :class:`SpecFileH5Dataset`.
     """
-    scan_match = re.match(r"/([0-9]+\.[0-9]+)", name)
-    if not scan_match:
-        raise KeyError("Cannot parse scan key (e.g. '1.1') in dataset name " +
-                       name)
-    scan = specfileh5._sf[scan_match.group(1)]
+    scan_key = _get_scan_key_in_name(name)
+    scan = specfileh5._sf[scan_key]
 
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
@@ -413,10 +539,9 @@ class SpecFileH5Group(object):
     :param specfileh5: parent :class:`SpecFileH5` instance
 
     """
-
     def __init__(self, name, specfileh5):
-        if not name.startswith("/"):
-            raise AttributeError("Invalid group name " + name)
+        if (not name.startswith("/") or not name in specfileh5):
+            raise KeyError("Invalid group name " + name)
 
         self.name = name
         """Full name/path of group"""
@@ -427,9 +552,9 @@ class SpecFileH5Group(object):
         self.attrs = _get_attrs_dict(name)
         """Attributes dictionary"""
 
-        match = re.match(r"/([0-9]+\.[0-9]+)", name)
         if name != "/":
-            self._scan = self._sfh5._sf[match.group(1)]
+            scan_key = _get_scan_key_in_name(name)
+            self._scan = self._sfh5._sf[scan_key]
 
     def __repr__(self):
         return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
@@ -468,6 +593,7 @@ class SpecFileH5Group(object):
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self._sfh5)
         else:
+            # should never happen thanks to ``key in self.keys()`` test
             raise KeyError("unrecognized group or dataset: " + full_key)
 
     def __iter__(self):
@@ -608,7 +734,6 @@ class SpecFileH5(SpecFileH5Group):
         self.filename = filename
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
-        # self._scan = None
 
     def keys(self):
         """
@@ -634,17 +759,73 @@ class SpecFileH5(SpecFileH5Group):
             (e.g. ``"/2.1/instrument/positioners"``)
         :return: Requested :class:`SpecFileH5Group` or  :class:`SpecFileH5Dataset`
         """
-        try:
-            # access a scan as defined in self.keys()
+        if not key.startswith("/"):
+            # raises a KeyError if key not in self.keys
             return SpecFileH5Group.__getitem__(self, key)
-        except KeyError:
-            # access a member using an absolute path
-            if key.startswith("/"):
-                if is_group(key):
-                    return SpecFileH5Group(name=key,
-                                           specfileh5=self)
-                elif is_dataset(key):
-                    return _dataset_builder(name=key,
-                                            specfileh5=self)
-                else:
-                    raise KeyError("unrecognized group or dataset: " + key)
+
+        if is_group(key):
+            return SpecFileH5Group(name=key,
+                                   specfileh5=self)
+        if is_dataset(key):
+            return _dataset_builder(name=key,
+                                    specfileh5=self)
+
+        raise KeyError(key + " is not a valid group or dataset in " +
+                       self.filename)
+
+    def __contains__(self, key):
+        """
+
+        :param key:  Scan key (e.g ``"1.1"``) or full name of group or dataset
+            (e.g. ``"/2.1/instrument/positioners"``)
+        :return: True if key refers to a valid group or dataset in this SpecFile,
+            else False
+        """
+        # root
+        if key == "/":
+            return True
+
+        # scan key without leading /
+        if not key.startswith("/"):
+            return key in self.keys()
+
+        # invalid key
+        if not is_group(key) and not is_dataset(key):
+            print 1
+            return False
+
+        #  nonexistent scan in specfile
+        scan_key = _get_scan_key_in_name(key)
+        if not scan_in_specfile(self._sf, scan_key):
+            print 2
+            return False
+
+        #  nonexistent MCA analyser in scan
+        mca_analyser_index = _get_mca_index_in_name(key)
+        if mca_analyser_index is not None:
+            if not mca_analyser_in_scan(self._sf,
+                                        scan_key,
+                                        mca_analyser_index):
+                print 3
+                return False
+
+        #  nonexistent motor name
+        motor_name = _get_motor_in_name(key)
+        if motor_name is not None:
+            if not motor_in_scan(self._sf,
+                                 scan_key,
+                                 motor_name):
+                print 4
+                return False
+
+        #  nonexistent data column
+        column_label = _get_data_column_label_in_name(key)
+        if column_label is not None:
+            if not column_label_in_scan(self._sf,
+                                        scan_key,
+                                        column_label):
+                print 5
+                return False
+
+        # title, start_time, existing scan/mca/motor/measurement
+        return True
