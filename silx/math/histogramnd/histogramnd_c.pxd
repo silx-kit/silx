@@ -41,10 +41,6 @@ cdef extern from "include/histogramnd_c.h":
         HISTO_OK
         HISTO_ERR_ALLOC
 
-    ctypedef struct histo_opt_str:
-        int opt_type
-        double opt_value
-
     # =====================
     # double sample
     # =====================
