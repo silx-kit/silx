@@ -32,6 +32,7 @@ import numpy as np
 
 cimport histogramnd_c
 
+
 def histogramnd(sample,
                 bins_rng,
                 n_bins,
