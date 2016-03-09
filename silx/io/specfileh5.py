@@ -91,23 +91,24 @@ Classes
 - :class:`SpecFileH5Dataset`
 """
 
-#from __future__ import unicode_literals
 import logging
 import numpy
 import re
-from six import string_types
+import sys
 
 from .specfile import SpecFile
-
-logger1 = logging.getLogger('silx.io.specfileh5')
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "09/03/2016"
 
+logger1 = logging.getLogger('silx.io.specfileh5')
+
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+
 # Static subgroups
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
-instrument_subgroups = ["positioners"]  # also dynamic subgroups: mca_0…
+instrument_subgroups = ["positioners"]  # also has dynamic subgroups: mca_0…
 mca_subgroups = ["data", "info"]
 mca_info_subgroups = ["calibration", "channels"]
 
