@@ -652,6 +652,8 @@ cdef class SpecFile(object):
         
         :param code: Error code
         :type code: int
+        :return: Human readable error message
+        :rtype: str
         """
         return (<bytes> SfError(error_code)).decode()
     
@@ -748,7 +750,7 @@ cdef class SpecFile(object):
         """Returns list (1D numpy array) of scan numbers in SpecFile.
          
         :return: list of scan numbers (from `` #S``  lines) in the same order
-            as in the original SpecFile.
+            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
         :rtype: numpy array 
         """
         cdef:
@@ -868,7 +870,7 @@ cdef class SpecFile(object):
         
         lines_list = []
         for i in range(nlines):
-            line =  <bytes>lines[i].decode()
+            line = <bytes>lines[i].decode()
             lines_list.append(line)
                 
         freeArrNZ(<void***>&lines, nlines)
