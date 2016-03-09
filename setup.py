@@ -337,8 +337,7 @@ else:
 
 setup_kwargs = config.todict()
 
-
-install_requires = ["numpy"]
+install_requires = ["numpy", "h5py"]
 setup_requires = ["numpy"]
 
 setup_kwargs.update(
