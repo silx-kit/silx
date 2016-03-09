@@ -1,3 +1,4 @@
 include README.md
 include MANIFEST.in
 recursive-include silx *.pyx *.pxd *.pxi
+recursive-include silx *.h *.c *.cpp
