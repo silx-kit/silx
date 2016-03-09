@@ -268,7 +268,9 @@ def check_cython():
     """
 
     if "WITH_CYTHON" in os.environ:
-        return os.environ["WITH_CYTHON"] == "False"
+        if os.environ["WITH_CYTHON"] in ["False", "0", 0]:
+            os.environ["WITH_CYTHON"] = "False"
+            return False
 
     if "--no-cython" in sys.argv:
         sys.argv.remove("--no-cython")
@@ -313,7 +315,7 @@ def fake_cythonize(extensions):
                     source = base + '.c'
                 if not os.path.isfile(source):
                     raise RuntimeError("Source file not found: %s" % source)
-                new_sources.append(source)
+            new_sources.append(source)
         ext_module.sources = new_sources
 
 
@@ -338,8 +340,8 @@ else:
 setup_kwargs = config.todict()
 
 
-install_requires = ["numpy", "h5py"]
-setup_requires = ["numpy", "cython"]
+install_requires = ["numpy"]
+setup_requires = ["numpy"]
 
 setup_kwargs.update(
     name=PROJECT,
