@@ -20,8 +20,6 @@ matrix:
 
 cache:
     apt: true
-    directories:
-        - $HOME/.cache/pip
 
 addons:
     apt:
