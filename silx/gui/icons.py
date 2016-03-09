@@ -45,13 +45,24 @@ def getQIcon(name):
     :return: Corresponding QIcon
     :raises: ValueError when name is not known
     """
-    if name.startswith('_') or name == 'getQIcon':
+    return _qt.QIcon(getQPixmap(name))
+
+
+def getQPixmap(name):
+    """Create a QPixmap from its name.
+
+    :param str name: Name of the icon, in one of the defined icons
+                     in this module.
+    :return: Corresponding QPixmap
+    :raises: ValueError when name is not known
+    """
+    if name.startswith('_') or name in ('getQIcon', 'getQPixmap'):
         raise ValueError('Not an icon name: %s' % name)
     try:
         icon = getattr(_sys.modules[__name__], name)
     except AttributeError:
         raise ValueError('Not an icon name: %s' % name)
-    return _qt.QIcon(_qt.QPixmap(icon))
+    return _qt.QPixmap(icon)
 
 
 aspect_ratio = [

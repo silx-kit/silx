@@ -553,8 +553,7 @@ class PlotActionGroup(_PlotActionGroup):
 
         # Make icon with on and 
         icon = icons.getQIcon('solid_ellipse16')
-        icon.addPixmap(icons.getQIcon('solid_circle16').pixmap(100),
-                       state=qt.QIcon.On)
+        icon.addPixmap(icons.getQPixmap('solid_circle16'), state=qt.QIcon.On)
         self.keepDataAspectRatioAction = self._addAction(
             icon=icon,
             text='Keep aspect ratio',
