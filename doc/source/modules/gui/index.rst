@@ -11,3 +11,4 @@ It provides the following modules:
 
    plot/index.rst
    qt.rst
+   icons.rst

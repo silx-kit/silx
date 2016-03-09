@@ -32,7 +32,7 @@ List of Qt widgets:
 .. currentmodule:: silx.gui.plot
 
 - :mod:`.PlotWidget`: A widget displaying a single plot.
-- :mod:`.PlotWindow`: Build on :mod:`PlotWidget` it adds a configurable
+- :mod:`.PlotWindow`: Build on :mod:`.PlotWidget` it adds a configurable
   set of tools.
 """
 
