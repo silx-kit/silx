@@ -197,7 +197,7 @@ class TestSpecFileH5(unittest.TestCase):
         mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
         self.assertAlmostEqual(sum(sum(mca_2_data)), 9.1, places=5)
         # attrs
-        self.assertEqual(mca_0_data.attrs, {"intepretation": "spectrum"})
+        self.assertEqual(mca_0_data.attrs, {"interpretation": "spectrum"})
 
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
