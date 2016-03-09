@@ -4,15 +4,19 @@ matrix:
     include:
         - python: 2.7
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - python: 3.4
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - python: 3.5
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - language: generic
           os: osx
+          env: BUILD_COMMAND=bdist_wheel
 
 cache:
     apt: true
@@ -42,8 +46,8 @@ install:
     - python ./ci/info_platform.py
     - pip freeze
 
-    # Generate source package
-    - python setup.py sdist
+    # Generate source package or wheel
+    - python setup.py $BUILD_COMMAND
     - ls dist
 
     # Mac OS X specific cleanup
