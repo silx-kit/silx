@@ -271,6 +271,7 @@ class Plot(object):
         self._logX = False
         self._xAutoScale = True
         self._yAutoScale = True
+        self._grid = None
 
         self.setGraphTitle()
         self.setGraphXLabel()
@@ -1706,18 +1707,47 @@ class Plot(object):
         self._setDirtyPlot()
         self.resetZoom()
 
+    def getGraphGrid(self):
+        """Return the current grid mode, either None, 'major' or 'both'.
+
+        See :meth:`setGraphGrid`.
+        """
+        return self._grid
+
+    def setGraphGrid(self, which=True):
+        """Set the type of grid to display.
+
+        :param which: None or False to disable the grid,
+                      'major' or True for grid on major ticks (the default),
+                      'both' for grid on both major and minor ticks.
+        :type which: str of bool
+        """
+        assert which in (None, True, False, 'major', 'both')
+        if not which:
+            which = None
+        elif which is True:
+            which = 'major'
+        self._grid = which
+        self._backend.setGraphGrid(which)
+        self._setDirtyPlot()
+        self.replot()
+
     def showGrid(self, flag=True):
         """Set the plot grid display.
 
         :param flag: False to disable grid, 1 or True for major grid,
                      2 for major and minor grid
         """
-        _logger.debug("Plot showGrid called")
-        self._backend.showGrid(flag)
-        self._setDirtyPlot()
-        self.replot()
+        _logger.warning("showGrid deprecated, use setGraphGrid instead")
+        if flag == 2:
+            flag = 'both'
+        self.setGraphGrid(flag)
 
     # Defaults
+
+    def isDefaultPlotPoints(self):
+        """Return True if default Curve symbol is 'o', False for no symbol."""
+        return self._defaultPlotPoints == 'o'
 
     def setDefaultPlotPoints(self, flag):
         """Set the default symbol of all curves.
@@ -1730,13 +1760,17 @@ class Plot(object):
         self._defaultPlotPoints = 'o' if flag else ''
 
         # Reset symbol of all curves
-        for curve in self._curves:
+        for curve in self._curves.values():
             curve['params']['symbol'] = self._defaultPlotPoints
 
         if self._curves:
             self._update()
             self._setDirtyPlot()
             self.replot()
+
+    def isDefaultPlotLines(self):
+        """Return True for line as default line style, False for no line."""
+        return self._plotLines
 
     def setDefaultPlotLines(self, flag):
         """Toggle the use of lines as the default curve line style.
@@ -1745,6 +1779,10 @@ class Plot(object):
                           False to use no line as the default line style.
         """
         self._plotLines = bool(flag)
+
+        # Reset linestyle of all curves
+        for curve in self._curves.values():
+            curve['params']['linestyle'] = '-' if self._plotLines else ' '
 
         if self._curves:
             self._update()

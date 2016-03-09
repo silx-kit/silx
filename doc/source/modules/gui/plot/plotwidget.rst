@@ -130,7 +130,8 @@ Axes
 .. automethod:: PlotWidget.invertYAxis
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.keepDataAspectRatio
-.. automethod:: PlotWidget.showGrid
+.. automethod:: PlotWidget.getGraphGrid
+.. automethod:: PlotWidget.setGraphGrid
 
 Reset zoom settings
 ...................

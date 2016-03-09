@@ -811,10 +811,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def keepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else 'auto')
 
-    def showGrid(self, flag):
+    def setGraphGrid(self, which):
         self.ax.grid(False, which='both')  # Disable all grid first
-        if flag:
-            self.ax.grid(True, which='both' if flag == 2 else 'major')
+        if which is not None:
+            self.ax.grid(True, which=which)
 
     # colormap
 

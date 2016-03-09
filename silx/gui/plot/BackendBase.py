@@ -414,17 +414,19 @@ class BackendBase(object):
         return self.__keepDataAspectRatio
 
     def keepDataAspectRatio(self, flag):
-        """
+        """Set whether to keep data aspect ratio or not.
+
         :param flag:  True to respect data aspect ratio
         :type flag: Boolean, default True
         """
         self.__keepDataAspectRatio = bool(flag)
 
-    def showGrid(self, flag):
-        """Set grid
+    def setGraphGrid(self, which):
+        """Set grid.
 
-        :param flag: False to disable grid, 1 or True for major grid,
-                     2 for major and minor grid"""
+        :param which: None to disable grid, 'major' for major grid,
+                     'both' for major and minor grid
+        """
         pass
 
     # colormap
