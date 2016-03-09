@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Tests for SpecFile to HDF5 converter"""
+"""Tests for SpecFile to HDF5 converter"""
 
 
 __authors__ = ["P. Knobel"]
@@ -30,7 +30,9 @@ __date__ = "09/03/2016"
 
 import gc
 import h5py
+from numpy import array_equal
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -81,6 +83,8 @@ sftext = """#F /tmp/sf.dat
 @A 4 3 2
 """
 
+mca_link_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+")
+
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -114,18 +118,36 @@ class TestConvertSpecHDF5(unittest.TestCase):
         gc.collect()
 
     def test_HDF5_has_same_members(self):
-        spec_member_list = ["spec"]
+        spec_member_list = []
         def append_spec_members(name):
             spec_member_list.append(name)
         self.sfh5.visit(append_spec_members)
 
-        hdf5_member_list = ["h5"]
+        hdf5_member_list = []
         def append_hdf5_members(name):
             hdf5_member_list.append(name)
         self.h5f.visit(append_hdf5_members)
 
+        # 1. For some reason, h5py visit method doesn't include the leading
+        # "/" character when it passes the member name to the function,
+        # even though an explicit the .name attribute of a member will
+        # have a leading "/"
+        # 2. h5py visit method apparently does not follow links
+        spec_member_list = [m.lstrip("/") for m in spec_member_list
+                            if not mca_link_pattern.match(m)]
+
         self.assertEqual(set(spec_member_list),
                          set(hdf5_member_list))
+
+    def test_links(self):
+        self.assertTrue(
+            array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
+                        self.h5f["/1.2/measurement/mca_0/data"])
+        )
+        self.assertTrue(
+            array_equal(self.h5f["/1.2/instrument/mca_1/info/channels"],
+                        self.h5f["/1.2/measurement/mca_1/info/channels"])
+        )
 
 
 def suite():
