@@ -28,14 +28,11 @@ __license__ = "MIT"
 __date__ = "09/03/2016"
 
 import gc
-import logging
 from numpy import float32
 import os
 import sys
 import tempfile
 import unittest
-
-logger1 = logging.getLogger('silx.io.test')
 
 from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
