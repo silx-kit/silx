@@ -155,7 +155,7 @@ class MCA(object):
     :var channels: MCA channels list from ``#@CHANN`` scan header.
         In the absence of a ``#@CHANN`` header, this attribute is a list
         ``[0, …, N-1]`` where ``N`` is the length of the first spectrum.
-        In the absence of MCA spectra, this attribute defaults to ``None``.
+        In the absence of MCA spectra, this attribute defaults to ``None``.
     :type channels: list of int
 
     This class provides access to Multi-Channel Analysis data stored in a
@@ -192,7 +192,7 @@ class MCA(object):
         # Header dict
         self._header = scan.mca_header
 
-        # SpecFile C library provides a function for getting calibration
+        # SpecFile C library provides a function for getting calibration
         try:
             self.calibration = scan._specfile.mca_calibration(scan.index)
         # default calibration in the absence of #@CALIB
@@ -652,8 +652,8 @@ cdef class SpecFile(object):
         
         :param code: Error code
         :type code: int
-        :return: Human readable error message
-        :rtype: str
+        :return: Human readable error message
+        :rtype: str
         """
         return (<bytes> SfError(error_code)).decode()
     
@@ -1162,7 +1162,7 @@ cdef class SpecFile(object):
         :type mca_index: int
 
         :return: MCA spectrum
-        :rtype: 1D numpy array
+        :rtype: 1D numpy array
         """
         cdef:
             int error = SF_ERR_NO_ERRORS

@@ -1487,7 +1487,7 @@ static char __pyx_k_increment[] = "increment";
 static char __pyx_k_match_mca[] = "match_mca";
 static char __pyx_k_mca_index[] = "mca_index";
 static char __pyx_k_metaclass[] = "__metaclass__";
-static char __pyx_k_02_03_2016[] = "02/03/2016";
+static char __pyx_k_09_03_2016[] = "09/03/2016";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_MCA___init[] = "MCA.__init__";
 static char __pyx_k_MCA___iter[] = "MCA.__iter__";
@@ -1586,7 +1586,7 @@ static char __pyx_k_Unable_to_parse_scan_header_line[] = "Unable to parse scan h
 static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static char __pyx_k_the_unique_scan_index_or_a_strin[] = "the unique scan index or a string 'N.M' with N being the scan";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static PyObject *__pyx_kp_s_02_03_2016;
+static PyObject *__pyx_kp_s_09_03_2016;
 static PyObject *__pyx_kp_s_3;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_CHANN;
@@ -14678,7 +14678,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_02_03_2016, __pyx_k_02_03_2016, sizeof(__pyx_k_02_03_2016), 0, 0, 1, 0},
+  {&__pyx_kp_s_09_03_2016, __pyx_k_09_03_2016, sizeof(__pyx_k_09_03_2016), 0, 0, 1, 0},
   {&__pyx_kp_s_3, __pyx_k_3, sizeof(__pyx_k_3), 0, 0, 1, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_n_s_CHANN, __pyx_k_CHANN, sizeof(__pyx_k_CHANN), 0, 0, 1, 1},
@@ -15605,7 +15605,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]             # <<<<<<<<<<<<<<
  * __license__ = "MIT"
- * __date__ = "02/03/2016"
+ * __date__ = "09/03/2016"
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -15619,7 +15619,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
- * __date__ = "02/03/2016"
+ * __date__ = "09/03/2016"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15627,14 +15627,14 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /* "specfile.pyx":94
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"
- * __date__ = "02/03/2016"             # <<<<<<<<<<<<<<
+ * __date__ = "09/03/2016"             # <<<<<<<<<<<<<<
  * 
  * import os.path
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_02_03_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_09_03_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "specfile.pyx":96
- * __date__ = "02/03/2016"
+ * __date__ = "09/03/2016"
  * 
  * import os.path             # <<<<<<<<<<<<<<
  * import logging

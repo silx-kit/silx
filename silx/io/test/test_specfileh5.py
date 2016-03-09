@@ -127,7 +127,7 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertIn("/1.2/measurement/mca_1", self.sfh5)
         self.assertNotIn("/1.2/measurement/mca_8/info/calibration", self.sfh5)
         self.assertIn("/1.2/measurement/mca_0/info/calibration", self.sfh5)
-        # Datasets can't have a trailing /
+        # Datasets can't have a trailing /
         self.assertNotIn("/1.2/measurement/mca_0/info/calibration/ ", self.sfh5)
 
     def test_contains_group(self):
@@ -143,7 +143,7 @@ class TestSpecFileH5(unittest.TestCase):
                                87.891, places=4)
 
     def test_date(self):
-        # start time is in Iso8601 format
+        # start time is in Iso8601 format
         self.assertEqual(self.sfh5["/1.1/start_time"],
                          b"2016-02-11T09:55:20")
 
@@ -187,13 +187,13 @@ class TestSpecFileH5(unittest.TestCase):
                       float32)
 
     def test_mca_data(self):
-        # sum 1st MCA in scan 1.2 over rows
+        # sum 1st MCA in scan 1.2 over rows
         mca_0_data = self.sfh5["/1.2/measurement/mca_0/data"]
         for summed_row, expected in zip(mca_0_data.sum(axis=1).tolist(),
                                         [3.0, 12.1, 21.7]):
             self.assertAlmostEqual(summed_row, expected, places=4)
 
-        # sum 3rd MCA in scan 1.2 along both axis
+        # sum 3rd MCA in scan 1.2 along both axis
         mca_2_data = self.sfh5["1.2"]["measurement"]["mca_2"]["data"]
         self.assertAlmostEqual(sum(sum(mca_2_data)), 9.1, places=5)
         # attrs
@@ -201,10 +201,10 @@ class TestSpecFileH5(unittest.TestCase):
 
     def test_motor_position(self):
         positioners_group =  self.sfh5["/1.1/instrument/positioners"]
-        # MRTSlit DOWN position is defined in #P0 san header line
+        # MRTSlit DOWN position is defined in #P0 san header line
         self.assertAlmostEqual(float(positioners_group["MRTSlit DOWN"]),
                                0.87125)
-        # MRTSlit UP position is defined in first data column
+        # MRTSlit UP position is defined in first data column
         for a, b in zip(positioners_group["MRTSlit UP"].tolist(),
                         [-1.23, 8.478100E+01, 3.14, 1.2]):
             self.assertAlmostEqual(float(a), b, places=4)
@@ -217,7 +217,7 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/25.1/title"],
                          b"25  ascan  c3th 1.33245 1.52245  40 0.15")
 
-    # MCA groups and datasets are duplicated:
+    # MCA groups and datasets are duplicated:
     # /1.2/measurement/mca_0/ and /1.2/instrument/mca_0/
     def test_visit(self):
         # scan 1.1 has 15 members (6 generic + 3 data cols + 6 motors)

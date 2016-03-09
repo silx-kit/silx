@@ -413,7 +413,7 @@ class SpecFileH5Dataset(numpy.ndarray):
         # byte-string: leave unchanged
         if data_kind == "S":
             obj = array.view(cls)
-        # unicode: convert to byte strings
+        # unicode: convert to byte strings
         # (http://docs.h5py.org/en/latest/strings.html)
         elif data_kind == "U":
             obj = array.view(cls)
@@ -615,7 +615,7 @@ class SpecFileH5Group(object):
     def keys(self):
         """:return: List of all names of members attached to this group
         """
-        # keys in hdf5 are unicode
+        # keys in hdf5 are unicode
         if self.name == "/":
             return self._sfh5.keys()
 
@@ -745,6 +745,7 @@ class SpecFileH5(SpecFileH5Group):
         # method 2: full path access
         instrument_group = sfh5["/1.1/instrument"]
     """
+    #TODO: make leading "/" optional when accessing a member by its posix name
     def __init__(self, filename):
         super(SpecFileH5, self).__init__(name="/",
                                          specfileh5=self)

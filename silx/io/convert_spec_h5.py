@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Convert a SpecFile into a HDF5 file"""
+"""Convert a SpecFile into a HDF5 file"""
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -33,12 +33,13 @@ import re
 from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
 logger = logging.getLogger('silx.io.convert_spec_h5')
+#logger.setLevel(logging.DEBUG)
 
 # link: /1.1/measurement/mca_0/  --> /1.1/instrument/mca_0/
 mca_group_pattern = re.compile(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$")
 mca_link_pattern = re.compile(r"/([0-9]+\.[0-9]+)/measurement/mca_([0-9]+)/?$")
 
-# every subitem recursively accessed through the MCA link should be ignored to
+# every subitem recursively accessed through the MCA link should be ignored to
 # avoid data duplication
 mca_sublink_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/.+$")
 
@@ -49,32 +50,30 @@ def convert(spec_filename, hdf5_filename):
     sfh5 = SpecFileH5(spec_filename)
     with h5py.File(hdf5_filename, 'w') as h5file:
 
-        def append_to_h5(name, obj):
+        def append_spec_member_to_h5(name, obj):
             if mca_sublink_pattern.match(name) or\
                mca_link_pattern.match(name) or\
-               name == "/":                        # root already exists -> valueError
-                logger.info("Ignoring " + name)
+               name == "/":
+                logger.debug("Ignoring " + name)
                 pass
 
             elif isinstance(obj, SpecFileH5Dataset):
-                logger.info("Saving dataset: " + name)
+                logger.debug("Saving dataset: " + name)
                 h5file[name] = obj
-                # alternative: sfh5.create_dataset(name, data=obj, dtype=np.float32)
+                # alternative: sfh5.create_dataset(name, data=obj, dtype=np.float32)
 
-            # this is most likely not necessary, as h5py creates the missing
-            # subgroups when writing datasets
             elif isinstance(obj, SpecFileH5Group):
-                logger.info("Creating group: " + name)
+                logger.debug("Creating group: " + name)
                 if not name in h5file:
                     grp = h5file.create_group(name)
-                    # after creating a MCA group, immediately create a link
+                    # after creating a MCA group, immediately create a link
                     if mca_group_pattern.match(name):
-                        logger.info("Creating link: " + name.replace("instrument", "measurement") +
-                              " --> " + name)
+                        logger.debug("Creating link: " + name.replace("instrument", "measurement") +
+                                     " --> " + name)
                         h5file[name.replace("instrument", "measurement")] = grp   # hard link
                         # h5file[name.replace("instrument", "measurement")] = h5py.SoftLink(name)
 
-        sfh5.visititems(append_to_h5)
+        sfh5.visititems(append_spec_member_to_h5)
 
 
 
