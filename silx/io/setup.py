@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Solé"]
 __license__ = "MIT"
-__date__ = "05/03/2016"
+__date__ = "07/03/2016"
 
 import os
 import sys
@@ -75,7 +75,6 @@ def configuration(parent_package='', top_path=None):
                          include_dirs = [os.path.join(current_dir, 'specfile', 'include'),
                                          numpy.get_include()],
                          language='c')
-
     return config
 
 

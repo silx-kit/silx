@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "07/12/2015"
+__date__ = "07/03/2016"
 __license__ = "MIT"
 
 
@@ -313,7 +313,7 @@ def fake_cythonize(extensions):
                     source = base + '.c'
                 if not os.path.isfile(source):
                     raise RuntimeError("Source file not found: %s" % source)
-                new_sources.append(source)
+            new_sources.append(source)
         ext_module.sources = new_sources
 
 
@@ -338,8 +338,8 @@ else:
 setup_kwargs = config.todict()
 
 
-install_requires = ["numpy", "h5py"]
-setup_requires = ["numpy", "cython"]
+install_requires = ["numpy"]
+setup_requires = ["numpy"]
 
 setup_kwargs.update(
     name=PROJECT,
