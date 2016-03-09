@@ -107,10 +107,10 @@ logger1 = logging.getLogger('silx.io.specfileh5')
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 # Static subgroups
-scan_subgroups = ["title", "start_time", "instrument", "measurement"]
-instrument_subgroups = ["positioners"]  # also has dynamic subgroups: mca_0…
-mca_subgroups = ["data", "info"]
-mca_info_subgroups = ["calibration", "channels"]
+scan_subgroups = [u"title", u"start_time", u"instrument", u"measurement"]
+instrument_subgroups = [u"positioners"]  # also has dynamic subgroups: mca_0…
+mca_subgroups = [u"data", u"info"]
+mca_info_subgroups = [u"calibration", u"channels"]
 
 # Patterns for group keys
 root_pattern = re.compile(r"/$")
@@ -615,16 +615,15 @@ class SpecFileH5Group(object):
     def keys(self):
         """:return: List of all names of members attached to this group
         """
+        # keys in hdf5 are unicode
         if self.name == "/":
             return self._sfh5.keys()
 
         if scan_pattern.match(self.name):
             return scan_subgroups
 
-        # scan string attributes tend to be unicode. Cast into str
-        # for consistency of return list in python2
         if positioners_group_pattern.match(self.name):
-            return [str(k) for k in self._scan.motor_names]
+            return self._scan.motor_names
 
         if (mca_group_pattern.match(self.name) or
             mca_group_pattern2.match(self.name)):
@@ -646,7 +645,7 @@ class SpecFileH5Group(object):
         mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
         if measurement_group_pattern.match(self.name):
-            return [str(l) for l in self._scan.labels] + mca_list
+            return self._scan.labels + mca_list
 
         if instrument_pattern.match(self.name):
             return instrument_subgroups + mca_list
@@ -759,7 +758,7 @@ class SpecFileH5(SpecFileH5Group):
         :return: List of all scan keys in this SpecFile
             (e.g. ``["1.1", "2.1"…]``)
         """
-        return [str(k) for k in self._sf.keys()]
+        return self._sf.keys()
 
     def __repr__(self):
         return '<SpecFileH5 "%s" (%d members)>' % (self.filename, len(self))

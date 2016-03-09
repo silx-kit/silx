@@ -91,7 +91,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/03/2016"
+__date__ = "09/03/2016"
 
 import os.path
 import logging
@@ -643,7 +643,7 @@ cdef class SpecFile(object):
                 count[number] = 1
             else:
                 count[number] += 1
-            ret_list.append('%d.%d' % (number, count[number]))
+            ret_list.append(u'%d.%d' % (number, count[number]))
 
         return ret_list
 
