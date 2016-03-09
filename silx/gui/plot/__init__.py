@@ -42,3 +42,4 @@ __date__ = "22/02/2016"
 
 
 from .PlotWidget import PlotWidget  # noqa
+from .PlotWindow import PlotWindow  # noqa
