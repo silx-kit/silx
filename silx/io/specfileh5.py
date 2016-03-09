@@ -91,10 +91,11 @@ Classes
 - :class:`SpecFileH5Dataset`
 """
 
-from __future__ import unicode_literals
+#from __future__ import unicode_literals
 import logging
 import numpy
 import re
+from six import string_types
 
 from .specfile import SpecFile
 
@@ -102,7 +103,7 @@ logger1 = logging.getLogger('silx.io.specfileh5')
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "04/03/2016"
+__date__ = "09/03/2016"
 
 # Static subgroups
 scan_subgroups = ["title", "start_time", "instrument", "measurement"]
@@ -397,6 +398,9 @@ class SpecFileH5Dataset(numpy.ndarray):
     # For documentation on subclassing numpy.ndarray,
     # see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
     def __new__(cls, array_like, name):
+        # unicode can't be stored in hdf5, we need to use bytes
+        if isinstance(array_like, string_types):
+            array_like = numpy.string_(array_like)
         if not isinstance(array_like, numpy.ndarray):
             # Ensure our data is a numpy.ndarray
             array = numpy.array(array_like)
@@ -405,8 +409,12 @@ class SpecFileH5Dataset(numpy.ndarray):
 
         # general kind of data
         data_kind = array.dtype.kind
-        # byte-string or unicode: leave unchanged
-        if data_kind in ["S", "U"]:
+        # byte-string: leave unchanged
+        if data_kind == "S":
+            obj = array.view(cls)
+        # unicode: convert to byte strings
+        # (http://docs.h5py.org/en/latest/strings.html)
+        elif data_kind == "U":
             obj = array.view(cls)
         # enforce float32 for int, unsigned int, float
         elif data_kind in ["i", "u", "f"]:
@@ -612,8 +620,10 @@ class SpecFileH5Group(object):
         if scan_pattern.match(self.name):
             return scan_subgroups
 
+        # scan string attributes tend to be unicode. Cast into str
+        # for consistency of return list in python2
         if positioners_group_pattern.match(self.name):
-            return self._scan.motor_names
+            return [str(k) for k in self._scan.motor_names]
 
         if (mca_group_pattern.match(self.name) or
             mca_group_pattern2.match(self.name)):
@@ -635,7 +645,7 @@ class SpecFileH5Group(object):
         mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
         if measurement_group_pattern.match(self.name):
-            return self._scan.labels + mca_list
+            return [str(l) for l in self._scan.labels] + mca_list
 
         if instrument_pattern.match(self.name):
             return instrument_subgroups + mca_list
@@ -666,7 +676,8 @@ class SpecFileH5Group(object):
             f.visit(mylist.append)
         """
         for member_name in self.keys():
-            ret = func(member_name)
+            member = self[member_name]
+            ret = func(member.name)
             if ret is not None:
                 return ret
             # recurse into subgroups
@@ -700,7 +711,8 @@ class SpecFileH5Group(object):
             f["1.1"].visititems(func)
         """
         for member_name in self.keys():
-            ret = func(member_name, self[member_name])
+            member = self[member_name]
+            ret = func(member.name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
@@ -746,7 +758,7 @@ class SpecFileH5(SpecFileH5Group):
         :return: List of all scan keys in this SpecFile
             (e.g. ``["1.1", "2.1"…]``)
         """
-        return self._sf.keys()
+        return [str(k) for k in self._sf.keys()]
 
     def __repr__(self):
         return '<SpecFileH5 "%s" (%d members)>' % (self.filename, len(self))

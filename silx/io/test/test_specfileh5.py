@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "04/03/2016"
+__date__ = "09/03/2016"
 
 import gc
 import logging
@@ -148,7 +148,7 @@ class TestSpecFileH5(unittest.TestCase):
     def test_date(self):
         # start time is in Iso8601 format
         self.assertEqual(self.sfh5["/1.1/start_time"],
-                        "2016-02-11T09:55:20")
+                         b"2016-02-11T09:55:20")
 
     def test_get_item_group(self):
         group = self.sfh5["25.1"]["instrument"]
@@ -218,7 +218,7 @@ class TestSpecFileH5(unittest.TestCase):
 
     def test_title(self):
         self.assertEqual(self.sfh5["/25.1/title"],
-                         "25  ascan  c3th 1.33245 1.52245  40 0.15")
+                         b"25  ascan  c3th 1.33245 1.52245  40 0.15")
 
     # MCA groups and datasets are duplicated:
     # /1.2/measurement/mca_0/ and /1.2/instrument/mca_0/
@@ -229,7 +229,7 @@ class TestSpecFileH5(unittest.TestCase):
         #                          3*5*2 MCA members)
         name_list = []
         self.sfh5.visit(name_list.append)
-        self.assertIn(u"Pslit HGap", name_list)
+        self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertEqual(len(name_list), 75)
 
     def test_visit_items(self):
@@ -243,7 +243,7 @@ class TestSpecFileH5(unittest.TestCase):
                 dataset_name_list.append(name)
 
         self.sfh5.visititems(func)
-        self.assertIn(u"Pslit HGap", dataset_name_list)
+        self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
         self.assertEqual(len(dataset_name_list), 51)
 
 
