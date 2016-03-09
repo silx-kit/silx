@@ -30,10 +30,12 @@ import unittest
 
 from .test_specfile import suite as test_specfile_suite
 from .test_specfileh5 import suite as test_specfileh5_suite
+from .test_spec_h5_conv import suite as test_spec_h5_conv_suite
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_specfile_suite())
     test_suite.addTest(test_specfileh5_suite())
+    test_suite.addTest(test_spec_h5_conv_suite())
     return test_suite
