@@ -40,7 +40,7 @@ build_script:
 
     # Install buils dependencies
     - "pip install wheel"
-    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython"
+    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy"
 
     # Print Python info
     - "python ci\\info_platform.py"
