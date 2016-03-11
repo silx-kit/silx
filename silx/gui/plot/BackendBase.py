@@ -278,6 +278,17 @@ class BackendBase(object):
         """Return the widget this backend is drawing to."""
         return None
 
+    def postRedisplay(self):
+        """Trigger a :meth:`Plot.replot`.
+
+        Default implementation triggers a synchronous replot if plot is dirty.
+        This method should be overridden by the embedding widget in order to
+        provide an asynchronous call to replot in order to optimize the number
+        replot operations.
+        """
+        if self._plot._getDirtyPlot():
+            self._plot.replot()
+
     def replot(self):
         """Redraw the plot."""
         pass

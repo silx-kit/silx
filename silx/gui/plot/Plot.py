@@ -219,6 +219,7 @@ class Plot(object):
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None):
+        self._autoreplot = True
         self._dirty = False
 
         if backend is None:
@@ -308,10 +309,15 @@ class Plot(object):
         :param bool overlayOnly: True to redraw only the overlay,
                                  False to redraw everything
         """
+        wasDirty = self._dirty
+
         if not self._dirty and overlayOnly:
             self._dirty = 'overlay'
         else:
             self._dirty = True
+
+        if self._autoreplot and not wasDirty:
+            self._backend.postRedisplay()
 
     # Private stuff called from elsewhere....
 
@@ -362,11 +368,11 @@ class Plot(object):
     # This value is used when curve is updated either internally or by user.
 
     def addCurve(self, x, y, legend=None, info=None,
-                 replace=False, replot=True,
+                 replace=False, replot=None,
                  color=None, symbol=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, **kw):
+                 fill=None, resetZoom=True, **kw):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -384,7 +390,6 @@ class Plot(object):
         :param info: User-defined information associated to the curve
         :param bool replace: True (the default) to delete already existing
                              curves
-        :param bool replot: True (the default) to immediately redraw the plot
         :param color: color(s) to be used
         :type color: str ("#RRGGBB") or (npoints, 4) unsigned byte array or
                      one of the predefined color names defined in Colors.py
@@ -425,9 +430,16 @@ class Plot(object):
                       This allows to control the overlay.
         :param bool selectable: Indicate if the curve can be selected.
                                 (Default: True)
+        :param bool fill: True to fill the curve, False otherwise (default).
+        :param bool resetZoom: True (the default) to reset the zoom.
         :returns: The key string identify this curve
         """
         # Take care of input parameters: check/conversion, default value
+
+        if replot is not None:
+            _logger.warning(
+                'addCurve deprecated replot argument, use resetZoom instead')
+            resetZoom = replot and resetZoom
 
         if kw:
             _logger.warning('addCurve: deprecated extra arguments')
@@ -508,9 +520,9 @@ class Plot(object):
 
         # This must be done after getting params from existing curve
         if replace:
-            self.clearCurves(replot=False)
+            self.clearCurves()
         else:
-            self.removeCurve(legend, replot=False)
+            self.removeCurve(legend)
 
         # Filter-out values <= 0
         x, y, color, xerror, yerror = self._logFilterData(
@@ -540,21 +552,20 @@ class Plot(object):
         if len(self._curves) == 1:
             self.setActiveCurve(legend)
 
-        if replot:
+        if resetZoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-            # self.replot()
 
         return legend
 
     def addImage(self, data, legend=None, info=None,
-                 replace=True, replot=True,
+                 replace=True, replot=None,
                  xScale=None, yScale=None, z=None,
                  selectable=False, draggable=False,
                  colormap=None, pixmap=None,
-                 xlabel=None, ylabel=None, **kw):
+                 xlabel=None, ylabel=None, resetZoom=True, **kw):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -573,7 +584,6 @@ class Plot(object):
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
-        :param bool replot: True (default) to immediately redraw the plot
         :param xscale: (origin, scale) of the data on the X axis
                        Default: (0., 1.)
         :type xscale: 2-tuple of float
@@ -592,9 +602,17 @@ class Plot(object):
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
+        :param str xlabel: X axis label to show when this curve is active.
+        :param str ylabel: Y axis label to show when this curve is active.
+        :param bool resetZoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
         # Take care of input parameters: check/conversion, default value
+
+        if replot is not None:
+            _logger.warning(
+                'addCurve deprecated replot argument, use resetZoom instead')
+            resetZoom = replot and resetZoom
 
         if kw:
             _logger.warning('addImage: deprecated extra arguments')
@@ -657,9 +675,9 @@ class Plot(object):
         # Add: replace, filter data, add
 
         if replace:
-            self.clearImages(replot=False)
+            self.clearImages()
         else:
-            self.removeImage(legend, replot=False)
+            self.removeImage(legend)
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
@@ -692,16 +710,15 @@ class Plot(object):
         if len(self._images) == 1:
             self.setActiveImage(legend)
 
-        if replot:
+        if resetZoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-            # self.replot()
         return legend
 
     def addItem(self, xdata, ydata, legend=None, info=None,
-                replot=True, replace=False,
+                replace=False,
                 shape="polygon", color='black', fill=True,
                 overlay=False, **kw):
         """Add an item (i.e. a shape) to the plot.
@@ -717,7 +734,6 @@ class Plot(object):
         :param str legend: The legend to be associated to the item
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
-        :param bool replot: True (default) to immediately redraw the plot
         :param str shape: Type of item to be drawn in
                           hline, polygon (the default), rectangle, vline
         :param str color: Color of the item, e.g., 'blue', 'b', '#FF0000'
@@ -731,14 +747,14 @@ class Plot(object):
         # expected to receive the same parameters as the signal
 
         if kw:
-            _logger.warning('Ignoring extra parameters %s', str(kw))
+            _logger.warning('addItem deprecated parameters: %s', str(kw))
 
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
         if replace:
-            self.clearItems(replot=False)
+            self.clearItems()
         else:
-            self.removeItem(legend, replot=False)
+            self.removeItem(legend)
 
         handle = self._backend.addItem(xdata, ydata, legend=legend,
                                        shape=shape, color=color,
@@ -746,9 +762,6 @@ class Plot(object):
         self._setDirtyPlot(overlayOnly=overlay)
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}
-
-        if replot:
-            self.replot()
 
         return legend
 
@@ -779,7 +792,7 @@ class Plot(object):
         """
         if kw:
             _logger.warning(
-                'insertXMarker extra parameters ignored: %s', str(kw))
+                'insertXMarker deprecated extra parameters: %s', str(kw))
 
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
@@ -813,7 +826,8 @@ class Plot(object):
         :return: The key string identify this marker
         """
         if kw:
-            _logger.warning('Extra parameters ignored: %s', str(kw))
+            _logger.warning(
+                'insertYMarker deprecated extra parameters: %s', str(kw))
 
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
@@ -869,7 +883,7 @@ class Plot(object):
         """
         if kw:
             _logger.warning(
-                'insertMarker Extra parameters ignored: %s', str(kw))
+                'insertMarker deprecated extra parameters: %s', str(kw))
 
         if x is None:
             xmin, xmax = self.getGraphXLimits()
@@ -921,7 +935,7 @@ class Plot(object):
             x, y = constraint(x, y)
 
         if legend in self._markers:
-            self.removeMarker(legend, replot=False)
+            self.removeMarker(legend)
 
         handle = self._backend.addMarker(
             x=x, y=y, legend=legend, text=text, color=color,
@@ -950,15 +964,17 @@ class Plot(object):
         """
         return legend in self._hiddenCurves
 
-    def hideCurve(self, legend, flag=True, replot=True):
+    def hideCurve(self, legend, flag=True, replot=None):
         """Show/Hide the curve associated to legend.
 
         Even when hidden, the curve is kept in the list of curves.
 
         :param str legend: The legend associated to the curve to be hidden
         :param bool flag: True (default) to hide the curve, False to show it
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('hideCurve deprecated replot parameter')
+
         if legend not in self._curves:
             _logger.warning('Curve not in plot: %s', legend)
             return
@@ -973,22 +989,21 @@ class Plot(object):
         else:
             self._hiddenCurves.discard(legend)
             curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, replot=False,
+            self.addCurve(curve['x'], curve['y'], legend, resetZoom=False,
                           **curve['params'])
 
         self._setDirtyPlot()
 
-        if replot:
-            self.replot()
-
     # Remove
 
-    def removeCurve(self, legend, replot=True):
+    def removeCurve(self, legend, replot=None):
         """Remove the curve associated to legend from the graph.
 
         :param str legend: The legend associated to the curve to be deleted
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('removeCurve deprecated replot parameter')
+
         if legend is None:
             return
 
@@ -1005,15 +1020,14 @@ class Plot(object):
             self._colorIndex = 0
             self._styleIndex = 0
 
-        if replot:
-            self.replot()
-
-    def removeImage(self, legend, replot=True):
+    def removeImage(self, legend, replot=None):
         """Remove the image associated to legend from the graph.
 
         :param str legend: The legend associated to the image to be deleted
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('removeImage deprecated replot parameter')
+
         if legend is None:
             return
 
@@ -1024,15 +1038,14 @@ class Plot(object):
                 self._setDirtyPlot()
             del self._images[legend]
 
-        if replot:
-            self.replot()
-
-    def removeItem(self, legend, replot=True):
+    def removeItem(self, legend, replot=None):
         """Remove the item associated to legend from the graph.
 
         :param str legend: The legend associated to the item to be deleted
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('removeItem deprecated replot parameter')
+
         if legend is None:
             return
 
@@ -1041,90 +1054,71 @@ class Plot(object):
             self._backend.remove(item['handle'])
             self._setDirtyPlot(overlayOnly=item['overlay'])
 
-        if replot:
-            self.replot()
-
-    def removeMarker(self, marker, replot=True):
+    def removeMarker(self, marker, replot=None):
         """Remove the marker associated to legend from the graph.
 
         :param str legend: The legend associated to the marker to be deleted
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('removeMarker deprecated replot parameter')
+
         marker = self._markers.pop(marker, None)
         if marker is not None and marker['handle'] is not None:
             self._backend.remove(marker['handle'])
             self._setDirtyPlot(overlayOnly=marker['params']['draggable'])
 
-        if replot:
-            self.replot()
-
     # Clear
 
-    def clear(self, replot=True):
-        """Remove everything from the plot.
+    def clear(self, replot=None):
+        """Remove everything from the plot."""
+        if replot is not None:
+            _logger.warning('clear deprecated replot parameter')
 
-        :param bool replot: True (default) to immediately redraw the plot
-        """
-        self.clearCurves(replot=False)
-        self.clearMarkers(replot=False)
-        self.clearImages(replot=False)
-        self.clearItems(replot=False)
+        self.clearCurves()
+        self.clearMarkers()
+        self.clearImages()
+        self.clearItems()
 
         self._setDirtyPlot()
 
-        if replot:
-            self.replot()
+    def clearCurves(self, replot=None):
+        """Remove all the curves from the plot."""
+        if replot is not None:
+            _logger.warning('clearCurves deprecated replot parameter')
 
-    def clearCurves(self, replot=True):
-        """Remove all the curves from the plot.
-
-        :param bool replot: True (default) to immediately redraw the plot
-        """
         for legend in list(self._curves):  # Copy as _curves gets changed
-            self.removeCurve(legend, replot=False)
+            self.removeCurve(legend)
         self._curves = OrderedDict()
         self._hiddenCurves = set()
         self._colorIndex = 0
         self._styleIndex = 0
 
-        if replot:
-            self.replot()
+    def clearImages(self, replot=None):
+        """Remove all the images from the plot."""
+        if replot is not None:
+            _logger.warning('clearImages deprecated replot parameter')
 
-    def clearImages(self, replot=True):
-        """Remove all the images from the plot.
-
-        :param bool replot: True (default) to immediately redraw the plot
-        """
         for legend in list(self._images):  # Copy as _images gets changed
-            self.removeImage(legend, replot=False)
+            self.removeImage(legend)
         self._images = OrderedDict()
 
-        if replot:
-            self.replot()
+    def clearItems(self, replot=None):
+        """Remove all the items from the plot. """
+        if replot is not None:
+            _logger.warning('clearItems deprecated replot parameter')
 
-    def clearItems(self, replot=True):
-        """Remove all the items from the plot.
-
-        :param bool replot: True (default) to immediately redraw the plot
-        """
         for legend in list(self._items):  # Copy as _items gets changed
-            self.removeItem(legend, replot=False)
+            self.removeItem(legend)
         self._items = OrderedDict()
 
-        if replot:
-            self.replot()
+    def clearMarkers(self, replot=None):
+        """Remove all the markers from the plot."""
+        if replot is not None:
+            _logger.warning('clearMarkers deprecated replot parameter')
 
-    def clearMarkers(self, replot=True):
-        """Remove all the markers from the plot.
-
-        :param bool replot: True (default) to immediately redraw the plot
-        """
         for legend in list(self._markers):  # Copy as _markers gets changed
-            self.removeMarker(legend, replot=False)
+            self.removeMarker(legend)
         self._markers = OrderedDict()
-
-        if replot:
-            self.replot()
 
     # Interaction
 
@@ -1201,8 +1195,6 @@ class Plot(object):
             y2Min, y2Max = _utils.applyPan(y2Min, y2Max, yFactor, yIsLog)
             self.setGraphYLimits(y2Min, y2Max, axis='right')
 
-        self.replot()
-
     # Active Curve/Image
 
     def isActiveCurveHandlingEnabled(self):
@@ -1267,13 +1259,15 @@ class Plot(object):
             return (curve['x'], curve['y'], self._activeCurve,
                     curve['params']['info'] or {}, curve['params'])
 
-    def setActiveCurve(self, legend, replot=True):
+    def setActiveCurve(self, legend, replot=None):
         """Make the curve associated to legend the active curve.
 
         :param str legend: The legend associated to the curve
                            or None to have no active curve.
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('setActiveCurve deprecated replot parameter')
+
         if not self.isActiveCurveHandlingEnabled():
             return
 
@@ -1313,9 +1307,6 @@ class Plot(object):
 
         self._setDirtyPlot()
 
-        if replot:
-            self.replot()
-
         return self._activeCurve
 
     def getActiveImage(self, just_legend=False):
@@ -1346,13 +1337,15 @@ class Plot(object):
                     image['params']['info'] or {}, image['pixmap'],
                     image['params'])
 
-    def setActiveImage(self, legend, replot=True):
+    def setActiveImage(self, legend, replot=None):
         """Make the image associated to legend the active image.
 
         :param str legend: The legend associated to the image
                            or None to have no active image.
-        :param bool replot: True (default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('setActiveImage deprecated replot parameter')
+
         if legend is None:
             self._activeImage = None
         else:
@@ -1363,9 +1356,6 @@ class Plot(object):
                 self._activeImage = None
             else:
                 self._activeImage = legend
-
-        if replot:
-            self.replot()
 
         return self._activeImage
 
@@ -1450,20 +1440,19 @@ class Plot(object):
         """
         return self._backend.getGraphXLimits()
 
-    def setGraphXLimits(self, xmin, xmax, replot=False):
+    def setGraphXLimits(self, xmin, xmax, replot=None):
         """Set the graph X (bottom) limits.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
-        :param bool replot: True (the default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('setGraphXLimits deprecated replot parameter')
+
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
 
         self._notifyLimitsChanged()
-
-        if replot:
-            self.replot()
 
     def getGraphYLimits(self, axis='left'):
         """Get the graph Y limits.
@@ -1475,23 +1464,22 @@ class Plot(object):
         assert axis in ('left', 'right')
         return self._backend.getGraphYLimits(axis)
 
-    def setGraphYLimits(self, ymin, ymax, axis='left', replot=False):
+    def setGraphYLimits(self, ymin, ymax, axis='left', replot=None):
         """Set the graph Y limits.
 
         :param float xmin: minimum bottom axis value
         :param float xmax: maximum bottom axis value
         :param str axis: The axis for which to get the limits:
                          Either 'left' or 'right'
-        :param bool replot: True (the default) to immediately redraw the plot
         """
+        if replot is not None:
+            _logger.warning('setGraphYLimits deprecated replot parameter')
+
         assert axis in ('left', 'right')
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
 
         self._notifyLimitsChanged()
-
-        if replot:
-            self.replot()
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         """Set the limits of the X and Y axes at once.
@@ -1730,7 +1718,6 @@ class Plot(object):
         self._grid = which
         self._backend.setGraphGrid(which)
         self._setDirtyPlot()
-        self.replot()
 
     def showGrid(self, flag=True):
         """Set the plot grid display.
@@ -1766,7 +1753,6 @@ class Plot(object):
         if self._curves:
             self._update()
             self._setDirtyPlot()
-            self.replot()
 
     def isDefaultPlotLines(self):
         """Return True for line as default line style, False for no line."""
@@ -1787,7 +1773,6 @@ class Plot(object):
         if self._curves:
             self._update()
             self._setDirtyPlot()
-            self.replot()
 
     def getDefaultColormap(self):
         """Return the default colormap used by :meth:`addImage` as a dict.
@@ -1938,9 +1923,32 @@ class Plot(object):
         self._defaultDataMargins = (xMinMargin, xMaxMargin,
                                     yMinMargin, yMaxMargin)
 
+    def getAutoReplot(self):
+        """Return True if replot is automatically handled, False otherwise.
+
+        See :meth`setAutoReplot`.
+        """
+        return self._autoreplot
+
+    def setAutoReplot(self, autoreplot=True):
+        """Set automatic replot mode.
+
+        When enabled, the plot is redrawn automatically when changed.
+        When disabled, the plot is not redrawn when its content change.
+        Instead, it :meth:`replot` must be called.
+
+        :param bool autoreplot: True to enable it (default),
+                                False to disable it.
+        """
+        self._autoreplot = bool(autoreplot)
+
+        # If the plot is dirty before enabling autoreplot,
+        # then _backend.postRedisplay will never be called from _setDirtyPlot
+        if self._autoreplot and self._getDirtyPlot():
+            self._backend.postRedisplay()
+
     def replot(self):
         """Redraw the plot immediately."""
-        _logger.debug("replot called")
         self._backend.replot()
         self._dirty = False  # reset dirty flag
 
@@ -1969,7 +1977,6 @@ class Plot(object):
 
         self._backend.resetZoom(dataMargins)
         self._setDirtyPlot()
-        self.replot()
 
         if (xlim != self.getGraphXLimits() or
                 ylim != self.getGraphYLimits(axis='left') or
@@ -2036,7 +2043,7 @@ class Plot(object):
         curves = list(self._curves)
         for legend in curves:
             curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, replot=False,
+            self.addCurve(curve['x'], curve['y'], legend, resetZoom=False,
                           **curve['params'])
 
         if len(curves):
@@ -2051,7 +2058,7 @@ class Plot(object):
             for legend in list(self._images):  # Copy has images is changed
                 image = self._images[legend]
                 self.addImage(image['data'], legend,
-                              replace=False, replot=False,
+                              replace=False, rezetZoom=False,
                               pixmap=image['pixmap'], **image['params'])
 
     # Coord conversion
@@ -2219,7 +2226,7 @@ class Plot(object):
         params['xScale'] = params['xScale'][0] + dx, params['xScale'][1]
         params['yScale'] = params['yScale'][0] + dy, params['yScale'][1]
         self.addImage(image['data'], legend,
-                      replace=False, replot=False,
+                      replace=False, resetZoom=False,
                       pixmap=image['pixmap'], **params)
 
     # User event handling #
@@ -2246,8 +2253,6 @@ class Plot(object):
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._pressedButtons.append(btn)
             self._eventHandler.handleEvent('press', xPixel, yPixel, btn)
-            if self._getDirtyPlot():
-                self.replot()
 
     def onMouseMove(self, xPixel, yPixel):
         """Handle mouse move event.
@@ -2257,14 +2262,6 @@ class Plot(object):
         """
         inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
         isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
-
-        # crosshair stuff
-        # previousMousePosInPixels = self._mousePosInPixels
-        # self._mousePosInPixels = (xPixel, yPixel) if isCursorInPlot else None
-        # if (self._crosshairCursor is not None and
-        #        previousMousePosInPixels != self._crosshairCursor):
-        #    # Avoid replot when cursor remains outside plot area
-        #    self.replot()
 
         if isCursorInPlot:
             # Signal mouse move event
@@ -2279,9 +2276,6 @@ class Plot(object):
         # Either button was pressed in the plot or cursor is in the plot
         if isCursorInPlot or self._pressedButtons:
             self._eventHandler.handleEvent('move', inXPixel, inYPixel)
-
-        if self._getDirtyPlot():
-            self.replot()
 
     def onMouseRelease(self, xPixel, yPixel, btn):
         """Handle mouse release event.
@@ -2298,9 +2292,6 @@ class Plot(object):
             xPixel, yPixel = self._isPositionInPlotArea(xPixel, yPixel)
             self._eventHandler.handleEvent('release', xPixel, yPixel, btn)
 
-            if self._getDirtyPlot():
-                self.replot()
-
     def onMouseWheel(self, xPixel, yPixel, angleInDegrees):
         """Handle mouse wheel event.
 
@@ -2313,9 +2304,6 @@ class Plot(object):
         if self._isPositionInPlotArea(xPixel, yPixel) == (xPixel, yPixel):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
-
-            if self._getDirtyPlot():
-                self.replot()
 
     # Interaction modes #
 

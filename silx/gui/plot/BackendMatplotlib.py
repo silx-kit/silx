@@ -925,6 +925,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     It adds fast overlay drawing and mouse event management.
     """
 
+    _sigPostRedisplay = qt.Signal()
+    """Signal handling automatic asynchronous replot"""
+
     def __init__(self, plot, parent=None):
         self._insideResizeEventMethod = False
 
@@ -936,10 +939,18 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
             self, qt.QSizePolicy.Expanding, qt.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
+        # Make postRedisplay asynchronous using Qt signal
+        self._sigPostRedisplay.connect(
+            super(BackendMatplotlibQt, self).postRedisplay,
+            qt.Qt.QueuedConnection)
+
         self.mpl_connect('button_press_event', self._onMousePress)
         self.mpl_connect('button_release_event', self._onMouseRelease)
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
+
+    def postRedisplay(self):
+        self._sigPostRedisplay.emit()
 
     # Mouse event forwarding
 
