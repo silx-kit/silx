@@ -30,48 +30,40 @@ __date__ = "09/03/2016"
 import h5py
 import logging
 import re
-from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
+from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
+    SpecFileH5LinkToGroup
 
 logger = logging.getLogger('silx.io.convert_spec_h5')
-#logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
-# link: /1.1/measurement/mca_0/  --> /1.1/instrument/mca_0/
-mca_group_pattern = re.compile(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$")
-mca_link_pattern = re.compile(r"/([0-9]+\.[0-9]+)/measurement/mca_([0-9]+)/?$")
-
-# every subitem recursively accessed through the MCA link should be ignored to
-# avoid data duplication
-mca_sublink_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/.+$")
-
-mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/calibration$")
 
 def convert(spec_filename, hdf5_filename):
     sfh5 = SpecFileH5(spec_filename)
     with h5py.File(hdf5_filename, 'w') as h5file:
 
         def append_spec_member_to_h5(name, obj):
-            if mca_sublink_pattern.match(name) or\
-               mca_link_pattern.match(name) or\
-               name == "/":
-                logger.debug("Ignoring " + name)
-                pass
-
-            elif isinstance(obj, SpecFileH5Dataset):
+            if isinstance(obj, SpecFileH5Dataset):
                 logger.debug("Saving dataset: " + name)
                 h5file[name] = obj
                 # alternative: sfh5.create_dataset(name, data=obj, dtype=np.float32)
+
+            elif isinstance(obj, SpecFileH5LinkToGroup):
+                # link will be created at the same time as the target group
+                pass
 
             elif isinstance(obj, SpecFileH5Group):
                 logger.debug("Creating group: " + name)
                 if not name in h5file:
                     grp = h5file.create_group(name)
-                    # after creating a MCA group, immediately create a link
-                    if mca_group_pattern.match(name):
-                        logger.debug("Creating link: " + name.replace("instrument", "measurement") +
-                                     " --> " + name)
-                        h5file[name.replace("instrument", "measurement")] = grp   # hard link
-                        # h5file[name.replace("instrument", "measurement")] = h5py.SoftLink(name)
+
+                # link: /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
+                if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
+                                name):
+                    link_name = name.replace("instrument", "measurement") + "/info"
+                    logger.debug("Creating link: " + link_name +
+                                 " --> " + name)
+                    h5file[link_name] = name    # hard link
+                    # h5file[link_name] = h5py.SoftLink(name)
 
         sfh5.visititems(append_spec_member_to_h5)
 

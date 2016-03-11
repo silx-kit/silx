@@ -145,7 +145,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
                         self.h5f["/1.2/measurement/mca_0/data"])
         )
         self.assertTrue(
-            array_equal(self.h5f["/1.2/instrument/mca_1/info/channels"],
+            array_equal(self.h5f["/1.2/instrument/mca_1/channels"],
                         self.h5f["/1.2/measurement/mca_1/info/channels"])
         )
 
