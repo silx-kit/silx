@@ -4,20 +4,22 @@ matrix:
     include:
         - python: 2.7
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - python: 3.4
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - python: 3.5
           os: linux
+          env: BUILD_COMMAND=sdist
 
         - language: generic
           os: osx
+          env: BUILD_COMMAND=bdist_wheel
 
 cache:
     apt: true
-    directories:
-        - $HOME/.cache/pip
 
 addons:
     apt:
@@ -36,14 +38,14 @@ install:
 
     # Install build dependencies
     - pip install wheel
-    - pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy cython
+    - pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy
 
     # Print Python info
     - python ./ci/info_platform.py
     - pip freeze
 
-    # Build
-    - python setup.py bdist_wheel
+    # Generate source package or wheel
+    - python setup.py $BUILD_COMMAND
     - ls dist
 
     # Mac OS X specific cleanup
@@ -57,7 +59,7 @@ script:
     - pip install --upgrade setuptools
     - pip install --upgrade pip
 
-    # Install generated wheel
+    # Install from source package
     - pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx
 
     # Print Python info
