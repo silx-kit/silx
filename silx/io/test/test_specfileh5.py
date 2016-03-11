@@ -227,13 +227,13 @@ class TestSpecFileH5(unittest.TestCase):
         name_list = []
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
-        self.assertEqual(len(name_list), 75)
+        self.assertEqual(len(name_list), 66)
 
     def test_visit_items(self):
         # scan 1.1 has 11 datasets (title + date + 6 motors + 3 data cols)
         # scan 25.1 has 12 datasets (title + date + 6 motors + 4 data cols)
-        # scan 1.2 has 28 datasets (title + date + 6 motors + 2 data cols
-        #                           3*3*2 MCA datasets)
+        # scan 1.2 has 22 datasets (title + date + 6 motors + 2 data cols
+        #                           3*2 MCA datasets + 3 calib + 3 chann )
         dataset_name_list = []
         def func(name, obj):
             if isinstance(obj, SpecFileH5Dataset):
@@ -241,7 +241,7 @@ class TestSpecFileH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 51)
+        self.assertEqual(len(dataset_name_list), 45)
 
 
 def suite():

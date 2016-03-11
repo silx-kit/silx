@@ -39,9 +39,11 @@ Specfile data structure exposed by this API:
                   …
               mca_0/
                   data = …
-                  info/
-                      calibration = …
-                      channels = …
+                  calibration = …
+                  channels = …
+                  preset_time = …
+                  elapsed_time = …
+                  live_time = …
 
               mca_1/
                   …
@@ -49,7 +51,10 @@ Specfile data structure exposed by this API:
           measurement/
               colname0 = …
               colname1 = …
-              mca_0 -> /1.1/instrument/mca_0/ (link)
+              …
+              mca_0/
+                   data
+                   info -> /1.1/instrument/mca_0/ (link)
               …
       2.1/
           …
@@ -83,6 +88,8 @@ MCA channels is an array containing all channel numbers. This information is
 computed from the ``#@CHANN`` scan header line (if present), or computed from
 the shape of the first spectrum in a scan (``[0, … len(first_spectrum] - 1]``).
 
+preset_ elapsed_ and live_time are not implemented yet.
+
 Classes
 =======
 
@@ -106,11 +113,11 @@ logger1 = logging.getLogger('silx.io.specfileh5')
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
-# Static subgroups
-scan_subgroups = [u"title", u"start_time", u"instrument", u"measurement"]
-instrument_subgroups = [u"positioners"]  # also has dynamic subgroups: mca_0…
-mca_subgroups = [u"data", u"info"]
-mca_info_subgroups = [u"calibration", u"channels"]
+# Static subitems
+scan_submembers = [u"title", u"start_time", u"instrument", u"measurement"]
+instrument_submembers = [u"positioners"]  # also has dynamic subgroups: mca_0…
+measurement_mca_submembers = [u"data", u"info"]
+instrument_mca_submembers = [u"data", u"calibration", u"channels"]   #TODO: (optional) preset_time, elapsed_time, live_time
 
 # Patterns for group keys
 root_pattern = re.compile(r"/$")
@@ -118,32 +125,39 @@ scan_pattern = re.compile(r"/[0-9]+\.[0-9]+/?$")
 instrument_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/?$")
 positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/?$")
 measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
-mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
-mca_group_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
-mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info$")
-mca_info_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/info$")
+measurement_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
+instrument_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
+
+# Link to group
+measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
 
 # Patterns for dataset keys
 title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
-positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/(.+)$")
+positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
-mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-mca_data_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
-mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/calibration$")
-mca_calib_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/calibration$")
-mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/channels$")
-mca_chann_pattern2 = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/info/channels$")
+measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
+instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")       #????? link or data duplication
+instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/calibration$")
+instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/channels$")
+# instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
+# instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
+# instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
+measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")  #????? link or data duplication
 
-# MCA pattern used to find MCA analyser index
-general_mca_pattern = re.compile(r"/.*/mca_([0-9]+)[^0-9]*")
+
+def _resolve_link(name):
+    """Return ``name`` after replacing link with the path it points to.
+    """
+    # resolve link /1.1/measurement/mca_0/info/* -> /1.1/instrument/mca_0/*
+    if re.match(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^/]+)$",
+                name):
+        name = name.replace("measurement", "instrument")
+        name = name.replace("info/", "")
+    return name
 
 def _bulk_match(string_, list_of_patterns):
     """Check whether a string matches any regular expression pattern in a list
-
-    :param string_: String to match
-    :param list_of_patterns: List of regular expressions
-    :return: True or False
     """
     for pattern in list_of_patterns:
         if pattern.match(string_):
@@ -155,14 +169,11 @@ def is_group(name):
 
     :param name: Full name of member
     :type name: str
-    :return: ``True`` if this member is a group
-    :rtype: boolean
     """
     list_of_group_patterns = (
         root_pattern, scan_pattern, instrument_pattern,
         positioners_group_pattern, measurement_group_pattern,
-        mca_group_pattern, mca_group_pattern2,
-        mca_info_pattern, mca_info_pattern2
+        measurement_mca_group_pattern, instrument_mca_group_pattern
     )
     return _bulk_match(name, list_of_group_patterns)
 
@@ -172,66 +183,34 @@ def is_dataset(name):
 
     :param name: Full name of member
     :type name: str
-    :return: ``True`` if this member is a dataset
-    :rtype: boolean
     """
     # /1.1/measurement/mca_0 could be interpreted as a data column
     # with label "mca_0"
-    if mca_group_pattern.match(name):
+    if measurement_mca_group_pattern.match(name):
         return False
+
+    name = _resolve_link(name)
 
     list_of_data_patterns = (
         title_pattern, start_time_pattern,
         positioners_data_pattern, measurement_data_pattern,
-        mca_data_pattern, mca_data_pattern2,
-        mca_calib_pattern, mca_calib_pattern2,
-        mca_chann_pattern, mca_chann_pattern2
+        measurement_mca_data_pattern, instrument_mca_data_pattern,
+        instrument_mca_calib_pattern, instrument_mca_chann_pattern,
     )
     return _bulk_match(name, list_of_data_patterns)
 
 
-# Associate group and dataset patterns to their attributes
-pattern_attrs = {
-    root_pattern:
-        {"NX_class": "NXroot",
-         },
-    scan_pattern:
-        {"NX_class": "NXentry", },
-    instrument_pattern:
-        {"NX_class": "NXinstrument", },
-    positioners_group_pattern:
-        {"NX_class": "", },
-    measurement_group_pattern:
-        {"NX_class": "measurement", },
-    mca_group_pattern:
-        {"NX_class": "NXsubentry", },
-    mca_group_pattern2:
-        {"NX_class": "NXsubentry", },
-    mca_info_pattern:
-        {"NX_class": "", },
-    mca_info_pattern2:
-        {"NX_class": "", },
-    title_pattern:
-        {},
-    start_time_pattern:
-        {},
-    positioners_data_pattern:
-        {},
-    measurement_data_pattern:
-        {},
-    mca_data_pattern:
-        {"intepretation": "spectrum", },
-    mca_data_pattern2:
-        {"intepretation": "spectrum", },
-    mca_calib_pattern:
-        {},
-    mca_calib_pattern2:
-        {},
-    mca_chann_pattern:
-        {},
-    mca_chann_pattern2:
-        {},
-}
+def is_link_to_group(name):
+    """Check if ``name`` is a valid link to a group in a :class:`SpecFileH5`.
+    Return ``True`` or ``False``
+
+    :param name: Full name of member
+    :type name: str
+    """
+    # so far we only have one type of link
+    if measurement_mca_info_pattern.match(name):
+        return True
+    return False
 
 
 def _get_attrs_dict(name):
@@ -241,6 +220,46 @@ def _get_attrs_dict(name):
     :param name: Full name/path to data or group
     :return: attributes dictionary
     """
+    # Associate group and dataset patterns to their attributes
+    pattern_attrs = {
+        root_pattern:
+            {"NX_class": "NXroot",
+             },
+        scan_pattern:
+            {"NX_class": "NXentry", },
+        title_pattern:
+            {},
+        start_time_pattern:
+            {},
+        instrument_pattern:
+            {"NX_class": "NXinstrument", },
+        positioners_group_pattern:
+            {"NX_class": "NXcollection", },
+        positioners_data_pattern:
+            {},
+        instrument_mca_group_pattern:
+            {"NX_class": "NXdetector", },
+        instrument_mca_data_pattern:
+            {"interpretation": "spectrum", },
+        instrument_mca_calib_pattern:
+            {},
+        instrument_mca_chann_pattern:
+            {},
+        # preset_time
+        # elapsed_time
+        # live_time
+        measurement_group_pattern:
+            {"NX_class": "NXcollection", },
+        measurement_data_pattern:
+            {},
+        measurement_mca_group_pattern:
+            {},
+        measurement_mca_data_pattern:
+            {"interpretation": "spectrum", },
+        measurement_mca_info_pattern:
+            {"NX_class": "NXdetector", },
+    }
+
     for pattern in pattern_attrs:
         if pattern.match(name):
             return pattern_attrs[pattern]
@@ -265,7 +284,7 @@ def _get_mca_index_in_name(item_name):
         a mca dataset
     :rtype: int or None
     """
-    mca_match = general_mca_pattern.match(item_name)
+    mca_match = re.match(r"/.*/mca_([0-9]+)[^0-9]*", item_name)
     if not mca_match:
         return None
     return int(mca_match.group(1))
@@ -290,21 +309,12 @@ def _get_data_column_label_in_name(item_name):
     """
     # /1.1/measurement/mca_0 should not be interpreted as the label of a
     # data column (let's hope no-one ever uses mca_0 as a label)
-    if mca_group_pattern.match(item_name):
+    if measurement_mca_group_pattern.match(item_name):
         return None
     data_column_match = measurement_data_pattern.match(item_name)
     if not data_column_match:
         return None
     return data_column_match.group(1)
-
-
-def scan_in_specfile(sf, scan_key):
-    """
-    :param sf: :class:`SpecFile` instance
-    :param scan_key: Scan identification key (e.g. ``1.1``)
-    :return: ``True`` if scan exists in SpecFile, else ``False``
-    """
-    return scan_key in sf.keys()
 
 
 def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
@@ -317,7 +327,7 @@ def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     :raise: ``AssertionError`` if number of MCA spectra is not a multiple
           of the number of data lines
     """
-    if not scan_in_specfile(sf, scan_key):
+    if not scan_key in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
 
@@ -330,6 +340,7 @@ def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
 
     return 0 <= mca_analyser_index < number_of_MCA_analysers
 
+
 def motor_in_scan(sf, scan_key, motor_name):
     """
     :param sf: :class:`SpecFile` instance
@@ -338,7 +349,7 @@ def motor_in_scan(sf, scan_key, motor_name):
     :return: ``True`` if motor exists in scan, else ``False``
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
-    if not scan_in_specfile(sf, scan_key):
+    if not scan_key in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
     return motor_name in sf[scan_key].motor_names
@@ -352,7 +363,7 @@ def column_label_in_scan(sf, scan_key, column_label):
     :return: ``True`` if data column label exists in scan, else ``False``
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
-    if not scan_in_specfile(sf, scan_key):
+    if not scan_key in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
     return column_label in sf[scan_key].labels
@@ -455,6 +466,8 @@ def _dataset_builder(name, specfileh5):
     scan_key = _get_scan_key_in_name(name)
     scan = specfileh5._sf[scan_key]
 
+    name = _resolve_link(name)
+
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
     if title_pattern.match(name):
@@ -484,23 +497,25 @@ def _dataset_builder(name, specfileh5):
         column_name = m.group(1)
         array_like = scan.data_column_by_name(column_name)
 
-    elif (mca_data_pattern.match(name) or
-          mca_data_pattern2.match(name)):
-        m = mca_data_pattern.match(name)
+    elif (instrument_mca_data_pattern.match(name) or
+          measurement_mca_data_pattern.match(name)):
+        m = instrument_mca_data_pattern.match(name)
         if not m:
-            m = mca_data_pattern2.match(name)
+            m = measurement_mca_data_pattern.match(name)
 
         analyser_index = int(m.group(1))
         # retrieve 2D array of all MCA spectra from one analyser
         array_like = _demultiplex_mca(scan, analyser_index)
 
-    elif (mca_calib_pattern.match(name) or
-          mca_calib_pattern2.match(name)):
+    elif instrument_mca_calib_pattern.match(name):
         array_like = scan.mca.calibration
 
-    elif (mca_chann_pattern.match(name) or
-          mca_chann_pattern2.match(name)):
+    elif instrument_mca_chann_pattern.match(name):
         array_like = scan.mca.channels
+
+    # preset_time
+    # elapsed_time
+    # live_time
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -592,10 +607,15 @@ class SpecFileH5Group(object):
 
         full_key = self.name.rstrip("/") + "/" + key
 
+        # 
+        full_key = _resolve_link(full_key)
+
         if is_group(full_key):
             return SpecFileH5Group(full_key, self._sfh5)
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self._sfh5)
+        elif is_link_to_group(full_key):
+            return SpecFileH5LinkToGroup(full_key, self._sfh5)
         else:
             # should never happen thanks to ``key in self.keys()`` test
             raise KeyError("unrecognized group or dataset: " + full_key)
@@ -620,18 +640,16 @@ class SpecFileH5Group(object):
             return self._sfh5.keys()
 
         if scan_pattern.match(self.name):
-            return scan_subgroups
+            return scan_submembers
 
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
 
-        if (mca_group_pattern.match(self.name) or
-            mca_group_pattern2.match(self.name)):
-            return mca_subgroups
+        if measurement_mca_group_pattern.match(self.name):
+            return measurement_mca_submembers
 
-        if (mca_info_pattern.match(self.name) or
-            mca_info_pattern2.match(self.name)):
-            return mca_info_subgroups
+        if instrument_mca_group_pattern.match(self.name):
+            return instrument_mca_submembers
 
         # number of data columns must be equal to number of labels
         assert self._scan.data.shape[1] == len(self._scan.labels)
@@ -648,7 +666,7 @@ class SpecFileH5Group(object):
             return self._scan.labels + mca_list
 
         if instrument_pattern.match(self.name):
-            return instrument_subgroups + mca_list
+            return instrument_submembers + mca_list
 
     def visit(self, func):
         """Recursively visit all names in this group and subgroups.
@@ -681,7 +699,8 @@ class SpecFileH5Group(object):
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecFileH5Group):
+            if (isinstance(self[member_name], SpecFileH5Group) and
+                not isinstance(self[member_name], SpecFileH5LinkToGroup)):
                 self[member_name].visit(func)
 
     def visititems(self, func):
@@ -716,8 +735,25 @@ class SpecFileH5Group(object):
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecFileH5Group):
+            if (isinstance(self[member_name], SpecFileH5Group) and
+                not isinstance(self[member_name], SpecFileH5LinkToGroup)):
                 self[member_name].visititems(func)
+
+
+class SpecFileH5LinkToGroup(SpecFileH5Group):
+    """Special :class:`SpecFileH5Group` representing a link to a group. It
+    behaves as if it was the group itself, but ``visit`` and ``visititems``
+    methods will recognize that it is a link and will not recurse into its
+    subgroups.
+    """
+    def __init__(self, name, specfileh5):
+        SpecFileH5Group.__init__(self, name, specfileh5)
+
+    def keys(self):
+        # we only have a single type of link: 
+        # /1.1/measurement/mca_0/info/* -> /1.1/instrument/mca_0/*
+        if measurement_mca_info_pattern.match(self.name):
+            return instrument_mca_submembers
 
 
 class SpecFileH5(SpecFileH5Group):
@@ -809,12 +845,13 @@ class SpecFileH5(SpecFileH5Group):
             return key in self.keys()
 
         # invalid key
-        if not is_group(key) and not is_dataset(key):
+        if (not is_group(key) and not is_dataset(key) and
+            not is_link_to_group(key)):
             return False
 
         #  nonexistent scan in specfile
         scan_key = _get_scan_key_in_name(key)
-        if not scan_in_specfile(self._sf, scan_key):
+        if not scan_key in self._sf:
             return False
 
         #  nonexistent MCA analyser in scan
