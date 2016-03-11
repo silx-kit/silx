@@ -569,9 +569,6 @@ cdef class SpecFile(object):
                                         
     def __len__(self):
         """Return the number of scans in the SpecFile
-
-        This function is called when the python built-in ``len()`` function
-        is called with a :class:`SpecFile` instance as a parameter.
         """
         return SfScanNo(self.handle)
 
@@ -648,7 +645,10 @@ cdef class SpecFile(object):
         return ret_list
 
     def __contains__(self, key):
-        return key in self.keys()
+        """Return ``True`` if ``key`` is a valid scan key.
+         Valid keys can be a string such as ``"1.1"`` or a 0-based scan index.
+        """
+        return key in (self.keys() + list(range(len(self))))
 
     def _get_error_string(self, error_code):
         """Returns the error message corresponding to the error code.
