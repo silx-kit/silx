@@ -647,6 +647,9 @@ cdef class SpecFile(object):
 
         return ret_list
 
+    def __contains__(self, key):
+        return key in self.keys()
+
     def _get_error_string(self, error_code):
         """Returns the error message corresponding to the error code.
         
