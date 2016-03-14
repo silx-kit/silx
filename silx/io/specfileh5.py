@@ -160,7 +160,8 @@ def _bulk_match(string_, list_of_patterns):
 
 
 def is_group(name):
-    """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
+    """Check if ``name`` matches a valid group name pattern in a
+    :class:`SpecFileH5`.
 
     :param name: Full name of member
     :type name: str
@@ -174,7 +175,8 @@ def is_group(name):
 
 
 def is_dataset(name):
-    """Check if ``name`` is a valid dataset in a :class:`SpecFileH5`.
+    """Check if ``name`` matches a valid dataset name pattern in a
+    :class:`SpecFileH5`.
 
     :param name: Full name of member
     :type name: str
@@ -200,7 +202,7 @@ def is_link_to_group(name):
     :param name: Full name of member
     :type name: str
     """
-    # so far we only have one type of link
+    # so far we only have one type of link to a group
     if measurement_mca_info_pattern.match(name):
         return True
     return False
@@ -324,7 +326,7 @@ def _get_data_column_label_in_name(item_name):
     return data_column_match.group(1)
 
 
-def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
+def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     """
     :param sf: :class:`SpecFile` instance
     :param scan_key: Scan identification key (e.g. ``1.1``)
@@ -348,7 +350,7 @@ def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     return 0 <= mca_analyser_index < number_of_MCA_analysers
 
 
-def motor_in_scan(sf, scan_key, motor_name):
+def _motor_in_scan(sf, scan_key, motor_name):
     """
     :param sf: :class:`SpecFile` instance
     :param scan_key: Scan identification key (e.g. ``1.1``)
@@ -362,7 +364,7 @@ def motor_in_scan(sf, scan_key, motor_name):
     return motor_name in sf[scan_key].motor_names
 
 
-def column_label_in_scan(sf, scan_key, column_label):
+def _column_label_in_scan(sf, scan_key, column_label):
     """
     :param sf: :class:`SpecFile` instance
     :param scan_key: Scan identification key (e.g. ``1.1``)
@@ -606,9 +608,6 @@ class SpecFileH5Group(object):
 
     """
     def __init__(self, name, specfileh5):
-        if not name.startswith("/") or name not in specfileh5:
-            raise KeyError("Invalid group name " + name)
-
         self.name = name
         """Full name/path of group"""
 
@@ -623,7 +622,57 @@ class SpecFileH5Group(object):
             self._scan = self._sfh5._sf[scan_key]
 
     def __contains__(self, key):
-        return key in self.keys()
+    #    return key in self.keys()
+        """
+        :param key: Path to child element (e.g. ``"mca_0/info"``) or full name
+            of group or dataset (e.g. ``"/2.1/instrument/positioners"``)
+        :return: True if key refers to a valid member of this group,
+            else False
+        """
+        # Absolute path to an item outside this group
+        if key.startswith("/"):
+            if not key.startswith(self.name):
+                return False
+        # Make sure key is an absolute path by prepending this group's name
+        else:
+            key = self.name.rstrip("/") + "/" + key
+
+        # key not matching any known pattern
+        if not is_group(key) and not is_dataset(key) and\
+           not is_link_to_group(key) and not is_link_to_dataset(key):
+            return False
+
+        # nonexistent scan in specfile
+        scan_key = _get_scan_key_in_name(key)
+        if scan_key not in self._sfh5._sf:
+            return False
+
+        # nonexistent MCA analyser in scan
+        mca_analyser_index = _get_mca_index_in_name(key)
+        if mca_analyser_index is not None:
+            if not _mca_analyser_in_scan(self._sfh5._sf,
+                                        scan_key,
+                                        mca_analyser_index):
+                return False
+
+        # nonexistent motor name
+        motor_name = _get_motor_in_name(key)
+        if motor_name is not None:
+            if not _motor_in_scan(self._sfh5._sf,
+                                 scan_key,
+                                 motor_name):
+                return False
+
+        # nonexistent data column
+        column_label = _get_data_column_label_in_name(key)
+        if column_label is not None:
+            if not _column_label_in_scan(self._sfh5._sf,
+                                        scan_key,
+                                        column_label):
+                return False
+
+        # title, start_time, existing scan/mca/motor/measurement
+        return True
 
     def __eq__(self, other):
         return (isinstance(other, SpecFileH5Group) and
@@ -633,21 +682,28 @@ class SpecFileH5Group(object):
 
     def __getitem__(self, key):
         """Return a :class:`SpecFileH5Group` or a :class:`SpecFileH5Dataset`
-        if ``key`` is a valid member attached to this group . If ``key`` is
-        not valid, raise a KeyError.
+        if ``key`` is a valid name of a group or dataset.
+
+        ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
+        the group, or a path reaching into subgroups (e.g.
+        "instrument/positioners")
+
+        In the special case were this group is the root group, ``key`` can
+        start with a ``/`` character.
 
         :param key: Name of member
         :type key: str
+        :raise: KeyError if ``key`` is not a known member of this group.
         """
-        if key not in self.keys():
-            msg = key + " is not a valid member of " + self.__repr__() + "."
-            msg += " List of valid keys: " + ", ".join(self.keys())
-            if key.startswith("/"):
-                msg += "\nYou can access a dataset using its full path from "
-                msg += "a SpecFileH5 object, but not from a SpecFileH5Group."
-            raise KeyError(msg)
-
-        full_key = self.name.rstrip("/") + "/" + key
+        # Relative path starting from this group (e.g "mca_0/info")
+        if not key.startswith("/"):
+            full_key = self.name.rstrip("/") + "/" + key
+        # Absolute path called from the root group or from a parent group
+        elif key.startswith(self.name):
+            full_key = key
+        # Absolute path to an element called from a non-parent group
+        else:
+            raise KeyError(key + " is not a child of " + self.__repr__())
 
         if is_group(full_key):
             return SpecFileH5Group(full_key, self._sfh5)
@@ -658,7 +714,6 @@ class SpecFileH5Group(object):
         elif is_link_to_dataset(full_key):
             return _link_to_dataset_builder(full_key, self._sfh5)
         else:
-            # should never happen thanks to ``key in self.keys()`` test
             raise KeyError("unrecognized group or dataset: " + full_key)
 
     def __iter__(self):
@@ -828,12 +883,12 @@ class SpecFileH5(SpecFileH5Group):
     """
     # TODO: make leading "/" optional when accessing a member by its posix name
     def __init__(self, filename):
-        super(SpecFileH5, self).__init__(name="/",
-                                         specfileh5=self)
-
         self.filename = filename
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
+
+        SpecFileH5Group.__init__(self, name="/", specfileh5=self)
+
 
     def keys(self):
         """
@@ -850,84 +905,3 @@ class SpecFileH5(SpecFileH5Group):
                 self.filename == other.filename and
                 self.keys() == other.keys())
 
-    def __getitem__(self, key):
-        """In addition to :func:`SpecFileH5Group.__getitem__` (inherited),
-        :func:`SpecFileH5.__getitem__` allows access to groups or datasets
-        using their full path.
-
-        :param key: Scan key (e.g ``"1.1"``) or full name of group or dataset
-            (e.g. ``"/2.1/instrument/positioners"``)
-        :return: Requested :class:`SpecFileH5Group` or  :class:`SpecFileH5Dataset`
-        """
-        if not key.startswith("/"):
-            # raises a KeyError if key not in self.keys
-            return SpecFileH5Group.__getitem__(self, key)
-
-        if is_group(key):
-            return SpecFileH5Group(name=key,
-                                   specfileh5=self)
-        if is_dataset(key):
-            return _dataset_builder(name=key,
-                                    specfileh5=self)
-        if is_link_to_group(key):
-            return SpecFileH5LinkToGroup(name=key,
-                                         specfileh5=self)
-        if is_link_to_dataset(key):
-            return _link_to_dataset_builder(name=key,
-                                            specfileh5=self)
-
-        raise KeyError(key + " is not a valid group or dataset in " +
-                       self.filename)
-
-    def __contains__(self, key):
-        """
-
-        :param key:  Scan key (e.g ``"1.1"``) or full name of group or dataset
-            (e.g. ``"/2.1/instrument/positioners"``)
-        :return: True if key refers to a valid group or dataset in this SpecFile,
-            else False
-        """
-        # root
-        if key == "/":
-            return True
-
-        # scan key without leading /
-        if not key.startswith("/"):
-            return key in self.keys()
-
-        # invalid key
-        if not is_group(key) and not is_dataset(key) and\
-           not is_link_to_group(key) and not is_link_to_dataset(key):
-            return False
-
-        #  nonexistent scan in specfile
-        scan_key = _get_scan_key_in_name(key)
-        if scan_key not in self._sf:
-            return False
-
-        #  nonexistent MCA analyser in scan
-        mca_analyser_index = _get_mca_index_in_name(key)
-        if mca_analyser_index is not None:
-            if not mca_analyser_in_scan(self._sf,
-                                        scan_key,
-                                        mca_analyser_index):
-                return False
-
-        #  nonexistent motor name
-        motor_name = _get_motor_in_name(key)
-        if motor_name is not None:
-            if not motor_in_scan(self._sf,
-                                 scan_key,
-                                 motor_name):
-                return False
-
-        #  nonexistent data column
-        column_label = _get_data_column_label_in_name(key)
-        if column_label is not None:
-            if not column_label_in_scan(self._sf,
-                                        scan_key,
-                                        column_label):
-                return False
-
-        # title, start_time, existing scan/mca/motor/measurement
-        return True

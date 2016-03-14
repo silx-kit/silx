@@ -120,26 +120,41 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertIn("/25.1", self.sfh5)
         self.assertIn("25.1", self.sfh5)
         self.assertNotIn("25.2", self.sfh5)
+        # measurement is a child of a scan, full path would be required to
+        # access from root level
         self.assertNotIn("measurement", self.sfh5)
-        # Groups can have a trailing /, or omit it
+        # Groups may or may not have a trailing /
         self.assertIn("/1.2/measurement/mca_1/", self.sfh5)
         self.assertIn("/1.2/measurement/mca_1", self.sfh5)
-        self.assertNotIn("/1.2/measurement/mca_8/info/calibration", self.sfh5)
-        self.assertIn("/1.2/measurement/mca_0/info/calibration", self.sfh5)
         # Datasets can't have a trailing /
         self.assertNotIn("/1.2/measurement/mca_0/info/calibration/ ", self.sfh5)
+        # No mca_8
+        self.assertNotIn("/1.2/measurement/mca_8/info/calibration", self.sfh5)
+        # Link
+        self.assertIn("/1.2/measurement/mca_0/info/calibration", self.sfh5)
 
     def test_contains_group(self):
         self.assertIn("measurement", self.sfh5["/1.2/"])
         self.assertIn("measurement", self.sfh5["/1.2"])
         self.assertIn("25.1", self.sfh5["/"])
         self.assertNotIn("25.2", self.sfh5["/"])
+        self.assertIn("instrument/positioners/Sslit1 HOff", self.sfh5["/1.1"])
+        # illegal trailing "/" after dataset name
+        self.assertNotIn("instrument/positioners/Sslit1 HOff/",
+                         self.sfh5["/1.1"])
+        # full path to element in group (OK)
+        self.assertIn("/1.1/instrument/positioners/Sslit1 HOff",
+                      self.sfh5["/1.1/instrument"])
+        # full path to element outside group (illegal)
+        self.assertNotIn("/1.1/instrument/positioners/Sslit1 HOff",
+                      self.sfh5["/1.1/measurement"])
 
     def test_data_column(self):
         self.assertAlmostEqual(sum(self.sfh5["/1.2/measurement/duo"]),
                                12.0)
-        self.assertAlmostEqual(sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]),
-                               87.891, places=4)
+        self.assertAlmostEqual(
+                sum(self.sfh5["1.1"]["measurement"]["MRTSlit UP"]),
+                87.891, places=4)
 
     def test_date(self):
         # start time is in Iso8601 format
@@ -209,7 +224,7 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(mca_0_data.attrs, {"interpretation": "spectrum"})
 
     def test_motor_position(self):
-        positioners_group =  self.sfh5["/1.1/instrument/positioners"]
+        positioners_group = self.sfh5["/1.1/instrument/positioners"]
         # MRTSlit DOWN position is defined in #P0 san header line
         self.assertAlmostEqual(float(positioners_group["MRTSlit DOWN"]),
                                0.87125)
