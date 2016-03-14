@@ -22,19 +22,18 @@
 #
 #############################################################################*/
 """Tests for specfileh5"""
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "09/03/2016"
-
 import gc
-from numpy import float32
+from numpy import float32, array_equal
 import os
 import sys
 import tempfile
 import unittest
 
 from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "14/03/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -159,6 +158,16 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
                          self.sfh5["1.2"]["instrument"]["positioners"])
 
+    def test_links(self):
+        self.assertTrue(
+            array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
+                        self.sfh5["/1.2/instrument/mca_0/data"])
+        )
+        self.assertTrue(
+            array_equal(self.sfh5["/1.2/measurement/mca_0/info/channels"],
+                        self.sfh5["/1.2/instrument/mca_0/channels"])
+        )
+
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
                          ["1.1", "25.1", "1.2"])
@@ -217,31 +226,27 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/25.1/title"],
                          b"25  ascan  c3th 1.33245 1.52245  40 0.15")
 
-    # MCA groups and datasets are duplicated:
-    # /1.2/measurement/mca_0/ and /1.2/instrument/mca_0/
+    # visit and visititems ignore links
     def test_visit(self):
-        # scan 1.1 has 15 members (6 generic + 3 data cols + 6 motors)
-        # scan 25.1 has 16 members (6 generic + 4 data cols + 6 motors)
-        # scan 1.2 has 44 members (6 generic + 2 data cols + 6 motors +
-        #                          3*5*2 MCA members)
         name_list = []
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
-        self.assertEqual(len(name_list), 66)
+        self.assertEqual(len(name_list), 60)
 
     def test_visit_items(self):
         # scan 1.1 has 11 datasets (title + date + 6 motors + 3 data cols)
         # scan 25.1 has 12 datasets (title + date + 6 motors + 4 data cols)
-        # scan 1.2 has 22 datasets (title + date + 6 motors + 2 data cols
-        #                           3*2 MCA datasets + 3 calib + 3 chann )
+        # scan 1.2 has 19 datasets (title + date + 6 motors + 2 data cols
+        #                           3 MCA datasets + 3 calib + 3 chann )
         dataset_name_list = []
+
         def func(name, obj):
             if isinstance(obj, SpecFileH5Dataset):
                 dataset_name_list.append(name)
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 45)
+        self.assertEqual(len(dataset_name_list), 42)
 
 
 def suite():

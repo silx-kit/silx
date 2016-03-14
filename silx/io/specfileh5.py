@@ -53,8 +53,8 @@ Specfile data structure exposed by this API:
               colname1 = …
               …
               mca_0/
-                   data
-                   info -> /1.1/instrument/mca_0/ (link)
+                   data -> /1.1/instrument/mca_0/data
+                   info -> /1.1/instrument/mca_0/
               …
       2.1/
           …
@@ -62,13 +62,13 @@ Specfile data structure exposed by this API:
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
-The start time is in the ISO8601 format (``"2016-02-23T22:49:05Z"``)
+The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``)
 
-All datasets that are not strings are formatted as `float32`.
+All datasets that are not strings store values as `float32`.
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
-scalars as defined in ``#P`` scan header lines, or 1D numpy arrays if they
-are measured as scan data. A simple test is done to check if the motor name
+1D numpy arrays if they are measured as scan data, or else scalars as defined
+on ``#P`` scan header lines. A simple test is done to check if the motor name
 is also a data column header defined in the ``#L`` scan header line.
 
 Scan data  (e.g. ``/1.1/measurement/colname0``) is accessed by column,
@@ -96,6 +96,8 @@ Classes
 - :class:`SpecFileH5`
 - :class:`SpecFileH5Group`
 - :class:`SpecFileH5Dataset`
+- :class:`SpecFileH5LinkToGroup`
+- :class:`SpecFileH5LinkToDataset`
 """
 
 import logging
@@ -107,7 +109,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/03/2016"
+__date__ = "14/03/2016"
 
 logger1 = logging.getLogger('silx.io.specfileh5')
 
@@ -117,7 +119,7 @@ string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 scan_submembers = [u"title", u"start_time", u"instrument", u"measurement"]
 instrument_submembers = [u"positioners"]  # also has dynamic subgroups: mca_0…
 measurement_mca_submembers = [u"data", u"info"]
-instrument_mca_submembers = [u"data", u"calibration", u"channels"]   #TODO: (optional) preset_time, elapsed_time, live_time
+instrument_mca_submembers = [u"data", u"calibration", u"channels"]   # TODO: (optional) preset_time, elapsed_time, live_time
 
 # Patterns for group keys
 root_pattern = re.compile(r"/$")
@@ -128,7 +130,7 @@ measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
 measurement_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
 instrument_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
 
-# Link to group
+# Link to group
 measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
 
 # Patterns for dataset keys
@@ -136,25 +138,17 @@ title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
-measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")       #????? link or data duplication
+instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
 instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/calibration$")
 instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/channels$")
 # instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
 # instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
 # instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
-measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")  #????? link or data duplication
 
+# Links to dataset
+measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
+measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^/]+)$")
 
-def _resolve_link(name):
-    """Return ``name`` after replacing link with the path it points to.
-    """
-    # resolve link /1.1/measurement/mca_0/info/* -> /1.1/instrument/mca_0/*
-    if re.match(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^/]+)$",
-                name):
-        name = name.replace("measurement", "instrument")
-        name = name.replace("info/", "")
-    return name
 
 def _bulk_match(string_, list_of_patterns):
     """Check whether a string matches any regular expression pattern in a list
@@ -163,6 +157,7 @@ def _bulk_match(string_, list_of_patterns):
         if pattern.match(string_):
             return True
     return False
+
 
 def is_group(name):
     """Check if ``name`` is a valid group in a :class:`SpecFileH5`.
@@ -189,13 +184,11 @@ def is_dataset(name):
     if measurement_mca_group_pattern.match(name):
         return False
 
-    name = _resolve_link(name)
-
     list_of_data_patterns = (
         title_pattern, start_time_pattern,
         positioners_data_pattern, measurement_data_pattern,
-        measurement_mca_data_pattern, instrument_mca_data_pattern,
-        instrument_mca_calib_pattern, instrument_mca_chann_pattern,
+        instrument_mca_data_pattern, instrument_mca_calib_pattern,
+        instrument_mca_chann_pattern,
     )
     return _bulk_match(name, list_of_data_patterns)
 
@@ -211,6 +204,19 @@ def is_link_to_group(name):
     if measurement_mca_info_pattern.match(name):
         return True
     return False
+
+
+def is_link_to_dataset(name):
+    """Check if ``name`` is a valid link to a dataset in a :class:`SpecFileH5`.
+    Return ``True`` or ``False``
+
+    :param name: Full name of member
+    :type name: str
+    """
+    list_of_link_patterns = (
+        measurement_mca_data_pattern, measurement_mca_info_dataset_pattern,
+    )
+    return _bulk_match(name, list_of_link_patterns)
 
 
 def _get_attrs_dict(name):
@@ -301,6 +307,7 @@ def _get_motor_in_name(item_name):
         return None
     return motor_match.group(1)
 
+
 def _get_data_column_label_in_name(item_name):
     """
     :param item_name: Name of a group or dataset
@@ -327,7 +334,7 @@ def mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     :raise: ``AssertionError`` if number of MCA spectra is not a multiple
           of the number of data lines
     """
-    if not scan_key in sf:
+    if scan_key not in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
 
@@ -349,7 +356,7 @@ def motor_in_scan(sf, scan_key, motor_name):
     :return: ``True`` if motor exists in scan, else ``False``
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
-    if not scan_key in sf:
+    if scan_key not in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
     return motor_name in sf[scan_key].motor_names
@@ -363,7 +370,7 @@ def column_label_in_scan(sf, scan_key, column_label):
     :return: ``True`` if data column label exists in scan, else ``False``
     :raise: ``KeyError`` if scan_key not found in SpecFile
     """
-    if not scan_key in sf:
+    if scan_key not in sf:
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
     return column_label in sf[scan_key].labels
@@ -451,6 +458,14 @@ class SpecFileH5Dataset(numpy.ndarray):
         self.attrs = getattr(obj, 'attrs', None)
 
 
+class SpecFileH5LinkToDataset(SpecFileH5Dataset):
+    """Special :class:`SpecFileH5Dataset` representing a link to a dataset. It
+    behaves as if it were the dataset itself, but ``visit`` and ``visititems``
+    group methods will recognize that it is a link and will ignore it.
+    """
+    pass
+
+
 def _dataset_builder(name, specfileh5):
     """Retrieve dataset from :class:`SpecFile`, based on dataset name, as a
     subclass of :class:`numpy.ndarray`.
@@ -465,8 +480,6 @@ def _dataset_builder(name, specfileh5):
     """
     scan_key = _get_scan_key_in_name(name)
     scan = specfileh5._sf[scan_key]
-
-    name = _resolve_link(name)
 
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
@@ -497,11 +510,8 @@ def _dataset_builder(name, specfileh5):
         column_name = m.group(1)
         array_like = scan.data_column_by_name(column_name)
 
-    elif (instrument_mca_data_pattern.match(name) or
-          measurement_mca_data_pattern.match(name)):
+    elif instrument_mca_data_pattern.match(name):
         m = instrument_mca_data_pattern.match(name)
-        if not m:
-            m = measurement_mca_data_pattern.match(name)
 
         analyser_index = int(m.group(1))
         # retrieve 2D array of all MCA spectra from one analyser
@@ -513,14 +523,46 @@ def _dataset_builder(name, specfileh5):
     elif instrument_mca_chann_pattern.match(name):
         array_like = scan.mca.channels
 
-    # preset_time
-    # elapsed_time
-    # live_time
+    # TODO:
+    #     preset_time
+    #     elapsed_time
+    #     live_time
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
     return SpecFileH5Dataset(array_like, name)
+
+
+def _link_to_dataset_builder(name, specfileh5):
+    scan_key = _get_scan_key_in_name(name)
+    scan = specfileh5._sf[scan_key]
+
+    # get dataset in an array-like format (ndarray, str, list…)
+    array_like = None
+
+    if measurement_mca_data_pattern.match(name):
+        m = measurement_mca_data_pattern.match(name)
+        analyser_index = int(m.group(1))
+        array_like = _demultiplex_mca(scan, analyser_index)
+
+    elif measurement_mca_info_dataset_pattern:
+        m = measurement_mca_info_dataset_pattern.match(name)
+
+        mca_hdr_type = m.group(1)
+        if mca_hdr_type == "calibration":
+            array_like = scan.mca.calibration
+        elif mca_hdr_type == "channels":
+            array_like = scan.mca.channels
+        # TODO:
+        #     preset_time
+        #     elapsed_time
+        #     live_time
+
+    if array_like is None:
+        raise KeyError("Name " + name + " does not match any known dataset.")
+
+    return SpecFileH5LinkToDataset(array_like, name)
 
 
 def _demultiplex_mca(scan, analyser_index):
@@ -564,7 +606,7 @@ class SpecFileH5Group(object):
 
     """
     def __init__(self, name, specfileh5):
-        if (not name.startswith("/") or not name in specfileh5):
+        if not name.startswith("/") or name not in specfileh5:
             raise KeyError("Invalid group name " + name)
 
         self.name = name
@@ -607,15 +649,14 @@ class SpecFileH5Group(object):
 
         full_key = self.name.rstrip("/") + "/" + key
 
-        # 
-        full_key = _resolve_link(full_key)
-
         if is_group(full_key):
             return SpecFileH5Group(full_key, self._sfh5)
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self._sfh5)
         elif is_link_to_group(full_key):
             return SpecFileH5LinkToGroup(full_key, self._sfh5)
+        elif is_link_to_dataset(full_key):
+            return _link_to_dataset_builder(full_key, self._sfh5)
         else:
             # should never happen thanks to ``key in self.keys()`` test
             raise KeyError("unrecognized group or dataset: " + full_key)
@@ -695,12 +736,15 @@ class SpecFileH5Group(object):
         """
         for member_name in self.keys():
             member = self[member_name]
-            ret = func(member.name)
+            ret = None
+            if not is_link_to_dataset(member.name) and\
+               not is_link_to_group(member.name):
+                ret = func(member.name)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if (isinstance(self[member_name], SpecFileH5Group) and
-                not isinstance(self[member_name], SpecFileH5LinkToGroup)):
+            if isinstance(self[member_name], SpecFileH5Group) and\
+               not isinstance(self[member_name], SpecFileH5LinkToGroup):
                 self[member_name].visit(func)
 
     def visititems(self, func):
@@ -731,26 +775,27 @@ class SpecFileH5Group(object):
         """
         for member_name in self.keys():
             member = self[member_name]
-            ret = func(member.name, member)
+            ret = None
+            if not is_link_to_dataset(member.name):
+                ret = func(member.name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if (isinstance(self[member_name], SpecFileH5Group) and
-                not isinstance(self[member_name], SpecFileH5LinkToGroup)):
+            if isinstance(self[member_name], SpecFileH5Group) and\
+               not isinstance(self[member_name], SpecFileH5LinkToGroup):
                 self[member_name].visititems(func)
 
 
 class SpecFileH5LinkToGroup(SpecFileH5Group):
     """Special :class:`SpecFileH5Group` representing a link to a group. It
-    behaves as if it was the group itself, but ``visit`` and ``visititems``
-    methods will recognize that it is a link and will not recurse into its
-    subgroups.
+    behaves as if it were the group itself, but ``visit`` and ``visititems``
+    methods will recognize that it is a link and will ignore it (and not
+    recurse into the target's subgroups).
     """
-    def __init__(self, name, specfileh5):
-        SpecFileH5Group.__init__(self, name, specfileh5)
-
     def keys(self):
-        # we only have a single type of link: 
+        """:return: List of all names of members attached to the target group
+        """
+        # we only have a single type of link to a group:
         # /1.1/measurement/mca_0/info/* -> /1.1/instrument/mca_0/*
         if measurement_mca_info_pattern.match(self.name):
             return instrument_mca_submembers
@@ -781,7 +826,7 @@ class SpecFileH5(SpecFileH5Group):
         # method 2: full path access
         instrument_group = sfh5["/1.1/instrument"]
     """
-    #TODO: make leading "/" optional when accessing a member by its posix name
+    # TODO: make leading "/" optional when accessing a member by its posix name
     def __init__(self, filename):
         super(SpecFileH5, self).__init__(name="/",
                                          specfileh5=self)
@@ -824,6 +869,12 @@ class SpecFileH5(SpecFileH5Group):
         if is_dataset(key):
             return _dataset_builder(name=key,
                                     specfileh5=self)
+        if is_link_to_group(key):
+            return SpecFileH5LinkToGroup(name=key,
+                                         specfileh5=self)
+        if is_link_to_dataset(key):
+            return _link_to_dataset_builder(name=key,
+                                            specfileh5=self)
 
         raise KeyError(key + " is not a valid group or dataset in " +
                        self.filename)
@@ -845,13 +896,13 @@ class SpecFileH5(SpecFileH5Group):
             return key in self.keys()
 
         # invalid key
-        if (not is_group(key) and not is_dataset(key) and
-            not is_link_to_group(key)):
+        if not is_group(key) and not is_dataset(key) and\
+           not is_link_to_group(key) and not is_link_to_dataset(key):
             return False
 
         #  nonexistent scan in specfile
         scan_key = _get_scan_key_in_name(key)
-        if not scan_key in self._sf:
+        if scan_key not in self._sf:
             return False
 
         #  nonexistent MCA analyser in scan
