@@ -36,6 +36,10 @@ __date__ = "14/03/2016"
 logger = logging.getLogger('silx.io.convert_spec_h5')
 #logger.setLevel(logging.DEBUG)
 
+# TODO: 
+#  - implement "append_spec_to_h5(specname, h5name, h5_root_path="/", overwrite=False)"
+#  - def convert(specname, h5_name): 
+#        append_spec_to_h5(specname, h5name, "/", overwrite=True)
 
 def convert(spec_filename, hdf5_filename):
     """Convert a SpecFile to a HDF5 file.
