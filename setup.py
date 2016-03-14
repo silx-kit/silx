@@ -62,7 +62,7 @@ def get_version():
 
 def get_readme():
     dirname = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(dirname, "README.md"), "r") as fp:
+    with open(os.path.join(dirname, "README.rst"), "r") as fp:
         long_description = fp.read()
     return long_description
 
@@ -268,7 +268,9 @@ def check_cython():
     """
 
     if "WITH_CYTHON" in os.environ:
-        return os.environ["WITH_CYTHON"] == "False"
+        if os.environ["WITH_CYTHON"] in ["False", "0", 0]:
+            os.environ["WITH_CYTHON"] = "False"
+            return False
 
     if "--no-cython" in sys.argv:
         sys.argv.remove("--no-cython")
