@@ -23,22 +23,21 @@
 #############################################################################*/
 """Tests for SpecFile to HDF5 converter"""
 
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "09/03/2016"
-
 import gc
 import h5py
 from numpy import array_equal
 import os
-import re
 import sys
 import tempfile
 import unittest
 
 from silx.io.specfileh5 import SpecFileH5
 from silx.io.convert_spec_h5 import convert
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "14/03/2016"
+
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -83,7 +82,6 @@ sftext = """#F /tmp/sf.dat
 @A 4 3 2
 """
 
-mca_link_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+")
 
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
@@ -119,11 +117,13 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def test_HDF5_has_same_members(self):
         spec_member_list = []
+
         def append_spec_members(name):
             spec_member_list.append(name)
         self.sfh5.visit(append_spec_members)
 
         hdf5_member_list = []
+
         def append_hdf5_members(name):
             hdf5_member_list.append(name)
         self.h5f.visit(append_hdf5_members)
@@ -132,12 +132,11 @@ class TestConvertSpecHDF5(unittest.TestCase):
         # "/" character when it passes the member name to the function,
         # even though an explicit the .name attribute of a member will
         # have a leading "/"
-        # 2. h5py visit method apparently does not follow links
-        spec_member_list = [m.lstrip("/") for m in spec_member_list
-                            if not mca_link_pattern.match(m)]
+        # 2. The visit method in h5py doesn't s
+        spec_member_list = [m.lstrip("/") for m in spec_member_list]
 
-        self.assertEqual(set(spec_member_list),
-                         set(hdf5_member_list))
+        self.assertEqual(set(hdf5_member_list),
+                         set(spec_member_list))
 
     def test_links(self):
         self.assertTrue(

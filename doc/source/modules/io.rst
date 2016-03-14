@@ -35,6 +35,16 @@ silx.io.specfileh5 module
 
 .. automodule:: silx.io.specfileh5
     :members:
+    :show-inheritance:
     :undoc-members:
-    :special-members: __getitem__, __len__
+    :special-members: __getitem__, __len__, __contains__
+
+silx.io.convert_spec_h5 module
+--------------------------------
+
+.. automodule:: silx.io.convert_spec_h5
+    :members:
+
+
+
 
