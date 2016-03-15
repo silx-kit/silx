@@ -90,6 +90,53 @@ the shape of the first spectrum in a scan (``[0, … len(first_spectrum] - 1]``)
 
 preset_ elapsed_ and live_time are not implemented yet.
 
+Accessing data
+==============
+
+Data and groups are accessed in :mod:`h5py` fashion::
+
+    from silx.io.specfileh5 import SpecFileH5
+
+    # Open a SpecFile
+    sfh5 = SpecFileH5("test.dat")
+
+    # using SpecFileH5 as a regular group to access scans
+    scan1group = sfh5["1.1"]
+    instrument_group = scan1group["instrument"]
+
+    # altenative: full path access
+    measurement_group = sfh5["/1.1/measurement"]
+
+    # accessing a scan data column by name as a 1D numpy array
+    data_array = measurement_group["Pslit HGap"]
+
+    # accessing all mca-spectra for one MCA device
+    mca_0_spectra = measurement_group["mca_0/data"]
+
+:class:`SpecFileH5` and :class:`SpecFileH5Group` provide a ``keys()`` method::
+
+    >>> sfh5.keys()
+    ['96.1', '97.1', '98.1']
+    >>> sfh5['96.1'].keys()
+    ['title', 'start_time', 'instrument', 'measurement']
+
+They can also be used as iterators::
+
+    for scan_group in SpecFileH5("test.dat"):
+        dataset_names = [item.name in scan_group["measurement"] if
+                         isinstance(item, SpecFileH5Dataset)]
+        print("Found data columns in scan " + scan_group.name)
+        print(", ".join(dataset_names))
+
+You can test for existence of data or groups::
+
+    >>> "/1.1/measurement/Pslit HGap" in sfh5
+    True
+    >>> "positioners" in sfh5["/2.1/instrument"]
+    True
+    >>> "spam" in sfh5["1.1"]
+    False
+
 Classes
 =======
 
@@ -962,20 +1009,7 @@ class SpecFileH5(SpecFileH5Group):
     keeps a reference to the original :class:`SpecFile` object.
 
     Its immediate children are scans, but it also allows access to any group
-    or dataset in the entire SpecFile tree using the full path.
-
-    Example:
-
-    .. code-block:: python
-
-        sfh5 = SpecFileH5("test.dat")
-
-        # method 1: using SpecFileH5 as a regular group
-        scan1group = sfh5["1.1"]
-        instrument_group = scan1group["instrument"]
-
-        # method 2: full path access
-        instrument_group = sfh5["/1.1/instrument"]
+    or dataset in the entire SpecFile tree by specifying the full path.
     """
     def __init__(self, filename):
         self.filename = filename
