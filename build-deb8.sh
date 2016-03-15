@@ -55,7 +55,8 @@ then
 fi
 cd ${directory}
 cp -r ../debian .
-dch -v ${strictversion}-1 "upstream development build of pyFAI ${version}"
+cp ../../copyright debian
+dch -v ${strictversion}-1 "upstream development build of silx ${version}"
 dch --bpo "silx snapshot version ${version} built for debian ${debian}"
 dpkg-buildpackage -r
 rc=$?
