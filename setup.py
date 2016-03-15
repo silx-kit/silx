@@ -335,17 +335,6 @@ if not DRY_RUN:
         fake_cythonize(config.ext_modules)
 
 
-def download_images():
-    """
-    Download all test images and
-    """
-    test_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), PROJECT, "test")
-    sys.path.insert(0, test_dir)
-    from utilstest import UtilsTest
-    UtilsTest.download_images()
-    return list(UtilsTest.ALL_DOWNLOADED_FILES)
-
-
 ################################################################################
 # Debian source tree
 ################################################################################
