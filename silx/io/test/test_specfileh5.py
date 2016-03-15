@@ -33,7 +33,7 @@ from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/03/2016"
+__date__ = "15/03/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -175,6 +175,17 @@ class TestSpecFileH5(unittest.TestCase):
         self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
                          self.sfh5["1.2"]["instrument"]["positioners"])
 
+    def test_header(self):
+        # File header has 10 lines
+        # 1.2 has 8 scan header lines
+        self.assertEqual(len(self.sfh5["/1.2/header"]), 18)
+        # line 4 of file header
+        self.assertEqual(self.sfh5["1.2"]["header"][3].rstrip(),
+                         b"#C imaging  User = opid17")
+        # line 4 of scan header
+        self.assertEqual(self.sfh5["25.1"]["header"][13].rstrip(),
+                         b"#P1 4.74255 6.197579 2.238283")
+
     def test_links(self):
         self.assertTrue(
             array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
@@ -184,6 +195,8 @@ class TestSpecFileH5(unittest.TestCase):
             array_equal(self.sfh5["/1.2/measurement/mca_0/info/channels"],
                         self.sfh5["/1.2/instrument/mca_0/channels"])
         )
+        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/"].keys(),
+                         self.sfh5["/1.2/instrument/mca_0/"].keys())
 
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
@@ -248,7 +261,7 @@ class TestSpecFileH5(unittest.TestCase):
         name_list = []
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
-        self.assertEqual(len(name_list), 60)
+        self.assertEqual(len(name_list), 63)
 
     def test_visit_items(self):
         # scan 1.1 has 11 datasets (title + date + 6 motors + 3 data cols)
@@ -263,7 +276,7 @@ class TestSpecFileH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 42)
+        self.assertEqual(len(dataset_name_list), 45)
 
 
 def suite():
