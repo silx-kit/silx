@@ -101,7 +101,6 @@ class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.spec_fname)
-        os.unlink(cls.h5_fname)
 
     def setUp(self):
         convert(self.spec_fname, self.h5_fname)
@@ -113,6 +112,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         del self.sfh5
         self.h5f.close()
         del self.h5f
+        os.unlink(self.h5_fname)
         gc.collect()
 
     def test_HDF5_has_same_members(self):
