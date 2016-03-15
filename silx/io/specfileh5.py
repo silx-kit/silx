@@ -31,6 +31,7 @@ Specfile data structure exposed by this API:
 
   /
       1.1/
+          header = ["…", "…", …]
           title = "…"
           start_time = "…"
           instrument/
@@ -58,6 +59,9 @@ Specfile data structure exposed by this API:
               …
       2.1/
           …
+
+``header`` is a numpy array of fixed-length strings containing all raw header
+lines relevant to the scan (file header, scan header, mca header).
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
@@ -156,17 +160,28 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/03/2016"
+__date__ = "15/03/2016"
 
 logger1 = logging.getLogger('silx.io.specfileh5')
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
-# Static subitems
-scan_submembers = [u"title", u"start_time", u"instrument", u"measurement"]
-instrument_submembers = [u"positioners"]  # also has dynamic subgroups: mca_0…
-measurement_mca_submembers = [u"data", u"info"]
-instrument_mca_submembers = [u"data", u"calibration", u"channels"]   # TODO: (optional) preset_time, elapsed_time, live_time
+# Static subitems: all groups and datasets that are present in any
+# scan (excludes list of scans, data columns, list of mca devices,
+# optional mca headers)
+static_items = {
+    "scan": [u"header", u"title", u"start_time", u"instrument",
+             u"measurement"],
+    "scan/instrument": [u"positioners"],
+    "scan/measurement/mca": [u"data", u"info"],
+    "scan/instrument/mca": [u"data", u"calibration", u"channels"],
+
+}
+# scan_submembers = [u"header", u"title", u"start_time", u"instrument",
+#                    u"measurement"]
+# instrument_submembers = [u"positioners"]  # also has dynamic subgroups: mca_0…
+# measurement_mca_submembers = [u"data", u"info"]
+# instrument_mca_submembers = [u"data", u"calibration", u"channels"]
 
 # Patterns for group keys
 root_pattern = re.compile(r"/$")
@@ -181,6 +196,7 @@ instrument_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]
 measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
 
 # Patterns for dataset keys
+header_pattern = re.compile(r"/[0-9]+\.[0-9]+/header$")
 title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
@@ -213,12 +229,12 @@ def is_group(name):
     :param name: Full name of member
     :type name: str
     """
-    list_of_group_patterns = (
+    group_patterns = (
         root_pattern, scan_pattern, instrument_pattern,
         positioners_group_pattern, measurement_group_pattern,
         measurement_mca_group_pattern, instrument_mca_group_pattern
     )
-    return _bulk_match(name, list_of_group_patterns)
+    return _bulk_match(name, group_patterns)
 
 
 def is_dataset(name):
@@ -233,15 +249,15 @@ def is_dataset(name):
     if measurement_mca_group_pattern.match(name):
         return False
 
-    list_of_data_patterns = (
-        title_pattern, start_time_pattern,
+    data_patterns = (
+        header_pattern, title_pattern, start_time_pattern,
         positioners_data_pattern, measurement_data_pattern,
         instrument_mca_data_pattern, instrument_mca_calib_pattern,
         instrument_mca_chann_pattern,
         instrument_mca_preset_t_pattern, instrument_mca_elapsed_t_pattern,
         instrument_mca_live_t_pattern
     )
-    return _bulk_match(name, list_of_data_patterns)
+    return _bulk_match(name, data_patterns)
 
 
 def is_link_to_group(name):
@@ -527,6 +543,20 @@ def spec_date_to_iso8601(date, zone=None):
     return full_date
 
 
+def _fixed_length_strings(strings, length=0):
+    """Return list of fixed length strings, left-justified and right-padded
+    with spaces.
+
+    :param strings: List of variable length strings
+    :param length: Length of strings in returned list, defaults to the maximum
+         length in the original list if set to ``None``.
+    :type length: int or None
+    """
+    if length == 0 and strings:
+        length = max(len(s) for s in strings)
+    return [s.ljust(length) for s in strings]
+
+
 class SpecFileH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
@@ -547,21 +577,18 @@ class SpecFileH5Dataset(numpy.ndarray):
         # unicode can't be stored in hdf5, we need to use bytes
         if isinstance(array_like, string_types):
             array_like = numpy.string_(array_like)
+
+        # Ensure our data is a numpy.ndarray
         if not isinstance(array_like, numpy.ndarray):
-            # Ensure our data is a numpy.ndarray
             array = numpy.array(array_like)
         else:
             array = array_like
 
-        # general kind of data
         data_kind = array.dtype.kind
-        # byte-string: leave unchanged
-        if data_kind == "S":
-            obj = array.view(cls)
         # unicode: convert to byte strings
         # (http://docs.h5py.org/en/latest/strings.html)
-        elif data_kind == "U":
-            obj = array.view(cls)
+        if data_kind in ["S", "U"]:
+            obj = numpy.asarray(array, dtype=numpy.string_).view(cls)
         # enforce float32 for int, unsigned int, float
         elif data_kind in ["i", "u", "f"]:
             obj = numpy.asarray(array, dtype=numpy.float32).view(cls)
@@ -610,7 +637,11 @@ def _dataset_builder(name, specfileh5):
 
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
-    if title_pattern.match(name):
+
+    if header_pattern.match(name):
+        array_like = _fixed_length_strings(scan.header)
+
+    elif title_pattern.match(name):
         array_like = scan.scan_header["S"]
 
     elif start_time_pattern.match(name):
@@ -651,7 +682,6 @@ def _dataset_builder(name, specfileh5):
         array_like = scan.mca.channels
 
     elif "CTIME" in scan.mca_header:
-        # TODO:
         ctime_line = scan.mca_header['CTIME']
         (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
         if instrument_mca_preset_t_pattern.match(name):
@@ -811,7 +841,7 @@ class SpecFileH5Group(object):
            key.endswith("live_time"):
             return "CTIME" in self._sfh5._sf[scan_key].mca_header
 
-        # title, start_time, existing scan/mca/motor/measurement
+        # header, title, start_time, existing scan/mca/motor/measurement
         return True
 
     def __eq__(self, other):
@@ -876,19 +906,19 @@ class SpecFileH5Group(object):
             return self._sfh5.keys()
 
         if scan_pattern.match(self.name):
-            return scan_submembers
+            return static_items["scan"]
 
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
 
         if measurement_mca_group_pattern.match(self.name):
-            return measurement_mca_submembers
+            return static_items["scan/measurement/mca"]
 
         if instrument_mca_group_pattern.match(self.name):
-            # TODO: add elapsed… time if necessary
+            ret = static_items["scan/instrument/mca"]
             if "CTIME" in self._scan.mca_header:
-                return instrument_mca_submembers + ["preset_time", "elapsed_time", "live_time"]
-            return instrument_mca_submembers
+                ret += ["preset_time", "elapsed_time", "live_time"]
+            return ret
 
         # number of data columns must be equal to number of labels
         assert self._scan.data.shape[1] == len(self._scan.labels)
@@ -905,7 +935,7 @@ class SpecFileH5Group(object):
             return self._scan.labels + mca_list
 
         if instrument_pattern.match(self.name):
-            return instrument_submembers + mca_list
+            return static_items["scan/instrument"] + mca_list
 
     def visit(self, func):
         """Recursively visit all names in this group and subgroups.
@@ -947,6 +977,9 @@ class SpecFileH5Group(object):
 
     def visititems(self, func):
         """Recursively visit names and objects in this group.
+
+        :param func: Callable (function, method or callable object)
+        :type func: function
 
         You supply a callable (function, method or callable object); it
         will be called exactly once for each link in this group and every
@@ -994,9 +1027,10 @@ class SpecFileH5LinkToGroup(SpecFileH5Group):
         """:return: List of all names of members attached to the target group
         """
         # we only have a single type of link to a group:
-        # /1.1/measurement/mca_0/info/* -> /1.1/instrument/mca_0/*
+        # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
         if measurement_mca_info_pattern.match(self.name):
-            return instrument_mca_submembers
+            link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
+            return SpecFileH5Group(link_target, self._sfh5).keys()
 
 
 class SpecFileH5(SpecFileH5Group):
