@@ -1,4 +1,6 @@
 include README.rst
 include MANIFEST.in
+include run_tests.py
 recursive-include silx *.pyx *.pxd *.pxi
 recursive-include silx *.h *.c *.cpp
+recursive-include doc/source *.py *.rst *.png
