@@ -395,27 +395,89 @@ def _parse_ctime(ctime_line):
 def spec_date_to_iso8601(date, zone=None):
     """Convert SpecFile date to Iso8601.
 
-    :param date: Date in SpecFile format
+    :param date: Date (see supported formats below)
     :type date: str
     :param zone: Time zone as it appears in a ISO8601 date
 
-    Example:
+    Supported formats :
+    * DDD MMM dd hh:mm:ss YYYY
+    * DDD YYYY/MM/dd hh:mm:ss YYYY
+    where DDD is the abbreviated weekday, MMM is the month abbdrviated name,
+    MM is the month number (zero padded), dd is the weekday number
+    (zero padded) YYYY is the year, hh the hour (zero padded), mm the minute
+    (zero padded) and ss the seconds (zero padded).
+    All names are expected to be in english.
 
-        ``spec_date_to_iso8601("Thu Feb 11 09:54:35 2016") => "2016-02-11T09:54:35"``
+    Examples::
+
+        >>> spec_date_to_iso8601("Thu Feb 11 09:54:35 2016")
+        '2016-02-11T09:54:35'
+
+        >>> spec_date_to_iso8601("Sat 2015/03/14 03:53:50")
+        '2015-03-14T03:53:50'
     """
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
               'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    items = date.split()
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-    year = items[-1]
-    hour = items[-2]
-    day = items[-3]
-    month = "%02d" % (int(months.index(items[-4])) + 1)
+    days_rx = '(?P<day>' + '|'.join(days) + ')'
+    months_rx = '(?P<month>' + '|'.join(months) + ')'
+    year_rx = '(?P<year>\d{4})'
+    day_nb_rx = '(?P<day_nb>[0-3]\d)'
+    month_nb_rx = '(?P<month_nb>[0-1]\d)'
+    hh_rx = '(?P<hh>[0-2]\d)'
+    mm_rx = '(?P<mm>[0-5]\d)'
+    ss_rx = '(?P<ss>[0-5]\d)'
+    tz_rx = '(?P<tz>[+-]\d\d:\d\d){0,1}'
 
-    if zone is None:
-        return "%s-%s-%sT%s" % (year, month, day, hour)
-    else:
-        return "%s-%s-%sT%s%s" % (year, month, day, hour, zone)
+    # date formats must have either month_nb (1..12) or month (Jan, Feb, ...)
+    re_tpls = ['{days} {months} {day_nb} {hh}:{mm}:{ss}{tz} {year}',
+               '{days} {year}/{month_nb}/{day_nb} {hh}:{mm}:{ss}{tz}']
+
+    grp_d = None
+
+    for rx in re_tpls:
+        full_rx = rx.format(days=days_rx,
+                            months=months_rx,
+                            year=year_rx,
+                            day_nb=day_nb_rx,
+                            month_nb=month_nb_rx,
+                            hh=hh_rx,
+                            mm=mm_rx,
+                            ss=ss_rx,
+                            tz=tz_rx)
+        m = re.match(full_rx, date)
+
+        if m:
+            grp_d = m.groupdict()
+            break
+
+    if not grp_d:
+        raise ValueError('Date format not recognized : {0}'.format(date))
+
+    year = grp_d['year']
+
+    month = grp_d.get('month_nb')
+
+    if not month:
+        month = '{0:02d}'.format(months.index(grp_d.get('month')) + 1)
+
+    day = grp_d['day_nb']
+
+    tz = grp_d['tz']
+    if not tz:
+        tz = zone
+
+    time = '{0}:{1}:{2}'.format(grp_d['hh'],
+                                grp_d['mm'],
+                                grp_d['ss'])
+
+    full_date = '{0}-{1}-{2}T{3}{4}'.format(year,
+                                            month,
+                                            day,
+                                            time,
+                                            tz if tz else '')
+    return full_date
 
 
 class SpecFileH5Dataset(numpy.ndarray):

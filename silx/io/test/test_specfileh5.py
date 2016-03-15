@@ -60,7 +60,7 @@ sftext = """#F /tmp/sf.dat
 1.2 2.3 3.4
 
 #S 25  ascan  c3th 1.33245 1.52245  40 0.15
-#D Thu Feb 11 10:00:31 2016
+#D Sat 2015/03/14 03:53:50
 #P0 80.005 -1.66875 1.87125
 #P1 4.74255 6.197579 2.238283
 #N 5
@@ -160,6 +160,8 @@ class TestSpecFileH5(unittest.TestCase):
         # start time is in Iso8601 format
         self.assertEqual(self.sfh5["/1.1/start_time"],
                          b"2016-02-11T09:55:20")
+        self.assertEqual(self.sfh5["25.1/start_time"],
+                         b"2015-03-14T03:53:50")
 
     def test_get_item_group(self):
         group = self.sfh5["25.1"]["instrument"]
