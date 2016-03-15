@@ -23,6 +23,7 @@ Build-Depends: cython,
                python-sphinxcontrib.programoutput,
                python3-all-dev,
                python3-all-dbg,
+               python3-h5py,
                python3-matplotlib,
                python3-matplotlib-dbg,
                python3-numpy,
@@ -52,6 +53,7 @@ Section: python
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
+         python-numpy,
          python-h5py,
          python-pyqt5,
          python-matplotlib
@@ -69,10 +71,8 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          python-silx (= ${binary:Version}),
 Recommends: python-dbg,
-            python-matplotlib-dbg,
             python-numpy-dbg,
             python-pyqt5-dbg,
-            python-h5py-dbg,
             python-matplotlib-dbg
 Suggests: python-scipy.dbg    
 Description: Toolbox for X-Ray data analysis - python2 debug
@@ -86,6 +86,7 @@ Section: python
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
+         python3-numpy,
          python3-h5py,
          python3-pyqt5,
          python3-matplotlib
@@ -103,10 +104,9 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          python3-silx (= ${binary:Version}),
 Recommends: python3-dbg,
-            python3-scipy-dbg,
-            python3-h5py-dbg,
+            python3-numpy-dbg,
             python3-pyqt5-dbg,
-            python3-matplotlib
+            python3-matplotlib-dbg
 Description: Toolbox for X-Ray data analysis - Python3 debug
  .
  This package contains the extension built for the Python 3 debug
