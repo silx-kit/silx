@@ -141,9 +141,9 @@ measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
 instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
 instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/calibration$")
 instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/channels$")
-# instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
-# instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
-# instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
+instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
+instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
+instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
 
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
@@ -191,6 +191,8 @@ def is_dataset(name):
         positioners_data_pattern, measurement_data_pattern,
         instrument_mca_data_pattern, instrument_mca_calib_pattern,
         instrument_mca_chann_pattern,
+        instrument_mca_preset_t_pattern, instrument_mca_elapsed_t_pattern,
+        instrument_mca_live_t_pattern
     )
     return _bulk_match(name, list_of_data_patterns)
 
@@ -378,6 +380,18 @@ def _column_label_in_scan(sf, scan_key, column_label):
     return column_label in sf[scan_key].labels
 
 
+def _parse_ctime(ctime_line):
+    """
+    :param ctime_line: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
+    :return: (preset_time, live_time, elapsed_time)
+    """
+    ctime_line = ctime_line.lstrip("@CTIME ")
+    if not len(ctime_line.split()) == 3:
+        raise ValueError("Incorrect format for @CTIME header line " +
+                         '(expected "@CTIME %f %f %f").')
+    return map(float, ctime_line.split())
+
+
 def spec_date_to_iso8601(date, zone=None):
     """Convert SpecFile date to Iso8601.
 
@@ -392,10 +406,12 @@ def spec_date_to_iso8601(date, zone=None):
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
               'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     items = date.split()
+
     year = items[-1]
     hour = items[-2]
     day = items[-3]
     month = "%02d" % (int(months.index(items[-4])) + 1)
+
     if zone is None:
         return "%s-%s-%sT%s" % (year, month, day, hour)
     else:
@@ -525,10 +541,16 @@ def _dataset_builder(name, specfileh5):
     elif instrument_mca_chann_pattern.match(name):
         array_like = scan.mca.channels
 
-    # TODO:
-    #     preset_time
-    #     elapsed_time
-    #     live_time
+    elif "CTIME" in scan.mca_header:
+        # TODO:
+        ctime_line = scan.mca_header['CTIME']
+        (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+        if instrument_mca_preset_t_pattern.match(name):
+            array_like = preset_time
+        elif instrument_mca_live_t_pattern.match(name):
+            array_like = live_time
+        elif instrument_mca_elapsed_t_pattern.match(name):
+            array_like = elapsed_time
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -556,10 +578,15 @@ def _link_to_dataset_builder(name, specfileh5):
             array_like = scan.mca.calibration
         elif mca_hdr_type == "channels":
             array_like = scan.mca.channels
-        # TODO:
-        #     preset_time
-        #     elapsed_time
-        #     live_time
+        elif "CTIME" in scan.mca_header:
+            ctime_line = scan.mca_header['CTIME']
+            (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+            if instrument_mca_preset_t_pattern.match(name):
+                array_like = preset_time
+            elif instrument_mca_live_t_pattern.match(name):
+                array_like = live_time
+            elif instrument_mca_elapsed_t_pattern.match(name):
+                array_like = elapsed_time
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -622,14 +649,13 @@ class SpecFileH5Group(object):
             self._scan = self._sfh5._sf[scan_key]
 
     def __contains__(self, key):
-    #    return key in self.keys()
         """
         :param key: Path to child element (e.g. ``"mca_0/info"``) or full name
             of group or dataset (e.g. ``"/2.1/instrument/positioners"``)
         :return: True if key refers to a valid member of this group,
             else False
         """
-        # Absolute path to an item outside this group
+        # Absolute path to an item outside this group
         if key.startswith("/"):
             if not key.startswith(self.name):
                 return False
@@ -651,25 +677,30 @@ class SpecFileH5Group(object):
         mca_analyser_index = _get_mca_index_in_name(key)
         if mca_analyser_index is not None:
             if not _mca_analyser_in_scan(self._sfh5._sf,
-                                        scan_key,
-                                        mca_analyser_index):
+                                         scan_key,
+                                         mca_analyser_index):
                 return False
 
         # nonexistent motor name
         motor_name = _get_motor_in_name(key)
         if motor_name is not None:
             if not _motor_in_scan(self._sfh5._sf,
-                                 scan_key,
-                                 motor_name):
+                                  scan_key,
+                                  motor_name):
                 return False
 
         # nonexistent data column
         column_label = _get_data_column_label_in_name(key)
         if column_label is not None:
             if not _column_label_in_scan(self._sfh5._sf,
-                                        scan_key,
-                                        column_label):
+                                         scan_key,
+                                         column_label):
                 return False
+
+        if key.endswith("preset_time") or\
+           key.endswith("elapsed_time") or\
+           key.endswith("live_time"):
+            return "CTIME" in self._sfh5._sf[scan_key].mca_header
 
         # title, start_time, existing scan/mca/motor/measurement
         return True
@@ -693,7 +724,7 @@ class SpecFileH5Group(object):
 
         :param key: Name of member
         :type key: str
-        :raise: KeyError if ``key`` is not a known member of this group.
+        :raise: KeyError if ``key`` is not a known member of this group.
         """
         # Relative path starting from this group (e.g "mca_0/info")
         if not key.startswith("/"):
@@ -745,6 +776,9 @@ class SpecFileH5Group(object):
             return measurement_mca_submembers
 
         if instrument_mca_group_pattern.match(self.name):
+            # TODO: add elapsed… time if necessary
+            if "CTIME" in self._scan.mca_header:
+                return instrument_mca_submembers + ["preset_time", "elapsed_time", "live_time"]
             return instrument_mca_submembers
 
         # number of data columns must be equal to number of labels
@@ -881,14 +915,12 @@ class SpecFileH5(SpecFileH5Group):
         # method 2: full path access
         instrument_group = sfh5["/1.1/instrument"]
     """
-    # TODO: make leading "/" optional when accessing a member by its posix name
     def __init__(self, filename):
         self.filename = filename
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
 
         SpecFileH5Group.__init__(self, name="/", specfileh5=self)
-
 
     def keys(self):
         """
