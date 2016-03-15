@@ -31,68 +31,140 @@ from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/03/2016"
+__date__ = "15/03/2016"
 
 logger = logging.getLogger('silx.io.convert_spec_h5')
-#logger.setLevel(logging.DEBUG)
+# logger.setLevel(logging.DEBUG)
 
-# TODO: 
-#  - implement "append_spec_to_h5(specname, h5name, h5_root_path="/", overwrite=False)"
-#  - def convert(specname, h5_name): 
-#        append_spec_to_h5(specname, h5name, "/", overwrite=True)
+# TODO:
+#  - test "write_spec_to_h5
 
-def convert(spec_filename, hdf5_filename):
-    """Convert a SpecFile to a HDF5 file.
 
-    :param spec_filename: Path of input SpecFile
-    :param hdf5_filename: Path of output HDF5 file (will be overwritten if it
-        exists)
+def write_spec_to_h5(spec_file, h5_file, h5path='/',
+                     h5_file_mode="a", overwrite_data=False,
+                     link_type="hard"):
+    """Write content of a SpecFile in a HDF5 file.
 
-    The structure of the output HDF5 file is described in the documentation of
-    :mod:`silx.io.specfileh5`.
+    :param spec_file: Path of input SpecFile or :class:`SpecFileH5` instance
+    :param h5_file: Path of output HDF5 file or HDF5 file handle
+    :param h5_path: Target path in HDF5 file in which scan groups are created.
+        Default is root (``"/"``)
+    :param h5_file_mode: Can be ``"r+"`` (read/write, file must exist),
+        ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
+         exists) or ``"a"`` (read/write if exists, create otherwise).
+         This parameter is ignored if ``h5_file`` is a file handle.
+    :param overwrite_data: If ``True``, existing groups and datasets can be
+        overwritten. This parameter is only relevant if ``file_mode`` is
+        ``"r+"`` or ``"a"``.
+    :param link_type: ``"hard"`` (default) or ``"soft"``
+
+    The structure of the spec data in an HDF5 file is described in the
+    documentation of :mod:`silx.io.specfileh5`.
     """
-    sfh5 = SpecFileH5(spec_filename)
-    with h5py.File(hdf5_filename, 'w') as h5file:
+    if not isinstance(spec_file, SpecFileH5):
+        sfh5 = SpecFileH5(spec_file)
+    else:
+        sfh5 = spec_file
 
-        def append_spec_member_to_h5(name, obj):
-            if isinstance(obj, SpecFileH5LinkToGroup) or\
-                    isinstance(obj, SpecFileH5LinkToDataset):
-                # links are created at the same time as their targets
-                logger.debug("Ignoring LinkToGroup or LinkToDataset: " + name)
-                pass
+    if not isinstance(h5_file, h5py.File):
+        h5f = h5py.File(h5_file, h5_file_mode)
+    else:
+        h5f = h5_file
 
-            elif isinstance(obj, SpecFileH5Dataset):
-                logger.debug("Saving dataset: " + name)
-                h5file[name] = obj
-                # alternative: sfh5.create_dataset(name, data=obj, dtype=np.float32)
+    if not h5path.endswith("/"):
+        h5path += "/"
 
-                # link: 
-                #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
-                if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
-                            name):
-                    link_name = name.replace("instrument", "measurement")
-                    logger.debug("Creating link " + link_name + " -> " + name)
-                    h5file[link_name] = h5file[name]
+    def create_link(link_name, target):
+        """Create link or print  warning
 
-            elif isinstance(obj, SpecFileH5Group):
-                logger.debug("Creating group: " + name)
-                if not name in h5file:
-                    grp = h5file.create_group(name)
+        :param link: Link path
+        :param target: Handle for target group or dataset
+        :param type: Link type (``soft`` or ``hard``)
+        """
+        if not link_name in h5f:
+            logger.debug("Creating link " + link_name + " -> " + target.name)
+        elif overwrite_data:
+            logger.warn("Overwriting " + link_name + " with link to" +
+                        target.name)
+            del h5f[link_name]
+        else:
+            logger.warn(link_name + " already exist. Can't create link to " +
+                        target.name)
+            return None
 
-                # link:
-                # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
-                if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
-                                name):
-                    link_name = name.replace("instrument", "measurement")
-                    link_name +=  "/info"
-                    logger.debug("Creating link: " + link_name +
-                                 " --> " + name)
-                    h5file[link_name] = grp    # hard link
-                    # h5file[link_name] = h5py.SoftLink(name)
+        if link_type == "hard":
+            h5f[link_name] = target
+        elif link_type == "soft":
+            h5f[link_name] = h5py.SoftLink(target.name)
+        else:
+            raise ValueError("link_type  must be 'hard' or 'soft'")
 
-        sfh5.visititems(append_spec_member_to_h5)
+    def append_spec_member_to_h5(spec_h5_name, obj):
+        h5_name = h5path + spec_h5_name.lstrip("/")
+
+        if isinstance(obj, SpecFileH5LinkToGroup) or\
+                isinstance(obj, SpecFileH5LinkToDataset):
+            # links are created at the same time as their targets
+            logger.debug("Ignoring link: " + h5_name)
+            pass
+
+        elif isinstance(obj, SpecFileH5Dataset):
+            logger.debug("Saving dataset: " + h5_name)
+            #h5f[h5_name] = obj
+            if not h5_name in h5f:
+                ds = h5f.create_dataset(h5_name, data=obj)
+            elif overwrite_data:
+                logger.warn("Overwriting dataset: " + h5_name)
+                del h5f[h5_name]
+                ds = h5f.create_dataset(h5_name, data=obj)
+            else:
+                logger.warn("Ignoring existing dataset: " + h5_name)
+
+            # link:
+            #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
+            if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
+                        h5_name):
+                link_name = h5_name.replace("instrument", "measurement")
+                create_link(link_name, ds)
+
+        elif isinstance(obj, SpecFileH5Group):
+            if not h5_name in h5f:
+                logger.debug("Creating group: " + h5_name)
+                grp = h5f.create_group(h5_name)
+
+            # link:
+            # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
+            if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
+                        h5_name):
+                link_name = h5_name.replace("instrument", "measurement")
+                link_name +=  "/info"
+                create_link(link_name, grp)
+
+    sfh5.visititems(append_spec_member_to_h5)
+
+    # Close file if it was opened in this function
+    if not isinstance(h5_file, h5py.File):
+        h5f.close()
 
 
+def convert(spec_file, h5_file,
+            h5_file_mode="w-", link_type="hard"):
+    """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
+     group.
 
+    This is a convenience shortcut to call::
+        append_spec_to_h5(spec_file, h5_file, h5path='/',
+                          h5_file_mode="w-", link_type="hard")
 
+    :param spec_file: Path of input SpecFile or :class:`SpecFileH5` instance
+    :param h5_file: Path of output HDF5 file or HDF5 file handle
+    :param h5_file_mode: Can be ``"w"`` (write, existing file is lost),
+        ``"w-"`` (write, fail if exists).
+         This parameter is ignored if ``h5_file`` is a file handle.
+    """
+    if h5_file_mode not in ["w", "w-"]:
+        raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
+                      " to append Spec data to an existing HDF5 file.")
+    write_spec_to_h5(spec_file, h5_file, h5path='/',
+                     h5_file_mode=h5_file_mode, link_type=link_type)
 
