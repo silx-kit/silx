@@ -44,9 +44,7 @@ A :class:`SpecFile` instance can be accessed like a dictionary to obtain a
 
 If the key is a string representing two values
 separated by a dot (e.g. ``"1.2"``), they will be treated as the scan number
-(``#S`` header line) and the scan order:
-
-.. code-block:: python
+(``#S`` header line) and the scan order::
 
     # get second occurrence of scan "#S 1"
     myscan = sf["1.2"]
@@ -54,25 +52,19 @@ separated by a dot (e.g. ``"1.2"``), they will be treated as the scan number
     # access scan data as a numpy array
     nlines, ncolumns = myscan.data.shape
 
-If the key is an integer, it will be treated as a 0-based index:
-
-.. code-block:: python
+If the key is an integer, it will be treated as a 0-based index::
 
     first_scan = sf[0]
     second_scan = sf[1]
 
 It is also possible to browse through all scans using :class:`SpecFile` as
-an iterator:
-
-.. code-block:: python
+an iterator::
 
     for scan in sf:
         print(scan.scan_header['S'])
 
 MCA data can be selectively loaded using an instance of :class:`MCA` provided
-by :class:`Scan`:
-
-.. code-block:: python
+by :class:`Scan`::
 
     # Only one MCA line is loaded in memory
     second_mca = first_scan.mca[1]
@@ -163,9 +155,7 @@ class MCA(object):
 
     To create a :class:`MCA` instance, you must provide a parent :class:`Scan`
     instance, which in turn will provide a reference to the original
-    :class:`SpecFile` instance.
-
-    .. code-block:: python
+    :class:`SpecFile` instance::
 
         sf = SpecFile("/path/to/specfile.dat")
         scan2 = Scan(sf, scan_index=2)
@@ -175,9 +165,7 @@ class MCA(object):
             ... # do some something with mca_data (1D numpy array)
 
     A more pythonic way to do the same work, without having to explicitly
-    instantiate ``scan`` and ``mcas_in_scan``, would be:
-
-    .. code-block:: python
+    instantiate ``scan`` and ``mcas_in_scan``, would be::
 
         sf = SpecFile("specfilename.dat")
         # scan2 from previous example can be referred to as sf[2]
@@ -293,9 +281,7 @@ class Scan(object):
 
     A scan is a block of descriptive header lines followed by a 2D data array.
 
-    Following three ways of accessing a scan are equivalent:
-
-    .. code-block:: python
+    Following three ways of accessing a scan are equivalent::
 
         sf = SpecFile("/path/to/specfile.dat")
 

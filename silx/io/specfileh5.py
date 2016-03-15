@@ -88,8 +88,6 @@ MCA channels is an array containing all channel numbers. This information is
 computed from the ``#@CHANN`` scan header line (if present), or computed from
 the shape of the first spectrum in a scan (``[0, … len(first_spectrum] - 1]``).
 
-preset_ elapsed_ and live_time are not implemented yet.
-
 Accessing data
 ==============
 
@@ -113,14 +111,16 @@ Data and groups are accessed in :mod:`h5py` fashion::
     # accessing all mca-spectra for one MCA device
     mca_0_spectra = measurement_group["mca_0/data"]
 
-:class:`SpecFileH5` and :class:`SpecFileH5Group` provide a ``keys()`` method::
+:class:`SpecFileH5` and :class:`SpecFileH5Group` provide a :meth:`SpecFileH5Group.keys` method::
 
     >>> sfh5.keys()
     ['96.1', '97.1', '98.1']
     >>> sfh5['96.1'].keys()
     ['title', 'start_time', 'instrument', 'measurement']
 
-They can also be used as iterators::
+They can also be treated as iterators:
+
+.. code-block:: python
 
     for scan_group in SpecFileH5("test.dat"):
         dataset_names = [item.name in scan_group["measurement"] if
