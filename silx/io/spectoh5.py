@@ -33,11 +33,8 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "16/03/2016"
 
-logger = logging.getLogger('silx.io.convert_spec_h5')
+logger = logging.getLogger('silx.io.spectoh5')
 #logger.setLevel(logging.DEBUG)
-
-# TODO:
-#  - test "write_spec_to_h5
 
 
 def write_spec_to_h5(spec_file, h5_file, h5path='/',
