@@ -2,3 +2,4 @@ include README.rst
 include MANIFEST.in
 recursive-include silx *.pyx *.pxd *.pxi
 recursive-include silx *.h *.c *.cpp
+recursive-include doc/source *.py *.rst *.png *.ico
