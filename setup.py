@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "15/03/2016"
+__date__ = "16/03/2016"
 __license__ = "MIT"
 
 
@@ -130,9 +130,9 @@ else:
             build = self.get_finalized_command('build')
             sys.path.insert(0, os.path.abspath(build.build_lib))
 
-#             # Copy gui files to the path:
+#             # Copy .ui files to the path:
 #             dst = os.path.join(
-#                 os.path.abspath(build.build_lib), "pyFAI", "gui")
+#                 os.path.abspath(build.build_lib), "silx", "gui")
 #             if not os.path.isdir(dst):
 #                 os.makedirs(dst)
 #             for i in os.listdir("gui"):
@@ -290,6 +290,11 @@ def check_cython():
             return False
 
     os.environ["WITH_CYTHON"] = "True"
+
+    if "--force-cython" in sys.argv:
+        sys.argv.remove("--force-cython")
+        print("Force Cython re-generation requested by command line")
+        os.environ["FORCE_CYTHON"] = "True"
     return True
 
 
@@ -327,7 +332,7 @@ if not DRY_RUN:
 
         config.ext_modules = cythonize(
             config.ext_modules,
-            force=True,
+            force=(os.environ.get("FORCE_CYTHON") is "True"),
             compile_time_env={"HAVE_OPENMP": bool(USE_OPENMP)}
         )
     else:
