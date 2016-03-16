@@ -31,10 +31,10 @@ from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/03/2016"
+__date__ = "16/03/2016"
 
 logger = logging.getLogger('silx.io.convert_spec_h5')
-# logger.setLevel(logging.DEBUG)
+#logger.setLevel(logging.DEBUG)
 
 # TODO:
 #  - test "write_spec_to_h5
@@ -54,8 +54,8 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
          exists) or ``"a"`` (read/write if exists, create otherwise).
          This parameter is ignored if ``h5_file`` is a file handle.
     :param overwrite_data: If ``True``, existing groups and datasets can be
-        overwritten. This parameter is only relevant if ``file_mode`` is
-        ``"r+"`` or ``"a"``.
+        overwritten, if ``False`` they are skipped. This parameter is only
+        relevant if ``file_mode`` is ``"r+"`` or ``"a"``.
     :param link_type: ``"hard"`` (default) or ``"soft"``
 
     The structure of the spec data in an HDF5 file is described in the
@@ -122,7 +122,7 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
 
             # link:
             #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
-            if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
                         h5_name):
                 link_name = h5_name.replace("instrument", "measurement")
                 create_link(link_name, ds)
@@ -134,7 +134,7 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
 
             # link:
             # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
-            if re.match(r"/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
                         h5_name):
                 link_name = h5_name.replace("instrument", "measurement")
                 link_name +=  "/info"
