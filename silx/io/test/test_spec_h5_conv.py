@@ -32,11 +32,11 @@ import tempfile
 import unittest
 
 from silx.io.specfileh5 import SpecFileH5
-from silx.io.convert_spec_h5 import convert
+from silx.io.convert_spec_h5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/03/2016"
+__date__ = "16/03/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -114,6 +114,15 @@ class TestConvertSpecHDF5(unittest.TestCase):
         del self.h5f
         os.unlink(self.h5_fname)
         gc.collect()
+
+    def test_append_to_HDF5(self):
+        write_spec_to_h5(self.sfh5, self.h5f,
+                         h5path="/foo/bar/spam")
+        self.assertTrue(
+            array_equal(self.h5f["/1.2/measurement/mca_1/data"],
+                        self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
+        )
+
 
     def test_HDF5_has_same_members(self):
         spec_member_list = []
