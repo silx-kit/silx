@@ -6,7 +6,7 @@ export PYBUILD_NAME=silx
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
 # How to recursively find all files with the same name in a given folder
-ALL_PYX := $(call rwildcard,silx/,*.pyx) 
+ALL_PYX := $(call rwildcard,silx/,*.pyx)
 #NOTA: No space before *
 
 %:
@@ -31,7 +31,7 @@ override_dh_install:
 	dh_install
 
 override_dh_auto_test:
-	#dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} {interpreter} run_tests.py -i"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} {interpreter} run_tests.py -i"
 	rm -rf *.egg-info
 
 #override_dh_installman:
