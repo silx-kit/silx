@@ -32,7 +32,7 @@ import tempfile
 import unittest
 
 from silx.io.specfileh5 import SpecFileH5
-from silx.io.convert_spec_h5 import convert, write_spec_to_h5
+from silx.io.spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
