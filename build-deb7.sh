@@ -51,9 +51,9 @@ then
   sudo dpkg -i deb_dist/python3-${PROJECT}*.deb
 else
   echo Using Python 2
-	PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
+  PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
 fi
 
-sudo su -c  "dpkg -i deb_dist/${PROJECT}*.deb"
+sudo su -c  "dpkg -i deb_dist/python-${PROJECT}*.deb"
 cd ../..
 
