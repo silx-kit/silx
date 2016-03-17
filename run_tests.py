@@ -32,17 +32,24 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "01/12/2015"
+__date__ = "07/01/2016"
 __license__ = "MIT"
 
 import distutils.util
-import importlib
 import logging
 import os
 import subprocess
 import sys
 import time
 import unittest
+
+try:
+    import importlib
+except:
+    importer = __import__
+else:
+    importer = importlib.import_module
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("run_tests")
@@ -72,19 +79,23 @@ except Exception as error:
 else:
     logger.info("h5py %s" % h5py.version.version)
 
-
 class TestResult(unittest.TestResult):
     logger = logging.getLogger("memProf")
     logger.setLevel(logging.DEBUG)
     logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
-        self.__mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        if resource:
+            self.__mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
     def stopTest(self, test):
         unittest.TestResult.stopTest(self, test)
+        if resource:
+            memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - self.__mem_start) * 0.001
+        else:
+            memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
             time.time() - self.__time_start,
             (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
@@ -114,7 +125,6 @@ def report_rst(cov, package, version="0.0.0"):
     xml = etree.parse(fn)
     classes = xml.xpath("//class")
 
-    import time
     line0 = "Test coverage report for %s" % package
     res = [line0, "=" * len(line0), ""]
     res.append("Measured on *%s* version %s, %s" %
@@ -249,7 +259,7 @@ if (os.path.dirname(os.path.abspath(__file__)) ==
 # import module
 if not options.insource:
     try:
-        module = importlib.import_module(PROJECT_NAME)
+        module = importer(PROJECT_NAME)
     except:
         logger.warning(
             "%s missing, using built (i.e. not installed) version",
@@ -261,7 +271,7 @@ if options.insource:
 
     sys.path.insert(0, build_dir)
     logger.warning("Patched sys.path, added: '%s'" % build_dir)
-    module = importlib.import_module(PROJECT_NAME)
+    module = importer(PROJECT_NAME)
 
 
 PROJECT_VERSION = getattr(module, 'version', '')

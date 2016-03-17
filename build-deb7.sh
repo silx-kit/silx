@@ -1,7 +1,11 @@
-# coding: utf-8
-# /*##########################################################################
+#!/bin/sh
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#    Project: Silx
+#             https://github.com/silx-kit/silx
+#
+#    Copyright (C) 2015-2.16 European Synchrotron Radiation Facility, Grenoble, France
+#
+#    Principal author:       Jérôme Kieffer (Jerome.Kieffer@ESRF.eu)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -19,21 +23,37 @@
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-#
-# ###########################################################################*/
+# THE SOFTWARE
 
-from __future__ import absolute_import, print_function, division
+# Script that builds a debian package from this library 
 
-__authors__ = ["Jérôme Kieffer"]
-__license__ = "MIT"
-__date__ = "28/01/2016"
+PROJECT=silx
+ 
+if [ -d /usr/lib/ccache ];
+then 
+   CCPATH=/usr/lib/ccache:$PATH 
+else  
+   CCPATH=$PATH
+fi
+export PYBUILD_DISABLE_python2=test
+export PYBUILD_DISABLE_python3=test
+export DEB_BUILD_OPTIONS=nocheck
+rm -rf dist
+python setup.py sdist
+cd dist
+tar -xzf ${PROJECT}-*.tar.gz
+cd ${PROJECT}*
 
-import os
-project = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
-try:
-    from ._version import __date__ as date  # noqa
-    from ._version import version, version_info, hexversion, strictversion  # noqa
-except ImportError:
-    raise RuntimeError(
-                       "Do NOT use %s from its sources: build it and use the built version" % project)
+if [ $1 = 3 ]
+then
+  echo Using Python 2+3 
+  PATH=$CCPATH  python3 setup.py --command-packages=stdeb.command sdist_dsc --with-python2=True --with-python3=True --no-python3-scripts=True bdist_deb --no-cython
+  sudo dpkg -i deb_dist/python3-${PROJECT}*.deb
+else
+  echo Using Python 2
+  PATH=$CCPATH python setup.py --command-packages=stdeb.command bdist_deb --no-cython
+fi
+
+sudo su -c  "dpkg -i deb_dist/python-${PROJECT}*.deb"
+cd ../..
+
