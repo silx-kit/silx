@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,14 +21,13 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Nested python dictionary to HDF5 file conversion
-"""
+"""Nested python dictionary to HDF5 file conversion"""
 
 import h5py
 import numpy
 import sys
 
-from .utils import repr_hdf5, tree
+from .utils import repr_hdf5_tree, tree
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -113,11 +112,6 @@ def dicttoh5(treedict, h5file, h5path='/',
             h5f.create_group(h5path + key)
 
         else:
-            # Write dataset
-            #     TODO: check consistency of dataset
-            #           (should be an homogeneous "numpy array-like" object)
-
-
             h5f.create_dataset(h5path + key,
                                data=prepare_hdf5_dataset(treedict[key]))
 
@@ -138,10 +132,9 @@ if __name__ == "__main__":
     city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["area"] = "18.44 km2"
     city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["inhabitants"] = 160215
     city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["inhabitants2"] = [(2016, 160215), (1990, 150000)]
-
     city_attrs["Europe"]["France"]["Nord"]["Tourcoing"]["area"] = "15.19 km2"
 
     dicttoh5(city_attrs, h5filename, h5path='/city attributes',
              h5file_mode="w", overwrite_data=False,)
 
-    print(repr_hdf5(h5filename))
+    print(repr_hdf5_tree(h5filename))

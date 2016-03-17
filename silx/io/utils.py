@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,7 +34,7 @@ __date__ = "16/03/2016"
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def repr_hdf5(h5group, lvl=0):
+def repr_hdf5_tree(h5group, lvl=0):
     """Return a string representation of an HDF5 tree structure.
 
     :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
