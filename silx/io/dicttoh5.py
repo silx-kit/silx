@@ -128,6 +128,11 @@ if __name__ == "__main__":
         print("Usage: python dicttoh5.py <HDF5 file name>")
         sys.exit(1)
 
+    from collections import defaultdict
+    def tree():
+        """Tree data structure as a recursive nested dictionary"""
+        return defaultdict(tree)
+
     city_attrs = tree()
     city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["area"] = "18.44 km2"
     city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["inhabitants"] = 160215

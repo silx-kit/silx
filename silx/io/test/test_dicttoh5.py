@@ -21,25 +21,54 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
+"""Tests for dicttoh5 module"""
 
-__authors__ = ["T. Vincent", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "17/03/2016"
-
+import h5py
+import os
+import tempfile
 import unittest
 
-from .test_specfile import suite as test_specfile_suite
-from .test_dicttoh5 import suite as test_dicttoh5_suite
-from .test_specfileh5 import suite as test_specfileh5_suite
-from .test_spectoh5 import suite as test_spectoh5_suite
-from .test_utils import suite as test_utils_suite
+from silx.io.dicttoh5 import dicttoh5
+
+
+class TestDictToH5(unittest.TestCase):
+    def setUp(self):
+        fd, self.h5_fname = tempfile.mkstemp(text=False)
+        # Close and delete (we just want the name)
+        os.close(fd)
+        os.unlink(self.h5_fname)
+
+    def tearDown(self):
+        os.unlink(self.h5_fname)
+
+    def test_dicttoh5(self):
+        from collections import defaultdict
+        def tree():
+            """Tree data structure as a recursive nested dictionary"""
+            return defaultdict(tree)
+
+        city_attrs = tree()
+        city_attrs["Europe"]["France"]["Grenoble"]["area"] = "18.44 km2"
+        city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = 160215
+        city_attrs["Europe"]["France"]["Tourcoing"]["area"]
+
+        dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
+                 h5file_mode="w")
+
+        h5f = h5py.File(self.h5_fname)
+
+        self.assertIn("Tourcoing/area", h5f["/city attributes/Europe/France"])
+        ds = h5f["/city attributes/Europe/France/Grenoble/inhabitants"]
+        self.assertEqual(ds[...], 160215)
+        h5f.close()
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_dicttoh5_suite())
-    test_suite.addTest(test_specfile_suite())
-    test_suite.addTest(test_specfileh5_suite())
-    test_suite.addTest(test_spectoh5_suite())
-    test_suite.addTest(test_utils_suite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")
