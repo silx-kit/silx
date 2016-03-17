@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,7 +33,7 @@ from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/03/2016"
+__date__ = "17/03/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
