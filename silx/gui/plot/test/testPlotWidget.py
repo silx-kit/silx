@@ -75,7 +75,6 @@ class TestPlotWidget(_PlotWidgetTest):
         self.plot.setGraphTitle(title)
         self.plot.setGraphXLabel(xlabel)
         self.plot.setGraphYLabel(ylabel)
-        self.plot.replot()
         self.qWait()
 
         self.assertEqual(self.plot.getGraphTitle(), title)
@@ -100,7 +99,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -113,7 +112,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -125,7 +124,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(0.0, 1.0), yScale=(0.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -140,7 +139,7 @@ class TestPlotImage(_PlotWidgetTest):
 
         self.plot.addImage(rgb, legend="rgb",
                            xScale=(0, 10), yScale=(0, 10),
-                           replace=False, replot=False)
+                           replace=False, resetZoom=False)
 
         rgba = numpy.array(
             (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
@@ -149,7 +148,7 @@ class TestPlotImage(_PlotWidgetTest):
 
         self.plot.addImage(rgba, legend="rgba",
                            xScale=(5, 10), yScale=(5, 10),
-                           replace=False, replot=False)
+                           replace=False, resetZoom=False)
 
         self.plot.resetZoom()
         self.qWait()
@@ -178,12 +177,12 @@ class TestPlotCurve(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 1",
-                           replace=False, replot=False,
+                           replace=False, resetZoom=False,
                            color=color,
                            linestyle="", symbol="s")
         self.plot.addCurve(self.xData2, self.yData2,
                            legend="curve 2",
-                           replace=False, replot=False,
+                           replace=False, resetZoom=False,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -194,12 +193,12 @@ class TestPlotCurve(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 1",
-                           replace=False, replot=False,
+                           replace=False, resetZoom=False,
                            color=color,
                            linestyle="", symbol="s")
         self.plot.addCurve(self.xData2, self.yData2,
                            legend="curve 2",
-                           replace=False, replot=False,
+                           replace=False, resetZoom=False,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -210,7 +209,7 @@ class TestPlotCurve(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve 2",
-                           replace=False, replot=False,
+                           replace=False, resetZoom=False,
                            color=color, linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -337,7 +336,7 @@ class TestPlotItem(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.polygons:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -347,7 +346,7 @@ class TestPlotItem(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.polygons:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -357,7 +356,7 @@ class TestPlotItem(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.rectangles:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -367,7 +366,7 @@ class TestPlotItem(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.rectangles:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -408,7 +407,7 @@ class TestPlotCurveLog(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
-                           replace=False, replot=True,
+                           replace=False, resetZoom=True,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -420,7 +419,7 @@ class TestPlotCurveLog(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
-                           replace=False, replot=True,
+                           replace=False, resetZoom=True,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -433,7 +432,7 @@ class TestPlotCurveLog(_PlotWidgetTest):
 
         self.plot.addCurve(self.xData, self.yData,
                            legend="curve",
-                           replace=False, replot=True,
+                           replace=False, resetZoom=True,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
         self.qWait()
@@ -457,7 +456,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -470,7 +469,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -484,7 +483,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
                            xScale=(1.0, 1.0), yScale=(1.0, 1.0),
-                           replace=False, replot=False, colormap=colormap)
+                           replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
 
@@ -500,7 +499,7 @@ class TestPlotImageLog(_PlotWidgetTest):
 
         self.plot.addImage(rgb, legend="rgb",
                            xScale=(1, 10), yScale=(1, 10),
-                           replace=False, replot=False)
+                           replace=False, resetZoom=False)
 
         rgba = numpy.array(
             (((0, 0, 0, .5), (.5, 0, 0, 1), (1, 0, 0, .5)),
@@ -509,7 +508,7 @@ class TestPlotImageLog(_PlotWidgetTest):
 
         self.plot.addImage(rgba, legend="rgba",
                            xScale=(5, 10), yScale=(5, 10),
-                           replace=False, replot=False)
+                           replace=False, resetZoom=False)
         self.plot.resetZoom()
         self.qWait()
 
@@ -622,7 +621,7 @@ class TestPlotItemLog(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.polygons:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -632,7 +631,7 @@ class TestPlotItemLog(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.polygons:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -642,7 +641,7 @@ class TestPlotItemLog(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.rectangles:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
         self.qWait()
@@ -652,7 +651,7 @@ class TestPlotItemLog(_PlotWidgetTest):
 
         for legend, xList, yList, color in self.rectangles:
             self.plot.addItem(xList, yList, legend=legend,
-                              replace=False, replot=False,
+                              replace=False,
                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
         self.qWait()
