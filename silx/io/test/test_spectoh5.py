@@ -36,7 +36,7 @@ from silx.io.spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "18/03/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -117,10 +117,15 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def test_append_to_HDF5(self):
         write_spec_to_h5(self.sfh5, self.h5f,
-                         h5path="/foo/bar/spam")
+                         h5path="/foo/bar/spam",
+                         create_dataset_args={"compression": "gzip"})
         self.assertTrue(
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
+        )
+        self.assertEqual(
+            self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"].compression,
+            "gzip"
         )
 
 

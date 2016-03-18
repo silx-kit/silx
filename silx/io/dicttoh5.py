@@ -31,7 +31,7 @@ from .utils import repr_hdf5_tree, tree
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/03/2016"
+__date__ = "18/03/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -55,22 +55,15 @@ def prepare_hdf5_dataset(array_like):
     data_kind = array.dtype.kind
     # unicode: convert to byte strings
     # (http://docs.h5py.org/en/latest/strings.html)
-    if data_kind in ["S", "U"]:
+    if data_kind.lower() in ["s", "u"]:
         array = numpy.asarray(array, dtype=numpy.string_)
-
-    # # enforce float32 for int, unsigned int, float
-    # elif data_kind in ["i", "u", "f"]:
-    #     array = numpy.asarray(array, dtype=numpy.float32)
-    # reject boolean (b), complex (c), object (O), void/data block (V)
-    # else:
-    #     raise TypeError("Unexpected data type " + data_kind +
-    #                     " (expected int-, string- or float-like data)")
 
     return array
 
 
 def dicttoh5(treedict, h5file, h5path='/',
-             h5file_mode="a", overwrite_data=False,):
+             h5file_mode="a", overwrite_data=False,
+             create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
@@ -89,6 +82,9 @@ def dicttoh5(treedict, h5file, h5path='/',
     :param overwrite_data: If ``True``, existing groups and datasets can be
         overwritten, if ``False`` they are skipped. This parameter is only
         relevant if ``h5file_mode`` is ``"r+"`` or ``"a"``.
+    :param create_dataset_args: Dictionary of args you want to pass to
+        ``h5f.create_dataset``. This allows you to specify filters and
+        compression parameters. Don't specify ``name`` and ``data``.
     """
     if not isinstance(h5file, h5py.File):
         h5f = h5py.File(h5file, h5file_mode)
@@ -104,7 +100,9 @@ def dicttoh5(treedict, h5file, h5path='/',
 
         if isinstance(treedict[key], dict) and len(treedict[key]):
             # non-empty group: recurse
-            dicttoh5(treedict[key], h5f, h5path + key)
+            dicttoh5(treedict[key], h5f, h5path + key,
+                     overwrite_data=overwrite_data,
+                     create_dataset_args=create_dataset_args)
 
         elif treedict[key] is None or \
              isinstance(treedict[key], dict) and not len(treedict[key]):
@@ -112,8 +110,15 @@ def dicttoh5(treedict, h5file, h5path='/',
             h5f.create_group(h5path + key)
 
         else:
-            h5f.create_dataset(h5path + key,
-                               data=prepare_hdf5_dataset(treedict[key]))
+            ds = prepare_hdf5_dataset(treedict[key])
+            # can't apply filters on scalars (datasets with shape == () )
+            if ds.shape == () or create_dataset_args is None:
+                h5f.create_dataset(h5path + key,
+                                   data=ds)
+            else:
+                h5f.create_dataset(h5path + key,
+                                   data=ds,
+                                   **create_dataset_args)
 
     # Close file if we opened it
     # or maybe we should return a file handle?

@@ -31,7 +31,7 @@ from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "18/03/2016"
 
 logger = logging.getLogger('silx.io.spectoh5')
 #logger.setLevel(logging.DEBUG)
@@ -39,7 +39,7 @@ logger = logging.getLogger('silx.io.spectoh5')
 
 def write_spec_to_h5(spec_file, h5_file, h5path='/',
                      h5_file_mode="a", overwrite_data=False,
-                     link_type="hard"):
+                     link_type="hard", create_dataset_args=None):
     """Write content of a SpecFile in a HDF5 file.
 
     :param spec_file: Path of input SpecFile or :class:`SpecFileH5` instance
@@ -54,6 +54,10 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
         overwritten, if ``False`` they are skipped. This parameter is only
         relevant if ``file_mode`` is ``"r+"`` or ``"a"``.
     :param link_type: ``"hard"`` (default) or ``"soft"``
+    :param create_dataset_args: Dictionary of args you want to pass to
+        ``h5f.create_dataset``. This allows you to specify filters and
+        compression parameters. Don't specify ``name`` and ``data``.
+        These arguments don't apply to scalar datasets.
 
     The structure of the spec data in an HDF5 file is described in the
     documentation of :mod:`silx.io.specfileh5`.
@@ -71,8 +75,14 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
     if not h5path.endswith("/"):
         h5path += "/"
 
+    if create_dataset_args is None:
+        create_dataset_args = {}
+
     def create_link(link_name, target):
-        """Create link or print  warning
+        """Create link
+
+        If member with name ``link_name`` already exists, delete it first or
+        ignore link depending on global param ``overwrite_data``.
 
         :param link: Link path
         :param target: Handle for target group or dataset
@@ -107,15 +117,20 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
 
         elif isinstance(obj, SpecFileH5Dataset):
             logger.debug("Saving dataset: " + h5_name)
-            #h5f[h5_name] = obj
-            if not h5_name in h5f:
-                ds = h5f.create_dataset(h5_name, data=obj)
-            elif overwrite_data:
+
+            member_initially_exists = h5_name in h5f
+
+            if overwrite_data and member_initially_exists:
                 logger.warn("Overwriting dataset: " + h5_name)
                 del h5f[h5_name]
-                ds = h5f.create_dataset(h5_name, data=obj)
-            else:
-                logger.warn("Ignoring existing dataset: " + h5_name)
+
+            if overwrite_data or not member_initially_exists:
+                # fancy arguments don't apply to scalars (shape==())
+                if obj.shape == ():
+                    ds = h5f.create_dataset(h5_name, data=obj)
+                else:
+                    ds = h5f.create_dataset(h5_name, data=obj,
+                                            **create_dataset_args)
 
             # link:
             #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
@@ -123,6 +138,13 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
                         h5_name):
                 link_name = h5_name.replace("instrument", "measurement")
                 create_link(link_name, ds)
+
+            # this has to be at the end if we want link creation and
+            # dataset creation to remain independent for odd cases
+            # where dataset exists but not the link
+            if not overwrite_data and member_initially_exists:
+                logger.warn("Ignoring existing dataset: " + h5_name)
+
 
         elif isinstance(obj, SpecFileH5Group):
             if not h5_name in h5f:
@@ -145,7 +167,8 @@ def write_spec_to_h5(spec_file, h5_file, h5path='/',
 
 
 def convert(spec_file, h5_file,
-            h5_file_mode="w-", link_type="hard"):
+            h5_file_mode="w-", link_type="hard",
+            create_dataset_args=None):
     """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
      group.
 
@@ -163,5 +186,6 @@ def convert(spec_file, h5_file,
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
                       " to append Spec data to an existing HDF5 file.")
     write_spec_to_h5(spec_file, h5_file, h5path='/',
-                     h5_file_mode=h5_file_mode, link_type=link_type)
+                     h5_file_mode=h5_file_mode, link_type=link_type,
+                     create_dataset_args=create_dataset_args)
 
