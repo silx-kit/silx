@@ -98,7 +98,8 @@ class TestSaveSpec(unittest.TestCase):
         y = [[4, 5, 6], [7, 8, 9]]
         ylabs = "Ordinate1  Ordinate2"
 
-        savespec(self.spec_fname, x, y, xlabel=xlab, ylabels=ylabs)
+        savespec(self.spec_fname, x, y, xlabel=xlab, ylabels=ylabs,
+                 datafmt=["%d", "%.2f"])
 
     def tearDown(self):
         os.unlink(self.spec_fname)
@@ -111,17 +112,17 @@ class TestSaveSpec(unittest.TestCase):
         expected_spec += r"#D .*\n"
         expected_spec += r"#N 2\n"
         expected_spec += r"#L Abscissa  Ordinate1\n"
-        expected_spec += r"1  4\n"
-        expected_spec += r"2  5\n"
-        expected_spec += r"3  6\n"
+        expected_spec += r"1  4\.00\n"
+        expected_spec += r"2  5\.00\n"
+        expected_spec += r"3  6\.00\n"
         expected_spec += r"\n"
         expected_spec += r"#S 2 Ordinate2\n"
         expected_spec += r"#D .*\n"
         expected_spec += r"#N 2\n"
         expected_spec += r"#L Abscissa  Ordinate2\n"
-        expected_spec += r"1  7\n"
-        expected_spec += r"2  8\n"
-        expected_spec += r"3  9\n"
+        expected_spec += r"1  7\.00\n"
+        expected_spec += r"2  8\.00\n"
+        expected_spec += r"3  9\.00\n"
         expected_spec += r"\n"
 
         specf = open(self.spec_fname)

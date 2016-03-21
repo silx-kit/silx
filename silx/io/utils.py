@@ -26,6 +26,7 @@
 from collections import defaultdict
 import h5py
 import numpy
+import os.path
 import sys
 import time
 
@@ -68,8 +69,29 @@ def repr_hdf5_tree(h5group, lvl=0):
 
     return repr
 
+# TODO: support more formats (.npy numpy.save), test
+def save(path, x, y, xlabel=None, ylabels=None, datafmt="%.18e",
+         savefmt=None, csvdelimiter=";", newline="\n", header="",
+         footer="", comments="#"):
+    available_formats = ["dat", "csv"]
 
-def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
+    if savefmt is None:
+        savefmt = os.path.splitext(filename)
+
+    if savefmt.lower() not in available_formats:
+        raise IOError("Format %s is not supported" % (savefmt))
+
+    if savefmt.lower() == "dat":
+        # Spec format
+        savespec(path, x, y, xlabel, ylabels, datafmt="%.7g")
+    elif savefmt.lower() == "csv":
+        X = numpy.vstack((x, y))
+        numpy.savetxt(path,X.T, fmt=datafmt, delimiter=csvdelimiter,
+                      newline=newline, header=header, footer=footer,
+                      comments=comments)
+
+
+def savespec(specfile, x, y, xlabel=None, ylabels=None, datafmt="%.18e"):
     """Saves any number of curves to SpecFile format.
 
     The output SpecFile has one scan with two columns (`x` and `y`) per curve.
@@ -85,8 +107,10 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
         two spaces
-    :param fmat: A single format string (e.g ``"%10.5f"``) for data.
-        Default is ``"%.7g"``
+    :param datafmat: Format string for data. You can specify a short format
+        string that defines a single format for both ``x`` and ``y`` values,
+        or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
+        Default is ``"%.18e"``.
     """
     if not hasattr(specfile, "write"):
         f = open(specfile, "w")
@@ -95,6 +119,12 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
 
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
+
+    if xlabel is None:
+        xlabel = "X"
+    if ylabels is None:
+        # set labels to  ["Y0", "Y1", …]
+        ylabels = ["Y" + str(j) for j in range(y_array.shape[0])]
 
     # enforce list type for ylabels
     if isinstance(ylabels, string_types):
@@ -111,14 +141,25 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     f.write(current_date)
     f.write("\n")
 
+    if isinstance(datafmt, string_types) and datafmt.count("%") == 1:
+        fmt_string = datafmt + "  " + datafmt + "\n"
+    elif isinstance(datafmt, (list, tuple)):
+        fmt_string = "  ".join(datafmt) + "\n"
+    # custom user defined format string
+    # FIXME: undocumented feature: remove or document
+    elif isinstance(datafmt, string_types) and datafmt.count("%") == 2:
+        fmt_string = datafmt if datafmt.endswith("\n") else datafmt + "\n"
+
     for i in range(y_array.shape[0]):
-        assert y_array.shape[1] == x_array.shape[0]
+        if y_array.shape[1] != x_array.shape[0]:
+            raise IndexError("X and Y columns must have the same length")
+
         f.write("#S %d %s\n" % (i + 1, ylabels[i]))
         f.write(current_date)
         f.write("#N 2\n")
         f.write("#L %s  %s\n" % (xlabel, ylabels[i]))
         for j in range(y_array.shape[1]):
-            f.write((fmt + "  " + fmt + "\n") % (x_array[j], y[i][j]))
+            f.write(fmt_string % (x_array[j], y[i][j]))
         f.write("\n")
 
     if not hasattr(specfile, "write"):
