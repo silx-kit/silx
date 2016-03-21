@@ -39,12 +39,17 @@ silx.io.specfileh5 module
     :undoc-members:
     :special-members: __getitem__, __len__, __contains__
 
-silx.io.convert_spec_h5 module
+silx.io.spectoh5 module
 --------------------------------
 
-.. automodule:: silx.io.convert_spec_h5
+.. automodule:: silx.io.spectoh5
     :members:
 
+silx.io.dicttoh5 module
+--------------------------------
+
+.. automodule:: silx.io.dicttoh5
+    :members:
 
 
 

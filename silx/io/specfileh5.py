@@ -160,7 +160,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "21/03/2016"
 
 logger1 = logging.getLogger('silx.io.specfileh5')
 
@@ -614,8 +614,9 @@ class SpecFileH5Dataset(numpy.ndarray):
 
 class SpecFileH5LinkToDataset(SpecFileH5Dataset):
     """Special :class:`SpecFileH5Dataset` representing a link to a dataset. It
-    behaves as if it were the dataset itself, but ``visit`` and ``visititems``
-    group methods will recognize that it is a link and will ignore it.
+    works exactly like a regular dataset, but :meth:`SpecFileH5Group.visit`
+    and :meth:`SpecFileH5Group.visititems` methods will recognize that it is
+    a link and will ignore it.
     """
     pass
 
@@ -856,7 +857,7 @@ class SpecFileH5Group(object):
 
         ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
         the group, or a path reaching into subgroups (e.g.
-        "instrument/positioners")
+        ``"instrument/positioners"``)
 
         In the special case were this group is the root group, ``key`` can
         start with a ``/`` character.
@@ -891,8 +892,9 @@ class SpecFileH5Group(object):
             yield key
 
     def __len__(self):
-        """Return number of members attached to this group,
-        subgroups and datasets."""
+        """Return number of members,subgroups and datasets, attached to this
+         group.
+         """
         return len(self.keys())
 
     def __repr__(self):
@@ -1018,10 +1020,11 @@ class SpecFileH5Group(object):
 
 
 class SpecFileH5LinkToGroup(SpecFileH5Group):
-    """Special :class:`SpecFileH5Group` representing a link to a group. It
-    behaves as if it were the group itself, but ``visit`` and ``visititems``
-    methods will recognize that it is a link and will ignore it (and not
-    recurse into the target's subgroups).
+    """Special :class:`SpecFileH5Group` representing a link to a group.
+
+    It works exactly like a regular group but :meth:`SpecFileH5Group.visit`
+    and :meth:`SpecFileH5Group.visititems` methods will recognize it as a
+    link and will ignore it.
     """
     def keys(self):
         """:return: List of all names of members attached to the target group
@@ -1040,9 +1043,9 @@ class SpecFileH5(SpecFileH5Group):
     :type filename: str
 
     In addition to all generic :class:`SpecFileH5Group` attributes, this class
-    keeps a reference to the original :class:`SpecFile` object.
+    also keeps a reference to the original :class:`SpecFile` object.
 
-    Its immediate children are scans, but it also allows access to any group
+    Its immediate children are scans, but it also gives access to any group
     or dataset in the entire SpecFile tree by specifying the full path.
     """
     def __init__(self, filename):
