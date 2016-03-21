@@ -104,20 +104,23 @@ def tree():
 # PyMcaGui.plotting.PlotWindow.defaultSaveAction…)
 
 def save_spec(specfile, x, y, xlabel=None, ylabels=None):
-    """Saves any number of curves to SpecFile format
+    """Saves any number of curves to SpecFile format.
 
-    :param specfile: Output Specfile name, or file handle open in write
+    The output SpecFile has one scan with two columns (`x` and `y`) per curve.
+
+    :param specfile: Output SpecFile name, or file handle open in write
         mode.
     :param x: 1D-Array (or list) of abscissa values
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
-        ``len(x)``
-    :param xlabel: Abscissa label as a string
-    :param ylabels: List of columns labels or string of double space
-        delimited labels
+        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
+        only one curve to save.
+    :param xlabel: Abscissa label
+    :param ylabels: List of `y` labels, or string of labels separated by
+       two spaces
     """
-    if not hasattr(specfile, write):
+    if not hasattr(specfile, "write"):
         f = open(specfile, "w")
     else:
         f = specfile
@@ -129,25 +132,26 @@ def save_spec(specfile, x, y, xlabel=None, ylabels=None):
     if isinstance(ylabels, string_types):
         ylabels = ylabels.split("  ")
 
-    f.write("#F %s\n" % f.name)
-    now = "#D %s\n"%(time.ctime(time.time()))
-    f.write(now)
-    f.write("#S 1 %s\n" % ylabels[0])
-    f.write(now)
-    f.write("#N 2\n")
-    f.write("#L %s  %s\n" % (xlabel, ylabel[0]))
-
-    # for i in range(len(y)):
-    #     ffile.write("%.7g  %.7g\n" % (x[i], y[i]))
-    # ffile.write("\n")
+    # make sure y_array is a 2D array even for a single curve
     if len(y_array.shape) == 1:
-        # TODO: handle one curve
-        raise NotImplementedError
-    else:
-        # TODO: handle multile curves
-        raise NotImplementedError
-savingDate = "#D %s\n"%(time.ctime(time.time()))
+        y_array.shape = (1, y_array.shape[0])
+    elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
+        raise IndexError("y must be a 1D or 2D array")
 
+    f.write("#F %s\n" % f.name)
+    current_date = "#D %s\n"%(time.ctime(time.time()))
+    f.write(current_date)
+    f.write("\n")
 
-    if not hasattr(specfile, write):
+    for i in range(y_array.shape[0]):
+        assert y_array.shape[1] == x_array.shape[0]
+        f.write("#S %d %s\n" % (i + 1, ylabels[i]))
+        f.write(current_date)
+        f.write("#N 2\n")
+        f.write("#L %s  %s\n" % (xlabel, ylabels[i]))
+        for j in range(y_array.shape[1]):
+            f.write("%.7g  %.7g\n" % (x_array[j], y[i][j]))
+        f.write("\n")
+
+    if not hasattr(specfile, "write"):
         f.close()

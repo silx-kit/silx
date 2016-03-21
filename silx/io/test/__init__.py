@@ -29,9 +29,11 @@ __date__ = "16/02/2016"
 import unittest
 
 from .test_specfile import suite as test_specfile_suite
+from .test_utils import suite as test_utils_suite
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_specfile_suite())
+    test_suite.addTest(test_utils_suite())
     return test_suite
