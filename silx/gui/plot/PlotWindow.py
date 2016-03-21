@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "07/03/2016"
 
 
+from collections import OrderedDict
 import logging
 import os.path
 import sys
@@ -44,18 +45,19 @@ else:
     import cStringIO as _StringIO
     BytesIO = _StringIO.StringIO
 
+import numpy
+
 from . import PlotWidget
 
 from .. import icons
 from .. import qt
 
-# TODO move actions to PlotWindow and override plot setters to sync the widgets
 
 _logger = logging.getLogger(__name__)
 
 
 class _PlotAction(qt.QAction):
-    """Base class for QAction to attache to a PlotWindow.
+    """Base class for QAction that operates on a PlotWindow.
 
     :param plotWindow: :class:`PlotWindow` instance on which to operate.
     :param icon: QIcon or str name of icon to use
@@ -64,7 +66,7 @@ class _PlotAction(qt.QAction):
     :param triggered: The callback to connect to the action's triggered
                       signal or None for no callback.
     :param bool checkable: True for checkable action, False otherwise (default)
-    :param parent: See :class:`QActionGroup`.
+    :param parent: See :class:`QAction`.
     """
 
     def __init__(self, plotWindow, icon, text, tooltip=None,
@@ -169,20 +171,66 @@ class _PlotActionGroup(qt.QActionGroup):
         return menu
 
 
+def savetxt(fname, X, fmt='%.18e', delimiter=' ', newline='\n', header=''):
+    """numpy.savetxt backport of header argument (available in numpy>=1.7.0).
+
+    For Debian 7 compatibility, replace by numpy.savetxt when dropping
+    support of numpy < 1.7.0
+
+    See numpy.savetxt for details.
+    """
+    # Open the file in text mode with \n newline on all OS
+    if sys.version_info[0] >= 3:
+        ffile = open(fname, 'w', newline='\n')
+    else:
+        ffile = open(fname,'wb')
+
+    if header:
+        ffile.write(header + '\n')
+
+    numpy.savetxt(ffile, X, fmt, delimiter, newline)
+
+    ffile.close()
+
+
 class SaveAction(_PlotAction):
+    """QAction for saving Plot content.
+
+    It opens a Save as... dialog.
+
+    :param plotWindow: :class:`PlotWindow` instance on which to operate.
+    :param parent: See :class:`QAction`.
+    """
 
     SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
 
-    CURVE_FILTER_ASCII = 'Curve Raw ASCII *.txt'
-    CURVE_FILTERS = (CURVE_FILTER_ASCII,)
+    # Dict of curve filters with CSV-like format
+    CURVE_OMNIC_FILTER = 'Curve as OMNIC CSV *.csv'
 
-    IMAGE_FILTER_ASCII = 'Image Raw ASCII *.dat'
-    IMAGE_FILTERS = (IMAGE_FILTER_ASCII,)
+    # Using ordered dict to guarantee filters order
+    # Note: '%.18e' is numpy.savetxt default format
+    CURVE_FILTERS_TXT = OrderedDict((
+        ('Curve as Raw ASCII *.txt',
+         {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
+        ('Curve as ","-separated CSV *.csv',
+         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
+        ('Curve as ";"-separated CSV *.csv',
+         {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
+        ('Curve as tab-separated CSV *.csv',
+         {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
+        (CURVE_OMNIC_FILTER,
+         {'fmt': '%.7E', 'delimiter': ',', 'header': False})
+    ))
+
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys())
+
+    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
+    IMAGE_FILTERS = (IMAGE_FILTER_NUMPY,)
 
     def __init__(self, plotWindow, parent=None):
         super(SaveAction, self).__init__(
             plotWindow, icon='filesave', text='Save as...',
-            tooltip='Open Save Plot Snapshot/Curve/Image Dialog',
+            tooltip='Save Curve/Image/Plot Snapshot Dialog',
             checkable=False, parent=parent)
         self.triggered.connect(self._saveActionTriggered)
 
@@ -230,20 +278,28 @@ class SaveAction(_PlotAction):
             curve = curves[0]  # TODO why not the last one?
 
         # TODO Use silx.io for writing files
-        if nameFilter == self.CURVE_FILTER_ASCII:  # Save curve as raw ASCII
-            try:
-                if sys.version_info.major >= 3:
-                    ffile = open(filename, 'w', newline='\n')
-                else:
-                    ffile = open(filename,'wb')
-            except IOError:
-                self._errorMessage("Cannot open file.")
-                return False
+        if nameFilter in self.CURVE_FILTERS_TXT:
+            filter_ = self.CURVE_FILTERS_TXT[nameFilter]
+            if filter_['header']:
+                header = '"%s"%s"%s"' % (curve[4]['xlabel'],
+                                         delimiter,
+                                         curve[4]['ylabel'])
             else:
-                for x, y in zip(curve['x'], curve['y']):
-                    ffile.write("%.7g  %.7g\n" % (x, y))
-                ffile.close()
-                return True
+                header = ''
+
+            # For numpy<1.7.0 compatibility
+            # replace with numpy.savetxt when dropping Debian 7 support
+            try:
+                savetxt(filename,
+                        numpy.array((curve[0], curve[1])).T,
+                        fmt=filter_['fmt'],
+                        delimiter=filter_['delimiter'],
+                        header=header)
+            except IOError:
+                self._errorMessage('Save failed\n')
+                return False
+            return True
+
         return False
 
     def _saveImage(self, filename, nameFilter):
@@ -263,23 +319,18 @@ class SaveAction(_PlotAction):
                 self.plotWindow, "No Data", "No image to be saved")
             return False
 
+        data = image[0]
+
         # TODO Use silx.io for writing files
-        if nameFilter == self.IMAGE_FILTER_ASCII:  # Save image as raw ASCII
+        if nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
-                if sys.version_info.major >= 3:
-                    ffile = open(filename, 'w', newline='\n')
-                else:
-                    ffile = open(filename,'wb')
+                numpy.save(filename, data)
             except IOError:
-                self._errorMessage("Cannot open file.")
-            else:
-                ffile.write("row column value\n")
-                for row in range(image.shape[0]):
-                    for column in range(image.shape[1]):
-                        ffile.write(
-                            "%d  %d  %g\n" % (row, column, image[row, column]))
-                ffile.close()
-        return True
+                self._errorMessage('Save failed\n')
+                return False
+            return True
+
+        return False
 
     def _saveActionTriggered(self, checked=False):
         """Handle save action."""
