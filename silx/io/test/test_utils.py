@@ -28,7 +28,7 @@ import re
 import tempfile
 import unittest
 
-from silx.io.utils import repr_hdf5_tree, save_spec
+from silx.io.utils import repr_hdf5_tree, savespec
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -98,7 +98,7 @@ class TestSaveSpec(unittest.TestCase):
         y = [[4, 5, 6], [7, 8, 9]]
         ylabs = "Ordinate1  Ordinate2"
 
-        save_spec(self.spec_fname, x, y, xlabel=xlab, ylabels=ylabs)
+        savespec(self.spec_fname, x, y, xlabel=xlab, ylabels=ylabs)
 
     def tearDown(self):
         os.unlink(self.spec_fname)

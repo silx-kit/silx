@@ -69,48 +69,14 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 
-def tree():
-    """Initialize and return an empty nested dictionary tree-like structure.
-
-    When accessing a non-existent key, it is automatically created, and
-    initialized as an empty nested dictionary tree-like structure unless
-    a value is assigned to it.
-
-    Usage example::
-
-        city_area = Tree()
-        city_area["Europe"]["France"]["Isère"]["Grenoble"] = "18.44 km2"
-        city_area["Europe"]["France"]["Nord"]["Tourcoing"] = "15.19 km2"
-
-    is equivalent to::
-
-        city_area = {
-            "Europe": {
-                "France": {
-                    "Isère": {
-                        "Grenoble": "18.44 km2"
-                    },
-                    "Nord": {
-                        "Tourcoing": "15.19 km2"
-                    },
-                },
-            },
-        }
-    """
-    return defaultdict(tree)
-
-
-# todo: compare APIs (numpy.savetxt, PyMca5.PyMcaIO.SaveArray,
-# PyMcaGui.plotting.PlotWindow.defaultSaveAction…)
-
-def save_spec(specfile, x, y, xlabel=None, ylabels=None):
+def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     """Saves any number of curves to SpecFile format.
 
     The output SpecFile has one scan with two columns (`x` and `y`) per curve.
 
     :param specfile: Output SpecFile name, or file handle open in write
         mode.
-    :param x: 1D-Array (or list) of abscissa values
+    :param x: 1D-Array (or list) of abscissa values.
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
@@ -118,7 +84,9 @@ def save_spec(specfile, x, y, xlabel=None, ylabels=None):
         only one curve to save.
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
-       two spaces
+        two spaces
+    :param fmat: A single format string (e.g ``"%10.5f"``) for data.
+        Default is ``"%.7g"``
     """
     if not hasattr(specfile, "write"):
         f = open(specfile, "w")
@@ -150,7 +118,7 @@ def save_spec(specfile, x, y, xlabel=None, ylabels=None):
         f.write("#N 2\n")
         f.write("#L %s  %s\n" % (xlabel, ylabels[i]))
         for j in range(y_array.shape[1]):
-            f.write("%.7g  %.7g\n" % (x_array[j], y[i][j]))
+            f.write((fmt + "  " + fmt + "\n") % (x_array[j], y[i][j]))
         f.write("\n")
 
     if not hasattr(specfile, "write"):
