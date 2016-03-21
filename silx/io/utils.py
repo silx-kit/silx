@@ -29,7 +29,7 @@ import sys
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/03/2016"
+__date__ = "21/03/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -65,34 +65,3 @@ def repr_hdf5_tree(h5group, lvl=0):
         h5f.close()
 
     return repr
-
-
-def tree():
-    """Initialize and return an empty nested dictionary tree-like structure.
-
-    When accessing a non-existent key, it is automatically created, and
-    initialized as an empty nested dictionary tree-like structure unless
-    a value is assigned to it.
-
-    Usage example::
-
-        city_area = Tree()
-        city_area["Europe"]["France"]["Isère"]["Grenoble"] = "18.44 km2"
-        city_area["Europe"]["France"]["Nord"]["Tourcoing"] = "15.19 km2"
-
-    is equivalent to::
-
-        city_area = {
-            "Europe": {
-                "France": {
-                    "Isère": {
-                        "Grenoble": "18.44 km2"
-                    },
-                    "Nord": {
-                        "Tourcoing": "15.19 km2"
-                    },
-                },
-            },
-        }
-    """
-    return defaultdict(tree)

@@ -192,6 +192,6 @@ def convert(specfile, h5file, h5_file_mode="w-",
     if h5_file_mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
                       " to append Spec data to an existing HDF5 file.")
-    write_spec_to_h5( specfile, h5file, h5path='/',
+    write_spec_to_h5(specfile, h5file, h5path='/',
                      h5_file_mode=h5_file_mode,
                      create_dataset_args=create_dataset_args)
