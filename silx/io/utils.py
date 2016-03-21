@@ -23,7 +23,6 @@
 #############################################################################*/
 """ I/O utility functions"""
 
-from collections import defaultdict
 import h5py
 import sys
 
