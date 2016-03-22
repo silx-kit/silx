@@ -31,7 +31,7 @@ from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/03/2016"
+__date__ = "22/03/2016"
 
 logger = logging.getLogger('silx.io.spectoh5')
 # logger.setLevel(logging.DEBUG)

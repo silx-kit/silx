@@ -31,7 +31,7 @@ from .utils import repr_hdf5_tree
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/03/2016"
+__date__ = "22/03/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
