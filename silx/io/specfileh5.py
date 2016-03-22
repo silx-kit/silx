@@ -162,6 +162,7 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "22/03/2016"
 
+logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
@@ -175,13 +176,7 @@ static_items = {
     "scan/instrument": [u"positioners"],
     "scan/measurement/mca": [u"data", u"info"],
     "scan/instrument/mca": [u"data", u"calibration", u"channels"],
-
 }
-# scan_submembers = [u"header", u"title", u"start_time", u"instrument",
-#                    u"measurement"]
-# instrument_submembers = [u"positioners"]  # also has dynamic subgroups: mca_0…
-# measurement_mca_submembers = [u"data", u"info"]
-# instrument_mca_submembers = [u"data", u"calibration", u"channels"]
 
 # Patterns for group keys
 root_pattern = re.compile(r"/$")

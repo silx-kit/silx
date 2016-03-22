@@ -27,8 +27,6 @@ import h5py
 import numpy
 import sys
 
-from .utils import repr_hdf5_tree
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "22/03/2016"

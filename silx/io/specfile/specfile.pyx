@@ -91,6 +91,7 @@ import numpy
 import re
 import sys
 
+logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 cimport numpy

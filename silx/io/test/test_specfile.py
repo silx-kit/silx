@@ -36,6 +36,7 @@ import sys
 import tempfile
 import unittest
 
+logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 from silx.io.specfile import SpecFile, Scan
