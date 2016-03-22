@@ -225,7 +225,7 @@ def histogramnd(sample,
                              'a shape compatible with <n_bins> '
                              ': should be {0} instead of {1}.'
                              ''.format(output_shape, cumul.shape))
-        if cumul.dtype != np.float64:
+        if cumul.dtype != np.float:
             raise ValueError('Provided <cumul> array doesn\'t have '
                              'the expected type '
                              ': should be {0} instead of {1}.'
