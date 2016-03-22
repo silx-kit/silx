@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "22/03/2016"
 
 import gc
 import locale
@@ -36,7 +36,7 @@ import sys
 import tempfile
 import unittest
 
-logger1 = logging.getLogger('silx.io.test')
+logger1 = logging.getLogger(__name__)
 
 from silx.io.specfile import SpecFile, Scan
 

@@ -160,9 +160,9 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/03/2016"
+__date__ = "22/03/2016"
 
-logger1 = logging.getLogger('silx.io.specfileh5')
+logger1 = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 

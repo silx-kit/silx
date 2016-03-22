@@ -83,7 +83,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "22/03/2016"
 
 import os.path
 import logging
@@ -91,7 +91,7 @@ import numpy
 import re
 import sys
 
-logger1 = logging.getLogger('silx.io.specfile')
+logger1 = logging.getLogger(__name__)
 
 cimport numpy
 cimport cython

@@ -33,7 +33,7 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "22/03/2016"
 
-logger = logging.getLogger('silx.io.spectoh5')
+logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
 
 
