@@ -60,7 +60,7 @@ class TestDictToH5(unittest.TestCase):
         filters = {'compression': "gzip", 'shuffle': True,
                    'fletcher32': True}
         dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
-                 h5file_mode="w", create_dataset_args=filters)
+                 mode="w", create_dataset_args=filters)
 
         h5f = h5py.File(self.h5_fname)
 

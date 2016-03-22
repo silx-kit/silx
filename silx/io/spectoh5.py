@@ -38,7 +38,7 @@ logger = logging.getLogger('silx.io.spectoh5')
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
-                     h5_file_mode="a", overwrite_data=False,
+                     mode="a", overwrite_data=False,
                      link_type="hard", create_dataset_args=None):
     """Write content of a SpecFile in a HDF5 file.
 
@@ -46,7 +46,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     :param h5file: Path of output HDF5 file or HDF5 file handle
     :param h5path: Target path in HDF5 file in which scan groups are created.
         Default is root (``"/"``)
-    :param h5_file_mode: Can be ``"r+"`` (read/write, file must exist),
+    :param mode: Can be ``"r+"`` (read/write, file must exist),
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail
         if exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
@@ -68,7 +68,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         sfh5 = specfile
 
     if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, h5_file_mode)
+        h5f = h5py.File(h5file, mode)
     else:
         h5f = h5file
 
@@ -168,14 +168,14 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         h5f.close()
 
 
-def convert(specfile, h5file, h5_file_mode="w-",
+def convert(specfile, h5file, mode="w-",
             create_dataset_args=None):
     """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
      group.
 
     :param specfile: Path of input SpecFile or :class:`SpecFileH5` instance
     :param h5file: Path of output HDF5 file or HDF5 file handle
-    :param h5_file_mode: Can be ``"w"`` (write, existing file is
+    :param mode: Can be ``"w"`` (write, existing file is
         lost), ``"w-"`` (write, fail if exists). This is ignored
         if ``h5file`` is a file handle.
     :param create_dataset_args: Dictionary of args you want to pass to
@@ -189,9 +189,9 @@ def convert(specfile, h5file, h5_file_mode="w-",
         write_spec_to_h5(specfile, h5file, h5path='/',
                          h5_file_mode="w-", link_type="hard")
     """
-    if h5_file_mode not in ["w", "w-"]:
+    if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
                       " to append Spec data to an existing HDF5 file.")
     write_spec_to_h5(specfile, h5file, h5path='/',
-                     h5_file_mode=h5_file_mode,
+                     mode=mode,
                      create_dataset_args=create_dataset_args)

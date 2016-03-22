@@ -62,7 +62,7 @@ def _prepare_hdf5_dataset(array_like):
 
 
 def dicttoh5(treedict, h5file, h5path='/',
-             h5file_mode="a", overwrite_data=False,
+             mode="a", overwrite_data=False,
              create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
@@ -110,7 +110,7 @@ def dicttoh5(treedict, h5file, h5path='/',
                  create_dataset_args=create_ds_args)
     """
     if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, h5file_mode)
+        h5f = h5py.File(h5file, mode)
     else:
         h5f = h5file
 
@@ -166,6 +166,6 @@ if __name__ == "__main__":
     city_attrs["Europe"]["France"]["Nord"]["Tourcoing"]["area"] = "15.19 km2"
 
     dicttoh5(city_attrs, h5filename, h5path='/city attributes',
-             h5file_mode="w", overwrite_data=False,)
+             mode="w", overwrite_data=False, )
 
     print(repr_hdf5_tree(h5filename))
