@@ -154,6 +154,20 @@ It provides the following keys:
 - 'xdata': Range of X in graph coordinates: (xMin, xMax).
 - 'ydata': Range of Y in graph coordinates: (yMin, yMax).
 - 'y2data': Range of right axis in graph coordinates (y2Min, y2Max) or None.
+
+Plot state change events
+........................
+
+The following events are emitted when the plot is modified.
+They provide the new state:
+
+- 'setYAxisInverted' event with a 'state' key (bool)
+- 'setXAxisLogarithmic' event with a 'state' key (bool)
+- 'setYAxisLogarithmic' event with a 'state' key (bool)
+- 'setXAxisAutoScale' event with a 'state' key (bool)
+- 'setYAxisAutoScale' event with a 'state' key (bool)
+- 'setKeepDataAspectRatio' event with a 'state' key (bool)
+- 'setGraphGrid' event with a 'which' key (str), see :meth:`setGraphGrid`
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -1132,7 +1146,7 @@ class Plot(object):
         """
         return self._cursorConfiguration
 
-    def setGraphCursor(self, flag=None, color='black',
+    def setGraphCursor(self, flag=False, color='black',
                        linewidth=1, linestyle='-'):
         """Toggle the display of a crosshair cursor and set its attributes.
 
@@ -1431,7 +1445,7 @@ class Plot(object):
         y2Range = self.getGraphYLimits(axis='right')
         event = PlotEvents.prepareLimitsChangedSignal(
             id(self.getWidgetHandle()), xRange, yRange, y2Range)
-        self.notify(event)
+        self.notify(**event)
 
     def getGraphXLimits(self):
         """Get the graph X (bottom) limits.
@@ -1567,8 +1581,10 @@ class Plot(object):
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
+        flag = bool(flag)
         self._backend.invertYAxis(flag)
         self._setDirtyPlot()
+        self.notify('setYAxisInverted', state=flag)
 
     def isYAxisInverted(self):
         """Return True if Y axis goes from top to bottom, False otherwise."""
@@ -1615,6 +1631,7 @@ class Plot(object):
 
         self._setDirtyPlot()
         self.resetZoom()
+        self.notify('setXAxisLogarithmic', state=self._logX)
 
     def isYAxisLogarithmic(self):
         """Return True if Y axis scale is logarithmic, False if linear."""
@@ -1657,6 +1674,7 @@ class Plot(object):
 
         self._setDirtyPlot()
         self.resetZoom()
+        self.notify('setYAxisLogarithmic', state=self._logY)
 
     def isXAxisAutoScale(self):
         """Return True if X axis is automatically adjusting its limits."""
@@ -1669,6 +1687,7 @@ class Plot(object):
                           False to disable it.
         """
         self._xAutoScale = bool(flag)
+        self.notify('setXAxisAutoScale', state=self._xAutoScale)
 
     def isYAxisAutoScale(self):
         """Return True if Y axes are automatically adjusting its limits."""
@@ -1680,7 +1699,8 @@ class Plot(object):
         :param bool flag: True to resize limits automatically,
                           False to disable it.
         """
-        self._yAutoScale = flag
+        self._yAutoScale = bool(flag)
+        self.notify('setYAxisAutoScale', state=self._yAutoScale)
 
     def isKeepDataAspectRatio(self):
         """Returns whether the plot is keeping data aspect ratio or not."""
@@ -1691,9 +1711,11 @@ class Plot(object):
 
         :param bool flag: True to respect data aspect ratio
         """
+        flag = bool(flag)
         self._backend.keepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self.resetZoom()
+        self.notify('setKeepDataAspectRatio', state=flag)
 
     def getGraphGrid(self):
         """Return the current grid mode, either None, 'major' or 'both'.
@@ -1710,7 +1732,7 @@ class Plot(object):
                       'both' for grid on both major and minor ticks.
         :type which: str of bool
         """
-        assert which in (None, True, False, 'major', 'both')
+        assert which in (None, True, False, 'both', 'major')
         if not which:
             which = None
         elif which is True:
@@ -1718,6 +1740,7 @@ class Plot(object):
         self._grid = which
         self._backend.setGraphGrid(which)
         self._setDirtyPlot()
+        self.notify('setGraphGrid', which=str(which))
 
     def showGrid(self, flag=True):
         """Set the plot grid display.
@@ -1726,7 +1749,11 @@ class Plot(object):
                      2 for major and minor grid
         """
         _logger.warning("showGrid deprecated, use setGraphGrid instead")
-        if flag == 2:
+        if flag in (0, False):
+            flag = None
+        elif flag in (1, True):
+            flag = 'major'
+        else:
             flag = 'both'
         self.setGraphGrid(flag)
 
@@ -1832,16 +1859,18 @@ class Plot(object):
         """
         return self._backend.getWidgetHandle()
 
-    def notify(self, event):
+    def notify(self, event, **kwargs):
         """Send an event to the listeners.
 
-        The event dict must at least contains an 'event' key which store the
-        type of event.
-        The other keys are event specific.
+        Event are passed to the registered callback as a dict with an 'event'
+        key for backward compatibility with PyMca.
 
-        :param dict event: The information of the event.
+        :param str event: The type of event
+        :param kwargs: The information of the event.
         """
-        self._callback(event)
+        eventDict = kwargs.copy()
+        eventDict['event'] = event
+        self._callback(eventDict)
 
     def setCallback(self, callbackFunction=None):
         """Attach a listener to the backend.
@@ -2271,7 +2300,7 @@ class Plot(object):
             btn = self._pressedButtons[-1] if self._pressedButtons else None
             event = PlotEvents.prepareMouseSignal(
                 'mouseMoved', btn, dataPos[0], dataPos[1], xPixel, yPixel)
-            self.notify(event)
+            self.notify(**event)
 
         # Either button was pressed in the plot or cursor is in the plot
         if isCursorInPlot or self._pressedButtons:

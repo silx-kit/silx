@@ -63,6 +63,27 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     See :class:`Plot` for documentation of the content of the dict.
     """
 
+    sigSetYAxisInverted = qt.Signal(bool)
+    """Signal emitted when Y axis orientation has changed"""
+
+    sigSetXAxisLogarithmic = qt.Signal(bool)
+    """Signal emitted when X axis scale has changed"""
+
+    sigSetYAxisLogarithmic = qt.Signal(bool)
+    """Signal emitted when Y axis scale has changed"""
+
+    sigSetXAxisAutoScale = qt.Signal(bool)
+    """Signal emitted when X axis autoscale has changed"""
+
+    sigSetYAxisAutoScale = qt.Signal(bool)
+    """Signal emitted when Y axis autoscale has changed"""
+
+    sigSetKeepDataAspectRatio = qt.Signal(bool)
+    """Signal emitted when plot keep aspect ratio has changed"""
+
+    sigSetGraphGrid = qt.Signal(str)
+    """Signal emitted when plot grid has changed"""
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, **kw):
 
@@ -89,10 +110,28 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         else:
             _logger.warning("Plot backend does not support widget")
 
-    def graphCallback(self, ddict=None):
-        if ddict is not None:
-            Plot.Plot.graphCallback(self, ddict)
-            self.sigPlotSignal.emit(ddict)
+    def notify(self, event, **kwargs):
+        """Override :meth:`Plot.notify` to send Qt signals."""
+        eventDict = kwargs.copy()
+        eventDict['event'] = event
+        self.sigPlotSignal.emit(eventDict)
+
+        if event == 'setYAxisInverted':
+            self.sigSetYAxisInverted.emit(kwargs['state'])
+        elif event == 'setXAxisLogarithmic':
+            self.sigSetXAxisLogarithmic.emit(kwargs['state'])
+        elif event == 'setYAxisLogarithmic':
+            self.sigSetYAxisLogarithmic.emit(kwargs['state'])
+        elif event == 'setXAxisAutoScale':
+            self.sigSetXAxisAutoScale.emit(kwargs['state'])
+        elif event == 'setYAxisAutoScale':
+            self.sigSetYAxisAutoScale.emit(kwargs['state'])
+        elif event == 'setKeepDataAspectRatio':
+            self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
+        elif event == 'setGraphGrid':
+            self.sigSetGraphGrid.emit(kwargs['which'])
+
+        Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys
 
