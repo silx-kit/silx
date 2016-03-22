@@ -70,28 +70,48 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 # TODO: support more formats (.npy numpy.save), test
-def save(path, x, y, xlabel=None, ylabels=None, datafmt="%.18e",
-         savefmt=None, csvdelimiter=";", newline="\n", header="",
+def save(path, x, y, xlabel=None, ylabels=None, fmt=None,
+         filetype=None, csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
     available_formats = ["dat", "csv"]
 
-    if savefmt is None:
-        savefmt = os.path.splitext(filename)
+    if filetype is None:
+        filetype = os.path.splitext(filename)
 
-    if savefmt.lower() not in available_formats:
-        raise IOError("Format %s is not supported" % (savefmt))
+    if filetype.lower() not in available_formats:
+        raise IOError("File type %s is not supported" % (filetype))
 
-    if savefmt.lower() == "dat":
+    if fmt is None:
+        fmt = []
+        if hasattr(x, "dtype"):
+            if x.dtype.kind in ["i", "u"]:
+                fmt.append("%d")
+            elif x.dtype.kind == "f":
+                fmt.append("%.18e")  # TODO: check float32 ou 64
+            elif x.dtype.kind in ["S", "U"]:
+                fmt.append("%s")
+        elif isinstance(x[0], (int, long)):
+            fmt.append("%d")
+        elif isinstance(x[0], float):
+            fmt.append("%.18e")  # TODO: check float32 ou 64
+        elif isinstance(x[0], string_types):
+            fmt.append("%s")  # TODO: check float32 ou 64
+
+        # TODO y
+
+
+
+    if filetype.lower() == "dat":
         # Spec format
-        savespec(path, x, y, xlabel, ylabels, datafmt="%.7g")
-    elif savefmt.lower() == "csv":
+        savespec(path, x, y, xlabel, ylabels, datafmt=fmt)
+    elif filetype.lower() == "csv":
         X = numpy.vstack((x, y))
-        numpy.savetxt(path,X.T, fmt=datafmt, delimiter=csvdelimiter,
+        numpy.savetxt(path,X.T, fmt=fmt, delimiter=csvdelimiter,
                       newline=newline, header=header, footer=footer,
                       comments=comments)
 
 
-def savespec(specfile, x, y, xlabel=None, ylabels=None, datafmt="%.18e"):
+def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.18e"):
     """Saves any number of curves to SpecFile format.
 
     The output SpecFile has one scan with two columns (`x` and `y`) per curve.
@@ -141,14 +161,14 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, datafmt="%.18e"):
     f.write(current_date)
     f.write("\n")
 
-    if isinstance(datafmt, string_types) and datafmt.count("%") == 1:
-        fmt_string = datafmt + "  " + datafmt + "\n"
-    elif isinstance(datafmt, (list, tuple)):
-        fmt_string = "  ".join(datafmt) + "\n"
+    if isinstance(fmt, string_types) and fmt.count("%") == 1:
+        full_fmt_string = fmt + "  " + fmt + "\n"
+    elif isinstance(fmt, (list, tuple)):
+        full_fmt_string = "  ".join(fmt) + "\n"
     # custom user defined format string
     # FIXME: undocumented feature: remove or document
-    elif isinstance(datafmt, string_types) and datafmt.count("%") == 2:
-        fmt_string = datafmt if datafmt.endswith("\n") else datafmt + "\n"
+    elif isinstance(fmt, string_types) and fmt.count("%") == 2:
+        full_fmt_string = fmt if "\n" in fmt.count else fmt + "\n"
 
     for i in range(y_array.shape[0]):
         if y_array.shape[1] != x_array.shape[0]:
@@ -159,7 +179,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, datafmt="%.18e"):
         f.write("#N 2\n")
         f.write("#L %s  %s\n" % (xlabel, ylabels[i]))
         for j in range(y_array.shape[1]):
-            f.write(fmt_string % (x_array[j], y[i][j]))
+            f.write(full_fmt_string % (x_array[j], y[i][j]))
         f.write("\n")
 
     if not hasattr(specfile, "write"):
