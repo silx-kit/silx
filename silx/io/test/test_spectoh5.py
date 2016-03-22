@@ -128,7 +128,6 @@ class TestConvertSpecHDF5(unittest.TestCase):
             "gzip"
         )
 
-
     def test_HDF5_has_same_members(self):
         spec_member_list = []
 

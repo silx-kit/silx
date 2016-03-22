@@ -74,7 +74,7 @@ def dicttoh5(treedict, h5file, h5path='/',
         before completing.
     :param h5path: Target path in HDF5 file in which scan groups are created.
         Default is root (``"/"``)
-    :param h5_file_mode: Can be ``"r+"`` (read/write, file must exist),
+    :param mode: Can be ``"r+"`` (read/write, file must exist),
         ``"w"`` (write, existing file is lost), ``"w-"`` (write, fail if
         exists) or ``"a"`` (read/write if exists, create otherwise).
         This parameter is ignored if ``h5file`` is a file handle.
@@ -127,8 +127,8 @@ def dicttoh5(treedict, h5file, h5path='/',
                      overwrite_data=overwrite_data,
                      create_dataset_args=create_dataset_args)
 
-        elif treedict[key] is None or \
-             isinstance(treedict[key], dict) and not len(treedict[key]):
+        elif treedict[key] is None or (isinstance(treedict[key], dict)
+             and not len(treedict[key])):
             # Create empty group
             h5f.create_group(h5path + key)
 

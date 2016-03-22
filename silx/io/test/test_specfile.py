@@ -227,7 +227,6 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1_2.scan_header["U"],
                          "first duplicate line\nsecond duplicate line")
 
-
     def test_file_headers(self):
         self.assertEqual(self.scan1.header[1],
                          '#E 1455180875')
@@ -290,7 +289,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1_2.mca[1][2], 5)
         self.assertEqual(sum(self.scan1_2.mca[2]), 21.7)
 
-        #Negative indexing
+        # Negative indexing
         self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca)-1]),
                          sum(self.scan1_2.mca[-1]))
 
@@ -331,7 +330,7 @@ class TestSFLocale(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname)
-        locale.setlocale(locale.LC_NUMERIC, loc) # restore saved locale
+        locale.setlocale(locale.LC_NUMERIC, loc)  # restore saved locale
         gc.collect()
 
     def crunch_data(self):
@@ -346,11 +345,11 @@ class TestSFLocale(unittest.TestCase):
         self.crunch_data()
 
     def test_locale_user(self):
-        locale.setlocale(locale.LC_NUMERIC, '') # use user's preferred locale
+        locale.setlocale(locale.LC_NUMERIC, '')  # use user's preferred locale
         self.crunch_data()
 
     def test_locale_C(self):
-        locale.setlocale(locale.LC_NUMERIC, 'C') # use default (C) locale
+        locale.setlocale(locale.LC_NUMERIC, 'C')  # use default (C) locale
         self.crunch_data()
 
 
