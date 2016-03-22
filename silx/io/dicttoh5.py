@@ -145,27 +145,3 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if isinstance(h5file, string_types):
         h5f.close()
-
-
-if __name__ == "__main__":
-    try:
-        h5filename = sys.argv[1]
-    except IndexError:
-        print("Usage: python dicttoh5.py <HDF5 file name>")
-        sys.exit(1)
-
-    from collections import defaultdict
-    def tree():
-        """Tree data structure as a recursive nested dictionary"""
-        return defaultdict(tree)
-
-    city_attrs = tree()
-    city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["area"] = "18.44 km2"
-    city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["inhabitants"] = 160215
-    city_attrs["Europe"]["France"]["Isère"]["Grenoble"]["inhabitants2"] = [(2016, 160215), (1990, 150000)]
-    city_attrs["Europe"]["France"]["Nord"]["Tourcoing"]["area"] = "15.19 km2"
-
-    dicttoh5(city_attrs, h5filename, h5path='/city attributes',
-             mode="w", overwrite_data=False, )
-
-    print(repr_hdf5_tree(h5filename))
