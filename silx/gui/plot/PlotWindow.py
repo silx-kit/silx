@@ -42,6 +42,9 @@ Actions
 - :class:`YAxisAutoScaleAction`
 """
 
+from __future__ import division
+
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/03/2016"
@@ -350,8 +353,8 @@ class SaveAction(_PlotAction):
         super(SaveAction, self).__init__(
             plot, icon='filesave', text='Save as...',
             tooltip='Save Curve/Image/Plot Snapshot Dialog',
+            triggered=self._actionTriggered,
             checkable=False, parent=parent)
-        self.triggered.connect(self._saveActionTriggered)
 
     @staticmethod
     def savetxt(fname, X, fmt='%.18e', delimiter=' ', newline='\n', header=''):
@@ -473,7 +476,7 @@ class SaveAction(_PlotAction):
 
         return False
 
-    def _saveActionTriggered(self, checked=False):
+    def _actionTriggered(self, checked=False):
         """Handle save action."""
         # Set-up filters
         filters = []
@@ -524,132 +527,98 @@ class SaveAction(_PlotAction):
 
 
 class PrintAction(_PlotAction):
-    # TODO issue with QtSvg which do not clip content out of plot area
+    """QAction for printing the plot.
+
+    It opens a Print dialog.
+
+    Current implementation print a bitmap of the plot area and not vector
+    graphics, so printing quality is not great.
+
+    :param plot: :class:`PlotWidget` instance on which to operate.
+    :param parent: See :class:`QAction`.
+    """
 
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
-            plot, 'fileprint', 'Print...', parent)
-        self.setToolTip('Open Print Dialog')
-        self.setCheckable(False)
-        self.triggered.connect(self.printPlot)
+            plot, icon='fileprint', text='Print...',
+            tooltip='Open Print Dialog',
+            triggered=self.printPlot,
+            checkable=False, parent=parent)
 
-    def _getSvgRenderer(self):
-        if not qt.HAS_SVG:
-            raise RuntimeError(
-                "QtSvg module missing. Please compile Qt with SVG support")
+    def printPlotAsWidget(self):
+        """Open the print dialog and print the plot.
 
-        # Save plot as svg
-        imgData = BytesIO()
-        self.plot.saveGraph(imgData, fileFormat='svg')
-        imgData.flush()
-        imgData.seek(0)
+        Use :meth:`QWidget.render` to print the plot
 
-        # Give it to QtSVG
-        svgRawData = imgData.read()
-        svgRendererData = qt.QXmlStreamReader(svgRawData)
-        svgRenderer = qt.QSvgRenderer(svgRendererData)
-        # TODO is this useful? does it really needs to keep references
-        svgRenderer._svgRawData = svgRawData
-        svgRenderer._svgRendererData = svgRendererData
-        return svgRenderer
+        :return: True if successful
+        """
+        printer = qt.QPrinter()
+        dialog = qt.QPrintDialog(printer, self.plot)
+        dialog.setWindowTitle('Print Plot')
+        if not dialog.exec_():
+            return False
+
+        # Print a snapshot of the plot widget at the top of the page
+        widget = self.plot.centralWidget()
+
+        painter = qt.QPainter()
+        if not painter.begin(printer):
+            return False
+
+        pageRect = printer.pageRect()
+        xScale = pageRect.width() / widget.width()
+        yScale = pageRect.height() / widget.height()
+        scale = min(xScale, yScale)
+
+        painter.translate(pageRect.width() / 2., 0.)
+        painter.scale(scale, scale)
+        painter.translate(-widget.width() / 2., 0.)
+        widget.render(painter)
+        painter.end()
+
+        return True
 
     def printPlot(self):
-        # TODO make this settable through a second icon
-        width, height = None, None
-        xOffset, yOffset = 0., 0.
-        units = 'inches'
-        keepAspectRatio = True
+        """Open the print dialog and print the plot.
 
+        Use :meth:`Plot.saveGraph` to print the plot.
+
+        :return: True if successful
+        """
+        # Init printer and start printer dialog
         printer = qt.QPrinter()
+        dialog = qt.QPrintDialog(printer, self.plot)
+        dialog.setWindowTitle('Print Plot')
+        if not dialog.exec_():
+            return False
 
-        # allow printer selection/configuration
-        printDialog = qt.QPrintDialog(printer, self.plot)
-        if not printDialog.exec_():
-            return
+        # Save Plot as PNG and make a pixmap from it with default dpi
+        pngFile = BytesIO()
+        self.plot.saveGraph(pngFile, fileFormat='png')
+        pngFile.flush()
+        pngFile.seek(0)
+        pngData = pngFile.read()
+        pngFile.close()
 
-        try:
-            painter = qt.QPainter()
-            if not(painter.begin(printer)):
-                return 0
-            dpix = printer.logicalDpiX()
-            dpiy = printer.logicalDpiY()
+        pixmap = qt.QPixmap()
+        pixmap.loadFromData(pngData, 'png')
 
-            # margin = int((2/2.54) * dpiy)  # 2cm margin
-            availableWidth = printer.width()  # - 1 * margin
-            availableHeight = printer.height()  # - 2 * margin
+        xScale = printer.pageRect().width() / pixmap.width()
+        yScale = printer.pageRect().height() / pixmap.height()
+        scale = min(xScale, yScale)
 
-            # get the available space
-            # convert the offsets to dpi
-            if units.lower() in ['inch', 'inches']:
-                xOffset = xOffset * dpix
-                yOffset = yOffset * dpiy
-                if width is not None:
-                    width = width * dpix
-                if height is not None:
-                    height = height * dpiy
-            elif units.lower() in ['cm', 'centimeters']:
-                xOffset = (xOffset/2.54) * dpix
-                yOffset = (yOffset/2.54) * dpiy
-                if width is not None:
-                    width = (width/2.54) * dpix
-                if height is not None:
-                    height = (height/2.54) * dpiy
-            else:
-                # page units
-                xOffset = availableWidth * xOffset
-                yOffset = availableHeight * yOffset
-                if width is not None:
-                    width = availableWidth * width
-                if height is not None:
-                    height = availableHeight * height
+        # Draw pixmap with painter
+        painter = qt.QPainter()
+        if not painter.begin(printer):
+            return False
 
-            availableWidth -= xOffset
-            availableHeight -= yOffset
+        painter.drawPixmap(0, 0,
+                           pixmap.width() * scale,
+                           pixmap.height() * scale,
+                           pixmap)
+        painter.end()
 
-            if width is not None:
-                if (availableWidth + 0.1) < width:
-                    txt = ("Available width  %f is less than " +
-                           "requested width %f" % (availableWidth, width))
-                    raise ValueError(txt)
-                availableWidth = width
-            if height is not None:
-                if (availableHeight + 0.1) < height:
-                    txt = ("Available height %f is less than " +
-                           "requested height %f" %
-                           (availableHeight, height))
-                    raise ValueError(txt)
-                availableHeight = height
-
-            if keepAspectRatio:
-                # get the aspect ratio
-                widget = self.plot.centralWidget()
-                if widget is None:
-                    # does this make sense?
-                    graphWidth = availableWidth
-                    graphHeight = availableHeight
-                else:
-                    graphWidth = float(widget.width())
-                    graphHeight = float(widget.height())
-
-                graphRatio = graphHeight / graphWidth
-                # that ratio has to be respected
-
-                bodyWidth = availableWidth
-                bodyHeight = availableWidth * graphRatio
-
-                if bodyHeight > availableHeight:
-                    bodyHeight = availableHeight
-                    bodyWidth = bodyHeight / graphRatio
-            else:
-                bodyWidth = availableWidth
-                bodyHeight = availableHeight
-
-            body = qt.QRectF(
-                xOffset, yOffset, bodyWidth, bodyHeight)
-            svgRenderer = self._getSvgRenderer()
-            svgRenderer.render(painter, body)
-        finally:
-            painter.end()
+        return True
 
 
 class _PlotActionGroup(qt.QActionGroup):
