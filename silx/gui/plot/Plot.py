@@ -1906,6 +1906,9 @@ class Plot(object):
     def saveGraph(self, filename, fileFormat=None, dpi=None, **kw):
         """Save a snapshot of the plot.
 
+        Supported file formats: "png", "svg", "pdf", "ps", "eps",
+        "tif", "tiff", "jpeg", "jpg".
+
         :param filename: Destination
         :type filename: str, StringIO or BytesIO
         :param str fileFormat:  String specifying the format

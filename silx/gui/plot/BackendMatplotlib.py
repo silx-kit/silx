@@ -548,6 +548,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.fig.savefig(fileName, format=fileFormat, dpi=dpi)
         else:
             self.fig.savefig(fileName, format=fileFormat)
+        self._plot._setDirtyPlot()
 
     # Graph labels
 
