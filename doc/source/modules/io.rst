@@ -51,5 +51,10 @@ silx.io.dicttoh5 module
 .. automodule:: silx.io.dicttoh5
     :members:
 
+silx.io.utils module
+--------------------------------
+
+.. automodule:: silx.io.utils
+    :members:
 
 
