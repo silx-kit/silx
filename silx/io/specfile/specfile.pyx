@@ -179,7 +179,7 @@ class MCA(object):
         self._scan = scan
 
         # Header dict
-        self._header = scan.mca_header
+        self._header = scan.mca_header_dict
 
         # SpecFile C library provides a function for getting calibration
         try:
@@ -302,41 +302,41 @@ class Scan(object):
         self._number = specfile.number(scan_index)
         self._order = specfile.order(scan_index)
 
-        scan_header_lines = self._specfile.scan_header(self._index)
-        file_header_lines = self._specfile.file_header(self._index)
+        self._scan_header_lines = self._specfile.scan_header(self._index)
+        self._file_header_lines = self._specfile.file_header(self._index)
 
-        self._header = file_header_lines + scan_header_lines
+        self._header = self._file_header_lines + self._scan_header_lines
 
         self._labels = None
         if self.record_exists_in_hdr('L'):
             self._labels = self._specfile.labels(self._index)
 
-        self._scan_header = {}
-        self._mca_header = {}
-        for line in scan_header_lines:
+        self._scan_header_dict = {}
+        self._mca_header_dict = {}
+        for line in self._scan_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             match_mca = re.search(r"#@(\w+) *(.*)", line)
             if match:
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                _add_or_concatenate(self._scan_header, hkey, hvalue)
+                _add_or_concatenate(self._scan_header_dict, hkey, hvalue)
             elif match_mca:
                 hkey = match_mca.group(1).lstrip("#").strip()
                 hvalue = match_mca.group(2).strip()
-                _add_or_concatenate(self._mca_header, hkey, hvalue)
+                _add_or_concatenate(self._mca_header_dict, hkey, hvalue)
             else:
                 # this shouldn't happen
                 logger1.warning("Unable to parse scan header line " + line)
 
 
-        self._file_header = {}
-        for line in file_header_lines:
+        self._file_header_dict = {}
+        for line in self._file_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
                 # header type
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                _add_or_concatenate(self._file_header, hkey, hvalue)
+                _add_or_concatenate(self._file_header_dict, hkey, hvalue)
             else:
                 logger1.warning("Unable to parse file header line " + line)
 
@@ -372,32 +372,44 @@ class Scan(object):
         This includes the file header, the scan header and possibly a MCA
         header.
         """
-        return self._header
+        return self._header\
 
     @property
     def scan_header(self):
+        """List of raw scan header lines (as a list of strings).
         """
-        Dictionary of scan header strings, keys without the leading``#``
-        (e.g. ``scan_header["S"]``).
-        Note: this does not include MCA header lines starting with ``#@``.
-        """
-        return self._scan_header
-
-    @property
-    def mca_header(self):
-        """
-        Dictionary of MCA header strings, keys without the leading ``#@``
-        (e.g. ``mca_header["CALIB"]``).
-        """
-        return self._mca_header
+        return self._scan_header_lines\
 
     @property
     def file_header(self):
+        """List of raw file header lines (as a list of strings).
+        """
+        return self._file_header_lines
+
+    @property
+    def scan_header_dict(self):
+        """
+        Dictionary of scan header strings, keys without the leading``#``
+        (e.g. ``scan_header_dict["S"]``).
+        Note: this does not include MCA header lines starting with ``#@``.
+        """
+        return self._scan_header_dict
+
+    @property
+    def mca_header_dict(self):
+        """
+        Dictionary of MCA header strings, keys without the leading ``#@``
+        (e.g. ``mca_header_dict["CALIB"]``).
+        """
+        return self._mca_header_dict
+
+    @property
+    def file_header_dict(self):
         """
         Dictionary of file header strings, keys without the leading ``#``
-        (e.g. ``file_header["F"]``).
+        (e.g. ``file_header_dict["F"]``).
         """
-        return self._file_header
+        return self._file_header_dict
 
     @property
     def labels(self):
