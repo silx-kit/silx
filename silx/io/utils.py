@@ -34,13 +34,28 @@ string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
 def repr_hdf5_tree(h5group, lvl=0):
-    """Return a string representation of an HDF5 tree structure.
+    """Return a simple string representation of a HDF5 tree structure.
 
     :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
         or a HDF5 file name
     :param lvl: Number of tabulations added to the group. ``lvl`` is
         incremented as we recursively process sub-groups.
     :return: String representation of an HDF5 tree structure
+
+
+    Group names and dataset representation are printed preceded by a number of
+    tabulations corresponding to their depth in the tree structure.
+    Datasets are represented as :class:`h5py.Dataset` objects.
+
+    Example::
+
+        >>> print(repr_hdf5_tree("Downloads/sample.h5"))
+        +fields
+            +fieldB
+                <HDF5 dataset "z": shape (256, 256), type "<f4">
+            +fieldE
+                <HDF5 dataset "x": shape (256, 256), type "<f4">
+                <HDF5 dataset "y": shape (256, 256), type "<f4">
     """
     repr = ''
     if isinstance(h5group, (h5py.File, h5py.Group)):
@@ -48,7 +63,7 @@ def repr_hdf5_tree(h5group, lvl=0):
     elif isinstance(h5group, string_types):
         h5f = h5py.File(h5group, "r")
     else:
-        raise TypeError("h5group must be a HDF5 group object or a file name.")
+        raise TypeError("h5group must be a h5py.group object or a file name.")
 
     for key in h5f.keys():
         if hasattr(h5f[key], 'keys'):
