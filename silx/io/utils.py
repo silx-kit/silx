@@ -69,7 +69,8 @@ def repr_hdf5_tree(h5group, lvl=0):
 
     return repr
 
-# TODO: support more formats (.npy numpy.save), test
+
+# TODO: test
 def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
          filetype=None, csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
@@ -83,22 +84,23 @@ def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
-        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
+        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
         only one curve to save.
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
         two spaces
-    :param datafmat: Format string for data. You can specify a short format
+    :param fmat: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
-        Default is ``"%.18e"``.
+        Default is ``"%.7g"``.
     """
 
-    available_formats = ["dat", "csv"]
+    available_formats = ["dat", "csv", "npy"]
 
     if filetype is None:
         exttypes = {"dat": "spec",
-                    "csv":"csv",
+                    "csv": "csv",
+                    "txt": "csv",
                     "npy": "npy"}
         fileext = os.path.splitext(filename)
         if fileext in exttypes:
@@ -121,11 +123,11 @@ def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
     #     elif isinstance(x[0], (int, long)):
     #         fmt.append("%d")
     #     elif isinstance(x[0], float):
-    #         fmt.append("%.18e")  # TODO: check float32 ou 64
+    #         fmt.append("%.18e")  # TODO?: check float32 ou 64
     #     elif isinstance(x[0], string_types):
     #         fmt.append("%s")  # TODO: check float32 ou 64
     #
-    #     # TODO: same for each column in y
+    #     # TODO: same for each column in y
 
     if filetype.lower() == "spec":
         # Spec format
@@ -138,7 +140,10 @@ def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
                           newline=newline, header=header, footer=footer,
                           comments=comments)
         elif filetype.lower() == "npy":
-            # X = numpy.recarray(X.shape, X.dtype, buf=X, names=…) TODO: add names
+            if xlabel is not None and ylabels is not None:
+                labels = xlabel + ylabels
+                assert len(labels) == len(X)
+                X = numpy.core.records.fromrecords(X, names=labels)
             numpy.save(path, X)
 
 
@@ -153,7 +158,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
-        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
+        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
         only one curve to save.
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
@@ -174,7 +179,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     if xlabel is None:
         xlabel = "X"
     if ylabels is None:
-        # set labels to  ["Y0", "Y1", …]
+        # set labels to  ["Y0", "Y1", …]
         ylabels = ["Y" + str(j) for j in range(y_array.shape[0])]
 
     # enforce list type for ylabels
@@ -197,7 +202,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     elif isinstance(fmt, (list, tuple)):
         full_fmt_string = "  ".join(fmt) + "\n"
     # custom user defined format string
-    # FIXME: undocumented feature: remove or document
+    # FIXME: undocumented feature: remove or document
     elif isinstance(fmt, string_types) and fmt.count("%") == 2:
         full_fmt_string = fmt if "\n" in fmt.count else fmt + "\n"
 
