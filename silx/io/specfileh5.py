@@ -655,12 +655,16 @@ def _dataset_builder(name, specfileh5):
         array_like = scan.scan_header_dict["S"]
 
     elif start_time_pattern.match(name):
-        try:
-            spec_date = scan.scan_header_dict["D"]
-        except KeyError:
-            logger1.warn("No #D line in scan header. Trying file header.")
-            spec_date = scan.file_header["D"]
-        array_like = spec_date_to_iso8601(spec_date)
+        if "D" in scan.scan_header_dict:
+            array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
+        elif "D" in scan.file_header_dict:
+            logger1.warn("No #D line in scan header. " +
+                         "Using file header for start_time.")
+            array_like = spec_date_to_iso8601(scan.file_header["D"])
+        else:
+            logger1.warn("No #D line in header. " +
+                         "Using current system time for start_time.")
+            array_like = time.ctime(time.time())
 
     elif file_header_data_pattern.match(name):
         array_like = _fixed_length_strings(scan.file_header)
