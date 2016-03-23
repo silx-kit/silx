@@ -24,7 +24,7 @@
 #include "histogramnd_c.h"
 
 /*=====================
- * double sample
+ * double sample, double cumul
  * =====================
 */
 #ifdef HISTO_SAMPLE_T
@@ -35,6 +35,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -45,6 +49,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -55,10 +63,14 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 /*=====================
- * float sample
+ * float sample, double cumul
  * =====================
 */
 #ifdef HISTO_SAMPLE_T
@@ -69,6 +81,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -79,6 +95,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -89,10 +109,14 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 /*=====================
- * int32_t sample
+ * int32_t sample, double cumul
  * =====================
 */
 #ifdef HISTO_SAMPLE_T
@@ -103,6 +127,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -113,6 +141,10 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
 #include "histogramnd_template.c"
 
 #ifdef HISTO_SAMPLE_T
@@ -123,4 +155,147 @@
 #undef HISTO_WEIGHT_T
 #endif
 #define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T double
+#include "histogramnd_template.c"
+
+
+/*=====================
+ * double sample, float cumul
+ * =====================
+*/
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T double
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T double
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T double
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+/*=====================
+ * float sample, float cumul
+ * =====================
+*/
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T float
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T float
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T float
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+/*=====================
+ * int32_t sample, float cumul
+ * =====================
+*/
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T int32_t
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T double
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T int32_t
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T float
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
+#include "histogramnd_template.c"
+
+#ifdef HISTO_SAMPLE_T
+#undef HISTO_SAMPLE_T
+#endif
+#define HISTO_SAMPLE_T int32_t
+#ifdef HISTO_WEIGHT_T
+#undef HISTO_WEIGHT_T
+#endif
+#define HISTO_WEIGHT_T int32_t
+#ifdef HISTO_CUMUL_T
+#undef HISTO_CUMUL_T
+#endif
+#define HISTO_CUMUL_T float
 #include "histogramnd_template.c"

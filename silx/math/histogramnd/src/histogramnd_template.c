@@ -30,8 +30,9 @@
 
 #ifdef HISTO_SAMPLE_T
 #ifdef HISTO_WEIGHT_T
+#ifdef HISTO_CUMUL_T
 
-int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
+int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                         (HISTO_SAMPLE_T *i_sample,
                          HISTO_WEIGHT_T *i_weights,
                          int i_n_dim,
@@ -39,7 +40,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
                          HISTO_SAMPLE_T *i_bin_ranges,
                          int *i_n_bin,
                          uint32_t *o_histo,
-                         double *o_cumul,
+                         HISTO_CUMUL_T *o_cumul,
                          int i_opt_flags,
                          HISTO_WEIGHT_T i_weight_min,
                          HISTO_WEIGHT_T i_weight_max)
@@ -229,7 +230,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
             /* not testing the pointer since o_cumul is null if 
              * i_weights is null. 
              */
-            o_cumul[bin_idx] += *weight_ptr;
+            o_cumul[bin_idx] += (HISTO_CUMUL_T) *weight_ptr;
         }
         
     } /* for(elem_idx=0; elem_idx<i_n_elem*i_n_dim; elem_idx+=i_n_dim) */
@@ -245,5 +246,6 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T)
     return HISTO_OK;
 }
 
+#endif
 #endif
 #endif
