@@ -70,48 +70,9 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 # TODO: support more formats (.npy numpy.save), test
-def save(path, x, y, xlabel=None, ylabels=None, fmt=None,
+def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
          filetype=None, csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
-    available_formats = ["dat", "csv"]
-
-    if filetype is None:
-        filetype = os.path.splitext(filename)
-
-    if filetype.lower() not in available_formats:
-        raise IOError("File type %s is not supported" % (filetype))
-
-    if fmt is None:
-        fmt = []
-        if hasattr(x, "dtype"):
-            if x.dtype.kind in ["i", "u"]:
-                fmt.append("%d")
-            elif x.dtype.kind == "f":
-                fmt.append("%.18e")  # TODO: check float32 ou 64
-            elif x.dtype.kind in ["S", "U"]:
-                fmt.append("%s")
-        elif isinstance(x[0], (int, long)):
-            fmt.append("%d")
-        elif isinstance(x[0], float):
-            fmt.append("%.18e")  # TODO: check float32 ou 64
-        elif isinstance(x[0], string_types):
-            fmt.append("%s")  # TODO: check float32 ou 64
-
-        # TODO y
-
-
-
-    if filetype.lower() == "dat":
-        # Spec format
-        savespec(path, x, y, xlabel, ylabels, datafmt=fmt)
-    elif filetype.lower() == "csv":
-        X = numpy.vstack((x, y))
-        numpy.savetxt(path,X.T, fmt=fmt, delimiter=csvdelimiter,
-                      newline=newline, header=header, footer=footer,
-                      comments=comments)
-
-
-def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.18e"):
     """Saves any number of curves to SpecFile format.
 
     The output SpecFile has one scan with two columns (`x` and `y`) per curve.
@@ -131,6 +92,76 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.18e"):
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.18e"``.
+    """
+
+    available_formats = ["dat", "csv"]
+
+    if filetype is None:
+        exttypes = {"dat": "spec",
+                    "csv":"csv",
+                    "npy": "npy"}
+        fileext = os.path.splitext(filename)
+        if fileext in exttypes:
+            filetype = exttypes[fileext]
+
+
+    if filetype.lower() not in available_formats:
+        raise IOError("File type %s is not supported" % (filetype))
+
+    # If we decide to set fmt=None as default
+    # if fmt is None:
+    #     fmt = []
+    #     if hasattr(x, "dtype"):
+    #         if x.dtype.kind in ["i", "u"]:
+    #             fmt.append("%d")
+    #         elif x.dtype.kind == "f":
+    #             fmt.append("%.18e")  # TODO: check float32 ou 64
+    #         elif x.dtype.kind in ["S", "U"]:
+    #             fmt.append("%s")
+    #     elif isinstance(x[0], (int, long)):
+    #         fmt.append("%d")
+    #     elif isinstance(x[0], float):
+    #         fmt.append("%.18e")  # TODO: check float32 ou 64
+    #     elif isinstance(x[0], string_types):
+    #         fmt.append("%s")  # TODO: check float32 ou 64
+    #
+    #     # TODO: same for each column in y
+
+    if filetype.lower() == "spec":
+        # Spec format
+        savespec(path, x, y, xlabel, ylabels, datafmt=fmt)
+    else:
+        X = numpy.vstack((x, y))
+        if filetype.lower() == "csv":
+            # fixme: test if we need .T, header not compatible with older numpy
+            numpy.savetxt(path, X.T, fmt=fmt, delimiter=csvdelimiter,
+                          newline=newline, header=header, footer=footer,
+                          comments=comments)
+        elif filetype.lower() == "npy":
+            # X = numpy.recarray(X.shape, X.dtype, buf=X, names=…) TODO: add names
+            numpy.save(path, X)
+
+
+def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
+    """Saves any number of curves to SpecFile format.
+
+    The output SpecFile has one scan with two columns (`x` and `y`) per curve.
+
+    :param specfile: Output SpecFile name, or file handle open in write
+        mode.
+    :param x: 1D-Array (or list) of abscissa values.
+    :param y: 2D-array (or list of lists) of ordinates values. First index
+        is the curve index, second index is the sample index. The length
+        of the second dimension (number of samples) must be equal to
+        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
+        only one curve to save.
+    :param xlabel: Abscissa label
+    :param ylabels: List of `y` labels, or string of labels separated by
+        two spaces
+    :param fmat: Format string for data. You can specify a short format
+        string that defines a single format for both ``x`` and ``y`` values,
+        or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
+        Default is ``"%.7g"``.
     """
     if not hasattr(specfile, "write"):
         f = open(specfile, "w")
