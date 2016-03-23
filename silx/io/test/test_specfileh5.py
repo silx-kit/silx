@@ -177,13 +177,16 @@ class TestSpecFileH5(unittest.TestCase):
 
     def test_header(self):
         # File header has 10 lines
+        self.assertEqual(len(self.sfh5["/1.2/instrument/specfile/file_header"]), 10)
         # 1.2 has 8 scan header lines
-        self.assertEqual(len(self.sfh5["/1.2/header"]), 18)
+        self.assertEqual(len(self.sfh5["/1.2/instrument/specfile/scan_header"]), 8)
         # line 4 of file header
-        self.assertEqual(self.sfh5["1.2"]["header"][3].rstrip(),
-                         b"#C imaging  User = opid17")
+        self.assertEqual(
+                self.sfh5["1.2/instrument/specfile/file_header"][3].rstrip(),
+                b"#C imaging  User = opid17")
         # line 4 of scan header
-        self.assertEqual(self.sfh5["25.1"]["header"][13].rstrip(),
+        self.assertEqual(
+                self.sfh5["25.1/instrument/specfile/scan_header"][3].rstrip(),
                          b"#P1 4.74255 6.197579 2.238283")
 
     def test_links(self):
@@ -261,13 +264,10 @@ class TestSpecFileH5(unittest.TestCase):
         name_list = []
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
-        self.assertEqual(len(name_list), 63)
+        self.assertIn("/1.2/instrument/specfile/scan_header", name_list)
+        self.assertEqual(len(name_list), 69)
 
     def test_visit_items(self):
-        # scan 1.1 has 11 datasets (title + date + 6 motors + 3 data cols)
-        # scan 25.1 has 12 datasets (title + date + 6 motors + 4 data cols)
-        # scan 1.2 has 19 datasets (title + date + 6 motors + 2 data cols
-        #                           3 MCA datasets + 3 calib + 3 chann )
         dataset_name_list = []
 
         def func(name, obj):
@@ -276,7 +276,7 @@ class TestSpecFileH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 45)
+        self.assertEqual(len(dataset_name_list), 48)
 
 
 def suite():

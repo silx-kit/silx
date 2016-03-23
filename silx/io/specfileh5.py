@@ -31,10 +31,12 @@ Specfile data structure exposed by this API:
 
   /
       1.1/
-          header = ["…", "…", …]
           title = "…"
           start_time = "…"
           instrument/
+              specfile/
+                  file_header = ["…", "…", …]
+                  scan_header = ["…", "…", …]
               positioners/
                   motor_name = value
                   …
@@ -60,8 +62,8 @@ Specfile data structure exposed by this API:
       2.1/
           …
 
-``header`` is a numpy array of fixed-length strings containing all raw header
-lines relevant to the scan (file header, scan header, mca header).
+``file_header`` and ``scan_header`` are numpy arrays of fixed-length strings
+containing raw header lines relevant to the scan.
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
@@ -171,9 +173,10 @@ string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 # scan (excludes list of scans, data columns, list of mca devices,
 # optional mca headers)
 static_items = {
-    "scan": [u"header", u"title", u"start_time", u"instrument",
+    "scan": [u"title", u"start_time", u"instrument",
              u"measurement"],
-    "scan/instrument": [u"positioners"],
+    "scan/instrument": [u"specfile", u"positioners"],
+    "scan/instrument/specfile": [u"file_header", u"scan_header"],
     "scan/measurement/mca": [u"data", u"info"],
     "scan/instrument/mca": [u"data", u"calibration", u"channels"],
 }
@@ -182,6 +185,7 @@ static_items = {
 root_pattern = re.compile(r"/$")
 scan_pattern = re.compile(r"/[0-9]+\.[0-9]+/?$")
 instrument_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/?$")
+specfile_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/?$")
 positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/?$")
 measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
 measurement_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
@@ -194,6 +198,8 @@ measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-
 header_pattern = re.compile(r"/[0-9]+\.[0-9]+/header$")
 title_pattern = re.compile(r"/[0-9]+\.[0-9]+/title$")
 start_time_pattern = re.compile(r"/[0-9]+\.[0-9]+/start_time$")
+file_header_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/file_header$")
+scan_header_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/scan_header$")
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
 instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
@@ -226,8 +232,9 @@ def is_group(name):
     """
     group_patterns = (
         root_pattern, scan_pattern, instrument_pattern,
-        positioners_group_pattern, measurement_group_pattern,
-        measurement_mca_group_pattern, instrument_mca_group_pattern
+        specfile_group_pattern, positioners_group_pattern,
+        measurement_group_pattern, measurement_mca_group_pattern,
+        instrument_mca_group_pattern
     )
     return _bulk_match(name, group_patterns)
 
@@ -246,6 +253,7 @@ def is_dataset(name):
 
     data_patterns = (
         header_pattern, title_pattern, start_time_pattern,
+        file_header_data_pattern, scan_header_data_pattern,
         positioners_data_pattern, measurement_data_pattern,
         instrument_mca_data_pattern, instrument_mca_calib_pattern,
         instrument_mca_chann_pattern,
@@ -301,6 +309,12 @@ def _get_attrs_dict(name):
             {},
         instrument_pattern:
             {"NX_class": "NXinstrument", },
+        specfile_group_pattern:
+            {"NX_class": "NXcollection", },
+        file_header_data_pattern:
+            {},
+        scan_header_data_pattern:
+            {},
         positioners_group_pattern:
             {"NX_class": "NXcollection", },
         positioners_data_pattern:
@@ -313,9 +327,12 @@ def _get_attrs_dict(name):
             {},
         instrument_mca_chann_pattern:
             {},
-        # preset_time
-        # elapsed_time
-        # live_time
+        instrument_mca_preset_t_pattern:
+            {},
+        instrument_mca_elapsed_t_pattern:
+            {},
+        instrument_mca_live_t_pattern:
+            {},
         measurement_group_pattern:
             {"NX_class": "NXcollection", },
         measurement_data_pattern:
@@ -325,7 +342,7 @@ def _get_attrs_dict(name):
         measurement_mca_data_pattern:
             {"interpretation": "spectrum", },
         measurement_mca_info_pattern:
-            {"NX_class": "NXdetector", },
+            {"NX_class": "NXdetector", }
     }
 
     for pattern in pattern_attrs:
@@ -544,7 +561,7 @@ def _fixed_length_strings(strings, length=0):
 
     :param strings: List of variable length strings
     :param length: Length of strings in returned list, defaults to the maximum
-         length in the original list if set to ``None``.
+         length in the original list if set to 0.
     :type length: int or None
     """
     if length == 0 and strings:
@@ -634,19 +651,22 @@ def _dataset_builder(name, specfileh5):
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
 
-    if header_pattern.match(name):
-        array_like = _fixed_length_strings(scan.header)
-
-    elif title_pattern.match(name):
-        array_like = scan.scan_header["S"]
+    if title_pattern.match(name):
+        array_like = scan.scan_header_dict["S"]
 
     elif start_time_pattern.match(name):
         try:
-            spec_date = scan.scan_header["D"]
+            spec_date = scan.scan_header_dict["D"]
         except KeyError:
             logger1.warn("No #D line in scan header. Trying file header.")
             spec_date = scan.file_header["D"]
         array_like = spec_date_to_iso8601(spec_date)
+
+    elif file_header_data_pattern.match(name):
+        array_like = _fixed_length_strings(scan.file_header)
+
+    elif scan_header_data_pattern.match(name):
+        array_like = _fixed_length_strings(scan.scan_header)
 
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
@@ -677,8 +697,8 @@ def _dataset_builder(name, specfileh5):
     elif instrument_mca_chann_pattern.match(name):
         array_like = scan.mca.channels
 
-    elif "CTIME" in scan.mca_header:
-        ctime_line = scan.mca_header['CTIME']
+    elif "CTIME" in scan.mca_header_dict:
+        ctime_line = scan.mca_header_dict['CTIME']
         (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
         if instrument_mca_preset_t_pattern.match(name):
             array_like = preset_time
@@ -694,6 +714,17 @@ def _dataset_builder(name, specfileh5):
 
 
 def _link_to_dataset_builder(name, specfileh5):
+    """Same as :func:`_dataset_builder`, but returns a
+    :class:`SpecFileH5LinkToDataset`
+
+    :param name: Datatset full name (posix path format, starting with ``/``)
+    :type name: str
+    :param specfileh5: parent :class:`SpecFileH5` object
+    :type specfileh5: :class:`SpecFileH5`
+
+    :return: Array with the requested data
+    :rtype: :class:`SpecFileH5LinkToDataset`.
+    """
     scan_key = _get_scan_key_in_name(name)
     scan = specfileh5._sf[scan_key]
 
@@ -713,8 +744,8 @@ def _link_to_dataset_builder(name, specfileh5):
             array_like = scan.mca.calibration
         elif mca_hdr_type == "channels":
             array_like = scan.mca.channels
-        elif "CTIME" in scan.mca_header:
-            ctime_line = scan.mca_header['CTIME']
+        elif "CTIME" in scan.mca_header_dict:
+            ctime_line = scan.mca_header_dict['CTIME']
             (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
             if instrument_mca_preset_t_pattern.match(name):
                 array_like = preset_time
@@ -835,7 +866,7 @@ class SpecFileH5Group(object):
         if key.endswith("preset_time") or\
            key.endswith("elapsed_time") or\
            key.endswith("live_time"):
-            return "CTIME" in self._sfh5._sf[scan_key].mca_header
+            return "CTIME" in self._sfh5._sf[scan_key].mca_header_dict
 
         # header, title, start_time, existing scan/mca/motor/measurement
         return True
@@ -908,12 +939,15 @@ class SpecFileH5Group(object):
         if positioners_group_pattern.match(self.name):
             return self._scan.motor_names
 
+        if specfile_group_pattern.match(self.name):
+            return static_items["scan/instrument/specfile"]
+
         if measurement_mca_group_pattern.match(self.name):
             return static_items["scan/measurement/mca"]
 
         if instrument_mca_group_pattern.match(self.name):
             ret = static_items["scan/instrument/mca"]
-            if "CTIME" in self._scan.mca_header:
+            if "CTIME" in self._scan.mca_header_dict:
                 ret += ["preset_time", "elapsed_time", "live_time"]
             return ret
 
@@ -1038,7 +1072,8 @@ class SpecFileH5(SpecFileH5Group):
     :type filename: str
 
     In addition to all generic :class:`SpecFileH5Group` attributes, this class
-    also keeps a reference to the original :class:`SpecFile` object.
+    also keeps a reference to the original :class:`SpecFile` object and
+    has a :attr:`filename` attribute.
 
     Its immediate children are scans, but it also gives access to any group
     or dataset in the entire SpecFile tree by specifying the full path.
