@@ -57,7 +57,7 @@ def repr_hdf5_tree(h5group, lvl=0):
             repr += repr_hdf5_tree(h5f[key], lvl + 1)
         else:
             repr += '\t' * lvl
-            repr += '-' + key + '=' + str(h5f[key])
+            repr += str(h5f[key])
             repr += '\n'
 
     if isinstance(h5group, string_types):

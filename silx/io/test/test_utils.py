@@ -81,13 +81,13 @@ class TestReprHDF5Tree(unittest.TestCase):
         self.assertIn("\t+bar", lines)
 
         self.assertMatchAnyStringInList(
-                r'\t\t-tmp=<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">',
+                r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">',
                 lines)
         self.assertMatchAnyStringInList(
-                r'\t\t-spam=<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">',
+                r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">',
                 lines)
         self.assertMatchAnyStringInList(
-                r'\t-data=<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
+                r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
                 lines)
 
 
