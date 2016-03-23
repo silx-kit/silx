@@ -33,6 +33,12 @@ import numpy as np
 
 from silx.math import histogramnd
 
+# ==============================================================
+# ==============================================================
+# ==============================================================
+
+_RTOL_DICT = {np.float64: 10**-13,
+              np.float32: 10**-5}
 
 # ==============================================================
 # ==============================================================
@@ -94,8 +100,6 @@ class _TestHistogramnd(unittest.TestCase):
     dtype_sample = None
     dtype_weights = None
 
-    rtol = 10**-13
-
     def generate_data(self):
         int_min = 0
         int_max = 100000
@@ -109,11 +113,12 @@ class _TestHistogramnd(unittest.TestCase):
         sample = np.random.random_integers(int_min,
                                            high=int_max,
                                            size=shape)
+
         sample = sample.astype(self.dtype_sample)
         sample = (self.sample_rng[0] +
                   (sample-int_min) *
                   (self.sample_rng[1]-self.sample_rng[0]) /
-                  (int_max-int_min))
+                  (int_max-int_min)).astype(self.dtype_sample)
 
         weights = np.random.random_integers(int_min,
                                             high=int_max,
@@ -122,7 +127,14 @@ class _TestHistogramnd(unittest.TestCase):
         weights = (self.weights_rng[0] +
                    (weights-int_min) *
                    (self.weights_rng[1]-self.weights_rng[0]) /
-                   (int_max-int_min))
+                   (int_max-int_min)).astype(self.dtype_weights)
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # the bins range are cast to the same type as the sample
+        # in order to get the same results as numpy
+        # (which doesnt cast the range)
+        self.bins_rng = np.array(self.bins_rng).astype(self.dtype_sample)
 
         # adding some values that are equal to the max
         #   in order to test the opened/closed last bin
@@ -147,6 +159,12 @@ class _TestHistogramnd(unittest.TestCase):
 
     def setUp(self):
         self.sample, self.weights = self.generate_data()
+        self.rtol = _RTOL_DICT.get(self.dtype_weights, None)
+
+    def array_compare(self, ar_a, ar_b):
+        if self.rtol is None:
+            return np.array_equal(ar_a, ar_b)
+        return np.allclose(ar_a, ar_b, self.rtol)
 
     def test_last_bin_closed(self):
         """
@@ -186,9 +204,11 @@ class _TestHistogramnd(unittest.TestCase):
                                             maxop=operator.le)
 
         self.assertEqual(result_c[0].sum(), inrange_idx.shape[0])
-        self.assertTrue(np.allclose(result_c[1].sum(),
-                                    self.weights[inrange_idx].sum(),
-                                    rtol=self.rtol))
+
+        # we have to sum the weights using the same precision as the
+        # histogramnd function
+        weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
 
     def test_last_bin_open(self):
         """
@@ -229,9 +249,10 @@ class _TestHistogramnd(unittest.TestCase):
                                             maxop=operator.lt)
 
         self.assertEqual(result_c[0].sum(), len(inrange_idx))
-        self.assertTrue(np.allclose(result_c[1].sum(),
-                                    self.weights[inrange_idx].sum(),
-                                    rtol=self.rtol))
+        # we have to sum the weights using the same precision as the
+        # histogramnd function
+        weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
 
     def test_filter_min(self):
         """
@@ -244,8 +265,11 @@ class _TestHistogramnd(unittest.TestCase):
                                last_bin_closed=True,
                                weight_min=self.filter_min)
 
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        filter_min = self.dtype_weights(self.filter_min)
+
         weight_idx = _get_values_index(self.weights,
-                                       self.filter_min,
+                                       filter_min,  # <------ !!!
                                        operator.ge)
 
         result_np = np.histogramdd(self.sample[weight_idx],
@@ -277,9 +301,11 @@ class _TestHistogramnd(unittest.TestCase):
         inrange_idx = weight_idx[inrange_idx]
 
         self.assertEqual(result_c[0].sum(), len(inrange_idx))
-        self.assertTrue(np.allclose(result_c[1].sum(),
-                                    self.weights[inrange_idx].sum(),
-                                    rtol=self.rtol))
+
+        # we have to sum the weights using the same precision as the
+        # histogramnd function
+        weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
 
     def test_filter_max(self):
         """
@@ -292,8 +318,11 @@ class _TestHistogramnd(unittest.TestCase):
                                last_bin_closed=True,
                                weight_max=self.filter_max)
 
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        filter_max = self.dtype_weights(self.filter_max)
+
         weight_idx = _get_values_index(self.weights,
-                                       self.filter_max,
+                                       filter_max,  # <------ !!!
                                        operator.le)
 
         result_np = np.histogramdd(self.sample[weight_idx],
@@ -325,9 +354,11 @@ class _TestHistogramnd(unittest.TestCase):
         inrange_idx = weight_idx[inrange_idx]
 
         self.assertEqual(result_c[0].sum(), len(inrange_idx))
-        self.assertTrue(np.allclose(result_c[1].sum(),
-                                    self.weights[inrange_idx].sum(),
-                                    rtol=self.rtol))
+
+        # we have to sum the weights using the same precision as the
+        # histogramnd function
+        weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
 
     def test_filter_minmax(self):
         """
@@ -341,9 +372,13 @@ class _TestHistogramnd(unittest.TestCase):
                                weight_min=self.filter_min,
                                weight_max=self.filter_max)
 
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        filter_min = self.dtype_weights(self.filter_min)
+        filter_max = self.dtype_weights(self.filter_max)
+
         weight_idx = _get_in_range_indices(self.weights,
-                                           self.filter_min,
-                                           self.filter_max,
+                                           filter_min,  # <------ !!!
+                                           filter_max,  # <------ !!!
                                            minop=operator.ge,
                                            maxop=operator.le)
 
@@ -376,9 +411,11 @@ class _TestHistogramnd(unittest.TestCase):
         inrange_idx = weight_idx[inrange_idx]
 
         self.assertEqual(result_c[0].sum(), len(inrange_idx))
-        self.assertTrue(np.allclose(result_c[1].sum(),
-                                    self.weights[inrange_idx].sum(),
-                                    rtol=self.rtol))
+
+        # we have to sum the weights using the same precision as the
+        # histogramnd function
+        weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
 
     def test_reuse_histo(self):
         """
@@ -428,6 +465,102 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp)
         self.assertTrue(weights_cmp)
 
+    def test_reuse_cumul(self):
+        """
+
+        """
+        result_c = histogramnd(self.sample,
+                               self.bins_rng,
+                               self.n_bins,
+                               weights=self.weights,
+                               last_bin_closed=True)
+
+        np.histogramdd(self.sample,
+                       bins=self.n_bins,
+                       range=self.bins_rng)
+
+        result_np_w = np.histogramdd(self.sample,
+                                     bins=self.n_bins,
+                                     range=self.bins_rng,
+                                     weights=self.weights)
+
+        sample_2, weights_2 = self.generate_data()
+
+        result_c_2 = histogramnd(sample_2,
+                                 self.bins_rng,
+                                 self.n_bins,
+                                 weights=weights_2,
+                                 last_bin_closed=True,
+                                 cumul=result_c[1])
+
+        result_np_2 = np.histogramdd(sample_2,
+                                     bins=self.n_bins,
+                                     range=self.bins_rng)
+
+        result_np_w_2 = np.histogramdd(sample_2,
+                                       bins=self.n_bins,
+                                       range=self.bins_rng,
+                                       weights=weights_2)
+
+        # comparing "hits"
+        hits_cmp = np.array_equal(result_c_2[0],
+                                  result_np_2[0])
+        # comparing weights
+
+        self.assertTrue(hits_cmp)
+        self.assertTrue(self.array_compare(result_c_2[1],
+                                           result_np_w[0] + result_np_w_2[0]))
+
+    def test_reuse_cumul_float(self):
+        """
+
+        """
+        n_bins = np.array(self.n_bins, ndmin=1)
+        if len(self.sample.shape) == 2:
+            if len(n_bins) == self.sample.shape[1]:
+                shp = tuple([x for x in n_bins])
+            else:
+                shp = (self.n_bins,) * self.sample.shape[1]
+            cumul = np.zeros(shp, dtype=np.float32)
+        else:
+            shp = (self.n_bins,)
+            cumul = np.zeros(shp, dtype=np.float32)
+
+        result_c_1 = histogramnd(self.sample,
+                                 self.bins_rng,
+                                 self.n_bins,
+                                 weights=self.weights,
+                                 last_bin_closed=True,
+                                 cumul=cumul)
+
+        result_np_1 = np.histogramdd(self.sample,
+                                     bins=self.n_bins,
+                                     range=self.bins_rng)
+
+        result_np_w_1 = np.histogramdd(self.sample,
+                                       bins=self.n_bins,
+                                       range=self.bins_rng,
+                                       weights=self.weights)
+
+        # comparing "hits"
+        hits_cmp = np.array_equal(result_c_1[0],
+                                  result_np_1[0])
+
+        self.assertTrue(hits_cmp)
+        self.assertEqual(result_c_1[1].dtype, np.float32)
+
+        bins_min = [rng[0] for rng in self.bins_rng]
+        bins_max = [rng[1] for rng in self.bins_rng]
+        inrange_idx = _get_in_range_indices(self.sample,
+                                            bins_min,
+                                            bins_max,
+                                            minop=operator.ge,
+                                            maxop=operator.le)
+        weights_sum = self.weights[inrange_idx].astype(np.float32).sum()
+        self.assertTrue(np.allclose(result_c_1[1].sum(), weights_sum))
+        self.assertTrue(np.allclose(result_c_1[1].sum(),
+                                    result_np_w_1[0].sum()))
+
 
 class _TestHistogramnd_1d(_TestHistogramnd):
 
@@ -435,7 +568,7 @@ class _TestHistogramnd_1d(_TestHistogramnd):
     Unit tests of the 1D histogramnd function.
     """
 
-    sample_rng = [-50., 100.]
+    sample_rng = [-55., 100.]
     weights_rng = [-70., 150.]
     n_dims = 1
     filter_min = -15.6
@@ -496,7 +629,7 @@ class TestHistogramnd_1d_double_double(_TestHistogramnd_1d):
 
 class TestHistogramnd_1d_double_float(_TestHistogramnd_1d):
     dtype_sample = np.double
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_double_int32(_TestHistogramnd_1d):
@@ -505,17 +638,17 @@ class TestHistogramnd_1d_double_int32(_TestHistogramnd_1d):
 
 
 class TestHistogramnd_1d_float_double(_TestHistogramnd_1d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_1d_float_float(_TestHistogramnd_1d):
-    dtype_sample = np.float
-    dtype_weights = np.float
+    dtype_sample = np.float32
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_float_int32(_TestHistogramnd_1d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.int32
 
 
@@ -526,7 +659,7 @@ class TestHistogramnd_1d_int32_double(_TestHistogramnd_1d):
 
 class TestHistogramnd_1d_int32_float(_TestHistogramnd_1d):
     dtype_sample = np.int32
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_1d_int32_int32(_TestHistogramnd_1d):
@@ -541,7 +674,7 @@ class TestHistogramnd_2d_double_double(_TestHistogramnd_2d):
 
 class TestHistogramnd_2d_double_float(_TestHistogramnd_2d):
     dtype_sample = np.double
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_double_int32(_TestHistogramnd_2d):
@@ -550,17 +683,17 @@ class TestHistogramnd_2d_double_int32(_TestHistogramnd_2d):
 
 
 class TestHistogramnd_2d_float_double(_TestHistogramnd_2d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_2d_float_float(_TestHistogramnd_2d):
-    dtype_sample = np.float
-    dtype_weights = np.float
+    dtype_sample = np.float32
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_float_int32(_TestHistogramnd_2d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.int32
 
 
@@ -571,7 +704,7 @@ class TestHistogramnd_2d_int32_double(_TestHistogramnd_2d):
 
 class TestHistogramnd_2d_int32_float(_TestHistogramnd_2d):
     dtype_sample = np.int32
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_2d_int32_int32(_TestHistogramnd_2d):
@@ -586,7 +719,7 @@ class TestHistogramnd_3d_double_double(_TestHistogramnd_3d):
 
 class TestHistogramnd_3d_double_float(_TestHistogramnd_3d):
     dtype_sample = np.double
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_double_int32(_TestHistogramnd_3d):
@@ -595,17 +728,17 @@ class TestHistogramnd_3d_double_int32(_TestHistogramnd_3d):
 
 
 class TestHistogramnd_3d_float_double(_TestHistogramnd_3d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.double
 
 
 class TestHistogramnd_3d_float_float(_TestHistogramnd_3d):
-    dtype_sample = np.float
-    dtype_weights = np.float
+    dtype_sample = np.float32
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_float_int32(_TestHistogramnd_3d):
-    dtype_sample = np.float
+    dtype_sample = np.float32
     dtype_weights = np.int32
 
 
@@ -616,7 +749,7 @@ class TestHistogramnd_3d_int32_double(_TestHistogramnd_3d):
 
 class TestHistogramnd_3d_int32_float(_TestHistogramnd_3d):
     dtype_sample = np.int32
-    dtype_weights = np.float
+    dtype_weights = np.float32
 
 
 class TestHistogramnd_3d_int32_int32(_TestHistogramnd_3d):

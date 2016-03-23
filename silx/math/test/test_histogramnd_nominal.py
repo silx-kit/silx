@@ -121,6 +121,8 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.n_bins,
                                    weights=self.weights)
 
+        self.assertEqual(cumul.dtype, np.float64)
+        self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
 
@@ -301,9 +303,51 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      weights=10 * self.weights,  # <==== !!
                                      cumul=cumul)
 
+        self.assertEqual(cumul.dtype, np.float64)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.allclose(cumul, expected_c, rtol=10e-15))
         self.assertEqual(id(cumul), id(cumul_2))
+
+    def test_reuse_cumul_float(self):
+        """
+        """
+
+        expected_h_tpl = np.array([0, 2, 1, 1, 1])
+        expected_c_tpl = np.array([-700.7, -7007.5, -4.99, 300.4, 3503.5],
+                                  dtype=np.float32)
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+        expected_c = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+        self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
+
+        histo, cumul = histogramnd(self.sample,
+                                   self.bins_rng,
+                                   self.n_bins,
+                                   weights=self.weights)
+
+        # converting the cumul array to float
+        cumul = cumul.astype(np.float32)
+
+        sample_2 = self.sample[:]
+        if len(sample_2.shape) == 1:
+            idx = [slice(0, None)]
+        else:
+            idx = [slice(0, None), self.tested_dim]
+
+        sample_2[idx] += 2
+
+        histo, cumul_2 = histogramnd(sample_2,           # <==== !!
+                                     self.bins_rng,
+                                     self.n_bins,
+                                     weights=10 * self.weights,  # <==== !!
+                                     cumul=cumul)
+
+        self.assertEqual(cumul.dtype, np.float32)
+        self.assertTrue(np.array_equal(histo, expected_h))
+        self.assertEqual(id(cumul), id(cumul_2))
+        self.assertTrue(np.allclose(cumul, expected_c, rtol=10e-15))
 
 
 class TestHistogram_nominal_1d(_TestHistogramnd_nominal):

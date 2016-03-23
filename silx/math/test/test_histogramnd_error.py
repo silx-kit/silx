@@ -260,8 +260,8 @@ class _TestHistogramnd_errors(unittest.TestCase):
 
             expected_txt = ('Provided <cumul> array doesn\'t have '
                             'the expected type '
-                            ': should be {0} instead of {1}.'
-                            ''.format(np.float64, cumul.dtype))
+                            ': should be {0} or {1} instead of {2}.'
+                            ''.format(np.float64, np.float32, cumul.dtype))
 
             ex_str = None
             try:
@@ -347,7 +347,7 @@ class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
         # these are used for testing the histo parameter as well
         #   as the cumul parameter.
         self.err_histo_dtypes = (np.uint16,
-                                 np.float32)
+                                 np.float16)
 
         self.err_unmanaged_dtypes = ((np.double, np.uint16),
                                      (np.uint16, np.double),
@@ -413,7 +413,7 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
         # these are used for testing the histo parameter as well
         #   as the cumul parameter.
         self.err_histo_dtypes = (np.uint16,
-                                 np.float32)
+                                 np.float16)
 
         self.err_unmanaged_dtypes = ((np.double, np.uint16),
                                      (np.uint16, np.double),

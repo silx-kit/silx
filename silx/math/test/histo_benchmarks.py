@@ -193,7 +193,7 @@ def run_benchmark(dtype=np.double,
     print('==========================')
     sample_shape = (10**7,)
     bins_rng = [[0., 100.]]
-    n_bins = 6
+    n_bins = 30
 
     benchmark(n_loops,
               sample_shape,
