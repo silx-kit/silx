@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "24/03/2016"
 
 import gc
 import locale
@@ -39,7 +39,7 @@ import unittest
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
-from silx.io.specfile import SpecFile, Scan
+from ..specfile import SpecFile, Scan
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875

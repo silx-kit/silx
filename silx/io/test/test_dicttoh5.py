@@ -25,14 +25,14 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "24/03/2016"
 
 import h5py
 import os
 import tempfile
 import unittest
 
-from silx.io.dicttoh5 import dicttoh5
+from ..dicttoh5 import dicttoh5
 
 
 class TestDictToH5(unittest.TestCase):

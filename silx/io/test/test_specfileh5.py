@@ -29,11 +29,11 @@ import sys
 import tempfile
 import unittest
 
-from silx.io.specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
+from ..specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/03/2016"
+__date__ = "24/03/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875

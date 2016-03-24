@@ -31,12 +31,12 @@ import sys
 import tempfile
 import unittest
 
-from silx.io.specfileh5 import SpecFileH5
-from silx.io.spectoh5 import convert, write_spec_to_h5
+from ..specfileh5 import SpecFileH5
+from ..spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/03/2016"
+__date__ = "24/03/2016"
 
 
 sftext = """#F /tmp/sf.dat

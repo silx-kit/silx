@@ -33,7 +33,7 @@ import re
 import tempfile
 import unittest
 
-from silx.io.utils import repr_hdf5_tree
+from ..utils import repr_hdf5_tree
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):
     for string_ in list_of_strings:
