@@ -334,44 +334,6 @@ class Plot(object):
         if self._autoreplot and not wasDirty:
             self._backend.postRedisplay()
 
-    # Private stuff called from elsewhere....
-
-    PLUGINS_DIR = None  # TODO useful?
-
-    # TODO called from ProfileScanWidget
-    @property
-    def _curveList(self):
-        _logger.warning('depreacted: access a private member of Plot.py')
-        return list(self._curves)
-
-    # TODO called from PlotWindow
-    def _getAllLimits(self):
-        """
-        Internal method to retrieve the limits based on the curves, not
-        on the plot. It might be of use to reset the zoom when one of the
-        X or Y axes is not set to autoscale.
-        """
-        _logger.warning('depreacted: access a private member of Plot.py')
-
-        if not self._curves:
-            return 0.0, 0.0, 100., 100.
-
-        # Init to infinity values
-        xmin, ymin = float('inf'), float('inf')
-        xmax, ymax = - float('inf'), - float('inf')
-
-        for curve in self._curves.values():
-            x, y = curve['x'], curve['y']
-
-            xmin = min(xmin, x.min())
-            ymin = min(ymin, y.min())
-            xmax = max(xmax, x.max())
-            ymax = max(ymax, y.max())
-
-        return xmin, ymin, xmax, ymax
-
-    ##########################
-
     # Add
 
     # add * input arguments management:
@@ -515,7 +477,6 @@ class Plot(object):
             defaults = previousCurve['params']
 
         else:  # If no existing curve use default values
-            # TODO What to do with x and y, xerror, yerror
             default_color, default_linestyle = self._getColorAndStyle()
             defaults = {
                 'info': None, 'color': default_color,
@@ -2367,10 +2328,10 @@ class Plot(object):
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
 
-    # TODO deprecate all the following
-
     def isDrawModeEnabled(self):
         """Return True if the current interactive state is drawing."""
+        _logger.warning(
+            'isDrawModeEnabled deprecated, use getInteractiveMode instead')
         return self.getInteractiveMode()['mode'] == 'draw'
 
     def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
@@ -2390,6 +2351,9 @@ class Plot(object):
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
                      one of the predefined color names defined in Colors.py
         """
+        _logger.warning(
+            'setDrawModeEnabled deprecated, use setInteractiveMode instead')
+
         if kwargs:
             _logger.warning('setDrawModeEnabled ignores additional parameters')
 
@@ -2409,11 +2373,15 @@ class Plot(object):
         otherwise, it returns a dict containing the drawing mode parameters
         as provided to :meth:`setDrawModeEnabled`.
         """
+        _logger.warning(
+            'getDrawMode deprecated, use getInteractiveMode instead')
         mode = self.getInteractiveMode()
         return mode if mode['mode'] == 'draw' else None
 
     def isZoomModeEnabled(self):
         """Return True if the current interactive state is zooming."""
+        _logger.warning(
+            'isZoomModeEnabled deprecated, use getInteractiveMode instead')
         return self.getInteractiveMode()['mode'] == 'zoom'
 
     def setZoomModeEnabled(self, flag=True, color=None):
@@ -2429,6 +2397,8 @@ class Plot(object):
         :type color: string ("#RRGGBB") or 4 column unsigned byte array or
                      one of the predefined color names defined in Colors.py
         """
+        _logger.warning(
+            'setZoomModeEnabled deprecated, use setInteractiveMode instead')
         if color is None:
             color = 'black'
 

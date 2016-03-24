@@ -395,7 +395,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def addMarker(self, x, y, legend, text, color,
                   selectable, draggable,
                   symbol, constraint, overlay):
-        legend = "__MARKER__" + legend  # TODO useful?
+        legend = "__MARKER__" + legend
 
         # TODO issues with text placement when changing limits..
         if x is not None and y is not None:

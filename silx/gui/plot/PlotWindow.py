@@ -114,8 +114,6 @@ class PlotWindow(PlotWidget):
 
         # colormap TODO need a dialog
 
-        # zoom mode TODO need sync with other toolbars
-
         # Make icon with on and 
         self.keepDataAspectRatioAction = self.group.addAction(
             KeepAspectRatioAction(self))
@@ -124,8 +122,6 @@ class PlotWindow(PlotWidget):
         self.yAxisInvertedAction = self.group.addAction(
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
-
-        # Plugin TODO outside here
 
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
