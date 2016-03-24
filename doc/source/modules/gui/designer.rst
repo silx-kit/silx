@@ -1,1 +1,1 @@
-.. include:: ../../../../scripts/qtdesigner_plugins/README.rst
+.. include:: ../../../../qtdesigner_plugins/README.rst

@@ -23,9 +23,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""silx.gui.plot PlotWindow Qt designer plugin."""
+"""silx.gui.plot PlotWidget Qt designer plugin."""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "F. Mengoni"]
 __license__ = "MIT"
 __date__ = "09/03/2016"
 
@@ -39,13 +39,13 @@ elif qt.BINDING == 'PyQt5':
 else:
     raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)
 
-from silx.gui.plot import PlotWindow
+from silx.gui.plot import PlotWidget
 
 
-class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
+class PlotWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
 
     def __init__(self, parent=None):
-        super(PlotWindowPlugin, self).__init__(parent)
+        super(PlotWidgetPlugin, self).__init__(parent)
         self.initialized = False
 
     def initialize(self, core):
@@ -58,10 +58,10 @@ class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        return PlotWindow(parent)
+        return PlotWidget(parent, autoreplot=False)
 
     def name(self):
-        return "PlotWindow"
+        return "PlotWidget"
 
     def group(self):
         return "silx"
@@ -79,29 +79,65 @@ class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return False
 
     def includeFile(self):
-        return "silx.gui.plot.PlotWindow"
+        return "silx.gui.plot.PlotWidget"
 
 
 _logo_pixmap = [
-    "16 16 4 1",
-    "X c #808080",
-    "o c #ff0000",
-    ". c #0000ff",
-    "  c none",
-
-    " XXXXXXXXXXXXXX ",
-    " XXXXXXXXXXXXXX ",
-    "  .             ",
-    " ...            ",
-    "  .          oo ",
-    "  .        oo   ",
-    "  .       o     ",
-    "  .   o  o      ",
-    "  .  o o o      ",
-    "  .  o  o       ",
-    "  . o           ",
-    "  . o           ",
-    "  .          .  ",
-    " .............. ",
-    "  .          .  ",
-    "                "]
+    "32 32 25 1",
+    " 	c None",
+    ".	c #7AB77F",
+    "+	c #BDD3BB",
+    "@	c #84BB88",
+    "#	c #E7E8E9",
+    "$	c #CFD0D2",
+    "%	c #C3C5C7",
+    "&	c #3E3E40",
+    "*	c #000000",
+    "=	c #ABADB0",
+    "-	c #505052",
+    ";	c #7C9C7F",
+    ">	c #9FA1A4",
+    ",	c #696A6C",
+    "'	c #1F1F20",
+    ")	c #7F8083",
+    "!	c #DBDCDD",
+    "~	c #747578",
+    "{	c #8A8C8F",
+    "]	c #949699",
+    "^	c #5D5E60",
+    "/	c #B7B8BB",
+    "(	c #707173",
+    "_	c #61AF6C",
+    ":	c #83AC84",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "       .+++++++++++++++++++++.  ",
+    "       @########$%###########@  ",
+    "       @########&*=##########@  ",
+    "       @#######=**-##########@  ",
+    "       ;>######,')*%#########@  ",
+    "       @######!'~$*)#########@  ",
+    "       @######{*=#-&#########@  ",
+    "       @####!~*,##]*$########@  ",
+    "       ;>###,*,!##%*>#%!#####@  ",
+    "  * *  @####*^#####*~>*,#####@  ",
+    "   **  @####*~#####-',**#####@  ",
+    "   *   @###/*{#####)**'*/####@  ",
+    "       ;>#>'*$#####$**)*]####@  ",
+    "       @#/*'/#######/>#*~####@  ",
+    "       @#{*%###########,&%###@  ",
+    "       @#,^############>**{##@  ",
+    "       @%']#############&**%#@  ",
+    "       ;(-!#############=>']#@  ",
+    "       @!!################%!#@  ",
+    "       @#####################@  ",
+    "       @###//###{###{###//###@  ",
+    "       _@@@::@@@;@@@;@@@::@@@_  ",
+    "                                ",
+    "                                ",
+    "                 ***            ",
+    "                 **             ",
+    "                 ***            ",
+    "                                "]
