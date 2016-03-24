@@ -19,8 +19,12 @@ Files to edit :
         #undef HISTO_WEIGHT_T
         #endif
         #define HISTO_WEIGHT_T weights_type
+        #ifdef HISTO_CUMUL_T
+        #undef HISTO_CUMUL_T
+        #endif
+        #define HISTO_CUMUL_T cumul_type
         #include "histogramnd_template.c"
-    with sample_type and weights_type being a valid c type. You may
+    with sample_type, weights_type and cumul_type being a valid c type. You may
     have to use a typedef if your type name is more than one word long
     (e.g typedef long int longint)
 
