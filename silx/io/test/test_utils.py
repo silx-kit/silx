@@ -23,16 +23,18 @@
 #############################################################################*/
 """Tests for utils module"""
 import h5py
+import numpy
 import os
 import re
+import shutil
 import tempfile
 import unittest
 
-from silx.io.utils import repr_hdf5_tree, savespec
+from silx.io.utils import repr_hdf5_tree, savespec, save
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/03/2016"
+__date__ = "24/03/2016"
 
 
 class TestReprHDF5Tree(unittest.TestCase):
@@ -46,10 +48,9 @@ class TestReprHDF5Tree(unittest.TestCase):
 
     """
     def setUp(self):
-        fd, self.h5_fname = tempfile.mkstemp(text=False)
-        # Close and delete (we just want the name)
-        os.close(fd)
-        os.unlink(self.h5_fname)
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "temp.h5")
+
         self.h5f = h5py.File(self.h5_fname, "w")
         self.h5f["/foo/bar/tmp"] = [1, 2, 3]
         self.h5f["/foo/bar/spam"] = [[1, 2], [3, 4]]
@@ -58,6 +59,7 @@ class TestReprHDF5Tree(unittest.TestCase):
 
     def tearDown(self):
         os.unlink(self.h5_fname)
+        shutil.rmtree(self.tempdir)
 
     def assertMatchAnyStringInList(self, pattern, list_of_strings):
         for string_ in list_of_strings:
@@ -83,47 +85,97 @@ class TestReprHDF5Tree(unittest.TestCase):
                 r'\t-data=<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
                 lines)
 
+expected_spec = r"""#F .*
+#D .*
 
-class TestSaveSpec(unittest.TestCase):
+#S 1 Ordinate1
+#D .*
+#N 2
+#L Abscissa  Ordinate1
+1  4\.00
+2  5\.00
+3  6\.00
+
+#S 2 Ordinate2
+#D .*
+#N 2
+#L Abscissa  Ordinate2
+1  7\.00
+2  8\.00
+3  9\.00
+"""
+
+expected_csv = r"""Abscissa;Ordinate1;Ordinate2
+1;4\.00;7\.00e\+00
+2;5\.00;8\.00e\+00
+3;6\.00;9\.00e\+00
+"""
+
+class TestSave(unittest.TestCase):
     """Test saving curves as SpecFile:
     """
     def setUp(self):
-        fd, self.spec_fname = tempfile.mkstemp(text=False)
-        # Close and delete (we just want the name)
-        os.close(fd)
-        os.unlink(self.spec_fname)
+        self.tempdir = tempfile.mkdtemp()
+        self.spec_fname = os.path.join(self.tempdir, "savespec.dat")
+        self.csv_fname = os.path.join(self.tempdir, "savecsv.dat")
+        self.npy_fname = os.path.join(self.tempdir, "savenpy.npy")
 
-        x = [1, 2, 3]
-        xlab = "Abscissa"
-        y = [[4, 5, 6], [7, 8, 9]]
-        ylabs = "Ordinate1  Ordinate2"
-
-        savespec(self.spec_fname, x, y, xlabel=xlab, ylabels=ylabs,
-                 datafmt=["%d", "%.2f"])
+        self.x = [1, 2, 3]
+        self.xlab = "Abscissa"
+        self.y = [[4, 5, 6], [7, 8, 9]]
+        self.ylabs = ["Ordinate1", "Ordinate2"]
 
     def tearDown(self):
-        os.unlink(self.spec_fname)
+        if os.path.isfile(self.spec_fname):
+            os.unlink(self.spec_fname)
+        if os.path.isfile(self.csv_fname):
+            os.unlink(self.csv_fname)
+        if os.path.isfile(self.npy_fname):
+            os.unlink(self.npy_fname)
+        shutil.rmtree(self.tempdir)
 
-    def test_spec_format(self):
-        expected_spec = r"#F .*\n"
-        expected_spec += r"#D .*\n\n"
+    def test_save_csv(self):
+        save(self.csv_fname, self.x, self.y,
+             xlabel=self.xlab, ylabels=self.ylabs,
+             filetype="csv", fmt=["%d", "%.2f", "%.2e"],
+             csvdelimiter=";")
 
-        expected_spec += "#S 1 Ordinate1\n"
-        expected_spec += r"#D .*\n"
-        expected_spec += r"#N 2\n"
-        expected_spec += r"#L Abscissa  Ordinate1\n"
-        expected_spec += r"1  4\.00\n"
-        expected_spec += r"2  5\.00\n"
-        expected_spec += r"3  6\.00\n"
-        expected_spec += r"\n"
-        expected_spec += r"#S 2 Ordinate2\n"
-        expected_spec += r"#D .*\n"
-        expected_spec += r"#N 2\n"
-        expected_spec += r"#L Abscissa  Ordinate2\n"
-        expected_spec += r"1  7\.00\n"
-        expected_spec += r"2  8\.00\n"
-        expected_spec += r"3  9\.00\n"
-        expected_spec += r"\n"
+        csvf = open(self.csv_fname)
+        actual_csv = csvf.read()
+        csvf.close()
+
+        self.assertRegexpMatches(actual_csv, expected_csv)
+
+    def test_save_npy(self):
+        save(self.npy_fname, self.x, self.y,
+             xlabel=self.xlab, ylabels=self.ylabs)
+
+        npy_recarray = numpy.load(self.npy_fname)
+
+        self.assertEqual(npy_recarray.shape, (3,))
+        self.assertTrue(
+                numpy.array_equal(
+                        npy_recarray['Ordinate1'],
+                        numpy.array((4, 5, 6))))
+
+    def test_savespec_filename(self):
+
+        savespec(self.spec_fname, self.x, self.y,
+                 xlabel=self.xlab, ylabels=self.ylabs,
+                 fmt=["%d", "%.2f"])
+
+        specf = open(self.spec_fname)
+        actual_spec = specf.read()
+        specf.close()
+
+        self.assertRegexpMatches(actual_spec, expected_spec)
+
+    def test_save_spec_file_handle(self):
+        specf = open(self.spec_fname, "w")
+        save(specf, self.x, self.y,
+             xlabel=self.xlab, ylabels=self.ylabs,
+             filetype="spec", fmt=["%d", "%.2f"])
+        specf.close()
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
@@ -137,7 +189,7 @@ def suite():
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestReprHDF5Tree))
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSaveSpec))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSave))
     return test_suite
 
 

@@ -32,7 +32,7 @@ import time
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/03/2016"
+__date__ = "24/03/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -70,15 +70,12 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 
-# TODO: test
-def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
+def save(output_file, x, y, xlabel=None, ylabels=None, fmt="%.7g",
          filetype=None, csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
-    """Saves any number of curves to SpecFile format.
+    """Saves any number of curves to various formats
 
-    The output SpecFile has one scan with two columns (`x` and `y`) per curve.
-
-    :param specfile: Output SpecFile name, or file handle open in write
+    :param file: Output file name, or file handle open in write
         mode.
     :param x: 1D-Array (or list) of abscissa values.
     :param y: 2D-array (or list of lists) of ordinates values. First index
@@ -87,28 +84,42 @@ def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
         ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
         only one curve to save.
     :param xlabel: Abscissa label
-    :param ylabels: List of `y` labels, or string of labels separated by
-        two spaces
-    :param fmat: Format string for data. You can specify a short format
+    :param ylabels: List of `y` labels
+    :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
     """
 
-    available_formats = ["dat", "csv", "npy"]
+    available_formats = ["spec", "csv", "txt", "ndarray"]
 
     if filetype is None:
-        exttypes = {"dat": "spec",
-                    "csv": "csv",
-                    "txt": "csv",
-                    "npy": "npy"}
-        fileext = os.path.splitext(filename)
+        exttypes = {".dat": "spec",
+                    ".csv": "csv",
+                    ".txt": "txt",
+                    ".npy": "ndarray"}
+        fileext = os.path.splitext(output_file)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
 
+    else:
+        filetype = filetype.lower()
 
-    if filetype.lower() not in available_formats:
+    if filetype not in available_formats:
         raise IOError("File type %s is not supported" % (filetype))
+
+    if xlabel is not None and ylabels is not None:
+        if filetype == "ndarray":
+            labels = [xlabel] + ylabels
+        elif filetype == "csv":
+            # csv format: single header line with labels, no footer
+            header = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
+            comments =""
+            footer = ""
+        elif filetype == "txt":
+            # prepend a labels line to the header
+            labels = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
+            header = labels + "\n" + header
 
     # If we decide to set fmt=None as default
     # if fmt is None:
@@ -131,20 +142,18 @@ def save(path, x, y, xlabel=None, ylabels=None, fmt="%.7g",
 
     if filetype.lower() == "spec":
         # Spec format
-        savespec(path, x, y, xlabel, ylabels, datafmt=fmt)
+        savespec(output_file, x, y, xlabel, ylabels, fmt=fmt)
     else:
-        X = numpy.vstack((x, y))
-        if filetype.lower() == "csv":
-            # fixme: test if we need .T, header not compatible with older numpy
-            numpy.savetxt(path, X.T, fmt=fmt, delimiter=csvdelimiter,
+        X = numpy.vstack((x, y)).transpose()
+        if filetype in ["csv", "txt"]:
+            numpy.savetxt(output_file, X, fmt=fmt, delimiter=csvdelimiter,
                           newline=newline, header=header, footer=footer,
                           comments=comments)
-        elif filetype.lower() == "npy":
+        elif filetype == "ndarray":
             if xlabel is not None and ylabels is not None:
-                labels = xlabel + ylabels
                 assert len(labels) == len(X)
                 X = numpy.core.records.fromrecords(X, names=labels)
-            numpy.save(path, X)
+            numpy.save(output_file, X)
 
 
 def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
@@ -163,7 +172,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
         two spaces
-    :param fmat: Format string for data. You can specify a short format
+    :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
@@ -201,10 +210,9 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
         full_fmt_string = fmt + "  " + fmt + "\n"
     elif isinstance(fmt, (list, tuple)):
         full_fmt_string = "  ".join(fmt) + "\n"
-    # custom user defined format string
-    # FIXME: undocumented feature: remove or document
-    elif isinstance(fmt, string_types) and fmt.count("%") == 2:
-        full_fmt_string = fmt if "\n" in fmt.count else fmt + "\n"
+    else:
+        raise ValueError("fmt must be a single format string or a list of " +
+                         "two format strings")
 
     for i in range(y_array.shape[0]):
         if y_array.shape[1] != x_array.shape[0]:
