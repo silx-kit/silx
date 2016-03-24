@@ -147,8 +147,12 @@ class TestSave(unittest.TestCase):
         self.assertRegexpMatches(actual_csv, expected_csv)
 
     def test_save_npy(self):
-        save(self.npy_fname, self.x, self.y,
+        """npy file is saved with numpy.save after building a numpy array
+        and converting it to a named record array"""
+        npyf = open(self.npy_fname, "wb")
+        save(npyf, self.x, self.y,
              xlabel=self.xlab, ylabels=self.ylabs)
+        npyf.close()
 
         npy_recarray = numpy.load(self.npy_fname)
 
@@ -159,7 +163,6 @@ class TestSave(unittest.TestCase):
                         numpy.array((4, 5, 6))))
 
     def test_savespec_filename(self):
-
         savespec(self.spec_fname, self.x, self.y,
                  xlabel=self.xlab, ylabels=self.ylabs,
                  fmt=["%d", "%.2f"])

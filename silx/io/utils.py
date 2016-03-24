@@ -70,8 +70,8 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 
-def save(output_file, x, y, xlabel=None, ylabels=None, fmt="%.7g",
-         filetype=None, csvdelimiter=";", newline="\n", header="",
+def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
+         fmt="%.7g", csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
     """Saves any number of curves to various formats
 
@@ -83,6 +83,9 @@ def save(output_file, x, y, xlabel=None, ylabels=None, fmt="%.7g",
         of the second dimension (number of samples) must be equal to
         ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
         only one curve to save.
+    :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
+        If ``None``, filetype is detected from file name extension
+        (``dat, csv, txt, npy``)
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels
     :param fmt: Format string for data. You can specify a short format
@@ -98,7 +101,9 @@ def save(output_file, x, y, xlabel=None, ylabels=None, fmt="%.7g",
                     ".csv": "csv",
                     ".txt": "txt",
                     ".npy": "ndarray"}
-        fileext = os.path.splitext(output_file)[1]
+        outfname = output_file if not hasattr(output_file, "name") \
+            else output_file.name
+        fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
 
