@@ -43,7 +43,7 @@ def histogramnd(sample,
                 histo=None,
                 cumul=None):
     """
-    histogramnd(sample, bins_rng, n_bins, weights=weights, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
+    histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
 
     Computes the multidimensional histogram of some data.
 
