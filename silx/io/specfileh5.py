@@ -108,13 +108,13 @@ Data and groups are accessed in :mod:`h5py` fashion::
     scan1group = sfh5["1.1"]
     instrument_group = scan1group["instrument"]
 
-    # altenative: full path access
+    # altenative: full path access
     measurement_group = sfh5["/1.1/measurement"]
 
-    # accessing a scan data column by name as a 1D numpy array
+    # accessing a scan data column by name as a 1D numpy array
     data_array = measurement_group["Pslit HGap"]
 
-    # accessing all mca-spectra for one MCA device
+    # accessing all mca-spectra for one MCA device
     mca_0_spectra = measurement_group["mca_0/data"]
 
 :class:`SpecFileH5` and :class:`SpecFileH5Group` provide a :meth:`SpecFileH5Group.keys` method::
@@ -157,19 +157,20 @@ import logging
 import numpy
 import re
 import sys
+import time
 
 from .specfile import SpecFile
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "24/03/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
-# Static subitems: all groups and datasets that are present in any
+# Static subitems: all groups and datasets that are present in any
 # scan (excludes list of scans, data columns, list of mca devices,
 # optional mca headers)
 static_items = {
@@ -562,7 +563,7 @@ def _fixed_length_strings(strings, length=0):
     :param strings: List of variable length strings
     :param length: Length of strings in returned list, defaults to the maximum
          length in the original list if set to 0.
-    :type length: int or None
+    :type length: int or None
     """
     if length == 0 and strings:
         length = max(len(s) for s in strings)
@@ -576,6 +577,8 @@ class SpecFileH5Dataset(numpy.ndarray):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
+    :param file_: Parent :class:`SpecFileH5`
+    :param parent: Parent :class:`SpecFileH5Group` which contains this dataset
 
     This class inherits from :class:`numpy.ndarray` and adds ``name`` and
     ``value`` attributes for HDF5 compatibility. ``value`` is a reference
@@ -585,7 +588,7 @@ class SpecFileH5Dataset(numpy.ndarray):
     """
     # For documentation on subclassing numpy.ndarray,
     # see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
-    def __new__(cls, array_like, name):
+    def __new__(cls, array_like, name, file_, parent):
         # unicode can't be stored in hdf5, we need to use bytes
         if isinstance(array_like, string_types):
             array_like = numpy.string_(array_like)
@@ -611,6 +614,8 @@ class SpecFileH5Dataset(numpy.ndarray):
 
         obj.name = name
         obj.value = obj
+        obj.parent = parent
+        obj.file = file_
 
         obj.attrs = _get_attrs_dict(name)
 
@@ -621,6 +626,8 @@ class SpecFileH5Dataset(numpy.ndarray):
             return
         self.name = getattr(obj, 'name', None)
         self.value = getattr(obj, 'value', None)
+        self.parent = getattr(obj, 'parent', None)
+        self.file = getattr(obj, 'file', None)
         self.attrs = getattr(obj, 'attrs', None)
 
 
@@ -633,7 +640,7 @@ class SpecFileH5LinkToDataset(SpecFileH5Dataset):
     pass
 
 
-def _dataset_builder(name, specfileh5):
+def _dataset_builder(name, specfileh5, parent_group):
     """Retrieve dataset from :class:`SpecFile`, based on dataset name, as a
     subclass of :class:`numpy.ndarray`.
 
@@ -641,6 +648,7 @@ def _dataset_builder(name, specfileh5):
     :type name: str
     :param specfileh5: parent :class:`SpecFileH5` object
     :type specfileh5: :class:`SpecFileH5`
+    :param parent_group: Parent :class:`SpecFileH5Group`
 
     :return: Array with the requested data
     :rtype: :class:`SpecFileH5Dataset`.
@@ -714,10 +722,11 @@ def _dataset_builder(name, specfileh5):
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
-    return SpecFileH5Dataset(array_like, name)
+    return SpecFileH5Dataset(array_like, name,
+                             file_=specfileh5, parent=parent_group)
 
 
-def _link_to_dataset_builder(name, specfileh5):
+def _link_to_dataset_builder(name, specfileh5, parent_group):
     """Same as :func:`_dataset_builder`, but returns a
     :class:`SpecFileH5LinkToDataset`
 
@@ -725,6 +734,7 @@ def _link_to_dataset_builder(name, specfileh5):
     :type name: str
     :param specfileh5: parent :class:`SpecFileH5` object
     :type specfileh5: :class:`SpecFileH5`
+    :param parent_group: Parent :class:`SpecFileH5Group`
 
     :return: Array with the requested data
     :rtype: :class:`SpecFileH5LinkToDataset`.
@@ -761,7 +771,8 @@ def _link_to_dataset_builder(name, specfileh5):
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
-    return SpecFileH5LinkToDataset(array_like, name)
+    return SpecFileH5LinkToDataset(array_like, name,
+                                   file_=specfileh5, parent=parent_group)
 
 
 def _demultiplex_mca(scan, analyser_index):
@@ -808,7 +819,7 @@ class SpecFileH5Group(object):
         self.name = name
         """Full name/path of group"""
 
-        self._sfh5 = specfileh5
+        self.file = specfileh5
         """Parent SpecFileH5 object"""
 
         self.attrs = _get_attrs_dict(name)
@@ -816,7 +827,18 @@ class SpecFileH5Group(object):
 
         if name != "/":
             scan_key = _get_scan_key_in_name(name)
-            self._scan = self._sfh5._sf[scan_key]
+            self._scan = self.file._sf[scan_key]
+
+    @property
+    def parent(self):
+        """Parent group (group that contains this group)"""
+        if not self.name.strip("/"):
+            return None
+        split_parent_name = self.name.lstrip("/").split("/")[:-1]
+        parent_name = "/".join(split_parent_name)
+        if not parent_name:
+            parent_name = "/"
+        return SpecFileH5Group(parent_name, self.file)
 
     def __contains__(self, key):
         """
@@ -840,13 +862,13 @@ class SpecFileH5Group(object):
 
         # nonexistent scan in specfile
         scan_key = _get_scan_key_in_name(key)
-        if scan_key not in self._sfh5._sf:
+        if scan_key not in self.file._sf:
             return False
 
         # nonexistent MCA analyser in scan
         mca_analyser_index = _get_mca_index_in_name(key)
         if mca_analyser_index is not None:
-            if not _mca_analyser_in_scan(self._sfh5._sf,
+            if not _mca_analyser_in_scan(self.file._sf,
                                          scan_key,
                                          mca_analyser_index):
                 return False
@@ -854,7 +876,7 @@ class SpecFileH5Group(object):
         # nonexistent motor name
         motor_name = _get_motor_in_name(key)
         if motor_name is not None:
-            if not _motor_in_scan(self._sfh5._sf,
+            if not _motor_in_scan(self.file._sf,
                                   scan_key,
                                   motor_name):
                 return False
@@ -862,7 +884,7 @@ class SpecFileH5Group(object):
         # nonexistent data column
         column_label = _get_data_column_label_in_name(key)
         if column_label is not None:
-            if not _column_label_in_scan(self._sfh5._sf,
+            if not _column_label_in_scan(self.file._sf,
                                          scan_key,
                                          column_label):
                 return False
@@ -870,7 +892,7 @@ class SpecFileH5Group(object):
         if key.endswith("preset_time") or\
            key.endswith("elapsed_time") or\
            key.endswith("live_time"):
-            return "CTIME" in self._sfh5._sf[scan_key].mca_header_dict
+            return "CTIME" in self.file._sf[scan_key].mca_header_dict
 
         # header, title, start_time, existing scan/mca/motor/measurement
         return True
@@ -878,7 +900,7 @@ class SpecFileH5Group(object):
     def __eq__(self, other):
         return (isinstance(other, SpecFileH5Group) and
                 self.name == other.name and
-                self._sfh5.filename == other._sfh5.filename and
+                self.file.filename == other.file.filename and
                 self.keys() == other.keys())
 
     def __getitem__(self, key):
@@ -907,13 +929,13 @@ class SpecFileH5Group(object):
             raise KeyError(key + " is not a child of " + self.__repr__())
 
         if is_group(full_key):
-            return SpecFileH5Group(full_key, self._sfh5)
+            return SpecFileH5Group(full_key, self.file)
         elif is_dataset(full_key):
-            return _dataset_builder(full_key, self._sfh5)
+            return _dataset_builder(full_key, self.file, self)
         elif is_link_to_group(full_key):
-            return SpecFileH5LinkToGroup(full_key, self._sfh5)
+            return SpecFileH5LinkToGroup(full_key, self.file)
         elif is_link_to_dataset(full_key):
-            return _link_to_dataset_builder(full_key, self._sfh5)
+            return _link_to_dataset_builder(full_key, self.file, self)
         else:
             raise KeyError("unrecognized group or dataset: " + full_key)
 
@@ -935,7 +957,7 @@ class SpecFileH5Group(object):
         """
         # keys in hdf5 are unicode
         if self.name == "/":
-            return self._sfh5.keys()
+            return self.file.keys()
 
         if scan_pattern.match(self.name):
             return static_items["scan"]
@@ -1066,7 +1088,7 @@ class SpecFileH5LinkToGroup(SpecFileH5Group):
         # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
         if measurement_mca_info_pattern.match(self.name):
             link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecFileH5Group(link_target, self._sfh5).keys()
+            return SpecFileH5Group(link_target, self.file).keys()
 
 
 class SpecFileH5(SpecFileH5Group):
