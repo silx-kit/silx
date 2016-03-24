@@ -70,14 +70,17 @@ class PlotWindow(PlotWidget):
     :param bool copy: Toggle visibility if copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
+    :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
     def __init__(self, parent=None, backend=None,
                  resetZoom=True, autoScale=True, logScale=True, grid=True,
                  curveStyle=True,
                  aspectRatio=True, yInverted=True,
-                 copy=True, save=True, print_=True):
-        super(PlotWindow, self).__init__(parent=parent, backend=backend)
+                 copy=True, save=True, print_=True,
+                 autoreplot=True):
+        super(PlotWindow, self).__init__(
+            parent=parent, backend=backend, autoreplot=autoreplot)
 
         # Init actions
         self.group = qt.QActionGroup(self)
