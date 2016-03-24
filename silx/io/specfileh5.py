@@ -155,6 +155,7 @@ Classes
 
 import logging
 import numpy
+import posixpath
 import re
 import sys
 import time
@@ -834,10 +835,8 @@ class SpecFileH5Group(object):
         """Parent group (group that contains this group)"""
         if not self.name.strip("/"):
             return None
-        split_parent_name = self.name.lstrip("/").split("/")[:-1]
-        parent_name = "/".join(split_parent_name)
-        if not parent_name:
-            parent_name = "/"
+
+        parent_name = posixpath.dirname(self.name.rstrip("/"))
         return SpecFileH5Group(parent_name, self.file)
 
     def __contains__(self, key):
