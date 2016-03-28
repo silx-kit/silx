@@ -1,7 +1,5 @@
-# coding: utf-8
-# /*##########################################################################
-#
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+/*##########################################################################
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -21,23 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ###########################################################################*/
-"""Full silx test suite."""
+# ############################################################################*/
 
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "26/02/2016"
+#ifndef TEMPLATES_H_
+#define TEMPLATES_H_
 
-import unittest
+#define CONCAT(X,Y,Z,T) X##_##Y##_##Z##_##T
+#define TEMPLATE(X,Y,Z,T) CONCAT(X,Y,Z,T)
 
-from .test_version import suite as test_version_suite
-from ..io.test import suite as test_io_suite
-from ..math.test import suite as test_math_suite
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_version_suite())
-    test_suite.addTest(test_io_suite())
-    test_suite.addTest(test_math_suite())
-    return test_suite
+#endif 
