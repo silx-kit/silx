@@ -973,10 +973,13 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         assert self._lastPos is not None
 
         self.imageLegend = None
-        self.marker = self.plot._pickMarker(
+        self.markerLegend = None
+        marker = self.plot._pickMarker(
             x, y, lambda marker: marker['draggable'])
-        if self.marker is not None:
-            self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
+
+        if marker is not None:
+            self.markerLegend = marker['legend']
+            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
         else:
             picked = self.plot._pickImageOrCurve(
                 x,
@@ -994,13 +997,14 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         assert dataPos is not None
         xData, yData = dataPos
 
-        if self.marker is not None:
-            if self.marker['constraint'] is not None:
-                xData, yData = self.marker['constraint'](xData, yData)
+        if self.markerLegend is not None:
+            marker = self.plot._getMarker(self.markerLegend)
+            if marker['constraint'] is not None:
+                xData, yData = marker['constraint'](xData, yData)
 
-            self.plot._moveMarker(self.marker['legend'], xData, yData)
+            self.plot._moveMarker(self.markerLegend, xData, yData)
 
-            self._signalMarkerMovingEvent('markerMoving', self.marker, x, y)
+            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
 
         if self.imageLegend is not None:
             dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
@@ -1009,8 +1013,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self._lastPos = xData, yData
 
     def endDrag(self, startPos, endPos):
-        if self.marker is not None:
-            posData = [self.marker['x'], self.marker['y']]
+        if self.markerLegend is not None:
+            marker = self.plot._getMarker(self.markerLegend)
+            posData = [marker['x'], marker['y']]
             if posData[0] is None:
                 posData[0] = [0, 1]
             if posData[1] is None:
@@ -1019,16 +1024,16 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             eventDict = prepareMarkerSignal(
                 'markerMoved',
                 'left',
-                self.marker['legend'],
+                marker['legend'],
                 'marker',
-                self.marker['draggable'],
-                self.marker['selectable'],
+                marker['draggable'],
+                marker['selectable'],
                 posData)
             self.plot.notify(**eventDict)
 
         self.plot.setGraphCursorShape()
 
-        del self.marker
+        del self.markerLegend
         del self.imageLegend
         del self._lastPos
 
@@ -1119,6 +1124,8 @@ class PlotInteraction(object):
     """Proxy to currently use state machine for interaction.
 
     This allows to switch interactive mode.
+
+    :param Plot plot: The plot to apply interaction to
     """
 
     _DRAW_MODES = {
@@ -1131,6 +1138,9 @@ class PlotInteraction(object):
 
     def __init__(self, plot):
         self._plot = weakref.ref(plot)  # Avoid cyclic-ref
+
+        self.zoomOnWheel = True
+        """True to enable zoom on wheel, False otherwise."""
 
         # Default event handler
         self._eventHandler = ItemsInteraction(plot)
@@ -1206,6 +1216,8 @@ class PlotInteraction(object):
             self._eventHandler.cancel()
             self._eventHandler = ItemsInteraction(plot)
 
-    def handleEvent(self, *args, **kwargs):
+    def handleEvent(self, event, *args, **kwargs):
         """Forward event to current interactive mode state machine."""
-        self._eventHandler.handleEvent(*args, **kwargs)
+        if not self.zoomOnWheel and event == 'wheel':
+            return  # Discard wheel events
+        self._eventHandler.handleEvent(event, *args, **kwargs)

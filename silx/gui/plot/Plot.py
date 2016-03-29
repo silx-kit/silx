@@ -2140,12 +2140,10 @@ class Plot(object):
 
         for item in reversed(markers):
             legend = item['legend']
-            marker = self._markers.get(legend, None)
-            if marker is not None:
-                params = marker['params'].copy()  # shallow copy
-                if test(params):
-                    params['legend'] = legend
-                    return params
+            params = self._getMarker(legend)
+            if params is not None and test(params):
+                params['legend'] = legend
+                return params
         return None
 
     def _moveMarker(self, legend, x, y):
@@ -2157,14 +2155,29 @@ class Plot(object):
         :param float x: The new X position of the marker in data coordinates.
         :param float y: The new Y position of the marker in data coordinates.
         """
-        marker = self._markers[legend]
-        params = marker['params'].copy()
-        if params['x'] is not None:
-            params['x'] = x
-        if params['y'] is not None:
-            params['y'] = y
-        params['legend'] = legend
-        self._addMarker(**params)
+        params = self._getMarker(legend)
+        if params is not None:
+            if params['x'] is not None:
+                params['x'] = x
+            if params['y'] is not None:
+                params['y'] = y
+            self._addMarker(**params)
+
+    def _getMarker(self, legend):
+        """Get the parameters of a marker
+
+        :param str legend: The legend of the marker to retrieve
+        :return: A copy of the parameters the marker has been created with
+        :rtype: dict or None if marker does not exist
+        """
+        marker = self._markers.get(legend, None)
+        if marker is None:
+            return None
+        else:
+            # Return a shallow copy
+            params = marker['params'].copy()
+            params['legend'] = legend
+            return params
 
     def _pickImageOrCurve(self, x, y, test=None):
         """Pick an image or a curve at the given position.
@@ -2312,7 +2325,8 @@ class Plot(object):
         return self._eventHandler.getInteractiveMode()
 
     def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None):
+                           shape='polygon', label=None,
+                           zoomOnWheel=True):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2325,8 +2339,10 @@ class Plot(object):
                           In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode, sent in drawing events.
+        :param bool zoomOnWheel: Toggle zoom on wheel support
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
+        self._eventHandler.zoomOnWheel = zoomOnWheel
 
     def isDrawModeEnabled(self):
         """Return True if the current interactive state is drawing."""
