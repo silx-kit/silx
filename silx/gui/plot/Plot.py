@@ -764,6 +764,14 @@ class Plot(object):
                                 (default: False)
         :param bool draggable: Indicate if the marker can be moved.
                                (default: False)
+        :param constraint: A function filtering marker displacement by
+                           dragging operations or None for no filter.
+                           This function is called each time a marker is
+                           moved.
+                           This parameter is only used if draggable is True.
+        :type constraint: None or a callable that takes the coordinates of
+                          the current cursor position in the plot as input
+                          and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
         if kw:
@@ -799,6 +807,14 @@ class Plot(object):
                                 (default: False)
         :param bool draggable: Indicate if the marker can be moved.
                                (default: False)
+        :param constraint: A function filtering marker displacement by
+                           dragging operations or None for no filter.
+                           This function is called each time a marker is
+                           moved.
+                           This parameter is only used if draggable is True.
+        :type constraint: None or a callable that takes the coordinates of
+                          the current cursor position in the plot as input
+                          and that returns the filtered coordinates.
         :return: The key string identify this marker
         """
         if kw:
