@@ -31,7 +31,7 @@ import sys
 import tempfile
 import unittest
 
-from ..specfileh5 import SpecFileH5
+from ..spech5 import SpecH5
 from ..spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
@@ -105,7 +105,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
     def setUp(self):
         convert(self.spec_fname, self.h5_fname)
 
-        self.sfh5 = SpecFileH5(self.spec_fname)
+        self.sfh5 = SpecH5(self.spec_fname)
         self.h5f = h5py.File(self.h5_fname)
 
     def tearDown(self):

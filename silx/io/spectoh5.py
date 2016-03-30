@@ -26,12 +26,12 @@
 import h5py
 import logging
 import re
-from .specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset, \
-     SpecFileH5LinkToGroup, SpecFileH5LinkToDataset
+from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
+     SpecH5LinkToGroup, SpecH5LinkToDataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "30/03/2016"
 
 logger = logging.getLogger(__name__)
 # logger.setLevel(logging.DEBUG)
@@ -42,7 +42,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
                      link_type="hard", create_dataset_args=None):
     """Write content of a SpecFile in a HDF5 file.
 
-    :param specfile: Path of input SpecFile or :class:`SpecFileH5` instance
+    :param specfile: Path of input SpecFile or :class:`SpecH5` instance
     :param h5file: Path of output HDF5 file or HDF5 file handle
     :param h5path: Target path in HDF5 file in which scan groups are created.
         Default is root (``"/"``)
@@ -60,10 +60,10 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         These arguments don't apply to scalar datasets.
 
     The structure of the spec data in an HDF5 file is described in the
-    documentation of :mod:`silx.io.specfileh5`.
+    documentation of :mod:`silx.io.spech5`.
     """
-    if not isinstance(specfile, SpecFileH5):
-        sfh5 = SpecFileH5(specfile)
+    if not isinstance(specfile, SpecH5):
+        sfh5 = SpecH5(specfile)
     else:
         sfh5 = specfile
 
@@ -108,13 +108,13 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     def append_spec_member_to_h5(spec_h5_name, obj):
         h5_name = h5path + spec_h5_name.lstrip("/")
 
-        if isinstance(obj, SpecFileH5LinkToGroup) or\
-                isinstance(obj, SpecFileH5LinkToDataset):
+        if isinstance(obj, SpecH5LinkToGroup) or\
+                isinstance(obj, SpecH5LinkToDataset):
             # links are created at the same time as their targets
             logger.debug("Ignoring link: " + h5_name)
             pass
 
-        elif isinstance(obj, SpecFileH5Dataset):
+        elif isinstance(obj, SpecH5Dataset):
             logger.debug("Saving dataset: " + h5_name)
 
             member_initially_exists = h5_name in h5f
@@ -146,7 +146,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             if not overwrite_data and member_initially_exists:
                 logger.warn("Ignoring existing dataset: " + h5_name)
 
-        elif isinstance(obj, SpecFileH5Group):
+        elif isinstance(obj, SpecH5Group):
             if h5_name not in h5f:
                 logger.debug("Creating group: " + h5_name)
                 grp = h5f.create_group(h5_name)
@@ -173,7 +173,7 @@ def convert(specfile, h5file, mode="w-",
     """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
      group.
 
-    :param specfile: Path of input SpecFile or :class:`SpecFileH5` instance
+    :param specfile: Path of input SpecFile or :class:`SpecH5` instance
     :param h5file: Path of output HDF5 file or HDF5 file handle
     :param mode: Can be ``"w"`` (write, existing file is
         lost), ``"w-"`` (write, fail if exists). This is ignored

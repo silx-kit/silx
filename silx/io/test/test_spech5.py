@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Tests for specfileh5"""
+"""Tests for spech5"""
 import gc
 from numpy import float32, array_equal
 import os
@@ -29,11 +29,11 @@ import sys
 import tempfile
 import unittest
 
-from ..specfileh5 import SpecFileH5, SpecFileH5Group, SpecFileH5Dataset
+from ..spech5 import SpecH5, SpecH5Group, SpecH5Dataset
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "30/03/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -93,7 +93,7 @@ sftext = """#F /tmp/sf.dat
 """
 
 
-class TestSpecFileH5(unittest.TestCase):
+class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname = tempfile.mkstemp(text=False)
@@ -108,7 +108,7 @@ class TestSpecFileH5(unittest.TestCase):
         os.unlink(cls.fname)
 
     def setUp(self):
-        self.sfh5 = SpecFileH5(self.fname)
+        self.sfh5 = SpecH5(self.fname)
 
     def tearDown(self):
         # fix Win32 permission error when deleting temp file
@@ -171,7 +171,7 @@ class TestSpecFileH5(unittest.TestCase):
         with self.assertRaises(KeyError):
             group["Holy Grail"]
 
-    def test_getitem_SpecFileH5(self):
+    def test_getitem_SpecH5(self):
         self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
                          self.sfh5["1.2"]["instrument"]["positioners"])
 
@@ -271,7 +271,7 @@ class TestSpecFileH5(unittest.TestCase):
         dataset_name_list = []
 
         def func(name, obj):
-            if isinstance(obj, SpecFileH5Dataset):
+            if isinstance(obj, SpecH5Dataset):
                 dataset_name_list.append(name)
 
         self.sfh5.visititems(func)
@@ -282,7 +282,7 @@ class TestSpecFileH5(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecFileH5))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5))
     return test_suite
 
 

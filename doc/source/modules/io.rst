@@ -30,10 +30,10 @@ silx.io.specfile module
     .. automethod:: __getitem__(key)
 
 
-silx.io.specfileh5 module
+silx.io.spech5 module
 ----------------------------
 
-.. automodule:: silx.io.specfileh5
+.. automodule:: silx.io.spech5
     :members:
     :show-inheritance:
     :undoc-members:

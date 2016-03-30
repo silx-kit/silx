@@ -99,12 +99,12 @@ Accessing data
 
 Data and groups are accessed in :mod:`h5py` fashion::
 
-    from silx.io.specfileh5 import SpecFileH5
+    from silx.io.spech5 import SpecH5
 
     # Open a SpecFile
-    sfh5 = SpecFileH5("test.dat")
+    sfh5 = SpecH5("test.dat")
 
-    # using SpecFileH5 as a regular group to access scans
+    # using SpecH5 as a regular group to access scans
     scan1group = sfh5["1.1"]
     instrument_group = scan1group["instrument"]
 
@@ -117,7 +117,7 @@ Data and groups are accessed in :mod:`h5py` fashion::
     # accessing all mca-spectra for one MCA device
     mca_0_spectra = measurement_group["mca_0/data"]
 
-:class:`SpecFileH5` and :class:`SpecFileH5Group` provide a :meth:`SpecFileH5Group.keys` method::
+:class:`SpecH5` and :class:`SpecH5Group` provide a :meth:`SpecH5Group.keys` method::
 
     >>> sfh5.keys()
     ['96.1', '97.1', '98.1']
@@ -128,9 +128,9 @@ They can also be treated as iterators:
 
 .. code-block:: python
 
-    for scan_group in SpecFileH5("test.dat"):
+    for scan_group in SpecH5("test.dat"):
         dataset_names = [item.name in scan_group["measurement"] if
-                         isinstance(item, SpecFileH5Dataset)]
+                         isinstance(item, SpecH5Dataset)]
         print("Found data columns in scan " + scan_group.name)
         print(", ".join(dataset_names))
 
@@ -146,11 +146,11 @@ You can test for existence of data or groups::
 Classes
 =======
 
-- :class:`SpecFileH5`
-- :class:`SpecFileH5Group`
-- :class:`SpecFileH5Dataset`
-- :class:`SpecFileH5LinkToGroup`
-- :class:`SpecFileH5LinkToDataset`
+- :class:`SpecH5`
+- :class:`SpecH5Group`
+- :class:`SpecH5Dataset`
+- :class:`SpecH5LinkToGroup`
+- :class:`SpecH5LinkToDataset`
 """
 
 import logging
@@ -162,9 +162,9 @@ import time
 
 from .specfile import SpecFile
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "30/03/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -227,7 +227,7 @@ def _bulk_match(string_, list_of_patterns):
 
 def is_group(name):
     """Check if ``name`` matches a valid group name pattern in a
-    :class:`SpecFileH5`.
+    :class:`SpecH5`.
 
     :param name: Full name of member
     :type name: str
@@ -243,7 +243,7 @@ def is_group(name):
 
 def is_dataset(name):
     """Check if ``name`` matches a valid dataset name pattern in a
-    :class:`SpecFileH5`.
+    :class:`SpecH5`.
 
     :param name: Full name of member
     :type name: str
@@ -266,7 +266,7 @@ def is_dataset(name):
 
 
 def is_link_to_group(name):
-    """Check if ``name`` is a valid link to a group in a :class:`SpecFileH5`.
+    """Check if ``name`` is a valid link to a group in a :class:`SpecH5`.
     Return ``True`` or ``False``
 
     :param name: Full name of member
@@ -279,7 +279,7 @@ def is_link_to_group(name):
 
 
 def is_link_to_dataset(name):
-    """Check if ``name`` is a valid link to a dataset in a :class:`SpecFileH5`.
+    """Check if ``name`` is a valid link to a dataset in a :class:`SpecH5`.
     Return ``True`` or ``False``
 
     :param name: Full name of member
@@ -476,13 +476,14 @@ def spec_date_to_iso8601(date, zone=None):
     :type date: str
     :param zone: Time zone as it appears in a ISO8601 date
 
-    Supported formats :
-    * DDD MMM dd hh:mm:ss YYYY
-    * DDD YYYY/MM/dd hh:mm:ss YYYY
-    where DDD is the abbreviated weekday, MMM is the month abbdrviated name,
-    MM is the month number (zero padded), dd is the weekday number
-    (zero padded) YYYY is the year, hh the hour (zero padded), mm the minute
-    (zero padded) and ss the seconds (zero padded).
+    Supported formats:
+
+    * ``DDD MMM dd hh:mm:ss YYYY``
+    * ``DDD YYYY/MM/dd hh:mm:ss YYYY``
+    where `DDD` is the abbreviated weekday, `MMM` is the month abbreviated
+    name, `MM` is the month number (zero padded), `dd` is the weekday number
+    (zero padded) `YYYY` is the year, `hh` the hour (zero padded), `mm` the
+    minute (zero padded) and `ss` the second (zero padded).
     All names are expected to be in english.
 
     Examples::
@@ -571,15 +572,15 @@ def _fixed_length_strings(strings, length=0):
     return [s.ljust(length) for s in strings]
 
 
-class SpecFileH5Dataset(numpy.ndarray):
+class SpecH5Dataset(numpy.ndarray):
     """Emulate :class:`h5py.Dataset` for a SpecFile object
 
     :param array_like: Input dataset in a type that can be digested by
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
-    :param file_: Parent :class:`SpecFileH5`
-    :param parent: Parent :class:`SpecFileH5Group` which contains this dataset
+    :param file_: Parent :class:`SpecH5`
+    :param parent: Parent :class:`SpecH5Group` which contains this dataset
 
     This class inherits from :class:`numpy.ndarray` and adds ``name`` and
     ``value`` attributes for HDF5 compatibility. ``value`` is a reference
@@ -632,10 +633,10 @@ class SpecFileH5Dataset(numpy.ndarray):
         self.attrs = getattr(obj, 'attrs', None)
 
 
-class SpecFileH5LinkToDataset(SpecFileH5Dataset):
-    """Special :class:`SpecFileH5Dataset` representing a link to a dataset. It
-    works exactly like a regular dataset, but :meth:`SpecFileH5Group.visit`
-    and :meth:`SpecFileH5Group.visititems` methods will recognize that it is
+class SpecH5LinkToDataset(SpecH5Dataset):
+    """Special :class:`SpecH5Dataset` representing a link to a dataset. It
+    works exactly like a regular dataset, but :meth:`SpecH5Group.visit`
+    and :meth:`SpecH5Group.visititems` methods will recognize that it is
     a link and will ignore it.
     """
     pass
@@ -647,12 +648,12 @@ def _dataset_builder(name, specfileh5, parent_group):
 
     :param name: Datatset full name (posix path format, starting with ``/``)
     :type name: str
-    :param specfileh5: parent :class:`SpecFileH5` object
-    :type specfileh5: :class:`SpecFileH5`
-    :param parent_group: Parent :class:`SpecFileH5Group`
+    :param specfileh5: parent :class:`SpecH5` object
+    :type specfileh5: :class:`SpecH5`
+    :param parent_group: Parent :class:`SpecH5Group`
 
     :return: Array with the requested data
-    :rtype: :class:`SpecFileH5Dataset`.
+    :rtype: :class:`SpecH5Dataset`.
     """
     scan_key = _get_scan_key_in_name(name)
     scan = specfileh5._sf[scan_key]
@@ -723,22 +724,22 @@ def _dataset_builder(name, specfileh5, parent_group):
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
-    return SpecFileH5Dataset(array_like, name,
-                             file_=specfileh5, parent=parent_group)
+    return SpecH5Dataset(array_like, name,
+                         file_=specfileh5, parent=parent_group)
 
 
 def _link_to_dataset_builder(name, specfileh5, parent_group):
     """Same as :func:`_dataset_builder`, but returns a
-    :class:`SpecFileH5LinkToDataset`
+    :class:`SpecH5LinkToDataset`
 
     :param name: Datatset full name (posix path format, starting with ``/``)
     :type name: str
-    :param specfileh5: parent :class:`SpecFileH5` object
-    :type specfileh5: :class:`SpecFileH5`
-    :param parent_group: Parent :class:`SpecFileH5Group`
+    :param specfileh5: parent :class:`SpecH5` object
+    :type specfileh5: :class:`SpecH5`
+    :param parent_group: Parent :class:`SpecH5Group`
 
     :return: Array with the requested data
-    :rtype: :class:`SpecFileH5LinkToDataset`.
+    :rtype: :class:`SpecH5LinkToDataset`.
     """
     scan_key = _get_scan_key_in_name(name)
     scan = specfileh5._sf[scan_key]
@@ -772,8 +773,8 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
 
-    return SpecFileH5LinkToDataset(array_like, name,
-                                   file_=specfileh5, parent=parent_group)
+    return SpecH5LinkToDataset(array_like, name,
+                               file_=specfileh5, parent=parent_group)
 
 
 def _demultiplex_mca(scan, analyser_index):
@@ -808,12 +809,12 @@ def _demultiplex_mca(scan, analyser_index):
     return numpy.array(list_of_1D_arrays)
 
 
-class SpecFileH5Group(object):
+class SpecH5Group(object):
     """Emulate :class:`h5py.Group` for a SpecFile object
 
     :param name: Group full name (posix path format, starting with ``/``)
     :type name: str
-    :param specfileh5: parent :class:`SpecFileH5` instance
+    :param specfileh5: parent :class:`SpecH5` instance
 
     """
     def __init__(self, name, specfileh5):
@@ -821,7 +822,7 @@ class SpecFileH5Group(object):
         """Full name/path of group"""
 
         self.file = specfileh5
-        """Parent SpecFileH5 object"""
+        """Parent SpecH5 object"""
 
         self.attrs = _get_attrs_dict(name)
         """Attributes dictionary"""
@@ -837,7 +838,7 @@ class SpecFileH5Group(object):
             return None
 
         parent_name = posixpath.dirname(self.name.rstrip("/"))
-        return SpecFileH5Group(parent_name, self.file)
+        return SpecH5Group(parent_name, self.file)
 
     def __contains__(self, key):
         """
@@ -897,13 +898,13 @@ class SpecFileH5Group(object):
         return True
 
     def __eq__(self, other):
-        return (isinstance(other, SpecFileH5Group) and
+        return (isinstance(other, SpecH5Group) and
                 self.name == other.name and
                 self.file.filename == other.file.filename and
                 self.keys() == other.keys())
 
     def __getitem__(self, key):
-        """Return a :class:`SpecFileH5Group` or a :class:`SpecFileH5Dataset`
+        """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
         if ``key`` is a valid name of a group or dataset.
 
         ``key`` can be a member of ``self.keys()``, i.e. an immediate child of
@@ -928,11 +929,11 @@ class SpecFileH5Group(object):
             raise KeyError(key + " is not a child of " + self.__repr__())
 
         if is_group(full_key):
-            return SpecFileH5Group(full_key, self.file)
+            return SpecH5Group(full_key, self.file)
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self.file, self)
         elif is_link_to_group(full_key):
-            return SpecFileH5LinkToGroup(full_key, self.file)
+            return SpecH5LinkToGroup(full_key, self.file)
         elif is_link_to_dataset(full_key):
             return _link_to_dataset_builder(full_key, self.file, self)
         else:
@@ -949,7 +950,7 @@ class SpecFileH5Group(object):
         return len(self.keys())
 
     def __repr__(self):
-        return '<SpecFileH5Group "%s" (%d members)>' % (self.name, len(self))
+        return '<SpecH5Group "%s" (%d members)>' % (self.name, len(self))
 
     def keys(self):
         """:return: List of all names of members attached to this group
@@ -1027,8 +1028,8 @@ class SpecFileH5Group(object):
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecFileH5Group) and\
-               not isinstance(self[member_name], SpecFileH5LinkToGroup):
+            if isinstance(self[member_name], SpecH5Group) and\
+               not isinstance(self[member_name], SpecH5LinkToGroup):
                 self[member_name].visit(func)
 
     def visititems(self, func):
@@ -1054,7 +1055,7 @@ class SpecFileH5Group(object):
             # Get a list of all datasets in a specific scan
             mylist = []
             def func(name, obj):
-                if isinstance(obj, SpecFileH5Dataset):
+                if isinstance(obj, SpecH5Dataset):
                     mylist.append(name)
 
             f = File('foo.dat')
@@ -1068,16 +1069,16 @@ class SpecFileH5Group(object):
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecFileH5Group) and\
-               not isinstance(self[member_name], SpecFileH5LinkToGroup):
+            if isinstance(self[member_name], SpecH5Group) and\
+               not isinstance(self[member_name], SpecH5LinkToGroup):
                 self[member_name].visititems(func)
 
 
-class SpecFileH5LinkToGroup(SpecFileH5Group):
-    """Special :class:`SpecFileH5Group` representing a link to a group.
+class SpecH5LinkToGroup(SpecH5Group):
+    """Special :class:`SpecH5Group` representing a link to a group.
 
-    It works exactly like a regular group but :meth:`SpecFileH5Group.visit`
-    and :meth:`SpecFileH5Group.visititems` methods will recognize it as a
+    It works exactly like a regular group but :meth:`SpecH5Group.visit`
+    and :meth:`SpecH5Group.visititems` methods will recognize it as a
     link and will ignore it.
     """
     def keys(self):
@@ -1087,16 +1088,16 @@ class SpecFileH5LinkToGroup(SpecFileH5Group):
         # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
         if measurement_mca_info_pattern.match(self.name):
             link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecFileH5Group(link_target, self.file).keys()
+            return SpecH5Group(link_target, self.file).keys()
 
 
-class SpecFileH5(SpecFileH5Group):
-    """Special :class:`SpecFileH5Group` representing the root of a SpecFile.
+class SpecH5(SpecH5Group):
+    """Special :class:`SpecH5Group` representing the root of a SpecFile.
 
     :param filename: Path to SpecFile in filesystem
     :type filename: str
 
-    In addition to all generic :class:`SpecFileH5Group` attributes, this class
+    In addition to all generic :class:`SpecH5Group` attributes, this class
     also keeps a reference to the original :class:`SpecFile` object and
     has a :attr:`filename` attribute.
 
@@ -1108,7 +1109,7 @@ class SpecFileH5(SpecFileH5Group):
         self.attrs = _get_attrs_dict("/")
         self._sf = SpecFile(filename)
 
-        SpecFileH5Group.__init__(self, name="/", specfileh5=self)
+        SpecH5Group.__init__(self, name="/", specfileh5=self)
 
     def keys(self):
         """
@@ -1118,10 +1119,10 @@ class SpecFileH5(SpecFileH5Group):
         return self._sf.keys()
 
     def __repr__(self):
-        return '<SpecFileH5 "%s" (%d members)>' % (self.filename, len(self))
+        return '<SpecH5 "%s" (%d members)>' % (self.filename, len(self))
 
     def __eq__(self, other):
-        return (isinstance(other, SpecFileH5) and
+        return (isinstance(other, SpecH5) and
                 self.filename == other.filename and
                 self.keys() == other.keys())
 
