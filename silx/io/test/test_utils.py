@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/03/2016"
+__date__ = "30/03/2016"
 
 import h5py
 import os
@@ -33,7 +33,7 @@ import re
 import tempfile
 import unittest
 
-from ..utils import repr_hdf5_tree
+from ..utils import lsh5
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):
     for string_ in list_of_strings:
@@ -42,14 +42,14 @@ def assert_match_any_string_in_list(test, pattern, list_of_strings):
     return False
 
 
-class TestReprHDF5Tree(unittest.TestCase):
+class TestLsH5(unittest.TestCase):
     """Test displaying the following HDF5 file structure:
 
         +foo
             +bar
-                -spam=<HDF5 dataset "spam": shape (2, 2), type "<i8">
-                -tmp=<HDF5 dataset "tmp": shape (3,), type "<i8">
-            -data=<HDF5 dataset "data": shape (1,), type "<f8">
+                <HDF5 dataset "spam": shape (2, 2), type "<i8">
+                <HDF5 dataset "tmp": shape (3,), type "<i8">
+            <HDF5 dataset "data": shape (1,), type "<f8">
 
     """
     def setUp(self):
@@ -74,7 +74,7 @@ class TestReprHDF5Tree(unittest.TestCase):
                              " string in list " + str(list_of_strings))
 
     def test_repr(self):
-        rep = repr_hdf5_tree(self.h5_fname)
+        rep = lsh5(self.h5_fname)
         lines = rep.split("\n")
 
         self.assertIn("+foo", lines)
@@ -94,7 +94,7 @@ class TestReprHDF5Tree(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestReprHDF5Tree))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestLsH5))
     return test_suite
 
 

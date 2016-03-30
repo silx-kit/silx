@@ -28,12 +28,12 @@ import sys
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/03/2016"
+__date__ = "30/03/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def repr_hdf5_tree(h5group, lvl=0):
+def lsh5(h5group, lvl=0):
     """Return a simple string representation of a HDF5 tree structure.
 
     :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
@@ -49,7 +49,7 @@ def repr_hdf5_tree(h5group, lvl=0):
 
     Example::
 
-        >>> print(repr_hdf5_tree("Downloads/sample.h5"))
+        >>> print(lsh5("Downloads/sample.h5"))
         +fields
             +fieldB
                 <HDF5 dataset "z": shape (256, 256), type "<f4">
@@ -69,7 +69,7 @@ def repr_hdf5_tree(h5group, lvl=0):
         if hasattr(h5f[key], 'keys'):
             repr += '\t' * lvl + '+' + key
             repr += '\n'
-            repr += repr_hdf5_tree(h5f[key], lvl + 1)
+            repr += lsh5(h5f[key], lvl + 1)
         else:
             repr += '\t' * lvl
             repr += str(h5f[key])
