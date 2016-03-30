@@ -746,6 +746,7 @@ class Plot(object):
                       color=None,
                       selectable=False,
                       draggable=False,
+                      constraint=None,
                       **kw):
         """Add a vertical line marker to the plot.
 
@@ -781,7 +782,7 @@ class Plot(object):
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=None)
+                               symbol=None, constraint=constraint)
 
     def insertYMarker(self, y,
                       legend=None,
@@ -789,6 +790,7 @@ class Plot(object):
                       color=None,
                       selectable=False,
                       draggable=False,
+                      constraint=None,
                       **kw):
         """Add a horizontal line marker to the plot.
 
@@ -824,7 +826,7 @@ class Plot(object):
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
-                               symbol=None, constraint=None)
+                               symbol=None, constraint=constraint)
 
     def insertMarker(self, x, y, legend=None,
                      text=None,
