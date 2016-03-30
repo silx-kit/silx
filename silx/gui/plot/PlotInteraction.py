@@ -1004,7 +1004,8 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
             self.plot._moveMarker(self.markerLegend, xData, yData)
 
-            self._signalMarkerMovingEvent('markerMoving', marker, x, y)
+            self._signalMarkerMovingEvent(
+                'markerMoving', self.plot._getMarker(self.markerLegend), x, y)
 
         if self.imageLegend is not None:
             dx, dy = xData - self._lastPos[0], yData - self._lastPos[1]
