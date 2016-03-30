@@ -1,5 +1,4 @@
-# coding: utf-8
-# /*##########################################################################
+/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,8 +21,10 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
-__license__ = "MIT"
-__date__ = "01/02/2016"
+#ifndef TEMPLATES_H_
+#define TEMPLATES_H_
 
-from .histogramnd import histogramnd
+#define CONCAT(X,Y,Z,T) X##_##Y##_##Z##_##T
+#define TEMPLATE(X,Y,Z,T) CONCAT(X,Y,Z,T)
+
+#endif 

@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 from .test_version import suite as test_version_suite
 from ..io.test import suite as test_io_suite
+from ..math.test import suite as test_math_suite
 
 
 if os.environ.get('WITH_QT_TEST', 'True') == 'True':
@@ -59,4 +60,5 @@ def suite():
     if test_gui_suite is not None:
         test_suite.addTest(test_gui_suite())
     test_suite.addTest(test_io_suite())
+    test_suite.addTest(test_math_suite())
     return test_suite
