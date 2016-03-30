@@ -1,8 +1,7 @@
-#/*##########################################################################
-# Copyright (C) 2004-2015 V.A. Sole, European Synchrotron Radiation Facility
+# coding: utf-8
+# /*##########################################################################
 #
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,604 +21,404 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-__author__ = "V.A. Sole - ESRF Data Analysis"
-__contact__ = "sole@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-import sys
+# ###########################################################################*/
+"""A QDialog widget to set-up the colormap.
 
-from PyMca5.PyMcaGui import PyMcaQt as qt
+It uses a description of colormaps as dict compatible with :class:`Plot`.
+
+To run the following sample code, a QApplication must be initialized.
+
+Create the colormap dialog and set the colormap description and data range:
+
+>>> from silx.gui.plot.ColormapDialog import ColormapDialog
+
+>>> dialog = ColormapDialog()
+
+>>> dialog.setColormap(name='red', normalization='log',
+...                    autoscale=False, vmin=1., vmax=2.)
+>>> dialog.setDataRange(1., 100.)  # This scale the width of the plot area
+>>> dialog.show()
+
+Get the colormap description (compatible with :class:`Plot`) from the dialog:
+
+>>> dialog.getColormap()
+{'autoscale': False, 'name': 'red', 'vmin': 1.0, 'colors': 256, 'vmax': 2.0, 'normalization': 'linear'}
+
+It is also possible to display an histogram of the image in the dialog.
+This updates the data range with the range of the bins.
+
+>>> import numpy
+>>> image = numpy.random.normal(size=512 * 512).reshape(512, -1)
+>>> hist, bin_edges = numpy.histogram(image, bins=10)
+>>> dialog.setHistogram(hist, bin_edges)
+
+The updates of the colormap description are also available through the signal:
+:attr:`ColormapDialog.sigColormapChanged`.
+"""
+
+from __future__ import division
+
+__authors__ = ["V.A. Sole", "T. Vincent"]
+__license__ = "MIT"
+__date__ = "29/03/2016"
+
+
+import logging
+
+import numpy
+
+from .. import qt
 from . import PlotWidget
 
-QTVERSION = qt.qVersion()
-DEBUG = 0
 
-class MyQLineEdit(qt.QLineEdit):
-    def __init__(self,parent=None,name=""):
-        qt.QLineEdit.__init__(self,parent)
+_logger = logging.getLogger(__name__)
 
-    def focusInEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('yellow'))
 
-    def focusOutEvent(self,event):
-        self.setPaletteBackgroundColor(qt.QColor('white'))
-        self.returnPressed[()].emit()
+class _FloatEdit(qt.QLineEdit):
+    """Field to edit a float value.
 
-    def setPaletteBackgroundColor(self, color):
-        if DEBUG:
-            print("setPalettebackgroundColor not implemented yet")
-        pass
+    :param float value: The value to set the QLineEdit to.
+    :param parent: See :class:`QLineEdit`
+    """
+    def __init__(self, value=None, parent=None):
+        qt.QLineEdit.__init__(self, parent)
+        self.setValidator(qt.QDoubleValidator())
+        self.setAlignment(qt.Qt.AlignRight)
+        if value is not None:
+            self.setValue(value)
 
-"""
-Manage colormap Widget class
-"""
+    def value(self):
+        """Return the QLineEdit current value as a float."""
+        return float(self.text())
+
+    def setValue(self, value):
+        """Set the current value of the LineEdit
+
+        :param float value: The value to set the QLineEdit to.
+        """
+        self.setText('%g' % value)
+
+
 class ColormapDialog(qt.QDialog):
-    sigColormapChanged = qt.pyqtSignal(object)
-    def __init__(self, parent=None, name="Colormap Dialog"):
+    """A QDialog widget to set the colormap.
+
+    :param str title: The QDialog title 
+    :param parent: See :class:`QDialog`
+    """
+
+    sigColormapChanged = qt.pyqtSignal(dict)
+    """Signal triggered when the colormap is changed.
+
+    It provides a dict describing the colormap to the slot.
+    This dict can be used with :class:`Plot`.
+    """
+
+    def __init__(self, title="Colormap Dialog", parent=None):
         qt.QDialog.__init__(self, parent)
-        self.setWindowTitle(name)
-        self.title = name
+        self.setWindowTitle(title)
 
+        self._histogramData = None
+        self._minMaxWasEdited = False
 
-        self.colormapList = ["Greyscale", "Reverse Grey", "Temperature",
-                             "Red", "Green", "Blue", "Many"]
+        self._colormapList = ('gray', 'reversed gray', 'temperature',
+                              'red', 'green', 'blue')
 
-        # histogramData is tupel(bins, counts)
-        self.histogramData = None
+        self._dataRange = 1., 10.
 
-        # default values
-        self.dataMin   = -10
-        self.dataMax   = 10
-        self.minValue  = 0
-        self.maxValue  = 1
+        # Make the GUI
+        vLayout = qt.QVBoxLayout(self)
 
-        self.colormapIndex  = 2
-        self.colormapType   = 0
+        formWidget = qt.QWidget()
+        vLayout.addWidget(formWidget)
+        formLayout = qt.QFormLayout(formWidget)
+        formLayout.setContentsMargins(10, 10, 10, 10)
+        formLayout.setSpacing(0)
 
-        self.autoscale   = False
-        self.autoscale90 = False
-        # main layout
-        vlayout = qt.QVBoxLayout(self)
-        vlayout.setContentsMargins(10, 10, 10, 10)
-        vlayout.setSpacing(0)
+        # Colormap row
+        self._comboBoxColormap = qt.QComboBox()
+        for cmap in self._colormapList:
+            # Capitalize first letters
+            cmap = ' '.join(w[0].upper() + w[1:] for w in cmap.split())
+            self._comboBoxColormap.addItem(cmap)
+        self._comboBoxColormap.activated[int].connect(self._notify)
+        formLayout.addRow('Colormap:', self._comboBoxColormap)
 
-        # layout 1 : -combo to choose colormap
-        #            -autoscale button
-        #            -autoscale 90% button
-        hbox1    = qt.QWidget(self)
-        hlayout1 = qt.QHBoxLayout(hbox1)
-        vlayout.addWidget(hbox1)
-        hlayout1.setContentsMargins(0, 0, 0, 0)
-        hlayout1.setSpacing(10)
+        # Normalization row
+        self._normButtonLinear = qt.QRadioButton('Linear')
+        self._normButtonLinear.setChecked(True)
+        self._normButtonLog = qt.QRadioButton('Log')
 
-        # combo
-        self.combo = qt.QComboBox(hbox1)
-        for colormap in self.colormapList:
-            self.combo.addItem(colormap)
-        self.combo.activated[int].connect(self.colormapChange)
-        hlayout1.addWidget(self.combo)
+        normButtonGroup = qt.QButtonGroup(self)
+        normButtonGroup.setExclusive(True)
+        normButtonGroup.addButton(self._normButtonLinear)
+        normButtonGroup.addButton(self._normButtonLog)
+        normButtonGroup.buttonClicked[int].connect(self._notify)
 
-        # autoscale
-        self.autoScaleButton = qt.QPushButton("Autoscale", hbox1)
-        self.autoScaleButton.setCheckable(True)
-        self.autoScaleButton.setAutoDefault(False)
-        self.autoScaleButton.toggled[bool].connect(self.autoscaleChange)
-        hlayout1.addWidget(self.autoScaleButton)
+        normLayout = qt.QHBoxLayout()
+        normLayout.setContentsMargins(0, 0, 0, 0)
+        normLayout.setSpacing(10)
+        normLayout.addWidget(self._normButtonLinear)
+        normLayout.addWidget(self._normButtonLog)
 
-        # autoscale 90%
-        self.autoScale90Button = qt.QPushButton("Autoscale 90%", hbox1)
-        self.autoScale90Button.setCheckable(True)
-        self.autoScale90Button.setAutoDefault(False)
+        formLayout.addRow('Normalization:', normLayout)
 
-        self.autoScale90Button.toggled[bool].connect(self.autoscale90Change)
-        hlayout1.addWidget(self.autoScale90Button)
+        # Range row
+        self._rangeAutoscaleButton = qt.QCheckBox('Autoscale')
+        self._rangeAutoscaleButton.setChecked(True)
+        self._rangeAutoscaleButton.toggled.connect(self._autoscaleToggled)
+        self._rangeAutoscaleButton.clicked.connect(self._notify)
+        formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
-        # hlayout
-        hbox0    = qt.QWidget(self)
-        self.__hbox0 = hbox0
-        hlayout0 = qt.QHBoxLayout(hbox0)
-        hlayout0.setContentsMargins(0, 0, 0, 0)
-        hlayout0.setSpacing(0)
-        vlayout.addWidget(hbox0)
-        #hlayout0.addStretch(10)
+        # Min row
+        self._startValue = _FloatEdit(1.)
+        self._startValue.setEnabled(False)
+        self._startValue.textEdited.connect(self._minMaxTextEdited)
+        self._startValue.editingFinished.connect(self._minMaxEditingFinished)
+        formLayout.addRow('\tStart:', self._startValue)
 
-        self.buttonGroup = qt.QButtonGroup()
-        g1 = qt.QCheckBox(hbox0)
-        g1.setText("Linear")
-        g2 = qt.QCheckBox(hbox0)
-        g2.setText("Logarithmic")
-        g3 = qt.QCheckBox(hbox0)
-        g3.setText("Gamma")
-        self.buttonGroup.addButton(g1, 0)
-        self.buttonGroup.addButton(g2, 1)
-        self.buttonGroup.addButton(g3, 2)
-        self.buttonGroup.setExclusive(True)
-        if self.colormapType == 1:
-            self.buttonGroup.button(1).setChecked(True)
-        elif self.colormapType == 2:
-            self.buttonGroup.button(2).setChecked(True)
-        else:
-            self.buttonGroup.button(0).setChecked(True)
-        hlayout0.addWidget(g1)
-        hlayout0.addWidget(g2)
-        hlayout0.addWidget(g3)
-        vlayout.addWidget(hbox0)
-        self.buttonGroup.buttonClicked[int].connect(self.buttonGroupChange)
-        vlayout.addSpacing(20)
+        # Min row
+        self._endValue = _FloatEdit(10.)
+        self._endValue.setEnabled(False)
+        self._endValue.textEdited.connect(self._minMaxTextEdited)
+        self._endValue.editingFinished.connect(self._minMaxEditingFinished)
+        formLayout.addRow('\tEnd:', self._endValue)
 
-        hboxlimits = qt.QWidget(self)
-        hboxlimitslayout = qt.QHBoxLayout(hboxlimits)
-        hboxlimitslayout.setContentsMargins(0, 0, 0, 0)
-        hboxlimitslayout.setSpacing(0)
+        # Add plot for histogram
+        self._plotInit()
+        vLayout.addWidget(self._plot)
 
-        self.slider = None
-
-        vlayout.addWidget(hboxlimits)
-
-        vboxlimits = qt.QWidget(hboxlimits)
-        vboxlimitslayout = qt.QVBoxLayout(vboxlimits)
-        vboxlimitslayout.setContentsMargins(0, 0, 0, 0)
-        vboxlimitslayout.setSpacing(0)
-        hboxlimitslayout.addWidget(vboxlimits)
-
-        # hlayout 2 : - min label
-        #             - min texte
-        hbox2    = qt.QWidget(vboxlimits)
-        self.__hbox2 = hbox2
-        hlayout2 = qt.QHBoxLayout(hbox2)
-        hlayout2.setContentsMargins(0, 0, 0, 0)
-        hlayout2.setSpacing(0)
-        #vlayout.addWidget(hbox2)
-        vboxlimitslayout.addWidget(hbox2)
-        hlayout2.addStretch(10)
-
-        self.minLabel  = qt.QLabel(hbox2)
-        self.minLabel.setText("Minimum")
-        hlayout2.addWidget(self.minLabel)
-
-        hlayout2.addSpacing(5)
-        hlayout2.addStretch(1)
-        self.minText  = MyQLineEdit(hbox2)
-        self.minText.setFixedWidth(150)
-        self.minText.setAlignment(qt.Qt.AlignRight)
-        self.minText.returnPressed[()].connect(self.minTextChanged)
-        hlayout2.addWidget(self.minText)
-
-        # hlayout 3 : - min label
-        #             - min text
-        hbox3    = qt.QWidget(vboxlimits)
-        self.__hbox3 = hbox3
-        hlayout3 = qt.QHBoxLayout(hbox3)
-        hlayout3.setContentsMargins(0, 0, 0, 0)
-        hlayout3.setSpacing(0)
-        #vlayout.addWidget(hbox3)
-        vboxlimitslayout.addWidget(hbox3)
-
-        hlayout3.addStretch(10)
-        self.maxLabel = qt.QLabel(hbox3)
-        self.maxLabel.setText("Maximum")
-        hlayout3.addWidget(self.maxLabel)
-
-        hlayout3.addSpacing(5)
-        hlayout3.addStretch(1)
-
-        self.maxText = MyQLineEdit(hbox3)
-        self.maxText.setFixedWidth(150)
-        self.maxText.setAlignment(qt.Qt.AlignRight)
-
-        self.maxText.returnPressed[()].connect(self.maxTextChanged)
-        hlayout3.addWidget(self.maxText)
-
-
-        # Graph widget for color curve...
-        self.c = PlotWidget.PlotWidget(self, backend=None)
-        self.c.setGraphXLabel("Data Values")
-        self.c.setZoomModeEnabled(False)
-
-        self.marge = (abs(self.dataMax) + abs(self.dataMin)) / 6.0
-        self.minmd = self.dataMin - self.marge
-        self.maxpd = self.dataMax + self.marge
-
-        self.c.setGraphXLimits(self.minmd, self.maxpd)
-        self.c.setGraphYLimits(-11.5, 11.5)
-
-        x = [self.minmd, self.dataMin, self.dataMax, self.maxpd]
-        y = [-10, -10, 10, 10 ]
-        self.c.addCurve(x, y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-        self.markers = []
-        self.__x = x
-        self.__y = y
-        labelList = ["","Min", "Max", ""]
-        for i in range(4):
-            if i in [1, 2]:
-                draggable = True
-                color = "blue"
-            else:
-                draggable = False
-                color = "black"
-            #TODO symbol
-            legend = "%d" % i
-            self.c.insertXMarker(x[i],
-                                 legend=legend,
-                                 text=labelList[i],
-                                 draggable=draggable,
-                                 color=color)
-            self.markers.append((legend, ""))
-
-        self.c.setMinimumSize(qt.QSize(250,200))
-        vlayout.addWidget(self.c)
-
-        self.c.sigPlotSignal.connect(self.chval)
+        # Close button
+        closeButton = qt.QPushButton('Close')
+        closeButton.clicked.connect(self.accept)
+        vLayout.addWidget(closeButton)
 
         # colormap window can not be resized
-        self.setFixedSize(vlayout.minimumSize())
+        self.setFixedSize(vLayout.minimumSize())
 
-    def plotHistogram(self, data=None):
-        if data is not None:
-            self.histogramData = data
-        if self.histogramData is None:
-            return False
-        bins, counts = self.histogramData
-        self.c.addCurve(bins, counts,
-                        "Histogram",
-                        color='pink', # TODO: Change fill color
-                        symbol='s',
-                        linestyle='-', # Line style
-                        #fill=True,
-                        yaxis='right')
-                        # TODO: Do not use info!
+        # Set the colormap to default values
+        self.setColormap(name='gray', normalization='linear',
+                         autoscale=True, vmin=1., vmax=10.)
 
-    def _update(self):
-        if DEBUG:
-            print("colormap _update called")
-        self.marge = (abs(self.dataMax) + abs(self.dataMin)) / 6.0
-        self.minmd = self.dataMin - self.marge
-        self.maxpd = self.dataMax + self.marge
-        self.c.setGraphXLimits(self.minmd, self.maxpd)
-        self.c.setGraphYLimits( -11.5, 11.5)
+    def _plotInit(self):
+        """Init the plot to display the range and the values"""
+        self._plot = PlotWidget()
+        #self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
+        self._plot.setGraphXLabel("Data Values")
+        self._plot.setGraphYLabel("")
+        self._plot.setInteractiveMode('select', zoomOnWheel=False)
+        self._plot.enableActiveCurveHandling(False)
+        self._plot.setMinimumSize(qt.QSize(250, 200))
+        self._plot.sigPlotSignal.connect(self._plotSlot)
 
-        self.__x = [self.minmd, self.dataMin, self.dataMax, self.maxpd]
-        self.__y = [-10, -10, 10, 10]
-        self.c.addCurve(self.__x, self.__y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-        self.c.clearMarkers()
-        for i in range(4):
-            if i in [1, 2]:
-                draggable = True
-                color = "blue"
+        self._plotUpdate()
+
+    def _plotUpdate(self):
+        """Update the plot content"""
+        dataMin, dataMax = self.getDataRange()
+        marge = (abs(dataMax) + abs(dataMin)) / 6.0
+        minmd = dataMin - marge
+        maxpd = dataMax + marge
+
+        start, end = self._startValue.value(), self._endValue.value()
+
+        if start < end:
+            x = [minmd, start, end, maxpd]
+            y = [0, 0, 1, 1]
+
+        else:
+            x = [minmd, end, start, maxpd]
+            y = [1, 1, 0, 0]
+
+        # Display the colormap on the side
+        # colormap = {'name': self.getColormap()['name'],
+        #             'normalization': self.getColormap()['normalization'],
+        #             'autoscale': True, 'vmin': 1., 'vmax': 256.}
+        # self._plot.addImage((1 + numpy.arange(256)).reshape(256, -1),
+        #                     xScale=(minmd - marge, marge),
+        #                     yScale=(1., 2./256.),
+        #                     legend='colormap',
+        #                     colormap=colormap)
+
+        self._plot.addCurve(x, y,
+                            legend="ConstrainedCurve",
+                            color='black',
+                            symbol='o',
+                            linestyle='-',
+                            resetZoom=False)
+
+        draggable = not self._rangeAutoscaleButton.isChecked()
+
+        self._plot.insertXMarker(
+            self._startValue.value(),
+            legend='Start',
+            text='Start',
+            draggable=draggable,
+            color='blue')
+            # constraint=lambda x, y: (max(x, minmd), y))
+        self._plot.insertXMarker(
+            self._endValue.value(),
+            legend='End',
+            text='End',
+            draggable=draggable,
+            color='blue')
+            # constraint=lambda x, y: (max(x, minmd), y))
+
+        self._plot.resetZoom()
+
+    def _plotSlot(self, event):
+        """Handle events from the plot"""
+        if event['event'] in ('markerMoving', 'markerMoved'):
+            value = float(str(event['xdata']))
+            if event['label'] == 'Start':
+                self._startValue.setValue(value)
+            elif event['label'] == 'End':
+                self._endValue.setValue(value)
+
+            # This will recreate the markers while interacting...
+            # It might break if marker interaction is changed
+            if event['event'] == 'markerMoved':
+                self._notify()
             else:
-                draggable = False
-                color = "black"
-            key = self.markers[i][0]
-            label = self.markers[i][1]
-            self.c.insertXMarker(self.__x[i],
-                                 legend=key,
-                                 text=label,
-                                 draggable=draggable,
-                                 color=color)
-        self.c.replot()
-        self.sendColormap()
+                self._plotUpdate()
 
-    def buttonGroupChange(self, val):
-        if DEBUG:
-            print("buttonGroup asking to update colormap")
-        self.setColormapType(val, update=True)
-        self._update()
+    def getHistogram(self):
+        """Returns the counts and bin edges of the displayed histogram.
 
-    def setColormapType(self, val, update=False):
-        self.colormapType = val
-        if self.colormapType == 1:
-            self.buttonGroup.button(1).setChecked(True)
-        elif self.colormapType == 2:
-            self.buttonGroup.button(2).setChecked(True)
+        :return: (hist, bin_edges)
+        :rtype: 2-tuple of numpy arrays"""
+        if self._histogramData is None:
+            return None
         else:
-            self.colormapType = 0
-            self.buttonGroup.button(0).setChecked(True)
-        if update:
-            self._update()
+            bins, counts = self._histogramData
+            return numpy.array(bins, copy=True), numpy.array(counts, copy=True)
 
-    def chval(self, ddict):
-        if DEBUG:
-            print("Received ", ddict)
-        if ddict['event'] == 'markerMoving':
-            diam = int(ddict['label'])
-            x = ddict['x']
-            if diam == 1:
-                self.setDisplayedMinValue(x)
-            elif diam == 2:
-                self.setDisplayedMaxValue(x)
-        elif ddict['event'] == 'markerMoved':
-            diam = int(ddict['label'])
-            x = ddict['x']
-            if diam == 1:
-                self.setMinValue(x)
-            if diam == 2:
-                self.setMaxValue(x)
+    def setHistogram(self, hist=None, bin_edges=None):
+        """Set the histogram to display.
 
-    """
-    Colormap
-    """
-    def setColormap(self, colormap):
-        self.colormapIndex = colormap
-        if QTVERSION < '4.0.0':
-            self.combo.setCurrentItem(colormap)
+        This update the data range with the bounds of the bins.
+        See :meth:`setDataRange`.
+
+        :param hist: array-like of counts or None to hide histogram
+        :param bin_edges: array-like of bins edges or None to hide histogram
+        """
+        if hist is None or bin_edges is None:
+            self._histogramData = None
+            self._plot.removeCurve(legend='Histogram')
+
         else:
-            self.combo.setCurrentIndex(colormap)
+            hist = numpy.array(hist, copy=True)
+            bin_edges = numpy.array(bin_edges, copy=True)
+            self._histogramData = hist, bin_edges
 
-    def colormapChange(self, colormap):
-        self.colormapIndex = colormap
-        self.sendColormap()
+            # For now, draw the histogram as a curve
+            # using bin centers and normalised counts
+            bins_center = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+            norm_hist = hist / max(hist)
+            self._plot.addCurve(bins_center, norm_hist,
+                                legend="Histogram",
+                                color='gray',
+                                symbol='',
+                                linestyle='-',
+                                fill=True)
 
-    # AUTOSCALE
-    """
-    Autoscale
-    """
-    def autoscaleChange(self, val):
-        self.autoscale = val
-        self.setAutoscale(val)
-        self.sendColormap()
+            # Update the data range
+            self.setDataRange(bin_edges[0], bin_edges[-1])
 
-    def setAutoscale(self, val):
-        if DEBUG:
-            print("setAutoscale called", val)
-        if val:
-            self.autoScaleButton.setChecked(True)
-            self.autoScale90Button.setChecked(False)
-            #self.autoScale90Button.setDown(False)
-            self.setMinValue(self.dataMin)
-            self.setMaxValue(self.dataMax)
-            self.maxText.setEnabled(0)
-            self.minText.setEnabled(0)
-            self.c.setEnabled(0)
-            #self.c.disablemarkermode()
+    def getDataRange(self):
+        """Returns the data range used for the histogram area.
+
+        :return: (dataMin, dataMax)
+        :rtype: 2-tuple of float
+        """
+        return self._dataRange
+
+    def setDataRange(self, min_, max_):
+        """Set the range of data to use for the range of the histogram area.
+
+        :param float min_: The min of the data
+        :param float max_: The max of the data
+        """
+        min_, max_ = float(min_), float(max_)
+        assert min_ <= max_
+        self._dataRange = min_, max_
+        if self._rangeAutoscaleButton.isChecked():
+            self._startValue.setValue(min_)
+            self._endValue.setValue(max_)
+            self._notify()
         else:
-            self.autoScaleButton.setChecked(False)
-            self.autoScale90Button.setChecked(False)
-            self.minText.setEnabled(1)
-            self.maxText.setEnabled(1)
-            self.c.setEnabled(1)
-            #self.c.enablemarkermode()
-
-    """
-    set rangeValues to dataMin ; dataMax-10%
-    """
-    def autoscale90Change(self, val):
-        self.autoscale90 = val
-        self.setAutoscale90(val)
-        self.sendColormap()
-
-    def setAutoscale90(self, val):
-        if val:
-            self.autoScaleButton.setChecked(False)
-            self.setMinValue(self.dataMin)
-            self.setMaxValue(self.dataMax - abs(self.dataMax/10))
-            self.minText.setEnabled(0)
-            self.maxText.setEnabled(0)
-            self.c.setEnabled(0)
-        else:
-            self.autoScale90Button.setChecked(False)
-            self.minText.setEnabled(1)
-            self.maxText.setEnabled(1)
-            self.c.setEnabled(1)
-            self.c.setFocus()
-
-
-
-    # MINIMUM
-    """
-    change min value and update colormap
-    """
-    def setMinValue(self, val):
-        v = float(str(val))
-        self.minValue = v
-        self.minText.setText("%g" % v)
-        self.__x[1] = v
-        key = self.markers[1][0]
-        label = self.markers[1][1]
-        self.c.insertXMarker(v, legend=key, text=label, color="blue", draggable=True)
-        self.c.addCurve(self.__x,
-                        self.__y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-        self.sendColormap()
-
-    """
-    min value changed by text
-    """
-    def minTextChanged(self):
-        text = str(self.minText.text())
-        if not len(text):
-            return
-        val = float(text)
-        self.setMinValue(val)
-        if self.minText.hasFocus():
-            self.c.setFocus()
-
-    """
-    change only the displayed min value
-    """
-    def setDisplayedMinValue(self, val):
-        val = float(val)
-        self.minValue = val
-        self.minText.setText("%g"%val)
-        self.__x[1] = val
-        key = self.markers[1][0]
-        label = self.markers[1][1]
-        self.c.insertXMarker(val, legend=key, text=label, color="blue", draggable=True)
-        self.c.addCurve(self.__x, self.__y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-    # MAXIMUM
-    """
-    change max value and update colormap
-    """
-    def setMaxValue(self, val):
-        v = float(str(val))
-        self.maxValue = v
-        self.maxText.setText("%g"%v)
-        self.__x[2] = v
-        key = self.markers[2][0]
-        label = self.markers[2][1]
-        self.c.insertXMarker(v, legend=key, text=label, color="blue", draggable=True)
-        self.c.addCurve(self.__x, self.__y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-        self.sendColormap()
-
-    """
-    max value changed by text
-    """
-    def maxTextChanged(self):
-        text = str(self.maxText.text())
-        if not len(text):return
-        val = float(text)
-        self.setMaxValue(val)
-        if self.maxText.hasFocus():
-            self.c.setFocus()
-
-    """
-    change only the displayed max value
-    """
-    def setDisplayedMaxValue(self, val):
-        val = float(val)
-        self.maxValue = val
-        self.maxText.setText("%g"%val)
-        self.__x[2] = val
-        key = self.markers[2][0]
-        label = self.markers[2][1]
-        self.c.insertXMarker(val, legend=key, text=label, color="blue", draggable=True)
-        self.c.addCurve(self.__x, self.__y,
-                        legend="ConstrainedCurve",
-                        color='black',
-                        symbol='o',
-                        linestyle='-')
-
-
-    # DATA values
-    """
-    set min/max value of data source
-    """
-    def setDataMinMax(self, minVal, maxVal, update=True):
-        if minVal is not None:
-            vmin = float(str(minVal))
-            self.dataMin = vmin
-        if maxVal is not None:
-            vmax = float(str(maxVal))
-            self.dataMax = vmax
-
-        if update:
-            # are current values in the good range ?
-            self._update()
+            self._plotUpdate()
 
     def getColormap(self):
-        if self.minValue > self.maxValue:
-            vmax = self.minValue
-            vmin = self.maxValue
-        else:
-            vmax = self.maxValue
-            vmin = self.minValue
-        cmap = [self.colormapIndex, self.autoscale,
-                vmin, vmax,
-                self.dataMin, self.dataMax,
-                self.colormapType]
-        return cmap
+        """Return the colormap description as a dict.
 
-    """
-    send 'ColormapChanged' signal
-    """
-    def sendColormap(self):
-        if DEBUG:
-            print("sending colormap")
-        try:
-            cmap = self.getColormap()
-            self.sigColormapChanged.emit(cmap)
-        except:
-            sys.excepthook(sys.exc_info()[0],
-                           sys.exc_info()[1],
-                           sys.exc_info()[2])
+        See :class:`Plot` for documentation on the colormap dict.
+        """
+        isNormLinear = self._normButtonLinear.isChecked()
+        colormap = {
+            'name': str(self._comboBoxColormap.currentText()).lower(),
+            'normalization': 'linear' if isNormLinear else 'log',
+            'autoscale': self._rangeAutoscaleButton.isChecked(),
+            'vmin': self._startValue.value(),
+            'vmax': self._endValue.value(),
+            'colors': 256}
+        return colormap
 
+    def setColormap(self, name=None, normalization=None,
+                    autoscale=None, vmin=None, vmax=None, colors=None):
+        """Set the colormap description
 
-# Conversion of colormap descriptions #########################################
+        If some arguments are not provided, the current values are used.
 
-# Convert colormap between PlotBackend names and ColormapDialog index
-# Tuple of PlotBackend names in the order of colormapDialog
-_COLORMAP_NAMES = ('gray', 'reversed gray', 'temperature',
-                   'red', 'green', 'blue', 'temperature')
+        :param str name: The name of the colormap
+        :param str normalization: 'linear' or 'log'
+        :param bool autoscale: Toggle colormap range autoscale
+        :param float vmin: The min value, ignored if autoscale is True
+        :param float vmax: The max value, ignored if autoscale is True
+        """
+        if name is not None:
+            assert name in self._colormapList
+            index = self._colormapList.index(name)
+            self._comboBoxColormap.setCurrentIndex(index)
 
-def colormapListToDict(colormapList):
-    """Convert colormap from this dialog to :class:`PlotBackend`.
+        if normalization is not None:
+            assert normalization in ('linear', 'log')
+            self._normButtonLinear.setChecked(normalization == 'linear')
 
-    :param colormapList: Colormap as returned by :meth:`getColormap`.
-    :type colormapList: list or tuple
-    :return: Colormap as used in :class:`PlotBackend`.
-    :rtype: dict
-    """
-    index, autoscale, vMin, vMax, dataMin, dataMax, cmapType = colormapList
-    # Warning, gamma cmapType is not supported in plot backend
-    # Here it is silently replaced by linear as the default colormap
-    return {
-        'name': _COLORMAP_NAMES[index],
-        'autoscale': autoscale,
-        'vmin': vMin,
-        'vmax': vMax,
-        'normalization': 'log' if cmapType == 1 else 'linear',
-        'colors': 256
-    }
+        if autoscale is not None:
+            self._rangeAutoscaleButton.setChecked(autoscale)
 
-def colormapDictToList(colormapDict):
-    """Convert colormap from :class:`PlotBackend` to this dialog.
+        if vmin is not None:
+            self._startValue.setValue(vmin)
 
-    :param dict colormapDict: Colormap as used in :class:`PlotBackend`.
-    :return: Colormap as returned by :meth:`getColormap`.
-    :rtype: list
-    """
-    cmapIndex = _COLORMAP_NAMES.index(colormapDict['name'])
-    cmapType = 1 if colormapDict['normalization'].startswith('log') else 0
-    return [cmapIndex,
-            colormapDict['autoscale'],
-            colormapDict['vmin'],
-            colormapDict['vmax'],
-            0,  # dataMin is not defined in PlotBackend colormap
-            0,  # dataMax is not defined in PlotBackend colormap
-            cmapType]
+        if vmax is not None:
+            self._endValue.setValue(vmax)
 
+        # Do it once for all the changes
+        self._notify()
 
-###############################################################################
+    def _notify(self, *args, **kwargs):
+        """Emit the signal for colormap change"""
+        self._plotUpdate()
+        self.sigColormapChanged.emit(self.getColormap())
 
-def test():
-    app = qt.QApplication(sys.argv)
-    app.lastWindowClosed.connect(app.quit)
-    demo = ColormapDialog()
+    def _autoscaleToggled(self, checked):
+        """Handle autoscale changes by enabling/disabling min/max fields"""
+        self._startValue.setEnabled(not checked)
+        self._endValue.setEnabled(not checked)
+        if checked:
+            self._startValue.setValue(self._dataRange[0])
+            self._endValue.setValue(self._dataRange[1])
 
-    # Histogram demo
-    import numpy as np
-    x = np.linspace(-10, 10, 50)
-    y = abs(9. * np.exp(-x**2) + np.random.randn(len(x)) + 1.)
-    demo.plotHistogram((x,y))
+    def _minMaxTextEdited(self, text):
+        """Handle _startValue and _endValue textEdited signal"""
+        self._minMaxWasEdited = True
 
-    def call(*var):
-        print("Received", var)
+    def _minMaxEditingFinished(self):
+        """Handle _startValue and _endValue editingFinished signal
 
-    demo.sigColormapChanged.connect(call)
-
-    demo.setAutoscale(1)
-    demo.show()
-    app.exec_()
-
-
-if __name__ == "__main__":
-    test()
+        Together with :meth:`_minMaxTextEdited`, this avoids to notify
+        colormap change when the min and max value where not edited.
+        """
+        if self._minMaxWasEdited:
+            self._minMaxWasEdited = False
+            self._notify()
