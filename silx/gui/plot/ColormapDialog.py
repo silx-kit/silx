@@ -54,7 +54,7 @@ This updates the data range with the range of the bins.
 
 The updates of the colormap description are also available through the signal:
 :attr:`ColormapDialog.sigColormapChanged`.
-"""
+"""  # noqa
 
 from __future__ import division
 
@@ -102,7 +102,7 @@ class _FloatEdit(qt.QLineEdit):
 class ColormapDialog(qt.QDialog):
     """A QDialog widget to set the colormap.
 
-    :param str title: The QDialog title 
+    :param str title: The QDialog title
     :param parent: See :class:`QDialog`
     """
 
@@ -202,7 +202,7 @@ class ColormapDialog(qt.QDialog):
     def _plotInit(self):
         """Init the plot to display the range and the values"""
         self._plot = PlotWidget()
-        #self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
+        self._plot.setDataMargins(yMinMargin=0.125, yMaxMargin=0.125)
         self._plot.setGraphXLabel("Data Values")
         self._plot.setGraphYLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
@@ -254,14 +254,14 @@ class ColormapDialog(qt.QDialog):
             text='Start',
             draggable=draggable,
             color='blue')
-            # constraint=lambda x, y: (max(x, minmd), y))
+        # constraint=lambda x, y: (max(x, minmd), y))
         self._plot.insertXMarker(
             self._endValue.value(),
             legend='End',
             text='End',
             draggable=draggable,
             color='blue')
-            # constraint=lambda x, y: (max(x, minmd), y))
+        # constraint=lambda x, y: (max(x, minmd), y))
 
         self._plot.resetZoom()
 

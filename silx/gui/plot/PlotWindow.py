@@ -42,18 +42,18 @@ class PlotWindow(PlotWidget):
 
     This widget includes the following QAction as attributes:
 
-    :var:`resetZoomAction`: Reset zoom
-    :var:`xAxisAutoScaleAction`: Toggle X axis autoscale
-    :var:`yAxisAutoScaleAction`: Toggle Y axis autoscale
-    :var:`xAxisLogarithmicAction`: Toggle X axis log scale
-    :var:`yAxisLogarithmicAction`: Toggle Y axis log scale
-    :var:`gridAction`: Toggle plot grid
-    :var:`curveStyleAction`: Change curve line and markers style
-    :var:`keepDataAspectRatioAction`: Toggle keep aspect ratio
-    :var:`yAxisInvertedAction`: Toggle Y Axis direction
-    :var:`copyAction`: Copy plot snapshot to clipboard
-    :var:`saveAction`: Save plot
-    :var:`printAction`: Print plot
+    - resetZoomAction: Reset zoom
+    - xAxisAutoScaleAction: Toggle X axis autoscale
+    - yAxisAutoScaleAction: Toggle Y axis autoscale
+    - xAxisLogarithmicAction: Toggle X axis log scale
+    - yAxisLogarithmicAction: Toggle Y axis log scale
+    - gridAction: Toggle plot grid
+    - curveStyleAction: Change curve line and markers style
+    - keepDataAspectRatioAction: Toggle keep aspect ratio
+    - yAxisInvertedAction: Toggle Y Axis direction
+    - copyAction: Copy plot snapshot to clipboard
+    - saveAction: Save plot
+    - printAction: Print plot
 
     Initialiser parameters:
 
@@ -114,7 +114,6 @@ class PlotWindow(PlotWidget):
 
         # colormap TODO need a dialog
 
-        # Make icon with on and 
         self.keepDataAspectRatioAction = self.group.addAction(
             KeepAspectRatioAction(self))
         self.keepDataAspectRatioAction.setVisible(aspectRatio)

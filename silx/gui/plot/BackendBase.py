@@ -358,7 +358,7 @@ class BackendBase(object):
         """
         self.__xLimits = xmin, xmax
         self.__yLimits['left'] = ymin, ymax
-        if ymin2 is not None and y2max is not None:
+        if y2min is not None and y2max is not None:
             self.__yLimits['right'] = y2min, y2max
 
     def getGraphXLimits(self):

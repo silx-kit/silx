@@ -45,7 +45,7 @@ if not _qapp:
 
 def _tearDownQt(docTest):
     """Tear down to use for test from docstring.
-    
+
     Checks that dialog widget is displayed
     """
     dialogWidget = docTest.globs['dialog']

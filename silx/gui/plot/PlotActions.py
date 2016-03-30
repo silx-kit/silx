@@ -50,7 +50,6 @@ __date__ = "07/03/2016"
 
 from collections import OrderedDict
 import logging
-import os.path
 import sys
 import traceback
 import weakref
@@ -98,7 +97,7 @@ class _PlotAction(qt.QAction):
             self.setToolTip(tooltip)
 
         self.setCheckable(checkable)
-        
+
         if triggered is not None:
             self.triggered.connect(triggered)
 
@@ -366,7 +365,7 @@ class SaveAction(_PlotAction):
         if sys.version_info[0] >= 3:
             ffile = open(fname, 'w', newline='\n')
         else:
-            ffile = open(fname,'wb')
+            ffile = open(fname, 'wb')
 
         if header:
             ffile.write(header + '\n')
@@ -390,7 +389,7 @@ class SaveAction(_PlotAction):
         :param str filename: The name of the file to write
         :param str nameFilter: The selected name filter
         :return: False if format is not supported or save failed,
-                 True otherwise. 
+                 True otherwise.
         """
         pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
         if not pixmap.save(filename):
@@ -404,7 +403,7 @@ class SaveAction(_PlotAction):
         :param str filename: The name of the file to write
         :param str nameFilter: The selected name filter
         :return: False if format is not supported or save failed,
-                 True otherwise. 
+                 True otherwise.
         """
         if nameFilter not in self.CURVE_FILTERS:
             return False
@@ -423,7 +422,7 @@ class SaveAction(_PlotAction):
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
             if filter_['header']:
                 header = '"%s"%s"%s"' % (curve[4]['xlabel'],
-                                         delimiter,
+                                         filter_['delimiter'],
                                          curve[4]['ylabel'])
             else:
                 header = ''
@@ -449,7 +448,7 @@ class SaveAction(_PlotAction):
         :param str filename: The name of the file to write
         :param str nameFilter: The selected name filter
         :return: False if format is not supported or save failed,
-                 True otherwise. 
+                 True otherwise.
         """
         if nameFilter not in self.IMAGE_FILTERS:
             return False
@@ -695,115 +694,3 @@ class _PlotActionGroup(qt.QActionGroup):
             menu.addAction(action)
         menu.actionGroup = self  # Menu keeps a reference to actionGroup
         return menu
-
-
-class PlotActionGroup(_PlotActionGroup):
-    """QActionGroup with tools to control plot area.
-    
-    This QActionGroup includes the following QAction:
-
-    :var:`resetZoomAction`: Reset zoom
-    :var:`xAxisAutoScaleAction`: Toggle X axis autoscale
-    :var:`yAxisAutoScaleAction`: Toggle Y axis autoscale
-    :var:`xAxisLogarithmicAction`: Toggle X axis log scale
-    :var:`yAxisLogarithmicAction`: Toggle Y axis log scale
-    :var:`gridAction`: Toggle plot grid
-    :var:`curveStyleAction`: Change curve line and markers style
-    :var:`keepDataAspectRatioAction`: Toggle keep aspect ratio
-    :var:`yAxisInvertedAction`: Toggle Y Axis direction
-    :var:`copyAction`: Copy plot snapshot to clipboard
-    :var:`saveAction`: Save plot
-    :var:`printAction`: Print plot
-
-    :param plot: :class:`PlotWidget` instance on which to operate.
-    :param str title: See :class:`QToolBar`.
-    :param parent: See :class:`QToolBar`.
-    :param bool resetZoom: Toggle visibility of reset zoom action.
-    :param bool autoScale: Toggle visibility of axes autoscale actions.
-    :param bool logScale: Toggle visibility of axes log scale actions.
-    :param bool grid: Toggle visibility of grid mode action.
-    :param bool curveStyle: Toggle visibility of curve style action.
-    :param bool yInverted: Toggle visibility of Y axis direction action.
-    :param bool copy: Toggle visibility if copy action.
-    :param bool save: Toggle visibility of save action.
-    :param bool print_: Toggle visibility of print action.
-    """
-
-    def __init__(self, plot, title='Plot', parent=None,
-                 resetZoom=True, autoScale=True, logScale=True, grid=True,
-                 curveStyle=True,
-                 aspectRatio=True, yInverted=True,
-                 copy=True, save=True, print_=True):
-        super(PlotActionGroup, self).__init__(plot, title, parent)
-
-        self.resetZoomAction = self.addAction(ResetZoomAction(plot))
-        if not resetZoom:
-            self.resetZoomAction.setVisible(False)
-
-        self.xAxisAutoScaleAction = self.addAction(
-            XAxisAutoScaleAction(plot))
-        if not autoScale:
-            self.xAxisAutoScaleAction.setVisible(False)
-
-        self.yAxisAutoScaleAction = self.addAction(
-            YAxisAutoScaleAction(plot))
-        if not autoScale:
-            self.yAxisAutoScaleAction.setVisible(False)
-
-        self.xAxisLogarithmicAction = self.addAction(
-            XAxisLogarithmicAction(plot))
-        if not logScale:
-            self.xAxisLogarithmicAction.setVisible(False)
-
-        self.yAxisLogarithmicAction = self.addAction(
-            YAxisLogarithmicAction(plot))
-        if not logScale:
-            self.yAxisLogarithmicAction.setVisible(False)
-
-        self.gridAction = self.addAction(GridAction(plot, gridMode='both'))
-        if not grid:
-            self.gridAction.setVisible(False)
-
-        self.curveStyleAction = self.addAction(CurveStyleAction(plot))
-        if not curveStyle:
-            self.curveStyleAction.setVisible(False)
-
-        # colormap TODO need a dialog
-
-        # zoom mode TODO need sync with other toolbars
-
-        # Make icon with on and 
-        self.keepDataAspectRatioAction = self.addAction(
-            KeepAspectRatioAction(plot))
-        if not aspectRatio:
-            self.keepDataAspectRatioAction.setVisible(False)
-
-        self.yAxisInvertedAction = self.addAction(
-            YAxisInvertedAction(plot))
-        if not yInverted:
-            self.yAxisInvertedAction.setVisible(False)
-
-        # Plugin TODO outside here
-
-        separator = self.addAction('separator')
-        separator.setSeparator(True)
-
-        self.copyAction = self.addAction(CopyAction(self.plot))
-        if not copy:
-            self.copyAction.setVisible(False)
-
-        self.saveAction = self.addAction(SaveAction(self.plot))
-        if not save:
-            self.saveAction.setVisible(False)
-
-        self.printAction = self.addAction(PrintAction(self.plot))
-        if not print_:
-            self.print_Action.setVisible(False)
-
-        self.setExclusive(False)
-
-
-# TODO synchro between toolbars
-# TODO mask toolbar
-# TODO profile toolbar
-
