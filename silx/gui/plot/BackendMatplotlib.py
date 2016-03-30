@@ -178,6 +178,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                    picker=picker)
             artists.append(scatter)
 
+            if fill:
+                artists.append(axes.fill_between(
+                    x, 1.0e-8, y, facecolor=actualColor[0], linestyle=''))
+
         else:  # Curve
             curveList = axes.plot(x, y,
                                   label=legend,
@@ -188,8 +192,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
                                   picker=picker)
             artists += list(curveList)
 
-        if fill:
-            axes.fill_between(x, 1.0e-8, y)
+            if fill:
+                artists.append(
+                    axes.fill_between(x, 1.0e-8, y,
+                                      facecolor=color, linewidth=0))
 
         # This complies with _getDataLimits
         artists[-1]._plot_info = {
