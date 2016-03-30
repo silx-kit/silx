@@ -22,23 +22,45 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for ColormapDialog"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "30/03/2016"
 
 
+import doctest
 import unittest
 
-from .testColormapDialog import suite as testColormapDialog
-from .testInteraction import suite as testInteractionSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlot import suite as testPlotSuite
+from silx.gui.test.utils import qWaitForWindowExposed
+from silx.gui import qt
+from silx.gui.plot import ColormapDialog
+
+
+# Makes sure a QApplication exists
+_qapp = qt.QApplication.instance()
+if not _qapp:
+    _qapp = qt.QApplication()
+
+
+def _tearDownQt(docTest):
+    """Tear down to use for test from docstring.
+    
+    Checks that dialog widget is displayed
+    """
+    dialogWidget = docTest.globs['dialog']
+    qWaitForWindowExposed(dialogWidget)
+
+
+cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
+"""Test suite of tests from the module's docstrings."""
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(testColormapDialog())
-    test_suite.addTest(testInteractionSuite())
-    test_suite.addTest(testPlotWidgetSuite())
-    test_suite.addTest(testPlotSuite())
+    test_suite.addTest(cmapDocTestSuite)
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

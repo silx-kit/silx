@@ -55,16 +55,18 @@ if qt.BINDING in ('PySide', 'PyQt4'):
     _logger.info("QTest.qWaitForWindowExposed not available," +
                  "using QTest.qWaitForWindowShown instead.")
 
-    def _qWaitForWindowExposed(window, timeout=None):
+    def qWaitForWindowExposed(window, timeout=None):
         """Mimic QTest.qWaitForWindowExposed for Qt4."""
         QTest.qWaitForWindowShown(window)
         return True
 else:
-    _qWaitForWindowExposed = QTest.qWaitForWindowExposed
+    qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
-# Init QApplication once for all
-_qapp = qt.QApplication([])
+# Makes sure a QApplication exists and do it once for all
+_qapp = qt.QApplication.instance()
+if not _qapp:
+    _qapp = qt.QApplication([])
 
 
 class TestCaseQt(unittest.TestCase):
@@ -222,9 +224,9 @@ class TestCaseQt(unittest.TestCase):
         See QTest.qWaitForWindowExposed for details.
         """
         if timeout is None:
-            result = _qWaitForWindowExposed(window)
+            result = qWaitForWindowExposed(window)
         else:
-            result = _qWaitForWindowExposed(window, timeout)
+            result = qWaitForWindowExposed(window, timeout)
 
         if self.TIMEOUT_WAIT:
             QTest.qWait(self.TIMEOUT_WAIT)
