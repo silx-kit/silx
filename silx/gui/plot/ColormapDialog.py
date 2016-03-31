@@ -41,8 +41,9 @@ Create the colormap dialog and set the colormap description and data range:
 
 Get the colormap description (compatible with :class:`Plot`) from the dialog:
 
->>> dialog.getColormap()
-{'autoscale': False, 'name': 'red', 'vmin': 1.0, 'colors': 256, 'vmax': 2.0, 'normalization': 'linear'}
+>>> cmap = dialog.getColormap()
+>>> cmap['name']
+'red'
 
 It is also possible to display an histogram of the image in the dialog.
 This updates the data range with the range of the bins.
