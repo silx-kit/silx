@@ -33,7 +33,7 @@ __date__ = "30/03/2016"
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def lsh5(h5group, lvl=0):
+def h5ls(h5group, lvl=0):
     """Return a simple string representation of a HDF5 tree structure.
 
     :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
@@ -49,7 +49,7 @@ def lsh5(h5group, lvl=0):
 
     Example::
 
-        >>> print(lsh5("Downloads/sample.h5"))
+        >>> print(h5ls("Downloads/sample.h5"))
         +fields
             +fieldB
                 <HDF5 dataset "z": shape (256, 256), type "<f4">
@@ -69,7 +69,7 @@ def lsh5(h5group, lvl=0):
         if hasattr(h5f[key], 'keys'):
             repr += '\t' * lvl + '+' + key
             repr += '\n'
-            repr += lsh5(h5f[key], lvl + 1)
+            repr += h5ls(h5f[key], lvl + 1)
         else:
             repr += '\t' * lvl
             repr += str(h5f[key])

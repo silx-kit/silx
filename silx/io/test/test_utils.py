@@ -33,7 +33,7 @@ import re
 import tempfile
 import unittest
 
-from ..utils import lsh5
+from ..utils import h5ls
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):
     for string_ in list_of_strings:
@@ -42,7 +42,7 @@ def assert_match_any_string_in_list(test, pattern, list_of_strings):
     return False
 
 
-class TestLsH5(unittest.TestCase):
+class TestH5Ls(unittest.TestCase):
     """Test displaying the following HDF5 file structure:
 
         +foo
@@ -74,7 +74,7 @@ class TestLsH5(unittest.TestCase):
                              " string in list " + str(list_of_strings))
 
     def test_repr(self):
-        rep = lsh5(self.h5_fname)
+        rep = h5ls(self.h5_fname)
         lines = rep.split("\n")
 
         self.assertIn("+foo", lines)
@@ -94,7 +94,7 @@ class TestLsH5(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestLsH5))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
     return test_suite
 
 
