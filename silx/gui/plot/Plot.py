@@ -1786,7 +1786,7 @@ class Plot(object):
 
         See `Colormap`_ for the documentation of the colormap dict.
         """
-        return self._defaultColormap
+        return self._defaultColormap.copy()
 
     def setDefaultColormap(self, colormap=None):
         """Set the default colormap used by :meth:`addImage`.
@@ -1801,7 +1801,7 @@ class Plot(object):
             colormap = {'name': 'gray', 'normalization': 'linear',
                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                         'colors': 256}
-        self._defaultColormap = colormap
+        self._defaultColormap = colormap.copy()
 
     def getSupportedColormaps(self):
         """Get the supported colormap names as a tuple of str.
