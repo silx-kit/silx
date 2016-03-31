@@ -40,7 +40,7 @@ build_script:
 
     # Install buils dependencies
     - "pip install wheel"
-    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy"
+    - "pip install --trusted-host ftp.esrf.fr --find-links http://ftp.esrf.fr/pub/scisoft/silx/wheelhouse/ numpy"
 
     # Print Python info
     - "python ci\\info_platform.py"
@@ -60,10 +60,10 @@ test_script:
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # Install PyQt4 and matplotlib (until they are dependencies in setup.py)
-    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse PyQt4 matplotlib"
+    - "pip install --trusted-host ftp.esrf.fr --find-links http://ftp.esrf.fr/pub/scisoft/silx/wheelhouse/ PyQt4 matplotlib"
 
     # Install the generated wheel package to test it
-    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx"
+    - "pip install --pre --find-links dist/ --trusted-host ftp.esrf.fr --find-links http://ftp.esrf.fr/pub/scisoft/silx/wheelhouse/ silx"
 
     # Print Python info
     - "python ci\\info_platform.py"
