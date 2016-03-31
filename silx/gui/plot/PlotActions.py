@@ -283,15 +283,22 @@ class ColormapAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         """Create a cmap dialog and update active image and default cmap."""
+        # Create the dialog if not already existing
+        if self._dialog is None:
+            self._dialog = ColormapDialog()
+
         image = self.plot.getActiveImage()
         if image is None:
-            # No active image, get default info
+            # No active image, set dialog from default info
             colormap = self.plot.getDefaultColormap()
-            dataMin, dataMax = 1., 10.  # Default range
+
+            self._dialog.setHistogram()  # Reset histogram if any
+            self._dialog.setDataRange(colormap['vmin'], colormap['vmax'])
 
         else:
-            # Get info from active image
+            # Set dialog from active image
             colormap = image[4]['colormap']
+
             data = image[0]
 
             goodData = data[numpy.isfinite(data)]
@@ -303,36 +310,37 @@ class ColormapAction(_PlotAction):
                     "Image data does not contain any real value")
                 dataMin, dataMax = 1., 10.
 
-        # Create the dialog if not already existing
-        if self._dialog is None:
-            self._dialog = ColormapDialog()
+            self._dialog.setHistogram()  # Reset histogram if any
+            self._dialog.setDataRange(dataMin, dataMax)
+            # The histogram should be done in a worker thread
+            # hist, bin_edges = numpy.histogram(goodData, bins=256)
+            # self._dialog.setHistogram(hist, bin_edges)
 
         self._dialog.setColormap(**colormap)
-        # self._dialog.setHistogram()  # Reset histogram if any
-        # self._dialog.setDataRange(dataMin, dataMax)
-        # The histogram should be done in a worker thread
-        hist, bin_edges = numpy.histogram(goodData, bins=256)
-        self._dialog.setHistogram(hist, bin_edges)
 
-        if self._dialog.exec_():
-            colormap = self._dialog.getColormap()
+        # Run the dialog listening to colormap change
+        self._dialog.sigColormapChanged.connect(self._colormapChanged)
+        result = self._dialog.exec_()
+        self._dialog.sigColormapChanged.disconnect(self._colormapChanged)
 
-            # Update default colormap
-            self.plot.setDefaultColormap(colormap)
+        if not result:  # Restore the previous colormap
+            self._colormapChanged(colormap)
 
-            # Update active image
-            image = self.plot.getActiveImage()
-            if image is not None:
-                # Update image: This do not preserve pixmap
-                params = image[4].copy()
-                params['colormap'] = colormap
-                self.plot.addImage(image[0],
-                                   legend=image[1],
-                                   replace=False,
-                                   resetZoom=False,
-                                   **params)
+    def _colormapChanged(self, colormap):
+        # Update default colormap
+        self.plot.setDefaultColormap(colormap)
 
-        self._dialog.hide()
+        # Update active image
+        image = self.plot.getActiveImage()
+        if image is not None:
+            # Update image: This do not preserve pixmap
+            params = image[4].copy()
+            params['colormap'] = colormap
+            self.plot.addImage(image[0],
+                               legend=image[1],
+                               replace=False,
+                               resetZoom=False,
+                               **params)
 
 
 class KeepAspectRatioAction(_PlotAction):
