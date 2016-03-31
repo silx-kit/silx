@@ -49,6 +49,8 @@ class PlotWindow(PlotWidget):
     - yAxisLogarithmicAction: Toggle Y axis log scale
     - gridAction: Toggle plot grid
     - curveStyleAction: Change curve line and markers style
+    - colormapAction: Open a colormap dialog to change active image
+      and default colormap.
     - keepDataAspectRatioAction: Toggle keep aspect ratio
     - yAxisInvertedAction: Toggle Y Axis direction
     - copyAction: Copy plot snapshot to clipboard
@@ -66,6 +68,8 @@ class PlotWindow(PlotWidget):
     :param bool logScale: Toggle visibility of axes log scale actions.
     :param bool grid: Toggle visibility of grid mode action.
     :param bool curveStyle: Toggle visibility of curve style action.
+    :param bool colormap: Toggle visibility of colormap action.
+    :param bool aspectRatio: Toggle visibility of aspect ration action.
     :param bool yInverted: Toggle visibility of Y axis direction action.
     :param bool copy: Toggle visibility if copy action.
     :param bool save: Toggle visibility of save action.
@@ -75,7 +79,7 @@ class PlotWindow(PlotWidget):
 
     def __init__(self, parent=None, backend=None,
                  resetZoom=True, autoScale=True, logScale=True, grid=True,
-                 curveStyle=True,
+                 curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  autoreplot=True):
@@ -112,7 +116,8 @@ class PlotWindow(PlotWidget):
         self.curveStyleAction = self.group.addAction(CurveStyleAction(self))
         self.curveStyleAction.setVisible(curveStyle)
 
-        # colormap TODO need a dialog
+        self.colormapAction = self.group.addAction(ColormapAction(self))
+        self.colormapAction.setVisible(colormap)
 
         self.keepDataAspectRatioAction = self.group.addAction(
             KeepAspectRatioAction(self))

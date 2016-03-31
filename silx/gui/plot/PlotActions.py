@@ -26,6 +26,7 @@
 
 The following QAction are available:
 
+- :class:`ColormapAction`
 - :class:`CopyAction`
 - :class:`CurveStyleAction`
 - :class:`GridAction`
@@ -64,6 +65,7 @@ import numpy
 
 from .. import icons
 from .. import qt
+from .ColormapDialog import ColormapDialog
 
 
 _logger = logging.getLogger(__name__)
@@ -261,6 +263,76 @@ class CurveStyleAction(_PlotAction):
 
         self.plot.setDefaultPlotLines(newState[0])
         self.plot.setDefaultPlotPoints(newState[1])
+
+
+class ColormapAction(_PlotAction):
+    """QAction opening a ColormapDialog to update the colormap.
+
+    Both the active image colormap and the default colormap are updated.
+
+    :param PlotWidget plot: instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        self._dialog = None  # To store an instance of ColormapDialog
+        super(ColormapAction, self).__init__(
+            plot, icon='colormap', text='Colormap',
+            tooltip="Change colormap",
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+
+    def _actionTriggered(self, checked=False):
+        """Create a cmap dialog and update active image and default cmap."""
+        image = self.plot.getActiveImage()
+        if image is None:
+            # No active image, get default info
+            colormap = self.plot.getDefaultColormap()
+            dataMin, dataMax = 1., 10.  # Default range
+
+        else:
+            # Get info from active image
+            colormap = image[4]['colormap']
+            data = image[0]
+
+            goodData = data[numpy.isfinite(data)]
+            if goodData.size > 0:
+                dataMin = goodData.min()
+                dataMax = goodData.max()
+            else:
+                qt.QMessageBox.warning(self, "No Data",
+                    "Image data does not contain any real value")
+                dataMin, dataMax = 1., 10.
+
+        # Create the dialog if not already existing
+        if self._dialog is None:
+            self._dialog = ColormapDialog()
+
+        self._dialog.setColormap(**colormap)
+        # self._dialog.setHistogram()  # Reset histogram if any
+        # self._dialog.setDataRange(dataMin, dataMax)
+        # The histogram should be done in a worker thread
+        hist, bin_edges = numpy.histogram(goodData, bins=256)
+        self._dialog.setHistogram(hist, bin_edges)
+
+        if self._dialog.exec_():
+            colormap = self._dialog.getColormap()
+
+            # Update default colormap
+            self.plot.setDefaultColormap(colormap)
+
+            # Update active image
+            image = self.plot.getActiveImage()
+            if image is not None:
+                # Update image: This do not preserve pixmap
+                params = image[4].copy()
+                params['colormap'] = colormap
+                self.plot.addImage(image[0],
+                                   legend=image[1],
+                                   replace=False,
+                                   resetZoom=False,
+                                   **params)
+
+        self._dialog.hide()
 
 
 class KeepAspectRatioAction(_PlotAction):
