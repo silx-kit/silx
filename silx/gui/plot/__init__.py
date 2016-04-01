@@ -22,18 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt widgets 1D and 2D plotting.
+"""Qt widgets for 1D and 2D plotting.
 
-This module provides a set of widgets for plotting curve and images.
+This package provides a set of widgets for plotting curve and images.
 Those widgets supports interaction (e.g., zoom, pan, selections).
+
+The plotting API is inherited from and thus mostly compatible with
+`PyMca <http://pymca.sourceforge.net/>`_ plot API.
 
 List of Qt widgets:
 
 .. currentmodule:: silx.gui.plot
 
 - :mod:`.PlotWidget`: A widget displaying a single plot.
-- :mod:`.PlotWindow`: Build on :mod:`.PlotWidget` it adds a configurable
-  set of tools.
+- :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 """
 
 __authors__ = ["T. Vincent"]

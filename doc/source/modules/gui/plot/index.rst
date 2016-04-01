@@ -9,13 +9,34 @@
 .. automodule:: silx.gui.plot
    :members:
 
-Modules:
+Snapshot of the widgets:
+
+.. |imgPlotWidget| image:: img/PlotWidget.png
+   :height: 150px
+   :align: middle
+
+.. |imgPlotWindow| image:: img/PlotWindow.png
+   :height: 150px
+   :align: middle
+
+=================== ===================
+|imgPlotWidget|     |imgPlotWindow|
+:class:`PlotWidget` :class:`PlotWindow`
+=================== ===================
+
+
+Public modules:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    plot.rst
    plotwidget.rst
    plotwindow.rst
 
-For insights, see :doc:`dev`.
+Internals:
+
+.. toctree::
+   :maxdepth: 2
+
+   dev.rst

@@ -59,7 +59,7 @@ COLORDICT['darkYellow'] = '#808000'
 COLORDICT['darkMagenta'] = '#800080'
 
 
-def rgba(color, colorDict=COLORDICT):
+def rgba(color, colorDict=None):
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
 
     :param str code: The color code to conver
@@ -67,6 +67,8 @@ def rgba(color, colorDict=COLORDICT):
     :returns: RGBA colors as floats in [0., 1.]
     :rtype: tuple
     """
+    if colorDict is None:
+        colorDict = COLORDICT
     if len(color) == 4:
         r, g, b, a = color
         if type(color[3]) in [type(1), numpy.uint8, numpy.int8]:

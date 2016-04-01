@@ -22,10 +22,10 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A :class:`PlotWidget` with additionnal toolbars.
+"""A :class:`.PlotWidget` with additionnal toolbars.
 
-The :class:`PlotWindow` is a subclass of :class:`PlotWidget`.
-
+The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
+It provides the plot API fully defined in :class:`.Plot`.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]

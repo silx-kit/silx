@@ -5,4 +5,4 @@
 ----------------------
 
 .. automodule:: silx.gui.qt
-   :members: BINDING, HAS_SVG
+   :members: BINDING

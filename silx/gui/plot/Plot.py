@@ -574,7 +574,7 @@ class Plot(object):
                                (default: False)
         :param dict colormap: Description of the colormap to use (or None)
                               This is ignored if data is a RGB(A) image.
-                              See :ref:`Colormap` for the documentation
+                              See :mod:`Plot` for the documentation
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
@@ -1784,7 +1784,7 @@ class Plot(object):
     def getDefaultColormap(self):
         """Return the default colormap used by :meth:`addImage` as a dict.
 
-        See `Colormap`_ for the documentation of the colormap dict.
+        See :mod:`Plot` for the documentation of the colormap dict.
         """
         return self._defaultColormap.copy()
 
@@ -1794,7 +1794,7 @@ class Plot(object):
         :param dict colormap: The description of the default colormap, or
                             None to set the colormap to a linear autoscale
                             gray colormap.
-                            See `Colormap`_ for the documentation
+                            See :mod:`Plot` for the documentation
                             of the colormap dict.
         """
         if colormap is None:

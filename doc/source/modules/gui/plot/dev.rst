@@ -1,5 +1,5 @@
-Developer Documentation
-=======================
+Package structure
+=================
 
 The :mod:`silx.gui.plot` package provides a 1D, 2D plot widget that supports multiple backends.
 This package is structured as follows.
@@ -9,7 +9,8 @@ This package is structured as follows.
 :mod:`.PlotWidget` and :mod:`.PlotWindow` provides the user API.
 :class:`PlotWidget` is a Qt widget (actually a :class:`QMainWindow`) displaying a 1D, 2D plot area.
 It provides different interaction modes.
-:class:`PlotWindow` is a Qt widget (actually a :class:`QMainWindow`) which adds a set of toolbars and associated functionalities to :class:`PlotWidget`.
+:class:`PlotWindow` is a Qt widget (actually a :class:`QMainWindow`) which adds a set of toolbar buttons and associated functionalities to :class:`PlotWidget`.
+The toolbar QActions are implemented in :class:`PlotActions`.
 
 :mod:`.Plot`, :mod:`.PlotEvents` and :mod:`.PlotInteraction` implement the plotting API regardless of the rendering backend and regardless of its integration in Qt.
 The plotting API in defined in :mod:`.Plot`.
@@ -27,7 +28,7 @@ It is splitted in two classes:
 - :class:`BackendMatplotlibQt` which inherits from :class:`BackendMatplotlib` and adds a Qt canvas, and Qt specific functionalities.
 
 Modules
--------
+=======
 
 .. currentmodule:: silx.gui.plot
 
@@ -51,12 +52,37 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.BackendMatplotlib
    :members:
 
+:mod:`Colors`
++++++++++++++
+
+.. currentmodule:: silx.gui.plot.Colors
+
+.. automodule:: silx.gui.plot.Colors
+   :members: rgba
+
 :mod:`Interaction`
 ++++++++++++++++++
 
 .. currentmodule:: silx.gui.plot.Interaction
 
 .. automodule:: silx.gui.plot.Interaction
+   :members:
+
+:mod:`ModestImage`
+++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot.ModestImage
+
+.. automodule:: silx.gui.plot.ModestImage
+   :members:
+   :undoc-members:
+
+:mod:`PlotActions`
+++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot.PlotActions
+
+.. automodule:: silx.gui.plot.PlotActions
    :members:
 
 :mod:`PlotEvents`

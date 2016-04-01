@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Implementation of the interaction for the Plot."""
+"""Implementation of the interaction for the :class:`Plot`."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -154,7 +154,7 @@ def _scale1DRange(min_, max_, center, scale, isLog):
 def _applyZoomToPlot(plot, cx, cy, scaleF):
     """Zoom in/out plot given a scale and a center point.
 
-    :param Plot plot: The plot on which to apply zoom.
+    :param plot: The plot on which to apply zoom.
     :param float cx: X coord in data coordinates of the zoom center.
     :param float cy: Y coord in data coordinates of the zoom center.
     :param float scaleF: Scale factor of zoom.
@@ -1126,7 +1126,7 @@ class PlotInteraction(object):
 
     This allows to switch interactive mode.
 
-    :param Plot plot: The plot to apply interaction to
+    :param plot: The :class:`Plot` to apply interaction to
     """
 
     _DRAW_MODES = {

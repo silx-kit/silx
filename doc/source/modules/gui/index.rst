@@ -13,4 +13,9 @@ It provides the following modules:
    qt.rst
    icons.rst
 
-For widget integration in Qt Designer, see :doc:`designer`.
+How-to:
+
+.. toctree::
+   :maxdepth: 1
+
+   designer.rst

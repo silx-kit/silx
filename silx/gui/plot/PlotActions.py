@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a set of QAction to use with :class:`PlotWidget`.
+"""This module provides a set of QAction to use with :class:`.PlotWidget`.
 
 The following QAction are available:
 
@@ -72,9 +72,9 @@ _logger = logging.getLogger(__name__)
 
 
 class _PlotAction(qt.QAction):
-    """Base class for QAction that operates on a PlotWindow.
+    """Base class for QAction that operates on a PlotWidget.
 
-    :param plot: :class:`PlotWidget` instance on which to operate.
+    :param plot: :class:`.PlotWidget` instance on which to operate.
     :param icon: QIcon or str name of icon to use
     :param str text: The name of this action to be used for menu label
     :param str tooltip: The text of the tooltip
@@ -105,14 +105,14 @@ class _PlotAction(qt.QAction):
 
     @property
     def plot(self):
-        """The :class:`PlotWidget` this action group is controlling."""
+        """The :class:`.PlotWidget` this action group is controlling."""
         return self._plotRef()
 
 
 class ResetZoomAction(_PlotAction):
-    """QAction controlling reset zoom on a PlotWidget.
+    """QAction controlling reset zoom on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -128,9 +128,9 @@ class ResetZoomAction(_PlotAction):
 
 
 class XAxisAutoScaleAction(_PlotAction):
-    """QAction controlling X axis autoscale on a PlotWidget.
+    """QAction controlling X axis autoscale on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -148,9 +148,9 @@ class XAxisAutoScaleAction(_PlotAction):
 
 
 class YAxisAutoScaleAction(_PlotAction):
-    """QAction controlling Y axis autoscale on a PlotWidget.
+    """QAction controlling Y axis autoscale on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -168,9 +168,9 @@ class YAxisAutoScaleAction(_PlotAction):
 
 
 class XAxisLogarithmicAction(_PlotAction):
-    """QAction controlling X axis log scale on a PlotWidget.
+    """QAction controlling X axis log scale on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -188,9 +188,9 @@ class XAxisLogarithmicAction(_PlotAction):
 
 
 class YAxisLogarithmicAction(_PlotAction):
-    """QAction controlling Y axis log scale on a PlotWidget.
+    """QAction controlling Y axis log scale on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -208,11 +208,11 @@ class YAxisLogarithmicAction(_PlotAction):
 
 
 class GridAction(_PlotAction):
-    """QAction controlling grid mode on a PlotWidget.
+    """QAction controlling grid mode on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param str gridMode: The grid mode to use in 'both', 'major'.
-                         See :meth:`PlotWidget.setGraphGrid`
+                         See :meth:`.PlotWidget.setGraphGrid`
     :param parent: See :class:`QAction`
     """
 
@@ -237,12 +237,12 @@ class GridAction(_PlotAction):
 
 
 class CurveStyleAction(_PlotAction):
-    """QAction controlling curve style on a PlotWidget.
+    """QAction controlling curve style on a :class:`.PlotWidget`.
 
     It changes the default line and markers style which updates all
     curves on the plot.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -270,7 +270,7 @@ class ColormapAction(_PlotAction):
 
     Both the active image colormap and the default colormap are updated.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
     def __init__(self, plot, parent=None):
@@ -345,9 +345,9 @@ class ColormapAction(_PlotAction):
 
 
 class KeepAspectRatioAction(_PlotAction):
-    """QAction controlling aspect ratio on a PlotWidget.
+    """QAction controlling aspect ratio on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -370,9 +370,9 @@ class KeepAspectRatioAction(_PlotAction):
 
 
 class YAxisInvertedAction(_PlotAction):
-    """QAction controlling Y orientation on a PlotWidget.
+    """QAction controlling Y orientation on a :class:`.PlotWidget`.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
@@ -400,7 +400,7 @@ class SaveAction(_PlotAction):
 
     It opens a Save as... dialog.
 
-    :param plot: :class:`PlotWidget` instance on which to operate.
+    :param plot: :class:`.PlotWidget` instance on which to operate.
     :param parent: See :class:`QAction`.
     """
     # TODO find a way to make the filter list selectable and extensible
@@ -611,7 +611,7 @@ class SaveAction(_PlotAction):
 def _plotAsPNG(plot):
     """Save a :class:`Plot` as PNG and return the payload.
 
-    :param Plot plot: The plot to save
+    :param plot: The :class:`Plot` to save
     """
     pngFile = BytesIO()
     plot.saveGraph(pngFile, fileFormat='png')
@@ -630,7 +630,7 @@ class PrintAction(_PlotAction):
     Current implementation print a bitmap of the plot area and not vector
     graphics, so printing quality is not great.
 
-    :param plot: :class:`PlotWidget` instance on which to operate.
+    :param plot: :class:`.PlotWidget` instance on which to operate.
     :param parent: See :class:`QAction`.
     """
 
@@ -714,9 +714,9 @@ class PrintAction(_PlotAction):
 
 
 class CopyAction(_PlotAction):
-    """QAction to copy PlotWidget content to clipboard.
+    """QAction to copy :class:`.PlotWidget` content to clipboard.
 
-    :param PlotWidget plot: instance on which to operate
+    :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
 
