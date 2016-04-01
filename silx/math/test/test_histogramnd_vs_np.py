@@ -101,6 +101,9 @@ class _TestHistogramnd(unittest.TestCase):
     dtype_weights = None
 
     def generate_data(self):
+
+        self.longMessage = True
+
         int_min = 0
         int_max = 100000
         n_elements = 10**5
@@ -109,6 +112,11 @@ class _TestHistogramnd(unittest.TestCase):
             shape = (n_elements,)
         else:
             shape = (n_elements, self.n_dims,)
+
+        self.rng_state = np.random.get_state()
+
+        self.state_msg = ('Current RNG state :\n'
+                          '{0}'.format(self.rng_state))
 
         sample = np.random.random_integers(int_min,
                                            high=int_max,
@@ -192,8 +200,8 @@ class _TestHistogramnd(unittest.TestCase):
         weights_cmp = np.array_equal(result_c[1],
                                      result_np_w[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertTrue(weights_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertTrue(weights_cmp, msg=self.state_msg)
 
         bins_min = [rng[0] for rng in self.bins_rng]
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -203,12 +211,14 @@ class _TestHistogramnd(unittest.TestCase):
                                             minop=operator.ge,
                                             maxop=operator.le)
 
-        self.assertEqual(result_c[0].sum(), inrange_idx.shape[0])
+        self.assertEqual(result_c[0].sum(), inrange_idx.shape[0],
+                         msg=self.state_msg)
 
         # we have to sum the weights using the same precision as the
         # histogramnd function
         weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
-        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum),
+                        msg=self.state_msg)
 
     def test_last_bin_open(self):
         """
@@ -235,10 +245,11 @@ class _TestHistogramnd(unittest.TestCase):
         # comparing "hits"
         hits_cmp = np.array_equal(result_c[0], result_np[0])
         # comparing weights
-        weights_cmp = np.array_equal(result_c[1], result_np_w[0])
+        weights_cmp = np.array_equal(result_c[1],
+                                     result_np_w[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertTrue(weights_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertTrue(weights_cmp, msg=self.state_msg)
 
         bins_min = [rng[0] for rng in self.bins_rng]
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -248,11 +259,13 @@ class _TestHistogramnd(unittest.TestCase):
                                             minop=operator.ge,
                                             maxop=operator.lt)
 
-        self.assertEqual(result_c[0].sum(), len(inrange_idx))
+        self.assertEqual(result_c[0].sum(), len(inrange_idx),
+                         msg=self.state_msg)
         # we have to sum the weights using the same precision as the
         # histogramnd function
         weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
-        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum),
+                        msg=self.state_msg)
 
     def test_filter_min(self):
         """
@@ -287,8 +300,8 @@ class _TestHistogramnd(unittest.TestCase):
         # comparing weights
         weights_cmp = np.array_equal(result_c[1], result_np_w[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertTrue(weights_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertTrue(weights_cmp, msg=self.state_msg)
 
         bins_min = [rng[0] for rng in self.bins_rng]
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -300,12 +313,14 @@ class _TestHistogramnd(unittest.TestCase):
 
         inrange_idx = weight_idx[inrange_idx]
 
-        self.assertEqual(result_c[0].sum(), len(inrange_idx))
+        self.assertEqual(result_c[0].sum(), len(inrange_idx),
+                         msg=self.state_msg)
 
         # we have to sum the weights using the same precision as the
         # histogramnd function
         weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
-        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum),
+                        msg=self.state_msg)
 
     def test_filter_max(self):
         """
@@ -340,8 +355,8 @@ class _TestHistogramnd(unittest.TestCase):
         # comparing weights
         weights_cmp = np.array_equal(result_c[1], result_np_w[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertTrue(weights_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertTrue(weights_cmp, msg=self.state_msg)
 
         bins_min = [rng[0] for rng in self.bins_rng]
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -353,12 +368,14 @@ class _TestHistogramnd(unittest.TestCase):
 
         inrange_idx = weight_idx[inrange_idx]
 
-        self.assertEqual(result_c[0].sum(), len(inrange_idx))
+        self.assertEqual(result_c[0].sum(), len(inrange_idx),
+                         msg=self.state_msg)
 
         # we have to sum the weights using the same precision as the
         # histogramnd function
         weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
-        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum),
+                        msg=self.state_msg)
 
     def test_filter_minmax(self):
         """
@@ -410,12 +427,14 @@ class _TestHistogramnd(unittest.TestCase):
 
         inrange_idx = weight_idx[inrange_idx]
 
-        self.assertEqual(result_c[0].sum(), len(inrange_idx))
+        self.assertEqual(result_c[0].sum(), len(inrange_idx),
+                         msg=self.state_msg)
 
         # we have to sum the weights using the same precision as the
         # histogramnd function
         weights_sum = self.weights[inrange_idx].astype(result_c[1].dtype).sum()
-        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum))
+        self.assertTrue(self.array_compare(result_c[1].sum(), weights_sum),
+                        msg=self.state_msg)
 
     def test_reuse_histo(self):
         """
@@ -462,8 +481,8 @@ class _TestHistogramnd(unittest.TestCase):
         weights_cmp = np.array_equal(result_c_2[1],
                                      result_np_w_2[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertTrue(weights_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertTrue(weights_cmp, msg=self.state_msg)
 
     def test_reuse_cumul(self):
         """
@@ -507,9 +526,10 @@ class _TestHistogramnd(unittest.TestCase):
                                   result_np_2[0])
         # comparing weights
 
-        self.assertTrue(hits_cmp)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertTrue(self.array_compare(result_c_2[1],
-                                           result_np_w[0] + result_np_w_2[0]))
+                                           result_np_w[0] + result_np_w_2[0]),
+                        msg=self.state_msg)
 
     def test_reuse_cumul_float(self):
         """
@@ -546,8 +566,8 @@ class _TestHistogramnd(unittest.TestCase):
         hits_cmp = np.array_equal(result_c_1[0],
                                   result_np_1[0])
 
-        self.assertTrue(hits_cmp)
-        self.assertEqual(result_c_1[1].dtype, np.float32)
+        self.assertTrue(hits_cmp, msg=self.state_msg)
+        self.assertEqual(result_c_1[1].dtype, np.float32, msg=self.state_msg)
 
         bins_min = [rng[0] for rng in self.bins_rng]
         bins_max = [rng[1] for rng in self.bins_rng]
@@ -556,10 +576,13 @@ class _TestHistogramnd(unittest.TestCase):
                                             bins_max,
                                             minop=operator.ge,
                                             maxop=operator.le)
-        weights_sum = self.weights[inrange_idx].astype(np.float32).sum()
-        self.assertTrue(np.allclose(result_c_1[1].sum(), weights_sum))
-        self.assertTrue(np.allclose(result_c_1[1].sum(),
-                                    result_np_w_1[0].sum()))
+        weights_sum = \
+            self.weights[inrange_idx].astype(np.float32).sum(dtype=np.float64)
+        self.assertTrue(np.allclose(result_c_1[1].sum(dtype=np.float64),
+                        weights_sum), msg=self.state_msg)
+        self.assertTrue(np.allclose(result_c_1[1].sum(dtype=np.float64),
+                                    result_np_w_1[0].sum(dtype=np.float64)),
+                        msg=self.state_msg)
 
 
 class _TestHistogramnd_1d(_TestHistogramnd):
