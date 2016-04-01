@@ -106,7 +106,7 @@ class _PlotAction(qt.QAction):
     @property
     def plot(self):
         """The :class:`PlotWidget` this action group is controlling."""
-        return self._plotRef()  # TODO handle dead PlotWidget?
+        return self._plotRef()
 
 
 class ResetZoomAction(_PlotAction):
@@ -734,47 +734,3 @@ class CopyAction(_PlotAction):
         pngData = _plotAsPNG(self.plot)
         image = qt.QImage.fromData(pngData, 'png')
         qt.QApplication.clipboard().setImage(image)
-
-
-class _PlotActionGroup(qt.QActionGroup):
-    """Base class for QActionGroup to attach to a PlotWindow.
-
-    :param plot: :class:`PlotWidget` instance on which to operate.
-    :param str title: The title to use when creating menus and toolbars.
-    :param parent: See :class:`QActionGroup`.
-    """
-
-    def __init__(self, plot, title, parent=None):
-        super(_PlotActionGroup, self).__init__(parent)
-        assert plot is not None
-        self._plotRef = weakref.ref(plot)
-
-        self.title = title
-        """Title to give to menu and toolbar created from this action group."""
-
-    @property
-    def plot(self):
-        """The :class:`PlotWidget` this action group is controlling."""
-        return self._plotRef()  # TODO handle dead PlotWidget?
-
-    def toolBar(self, parent=None):
-        """Return a QToolBar from the QAction in this group.
-
-        :param parent: See :class:`QToolBar`
-        """
-        toolbar = qt.QToolBar(self.title, parent)
-        for action in self.actions():
-            toolbar.addAction(action)
-        toolbar.actionGroup = self  # Toolbar keeps a reference to actionGroup
-        return toolbar
-
-    def menu(self, parent=None):
-        """Return a QMenu from the QAction in this group.
-
-        :param parent: See :class:`QMenu`
-        """
-        menu = qt.QMenu(self.title, parent)
-        for action in self.actions():
-            menu.addAction(action)
-        menu.actionGroup = self  # Menu keeps a reference to actionGroup
-        return menu
