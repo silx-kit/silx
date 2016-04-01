@@ -118,7 +118,7 @@ class ResetZoomAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
-            plot,  icon='zoomreset', text='Reset Zoom',
+            plot,  icon='zoom-original', text='Reset Zoom',
             tooltip='Auto-Scale the Graph',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -136,7 +136,7 @@ class XAxisAutoScaleAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
-            plot, icon='xauto', text='X Autoscale',
+            plot, icon='plot-xauto', text='X Autoscale',
             tooltip='Enable X Axis Autoscale when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -156,7 +156,7 @@ class YAxisAutoScaleAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
-            plot, icon='yauto', text='Y Autoscale',
+            plot, icon='plot-yauto', text='Y Autoscale',
             tooltip='Enable Y Axis Autoscale when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -176,7 +176,7 @@ class XAxisLogarithmicAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(XAxisLogarithmicAction, self).__init__(
-            plot, icon='logx', text='X Log. scale',
+            plot, icon='plot-xlog', text='X Log. scale',
             tooltip='Logarithmic X Axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -196,7 +196,7 @@ class YAxisLogarithmicAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(YAxisLogarithmicAction, self).__init__(
-            plot, icon='logy', text='Y Log. scale',
+            plot, icon='plot-ylog', text='Y Log. scale',
             tooltip='Logarithmic Y Axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -221,7 +221,7 @@ class GridAction(_PlotAction):
         self._gridMode = gridMode
 
         super(GridAction, self).__init__(
-            plot, icon='grid16', text='Grid',
+            plot, icon='plot-grid', text='Grid',
             tooltip='Toggle grid (On/Off)',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -248,7 +248,7 @@ class CurveStyleAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(CurveStyleAction, self).__init__(
-            plot, icon='togglepoints', text='Curve style',
+            plot, icon='plot-toggle-points', text='Curve style',
             tooltip='Change curve line and markers style',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -352,8 +352,9 @@ class KeepAspectRatioAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         # Icon uses two images for checked/unchecked states
-        icon = icons.getQIcon('solid_ellipse16')
-        icon.addPixmap(icons.getQPixmap('solid_circle16'), state=qt.QIcon.On)
+        icon = icons.getQIcon('shape-ellipse-solid')
+        icon.addPixmap(icons.getQPixmap('shape-circle-solid'),
+                       state=qt.QIcon.On)
         super(KeepAspectRatioAction, self).__init__(
             plot, icon=icon, text='Keep aspect ratio',
             tooltip="""Change keep data aspect ratio:
@@ -375,8 +376,12 @@ class YAxisInvertedAction(_PlotAction):
     """
 
     def __init__(self, plot, parent=None):
+        # Icon uses two images for checked/unchecked states
+        icon = icons.getQIcon('plot-yup')
+        icon.addPixmap(icons.getQPixmap('plot-ydown'),
+                       state=qt.QIcon.On)
         super(YAxisInvertedAction, self).__init__(
-            plot, icon='gioconda16mirror', text='Invert Y Axis',
+            plot, icon=icon, text='Invert Y Axis',
             tooltip="""Change Y Axis orientation:
             - upward when unchecked,
             - downward when checked""",
@@ -426,7 +431,7 @@ class SaveAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
-            plot, icon='filesave', text='Save as...',
+            plot, icon='document-save', text='Save as...',
             tooltip='Save Curve/Image/Plot Snapshot Dialog',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -630,7 +635,7 @@ class PrintAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
-            plot, icon='fileprint', text='Print...',
+            plot, icon='document-print', text='Print...',
             tooltip='Open Print Dialog',
             triggered=self.printPlot,
             checkable=False, parent=parent)
@@ -714,7 +719,6 @@ class CopyAction(_PlotAction):
     :param parent: See :class:`QAction`
     """
 
-    # TODO copy icon
     def __init__(self, plot, parent=None):
         icon = qt.QIcon.fromTheme('edit-copy')
         super(CopyAction, self).__init__(
