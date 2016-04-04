@@ -115,7 +115,7 @@ if BINDING == 'PyQt4':
     Signal = pyqtSignal
 
 elif BINDING == 'PySide':
-    _logger.debug('Using PyQt4 bindings')
+    _logger.debug('Using PySide bindings')
 
     from PySide.QtCore import *  # noqa
     from PySide.QtGui import *  # noqa
@@ -134,15 +134,7 @@ elif BINDING == 'PySide':
         HAS_SVG = True
 
 elif BINDING == 'PyQt5':
-    _logger.debug('Using PyQt4 bindings')
-
-    try:
-        import sip
-
-        sip.setapi("QString", 2)
-        sip.setapi("QVariant", 2)
-    except:
-        _logger.warning("Cannot set sip API")
+    _logger.debug('Using PyQt5 bindings')
 
     from PyQt5.QtCore import *  # noqa
     from PyQt5.QtGui import *  # noqa
