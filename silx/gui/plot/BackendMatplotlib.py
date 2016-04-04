@@ -216,22 +216,22 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return Container(artists)
 
     def addImage(self, data, legend,
-                 xScale, yScale, z,
+                 origin, scale, z,
                  selectable, draggable,
                  colormap):
         # Non-uniform image
         # http://wiki.scipy.org/Cookbook/Histograms
         # Non-linear axes
         # http://stackoverflow.com/questions/11488800/non-linear-axes-for-imshow-in-matplotlib
-        for parameter in (data, legend, xScale, yScale, z,
+        for parameter in (data, legend, origin, scale, z,
                           selectable, draggable):
             assert parameter is not None
 
         h, w = data.shape[0:2]
-        xmin = xScale[0]
-        xmax = xmin + xScale[1] * w
-        ymin = yScale[0]
-        ymax = ymin + yScale[1] * h
+        xmin = origin[0]
+        xmax = xmin + scale[0] * w
+        ymin = origin[1]
+        ymax = ymin + scale[1] * h
         extent = (xmin, xmax, ymax, ymin)
 
         picker = (selectable or draggable)
@@ -249,7 +249,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             # extend = (xmin, xmax, ymax, ymin)
             # instead of (xmin, xmax, ymin, ymax)
             extent = (xmin, xmax, ymin, ymax)
-            if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
+            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
                 # for the time being not properly handled
                 imageClass = AxesImage
             elif (data.shape[0] * data.shape[1]) > 5.0e5:
@@ -312,7 +312,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 norm = Normalize(vmin, vmax)
 
             # try as data
-            if tuple(xScale) != (0., 1.) or tuple(yScale) != (0., 1.):
+            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
                 # for the time being not properly handled
                 imageClass = AxesImage
             elif (data.shape[0] * data.shape[1]) > 5.0e5:
@@ -336,8 +336,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
             image.set_data(data)
 
         self.ax.add_artist(image)
-
-        image._plot_info = {'xScale': xScale, 'yScale': yScale}
 
         return image
 

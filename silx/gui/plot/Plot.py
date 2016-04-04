@@ -541,7 +541,9 @@ class Plot(object):
                  xScale=None, yScale=None, z=None,
                  selectable=False, draggable=False,
                  colormap=None, pixmap=None,
-                 xlabel=None, ylabel=None, resetZoom=True, **kw):
+                 xlabel=None, ylabel=None,
+                 origin=None, scale=None,
+                 resetZoom=True, **kw):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -560,12 +562,6 @@ class Plot(object):
         :param str legend: The legend to be associated to the image (or None)
         :param info: User-defined information associated to the image
         :param bool replace: True (default) to delete already existing images
-        :param xscale: (origin, scale) of the data on the X axis
-                       Default: (0., 1.)
-        :type xscale: 2-tuple of float
-        :param yscale: (origin, scale) of the data on the Y axis.
-                       Default: (0., 1.)
-        :type yscale: 2-tuple of float
         :param int z: Layer on which to draw the image (default: 0)
                       This allows to control the overlay.
         :param bool selectable: Indicate if the image can be selected.
@@ -580,10 +576,29 @@ class Plot(object):
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
         :param str xlabel: X axis label to show when this curve is active.
         :param str ylabel: Y axis label to show when this curve is active.
+        :param origin: (origin X, origin Y) of the data.
+                       Default: (0., 0.)
+        :type origin: 2-tuple of float
+        :param scale: (scale X, scale Y) of the data.
+                       Default: (1., 1.)
+        :type scale: 2-tuple of float
         :param bool resetZoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
         # Take care of input parameters: check/conversion, default value
+
+        if xScale is not None or yScale is not None:
+            _logger.warning(
+                'addCurve deprecated xScale and yScale arguments,'
+                'use origin, scale arguments instead.')
+            if origin is None and scale is None:
+                origin = xScale[0], yScale[0]
+                scale = xScale[1], yScale[1]
+            else:
+                _logger.warning(
+                    'addCurve: xScale, yScale and origin, scale arguments'
+                    ' are conflicting. xScale and yScale are ignored.'
+                    ' Use only origin, scale arguments.')
 
         if replot is not None:
             _logger.warning(
@@ -598,11 +613,11 @@ class Plot(object):
         # Check/Convert input arguments
         data = numpy.asarray(data)
 
-        if xScale is not None:
-            xScale = float(xScale[0]), float(xScale[1])
+        if origin is not None:
+            origin = float(origin[0]), float(origin[1])
 
-        if yScale is not None:
-            yScale = float(yScale[0]), float(yScale[1])
+        if scale is not None:
+            scale = float(scale[0]), float(scale[1])
 
         if z is not None:
             z = int(z)
@@ -624,7 +639,7 @@ class Plot(object):
 
         # Store all params with defaults in a dict to treat them at once
         params = {
-            'info': info, 'xScale': xScale, 'yScale': yScale, 'z': z,
+            'info': info, 'origin': origin, 'scale': scale, 'z': z,
             'selectable': selectable, 'draggable': draggable,
             'colormap': colormap,
             'xlabel': xlabel, 'ylabel': ylabel
@@ -637,7 +652,7 @@ class Plot(object):
 
         else:  # If no existing curve use default values
             defaults = {
-                'info': None, 'xScale': (0., 1.), 'yScale': (0., 1.), 'z': 0,
+                'info': None, 'origin': (0., 0.), 'scale': (1., 1.), 'z': 0,
                 'selectable': False, 'draggable': False,
                 'colormap': self.getDefaultColormap(),
                 'xlabel': 'Column', 'ylabel': 'Row'
@@ -666,8 +681,8 @@ class Plot(object):
                 dataToSend = data
 
             handle = self._backend.addImage(dataToSend, legend=legend,
-                                            xScale=params['xScale'],
-                                            yScale=params['yScale'],
+                                            origin=params['origin'],
+                                            scale=params['scale'],
                                             z=params['z'],
                                             selectable=params['selectable'],
                                             draggable=params['draggable'],

@@ -98,7 +98,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(0.0, 1.0), yScale=(0.0, 1.0),
+                           origin=(0., 0.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -111,7 +111,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(0.0, 1.0), yScale=(0.0, 1.0),
+                           origin=(0., 0.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -123,7 +123,7 @@ class TestPlotImage(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(0.0, 1.0), yScale=(0.0, 1.0),
+                           origin=(0., 0.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -138,7 +138,7 @@ class TestPlotImage(_PlotWidgetTest):
             dtype=numpy.uint8)
 
         self.plot.addImage(rgb, legend="rgb",
-                           xScale=(0, 10), yScale=(0, 10),
+                           origin=(0, 0), scale=(10, 10),
                            replace=False, resetZoom=False)
 
         rgba = numpy.array(
@@ -147,7 +147,7 @@ class TestPlotImage(_PlotWidgetTest):
             dtype=numpy.float32)
 
         self.plot.addImage(rgba, legend="rgba",
-                           xScale=(5, 10), yScale=(5, 10),
+                           origin=(5, 5), scale=(10, 10),
                            replace=False, resetZoom=False)
 
         self.plot.resetZoom()
@@ -455,7 +455,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(1.0, 1.0), yScale=(1.0, 1.0),
+                           origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -468,7 +468,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(1.0, 1.0), yScale=(1.0, 1.0),
+                           origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -482,7 +482,7 @@ class TestPlotImageLog(_PlotWidgetTest):
                     'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
                     'colors': 256}
         self.plot.addImage(DATA_2D, legend="image 1",
-                           xScale=(1.0, 1.0), yScale=(1.0, 1.0),
+                           origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetZoom=False, colormap=colormap)
         self.plot.resetZoom()
         self.qWait()
@@ -498,7 +498,7 @@ class TestPlotImageLog(_PlotWidgetTest):
             dtype=numpy.uint8)
 
         self.plot.addImage(rgb, legend="rgb",
-                           xScale=(1, 10), yScale=(1, 10),
+                           origin=(1, 1), scale=(10, 10),
                            replace=False, resetZoom=False)
 
         rgba = numpy.array(
@@ -507,7 +507,7 @@ class TestPlotImageLog(_PlotWidgetTest):
             dtype=numpy.float32)
 
         self.plot.addImage(rgba, legend="rgba",
-                           xScale=(5, 10), yScale=(5, 10),
+                           origin=(5., 5.), scale=(10., 10.),
                            replace=False, resetZoom=False)
         self.plot.resetZoom()
         self.qWait()

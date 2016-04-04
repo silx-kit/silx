@@ -125,7 +125,7 @@ class BackendBase(object):
         return legend
 
     def addImage(self, data, legend,
-                 xScale, yScale, z,
+                 origin, scale, z,
                  selectable, draggable,
                  colormap):
         """Add an image to the plot.
@@ -133,10 +133,12 @@ class BackendBase(object):
         :param numpy.ndarray data: (nrows, ncolumns) data or
                      (nrows, ncolumns, RGBA) ubyte array
         :param str legend: The legend to be associated to the image
-        :param xScale: (origin, scale) of the data on the X axis
-        :type xScale: 2-tuple of float
-        :param yScale: (origin, scale) of the data on the Y axis
-        :type yScale: 2-tuple of float
+        :param origin: (origin X, origin Y) of the data.
+                       Default: (0., 0.)
+        :type origin: 2-tuple of float
+        :param scale: (scale X, scale Y) of the data.
+                       Default: (1., 1.)
+        :type scale: 2-tuple of float
         :param int z: Layer on which to draw the image
         :param bool selectable: indicate if the image can be selected
         :param bool draggable: indicate if the image can be moved
