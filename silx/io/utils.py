@@ -23,7 +23,6 @@
 #############################################################################*/
 """ I/O utility functions"""
 
-from collections import defaultdict
 import h5py
 import numpy
 import os.path
@@ -125,25 +124,6 @@ def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
             # prepend a labels line to the header
             labels = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
             header = labels + "\n" + header
-
-    # If we decide to set fmt=None as default
-    # if fmt is None:
-    #     fmt = []
-    #     if hasattr(x, "dtype"):
-    #         if x.dtype.kind in ["i", "u"]:
-    #             fmt.append("%d")
-    #         elif x.dtype.kind == "f":
-    #             fmt.append("%.18e")  # TODO: check float32 ou 64
-    #         elif x.dtype.kind in ["S", "U"]:
-    #             fmt.append("%s")
-    #     elif isinstance(x[0], (int, long)):
-    #         fmt.append("%d")
-    #     elif isinstance(x[0], float):
-    #         fmt.append("%.18e")  # TODO?: check float32 ou 64
-    #     elif isinstance(x[0], string_types):
-    #         fmt.append("%s")  # TODO: check float32 ou 64
-    #
-    #     # TODO: same for each column in y
 
     if filetype.lower() == "spec":
         # Spec format
