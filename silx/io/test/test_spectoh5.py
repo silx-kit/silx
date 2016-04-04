@@ -36,7 +36,7 @@ from ..spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "04/04/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -115,7 +115,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         os.unlink(self.h5_fname)
         gc.collect()
 
-    def test_append_to_HDF5(self):
+    def testAppendToHDF5(self):
         write_spec_to_h5(self.sfh5, self.h5f,
                          h5path="/foo/bar/spam",
                          create_dataset_args={"compression": "gzip"})
@@ -128,7 +128,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
             "gzip"
         )
 
-    def test_HDF5_has_same_members(self):
+    def testHdf5HasSameMembers(self):
         spec_member_list = []
 
         def append_spec_members(name):
@@ -151,7 +151,7 @@ class TestConvertSpecHDF5(unittest.TestCase):
         self.assertEqual(set(hdf5_member_list),
                          set(spec_member_list))
 
-    def test_links(self):
+    def testLinks(self):
         self.assertTrue(
             array_equal(self.sfh5["/1.2/measurement/mca_0/data"],
                         self.h5f["/1.2/measurement/mca_0/data"])

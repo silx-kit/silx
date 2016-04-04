@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "04/04/2016"
 
 import h5py
 import os
@@ -73,7 +73,7 @@ class TestH5Ls(unittest.TestCase):
         raise AssertionError("regex pattern %s does not match any" % pattern +
                              " string in list " + str(list_of_strings))
 
-    def test_repr(self):
+    def testRepr(self):
         rep = h5ls(self.h5_fname)
         lines = rep.split("\n")
 
