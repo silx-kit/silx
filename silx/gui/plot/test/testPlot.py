@@ -61,7 +61,7 @@ class TestPlot(unittest.TestCase):
         plot.addImage(numpy.arange(100.).reshape(10, -1))
         plot.addItem(
             numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
-        plot.insertXMarker(10.)
+        plot.addXMarker(10.)
 
 
 def suite():

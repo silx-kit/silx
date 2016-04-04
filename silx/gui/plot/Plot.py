@@ -589,7 +589,7 @@ class Plot(object):
 
         if xScale is not None or yScale is not None:
             _logger.warning(
-                'addCurve deprecated xScale and yScale arguments,'
+                'addImage deprecated xScale and yScale arguments,'
                 'use origin, scale arguments instead.')
             if origin is None and scale is None:
                 origin = xScale[0], yScale[0]
@@ -602,7 +602,7 @@ class Plot(object):
 
         if replot is not None:
             _logger.warning(
-                'addCurve deprecated replot argument, use resetZoom instead')
+                'addImage deprecated replot argument, use resetZoom instead')
             resetZoom = replot and resetZoom
 
         if kw:
@@ -756,18 +756,18 @@ class Plot(object):
 
         return legend
 
-    def insertXMarker(self, x, legend=None,
-                      text=None,
-                      color=None,
-                      selectable=False,
-                      draggable=False,
-                      constraint=None,
-                      **kw):
+    def addXMarker(self, x, legend=None,
+                   text=None,
+                   color=None,
+                   selectable=False,
+                   draggable=False,
+                   constraint=None,
+                   **kw):
         """Add a vertical line marker to the plot.
 
         Markers are uniquely identified by their legend.
         As opposed to curves, images and items, two calls to
-        :meth:`insertXMarker` without legend argument adds two markers with
+        :meth:`addXMarker` without legend argument adds two markers with
         different identifying legends.
 
         :param float x: Position of the marker on the X axis in data
@@ -792,26 +792,26 @@ class Plot(object):
         """
         if kw:
             _logger.warning(
-                'insertXMarker deprecated extra parameters: %s', str(kw))
+                'addXMarker deprecated extra parameters: %s', str(kw))
 
         return self._addMarker(x=x, y=None, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
                                symbol=None, constraint=constraint)
 
-    def insertYMarker(self, y,
-                      legend=None,
-                      text=None,
-                      color=None,
-                      selectable=False,
-                      draggable=False,
-                      constraint=None,
-                      **kw):
+    def addYMarker(self, y,
+                   legend=None,
+                   text=None,
+                   color=None,
+                   selectable=False,
+                   draggable=False,
+                   constraint=None,
+                   **kw):
         """Add a horizontal line marker to the plot.
 
         Markers are uniquely identified by their legend.
         As opposed to curves, images and items, two calls to
-        :meth:`insertYMarker` without legend argument adds two markers with
+        :meth:`addYMarker` without legend argument adds two markers with
         different identifying legends.
 
         :param float y: Position of the marker on the Y axis in data
@@ -836,26 +836,26 @@ class Plot(object):
         """
         if kw:
             _logger.warning(
-                'insertYMarker deprecated extra parameters: %s', str(kw))
+                'addYMarker deprecated extra parameters: %s', str(kw))
 
         return self._addMarker(x=None, y=y, legend=legend,
                                text=text, color=color,
                                selectable=selectable, draggable=draggable,
                                symbol=None, constraint=constraint)
 
-    def insertMarker(self, x, y, legend=None,
-                     text=None,
-                     color=None,
-                     selectable=False,
-                     draggable=False,
-                     symbol='+',
-                     constraint=None,
-                     **kw):
+    def addMarker(self, x, y, legend=None,
+                  text=None,
+                  color=None,
+                  selectable=False,
+                  draggable=False,
+                  symbol='+',
+                  constraint=None,
+                  **kw):
         """Add a point marker to the plot.
 
         Markers are uniquely identified by their legend.
         As opposed to curves, images and items, two calls to
-        :meth:`insertMarker` without legend argument adds two markers with
+        :meth:`addMarker` without legend argument adds two markers with
         different identifying legends.
 
         :param float x: Position of the marker on the X axis in data
@@ -892,7 +892,7 @@ class Plot(object):
         """
         if kw:
             _logger.warning(
-                'insertMarker deprecated extra parameters: %s', str(kw))
+                'addMarker deprecated extra parameters: %s', str(kw))
 
         if x is None:
             xmin, xmax = self.getGraphXLimits()
@@ -913,7 +913,7 @@ class Plot(object):
                    symbol, constraint):
         """Common method for adding point, vline and hline marker.
 
-        See :meth:`insertMarker` for argument documentation.
+        See :meth:`addMarker` for argument documentation.
         """
         if legend is None:
             i = 0
@@ -2377,15 +2377,21 @@ class Plot(object):
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
         self._eventHandler.zoomOnWheel = zoomOnWheel
 
+    # Deprecated #
+
     def isDrawModeEnabled(self):
-        """Return True if the current interactive state is drawing."""
+        """Deprecated, use :meth:`getInteractiveMode` instead.
+
+        Return True if the current interactive state is drawing."""
         _logger.warning(
             'isDrawModeEnabled deprecated, use getInteractiveMode instead')
         return self.getInteractiveMode()['mode'] == 'draw'
 
     def setDrawModeEnabled(self, flag=True, shape='polygon', label=None,
                            color=None, **kwargs):
-        """Set the drawing mode if flag is True and its parameters.
+        """Deprecated, use :meth:`setInteractiveMode` instead.
+
+        Set the drawing mode if flag is True and its parameters.
 
         If flag is False, only item selection is enabled.
 
@@ -2416,7 +2422,9 @@ class Plot(object):
             self.setInteractiveMode('select')
 
     def getDrawMode(self):
-        """Return the draw mode parameters as a dict of None.
+        """Deprecated, use :meth:`getInteractiveMode` instead.
+
+        Return the draw mode parameters as a dict of None.
 
         It returns None if the interactive moed is not a drawing mode,
         otherwise, it returns a dict containing the drawing mode parameters
@@ -2428,13 +2436,17 @@ class Plot(object):
         return mode if mode['mode'] == 'draw' else None
 
     def isZoomModeEnabled(self):
-        """Return True if the current interactive state is zooming."""
+        """Deprecated, use :meth:`getInteractiveMode` instead.
+
+        Return True if the current interactive state is zooming."""
         _logger.warning(
             'isZoomModeEnabled deprecated, use getInteractiveMode instead')
         return self.getInteractiveMode()['mode'] == 'zoom'
 
     def setZoomModeEnabled(self, flag=True, color=None):
-        """Set the zoom mode if flag is True, else item selection is enabled.
+        """Deprecated, use :meth:`setInteractiveMode` instead.
+
+        Set the zoom mode if flag is True, else item selection is enabled.
 
         Warning: Zoom and drawing are not compatible and cannot be enabled
         simultanelously
@@ -2455,3 +2467,21 @@ class Plot(object):
             self.setInteractiveMode('zoom', color=color)
         elif self.getInteractiveMode()['mode'] == 'zoom':
             self.setInteractiveMode('select')
+
+    def insertMarker(self, *args, **kwargs):
+        """Deprecated, use :meth:`addMarker` instead."""
+        _logger.warning(
+                'insertMarker deprecated, use addMarker instead.')
+        self.addMarker(*args, **kwargs)
+
+    def insertXMarker(self, *args, **kwargs):
+        """Deprecated, use :meth:`addXMarker` instead."""
+        _logger.warning(
+                'insertXMarker deprecated, use addXMarker instead.')
+        self.addXMarker(*args, **kwargs)
+
+    def insertYMarker(self, *args, **kwargs):
+        """Deprecated, use :meth:`addYMarker` instead."""
+        _logger.warning(
+                'insertYMarker deprecated, use addYMarker instead.')
+        self.addYMarker(*args, **kwargs)

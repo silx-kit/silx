@@ -257,14 +257,14 @@ class ColormapDialog(qt.QDialog):
 
         draggable = not self._rangeAutoscaleButton.isChecked()
 
-        self._plot.insertXMarker(
+        self._plot.addXMarker(
             self._startValue.value(),
             legend='Start',
             text='Start',
             draggable=draggable,
             color='blue')
         # constraint=lambda x, y: (max(x, minmd), y))
-        self._plot.insertXMarker(
+        self._plot.addXMarker(
             self._endValue.value(),
             legend='End',
             text='End',

@@ -91,9 +91,9 @@ Images
 Markers
 .......
 
-.. automethod:: PlotWidget.insertMarker
-.. automethod:: PlotWidget.insertXMarker
-.. automethod:: PlotWidget.insertYMarker
+.. automethod:: PlotWidget.addMarker
+.. automethod:: PlotWidget.addXMarker
+.. automethod:: PlotWidget.addYMarker
 .. automethod:: PlotWidget.removeMarker
 .. automethod:: PlotWidget.clearMarkers
 

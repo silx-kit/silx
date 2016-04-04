@@ -216,7 +216,7 @@ class TestPlotCurve(_PlotWidgetTest):
 
 
 class TestPlotMarker(_PlotWidgetTest):
-    """Basic tests for insert*Marker"""
+    """Basic tests for add*Marker"""
 
     def setUp(self):
         super(TestPlotMarker, self).setUp()
@@ -245,7 +245,7 @@ class TestPlotMarker(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertXMarker(x, name, name, color, select, drag)
+            self.plot.addXMarker(x, name, name, color, select, drag)
         self.plot.resetZoom()
         self.qWait()
 
@@ -266,7 +266,7 @@ class TestPlotMarker(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertYMarker(y, name, name, color, select, drag)
+            self.plot.addYMarker(y, name, name, color, select, drag)
         self.plot.resetZoom()
         self.qWait()
 
@@ -286,7 +286,7 @@ class TestPlotMarker(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertMarker(x, y, name, name, color, select, drag)
+            self.plot.addMarker(x, y, name, name, color, select, drag)
 
         self.plot.resetZoom()
         self.qWait()
@@ -546,7 +546,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertXMarker(x, name, name, color, select, drag)
+            self.plot.addXMarker(x, name, name, color, select, drag)
         self.plot.resetZoom()
         self.qWait()
 
@@ -559,7 +559,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertYMarker(y, name, name, color, select, drag)
+            self.plot.addYMarker(y, name, name, color, select, drag)
         self.plot.resetZoom()
         self.qWait()
 
@@ -572,7 +572,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " sel."
             if drag:
                 name += " drag"
-            self.plot.insertMarker(x, y, name, name, color, select, drag)
+            self.plot.addMarker(x, y, name, name, color, select, drag)
         self.plot.resetZoom()
         self.qWait()
 
