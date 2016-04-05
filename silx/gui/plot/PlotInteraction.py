@@ -932,10 +932,10 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     assert dataPos is not None
 
                     # Get corresponding coordinate in image
-                    column = int((dataPos[0] - image['xScale'][0]) /
-                                 float(image['xScale'][1]))
-                    row = int((dataPos[1] - image['yScale'][0]) /
-                              float(image['yScale'][1]))
+                    column = int((dataPos[0] - image['origin'][0]) /
+                                 float(image['scale'][0]))
+                    row = int((dataPos[1] - image['origin'][1]) /
+                              float(image['scale'][1]))
 
                     eventDict = prepareImageSignal('left',
                                                    image['legend'],

@@ -2248,8 +2248,7 @@ class Plot(object):
         # TODO: poor implementation, better to do move image in backend...
         image = self._images[legend]
         params = image['params'].copy()
-        params['xScale'] = params['xScale'][0] + dx, params['xScale'][1]
-        params['yScale'] = params['yScale'][0] + dy, params['yScale'][1]
+        params['origin'] = params['origin'][0] + dx, params['origin'][1] + dy
         self.addImage(image['data'], legend,
                       replace=False, resetzoom=False,
                       pixmap=image['pixmap'], **params)
