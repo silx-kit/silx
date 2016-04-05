@@ -104,7 +104,7 @@ class TestPlotImage(_PlotWidgetTest):
         self.qWait()
 
     def testPlotColormapGray(self):
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setGraphTitle('Gray Linear')
 
         colormap = {'name': 'gray', 'normalization': 'linear',
@@ -129,7 +129,7 @@ class TestPlotImage(_PlotWidgetTest):
         self.qWait()
 
     def testPlotRgbRgba(self):
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setGraphTitle('RGB + RGBA')
 
         rgb = numpy.array(
@@ -225,7 +225,7 @@ class TestPlotMarker(_PlotWidgetTest):
 
         self.plot.setXAxisAutoScale(False)
         self.plot.setYAxisAutoScale(False)
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setLimits(0., 100., -100., 100.)
 
     def testPlotMarkerX(self):
@@ -328,7 +328,7 @@ class TestPlotItem(_PlotWidgetTest):
         self.plot.setGraphXLabel('Columns')
         self.plot.setXAxisAutoScale(False)
         self.plot.setYAxisAutoScale(False)
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setLimits(0., 100., -100., 100.)
 
     def testPlotItemPolygonFill(self):
@@ -532,7 +532,7 @@ class TestPlotMarkerLog(_PlotWidgetTest):
         self.plot.setGraphXLabel('Columns')
         self.plot.setXAxisAutoScale(False)
         self.plot.setYAxisAutoScale(False)
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setLimits(1., 100., 1., 1000.)
         self.plot.setXAxisLogarithmic(True)
         self.plot.setYAxisLogarithmic(True)
@@ -611,7 +611,7 @@ class TestPlotItemLog(_PlotWidgetTest):
         self.plot.setGraphXLabel('Columns')
         self.plot.setXAxisAutoScale(False)
         self.plot.setYAxisAutoScale(False)
-        self.plot.keepDataAspectRatio(False)
+        self.plot.setKeepDataAspectRatio(False)
         self.plot.setLimits(1., 100., 1., 100.)
         self.plot.setXAxisLogarithmic(True)
         self.plot.setYAxisLogarithmic(True)

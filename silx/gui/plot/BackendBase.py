@@ -426,7 +426,7 @@ class BackendBase(object):
         """Returns whether the plot is keeping data aspect ratio or not."""
         return self.__keepDataAspectRatio
 
-    def keepDataAspectRatio(self, flag):
+    def setKeepDataAspectRatio(self, flag):
         """Set whether to keep data aspect ratio or not.
 
         :param flag:  True to respect data aspect ratio

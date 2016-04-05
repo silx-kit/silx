@@ -1701,13 +1701,13 @@ class Plot(object):
         """Returns whether the plot is keeping data aspect ratio or not."""
         return self._backend.isKeepDataAspectRatio()
 
-    def keepDataAspectRatio(self, flag=True):
+    def setKeepDataAspectRatio(self, flag=True):
         """Set whether the plot keeps data aspect ratio or not.
 
         :param bool flag: True to respect data aspect ratio
         """
         flag = bool(flag)
-        self._backend.keepDataAspectRatio(flag=flag)
+        self._backend.setKeepDataAspectRatio(flag=flag)
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setKeepDataAspectRatio', state=flag)
@@ -2457,19 +2457,19 @@ class Plot(object):
         """Deprecated, use :meth:`addMarker` instead."""
         _logger.warning(
                 'insertMarker deprecated, use addMarker instead.')
-        self.addMarker(*args, **kwargs)
+        return self.addMarker(*args, **kwargs)
 
     def insertXMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addXMarker` instead."""
         _logger.warning(
                 'insertXMarker deprecated, use addXMarker instead.')
-        self.addXMarker(*args, **kwargs)
+        return self.addXMarker(*args, **kwargs)
 
     def insertYMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addYMarker` instead."""
         _logger.warning(
                 'insertYMarker deprecated, use addYMarker instead.')
-        self.addYMarker(*args, **kwargs)
+        return self.addYMarker(*args, **kwargs)
 
     def isActiveCurveHandlingEnabled(self):
         """Deprecated, use :meth:`isActiveCurveHandling` instead."""
@@ -2500,4 +2500,10 @@ class Plot(object):
             flag = 'major'
         else:
             flag = 'both'
-        self.setGraphGrid(flag)
+        return self.setGraphGrid(flag)
+
+    def keepDataAspectRatio(self, *args, **kwargs):
+        """Deprecated, use :meth:`setKeepDataAspectRatio`."""
+        _logger.warning('keepDataAspectRatio deprecated,'
+                        'use setKeepDataAspectRatio instead')
+        return self.setKeepDataAspectRatio(*args, **kwargs)

@@ -813,7 +813,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def isKeepDataAspectRatio(self):
         return self.ax.get_aspect() in (1.0, 'equal')
 
-    def keepDataAspectRatio(self, flag):
+    def setKeepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else 'auto')
 
     def setGraphGrid(self, which):

@@ -129,7 +129,7 @@ Axes
 .. automethod:: PlotWidget.isYAxisInverted
 .. automethod:: PlotWidget.setYAxisInverted
 .. automethod:: PlotWidget.isKeepDataAspectRatio
-.. automethod:: PlotWidget.keepDataAspectRatio
+.. automethod:: PlotWidget.setKeepDataAspectRatio
 .. automethod:: PlotWidget.getGraphGrid
 .. automethod:: PlotWidget.setGraphGrid
 
