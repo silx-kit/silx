@@ -1737,21 +1737,6 @@ class Plot(object):
         self._setDirtyPlot()
         self.notify('setGraphGrid', which=str(which))
 
-    def showGrid(self, flag=True):
-        """Set the plot grid display.
-
-        :param flag: False to disable grid, 1 or True for major grid,
-                     2 for major and minor grid
-        """
-        _logger.warning("showGrid deprecated, use setGraphGrid instead")
-        if flag in (0, False):
-            flag = None
-        elif flag in (1, True):
-            flag = 'major'
-        else:
-            flag = 'both'
-        self.setGraphGrid(flag)
-
     # Defaults
 
     def isDefaultPlotPoints(self):
@@ -2505,3 +2490,14 @@ class Plot(object):
         _logger.warning('invertYAxis deprecated, '
                         'use setYAxisInverted instead.')
         return self.setYAxisInverted(*args, **kwargs)
+
+    def showGrid(self, flag=True):
+        """Deprecated, use :meth:`setGraphGrid` instead."""
+        _logger.warning("showGrid deprecated, use setGraphGrid instead")
+        if flag in (0, False):
+            flag = None
+        elif flag in (1, True):
+            flag = 'major'
+        else:
+            flag = 'both'
+        self.setGraphGrid(flag)
