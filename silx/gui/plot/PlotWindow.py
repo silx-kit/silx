@@ -63,7 +63,7 @@ class PlotWindow(PlotWidget):
     :param backend: The backend to use for the plot.
                     The default is to use matplotlib.
     :type backend: str or :class:`BackendBase.BackendBase`
-    :param bool resetZoom: Toggle visibility of reset zoom action.
+    :param bool resetzoom: Toggle visibility of reset zoom action.
     :param bool autoScale: Toggle visibility of axes autoscale actions.
     :param bool logScale: Toggle visibility of axes log scale actions.
     :param bool grid: Toggle visibility of grid mode action.
@@ -78,7 +78,7 @@ class PlotWindow(PlotWidget):
     """
 
     def __init__(self, parent=None, backend=None,
-                 resetZoom=True, autoScale=True, logScale=True, grid=True,
+                 resetzoom=True, autoScale=True, logScale=True, grid=True,
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
@@ -91,7 +91,7 @@ class PlotWindow(PlotWidget):
         self.group.setExclusive(False)
 
         self.resetZoomAction = self.group.addAction(ResetZoomAction(self))
-        self.resetZoomAction.setVisible(resetZoom)
+        self.resetZoomAction.setVisible(resetzoom)
 
         self.xAxisAutoScaleAction = self.group.addAction(
             XAxisAutoScaleAction(self))

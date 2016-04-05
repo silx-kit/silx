@@ -349,7 +349,7 @@ class Plot(object):
                  color=None, symbol=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, resetZoom=True, **kw):
+                 fill=None, resetzoom=True, **kw):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -408,15 +408,15 @@ class Plot(object):
         :param bool selectable: Indicate if the curve can be selected.
                                 (Default: True)
         :param bool fill: True to fill the curve, False otherwise (default).
-        :param bool resetZoom: True (the default) to reset the zoom.
+        :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this curve
         """
         # Take care of input parameters: check/conversion, default value
 
         if replot is not None:
             _logger.warning(
-                'addCurve deprecated replot argument, use resetZoom instead')
-            resetZoom = replot and resetZoom
+                'addCurve deprecated replot argument, use resetzoom instead')
+            resetzoom = replot and resetzoom
 
         if kw:
             _logger.warning('addCurve: deprecated extra arguments')
@@ -528,7 +528,7 @@ class Plot(object):
         if len(self._curves) == 1:
             self.setActiveCurve(legend)
 
-        if resetZoom:
+        if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
@@ -543,7 +543,7 @@ class Plot(object):
                  colormap=None, pixmap=None,
                  xlabel=None, ylabel=None,
                  origin=None, scale=None,
-                 resetZoom=True, **kw):
+                 resetzoom=True, **kw):
         """Add a 2D dataset or an image to the plot.
 
         It displays either an array of data using a colormap or a RGB(A) image.
@@ -582,7 +582,7 @@ class Plot(object):
         :param scale: (scale X, scale Y) of the data.
                        Default: (1., 1.)
         :type scale: 2-tuple of float
-        :param bool resetZoom: True (the default) to reset the zoom.
+        :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
         # Take care of input parameters: check/conversion, default value
@@ -602,8 +602,8 @@ class Plot(object):
 
         if replot is not None:
             _logger.warning(
-                'addImage deprecated replot argument, use resetZoom instead')
-            resetZoom = replot and resetZoom
+                'addImage deprecated replot argument, use resetzoom instead')
+            resetzoom = replot and resetzoom
 
         if kw:
             _logger.warning('addImage: deprecated extra arguments')
@@ -701,7 +701,7 @@ class Plot(object):
         if len(self._images) == 1:
             self.setActiveImage(legend)
 
-        if resetZoom:
+        if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
@@ -998,7 +998,7 @@ class Plot(object):
         else:
             self._hiddenCurves.discard(legend)
             curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, resetZoom=False,
+            self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
                           **curve['params'])
 
         self._setDirtyPlot()
@@ -2055,7 +2055,7 @@ class Plot(object):
         curves = list(self._curves)
         for legend in curves:
             curve = self._curves[legend]
-            self.addCurve(curve['x'], curve['y'], legend, resetZoom=False,
+            self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
                           **curve['params'])
 
         if len(curves):
@@ -2251,7 +2251,7 @@ class Plot(object):
         params['xScale'] = params['xScale'][0] + dx, params['xScale'][1]
         params['yScale'] = params['yScale'][0] + dy, params['yScale'][1]
         self.addImage(image['data'], legend,
-                      replace=False, resetZoom=False,
+                      replace=False, resetzoom=False,
                       pixmap=image['pixmap'], **params)
 
     # User event handling #

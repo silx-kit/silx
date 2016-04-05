@@ -253,7 +253,7 @@ class ColormapDialog(qt.QDialog):
                             color='black',
                             symbol='o',
                             linestyle='-',
-                            resetZoom=False)
+                            resetzoom=False)
 
         draggable = not self._rangeAutoscaleButton.isChecked()
 

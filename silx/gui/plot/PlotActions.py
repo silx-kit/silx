@@ -340,7 +340,7 @@ class ColormapAction(_PlotAction):
             self.plot.addImage(image[0],
                                legend=image[1],
                                replace=False,
-                               resetZoom=False,
+                               resetzoom=False,
                                **params)
 
 
