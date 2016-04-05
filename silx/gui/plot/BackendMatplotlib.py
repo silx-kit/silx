@@ -803,7 +803,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_yscale('log' if flag else 'linear')
         self.ax.set_yscale('log' if flag else 'linear')
 
-    def invertYAxis(self, flag):
+    def setYAxisInverted(self, flag):
         if self.ax.yaxis_inverted() != bool(flag):
             self.ax.invert_yaxis()
 

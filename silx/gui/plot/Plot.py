@@ -1206,11 +1206,11 @@ class Plot(object):
 
     # Active Curve/Image
 
-    def isActiveCurveHandlingEnabled(self):
+    def isActiveCurveHandling(self):
         """Returns True if active curve selection is enabled."""
         return self._activeCurveHandling
 
-    def enableActiveCurveHandling(self, flag=True):
+    def setActiveCurveHandling(self, flag=True):
         """Enable/Disable active curve selection.
 
         :param bool flag: True (the default) to enable active curve selection.
@@ -1252,7 +1252,7 @@ class Plot(object):
         :return: legend of the active curve or [x, y, legend, info, params]
         :rtype: str or list
         """
-        if not self.isActiveCurveHandlingEnabled():
+        if not self.isActiveCurveHandling():
             return None
 
         if self._activeCurve not in self._curves:
@@ -1277,7 +1277,7 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveCurve deprecated replot parameter')
 
-        if not self.isActiveCurveHandlingEnabled():
+        if not self.isActiveCurveHandling():
             return
 
         xLabel = self._xLabel
@@ -1570,14 +1570,14 @@ class Plot(object):
 
     # Axes
 
-    def invertYAxis(self, flag=True):
+    def setYAxisInverted(self, flag=True):
         """Set the Y axis orientation.
 
         :param bool flag: True for Y axis going from top to bottom,
                           False for Y axis going from bottom to top
         """
         flag = bool(flag)
-        self._backend.invertYAxis(flag)
+        self._backend.setYAxisInverted(flag)
         self._setDirtyPlot()
         self.notify('setYAxisInverted', state=flag)
 
@@ -2485,3 +2485,23 @@ class Plot(object):
         _logger.warning(
                 'insertYMarker deprecated, use addYMarker instead.')
         self.addYMarker(*args, **kwargs)
+
+    def isActiveCurveHandlingEnabled(self):
+        """Deprecated, use :meth:`isActiveCurveHandling` instead."""
+        _logger.warning(
+            'isActiveCurveHandlingEnabled deprecated, '
+            'use isActiveCurveHandling instead.')
+        return self.isActiveCurveHandling()
+
+    def enableActiveCurveHandling(self, *args, **kwargs):
+        """Deprecated, use :meth:`setActiveCurveHandling` instead."""
+        _logger.warning(
+            'enableActiveCurveHandling deprecated, '
+            'use setActiveCurveHandling instead.')
+        return self.setActiveCurveHandling(*args, **kwargs)
+
+    def invertYAxis(self, *args, **kwargs):
+        """Deprecated, use :meth:`setYAxisInverted` instead."""
+        _logger.warning('invertYAxis deprecated, '
+                        'use setYAxisInverted instead.')
+        return self.setYAxisInverted(*args, **kwargs)

@@ -411,7 +411,7 @@ class BackendBase(object):
         """
         pass
 
-    def invertYAxis(self, flag):
+    def setYAxisInverted(self, flag):
         """Invert the Y axis.
 
         :param bool flag: If True, put the vertical axis origin on the top

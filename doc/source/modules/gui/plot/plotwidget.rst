@@ -127,7 +127,7 @@ Axes
 .. automethod:: PlotWidget.setYAxisLogarithmic
 
 .. automethod:: PlotWidget.isYAxisInverted
-.. automethod:: PlotWidget.invertYAxis
+.. automethod:: PlotWidget.setYAxisInverted
 .. automethod:: PlotWidget.isKeepDataAspectRatio
 .. automethod:: PlotWidget.keepDataAspectRatio
 .. automethod:: PlotWidget.getGraphGrid
