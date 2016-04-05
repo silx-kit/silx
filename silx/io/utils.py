@@ -36,46 +36,13 @@ __date__ = "05/04/2016"
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def repr_hdf5_tree(h5group, lvl=0):
-    """Return a string representation of an HDF5 tree structure.
-
-    :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
-        or a HDF5 file name
-    :param lvl: Number of tabulations added to the group. ``lvl`` is
-        incremented as we recursively process sub-groups.
-    :return: String representation of an HDF5 tree structure
-    """
-    repr = ''
-    if isinstance(h5group, (h5py.File, h5py.Group)):
-        h5f = h5group
-    elif isinstance(h5group, string_types):
-        h5f = h5py.File(h5group, "r")
-    else:
-        raise TypeError("h5group must be a HDF5 group object or a file name.")
-
-    for key in h5f.keys():
-        if hasattr(h5f[key], 'keys'):
-            repr += '\t' * lvl + '+' + key
-            repr += '\n'
-            repr += repr_hdf5_tree(h5f[key], lvl + 1)
-        else:
-            repr += '\t' * lvl
-            repr += '-' + key + '=' + str(h5f[key])
-            repr += '\n'
-
-    if isinstance(h5group, string_types):
-        h5f.close()
-
-    return repr
-
-
 def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
          fmt="%.7g", csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
     `txt` or `npy`.
 
-    :param file: Output file name, or file handle open in write
+    :param output_file: Output file name, or file handle open in write
         mode.
     :param x: 1D-Array (or list) of abscissa values.
     :param y: 2D-array (or list of lists) of ordinates values. First index
@@ -220,7 +187,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
         raise IndexError("y must be a 1D or 2D array")
 
     f.write("#F %s\n" % f.name)
-    current_date = "#D %s\n"%(time.ctime(time.time()))
+    current_date = "#D %s\n" % (time.ctime(time.time()))
     f.write(current_date)
     f.write("\n")
 
