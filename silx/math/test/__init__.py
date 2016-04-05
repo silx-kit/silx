@@ -1,5 +1,5 @@
-# /*##########################################################################
 # coding: utf-8
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,3 +27,15 @@ __license__ = "MIT"
 __date__ = "01/02/2016"
 
 import unittest
+
+from .test_histogramnd_nominal import suite as test_histo_nominal
+from .test_histogramnd_error import suite as test_histo_error
+from .test_histogramnd_vs_np import suite as test_histo_vs_np
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(test_histo_nominal())
+    test_suite.addTest(test_histo_error())
+    test_suite.addTest(test_histo_vs_np())
+    return test_suite
