@@ -31,7 +31,7 @@ import time
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "05/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -69,10 +69,11 @@ def repr_hdf5_tree(h5group, lvl=0):
     return repr
 
 
-def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
+def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
          fmt="%.7g", csvdelimiter=";", newline="\n", header="",
          footer="", comments="#"):
-    """Saves any number of curves to various formats
+    """Saves any number of curves to various formats: `Specfile`, `CSV`,
+    `txt` or `npy`.
 
     :param file: Output file name, or file handle open in write
         mode.
@@ -80,17 +81,45 @@ def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
-        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
-        only one curve to save.
+        ``len(x)``. ``y`` can be a 1D-array in case there is only one curve
+        to be saved.
     :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
         If ``None``, filetype is detected from file name extension
-        (``dat, csv, txt, npy``)
+        (``.dat, .csv, .txt, .npy``)
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels
     :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
+        This parameter does not apply to the `npy` format.
+    :param csvdelimiter: String or character separating columns in `txt` and
+        `CSV` formats. The user is responsible for ensuring that this
+        delimiter is not used in data labels when writing a `CSV` file.
+    :param newline: String or character separating lines/records in `txt`
+        format (default is line break character ``\n``).
+    :param header: String that will be written at the beginning of the file in
+        `txt` format.
+    :param footer: String that will be written at the end of the file in `txt`
+         format.
+    :param comments: String that will be prepended to the ``header`` and
+        ``footer`` strings, to mark them as comments. Default: ``#``.
+
+    When saving to Specfile format, each curve is saved as a separate scan
+    with two data columns (``x`` and ``y``).
+
+    `CSV` and `txt` formats are similar, except that the `txt` format allows
+    user defined header and footer text blocks, whereas the `CSV` format has
+    only a single header line with columns labels separated by field
+    delimiters and no footer. The `txt` format also allows defining a record
+    separator different from a line break.
+
+    The `npy` format is written with ``numpy.save`` and can be read back with
+    ``numpy.load``. If ``xlabel`` and ``ylabels`` are undefined, data is saved
+    as a regular 2D ``numpy.ndarray`` (contatenation of ``x`` and ``y``). If
+    both ``xlabel`` and ``ylabels`` are defined, the data is saved as a
+    ``numpy.recarray`` after being transposed and having labels assigned to
+    columns.
     """
 
     available_formats = ["spec", "csv", "txt", "ndarray"]
@@ -100,12 +129,11 @@ def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
                     ".csv": "csv",
                     ".txt": "txt",
                     ".npy": "ndarray"}
-        outfname = output_file if not hasattr(output_file, "name") \
-            else output_file.name
+        outfname = (output_file if not hasattr(output_file, "name") else
+                    output_file.name)
         fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
-
     else:
         filetype = filetype.lower()
 
@@ -118,33 +146,38 @@ def save(output_file, x, y, filetype=None, xlabel=None, ylabels=None,
         elif filetype == "csv":
             # csv format: single header line with labels, no footer
             header = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
-            comments =""
+            comments = ""
             footer = ""
-        elif filetype == "txt":
-            # prepend a labels line to the header
-            labels = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
-            header = labels + "\n" + header
+            newline = "\n"
+        # Uncomment following elif to enforce first header lines = labels
+        # elif filetype == "txt":
+        #    # prepend a labels line to the header
+        #    labels = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
+        #    header = (labels + "\n" + header) if header else labels
 
     if filetype.lower() == "spec":
         # Spec format
         savespec(output_file, x, y, xlabel, ylabels, fmt=fmt)
     else:
-        X = numpy.vstack((x, y)).transpose()
-        if filetype in ["csv", "txt"]:
+        X = numpy.vstack((x, y))
+        if filetype.lower() in ["csv", "txt"]:
+            X = X.transpose()
             numpy.savetxt(output_file, X, fmt=fmt, delimiter=csvdelimiter,
                           newline=newline, header=header, footer=footer,
                           comments=comments)
-        elif filetype == "ndarray":
+        elif filetype.lower() == "ndarray":
             if xlabel is not None and ylabels is not None:
                 assert len(labels) == len(X)
-                X = numpy.core.records.fromrecords(X, names=labels)
+                X = numpy.core.records.fromrecords(X.transpose(),
+                                                   names=labels)
             numpy.save(output_file, X)
 
 
 def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     """Saves any number of curves to SpecFile format.
 
-    The output SpecFile has one scan with two columns (`x` and `y`) per curve.
+    The output SpecFile has one scan per curve, with two data columns each
+    (`x` and `y`).
 
     :param specfile: Output SpecFile name, or file handle open in write
         mode.
@@ -152,8 +185,8 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
-        ``len(x)``. ``y`` can be a 1D-array may be supplied in case there is
-        only one curve to save.
+        ``len(x)``. ``y`` can be a 1D-array when there is only one curve
+         to be saved.
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
         two spaces
