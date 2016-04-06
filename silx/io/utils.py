@@ -145,31 +145,28 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     support of numpy < 1.7.0
     See numpy.savetxt for details.
     """
-    # Debian 7 (numpy < 1.7.0) header and footer hack
     if not hasattr(fname, "name"):
-        # Open the file in text mode with \n newline on all OS
-        if sys.version_info[0] >= 3:
-            ffile = open(fname, 'w', newline='\n')
-        else:
-            ffile = open(fname, 'wb')
+        ffile = open(fname, 'wb')
     else:
         ffile = fname
 
     if header:
-        ffile.write(comments +
-                    header.replace(newline, newline + comments) +
-                    newline)
+        header = comments + header.replace(newline, newline + comments) +  newline
+        if sys.version_info[0] >= 3:
+            header = header.encode("utf-8")
+        ffile.write(header)
 
     numpy.savetxt(ffile, X, fmt, delimiter, newline)
 
     if footer:
-        ffile.write(comments +
-                    footer.replace(newline, newline + comments) +
-                    newline)
+        footer = (comments + footer.replace(newline, newline + comments) +
+                  newline)
+        if sys.version_info[0] >= 3:
+            footer = footer.encode("utf-8")
+        ffile.write(footer)
 
     if not hasattr(fname, "name"):
         ffile.close()
-
 
 
 def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
