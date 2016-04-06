@@ -31,7 +31,7 @@ import time
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/04/2016"
+__date__ = "06/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -107,37 +107,69 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
     if filetype not in available_formats:
         raise IOError("File type %s is not supported" % (filetype))
 
-    if xlabel is not None and ylabels is not None:
-        if filetype == "ndarray":
-            labels = [xlabel] + ylabels
-        elif filetype == "csv":
+    if filetype.lower() == "spec":
+        # Spec format
+        savespec(output_file, x, y, xlabel, ylabels, fmt=fmt)
+    else:
+        if xlabel is not None and ylabels is not None and filetype == "csv":
             # csv format: single header line with labels, no footer
             header = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
             comments = ""
             footer = ""
             newline = "\n"
-        # Uncomment following elif to enforce first header lines = labels
-        # elif filetype == "txt":
-        #    # prepend a labels line to the header
-        #    labels = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
-        #    header = (labels + "\n" + header) if header else labels
 
-    if filetype.lower() == "spec":
-        # Spec format
-        savespec(output_file, x, y, xlabel, ylabels, fmt=fmt)
-    else:
+        # Concatenate x and y in a single 2D array
         X = numpy.vstack((x, y))
+
         if filetype.lower() in ["csv", "txt"]:
             X = X.transpose()
-            numpy.savetxt(output_file, X, fmt=fmt, delimiter=csvdelimiter,
-                          newline=newline, header=header, footer=footer,
-                          comments=comments)
+            savetxt(output_file, X, fmt=fmt, delimiter=csvdelimiter,
+                    newline=newline, header=header, footer=footer,
+                    comments=comments)
+
         elif filetype.lower() == "ndarray":
             if xlabel is not None and ylabels is not None:
-                assert len(labels) == len(X)
+                labels = [xlabel] + ylabels
+
+                # .transpose is needed here because recarray labels
+                # apply to columns
                 X = numpy.core.records.fromrecords(X.transpose(),
                                                    names=labels)
             numpy.save(output_file, X)
+
+
+def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
+            header="", footer="", comments="#"):
+    """numpy.savetxt backport of header and footer arguments from numpy=1.7.0.
+    For Debian 7 compatibility, replace by numpy.savetxt when dropping
+    support of numpy < 1.7.0
+    See numpy.savetxt for details.
+    """
+    # Debian 7 (numpy < 1.7.0) header and footer hack
+    if not hasattr(fname, "name"):
+        # Open the file in text mode with \n newline on all OS
+        if sys.version_info[0] >= 3:
+            ffile = open(fname, 'w', newline='\n')
+        else:
+            ffile = open(fname, 'wb')
+    else:
+        ffile = fname
+
+    if header:
+        ffile.write(comments +
+                    header.replace(newline, newline + comments) +
+                    newline)
+
+    numpy.savetxt(ffile, X, fmt, delimiter, newline)
+
+    if footer:
+        ffile.write(comments +
+                    footer.replace(newline, newline + comments) +
+                    newline)
+
+    if not hasattr(fname, "name"):
+        ffile.close()
+
 
 
 def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
