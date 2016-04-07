@@ -104,7 +104,7 @@ class _PlotInteraction(object):
     def resetSelectionArea(self):
         """Remove all selection areas set by setSelectionArea."""
         for legend in self._selectionAreas:
-            self.plot.removeItem(legend)
+            self.plot.remove(legend, kind='item')
         self._selectionAreas = set()
 
 

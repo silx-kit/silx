@@ -496,9 +496,9 @@ class Plot(object):
 
         # This must be done after getting params from existing curve
         if replace:
-            self.clearCurves()
+            self.remove(kind='curve')
         else:
-            self.removeCurve(legend)
+            self.remove(legend, kind='curve')
 
         # Filter-out values <= 0
         x, y, color, xerror, yerror = self._logFilterData(
@@ -666,9 +666,9 @@ class Plot(object):
         # Add: replace, filter data, add
 
         if replace:
-            self.clearImages()
+            self.remove(kind='image')
         else:
-            self.removeImage(legend)
+            self.remove(legend, kind='image')
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
@@ -743,9 +743,9 @@ class Plot(object):
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
         if replace:
-            self.clearItems()
+            self.remove(kind='item')
         else:
-            self.removeItem(legend)
+            self.remove(legend, kind='item')
 
         handle = self._backend.addItem(xdata, ydata, legend=legend,
                                        shape=shape, color=color,
@@ -944,7 +944,7 @@ class Plot(object):
             x, y = constraint(x, y)
 
         if legend in self._markers:
-            self.removeMarker(legend)
+            self.remove(legend, kind='marker')
 
         handle = self._backend.addMarker(
             x=x, y=y, legend=legend, text=text, color=color,
@@ -1005,129 +1005,165 @@ class Plot(object):
 
     # Remove
 
-    def removeCurve(self, legend, replot=None):
+    ITEM_KINDS = 'curve', 'image', 'item', 'marker'
+
+    def remove(self, legend=None, kind=ITEM_KINDS):
+        """Remove one or all element(s) of the given legend and kind.
+
+        Examples:
+
+        - remove() clears the plot
+        - remove(kind='curve') removes all curves from the plot
+        - remove('myCurve', kind='curve') removes the curve with
+          legend 'myCurve' from the plot.
+        - remove('myImage, kind='image') removes the image with
+          legend 'myImage' from the plot.
+        - remove('myImage') removes elements (for instance curve, image,
+          item and marker) with legend 'myImage'.
+
+        :param str legend: The legend associated to the element to remove,
+                           or None to remove
+        :param kind: The kind of elements to remove from the plot.
+                     In: 'all', 'curve', 'image', 'item', 'marker'.
+                     By default, it removes all kind of elements.
+        :type kind: str or tuple of str to specify multiple kinds.
+        """
+        if kind is 'all':  # Replace all by tuple of all kinds
+            kind = self.ITEM_KINDS
+
+        if kind in self.ITEM_KINDS:  # Kind is a str, make it a tuple
+            kind = (kind,)
+
+        if legend is None:  # This is a clear
+            # Clear each given kind
+            for aKind in kind:
+                if aKind == 'curve':
+                    # Copy as _curves gets changed
+                    for legend in list(self._curves):
+                        self.remove(legend, kind='curve')
+                    self._curves = OrderedDict()
+                    self._hiddenCurves = set()
+                    self._colorIndex = 0
+                    self._styleIndex = 0
+
+                elif aKind == 'image':
+                    # Copy as _images gets changed
+                    for legend in list(self._images):
+                        self.remove(legend, kind='image')
+                    self._images = OrderedDict()
+
+                elif aKind == 'item':
+                    # Copy as _items gets changed
+                    for legend in list(self._items):
+                        self.remove(legend, kind='item')
+                    self._items = OrderedDict()
+
+                elif aKind == 'marker':
+                    # Copy as _markers gets changed
+                    for legend in list(self._markers):
+                        self.remove(legend, kind='marker')
+                    self._markers = OrderedDict()
+                else:
+                    _logger.warning('remove: Unhandled item kind %s', aKind)
+
+        else:  # This is removing a single element
+            # Remove each given kind
+            for aKind in kind:
+                if aKind == 'curve':
+                    self._hiddenCurves.discard(legend)
+
+                    if legend in self._curves:
+                        handle = self._curves[legend]['handle']
+                        if handle is not None:
+                            self._backend.remove(handle)
+                            self._setDirtyPlot()
+                        del self._curves[legend]
+
+                    if not self._curves:
+                        self._colorIndex = 0
+                        self._styleIndex = 0
+
+                elif aKind == 'image':
+                    if legend in self._images:
+                         handle = self._images[legend]['handle']
+                         if handle is not None:
+                             self._backend.remove(handle)
+                             self._setDirtyPlot()
+                         del self._images[legend]
+
+                elif aKind == 'item':
+                    item = self._items.pop(legend, None)
+                    if item is not None and item['handle'] is not None:
+                        self._backend.remove(item['handle'])
+                        self._setDirtyPlot(overlayOnly=item['overlay'])
+
+                elif aKind == 'marker':
+                    marker = self._markers.pop(legend, None)
+                    if marker is not None and marker['handle'] is not None:
+                        self._backend.remove(marker['handle'])
+                        self._setDirtyPlot(
+                            overlayOnly=marker['params']['draggable'])
+
+                else:
+                    _logger.warning('remove: Unhandled item kind %s', aKind)
+
+    def removeCurve(self, legend):
         """Remove the curve associated to legend from the graph.
 
         :param str legend: The legend associated to the curve to be deleted
         """
-        if replot is not None:
-            _logger.warning('removeCurve deprecated replot parameter')
-
         if legend is None:
             return
+        self.remove(legend, kind='curve')
 
-        self._hiddenCurves.discard(legend)
-
-        if legend in self._curves:
-            handle = self._curves[legend]['handle']
-            if handle is not None:
-                self._backend.remove(handle)
-                self._setDirtyPlot()
-            del self._curves[legend]
-
-        if not self._curves:
-            self._colorIndex = 0
-            self._styleIndex = 0
-
-    def removeImage(self, legend, replot=None):
+    def removeImage(self, legend):
         """Remove the image associated to legend from the graph.
 
         :param str legend: The legend associated to the image to be deleted
         """
-        if replot is not None:
-            _logger.warning('removeImage deprecated replot parameter')
-
         if legend is None:
             return
+        self.remove(legend, kind='image')
 
-        if legend in self._images:
-            handle = self._images[legend]['handle']
-            if handle is not None:
-                self._backend.remove(handle)
-                self._setDirtyPlot()
-            del self._images[legend]
-
-    def removeItem(self, legend, replot=None):
+    def removeItem(self, legend):
         """Remove the item associated to legend from the graph.
 
         :param str legend: The legend associated to the item to be deleted
         """
-        if replot is not None:
-            _logger.warning('removeItem deprecated replot parameter')
-
         if legend is None:
             return
+        self.remove(legend, kind='item')
 
-        item = self._items.pop(legend, None)
-        if item is not None and item['handle'] is not None:
-            self._backend.remove(item['handle'])
-            self._setDirtyPlot(overlayOnly=item['overlay'])
-
-    def removeMarker(self, marker, replot=None):
+    def removeMarker(self, legend):
         """Remove the marker associated to legend from the graph.
 
         :param str legend: The legend associated to the marker to be deleted
         """
-        if replot is not None:
-            _logger.warning('removeMarker deprecated replot parameter')
-
-        marker = self._markers.pop(marker, None)
-        if marker is not None and marker['handle'] is not None:
-            self._backend.remove(marker['handle'])
-            self._setDirtyPlot(overlayOnly=marker['params']['draggable'])
+        if legend is None:
+            return
+        self.remove(legend, kind='marker')
 
     # Clear
 
-    def clear(self, replot=None):
+    def clear(self):
         """Remove everything from the plot."""
-        if replot is not None:
-            _logger.warning('clear deprecated replot parameter')
+        self.remove()
 
-        self.clearCurves()
-        self.clearMarkers()
-        self.clearImages()
-        self.clearItems()
-
-        self._setDirtyPlot()
-
-    def clearCurves(self, replot=None):
+    def clearCurves(self):
         """Remove all the curves from the plot."""
-        if replot is not None:
-            _logger.warning('clearCurves deprecated replot parameter')
+        self.remove(kind='curve')
 
-        for legend in list(self._curves):  # Copy as _curves gets changed
-            self.removeCurve(legend)
-        self._curves = OrderedDict()
-        self._hiddenCurves = set()
-        self._colorIndex = 0
-        self._styleIndex = 0
-
-    def clearImages(self, replot=None):
+    def clearImages(self):
         """Remove all the images from the plot."""
-        if replot is not None:
-            _logger.warning('clearImages deprecated replot parameter')
+        self.remove(kind='image')
 
-        for legend in list(self._images):  # Copy as _images gets changed
-            self.removeImage(legend)
-        self._images = OrderedDict()
-
-    def clearItems(self, replot=None):
+    def clearItems(self):
         """Remove all the items from the plot. """
-        if replot is not None:
-            _logger.warning('clearItems deprecated replot parameter')
+        self.remove(kind='item')
 
-        for legend in list(self._items):  # Copy as _items gets changed
-            self.removeItem(legend)
-        self._items = OrderedDict()
-
-    def clearMarkers(self, replot=None):
+    def clearMarkers(self):
         """Remove all the markers from the plot."""
-        if replot is not None:
-            _logger.warning('clearMarkers deprecated replot parameter')
-
-        for legend in list(self._markers):  # Copy as _markers gets changed
-            self.removeMarker(legend)
-        self._markers = OrderedDict()
+        self.remove(kind='marker')
 
     # Interaction
 

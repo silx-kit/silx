@@ -72,7 +72,7 @@ documented in :class:`silx.gui.plot.Plot`.
 
 .. autoclass:: PlotWidget
    :show-inheritance:
-   :members: resetZoom, replot, clear, saveGraph, sigPlotSignal
+   :members: resetZoom, replot, remove, clear, saveGraph, sigPlotSignal
 
 Curves
 ......

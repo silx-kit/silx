@@ -215,7 +215,7 @@ class ColormapDialog(qt.QDialog):
         self._plot.setGraphXLabel("Data Values")
         self._plot.setGraphYLabel("")
         self._plot.setInteractiveMode('select', zoomOnWheel=False)
-        self._plot.enableActiveCurveHandling(False)
+        self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotSlot)
 
@@ -312,7 +312,7 @@ class ColormapDialog(qt.QDialog):
         """
         if hist is None or bin_edges is None:
             self._histogramData = None
-            self._plot.removeCurve(legend='Histogram')
+            self._plot.remove(legend='Histogram', kind='curve')
 
         else:
             hist = numpy.array(hist, copy=True)

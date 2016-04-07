@@ -169,7 +169,7 @@ class TestPlotCurve(_PlotWidgetTest):
         self.plot.setGraphYLabel('Rows')
         self.plot.setGraphXLabel('Columns')
 
-        self.plot.enableActiveCurveHandling(False)
+        self.plot.setActiveCurveHandling(False)
 
     def testPlotCurveColorFloat(self):
         color = numpy.array(numpy.random.random(3 * 1000),
