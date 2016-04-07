@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "24/03/2016"
 
 import gc
 import locale
@@ -36,9 +36,10 @@ import sys
 import tempfile
 import unittest
 
-logger1 = logging.getLogger('silx.io.test')
+logging.basicConfig()
+logger1 = logging.getLogger(__name__)
 
-from silx.io.specfile import SpecFile, Scan
+from ..specfile import SpecFile, Scan
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -119,6 +120,7 @@ except locale.Error:
 else:
     try_DE = True
     locale.setlocale(locale.LC_NUMERIC, loc)
+
 
 class TestSpecFile(unittest.TestCase):
     @classmethod
@@ -213,24 +215,23 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan25.index, 1)
 
     def test_scan_headers(self):
-        self.assertEqual(self.scan25.scan_header['S'],
+        self.assertEqual(self.scan25.scan_header_dict['S'],
                          "25  ascan  c3th 1.33245 1.52245  40 0.15")
         self.assertEqual(self.scan1.header[17], '#G0 0')
         self.assertEqual(len(self.scan1.header), 29)
         # parsing headers with long keys
-        self.assertEqual(self.scan1.scan_header['UMI0'],
+        self.assertEqual(self.scan1.scan_header_dict['UMI0'],
                          'Current AutoM      Shutter')
         # parsing empty headers
-        self.assertEqual(self.scan1.scan_header['Q'], '')
+        self.assertEqual(self.scan1.scan_header_dict['Q'], '')
         # duplicate headers: concatenated (with newline)
-        self.assertEqual(self.scan1_2.scan_header["U"],
+        self.assertEqual(self.scan1_2.scan_header_dict["U"],
                          "first duplicate line\nsecond duplicate line")
-
 
     def test_file_headers(self):
         self.assertEqual(self.scan1.header[1],
                          '#E 1455180875')
-        self.assertEqual(self.scan1.file_header['F'],
+        self.assertEqual(self.scan1.file_header_dict['F'],
                          '/tmp/sf.dat')
 
     def test_multiple_file_headers(self):
@@ -268,13 +269,13 @@ class TestSpecFile(unittest.TestCase):
             -1.66875)
 
     def test_absence_of_file_header(self):
-        """We expect Scan.file_header_lines to be an empty list in the absence
+        """We expect Scan.file_header to be an empty list in the absence
         of a file header.
 
         Important note: A #S line needs to be preceded  by an empty line,
         so a SpecFile without a file header needs to start with an empty line.
         Otherwise, this test fails because SfFileHeader() fills
-        Scan.file_header_lines with 15 scan header lines.
+        Scan.file_header with 15 scan header lines.
         """
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
         # motor positions can still be read in the scan header
@@ -282,6 +283,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
         self.assertEqual(len(self.scan1_no_fhdr.header), 15)
+        self.assertEqual(len(self.scan1_no_fhdr.file_header), 0)
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
@@ -289,7 +291,7 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(self.scan1_2.mca[1][2], 5)
         self.assertEqual(sum(self.scan1_2.mca[2]), 21.7)
 
-        #Negative indexing
+        # Negative indexing
         self.assertEqual(sum(self.scan1_2.mca[len(self.scan1_2.mca)-1]),
                          sum(self.scan1_2.mca[-1]))
 
@@ -302,9 +304,19 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(total_sum, 36.8)
 
     def test_mca_header(self):
-        self.assertEqual(self.scan1.mca_header, {})
-        self.assertEqual(len(self.scan1_2.mca_header), 4)
-        self.assertEqual(self.scan1_2.mca_header["CALIB"], "1 2 3")
+        self.assertEqual(self.scan1.mca_header_dict, {})
+        self.assertEqual(len(self.scan1_2.mca_header_dict), 4)
+        self.assertEqual(self.scan1_2.mca_header_dict["CALIB"], "1 2 3")
+        self.assertEqual(self.scan1_2.mca.calibration,
+                         [1., 2., 3.])
+        # default calib in the absence of #@CALIB
+        self.assertEqual(self.scan25.mca.calibration,
+                         [0., 1., 0.])
+        self.assertEqual(self.scan1_2.mca.channels,
+                         [0, 1, 2])
+        # absence of #@CHANN and spectra
+        self.assertIs(self.scan25.mca.channels,
+                      None)
 
 
 class TestSFLocale(unittest.TestCase):
@@ -320,7 +332,7 @@ class TestSFLocale(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname)
-        locale.setlocale(locale.LC_NUMERIC, loc) # restore saved locale
+        locale.setlocale(locale.LC_NUMERIC, loc)  # restore saved locale
         gc.collect()
 
     def crunch_data(self):
@@ -335,11 +347,11 @@ class TestSFLocale(unittest.TestCase):
         self.crunch_data()
 
     def test_locale_user(self):
-        locale.setlocale(locale.LC_NUMERIC, '') # use user's preferred locale
+        locale.setlocale(locale.LC_NUMERIC, '')  # use user's preferred locale
         self.crunch_data()
 
     def test_locale_C(self):
-        locale.setlocale(locale.LC_NUMERIC, 'C') # use default (C) locale
+        locale.setlocale(locale.LC_NUMERIC, 'C')  # use default (C) locale
         self.crunch_data()
 
 

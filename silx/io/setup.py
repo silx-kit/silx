@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Solé"]
 __license__ = "MIT"
-__date__ = "07/03/2016"
+__date__ = "17/03/2016"
 
 import os
 import sys

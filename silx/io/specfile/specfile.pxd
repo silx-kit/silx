@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,7 +24,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "17/03/2016"
 
 cimport cython
 

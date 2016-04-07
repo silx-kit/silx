@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -44,9 +44,7 @@ A :class:`SpecFile` instance can be accessed like a dictionary to obtain a
 
 If the key is a string representing two values
 separated by a dot (e.g. ``"1.2"``), they will be treated as the scan number
-(``#S`` header line) and the scan order:
-
-.. code-block:: python
+(``#S`` header line) and the scan order::
 
     # get second occurrence of scan "#S 1"
     myscan = sf["1.2"]
@@ -54,25 +52,19 @@ separated by a dot (e.g. ``"1.2"``), they will be treated as the scan number
     # access scan data as a numpy array
     nlines, ncolumns = myscan.data.shape
 
-If the key is an integer, it will be treated as a 0-based index:
-
-.. code-block:: python
+If the key is an integer, it will be treated as a 0-based index::
 
     first_scan = sf[0]
     second_scan = sf[1]
 
 It is also possible to browse through all scans using :class:`SpecFile` as
-an iterator:
-
-.. code-block:: python
+an iterator::
 
     for scan in sf:
         print(scan.scan_header['S'])
 
 MCA data can be selectively loaded using an instance of :class:`MCA` provided
-by :class:`Scan`:
-
-.. code-block:: python
+by :class:`Scan`::
 
     # Only one MCA line is loaded in memory
     second_mca = first_scan.mca[1]
@@ -91,7 +83,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "22/03/2016"
 
 import os.path
 import logging
@@ -99,7 +91,8 @@ import numpy
 import re
 import sys
 
-logger1 = logging.getLogger('silx.io.specfile')
+logging.basicConfig()
+logger1 = logging.getLogger(__name__)
 
 cimport numpy
 cimport cython
@@ -149,14 +142,21 @@ class MCA(object):
     :param scan: Parent Scan instance
     :type scan: :class:`Scan`
 
+    :var calibration: MCA calibration :math:`(a, b, c)` (as in
+        :math:`a + b x + c x²`) from ``#@CALIB`` scan header.
+    :type calibration: list of 3 floats, default ``[0., 1., 0.]``
+    :var channels: MCA channels list from ``#@CHANN`` scan header.
+        In the absence of a ``#@CHANN`` header, this attribute is a list
+        ``[0, …, N-1]`` where ``N`` is the length of the first spectrum.
+        In the absence of MCA spectra, this attribute defaults to ``None``.
+    :type channels: list of int
+
     This class provides access to Multi-Channel Analysis data stored in a
     SpecFile scan.
 
     To create a :class:`MCA` instance, you must provide a parent :class:`Scan`
     instance, which in turn will provide a reference to the original
-    :class:`SpecFile` instance.
-
-    .. code-block:: python
+    :class:`SpecFile` instance::
 
         sf = SpecFile("/path/to/specfile.dat")
         scan2 = Scan(sf, scan_index=2)
@@ -166,9 +166,7 @@ class MCA(object):
             ... # do some something with mca_data (1D numpy array)
 
     A more pythonic way to do the same work, without having to explicitly
-    instantiate ``scan`` and ``mcas_in_scan``, would be:
-
-    .. code-block:: python
+    instantiate ``scan`` and ``mcas_in_scan``, would be::
 
         sf = SpecFile("specfilename.dat")
         # scan2 from previous example can be referred to as sf[2]
@@ -179,6 +177,36 @@ class MCA(object):
     """
     def __init__(self, scan):
         self._scan = scan
+
+        # Header dict
+        self._header = scan.mca_header_dict
+
+        # SpecFile C library provides a function for getting calibration
+        try:
+            self.calibration = scan._specfile.mca_calibration(scan.index)
+        # default calibration in the absence of #@CALIB
+        except KeyError:
+            self.calibration = [0., 1., 0.]
+
+        # Channels list
+        if "CHANN" in self._header:
+            chann_values = self._header["CHANN"].split()
+            length, start, stop, increment = map(int, chann_values)
+        elif len(self):
+            # Channels list
+            if "CHANN" in self._header:
+                chann_values = self._header["CHANN"].split()
+                length, start, stop, increment = map(int, chann_values)
+            else:
+                # in the absence of #@CHANN, use shape of first MCA
+                length = self[0].shape[0]
+                start, stop, increment = (0, length - 1, 1)
+        else:
+            length = None
+
+        self.channels = None
+        if length is not None:
+            self.channels = list(range(start, stop + 1, increment))
 
     def __len__(self):
         """
@@ -196,6 +224,9 @@ class MCA(object):
         :return: Single MCA
         :rtype: 1D numpy array
         """
+        if not len(self):
+            raise IndexError("No MCA spectrum found in this scan")
+
         if isinstance(key, int):
             mca_index = key
             # allow negative index, like lists
@@ -251,9 +282,7 @@ class Scan(object):
 
     A scan is a block of descriptive header lines followed by a 2D data array.
 
-    Following three ways of accessing a scan are equivalent:
-
-    .. code-block:: python
+    Following three ways of accessing a scan are equivalent::
 
         sf = SpecFile("/path/to/specfile.dat")
 
@@ -273,40 +302,41 @@ class Scan(object):
         self._number = specfile.number(scan_index)
         self._order = specfile.order(scan_index)
 
-        scan_header_lines = self._specfile.scan_header(self._index)
-        file_header_lines = self._specfile.file_header(self._index)
+        self._scan_header_lines = self._specfile.scan_header(self._index)
+        self._file_header_lines = self._specfile.file_header(self._index)
 
-        self._header = file_header_lines + scan_header_lines
+        self._header = self._file_header_lines + self._scan_header_lines
 
+        self._labels = None
         if self.record_exists_in_hdr('L'):
-            self.labels = self._specfile.labels(self._index)
+            self._labels = self._specfile.labels(self._index)
 
-        self._scan_header = {}
-        self._mca_header = {}
-        for line in scan_header_lines:
+        self._scan_header_dict = {}
+        self._mca_header_dict = {}
+        for line in self._scan_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             match_mca = re.search(r"#@(\w+) *(.*)", line)
             if match:
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                _add_or_concatenate(self._scan_header, hkey, hvalue)
+                _add_or_concatenate(self._scan_header_dict, hkey, hvalue)
             elif match_mca:
                 hkey = match_mca.group(1).lstrip("#").strip()
                 hvalue = match_mca.group(2).strip()
-                _add_or_concatenate(self._mca_header, hkey, hvalue)
+                _add_or_concatenate(self._mca_header_dict, hkey, hvalue)
             else:
                 # this shouldn't happen
                 logger1.warning("Unable to parse scan header line " + line)
 
 
-        self._file_header = {}
-        for line in file_header_lines:
+        self._file_header_dict = {}
+        for line in self._file_header_lines:
             match = re.search(r"#(\w+) *(.*)", line)
             if match:
                 # header type
                 hkey = match.group(1).lstrip("#").strip()
                 hvalue = match.group(2).strip()
-                _add_or_concatenate(self._file_header, hkey, hvalue)
+                _add_or_concatenate(self._file_header_dict, hkey, hvalue)
             else:
                 logger1.warning("Unable to parse file header line " + line)
 
@@ -342,32 +372,52 @@ class Scan(object):
         This includes the file header, the scan header and possibly a MCA
         header.
         """
-        return self._header
+        return self._header\
 
     @property
     def scan_header(self):
+        """List of raw scan header lines (as a list of strings).
         """
-        Dictionary of scan header strings, keys without the leading``#``
-        (e.g. ``scan_header["S"]``).
-        Note: this does not include MCA header lines starting with ``#@``.
-        """
-        return self._scan_header
-
-    @property
-    def mca_header(self):
-        """
-        Dictionary of MCA header strings, keys without the leading ``#@``
-        (e.g. ``mca_header["CALIB"]``).
-        """
-        return self._mca_header
+        return self._scan_header_lines\
 
     @property
     def file_header(self):
+        """List of raw file header lines (as a list of strings).
+        """
+        return self._file_header_lines
+
+    @property
+    def scan_header_dict(self):
+        """
+        Dictionary of scan header strings, keys without the leading``#``
+        (e.g. ``scan_header_dict["S"]``).
+        Note: this does not include MCA header lines starting with ``#@``.
+        """
+        return self._scan_header_dict
+
+    @property
+    def mca_header_dict(self):
+        """
+        Dictionary of MCA header strings, keys without the leading ``#@``
+        (e.g. ``mca_header_dict["CALIB"]``).
+        """
+        return self._mca_header_dict
+
+    @property
+    def file_header_dict(self):
         """
         Dictionary of file header strings, keys without the leading ``#``
-        (e.g. ``file_header["F"]``)..
+        (e.g. ``file_header_dict["F"]``).
         """
-        return self._file_header
+        return self._file_header_dict
+
+    @property
+    def labels(self):
+        """
+        List of data column headers from ``#L`` scan header
+        """
+        return self._labels
+
 
     @property
     def data(self):
@@ -518,9 +568,6 @@ cdef class SpecFile(object):
                                         
     def __len__(self):
         """Return the number of scans in the SpecFile
-
-        This function is called when the python built-in ``len()`` function
-        is called with a :class:`SpecFile` instance as a parameter.
         """
         return SfScanNo(self.handle)
 
@@ -539,10 +586,10 @@ cdef class SpecFile(object):
     def __getitem__(self, key):
         """Return a :class:`Scan` object.
 
-        The Scan instance returned keeps a reference to its parent SpecFile
-        instance, in order to use its method to retrieve data and headers.
+        This special method is called when a :class:`SpecFile` instance is
+        accessed as a dictionary (e.g. ``sf[key]``).
 
-        :param key: 0-based scan index or ``n.m`` key, where ``n`` is the scan
+        :param key: 0-based scan index or ``"n.m"`` key, where ``n`` is the scan
             number defined on the ``#S`` header line and ``m`` is the order
         :type key: int or str
 
@@ -551,23 +598,25 @@ cdef class SpecFile(object):
         """
         msg = "The scan identification key can be an integer representing "
         msg += "the unique scan index or a string 'N.M' with N being the scan"
-        msg += "number and M the order (eg '2.3')"
+        msg += " number and M the order (eg '2.3')."
 
         if isinstance(key, int):
             scan_index = key
             # allow negative index, like lists
             if scan_index < 0:
                 scan_index = len(self) + scan_index
-        elif isinstance(key, str):
+        else:
             try:
                 (number, order) = map(int, key.split("."))
                 scan_index = self.index(number, order)
             except (ValueError, IndexError):
                 # self.index can raise an index error
                 # int() can raise a value error
-                raise KeyError(msg)
-        else:
-            raise TypeError(msg)
+                raise KeyError(msg + "\nValid keys: '" +
+                               "', '".join( self.keys()) + "'")
+            except AttributeError:
+                # e.g. "AttrErr: 'float' object has no attribute 'split'"
+                raise TypeError(msg)
 
         if not 0 <= scan_index < len(self):
             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
@@ -590,15 +639,23 @@ cdef class SpecFile(object):
                 count[number] = 1
             else:
                 count[number] += 1
-            ret_list.append('%d.%d' % (number, count[number]))
+            ret_list.append(u'%d.%d' % (number, count[number]))
 
         return ret_list
+
+    def __contains__(self, key):
+        """Return ``True`` if ``key`` is a valid scan key.
+         Valid keys can be a string such as ``"1.1"`` or a 0-based scan index.
+        """
+        return key in (self.keys() + list(range(len(self))))
 
     def _get_error_string(self, error_code):
         """Returns the error message corresponding to the error code.
         
         :param code: Error code
         :type code: int
+        :return: Human readable error message
+        :rtype: str
         """
         return (<bytes> SfError(error_code)).decode()
     
@@ -695,7 +752,7 @@ cdef class SpecFile(object):
         """Returns list (1D numpy array) of scan numbers in SpecFile.
          
         :return: list of scan numbers (from `` #S``  lines) in the same order
-            as in the original SpecFile.
+            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
         :rtype: numpy array 
         """
         cdef:
@@ -815,7 +872,7 @@ cdef class SpecFile(object):
         
         lines_list = []
         for i in range(nlines):
-            line =  <bytes>lines[i].decode()
+            line = <bytes>lines[i].decode()
             lines_list.append(line)
                 
         freeArrNZ(<void***>&lines, nlines)
@@ -1059,8 +1116,6 @@ cdef class SpecFile(object):
         if num_mca == -1:
             raise SfNoMcaError("Failed to retrieve number of MCA " +
                                "(SfNoMca returned -1)")
-
-
         return num_mca
 
     def mca_calibration(self, scan_index):
@@ -1074,7 +1129,7 @@ cdef class SpecFile(object):
             ``len(self)-1``.
         :type scan_index: int
 
-        :return: MCA calibration as a list of 3 values math:`(a, b, c)`
+        :return: MCA calibration as a list of 3 values :math:`(a, b, c)`
         :rtype: list of floats
         """
         cdef:
@@ -1101,15 +1156,15 @@ cdef class SpecFile(object):
     def get_mca(self, scan_index, mca_index):
         """get_mca(scan_index, mca_index)
 
-        Return MCA data
+        Return one MCA spectrum
 
         :param scan_index: Unique scan index between ``0`` and ``len(self)-1``.
         :type scan_index: int
         :param mca_index: Index of MCA in the scan
         :type mca_index: int
 
-        :return: MCA data
-        :rtype: numpy array
+        :return: MCA spectrum
+        :rtype: 1D numpy array
         """
         cdef:
             int error = SF_ERR_NO_ERRORS
