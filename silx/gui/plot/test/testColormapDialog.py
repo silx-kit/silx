@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,45 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for ColormapDialog"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "30/03/2016"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
+import doctest
+import unittest
 
-    return config
+from silx.gui.test.utils import qWaitForWindowExposed
+from silx.gui import qt
+from silx.gui.plot import ColormapDialog
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+# Makes sure a QApplication exists
+_qapp = qt.QApplication.instance()
+if not _qapp:
+    _qapp = qt.QApplication()
 
-    setup(configuration=configuration)
+
+def _tearDownQt(docTest):
+    """Tear down to use for test from docstring.
+
+    Checks that dialog widget is displayed
+    """
+    dialogWidget = docTest.globs['dialog']
+    qWaitForWindowExposed(dialogWidget)
+
+
+cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
+"""Test suite of tests from the module's docstrings."""
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(cmapDocTestSuite)
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
