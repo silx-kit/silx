@@ -170,18 +170,18 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
         # Min row
-        self._startValue = _FloatEdit(1.)
-        self._startValue.setEnabled(False)
-        self._startValue.textEdited.connect(self._minMaxTextEdited)
-        self._startValue.editingFinished.connect(self._minMaxEditingFinished)
-        formLayout.addRow('\tStart:', self._startValue)
+        self._minValue = _FloatEdit(1.)
+        self._minValue.setEnabled(False)
+        self._minValue.textEdited.connect(self._minMaxTextEdited)
+        self._minValue.editingFinished.connect(self._minEditingFinished)
+        formLayout.addRow('\tMin:', self._minValue)
 
-        # Min row
-        self._endValue = _FloatEdit(10.)
-        self._endValue.setEnabled(False)
-        self._endValue.textEdited.connect(self._minMaxTextEdited)
-        self._endValue.editingFinished.connect(self._minMaxEditingFinished)
-        formLayout.addRow('\tEnd:', self._endValue)
+        # Max row
+        self._maxValue = _FloatEdit(10.)
+        self._maxValue.setEnabled(False)
+        self._maxValue.textEdited.connect(self._minMaxTextEdited)
+        self._maxValue.editingFinished.connect(self._maxEditingFinished)
+        formLayout.addRow('\tMax:', self._maxValue)
 
         # Add plot for histogram
         self._plotInit()
@@ -192,13 +192,14 @@ class ColormapDialog(qt.QDialog):
         vLayout.addWidget(buttonsWidget)
 
         buttonsLayout = qt.QHBoxLayout(buttonsWidget)
+
+        okButton = qt.QPushButton('OK')
+        okButton.clicked.connect(self.accept)
+        buttonsLayout.addWidget(okButton)
+
         cancelButton = qt.QPushButton('Cancel')
         cancelButton.clicked.connect(self.reject)
         buttonsLayout.addWidget(cancelButton)
-
-        closeButton = qt.QPushButton('Close')
-        closeButton.clicked.connect(self.accept)
-        buttonsLayout.addWidget(closeButton)
 
         # colormap window can not be resized
         self.setFixedSize(vLayout.minimumSize())
@@ -221,8 +222,11 @@ class ColormapDialog(qt.QDialog):
 
         self._plotUpdate()
 
-    def _plotUpdate(self):
-        """Update the plot content"""
+    def _plotUpdate(self, updateMarkers=True):
+        """Update the plot content
+
+        :param bool updateMarkers: True to update markers, False otherwith
+        """
         dataRange = self.getDataRange()
 
         if dataRange is None:
@@ -240,9 +244,9 @@ class ColormapDialog(qt.QDialog):
         minmd = dataMin - marge
         maxpd = dataMax + marge
 
-        start, end = self._startValue.value(), self._endValue.value()
+        start, end = self._minValue.value(), self._maxValue.value()
 
-        if start < end:
+        if start <= end:
             x = [minmd, start, end, maxpd]
             y = [0, 0, 1, 1]
 
@@ -269,38 +273,48 @@ class ColormapDialog(qt.QDialog):
 
         draggable = not self._rangeAutoscaleButton.isChecked()
 
-        self._plot.addXMarker(
-            self._startValue.value(),
-            legend='Start',
-            text='Start',
-            draggable=draggable,
-            color='blue')
-        # constraint=lambda x, y: (max(x, minmd), y))
-        self._plot.addXMarker(
-            self._endValue.value(),
-            legend='End',
-            text='End',
-            draggable=draggable,
-            color='blue')
-        # constraint=lambda x, y: (max(x, minmd), y))
+        if updateMarkers:
+            self._plot.addXMarker(
+                self._minValue.value(),
+                legend='Min',
+                text='Min',
+                draggable=draggable,
+                color='blue',
+                constraint=self._plotMinMarkerConstraint)
+
+            self._plot.addXMarker(
+                self._maxValue.value(),
+                legend='Max',
+                text='Max',
+                draggable=draggable,
+                color='blue',
+                constraint=self._plotMaxMarkerConstraint)
 
         self._plot.resetZoom()
+
+    def _plotMinMarkerConstraint(self, x, y):
+        """Constraint of the min marker"""
+        return min(x, self._maxValue.value()), y
+
+    def _plotMaxMarkerConstraint(self, x, y):
+        """Constraint of the max marker"""
+        return max(x, self._minValue.value()), y
 
     def _plotSlot(self, event):
         """Handle events from the plot"""
         if event['event'] in ('markerMoving', 'markerMoved'):
             value = float(str(event['xdata']))
-            if event['label'] == 'Start':
-                self._startValue.setValue(value)
-            elif event['label'] == 'End':
-                self._endValue.setValue(value)
+            if event['label'] == 'Min':
+                self._minValue.setValue(value)
+            elif event['label'] == 'Max':
+                self._maxValue.setValue(value)
 
             # This will recreate the markers while interacting...
             # It might break if marker interaction is changed
             if event['event'] == 'markerMoved':
                 self._notify()
             else:
-                self._plotUpdate()
+                self._plotUpdate(updateMarkers=False)
 
     def getHistogram(self):
         """Returns the counts and bin edges of the displayed histogram.
@@ -369,8 +383,8 @@ class ColormapDialog(qt.QDialog):
             assert min_ <= max_
             self._dataRange = min_, max_
             if self._rangeAutoscaleButton.isChecked():
-                self._startValue.setValue(min_)
-                self._endValue.setValue(max_)
+                self._minValue.setValue(min_)
+                self._maxValue.setValue(max_)
                 self._notify()
             else:
                 self._plotUpdate()
@@ -385,8 +399,8 @@ class ColormapDialog(qt.QDialog):
             'name': str(self._comboBoxColormap.currentText()).lower(),
             'normalization': 'linear' if isNormLinear else 'log',
             'autoscale': self._rangeAutoscaleButton.isChecked(),
-            'vmin': self._startValue.value(),
-            'vmax': self._endValue.value(),
+            'vmin': self._minValue.value(),
+            'vmax': self._maxValue.value(),
             'colors': 256}
         return colormap
 
@@ -416,10 +430,10 @@ class ColormapDialog(qt.QDialog):
             self._rangeAutoscaleButton.setChecked(autoscale)
 
         if vmin is not None:
-            self._startValue.setValue(vmin)
+            self._minValue.setValue(vmin)
 
         if vmax is not None:
-            self._endValue.setValue(vmax)
+            self._maxValue.setValue(vmax)
 
         # Do it once for all the changes
         self._notify()
@@ -431,24 +445,56 @@ class ColormapDialog(qt.QDialog):
 
     def _autoscaleToggled(self, checked):
         """Handle autoscale changes by enabling/disabling min/max fields"""
-        self._startValue.setEnabled(not checked)
-        self._endValue.setEnabled(not checked)
+        self._minValue.setEnabled(not checked)
+        self._maxValue.setEnabled(not checked)
         if checked:
             dataRange = self.getDataRange()
             if dataRange is not None:
-                self._startValue.setValue(dataRange[0])
-                self._endValue.setValue(dataRange[1])
+                self._minValue.setValue(dataRange[0])
+                self._maxValue.setValue(dataRange[1])
 
     def _minMaxTextEdited(self, text):
-        """Handle _startValue and _endValue textEdited signal"""
+        """Handle _minValue and _maxValue textEdited signal"""
         self._minMaxWasEdited = True
 
-    def _minMaxEditingFinished(self):
-        """Handle _startValue and _endValue editingFinished signal
+    def _minEditingFinished(self):
+        """Handle _minValue editingFinished signal
 
         Together with :meth:`_minMaxTextEdited`, this avoids to notify
         colormap change when the min and max value where not edited.
         """
         if self._minMaxWasEdited:
             self._minMaxWasEdited = False
+
+            # Fix start value
+            if self._minValue.value() > self._maxValue.value():
+                self._minValue.setValue(self._maxValue.value())
             self._notify()
+
+    def _maxEditingFinished(self):
+        """Handle _maxValue editingFinished signal
+
+        Together with :meth:`_minMaxTextEdited`, this avoids to notify
+        colormap change when the min and max value where not edited.
+        """
+        if self._minMaxWasEdited:
+            self._minMaxWasEdited = False
+
+            # Fix end value
+            if self._minValue.value() > self._maxValue.value():
+                self._maxValue.setValue(self._minValue.value())
+            self._notify()
+
+    def keyPressEvent(self, event):
+        """Override key handling.
+
+        It disables leaving the dialog when editing a text field.
+        """
+        if event.key() == qt.Qt.Key_Enter and (self._minValue.hasFocus() or
+            self._maxValue.hasFocus()):
+            # Bypass QDialog keyPressEvent
+            # To avoid leaving the dialog when pressing enter on a text field
+            super(qt.QDialog, self).keyPressEvent(event)
+        else:
+            # Use QDialog keyPressEvent
+            super(ColormapDialog, self).keyPressEvent(event)
