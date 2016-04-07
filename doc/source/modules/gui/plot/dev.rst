@@ -52,6 +52,14 @@ The following modules are the modules used internally by the plot package.
 .. automodule:: silx.gui.plot.BackendMatplotlib
    :members:
 
+:mod:`ColormapDialog`
++++++++++++++++++++++
+
+.. currentmodule:: silx.gui.plot.ColormapDialog
+
+.. automodule:: silx.gui.plot.ColormapDialog
+   :members:
+
 :mod:`Colors`
 +++++++++++++
 
