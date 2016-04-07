@@ -119,12 +119,11 @@ class ColormapDialog(qt.QDialog):
         self.setWindowTitle(title)
 
         self._histogramData = None
+        self._dataRange = None
         self._minMaxWasEdited = False
 
         self._colormapList = ('gray', 'reversed gray', 'temperature',
                               'red', 'green', 'blue')
-
-        self._dataRange = 1., 10.
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
@@ -218,12 +217,25 @@ class ColormapDialog(qt.QDialog):
         self._plot.setActiveCurveHandling(False)
         self._plot.setMinimumSize(qt.QSize(250, 200))
         self._plot.sigPlotSignal.connect(self._plotSlot)
+        self._plot.hide()
 
         self._plotUpdate()
 
     def _plotUpdate(self):
         """Update the plot content"""
-        dataMin, dataMax = self.getDataRange()
+        dataRange = self.getDataRange()
+
+        if dataRange is None:
+            if self._plot.isVisibleTo(self):
+                self._plot.setVisible(False)
+                self.setFixedSize(self.layout().minimumSize())
+            return
+
+        if not self._plot.isVisibleTo(self):
+            self._plot.setVisible(True)
+            self.setFixedSize(self.layout().minimumSize())
+
+        dataMin, dataMax = dataRange
         marge = (abs(dataMax) + abs(dataMin)) / 6.0
         minmd = dataMin - marge
         maxpd = dataMax + marge
@@ -313,6 +325,7 @@ class ColormapDialog(qt.QDialog):
         if hist is None or bin_edges is None:
             self._histogramData = None
             self._plot.remove(legend='Histogram', kind='curve')
+            self.setDataRange()  # Remove data range
 
         else:
             hist = numpy.array(hist, copy=True)
@@ -336,26 +349,31 @@ class ColormapDialog(qt.QDialog):
     def getDataRange(self):
         """Returns the data range used for the histogram area.
 
-        :return: (dataMin, dataMax)
+        :return: (dataMin, dataMax) or None if no data range is set
         :rtype: 2-tuple of float
         """
         return self._dataRange
 
-    def setDataRange(self, min_, max_):
+    def setDataRange(self, min_=None, max_=None):
         """Set the range of data to use for the range of the histogram area.
 
-        :param float min_: The min of the data
-        :param float max_: The max of the data
+        :param float min_: The min of the data or None to disable range.
+        :param float max_: The max of the data or None to disable range.
         """
-        min_, max_ = float(min_), float(max_)
-        assert min_ <= max_
-        self._dataRange = min_, max_
-        if self._rangeAutoscaleButton.isChecked():
-            self._startValue.setValue(min_)
-            self._endValue.setValue(max_)
-            self._notify()
-        else:
+        if min_ is None or max_ is None:
+            self._dataRange = None
             self._plotUpdate()
+
+        else:
+            min_, max_ = float(min_), float(max_)
+            assert min_ <= max_
+            self._dataRange = min_, max_
+            if self._rangeAutoscaleButton.isChecked():
+                self._startValue.setValue(min_)
+                self._endValue.setValue(max_)
+                self._notify()
+            else:
+                self._plotUpdate()
 
     def getColormap(self):
         """Return the colormap description as a dict.
@@ -392,6 +410,7 @@ class ColormapDialog(qt.QDialog):
         if normalization is not None:
             assert normalization in ('linear', 'log')
             self._normButtonLinear.setChecked(normalization == 'linear')
+            self._normButtonLog.setChecked(normalization == 'log')
 
         if autoscale is not None:
             self._rangeAutoscaleButton.setChecked(autoscale)
@@ -415,8 +434,10 @@ class ColormapDialog(qt.QDialog):
         self._startValue.setEnabled(not checked)
         self._endValue.setEnabled(not checked)
         if checked:
-            self._startValue.setValue(self._dataRange[0])
-            self._endValue.setValue(self._dataRange[1])
+            dataRange = self.getDataRange()
+            if dataRange is not None:
+                self._startValue.setValue(dataRange[0])
+                self._endValue.setValue(dataRange[1])
 
     def _minMaxTextEdited(self, text):
         """Handle _startValue and _endValue textEdited signal"""

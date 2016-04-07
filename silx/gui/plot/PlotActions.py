@@ -292,8 +292,7 @@ class ColormapAction(_PlotAction):
             # No active image, set dialog from default info
             colormap = self.plot.getDefaultColormap()
 
-            self._dialog.setHistogram()  # Reset histogram if any
-            self._dialog.setDataRange(colormap['vmin'], colormap['vmax'])
+            self._dialog.setHistogram()  # Reset histogram and range if any
 
         else:
             # Set dialog from active image
