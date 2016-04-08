@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,43 +22,54 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Full silx test suite.
-
-silx.gui tests depends on Qt.
-To disable them, set WITH_QT_TEST environement variable to 'False'.
-"""
+"""Basic tests for Plot"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
+__date__ = "02/03/2016"
 
 
-import logging
-import os
 import unittest
 
+import numpy
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-
-
-from .test_version import suite as test_version_suite
-from ..io.test import suite as test_io_suite
-from ..math.test import suite as test_math_suite
+from silx.gui.plot.Plot import Plot
 
 
-if os.environ.get('WITH_QT_TEST', 'True') == 'True':
-    from ..gui.test import suite as test_gui_suite
-else:
-    logger.warning('silx.gui tests are disabled (WITH_QT_TEST=False)')
-    test_gui_suite = None
+class TestPlot(unittest.TestCase):
+    """Basic tests of Plot without backend"""
+
+    def testPlotTitleLabels(self):
+        """Create a Plot and set the labels"""
+
+        plot = Plot(backend='none')
+
+        title, xlabel, ylabel = 'the title', 'x label', 'y label'
+        plot.setGraphTitle(title)
+        plot.setGraphXLabel(xlabel)
+        plot.setGraphYLabel(ylabel)
+
+        self.assertEqual(plot.getGraphTitle(), title)
+        self.assertEqual(plot.getGraphXLabel(), xlabel)
+        self.assertEqual(plot.getGraphYLabel(), ylabel)
+
+    def testAddNoRemove(self):
+        """add objects to the Plot"""
+
+        plot = Plot(backend='none')
+        plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))
+        plot.addImage(numpy.arange(100.).reshape(10, -1))
+        plot.addItem(
+            numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
+        plot.addXMarker(10.)
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_version_suite())
-    if test_gui_suite is not None:
-        test_suite.addTest(test_gui_suite())
-    test_suite.addTest(test_io_suite())
-    test_suite.addTest(test_math_suite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlot))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,26 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Qt widgets for 1D and 2D plotting.
+
+This package provides a set of widgets for plotting curve and images.
+Those widgets supports interaction (e.g., zoom, pan, selections).
+
+The plotting API is inherited from and thus mostly compatible with
+`PyMca <http://pymca.sourceforge.net/>`_ plot API.
+
+List of Qt widgets:
+
+.. currentmodule:: silx.gui.plot
+
+- :mod:`.PlotWidget`: A widget displaying a single plot.
+- :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
+"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "22/02/2016"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+from .PlotWidget import PlotWidget  # noqa
+from .PlotWindow import PlotWindow  # noqa

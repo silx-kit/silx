@@ -38,7 +38,7 @@ install:
 
     # Install build dependencies
     - pip install wheel
-    - pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse numpy
+    - pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ numpy
 
     # Print Python info
     - python ./ci/info_platform.py
@@ -60,14 +60,14 @@ script:
     - pip install --upgrade pip
 
     # Install from source package
-    - pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse silx
+    - pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx
 
     # Print Python info
     - python ci/info_platform.py
     - pip freeze
 
-    # Run the tests
-    - python run_tests.py
+    # Run the tests (disable silx.gui tests)
+    - WITH_QT_TEST=False python run_tests.py
 
     # Mac OS X specific cleanup
     - travis_osx_run_end

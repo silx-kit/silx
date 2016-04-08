@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +22,33 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic test of Qt bindings wrapper."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/02/2016"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "16/02/2016"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
+import unittest
 
-    return config
+from silx.gui import qt
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+class TestQtWrapper(unittest.TestCase):
+    """Minimalistic test to check that Qt has been loaded."""
 
-    setup(configuration=configuration)
+    def testQObject(self):
+        """Test that QObject is there."""
+        obj = qt.QObject()
+        self.assertTrue(obj is not None)
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestQtWrapper))
+    return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

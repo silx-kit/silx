@@ -1,5 +1,5 @@
-#/*##########################################################################
 # coding: utf-8
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,18 +22,24 @@
 #
 #############################################################################*/
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "08/04/2016"
 
 import unittest
 
 from .test_specfile import suite as test_specfile_suite
+from .test_dicttoh5 import suite as test_dicttoh5_suite
+from .test_spech5 import suite as test_spech5_suite
+from .test_spectoh5 import suite as test_spectoh5_suite
 from .test_utils import suite as test_utils_suite
 
 
 def suite():
     test_suite = unittest.TestSuite()
+    test_suite.addTest(test_dicttoh5_suite())
     test_suite.addTest(test_specfile_suite())
+    test_suite.addTest(test_spech5_suite())
+    test_suite.addTest(test_spectoh5_suite())
     test_suite.addTest(test_utils_suite())
     return test_suite

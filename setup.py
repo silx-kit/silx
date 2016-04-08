@@ -397,7 +397,6 @@ cmdclass['debian_src'] = sdist_debian
 
 setup_kwargs = config.todict()
 
-
 install_requires = ["numpy", "h5py"]
 setup_requires = ["numpy"]
 

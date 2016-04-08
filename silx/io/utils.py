@@ -36,13 +36,13 @@ __date__ = "06/04/2016"
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
-         fmt="%.7g", csvdelimiter=";", newline="\n", header="",
+def save(fname, x, y, xlabel=None, ylabels=None, filetype=None,
+         fmt="%.7g", csvdelim=";", newline="\n", header="",
          footer="", comments="#"):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
     `txt` or `npy`.
 
-    :param output_file: Output file name, or file handle open in write
+    :param fname: Output file name, or file handle open in write
         mode.
     :param x: 1D-Array (or list) of abscissa values.
     :param y: 2D-array (or list of lists) of ordinates values. First index
@@ -50,7 +50,7 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
         of the second dimension (number of samples) must be equal to
         ``len(x)``. ``y`` can be a 1D-array in case there is only one curve
         to be saved.
-    :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
+    :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
         If ``None``, filetype is detected from file name extension
         (``.dat, .csv, .txt, .npy``)
     :param xlabel: Abscissa label
@@ -60,11 +60,11 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
         This parameter does not apply to the `npy` format.
-    :param csvdelimiter: String or character separating columns in `txt` and
+    :param csvdelim: String or character separating columns in `txt` and
         `CSV` formats. The user is responsible for ensuring that this
         delimiter is not used in data labels when writing a `CSV` file.
     :param newline: String or character separating lines/records in `txt`
-        format (default is line break character ``\n``).
+        format (default is line break character ``\\n``).
     :param header: String that will be written at the beginning of the file in
         `txt` format.
     :param footer: String that will be written at the end of the file in `txt`
@@ -76,14 +76,14 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
     with two data columns (``x`` and ``y``).
 
     `CSV` and `txt` formats are similar, except that the `txt` format allows
-    user defined header and footer text blocks, whereas the `CSV` format has
+    user defined header and footer text blocks, whereas the `CSV` format has
     only a single header line with columns labels separated by field
     delimiters and no footer. The `txt` format also allows defining a record
     separator different from a line break.
 
     The `npy` format is written with ``numpy.save`` and can be read back with
-    ``numpy.load``. If ``xlabel`` and ``ylabels`` are undefined, data is saved
-    as a regular 2D ``numpy.ndarray`` (contatenation of ``x`` and ``y``). If
+    ``numpy.load``. If ``xlabel`` and ``ylabels`` are undefined, data is saved
+    as a regular 2D ``numpy.ndarray`` (contatenation of ``x`` and ``y``). If
     both ``xlabel`` and ``ylabels`` are defined, the data is saved as a
     ``numpy.recarray`` after being transposed and having labels assigned to
     columns.
@@ -96,8 +96,8 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
                     ".csv": "csv",
                     ".txt": "txt",
                     ".npy": "ndarray"}
-        outfname = (output_file if not hasattr(output_file, "name") else
-                    output_file.name)
+        outfname = (fname if not hasattr(fname, "name") else
+                    fname.name)
         fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
@@ -109,11 +109,11 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
 
     if filetype.lower() == "spec":
         # Spec format
-        savespec(output_file, x, y, xlabel, ylabels, fmt=fmt)
+        savespec(fname, x, y, xlabel, ylabels, fmt=fmt)
     else:
         if xlabel is not None and ylabels is not None and filetype == "csv":
-            # csv format: single header line with labels, no footer
-            header = xlabel + csvdelimiter + csvdelimiter.join(ylabels)
+            # csv format: single header line with labels, no footer
+            header = xlabel + csvdelim + csvdelim.join(ylabels)
             comments = ""
             footer = ""
             newline = "\n"
@@ -123,7 +123,7 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
 
         if filetype.lower() in ["csv", "txt"]:
             X = X.transpose()
-            savetxt(output_file, X, fmt=fmt, delimiter=csvdelimiter,
+            savetxt(fname, X, fmt=fmt, delimiter=csvdelim,
                     newline=newline, header=header, footer=footer,
                     comments=comments)
 
@@ -135,15 +135,18 @@ def save(output_file, x, y, xlabel=None, ylabels=None, filetype=None,
                 # apply to columns
                 X = numpy.core.records.fromrecords(X.transpose(),
                                                    names=labels)
-            numpy.save(output_file, X)
+            numpy.save(fname, X)
 
 
 def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
             header="", footer="", comments="#"):
-    """numpy.savetxt backport of header and footer arguments from numpy=1.7.0.
-    For Debian 7 compatibility, replace by numpy.savetxt when dropping
-    support of numpy < 1.7.0
-    See numpy.savetxt for details.
+    """``numpy.savetxt`` backport of header and footer arguments from
+    numpy=1.7.0.
+
+    Replace with ``numpy.savetxt`` when dropping support of numpy < 1.7.0
+
+    See ``numpy.savetxt`` help:
+    http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html
     """
     if not hasattr(fname, "name"):
         ffile = open(fname, 'wb')
@@ -182,7 +185,7 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
         is the curve index, second index is the sample index. The length
         of the second dimension (number of samples) must be equal to
         ``len(x)``. ``y`` can be a 1D-array when there is only one curve
-         to be saved.
+        to be saved.
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels, or string of labels separated by
         two spaces
@@ -242,3 +245,51 @@ def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
 
     if not hasattr(specfile, "write"):
         f.close()
+
+
+def h5ls(h5group, lvl=0):
+    """Return a simple string representation of a HDF5 tree structure.
+
+    :param h5group: Any :class:`h5py.Group` or :class:`h5py.File` instance,
+        or a HDF5 file name
+    :param lvl: Number of tabulations added to the group. ``lvl`` is
+        incremented as we recursively process sub-groups.
+    :return: String representation of an HDF5 tree structure
+
+
+    Group names and dataset representation are printed preceded by a number of
+    tabulations corresponding to their depth in the tree structure.
+    Datasets are represented as :class:`h5py.Dataset` objects.
+
+    Example::
+
+        >>> print(h5ls("Downloads/sample.h5"))
+        +fields
+            +fieldB
+                <HDF5 dataset "z": shape (256, 256), type "<f4">
+            +fieldE
+                <HDF5 dataset "x": shape (256, 256), type "<f4">
+                <HDF5 dataset "y": shape (256, 256), type "<f4">
+    """
+    repr = ''
+    if isinstance(h5group, (h5py.File, h5py.Group)):
+        h5f = h5group
+    elif isinstance(h5group, string_types):
+        h5f = h5py.File(h5group, "r")
+    else:
+        raise TypeError("h5group must be a h5py.group object or a file name.")
+
+    for key in h5f.keys():
+        if hasattr(h5f[key], 'keys'):
+            repr += '\t' * lvl + '+' + key
+            repr += '\n'
+            repr += h5ls(h5f[key], lvl + 1)
+        else:
+            repr += '\t' * lvl
+            repr += str(h5f[key])
+            repr += '\n'
+
+    if isinstance(h5group, string_types):
+        h5f.close()
+
+    return repr

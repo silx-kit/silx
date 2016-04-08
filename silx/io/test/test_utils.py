@@ -22,6 +22,7 @@
 #
 #############################################################################*/
 """Tests for utils module"""
+
 import h5py
 import numpy
 import os
@@ -30,11 +31,13 @@ import shutil
 import tempfile
 import unittest
 
-from silx.io.utils import savespec, save
+from ..utils import savespec, save
+from ..utils import h5ls
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/04/2016"
+__date__ = "08/04/2016"
 
 
 expected_spec = r"""#F .*
@@ -90,7 +93,7 @@ class TestSave(unittest.TestCase):
         save(self.csv_fname, self.x, self.y,
              xlabel=self.xlab, ylabels=self.ylabs,
              filetype="csv", fmt=["%d", "%.2f", "%.2e"],
-             csvdelimiter=";")
+             csvdelim=";")
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -139,10 +142,69 @@ class TestSave(unittest.TestCase):
         self.assertRegexpMatches(actual_spec, expected_spec)
 
 
+def assert_match_any_string_in_list(test, pattern, list_of_strings):
+    for string_ in list_of_strings:
+        if re.match(pattern, string_):
+            return True
+    return False
+
+
+class TestH5Ls(unittest.TestCase):
+    """Test displaying the following HDF5 file structure:
+
+        +foo
+            +bar
+                <HDF5 dataset "spam": shape (2, 2), type "<i8">
+                <HDF5 dataset "tmp": shape (3,), type "<i8">
+            <HDF5 dataset "data": shape (1,), type "<f8">
+
+    """
+    def setUp(self):
+        fd, self.h5_fname = tempfile.mkstemp(text=False)
+        # Close and delete (we just want the name)
+        os.close(fd)
+        os.unlink(self.h5_fname)
+        self.h5f = h5py.File(self.h5_fname, "w")
+        self.h5f["/foo/bar/tmp"] = [1, 2, 3]
+        self.h5f["/foo/bar/spam"] = [[1, 2], [3, 4]]
+        self.h5f["/foo/data"] = [3.14]
+        self.h5f.close()
+
+    def tearDown(self):
+        os.unlink(self.h5_fname)
+
+    def assertMatchAnyStringInList(self, pattern, list_of_strings):
+        for string_ in list_of_strings:
+            if re.match(pattern, string_):
+                return None
+        raise AssertionError("regex pattern %s does not match any" % pattern +
+                             " string in list " + str(list_of_strings))
+
+    def testRepr(self):
+        rep = h5ls(self.h5_fname)
+        lines = rep.split("\n")
+
+        self.assertIn("+foo", lines)
+        self.assertIn("\t+bar", lines)
+
+        self.assertMatchAnyStringInList(
+                r'\t\t<HDF5 dataset "tmp": shape \(3,\), type "<i[48]">',
+                lines)
+        self.assertMatchAnyStringInList(
+                r'\t\t<HDF5 dataset "spam": shape \(2, 2\), type "<i[48]">',
+                lines)
+        self.assertMatchAnyStringInList(
+                r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
+                lines)
+
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSave))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
     return test_suite
 
 
