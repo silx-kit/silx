@@ -746,9 +746,8 @@ class CopyAction(_PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        icon = qt.QIcon.fromTheme('edit-copy')
         super(CopyAction, self).__init__(
-            plot, icon=icon, text='Copy plot',
+            plot, icon='clipboard', text='Copy plot',
             tooltip='Copy a snapshot of the plot the clipboard',
             triggered=self.copyPlot,
             checkable=False, parent=parent)
