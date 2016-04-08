@@ -85,9 +85,10 @@ then
   cd ..
 else
   # Disable to skip tests during build
-  export PYBUILD_DISABLE_python2=test
-  export PYBUILD_DISABLE_python3=test
-  export DEB_BUILD_OPTIONS=nocheck
+  echo No test data
+  #export PYBUILD_DISABLE_python2=test
+  #export PYBUILD_DISABLE_python3=test
+  #export DEB_BUILD_OPTIONS=nocheck
 fi
 
 dch -v ${strictversion}-1 "upstream development build of ${project} ${version}"
