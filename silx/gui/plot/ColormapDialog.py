@@ -107,7 +107,7 @@ class ColormapDialog(qt.QDialog):
     :param parent: See :class:`QDialog`
     """
 
-    sigColormapChanged = qt.pyqtSignal(dict)
+    sigColormapChanged = qt.Signal(dict)
     """Signal triggered when the colormap is changed.
 
     It provides a dict describing the colormap to the slot.
