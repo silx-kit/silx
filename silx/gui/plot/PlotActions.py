@@ -351,21 +351,35 @@ class KeepAspectRatioAction(_PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        # Icon uses two images for checked/unchecked states
-        icon = icons.getQIcon('shape-ellipse-solid')
-        icon.addPixmap(icons.getQPixmap('shape-circle-solid'),
-                       state=qt.QIcon.On)
+        # Uses two images for checked/unchecked states
+        self._states = {
+            False: (icons.getQIcon('shape-circle-solid'),
+                    "Keep data aspect ratio"),
+            True: (icons.getQIcon('shape-ellipse-solid'),
+                   "Do no keep data aspect ratio")
+        }
+
+        icon, tooltip = self._states[plot.isKeepDataAspectRatio()]
         super(KeepAspectRatioAction, self).__init__(
-            plot, icon=icon, text='Keep aspect ratio',
-            tooltip="""Change keep data aspect ratio:
-            Keep aspect ratio when checked""",
+            plot,
+            icon=icon,
+            text='Toggle keep aspect ratio',
+            tooltip=tooltip,
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
-        self.setChecked(self.plot.isKeepDataAspectRatio())
-        plot.sigSetKeepDataAspectRatio.connect(self.setChecked)
+            checkable=False,
+            parent=parent)
+        plot.sigSetKeepDataAspectRatio.connect(
+            self._keepDataAspectRatioChanged)
+
+    def _keepDataAspectRatioChanged(self, aspectRatio):
+        """Handle Plot set keep aspect ratio signal"""
+        icon, tooltip = self._states[aspectRatio]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
 
     def _actionTriggered(self, checked=False):
-        self.plot.keepDataAspectRatio(checked)
+        # This will trigger _keepDataAspectRatioChanged
+        self.plot.setKeepDataAspectRatio(not self.plot.isKeepDataAspectRatio())
 
 
 class YAxisInvertedAction(_PlotAction):
@@ -376,22 +390,34 @@ class YAxisInvertedAction(_PlotAction):
     """
 
     def __init__(self, plot, parent=None):
-        # Icon uses two images for checked/unchecked states
-        icon = icons.getQIcon('plot-yup')
-        icon.addPixmap(icons.getQPixmap('plot-ydown'),
-                       state=qt.QIcon.On)
+        # Uses two images for checked/unchecked states
+        self._states = {
+            False: (icons.getQIcon('plot-ydown'),
+                    "Orient Y axis downward"),
+            True: (icons.getQIcon('plot-yup'),
+                   "Orient Y axis upward"),
+        }
+
+        icon, tooltip = self._states[plot.isYAxisInverted()]
         super(YAxisInvertedAction, self).__init__(
-            plot, icon=icon, text='Invert Y Axis',
-            tooltip="""Change Y Axis orientation:
-            - upward when unchecked,
-            - downward when checked""",
+            plot,
+            icon=icon,
+            text='Invert Y Axis',
+            tooltip=tooltip,
             triggered=self._actionTriggered,
-            checkable=True, parent=parent)
-        self.setChecked(plot.isYAxisInverted())
-        plot.sigSetYAxisInverted.connect(self.setChecked)
+            checkable=False,
+            parent=parent)
+        plot.sigSetYAxisInverted.connect(self._yAxisInvertedChanged)
+
+    def _yAxisInvertedChanged(self, inverted):
+        """Handle Plot set y axis inverted signal"""
+        icon, tooltip = self._states[inverted]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
 
     def _actionTriggered(self, checked=False):
-        self.plot.invertYAxis(checked)
+        # This will trigger _yAxisInvertedChanged
+        self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
 
 
 class SaveAction(_PlotAction):
