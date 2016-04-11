@@ -46,7 +46,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/03/2016"
+__date__ = "11/03/2016"
 
 
 from collections import OrderedDict
@@ -66,6 +66,8 @@ import numpy
 from .. import icons
 from .. import qt
 from .ColormapDialog import ColormapDialog
+
+from silx.io.utils import save1D
 
 
 _logger = logging.getLogger(__name__)
@@ -421,10 +423,14 @@ class SaveAction(_PlotAction):
         ('Curve as tab-separated CSV *.csv',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
         (CURVE_OMNIC_FILTER,
-         {'fmt': '%.7E', 'delimiter': ',', 'header': False})
+         {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
+        ('Curve as SpecFile *.dat',
+         {'fmt': '%.7g', 'delimiter': '', 'header': False})
     ))
 
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys())
+    CURVE_FILTER_NPY = 'Curve as NumPy binary file *.npy'
+
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
     IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
     IMAGE_FILTERS = (IMAGE_FILTER_NUMPY,)
@@ -502,30 +508,19 @@ class SaveAction(_PlotAction):
                 return False
             curve = curves[0]  # TODO why not the last one?
 
-        # TODO Use silx.io for writing files
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
-            if filter_['header']:
-                header = '"%s"%s"%s"' % (curve[4]['xlabel'],
-                                         filter_['delimiter'],
-                                         curve[4]['ylabel'])
-            else:
-                header = ''
 
-            # For numpy<1.7.0 compatibility
-            # replace with numpy.savetxt when dropping Debian 7 support
-            try:
-                self.savetxt(filename,
-                             numpy.array((curve[0], curve[1])).T,
-                             fmt=filter_['fmt'],
-                             delimiter=filter_['delimiter'],
-                             header=header)
-            except IOError:
-                self._errorMessage('Save failed\n')
-                return False
-            return True
+        try:
+            save1D(filename, curve[0], curve[1],
+                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   fmt=filter_['fmt'], csvdelim=filter_['delimiter'],
+                   autoheader=filter_['header'])
+        except IOError:
+            self._errorMessage('Save failed\n')
+            return False
 
-        return False
+        return True
 
     def _saveImage(self, filename, nameFilter):
         """Save an image from the plot.
