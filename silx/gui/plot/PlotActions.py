@@ -67,7 +67,7 @@ from .. import icons
 from .. import qt
 from .ColormapDialog import ColormapDialog
 
-from silx.io.utils import save1D
+from silx.io.utils import save1D, savespec
 
 
 _logger = logging.getLogger(__name__)
@@ -432,6 +432,8 @@ class SaveAction(_PlotAction):
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
+    ALL_CURVES_FILTERS = ("All curves as SpecFile *.dat", )
+
     IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
     IMAGE_FILTERS = (IMAGE_FILTER_NUMPY,)
 
@@ -442,28 +444,6 @@ class SaveAction(_PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Save)
-
-    @staticmethod
-    def savetxt(fname, X, fmt='%.18e', delimiter=' ', newline='\n', header=''):
-        """numpy.savetxt backport of header argument from numpy=1.7.0.
-
-        For Debian 7 compatibility, replace by numpy.savetxt when dropping
-        support of numpy < 1.7.0
-
-        See numpy.savetxt for details.
-        """
-        # Open the file in text mode with \n newline on all OS
-        if sys.version_info[0] >= 3:
-            ffile = open(fname, 'w', newline='\n')
-        else:
-            ffile = open(fname, 'wb')
-
-        if header:
-            ffile.write(header + '\n')
-
-        numpy.savetxt(ffile, X, fmt, delimiter, newline)
-
-        ffile.close()
 
     def _errorMessage(self, informativeText=''):
         """Display an error message."""
@@ -510,15 +490,64 @@ class SaveAction(_PlotAction):
 
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
+            fmt=filter_['fmt']
+            csvdelim=filter_['delimiter'],
+            autoheader=filter_['header']
+        else:
+            # .npy
+            fmt, csvdelim, autoheader = ("", "", False)
 
         try:
             save1D(filename, curve[0], curve[1],
                    curve[4]['xlabel'], [curve[4]['ylabel']],
-                   fmt=filter_['fmt'], csvdelim=filter_['delimiter'],
-                   autoheader=filter_['header'])
+                   fmt=fmt, csvdelim=csvdelim,
+                   autoheader=autoheader)
         except IOError:
             self._errorMessage('Save failed\n')
             return False
+
+        return True
+
+    def _saveCurves(self, filename, nameFilter):
+        """Save all curves from the plot.
+
+        :param str filename: The name of the file to write
+        :param str nameFilter: The selected name filter
+        :return: False if format is not supported or save failed,
+                 True otherwise.
+        """
+        if nameFilter not in self.ALL_CURVES_FILTERS:
+            return False
+
+        curves = self.plot.getAllCurves()
+        if not curves:
+            self._errorMessage("No curves to be saved")
+            return False
+
+        curve = curves[0]
+        scanno = 1
+        try:
+            specfile = savespec(filename, curve[0], curve[1],
+                                curve[4]['xlabel'], curve[4]['ylabel'],
+                                fmt="%.7g", scan_number=1, mode="w",
+                                write_file_header=True,
+                                close_file = False)
+        except IOError:
+            self._errorMessage('Save failed\n')
+            return False
+
+        for curve in curves[1:]:
+            try:
+                scanno += 1
+                specfile = savespec(specfile, curve[0], curve[1],
+                                    curve[4]['xlabel'], curve[4]['ylabel'],
+                                    fmt="%.7g", scan_number=scanno, mode="w",
+                                    write_file_header=False,
+                                    close_file = False)
+            except IOError:
+                self._errorMessage('Save failed\n')
+                return False
+        specfile.close()
 
         return True
 
@@ -563,8 +592,10 @@ class SaveAction(_PlotAction):
 
         # Add curve filters if there is a curve to save
         if (self.plot.getActiveCurve() is not None or
-                self.plot.getAllCurves()):
+                len(self.plot.getAllCurves()) == 1):
             filters.extend(self.CURVE_FILTERS)
+        if len(self.plot.getAllCurves()) > 1:
+            filters.extend(self.ALL_CURVES_FILTERS)
 
         filters.extend(self.SNAPSHOT_FILTERS)
 
@@ -595,6 +626,8 @@ class SaveAction(_PlotAction):
             return self._saveSnapshot(filename, nameFilter)
         elif nameFilter in self.CURVE_FILTERS:
             return self._saveCurve(filename, nameFilter)
+        elif nameFilter in self.ALL_CURVES_FILTERS:
+            return self._saveCurves(filename, nameFilter)
         elif nameFilter in self.IMAGE_FILTERS:
             return self._saveImage(filename, nameFilter)
         else:
