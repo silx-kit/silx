@@ -31,7 +31,7 @@ import time
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/04/2016"
+__date__ = "11/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -40,10 +40,12 @@ def save(fname, x, y, xlabel=None, ylabels=None, filetype=None,
          fmt="%.7g", csvdelim=";", newline="\n", header="",
          footer="", comments="#"):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
-    `txt` or `npy`.
+    `txt` or `npy`. All curves must have the same number of points and the
+    same ``x`` values.
 
-    :param fname: Output file name, or file handle open in write
-        mode.
+    :param fname: Output file path, or file handle open in write mode.
+        If ``fname`` is a path, file is opened in ``w`` mode. Existing file
+        with a same name will be overwritten.
     :param x: 1D-Array (or list) of abscissa values.
     :param y: 2D-array (or list of lists) of ordinates values. First index
         is the curve index, second index is the sample index. The length
@@ -108,8 +110,27 @@ def save(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         raise IOError("File type %s is not supported" % (filetype))
 
     if filetype.lower() == "spec":
-        # Spec format
-        savespec(fname, x, y, xlabel, ylabels, fmt=fmt)
+        y_array = numpy.asarray(y)
+
+        # make sure y_array is a 2D array even for a single curve
+        if len(y_array.shape) == 1:
+            y_array.shape = (1, y_array.shape[0])
+        elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
+            raise IndexError("y must be a 1D or 2D array")
+
+        # First curve
+        specf = savespec(fname, x, y_array[0], xlabel, ylabels[0], fmt=fmt,
+                         scan_number=1, mode="w", write_file_header=True,
+                         close_file=False)
+        # Other curves
+        for i in range(1, y_array.shape[0]):
+            specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
+                             fmt=fmt, scan_number=i+1, mode="w",
+                             write_file_header=False, close_file=False)
+        # close file if we created it
+        if not hasattr(fname, "write"):
+            specf.close()
+
     else:
         if xlabel is not None and ylabels is not None and filetype == "csv":
             # csv format: single header line with labels, no footer
@@ -172,79 +193,74 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
         ffile.close()
 
 
-def savespec(specfile, x, y, xlabel=None, ylabels=None, fmt="%.7g"):
-    """Saves any number of curves to SpecFile format.
+def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
+             scan_number=1, mode="w", write_file_header=True,
+             close_file=False):
+    """Saves one curve to a SpecFile.
 
-    The output SpecFile has one scan per curve, with two data columns each
-    (`x` and `y`).
+    The curve is saved as a scan with two data columns. To save multiple
+    curves to a single SpecFile, call this function for each curve by
+    providing the same file handle each time.
 
     :param specfile: Output SpecFile name, or file handle open in write
-        mode.
-    :param x: 1D-Array (or list) of abscissa values.
-    :param y: 2D-array (or list of lists) of ordinates values. First index
-        is the curve index, second index is the sample index. The length
-        of the second dimension (number of samples) must be equal to
-        ``len(x)``. ``y`` can be a 1D-array when there is only one curve
-        to be saved.
-    :param xlabel: Abscissa label
-    :param ylabels: List of `y` labels, or string of labels separated by
-        two spaces
+        or append mode. If a file name is provided, a new file is open in
+        write mode (existing file with the same name will be lost)
+    :param x: 1D-Array (or list) of abscissa values
+    :param y: 1D-array (or list) of ordinates values
+    :param xlabel: Abscissa label (default ``"X"``)
+    :param ylabel: Ordinate label
     :param fmt: Format string for data. You can specify a short format
         string that defines a single format for both ``x`` and ``y`` values,
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
+    :param scan_number: Scan number (default 1).
+    :param mode: Mode for opening file: ``w`` (default), ``a``,  ``r+``,
+        ``w+``, ``a+``. This parameter is only relevant if ``specfile`` is a
+        path.
+    :param write_file_header: If True, write a file header before writing the
+        scan (``#F`` and ``#D`` line).
+    :param close_file: If ``True``, close the file after saving curve.
+    :return: ``None`` if ``close_file`` is ``True``, else return the file
+        handle.
     """
-    if not hasattr(specfile, "write"):
-        f = open(specfile, "w")
-    else:
-        f = specfile
-
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
 
-    if xlabel is None:
-        xlabel = "X"
-    if ylabels is None:
-        # set labels to  ["Y0", "Y1", …]
-        ylabels = ["Y" + str(j) for j in range(y_array.shape[0])]
-
-    # enforce list type for ylabels
-    if isinstance(ylabels, string_types):
-        ylabels = ylabels.split("  ")
-
-    # make sure y_array is a 2D array even for a single curve
-    if len(y_array.shape) == 1:
-        y_array.shape = (1, y_array.shape[0])
-    elif len(y_array.shape) > 2 or len(y_array.shape) < 1:
-        raise IndexError("y must be a 1D or 2D array")
-
-    f.write("#F %s\n" % f.name)
-    current_date = "#D %s\n" % (time.ctime(time.time()))
-    f.write(current_date)
-    f.write("\n")
+    if y_array.shape[0] != x_array.shape[0]:
+        raise IndexError("X and Y columns must have the same length")
 
     if isinstance(fmt, string_types) and fmt.count("%") == 1:
         full_fmt_string = fmt + "  " + fmt + "\n"
-    elif isinstance(fmt, (list, tuple)):
+    elif isinstance(fmt, (list, tuple)) and len(fmt) == 2:
         full_fmt_string = "  ".join(fmt) + "\n"
     else:
         raise ValueError("fmt must be a single format string or a list of " +
                          "two format strings")
 
-    for i in range(y_array.shape[0]):
-        if y_array.shape[1] != x_array.shape[0]:
-            raise IndexError("X and Y columns must have the same length")
+    if not hasattr(specfile, "write"):
+        f = open(specfile, mode)
+    else:
+        f = specfile
 
-        f.write("#S %d %s\n" % (i + 1, ylabels[i]))
+    current_date = "#D %s\n" % (time.ctime(time.time()))
+
+    if write_file_header:
+        f.write("#F %s\n" % f.name)
         f.write(current_date)
-        f.write("#N 2\n")
-        f.write("#L %s  %s\n" % (xlabel, ylabels[i]))
-        for j in range(y_array.shape[1]):
-            f.write(full_fmt_string % (x_array[j], y[i][j]))
         f.write("\n")
 
-    if not hasattr(specfile, "write"):
+    f.write("#S %d %s\n" % (scan_number, ylabel))
+    f.write(current_date)
+    f.write("#N 2\n")
+    f.write("#L %s  %s\n" % (xlabel, ylabel))
+    for i in range(y_array.shape[0]):
+        f.write(full_fmt_string % (x_array[i], y_array[i]))
+    f.write("\n")
+
+    if close_file:
         f.close()
+        return None
+    return f
 
 
 def h5ls(h5group, lvl=0):

@@ -37,10 +37,10 @@ from ..utils import h5ls
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/04/2016"
+__date__ = "11/04/2016"
 
 
-expected_spec = r"""#F .*
+expected_spec1 = r"""#F .*
 #D .*
 
 #S 1 Ordinate1
@@ -50,7 +50,9 @@ expected_spec = r"""#F .*
 1  4\.00
 2  5\.00
 3  6\.00
+"""
 
+expected_spec2 = expected_spec1 + """
 #S 2 Ordinate2
 #D .*
 #N 2
@@ -59,7 +61,6 @@ expected_spec = r"""#F .*
 2  8\.00
 3  9\.00
 """
-
 expected_csv = r"""Abscissa;Ordinate1;Ordinate2
 1;4\.00;7\.00e\+00
 2;5\.00;8\.00e\+00
@@ -118,28 +119,46 @@ class TestSave(unittest.TestCase):
                         numpy.array((4, 5, 6))))
 
     def test_savespec_filename(self):
-        savespec(self.spec_fname, self.x, self.y,
-                 xlabel=self.xlab, ylabels=self.ylabs,
-                 fmt=["%d", "%.2f"])
+        """Save SpecFile using savespec()"""
+        savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
+                 ylabel=self.ylabs[0], fmt=["%d", "%.2f"], close_file=True,
+                 scan_number=1)
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
         specf.close()
 
-        self.assertRegexpMatches(actual_spec, expected_spec)
+        self.assertRegexpMatches(actual_spec, expected_spec1)
 
-    def test_save_spec_file_handle(self):
-        specf = open(self.spec_fname, "w")
-        save(specf, self.x, self.y,
-             xlabel=self.xlab, ylabels=self.ylabs,
-             filetype="spec", fmt=["%d", "%.2f"])
-        specf.close()
+    def test_savespec_file_handle(self):
+        """Save SpecFile using savespec(), passing a file handle"""
+        # first savespec: open, write file header, save y[0] as scan 1,
+        #                 return file handle
+        specf = savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
+                         ylabel=self.ylabs[0], fmt=["%d", "%.2f"],
+                         close_file=False)
+
+        # second savespec: save y[1] as scan 2, close file
+        savespec(specf, self.x, self.y[1], xlabel=self.xlab,
+                 ylabel=self.ylabs[1], fmt=["%d", "%.2f"],
+                 write_file_header=False, close_file=True,
+                 scan_number=2)
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()
         specf.close()
 
-        self.assertRegexpMatches(actual_spec, expected_spec)
+        self.assertRegexpMatches(actual_spec, expected_spec2)
+
+    def test_save_spec(self):
+        """Save SpecFile using save()"""
+        save(self.spec_fname, self.x, self.y, xlabel=self.xlab,
+             ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
+
+        specf = open(self.spec_fname)
+        actual_spec = specf.read()
+        specf.close()
+        self.assertRegexpMatches(actual_spec, expected_spec2)
 
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):
