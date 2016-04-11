@@ -69,7 +69,7 @@ test_script:
     - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ matplotlib"
 
     # Install the generated wheel package to test it
-    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx"
+    - "pip install --verbose --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx"
 
     # Print Python info
     - "python ci\\info_platform.py"
