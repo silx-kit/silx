@@ -747,7 +747,7 @@ class CopyAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(CopyAction, self).__init__(
-            plot, icon='clipboard', text='Copy plot',
+            plot, icon='edit-copy', text='Copy plot',
             tooltip='Copy a snapshot of the plot the clipboard',
             triggered=self.copyPlot,
             checkable=False, parent=parent)
