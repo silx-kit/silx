@@ -66,6 +66,8 @@ import numpy
 from .. import icons
 from .. import qt
 from .ColormapDialog import ColormapDialog
+from silx.third_party.EdfFile import EdfFile
+from silx.third_party.TiffIO import TiffIO
 
 
 _logger = logging.getLogger(__name__)
@@ -426,8 +428,10 @@ class SaveAction(_PlotAction):
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys())
 
+    IMAGE_FILTER_EDF = 'Image as EDF *.edf'
+    IMAGE_FILTER_TIFF = 'Image as TIFF *.tif'
     IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
-    IMAGE_FILTERS = (IMAGE_FILTER_NUMPY,)
+    IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
@@ -547,7 +551,15 @@ class SaveAction(_PlotAction):
         data = image[0]
 
         # TODO Use silx.io for writing files
-        if nameFilter == self.IMAGE_FILTER_NUMPY:
+        if nameFilter == self.IMAGE_FILTER_EDF:
+            edfFile = EdfFile(filename, access="w+")
+            edfFile.WriteImage({}, data, Append=0)
+
+        elif nameFilter == self.IMAGE_FILTER_TIFF:
+            tiffFile = TiffIO(filename, mode='w')
+            tiffFile.writeImage(data, software='silx')
+
+        elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
                 numpy.save(filename, data)
             except IOError:
