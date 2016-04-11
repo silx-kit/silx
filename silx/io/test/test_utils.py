@@ -31,7 +31,7 @@ import shutil
 import tempfile
 import unittest
 
-from ..utils import savespec, save
+from ..utils import savespec, save1D
 from ..utils import h5ls
 
 
@@ -91,10 +91,10 @@ class TestSave(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def test_save_csv(self):
-        save(self.csv_fname, self.x, self.y,
-             xlabel=self.xlab, ylabels=self.ylabs,
-             filetype="csv", fmt=["%d", "%.2f", "%.2e"],
-             csvdelim=";")
+        save1D(self.csv_fname, self.x, self.y,
+               xlabel=self.xlab, ylabels=self.ylabs,
+               filetype="csv", fmt=["%d", "%.2f", "%.2e"],
+               csvdelim=";")
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()
@@ -106,8 +106,8 @@ class TestSave(unittest.TestCase):
         """npy file is saved with numpy.save after building a numpy array
         and converting it to a named record array"""
         npyf = open(self.npy_fname, "wb")
-        save(npyf, self.x, self.y,
-             xlabel=self.xlab, ylabels=self.ylabs)
+        save1D(npyf, self.x, self.y,
+               xlabel=self.xlab, ylabels=self.ylabs)
         npyf.close()
 
         npy_recarray = numpy.load(self.npy_fname)
@@ -152,8 +152,8 @@ class TestSave(unittest.TestCase):
 
     def test_save_spec(self):
         """Save SpecFile using save()"""
-        save(self.spec_fname, self.x, self.y, xlabel=self.xlab,
-             ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
+        save1D(self.spec_fname, self.x, self.y, xlabel=self.xlab,
+               ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
 
         specf = open(self.spec_fname)
         actual_spec = specf.read()

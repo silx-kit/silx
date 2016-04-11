@@ -36,12 +36,12 @@ __date__ = "11/04/2016"
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 
-def save(fname, x, y, xlabel=None, ylabels=None, filetype=None,
-         fmt="%.7g", csvdelim=";", newline="\n", header="",
-         footer="", comments="#"):
+def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
+           fmt="%.7g", csvdelim=";", newline="\n", header="",
+           footer="", comments="#"):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
-    `txt` or `npy`. All curves must have the same number of points and the
-    same ``x`` values.
+    `txt` or `npy`. All curves must have the same number of points and share
+    the same ``x`` values.
 
     :param fname: Output file path, or file handle open in write mode.
         If ``fname`` is a path, file is opened in ``w`` mode. Existing file
