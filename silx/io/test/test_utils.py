@@ -94,7 +94,7 @@ class TestSave(unittest.TestCase):
         save1D(self.csv_fname, self.x, self.y,
                xlabel=self.xlab, ylabels=self.ylabs,
                filetype="csv", fmt=["%d", "%.2f", "%.2e"],
-               csvdelim=";")
+               csvdelim=";", autoheader=True)
 
         csvf = open(self.csv_fname)
         actual_csv = csvf.read()

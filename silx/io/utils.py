@@ -38,7 +38,7 @@ string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
            fmt="%.7g", csvdelim=";", newline="\n", header="",
-           footer="", comments="#"):
+           footer="", comments="#", autoheader=False):
     """Saves any number of curves to various formats: `Specfile`, `CSV`,
     `txt` or `npy`. All curves must have the same number of points and share
     the same ``x`` values.
@@ -73,6 +73,9 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
          format.
     :param comments: String that will be prepended to the ``header`` and
         ``footer`` strings, to mark them as comments. Default: ``#``.
+    :param autoheader: In `CSV` or `txt`, ``True`` causes the first header
+         line to be written as a standard CSV header line with column labels
+          separated by the specified CSV delimiter.
 
     When saving to Specfile format, each curve is saved as a separate scan
     with two data columns (``x`` and ``y``).
@@ -132,12 +135,24 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
             specf.close()
 
     else:
+        autoheader_line = xlabel + csvdelim + csvdelim.join(ylabels)
         if xlabel is not None and ylabels is not None and filetype == "csv":
-            # csv format: single header line with labels, no footer
-            header = xlabel + csvdelim + csvdelim.join(ylabels)
+            # csv format: optional single header line with labels, no footer
+            if autoheader:
+                header = autoheader_line + newline
+            else:
+                header = ""
             comments = ""
             footer = ""
             newline = "\n"
+        elif filetype == "txt" and autoheader:
+            # Comments string is added at the beginning of header string in
+            # savetxt(). We add another one after the first header line and
+            # before the rest of the header.
+            if header:
+                header = autoheader_line + newline + comments + header
+            else:
+                header = autoheader_line + newline
 
         # Concatenate x and y in a single 2D array
         X = numpy.vstack((x, y))
@@ -175,7 +190,6 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
         ffile = fname
 
     if header:
-        header = comments + header.replace(newline, newline + comments) +  newline
         if sys.version_info[0] >= 3:
             header = header.encode("utf-8")
         ffile.write(header)
