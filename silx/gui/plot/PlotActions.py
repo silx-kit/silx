@@ -46,7 +46,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "11/03/2016"
+__date__ = "12/04/2016"
 
 
 from collections import OrderedDict
@@ -409,20 +409,18 @@ class SaveAction(_PlotAction):
     SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
 
     # Dict of curve filters with CSV-like format
-    CURVE_OMNIC_FILTER = 'Curve as OMNIC CSV *.csv'
-
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
     CURVE_FILTERS_TXT = OrderedDict((
         ('Curve as Raw ASCII *.txt',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ","-separated CSV *.csv',
-         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
         ('Curve as ";"-separated CSV *.csv',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
+        ('Curve as ","-separated CSV *.csv',
+         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
         ('Curve as tab-separated CSV *.csv',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        (CURVE_OMNIC_FILTER,
+        ('Curve as OMNIC CSV *.csv',
          {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
         ('Curve as SpecFile *.dat',
          {'fmt': '%.7g', 'delimiter': '', 'header': False})
@@ -481,17 +479,19 @@ class SaveAction(_PlotAction):
 
         # Check if a curve is to be saved
         curve = self.plot.getActiveCurve()
+        # before calling _saveCurve, if there is no selected curve, we
+        # make sure there is only one curve on the graph
         if curve is None:
             curves = self.plot.getAllCurves()
             if not curves:
                 self._errorMessage("No curve to be saved")
                 return False
-            curve = curves[0]  # TODO why not the last one?
+            curve = curves[0]
 
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
             fmt=filter_['fmt']
-            csvdelim=filter_['delimiter'],
+            csvdelim=filter_['delimiter']
             autoheader=filter_['header']
         else:
             # .npy
