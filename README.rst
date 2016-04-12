@@ -5,7 +5,7 @@ silx toolkit
 The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
 It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
 
-The current version provides reading `SPEC <https://certif.com/spec.html>_` file format, histogramming, curves and image plot widget with a set of associated tools
+The current version provides reading `SPEC <https://certif.com/spec.html>`_ file format, histogramming, curves and image plot widget with a set of associated tools
 (See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
 
 Installation
@@ -48,8 +48,22 @@ To build the documentation from the source (requires `Sphinx <http://www.sphinx-
 
     python setup.py build build_doc
 
+Testing
+-------
+
+|Travis Status| |Appveyor Status|
+
+To run the tests, from the source directory, run::
+
+    python run_tests.py
+
 License
 -------
 
 The source code of silx is licensed under the MIT and LGPL licenses.
 See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>`_ for details.
+
+.. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
+   :target: https://travis-ci.org/silx-kit/silx
+.. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/82p2fyqrfi02ns6h/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/t20100/silx-a9i87
