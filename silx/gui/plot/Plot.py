@@ -1079,9 +1079,9 @@ class Plot(object):
                             self._setDirtyPlot()
                         del self._curves[legend]
 
-                    if not self._curves:
-                        self._colorIndex = 0
-                        self._styleIndex = 0
+                        if not self._curves:
+                            self._colorIndex = 0
+                            self._styleIndex = 0
 
                 elif aKind == 'image':
                     if legend in self._images:
