@@ -25,14 +25,14 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "12/04/2016"
 
 import h5py
 import os
 import tempfile
 import unittest
 
-from ..dicttoh5 import dicttoh5
+from ..dictdump import dicttoh5
 
 
 class TestDictToH5(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestDictToH5(unittest.TestCase):
     def tearDown(self):
         os.unlink(self.h5_fname)
 
-    def test_dicttoh5(self):
+    def testDictToH5(self):
         from collections import defaultdict
         def tree():
             """Tree data structure as a recursive nested dictionary"""

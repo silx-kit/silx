@@ -45,10 +45,10 @@ silx.io.spectoh5 module
 .. automodule:: silx.io.spectoh5
     :members:
 
-silx.io.dicttoh5 module
+silx.io.dictdump module
 --------------------------------
 
-.. automodule:: silx.io.dicttoh5
+.. automodule:: silx.io.dictdump
     :members:
 
 silx.io.utils module

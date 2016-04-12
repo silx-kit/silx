@@ -24,12 +24,13 @@
 """Nested python dictionary to HDF5 file conversion"""
 
 import h5py
+import json
 import numpy
 import sys
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "12/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -85,7 +86,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     Example::
 
-        from silx.io.dicttoh5 import dicttoh5
+        from silx.io.dicttoh5 import dictdump
 
         city_area = {
             "Europe": {
@@ -143,3 +144,37 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if isinstance(h5file, string_types):
         h5f.close()
+
+
+def dicttojson(dict, jsonfile=None, printjson=False, indent=None, mode="a"):
+    """Serialize ``dict`` as a JSON formatted stream to ``jsonfile``.
+
+    :param dict: Dictionary, possibly nested (tree).
+    :param jsonfile: JSON file name or handle. If a file name is provided, the
+        function opens the file in the specified mode and closes it again.
+        If ``jsonfile`` is ``None`` (default), no file is written.
+    :param printjson: If ``True``, print JSON stream to standard output.
+    :param indent: If indent is a non-negative integer, then JSON array
+        elements and object members will be pretty-printed with that indent
+        level. An indent level of ``0`` will only insert newlines.
+        ``None`` (the default) selects the most compact representation.
+    :param mode: File opening mode (``w``, ``a``, ``w+``…)
+    :return: JSON stream as a ``str``
+    """
+    ret = json.dumps(dict, indent=indent)
+
+    if jsonfile is not None:
+        if not hasattr(jsonfile, "write"):
+            jsonf = open(jsonfile, mode)
+        else:
+            jsonf = jsonfile
+
+        json.dump(dict, jsonf, indent=indent)
+
+        if not hasattr(jsonfile, "write"):
+            jsonf.close()
+
+    if printjson:
+        print(ret)
+
+    return ret
