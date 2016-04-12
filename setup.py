@@ -29,6 +29,11 @@ __date__ = "16/03/2016"
 __license__ = "MIT"
 
 
+# This import is here only to fix a bug on Debian 7 with python2.7
+# Without this, the system io module is not loaded from numpy.distutils
+# the silx.io module seems to be loaded instead
+import io
+
 import sys
 import os
 import platform
