@@ -46,7 +46,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/03/2016"
+__date__ = "12/04/2016"
 
 
 from collections import OrderedDict
@@ -66,6 +66,8 @@ import numpy
 from .. import icons
 from .. import qt
 from .ColormapDialog import ColormapDialog
+
+from silx.io.utils import save1D, savespec
 
 
 _logger = logging.getLogger(__name__)
@@ -433,24 +435,28 @@ class SaveAction(_PlotAction):
     SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
 
     # Dict of curve filters with CSV-like format
-    CURVE_OMNIC_FILTER = 'Curve as OMNIC CSV *.csv'
-
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
     CURVE_FILTERS_TXT = OrderedDict((
         ('Curve as Raw ASCII *.txt',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ","-separated CSV *.csv',
-         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
         ('Curve as ";"-separated CSV *.csv',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
+        ('Curve as ","-separated CSV *.csv',
+         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
         ('Curve as tab-separated CSV *.csv',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        (CURVE_OMNIC_FILTER,
-         {'fmt': '%.7E', 'delimiter': ',', 'header': False})
+        ('Curve as OMNIC CSV *.csv',
+         {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
+        ('Curve as SpecFile *.dat',
+         {'fmt': '%.7g', 'delimiter': '', 'header': False})
     ))
 
-    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys())
+    CURVE_FILTER_NPY = 'Curve as NumPy binary file *.npy'
+
+    CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
+
+    ALL_CURVES_FILTERS = ("All curves as SpecFile *.dat", )
 
     IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
     IMAGE_FILTERS = (IMAGE_FILTER_NUMPY,)
@@ -462,28 +468,6 @@ class SaveAction(_PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Save)
-
-    @staticmethod
-    def savetxt(fname, X, fmt='%.18e', delimiter=' ', newline='\n', header=''):
-        """numpy.savetxt backport of header argument from numpy=1.7.0.
-
-        For Debian 7 compatibility, replace by numpy.savetxt when dropping
-        support of numpy < 1.7.0
-
-        See numpy.savetxt for details.
-        """
-        # Open the file in text mode with \n newline on all OS
-        if sys.version_info[0] >= 3:
-            ffile = open(fname, 'w', newline='\n')
-        else:
-            ffile = open(fname, 'wb')
-
-        if header:
-            ffile.write(header + '\n')
-
-        numpy.savetxt(ffile, X, fmt, delimiter, newline)
-
-        ffile.close()
 
     def _errorMessage(self, informativeText=''):
         """Display an error message."""
@@ -521,37 +505,77 @@ class SaveAction(_PlotAction):
 
         # Check if a curve is to be saved
         curve = self.plot.getActiveCurve()
+        # before calling _saveCurve, if there is no selected curve, we
+        # make sure there is only one curve on the graph
         if curve is None:
             curves = self.plot.getAllCurves()
             if not curves:
                 self._errorMessage("No curve to be saved")
                 return False
-            curve = curves[0]  # TODO why not the last one?
+            curve = curves[0]
 
-        # TODO Use silx.io for writing files
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
-            if filter_['header']:
-                header = '"%s"%s"%s"' % (curve[4]['xlabel'],
-                                         filter_['delimiter'],
-                                         curve[4]['ylabel'])
-            else:
-                header = ''
+            fmt=filter_['fmt']
+            csvdelim=filter_['delimiter']
+            autoheader=filter_['header']
+        else:
+            # .npy
+            fmt, csvdelim, autoheader = ("", "", False)
 
-            # For numpy<1.7.0 compatibility
-            # replace with numpy.savetxt when dropping Debian 7 support
+        try:
+            save1D(filename, curve[0], curve[1],
+                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   fmt=fmt, csvdelim=csvdelim,
+                   autoheader=autoheader)
+        except IOError:
+            self._errorMessage('Save failed\n')
+            return False
+
+        return True
+
+    def _saveCurves(self, filename, nameFilter):
+        """Save all curves from the plot.
+
+        :param str filename: The name of the file to write
+        :param str nameFilter: The selected name filter
+        :return: False if format is not supported or save failed,
+                 True otherwise.
+        """
+        if nameFilter not in self.ALL_CURVES_FILTERS:
+            return False
+
+        curves = self.plot.getAllCurves()
+        if not curves:
+            self._errorMessage("No curves to be saved")
+            return False
+
+        curve = curves[0]
+        scanno = 1
+        try:
+            specfile = savespec(filename, curve[0], curve[1],
+                                curve[4]['xlabel'], curve[4]['ylabel'],
+                                fmt="%.7g", scan_number=1, mode="w",
+                                write_file_header=True,
+                                close_file = False)
+        except IOError:
+            self._errorMessage('Save failed\n')
+            return False
+
+        for curve in curves[1:]:
             try:
-                self.savetxt(filename,
-                             numpy.array((curve[0], curve[1])).T,
-                             fmt=filter_['fmt'],
-                             delimiter=filter_['delimiter'],
-                             header=header)
+                scanno += 1
+                specfile = savespec(specfile, curve[0], curve[1],
+                                    curve[4]['xlabel'], curve[4]['ylabel'],
+                                    fmt="%.7g", scan_number=scanno, mode="w",
+                                    write_file_header=False,
+                                    close_file = False)
             except IOError:
                 self._errorMessage('Save failed\n')
                 return False
-            return True
+        specfile.close()
 
-        return False
+        return True
 
     def _saveImage(self, filename, nameFilter):
         """Save an image from the plot.
@@ -594,8 +618,10 @@ class SaveAction(_PlotAction):
 
         # Add curve filters if there is a curve to save
         if (self.plot.getActiveCurve() is not None or
-                self.plot.getAllCurves()):
+                len(self.plot.getAllCurves()) == 1):
             filters.extend(self.CURVE_FILTERS)
+        if len(self.plot.getAllCurves()) > 1:
+            filters.extend(self.ALL_CURVES_FILTERS)
 
         filters.extend(self.SNAPSHOT_FILTERS)
 
@@ -626,6 +652,8 @@ class SaveAction(_PlotAction):
             return self._saveSnapshot(filename, nameFilter)
         elif nameFilter in self.CURVE_FILTERS:
             return self._saveCurve(filename, nameFilter)
+        elif nameFilter in self.ALL_CURVES_FILTERS:
+            return self._saveCurves(filename, nameFilter)
         elif nameFilter in self.IMAGE_FILTERS:
             return self._saveImage(filename, nameFilter)
         else:

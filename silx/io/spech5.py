@@ -480,6 +480,7 @@ def spec_date_to_iso8601(date, zone=None):
 
     * ``DDD MMM dd hh:mm:ss YYYY``
     * ``DDD YYYY/MM/dd hh:mm:ss YYYY``
+
     where `DDD` is the abbreviated weekday, `MMM` is the month abbreviated
     name, `MM` is the month number (zero padded), `dd` is the weekday number
     (zero padded) `YYYY` is the year, `hh` the hour (zero padded), `mm` the
