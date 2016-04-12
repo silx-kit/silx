@@ -2,6 +2,12 @@
 silx toolkit
 ============
 
+The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
+It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
+
+The current version provides reading `SPEC <https://certif.com/spec.html>_` file format, histogramming, curves and image plot widget with a set of associated tools
+(See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
+
 Installation
 ------------
 
@@ -29,7 +35,7 @@ Dependencies
 
 The GUI widgets of the silx package depends on the following extra packages:
 
-* `PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_
+* `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ and `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
 
 Documentation
