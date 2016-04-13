@@ -69,6 +69,30 @@ if not _qapp:
     _qapp = qt.QApplication([])
 
 
+def _getBaselineWidgets():
+    """Returns the list of QWidgets that exists regardless of application.
+
+    Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
+    is done, then get all QWidgets from QApplication.
+
+    :return: list of widgets
+    """
+    qapp = qt.QApplication.instance()
+
+    _dummyWidget = qt.QWidget()
+    _dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    _dummyWidget.show()
+    _dummyWidget.close()
+    del _dummyWidget
+    qapp.processEvents()
+
+    return qapp.allWidgets()
+
+
+_baselineWidgets = _getBaselineWidgets()
+"""List of QWidgets that exists before the tests are run."""
+
+
 class TestCaseQt(unittest.TestCase):
     """Base class to write test for Qt stuff.
 
@@ -96,10 +120,18 @@ class TestCaseQt(unittest.TestCase):
         gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
-                   if widget != self.qapp.desktop()]
+                   if widget not in _baselineWidgets]
         if widgets:
-            raise RuntimeError(
-                "Test ended with widgets alive: %s", str(widgets))
+            exceptionMsg = "Test ended with widgets alive: %s" % str(widgets)
+
+            for widget in widgets:  # Delete them for future tests
+                widget.setParent(None)
+                widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+                widget.close()
+            del widgets
+            self.qapp.processEvents()  # For close to take place
+
+            raise RuntimeError(exceptionMsg)
 
     @property
     def qapp(self):
