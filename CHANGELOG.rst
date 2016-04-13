@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-0.1.0: 2016/04/12
+0.1.0: 2016/04/14
 -----------------
 
  * Added project build, documentation and test structure
