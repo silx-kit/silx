@@ -35,7 +35,9 @@ import numpy
 
 from silx.gui.test.utils import TestCaseQt
 
+from silx.gui import qt
 from silx.gui.plot import PlotWidget
+
 
 SIZE = 1024
 """Size of the test image"""
@@ -57,6 +59,8 @@ class _PlotWidgetTest(TestCaseQt):
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
         del self.plot
         super(_PlotWidgetTest, self).tearDown()
 
