@@ -410,7 +410,7 @@ setup_requires = ["numpy"]
 setup_kwargs.update(
     name=PROJECT,
     version=get_version(),
-    url="https://github.com/silex-kit/silx",
+    url="https://github.com/silx-kit/silx",
     author="data analysis unit",
     author_email="silx@esrf.fr",
     classifiers=classifiers,

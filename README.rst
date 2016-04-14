@@ -11,14 +11,17 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 Installation
 ------------
 
-.. After release
- To install silx, run::
+To install silx, run::
  
-     pip install silx
+    pip install silx
+
+To install silx locally, run::
  
- To install silx locally, run::
- 
-     pip install silx --user
+    pip install silx --user
+
+Pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5 on Windows and for Python 2.7 on Mac OS X.
+
+Unofficial Debian8 packages are available at http://www.edna-site.org/pub/debian/
 
 The latest development version can be obtained from the git repository::
 
@@ -38,11 +41,12 @@ The GUI widgets of the silx package depends on the following extra packages:
 * A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
 
+Supported platforms: Linux, Windows, Mac OS X.
+
 Documentation
 -------------
 
-.. After release
-  Documentation of releases is available at http://www.pythonhosted.org/silx
+Documentation of releases is available at https://pythonhosted.org/silx/
 
 To build the documentation from the source (requires `Sphinx <http://www.sphinx-doc.org>`_), run::
 
