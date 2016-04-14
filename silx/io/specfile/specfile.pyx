@@ -22,7 +22,8 @@
 #
 #############################################################################*/
 """
-This module is a cython binding to wrap the C SpecFile library.
+This module is a cython binding to wrap the C SpecFile library, to access
+SpecFile data within a python program.
 
 Documentation for the original C library SpecFile can be found on the ESRF
 website:
@@ -63,13 +64,13 @@ an iterator::
     for scan in sf:
         print(scan.scan_header['S'])
 
-MCA data can be selectively loaded using an instance of :class:`MCA` provided
-by :class:`Scan`::
+MCA spectra can be selectively loaded using an instance of :class:`MCA`
+provided by :class:`Scan`::
 
-    # Only one MCA line is loaded in memory
+    # Only one MCA spectrum is loaded in memory
     second_mca = first_scan.mca[1]
 
-    # Iterating trough all MCA in a scan:
+    # Iterating trough all MCA spectra in a scan:
     for mca_data in first_scan.mca:
         print(sum(mca_data))
 
@@ -151,8 +152,9 @@ class MCA(object):
         In the absence of MCA spectra, this attribute defaults to ``None``.
     :type channels: list of int
 
-    This class provides access to Multi-Channel Analysis data stored in a
-    SpecFile scan.
+    This class provides access to Multi-Channel Analysis data. A :class:`MCA`
+    instance can be indexed to access 1D numpy arrays representing single 
+    MCA spectra.
 
     To create a :class:`MCA` instance, you must provide a parent :class:`Scan`
     instance, which in turn will provide a reference to the original
