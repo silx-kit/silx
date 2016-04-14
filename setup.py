@@ -29,6 +29,11 @@ __date__ = "16/03/2016"
 __license__ = "MIT"
 
 
+# This import is here only to fix a bug on Debian 7 with python2.7
+# Without this, the system io module is not loaded from numpy.distutils
+# the silx.io module seems to be loaded instead
+import io
+
 import sys
 import os
 import platform
@@ -68,7 +73,7 @@ def get_readme():
     return long_description
 
 
-classifiers = ["Development Status :: 1 - Planning",
+classifiers = ["Development Status :: 3 - Alpha",
                "Environment :: Console",
                "Environment :: MacOS X",
                "Environment :: Win32 (MS Windows)",
@@ -76,14 +81,16 @@ classifiers = ["Development Status :: 1 - Planning",
                "Intended Audience :: Education",
                "Intended Audience :: Science/Research",
                "License :: OSI Approved :: MIT License",
+               "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
                "Natural Language :: English",
+               "Operating System :: MacOS",
                "Operating System :: Microsoft :: Windows",
                "Operating System :: POSIX",
                "Programming Language :: Cython",
-               "Programming Language :: Python :: 2",
-               "Programming Language :: Python :: 3",
+               "Programming Language :: Python :: 2.7",
+               "Programming Language :: Python :: 3.4",
+               "Programming Language :: Python :: 3.5",
                "Programming Language :: Python :: Implementation :: CPython",
-               "Topic :: Documentation :: Sphinx",
                "Topic :: Scientific/Engineering :: Physics",
                "Topic :: Software Development :: Libraries :: Python Modules",
                ]
@@ -403,7 +410,7 @@ setup_requires = ["numpy"]
 setup_kwargs.update(
     name=PROJECT,
     version=get_version(),
-    url="https://github.com/silex-kit/silx",
+    url="https://github.com/silx-kit/silx",
     author="data analysis unit",
     author_email="silx@esrf.fr",
     classifiers=classifiers,
