@@ -35,6 +35,7 @@ __date__ = "02/03/2016"
 import gc
 import logging
 import unittest
+import time
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -248,7 +249,17 @@ class TestCaseQt(unittest.TestCase):
         """
         if ms is None:
             ms = self.DEFAULT_TIMEOUT_WAIT
-        QTest.qWait(ms + self.TIMEOUT_WAIT)
+
+        if qt.BINDING == 'PySide':
+            # PySide has no qWait, provide a replacement
+            timeout = int(ms)
+            endTimeMS = int(time.time() * 1000) + timeout
+            while timeout > 0:
+                self.qapp.processEvents(qt.QEventLoop.AllEvents,
+                                        maxtime=timeout)
+                timeout = endTimeMS - int(time.time() * 1000)
+        else:
+            QTest.qWait(ms + self.TIMEOUT_WAIT)
 
     def qWaitForWindowExposed(self, window, timeout=None):
         """Waits until the window is shown in the screen.
