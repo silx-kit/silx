@@ -185,7 +185,7 @@ def convert(specfile, h5file, mode="w-",
     This is a convenience shortcut to call::
 
         write_spec_to_h5(specfile, h5file, h5path='/',
-                         h5_file_mode="w-", link_type="hard")
+                         mode="w-", link_type="hard")
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
