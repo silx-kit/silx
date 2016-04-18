@@ -409,4 +409,4 @@ class ConfigDict(dict):
                 newsecthead = '%s.%s' % (secthead, key.replace(".", "_|_"))
 
             fp.write('\n[%s]\n' % newsecthead)
-            self.__write(fp, ddict[key], key, newsecthead)
+            self.__write(fp, ddict[key], newsecthead)

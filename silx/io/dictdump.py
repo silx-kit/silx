@@ -22,9 +22,8 @@
 #
 #############################################################################*/
 """This module offers a set of functions to dump a python dictionary indexed
-by text strings to following file formats: `HDF5, INI, JSON`
+by text strings to following file formats: `HDF5, INI, JSON`
 """
-# TODO: INI
 
 import h5py
 import json
@@ -35,7 +34,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/04/2016"
+__date__ = "18/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -175,7 +174,7 @@ def dicttojson(dict, jsonfile, indent=None, mode="w"):
         jsonf.close()
 
 
-def dicttoini(dict, inifile, mode="a"):
+def dicttoini(ddict, inifile, mode="a"):
     """Output dict as configuration file (similar to Microsoft Windows INI).
 
     :param dict: Dictionary of configuration parameters
@@ -189,7 +188,7 @@ def dicttoini(dict, inifile, mode="a"):
     else:
         inif = inifile
 
-    ConfigDict(initdict=dict).write(inif)
+    ConfigDict(initdict=ddict).write(inif)
 
     if not hasattr(inifile, "write"):
         inif.close()

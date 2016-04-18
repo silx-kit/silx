@@ -35,8 +35,8 @@ import unittest
 
 from collections import defaultdict
 
-from ..dictdump import dicttoh5, dicttojson
 from ..configdict import ConfigDict
+from ..dictdump import dicttoh5, dicttojson, dicttoini
 
 
 def tree():
@@ -100,7 +100,7 @@ class TestDictToJson(unittest.TestCase):
             self.assertIn('"inhabitants": 160215', json_content)
 
 
-class TestConfigDict(unittest.TestCase):
+class TestDictToIni(unittest.TestCase):
     def setUp(self):
         self.dir_path = tempfile.mkdtemp()
         self.ini_fname = os.path.join(self.dir_path, "test.ini")
@@ -126,8 +126,7 @@ class TestConfigDict(unittest.TestCase):
             }
         }
 
-        writeinstance = ConfigDict(initdict=testdict)
-        writeinstance.write(self.ini_fname)
+        dicttoini(testdict, self.ini_fname)
 
         #read the data back
         readinstance = ConfigDict()
@@ -159,7 +158,7 @@ class TestConfigDict(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestConfigDict))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToIni))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
     test_suite.addTest(
