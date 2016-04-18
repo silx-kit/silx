@@ -192,3 +192,48 @@ def dicttoini(ddict, inifile, mode="a"):
 
     if not hasattr(inifile, "write"):
         inif.close()
+
+
+def dump(ddict, ffile, fmat="json"):
+    """Dump dictionary to a file
+
+    :param ddict: Dictionary with string keys
+    :param ffile: File name or file-like object with a ``write`` method
+    :param fmat: Output format: ``json``, ``hdf5`` or ``ini``
+    """
+    if fmat.lower() == "json":
+        dicttojson(ddict, ffile)
+    elif fmat.lower() == "hdf5":
+        dicttoh5(ddict, ffile)
+    elif fmat.lower() == "ini":
+        dicttoini(ddict, ffile)
+    else:
+        raise IOError("Unknown format " + fmat)
+
+
+def load(ffile, fmat="json"):
+    """Load dictionary from a file
+
+    :param ffile: File name or file-like object with a ``read`` method
+    :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+    """
+    # TODO: guess fmat from extension if unspecified
+    if not hasattr(ffile, "read"):
+        f = open(ffile, "r")
+        fname = ffile
+    else:
+        f = ffile
+        fname = ffile.name
+
+    if fmat.lower() == "json":
+        return json.load(f)
+# TODO: implement h5todict and test dump & load
+    elif fmat.lower() == "hdf5":
+        raise NotImplementedError
+    elif fmat.lower() == "ini":
+        return ConfigDict().read(fname)
+    else:
+        raise IOError("Unknown format " + fmat)
+
+    if not hasattr(ffile, "read"):
+        f.close()

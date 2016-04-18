@@ -279,6 +279,11 @@ class ConfigDict(dict):
         return self.filelist[len(self.filelist) - 1]
 
     def __convert(self, option):
+        """Used as configparser.ConfigParser().optionxform to transform
+        option names on every read, get, or set operation.
+
+        This overrides the default ConfigParser behavior to preserve case
+        instead of converting names to lowercase."""
         return option
 
     def read(self, filelist, sections=None):
