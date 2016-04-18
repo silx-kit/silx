@@ -23,6 +23,9 @@
 #############################################################################*/
 """Tests for configdict module"""
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "18/04/2016"
 
 import numpy
 import os
@@ -30,6 +33,7 @@ import tempfile
 import unittest
 
 from ..configdict import ConfigDict
+
 
 class TestConfigDict(unittest.TestCase):
     def setUp(self):
@@ -41,22 +45,27 @@ class TestConfigDict(unittest.TestCase):
         os.rmdir(self.dir_path)
 
     def testConfigDictIO(self):
-        testdict = {}
-        testdict['simple_types'] = {}
-        testdict['simple_types']['float'] = 1.0
-        testdict['simple_types']['int'] = 1
-        testdict['simple_types']['string'] = "Hello World"
-        testdict['containers'] = {}
-        testdict['containers']['list'] = [-1, 'string', 3.0, False]
-        testdict['containers']['array'] = numpy.array([1.0, 2.0, 3.0])
-        testdict['containers']['dict'] = {'key1': 'Hello World',
-                                          'key2': 2.0}
+        testdict = {
+            'simple_types': {
+                'float': 1.0,
+                'int': 1,
+                'string': 'Hello World',
+            },
+            'containers': {
+                'list': [-1, 'string', 3.0, False],
+                'array': numpy.array([1.0, 2.0, 3.0]),
+                'dict': {
+                    'key1': 'Hello World',
+                    'key2': 2.0,
+                }
+            }
+        }
 
-        writeinstance = ConfigDict.ConfigDict(initdict=testdict)
+        writeinstance = ConfigDict(initdict=testdict)
         writeinstance.write(self.ini_fname)
 
         #read the data back
-        readinstance = ConfigDict.ConfigDict()
+        readinstance = ConfigDict()
         readinstance.read(self.ini_fname)
 
         testdictkeys = list(testdict.keys())
@@ -81,11 +90,13 @@ class TestConfigDict(unittest.TestCase):
                 self.assertEqual(read, original, 
                                  "Read <%s> instead of <%s>" % (read, original))
 
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestConfigDict))
     return test_suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest="suite")
