@@ -32,7 +32,21 @@ import os
 import tempfile
 import unittest
 
-from ..dictdump import dicttoh5
+from ..dictdump import dicttoh5, dicttojson
+
+from collections import defaultdict
+
+
+def tree():
+    """Tree data structure as a recursive nested dictionary"""
+    return defaultdict(tree)
+
+
+city_attrs = tree()
+city_attrs["Europe"]["France"]["Grenoble"]["area"] = "18.44 km2"
+city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = 160215
+city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
+city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 
 
 class TestDictToH5(unittest.TestCase):
@@ -45,18 +59,7 @@ class TestDictToH5(unittest.TestCase):
     def tearDown(self):
         os.unlink(self.h5_fname)
 
-    def testDictToH5(self):
-        from collections import defaultdict
-        def tree():
-            """Tree data structure as a recursive nested dictionary"""
-            return defaultdict(tree)
-
-        city_attrs = tree()
-        city_attrs["Europe"]["France"]["Grenoble"]["area"] = "18.44 km2"
-        city_attrs["Europe"]["France"]["Grenoble"]["inhabitants"] = 160215
-        city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
-        city_attrs["Europe"]["France"]["Tourcoing"]["area"]
-
+    def testH5CityAttrs(self):
         filters = {'compression': "gzip", 'shuffle': True,
                    'fletcher32': True}
         dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
@@ -75,6 +78,43 @@ class TestDictToH5(unittest.TestCase):
         self.assertTrue(ds.shuffle)
 
         h5f.close()
+
+# We can't compare strings because the defaultdict is not ordered
+# expected_json_content = """{
+#    "Europe": {
+#       "France": {
+#          "Grenoble": {
+#             "inhabitants": 160215, 
+#             "coordinates": [
+#                45.183, 
+#                5.7196
+#             ], 
+#             "area": "18.44 km2"
+#          }, 
+#          "Tourcoing": {
+#             "area": {}
+#          }
+#       }
+#    }
+# }"""
+
+
+class TestDictToJson(unittest.TestCase):
+    def setUp(self):
+        self.dir_path = tempfile.mkdtemp()
+        self.json_fname = os.path.join(self.dir_path, "cityattrs.json")
+
+    def tearDown(self):
+        os.unlink(self.json_fname)
+        os.rmdir(self.dir_path)
+
+    def testJsonCityAttrs(self):
+        self.json_fname = os.path.join(self.dir_path, "cityattrs.json")
+        dicttojson(city_attrs, self.json_fname, indent=3)
+
+        with open(self.json_fname, "r") as f:
+            json_content = f.read()
+            self.assertIn('"inhabitants": 160215,', json_content)
 
 
 def suite():
