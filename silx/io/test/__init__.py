@@ -38,7 +38,6 @@ from .test_utils import suite as test_utils_suite
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_configdict_suite())
     test_suite.addTest(test_dictdump_suite())
     test_suite.addTest(test_specfile_suite())
     test_suite.addTest(test_spech5_suite())

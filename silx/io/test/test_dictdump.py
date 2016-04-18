@@ -25,16 +25,18 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "12/04/2016"
+__date__ = "18/04/2016"
 
 import h5py
+import numpy
 import os
 import tempfile
 import unittest
 
-from ..dictdump import dicttoh5, dicttojson
-
 from collections import defaultdict
+
+from ..dictdump import dicttoh5, dicttojson
+from ..configdict import ConfigDict
 
 
 def tree():
@@ -79,25 +81,6 @@ class TestDictToH5(unittest.TestCase):
 
         h5f.close()
 
-# We can't compare strings because the defaultdict is not ordered
-# expected_json_content = """{
-#    "Europe": {
-#       "France": {
-#          "Grenoble": {
-#             "inhabitants": 160215, 
-#             "coordinates": [
-#                45.183, 
-#                5.7196
-#             ], 
-#             "area": "18.44 km2"
-#          }, 
-#          "Tourcoing": {
-#             "area": {}
-#          }
-#       }
-#    }
-# }"""
-
 
 class TestDictToJson(unittest.TestCase):
     def setUp(self):
@@ -114,13 +97,73 @@ class TestDictToJson(unittest.TestCase):
 
         with open(self.json_fname, "r") as f:
             json_content = f.read()
-            self.assertIn('"inhabitants": 160215,', json_content)
+            self.assertIn('"inhabitants": 160215', json_content)
+
+
+class TestConfigDict(unittest.TestCase):
+    def setUp(self):
+        self.dir_path = tempfile.mkdtemp()
+        self.ini_fname = os.path.join(self.dir_path, "test.ini")
+
+    def tearDown(self):
+        os.unlink(self.ini_fname)
+        os.rmdir(self.dir_path)
+
+    def testConfigDictIO(self):
+        testdict = {
+            'simple_types': {
+                'float': 1.0,
+                'int': 1,
+                'string': 'Hello World',
+            },
+            'containers': {
+                'list': [-1, 'string', 3.0, False],
+                'array': numpy.array([1.0, 2.0, 3.0]),
+                'dict': {
+                    'key1': 'Hello World',
+                    'key2': 2.0,
+                }
+            }
+        }
+
+        writeinstance = ConfigDict(initdict=testdict)
+        writeinstance.write(self.ini_fname)
+
+        #read the data back
+        readinstance = ConfigDict()
+        readinstance.read(self.ini_fname)
+
+        testdictkeys = list(testdict.keys())
+        readkeys = list(readinstance.keys())
+
+        self.assertTrue(len(readkeys) == len(testdictkeys),
+                        "Number of read keys not equal")
+
+        for key in testdict["simple_types"]:
+            original = testdict['simple_types'][key]
+            read = readinstance['simple_types'][key]
+            self.assertEqual(read, original,
+                             "Read <%s> instead of <%s>" % (read, original))
+
+        for key in testdict["containers"]:
+            original = testdict["containers"][key]
+            read = readinstance["containers"][key]
+            if key == 'array':
+                self.assertEqual(read.all(), original.all(),
+                            "Read <%s> instead of <%s>" % (read, original))
+            else:
+                self.assertEqual(read, original, 
+                                 "Read <%s> instead of <%s>" % (read, original))
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestConfigDict))
+    test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToH5))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestDictToJson))
     return test_suite
 
 
