@@ -21,18 +21,24 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Nested python dictionary to HDF5 file conversion"""
+"""This module offers a set of functions to dump a python dictionary indexed
+by text strings to following file formats: `HDF5, INI, JSON`
+"""
+# TODO: INI
 
 import h5py
 import json
 import numpy
 import sys
 
+from .configdict import ConfigDict
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+
 
 def _prepare_hdf5_dataset(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
@@ -41,7 +47,6 @@ def _prepare_hdf5_dataset(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
-
     if isinstance(array_like, string_types):
         array_like = numpy.string_(array_like)
 
@@ -146,35 +151,45 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5f.close()
 
 
-def dicttojson(dict, jsonfile=None, printjson=False, indent=None, mode="a"):
+def dicttojson(dict, jsonfile, indent=None, mode="w"):
     """Serialize ``dict`` as a JSON formatted stream to ``jsonfile``.
 
-    :param dict: Dictionary, possibly nested (tree).
-    :param jsonfile: JSON file name or handle. If a file name is provided, the
-        function opens the file in the specified mode and closes it again.
-        If ``jsonfile`` is ``None`` (default), no file is written.
-    :param printjson: If ``True``, print JSON stream to standard output.
+    :param dict: Dictionary (or any object compatible with ``json.dump``).
+    :param jsonfile: JSON file name or file-like object.
+        If a file name is provided, the function opens the file in the
+        specified mode and closes it again.
     :param indent: If indent is a non-negative integer, then JSON array
         elements and object members will be pretty-printed with that indent
         level. An indent level of ``0`` will only insert newlines.
         ``None`` (the default) selects the most compact representation.
     :param mode: File opening mode (``w``, ``a``, ``w+``…)
-    :return: JSON stream as a ``str``
     """
-    ret = json.dumps(dict, indent=indent)
+    if not hasattr(jsonfile, "write"):
+        jsonf = open(jsonfile, mode)
+    else:
+        jsonf = jsonfile
 
-    if jsonfile is not None:
-        if not hasattr(jsonfile, "write"):
-            jsonf = open(jsonfile, mode)
-        else:
-            jsonf = jsonfile
+    json.dump(dict, jsonf, indent=indent)
 
-        json.dump(dict, jsonf, indent=indent)
+    if not hasattr(jsonfile, "write"):
+        jsonf.close()
 
-        if not hasattr(jsonfile, "write"):
-            jsonf.close()
 
-    if printjson:
-        print(ret)
+def dicttoini(dict, inifile, mode="a"):
+    """Output dict as configuration file (similar to Microsoft Windows INI).
 
-    return ret
+    :param dict: Dictionary of configuration parameters
+    :param inifile: INI file name or file-like object.
+        If a file name is provided, the function opens the file in the
+        specified mode and closes it again.
+    :param mode: File opening mode (``w``, ``a``, ``w+``…)
+    """
+    if not hasattr(inifile, "write"):
+        inif = open(inifile, mode)
+    else:
+        inif = inifile
+
+    ConfigDict(initdict=dict).write(inif)
+
+    if not hasattr(inifile, "write"):
+        inif.close()
