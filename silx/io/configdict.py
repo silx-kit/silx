@@ -28,7 +28,7 @@
 #############################################################################*/
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/04/2016"
+__date__ = "19/04/2016"
 
 import numpy
 import sys
@@ -137,6 +137,13 @@ def _parse_container(sstr):
 
 
 def _parse_list_line(sstr):
+    """Parse the string representation of a simple 1D list:
+
+    ``"12, 13.1, True, Hello"`` ``->`` ``[12, 13.1, True, "Hello"]``
+
+    :param sstr: String
+    :return: List
+    """
     sstr = sstr.strip()
 
     # preserve escaped commas in strings before splitting list
@@ -155,7 +162,7 @@ def _parse_list_line(sstr):
 
 
 class OptionStr(str):
-    """String class providing typecasting methods to parse values in a 
+    """String class providing typecasting methods to parse values in a
     :class:``ConfigDict`` generated configuration file.
     """
     def toint(self):
@@ -261,10 +268,9 @@ class ConfigDict(dict):
         dict.clear(self)
         self.filelist = []
 
-    def _check(self):
-        pass
-
     def __tolist(self, mylist):
+        """ If ``mylist` is not a list, encapsulate it in a list.
+        """
         if mylist is None:
             return None
         if not isinstance(mylist, list):
@@ -273,9 +279,11 @@ class ConfigDict(dict):
             return mylist
 
     def getfiles(self):
+        """Return list of configuration file names"""
         return self.filelist
 
     def getlastfile(self):
+        """Return last configuration file name"""
         return self.filelist[len(self.filelist) - 1]
 
     def __convert(self, option):
@@ -299,7 +307,6 @@ class ConfigDict(dict):
 
         for ffile in filelist:
             self.filelist.append([ffile, sections])
-        self._check()
 
     def __read(self, cfg, sections=None):
         cfgsect = cfg.sections()
@@ -320,6 +327,11 @@ class ConfigDict(dict):
                 ddict[opt] = self.__parse_data(cfg.get(sect, opt))
 
     def __parse_data(self, data):
+        """Parse an option retuned by ``ConfigParser``.
+        
+        The original option is a string, we try to parse it as one of
+        following types: `numpx array`, `list`, `float`, `int`, `boolean`, 
+        `string`"""
         return OptionStr(data).tobestguess()
 
     def tostring(self):
@@ -348,13 +360,25 @@ class ConfigDict(dict):
             fp.close()
 
     def _escape_str(self, sstr):
-        # Escape strings with a leading \
+        """Escape strings and individual commas with a ``/`` character.
+        
+        This way, we ensure these strings cannot be interpreted as a numeric
+        or boolean types, and commas in strings are not interpreted as list
+        items separators..
+        """
         sstr = "\\" + sstr
         # Escape commas
         sstr = sstr.replace(",", "\,")
         return sstr
 
     def __write(self, fp, ddict, secthead=None):
+        """Do the actual file writing when called by the ``write`` method.
+        
+        :param fp: File handle
+        :param ddict: Dictionary to be written to file
+        :param secthead: Prefix for section name, used for handling nested
+            dictionaries recursively.
+        """
         dictkey = []
         listkey = []
         valkey = []
