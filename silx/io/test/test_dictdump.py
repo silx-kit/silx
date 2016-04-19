@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/04/2016"
+__date__ = "19/04/2016"
 
 import h5py
 import numpy
@@ -36,7 +36,7 @@ import unittest
 from collections import defaultdict
 
 from ..configdict import ConfigDict
-from ..dictdump import dicttoh5, dicttojson, dicttoini
+from ..dictdump import dicttoh5, dicttojson, dicttoini, dump, load
 
 
 def tree():
@@ -80,6 +80,11 @@ class TestDictToH5(unittest.TestCase):
         self.assertTrue(ds.shuffle)
 
         h5f.close()
+
+        ddict = load(self.h5_fname, fmat="hdf5")
+        self.assertAlmostEqual(
+                min(ddict["city attributes"]["Europe"]["France"]["Grenoble"]["coordinates"]),
+                5.7196)
 
 
 class TestDictToJson(unittest.TestCase):
@@ -126,7 +131,7 @@ class TestDictToIni(unittest.TestCase):
             }
         }
 
-        dicttoini(testdict, self.ini_fname)
+        dump(testdict, self.ini_fname, fmat="ini")
 
         #read the data back
         readinstance = ConfigDict()
@@ -153,6 +158,7 @@ class TestDictToIni(unittest.TestCase):
             else:
                 self.assertEqual(read, original, 
                                  "Read <%s> instead of <%s>" % (read, original))
+
 
 
 def suite():
