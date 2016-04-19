@@ -173,7 +173,7 @@ def h5todict(h5file, path="/"):
 
     ddict = {}
     for key in h5f[path]:
-        print path + "/" + key
+
         if isinstance(h5f[path + "/" + key], h5py.Group):
             ddict[key] = h5todict(h5f, path + "/" + key)
         else:
