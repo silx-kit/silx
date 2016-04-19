@@ -34,7 +34,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/04/2016"
+__date__ = "19/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -68,6 +68,12 @@ def dicttoh5(treedict, h5file, h5path='/',
              mode="a", overwrite_data=False,
              create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
+
+    If a dictionary value is a sub-dictionary, a group is created. If it is
+    any other data type, it is cast into a numpy array and written as a
+    :mod:`h5py` dataset.
+
+    Dictionary keys must be strings and cannot contain the ``/`` character.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character is not allowed
@@ -121,8 +127,6 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     for key in treedict:
-        assert isinstance(key, string_types)
-        assert "/" not in key
 
         if isinstance(treedict[key], dict) and len(treedict[key]):
             # non-empty group: recurse
@@ -148,6 +152,33 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if isinstance(h5file, string_types):
         h5f.close()
+
+
+def h5todict(h5file, path="/"):
+    """Read HDF5 file and return a nested dictionary with the complete file
+    structure and all data.
+
+    .. warning:: If you write a dictionary to a HDF5 file with 
+        :func:`dicttoh5` and then read it back with :func:`h5todict`, data
+        types are not preserved. All values are cast to numpy arrays before
+        being written to file, and they are read back as numpy arrays.
+
+    :param h5file: File name or :class:`h5py.File` object
+    :return: dict
+    """
+    if not isinstance(h5file, h5py.File):
+        h5f = h5py.File(h5file, "r")
+    else:
+        h5f = h5file
+
+    ddict = {}
+    for key in h5f[path]:
+        print path + "/" + key
+        if isinstance(h5f[path + "/" + key], h5py.Group):
+            ddict[key] = h5todict(h5f, path + "/" + key)
+        else:
+            ddict[key] = h5f[path + "/" + key][...]
+    return ddict
 
 
 def dicttojson(dict, jsonfile, indent=None, mode="w"):
@@ -216,8 +247,8 @@ def load(ffile, fmat="json"):
 
     :param ffile: File name or file-like object with a ``read`` method
     :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+    :return: Dictionary
     """
-    # TODO: guess fmat from extension if unspecified
     if not hasattr(ffile, "read"):
         f = open(ffile, "r")
         fname = ffile
@@ -227,13 +258,9 @@ def load(ffile, fmat="json"):
 
     if fmat.lower() == "json":
         return json.load(f)
-# TODO: implement h5todict and test dump & load
-    elif fmat.lower() == "hdf5":
-        raise NotImplementedError
-    elif fmat.lower() == "ini":
+    if fmat.lower() == "hdf5":
+        return h5todict(fname)
+    if fmat.lower() == "ini":
         return ConfigDict().read(fname)
-    else:
-        raise IOError("Unknown format " + fmat)
+    raise IOError("Unknown format " + fmat)
 
-    if not hasattr(ffile, "read"):
-        f.close()
