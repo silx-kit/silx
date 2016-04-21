@@ -1,8 +1,5 @@
 #/*##########################################################################
-#
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -28,7 +25,7 @@
 #############################################################################*/
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/04/2016"
+__date__ = "21/04/2016"
 
 import numpy
 import sys
@@ -96,7 +93,7 @@ def _parse_container(sstr):
     ``[-1, "Hello World", 3.0]``. ``"-1, "no", 3.0\n\t1, 2"`` is interpreted
     a list of 2 lists ``[[-1, False, 3.0], [1, 2]]``
 
-    Strings such as ``"[ [ 1.  2.  3.] [ 4.  5.  6.] ]"`` or 
+    Strings such as ``"[ [ 1.  2.  3.] [ 4.  5.  6.] ]"`` or
     ``[ 1.0 2.0 3.0 ]`` are interpreted as numpy arrays. Only 1D and 2D
     arrays are permitted.
 
@@ -119,7 +116,7 @@ def _parse_container(sstr):
                     nrows = len(sstr[3:-3].split('] ['))
                     data = sstr[3:-3].replace('] [', ' ')
                     data = numpy.array([float(x) for x in
-                                          data.split()])
+                                        data.split()])
                     data.shape = nrows, -1
                     return data
         # not a list and not an array
@@ -205,15 +202,15 @@ class OptionStr(str):
         as a list: for instance ``"-1, Hello World, 3.0"``, or ``"2.0,``
 
         The format for numpy arrays is a blank space delimited list of values
-        between square brackets: ``"[ 1.3 2.2 3.1 ]"``, or 
-        ``"[ [ 1 2 3 ] [ 1 4 9 ] ]"``"""   
+        between square brackets: ``"[ 1.3 2.2 3.1 ]"``, or
+        ``"[ [ 1 2 3 ] [ 1 4 9 ] ]"``"""
         return _parse_container(self)
 
     def tobestguess(self):
         """Parse string without prior knowledge of type.
 
         Conversion to following types is attempted, in this order:
-        `list`, `numpy array`, `int`, `float`, `boolean`. 
+        `list`, `numpy array`, `int`, `float`, `boolean`.
         If all of these conversions fail, the string is returned unchanged.
         """
         try:
@@ -223,7 +220,7 @@ class OptionStr(str):
 
 
 class ConfigDict(dict):
-    """Store configuration parameters as a dictionary. 
+    """Store configuration parameters as a dictionary.
 
     Parameters can be grouped into sections, by storing them as
     sub-dictionaries.
@@ -328,9 +325,9 @@ class ConfigDict(dict):
 
     def __parse_data(self, data):
         """Parse an option retuned by ``ConfigParser``.
-        
+
         The original option is a string, we try to parse it as one of
-        following types: `numpx array`, `list`, `float`, `int`, `boolean`, 
+        following types: `numpx array`, `list`, `float`, `int`, `boolean`,
         `string`"""
         return OptionStr(data).tobestguess()
 
@@ -361,7 +358,7 @@ class ConfigDict(dict):
 
     def _escape_str(self, sstr):
         """Escape strings and individual commas with a ``/`` character.
-        
+
         This way, we ensure these strings cannot be interpreted as a numeric
         or boolean types, and commas in strings are not interpreted as list
         items separators..
@@ -373,7 +370,7 @@ class ConfigDict(dict):
 
     def __write(self, fp, ddict, secthead=None):
         """Do the actual file writing when called by the ``write`` method.
-        
+
         :param fp: File handle
         :param ddict: Dictionary to be written to file
         :param secthead: Prefix for section name, used for handling nested
@@ -401,7 +398,7 @@ class ConfigDict(dict):
                          ' ]\n')
             else:
                 fp.write('%s = %s\n' % (key, ddict[key]))
- 
+
         for key in strkey:
             fp.write('%s = \%s\n' % (key, self._escape_str(ddict[key])))
 
@@ -430,7 +427,7 @@ class ConfigDict(dict):
                 else:
                     llist.append(str(item))
             fp.write('%s\n' % (sep.join(llist)))
- 
+
         for key in dictkey:
             if secthead is None:
                 newsecthead = key.replace(".", "_|_")
