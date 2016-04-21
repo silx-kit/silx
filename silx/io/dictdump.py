@@ -177,6 +177,7 @@ def h5todict(h5file, path="/"):
         if isinstance(h5f[path + "/" + key], h5py.Group):
             ddict[key] = h5todict(h5f, path + "/" + key)
         else:
+            # Convert HDF5 dataset to numpy array
             ddict[key] = h5f[path + "/" + key][...]
     return ddict
 
