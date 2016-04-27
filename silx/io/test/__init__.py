@@ -24,12 +24,12 @@
 
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/04/2016"
+__date__ = "18/04/2016"
 
 import unittest
 
 from .test_specfile import suite as test_specfile_suite
-from .test_dicttoh5 import suite as test_dicttoh5_suite
+from .test_dictdump import suite as test_dictdump_suite
 from .test_spech5 import suite as test_spech5_suite
 from .test_spectoh5 import suite as test_spectoh5_suite
 from .test_utils import suite as test_utils_suite
@@ -37,7 +37,7 @@ from .test_utils import suite as test_utils_suite
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_dicttoh5_suite())
+    test_suite.addTest(test_dictdump_suite())
     test_suite.addTest(test_specfile_suite())
     test_suite.addTest(test_spech5_suite())
     test_suite.addTest(test_spectoh5_suite())
