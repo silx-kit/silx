@@ -34,7 +34,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/04/2016"
+__date__ = "26/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -46,20 +46,23 @@ def _prepare_hdf5_dataset(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
+    # simple strings
     if isinstance(array_like, string_types):
         array_like = numpy.string_(array_like)
 
     # Ensure our data is a numpy.ndarray
-    if not isinstance(array_like, numpy.ndarray):
+    if not isinstance(array_like, (numpy.ndarray, numpy.string_)):
         array = numpy.array(array_like)
     else:
         array = array_like
 
-    data_kind = array.dtype.kind
-    # unicode: convert to byte strings
-    # (http://docs.h5py.org/en/latest/strings.html)
-    if data_kind.lower() in ["s", "u"]:
-        array = numpy.asarray(array, dtype=numpy.string_)
+    # handle list of strings or numpy array of strings
+    if not isinstance(array, numpy.string_):
+        data_kind = array.dtype.kind
+        # unicode: convert to byte strings
+        # (http://docs.h5py.org/en/latest/strings.html)
+        if data_kind.lower() in ["s", "u"]:
+            array = numpy.asarray(array, dtype=numpy.string_)
 
     return array
 
