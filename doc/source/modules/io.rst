@@ -50,6 +50,12 @@ silx.io.dictdump module
 
 .. automodule:: silx.io.dictdump
     :members:
+    
+silx.io.configdict module
+--------------------------------
+
+.. automodule:: silx.io.configdict
+    :members:
 
 silx.io.utils module
 --------------------------------
