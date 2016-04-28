@@ -86,7 +86,7 @@ Classes:
 
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/04/2016"
+__date__ = "28/04/2016"
 
 import numpy
 import sys
@@ -140,6 +140,8 @@ def _parse_simple_types(sstr):
             try:
                 return _boolean(sstr)
             except ValueError:
+                if sstr.strip() == "None":
+                    return None
                 # un-escape string
                 sstr = sstr.lstrip("\\")
                 # un-escape commas
@@ -163,6 +165,9 @@ def _parse_container(sstr):
     :raise: ``ValueError`` if string is not a list or an array
     """
     sstr = sstr.strip()
+
+    if not sstr:
+        raise ValueError
 
     if sstr.find(',') == -1:
         # it is not a list

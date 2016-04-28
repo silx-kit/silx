@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/04/2016"
+__date__ = "28/04/2016"
 
 import h5py
 import numpy
@@ -119,7 +119,9 @@ class TestDictToIni(unittest.TestCase):
             'simple_types': {
                 'float': 1.0,
                 'int': 1,
-                'string': 'Hello World',
+                'string': '5 % is too much',
+                'empty_string': '',
+                'none': None,
             },
             'containers': {
                 'list': [-1, 'string', 3.0, False],
