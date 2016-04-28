@@ -89,6 +89,7 @@ __license__ = "MIT"
 __date__ = "28/04/2016"
 
 import numpy
+import re
 import sys
 if sys.version < '3.0':
     import ConfigParser as configparser
@@ -423,15 +424,27 @@ class ConfigDict(dict):
             fp.close()
 
     def _escape_str(self, sstr):
-        """Escape strings and individual commas with a ``\`` character.
+        """Escape strings and special characters in strings with a ``\``
+        character.
 
         This way, we ensure these strings cannot be interpreted as a numeric
-        or boolean types, and commas in strings are not interpreted as list
-        items separators..
+        or boolean types and commas in strings are not interpreted as list
+        items separators. We also escape ``%`` when it is not followed by a
+        ``(``, as required by ``configparser`` because ``%`` is used in
+        the interpolation syntax
+        (https://docs.python.org/3/library/configparser.html#interpolation-of-values).
         """
-        sstr = "\\" + sstr
+        non_str = r'^([0-9]+|[0-9]*\.[0-9]*|none|false|true|on|off|yes|no)$'
+        if re.match(non_str, sstr.lower()):
+            sstr = "\\" + sstr
         # Escape commas
         sstr = sstr.replace(",", "\,")
+
+        if sys.version > '3.0':
+            # Escape % except in "%%" and "%("
+            # argparse will handle converting %% back to %
+            sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
+
         return sstr
 
     def __write(self, fp, ddict, secthead=None):
@@ -466,7 +479,7 @@ class ConfigDict(dict):
                 fp.write('%s = %s\n' % (key, ddict[key]))
 
         for key in strkey:
-            fp.write('%s = \%s\n' % (key, self._escape_str(ddict[key])))
+            fp.write('%s = %s\n' % (key, self._escape_str(ddict[key])))
 
         for key in listkey:
             fp.write('%s = ' % key)

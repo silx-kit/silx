@@ -115,16 +115,21 @@ class TestDictToIni(unittest.TestCase):
         os.rmdir(self.dir_path)
 
     def testConfigDictIO(self):
+        """Ensure values and types of data is preserved when dictionary is
+        written to file and read back."""
         testdict = {
             'simple_types': {
                 'float': 1.0,
                 'int': 1,
-                'string': '5 % is too much',
+                'percent string': '5 % is too much',
+                'backslash string': 'i can use \\',
                 'empty_string': '',
-                'none': None,
+                'nonestring': 'None',
+                'nonetype': None,
+                'interpstring': 'interpolation: %(percent string)s',
             },
             'containers': {
-                'list': [-1, 'string', 3.0, False],
+                'list': [-1, 'string', 3.0, False, None],
                 'array': numpy.array([1.0, 2.0, 3.0]),
                 'dict': {
                     'key1': 'Hello World',
@@ -145,6 +150,11 @@ class TestDictToIni(unittest.TestCase):
         self.assertTrue(len(readkeys) == len(testdictkeys),
                         "Number of read keys not equal")
 
+        self.assertEqual(readinstance['simple_types']["interpstring"],
+                         "interpolation: 5 % is too much")
+
+        testdict['simple_types']["interpstring"] = "interpolation: 5 % is too much"
+
         for key in testdict["simple_types"]:
             original = testdict['simple_types'][key]
             read = readinstance['simple_types'][key]
@@ -158,8 +168,8 @@ class TestDictToIni(unittest.TestCase):
                 self.assertEqual(read.all(), original.all(),
                             "Read <%s> instead of <%s>" % (read, original))
             else:
-                self.assertEqual(read, original, 
-                                 "Read <%s> instead of <%s>" % (read, original))
+                self.assertEqual(read, original,
+                            "Read <%s> instead of <%s>" % (read, original))
 
 
 
