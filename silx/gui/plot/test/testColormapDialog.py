@@ -48,6 +48,9 @@ def _tearDownQt(docTest):
     """
     dialogWidget = docTest.globs['dialog']
     qWaitForWindowExposed(dialogWidget)
+    dialogWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    dialogWidget.close()
+    del dialogWidget
 
 
 cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)
