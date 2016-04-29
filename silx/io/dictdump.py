@@ -21,17 +21,23 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""Nested python dictionary to HDF5 file conversion"""
+"""This module offers a set of functions to dump a python dictionary indexed
+by text strings to following file formats: `HDF5, INI, JSON`
+"""
 
 import h5py
+import json
 import numpy
 import sys
 
+from .configdict import ConfigDict
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "26/04/2016"
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+
 
 def _prepare_hdf5_dataset(array_like):
     """Cast a python object into a numpy array in a HDF5 friendly format.
@@ -40,21 +46,23 @@ def _prepare_hdf5_dataset(array_like):
         ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
     :return: ``numpy.ndarray`` ready to be written as an HDF5 dataset
     """
-
+    # simple strings
     if isinstance(array_like, string_types):
         array_like = numpy.string_(array_like)
 
     # Ensure our data is a numpy.ndarray
-    if not isinstance(array_like, numpy.ndarray):
+    if not isinstance(array_like, (numpy.ndarray, numpy.string_)):
         array = numpy.array(array_like)
     else:
         array = array_like
 
-    data_kind = array.dtype.kind
-    # unicode: convert to byte strings
-    # (http://docs.h5py.org/en/latest/strings.html)
-    if data_kind.lower() in ["s", "u"]:
-        array = numpy.asarray(array, dtype=numpy.string_)
+    # handle list of strings or numpy array of strings
+    if not isinstance(array, numpy.string_):
+        data_kind = array.dtype.kind
+        # unicode: convert to byte strings
+        # (http://docs.h5py.org/en/latest/strings.html)
+        if data_kind.lower() in ["s", "u"]:
+            array = numpy.asarray(array, dtype=numpy.string_)
 
     return array
 
@@ -63,6 +71,12 @@ def dicttoh5(treedict, h5file, h5path='/',
              mode="a", overwrite_data=False,
              create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
+
+    If a dictionary value is a sub-dictionary, a group is created. If it is
+    any other data type, it is cast into a numpy array and written as a
+    :mod:`h5py` dataset.
+
+    Dictionary keys must be strings and cannot contain the ``/`` character.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character is not allowed
@@ -85,7 +99,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     Example::
 
-        from silx.io.dicttoh5 import dicttoh5
+        from silx.io.dicttoh5 import dictdump
 
         city_area = {
             "Europe": {
@@ -116,8 +130,6 @@ def dicttoh5(treedict, h5file, h5path='/',
         h5path += "/"
 
     for key in treedict:
-        assert isinstance(key, string_types)
-        assert "/" not in key
 
         if isinstance(treedict[key], dict) and len(treedict[key]):
             # non-empty group: recurse
@@ -143,3 +155,116 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     if isinstance(h5file, string_types):
         h5f.close()
+
+
+def h5todict(h5file, path="/"):
+    """Read HDF5 file and return a nested dictionary with the complete file
+    structure and all data.
+
+    .. warning:: If you write a dictionary to a HDF5 file with 
+        :func:`dicttoh5` and then read it back with :func:`h5todict`, data
+        types are not preserved. All values are cast to numpy arrays before
+        being written to file, and they are read back as numpy arrays.
+
+    :param h5file: File name or :class:`h5py.File` object
+    :return: dict
+    """
+    if not isinstance(h5file, h5py.File):
+        h5f = h5py.File(h5file, "r")
+    else:
+        h5f = h5file
+
+    ddict = {}
+    for key in h5f[path]:
+
+        if isinstance(h5f[path + "/" + key], h5py.Group):
+            ddict[key] = h5todict(h5f, path + "/" + key)
+        else:
+            # Convert HDF5 dataset to numpy array
+            ddict[key] = h5f[path + "/" + key][...]
+    return ddict
+
+
+def dicttojson(dict, jsonfile, indent=None, mode="w"):
+    """Serialize ``dict`` as a JSON formatted stream to ``jsonfile``.
+
+    :param dict: Dictionary (or any object compatible with ``json.dump``).
+    :param jsonfile: JSON file name or file-like object.
+        If a file name is provided, the function opens the file in the
+        specified mode and closes it again.
+    :param indent: If indent is a non-negative integer, then JSON array
+        elements and object members will be pretty-printed with that indent
+        level. An indent level of ``0`` will only insert newlines.
+        ``None`` (the default) selects the most compact representation.
+    :param mode: File opening mode (``w``, ``a``, ``w+``…)
+    """
+    if not hasattr(jsonfile, "write"):
+        jsonf = open(jsonfile, mode)
+    else:
+        jsonf = jsonfile
+
+    json.dump(dict, jsonf, indent=indent)
+
+    if not hasattr(jsonfile, "write"):
+        jsonf.close()
+
+
+def dicttoini(ddict, inifile, mode="a"):
+    """Output dict as configuration file (similar to Microsoft Windows INI).
+
+    :param dict: Dictionary of configuration parameters
+    :param inifile: INI file name or file-like object.
+        If a file name is provided, the function opens the file in the
+        specified mode and closes it again.
+    :param mode: File opening mode (``w``, ``a``, ``w+``…)
+    """
+    if not hasattr(inifile, "write"):
+        inif = open(inifile, mode)
+    else:
+        inif = inifile
+
+    ConfigDict(initdict=ddict).write(inif)
+
+    if not hasattr(inifile, "write"):
+        inif.close()
+
+
+def dump(ddict, ffile, fmat="json"):
+    """Dump dictionary to a file
+
+    :param ddict: Dictionary with string keys
+    :param ffile: File name or file-like object with a ``write`` method
+    :param fmat: Output format: ``json``, ``hdf5`` or ``ini``
+    """
+    if fmat.lower() == "json":
+        dicttojson(ddict, ffile)
+    elif fmat.lower() == "hdf5":
+        dicttoh5(ddict, ffile)
+    elif fmat.lower() == "ini":
+        dicttoini(ddict, ffile)
+    else:
+        raise IOError("Unknown format " + fmat)
+
+
+def load(ffile, fmat="json"):
+    """Load dictionary from a file
+
+    :param ffile: File name or file-like object with a ``read`` method
+    :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+    :return: Dictionary
+    """
+    if not hasattr(ffile, "read"):
+        f = open(ffile, "r")
+        fname = ffile
+    else:
+        f = ffile
+        fname = ffile.name
+
+    if fmat.lower() == "json":
+        return json.load(f)
+    if fmat.lower() == "hdf5":
+        return h5todict(fname)
+    if fmat.lower() == "ini":
+        return ConfigDict().read(fname)
+    raise IOError("Unknown format " + fmat)
+

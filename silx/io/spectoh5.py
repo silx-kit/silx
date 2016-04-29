@@ -171,7 +171,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
 def convert(specfile, h5file, mode="w-",
             create_dataset_args=None):
     """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
-     group.
+    group.
 
     :param specfile: Path of input SpecFile or :class:`SpecH5` instance
     :param h5file: Path of output HDF5 file or HDF5 file handle
@@ -181,13 +181,11 @@ def convert(specfile, h5file, mode="w-",
     :param create_dataset_args: Dictionary of args you want to pass to
         ``h5f.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
-        These arguments don't apply to scalar datasets.
-
 
     This is a convenience shortcut to call::
 
         write_spec_to_h5(specfile, h5file, h5path='/',
-                         h5_file_mode="w-", link_type="hard")
+                         mode="w-", link_type="hard")
     """
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +

@@ -75,7 +75,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         ``footer`` strings, to mark them as comments. Default: ``#``.
     :param autoheader: In `CSV` or `txt`, ``True`` causes the first header
          line to be written as a standard CSV header line with column labels
-          separated by the specified CSV delimiter.
+         separated by the specified CSV delimiter.
 
     When saving to Specfile format, each curve is saved as a separate scan
     with two data columns (``x`` and ``y``).
@@ -174,12 +174,11 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
             numpy.save(fname, X)
 
 
+# Replace with numpy.savetxt when dropping support of numpy < 1.7.0
 def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
             header="", footer="", comments="#"):
     """``numpy.savetxt`` backport of header and footer arguments from
     numpy=1.7.0.
-
-    Replace with ``numpy.savetxt`` when dropping support of numpy < 1.7.0
 
     See ``numpy.savetxt`` help:
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html

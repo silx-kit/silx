@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""h5py-like API to SpecFile
+"""This module provides a h5py-like API to access SpecFile data.
 
 API description
 ===============
@@ -70,7 +70,7 @@ The title is the content of the ``#S`` scan header line without the leading
 
 The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``)
 
-All datasets that are not strings store values as `float32`.
+All numeric datasets store values in `float32` format.
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
 1D numpy arrays if they are measured as scan data, or else scalars as defined
