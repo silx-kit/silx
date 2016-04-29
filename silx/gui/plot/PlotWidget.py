@@ -85,6 +85,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     sigSetGraphGrid = qt.Signal(str)
     """Signal emitted when plot grid has changed"""
 
+    sigSetGraphCursor = qt.Signal(bool)
+    """Signal emitted when plot crosshair cursor has changed"""
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -132,6 +135,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
         elif event == 'setGraphGrid':
             self.sigSetGraphGrid.emit(kwargs['which'])
+        elif event == 'setGraphCursor':
+            self.sigSetGraphCursor.emit(kwargs['state'])
 
         Plot.Plot.notify(self, event, **kwargs)
 

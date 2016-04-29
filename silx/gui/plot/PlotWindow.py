@@ -37,6 +37,7 @@ import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
+from .PlotTools import PositionInfo
 
 from .. import qt
 
@@ -94,7 +95,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 position=False,
+                 crosshair=False, position=False,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
@@ -139,6 +140,10 @@ class PlotWindow(PlotWidget):
         self.yAxisInvertedAction = self.group.addAction(
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
+
+        self.crosshairAction = self.group.addAction(
+            CrosshairAction(self, color='red'))
+        self.crosshairAction.setVisible(crosshair)
 
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)

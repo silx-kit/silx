@@ -161,13 +161,14 @@ Plot state change events
 The following events are emitted when the plot is modified.
 They provide the new state:
 
-- 'setYAxisInverted' event with a 'state' key (bool)
-- 'setXAxisLogarithmic' event with a 'state' key (bool)
-- 'setYAxisLogarithmic' event with a 'state' key (bool)
-- 'setXAxisAutoScale' event with a 'state' key (bool)
-- 'setYAxisAutoScale' event with a 'state' key (bool)
-- 'setKeepDataAspectRatio' event with a 'state' key (bool)
+- 'setGraphCursor' event with a 'state' key (bool)
 - 'setGraphGrid' event with a 'which' key (str), see :meth:`setGraphGrid`
+- 'setKeepDataAspectRatio' event with a 'state' key (bool)
+- 'setXAxisAutoScale' event with a 'state' key (bool)
+- 'setXAxisLogarithmic' event with a 'state' key (bool)
+- 'setYAxisAutoScale' event with a 'state' key (bool)
+- 'setYAxisInverted' event with a 'state' key (bool)
+- 'setYAxisLogarithmic' event with a 'state' key (bool)
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -1205,6 +1206,8 @@ class Plot(object):
         self._backend.setGraphCursor(flag=flag, color=color,
                                      linewidth=linewidth, linestyle=linestyle)
         self._setDirtyPlot()
+        self.notify('setGraphCursor',
+                    state=self._cursorConfiguration is not None)
 
     def pan(self, direction, factor=0.1):
         """Pan the graph in the given direction by the given factor.
