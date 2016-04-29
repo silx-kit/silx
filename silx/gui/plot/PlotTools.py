@@ -70,6 +70,7 @@ class PositionInfo(qt.QWidget):
     >>> position = PositionInfo(plot, converters=[
     ...     ('Radius', lambda x, y: math.sqrt(x*x + y*y)),
     ...     ('Angle', lambda x, y: math.degrees(math.atan2(y, x)))])
+
     >>> toolBar.addWidget(position)  # Add the widget to the toolbar
     <...>
 
@@ -86,28 +87,10 @@ class PositionInfo(qt.QWidget):
     def __init__(self, plot, converters=None, parent=None):
         super(PositionInfo, self).__init__(parent)
 
-        self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
-        self.setConverters(converters)
-
-        # Connect to Plot events
-        plot.sigPlotSignal.connect(self._plotEvent)
-
-    def getConverters(self):
-        """Return the list of converters as 2-tuple (name, function)."""
-        return [(name, func) for lineEdit, name, func in self._fields]
-
-    def setConverters(self, converters=None):
-        """Set the converters to display
-
-        :param converters: List of name to display and conversion function from
-                           (x, y) in data coords to displayed value.
-                           If None, the default, it displays X and Y.
-        :type converters: Iterable of 2-tuple (str, function)
-        """
         if converters is None:
             converters = (('X', lambda x, y: x), ('Y', lambda x, y: y))
 
-        self._fields = []  # Reset stored info
+        self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
 
         # Create a new layout with new widgets
         layout = qt.QHBoxLayout()
@@ -128,6 +111,13 @@ class PositionInfo(qt.QWidget):
 
         layout.addStretch(1)
         self.setLayout(layout)
+
+        # Connect to Plot events
+        plot.sigPlotSignal.connect(self._plotEvent)
+
+    def getConverters(self):
+        """Return the list of converters as 2-tuple (name, function)."""
+        return [(name, func) for lineEdit, name, func in self._fields]
 
     def _plotEvent(self, event):
         """Handle events from the Plot.

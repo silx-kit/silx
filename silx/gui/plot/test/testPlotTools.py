@@ -30,11 +30,12 @@ __date__ = "28/04/2016"
 
 
 import doctest
+import numpy
 import unittest
 
-from silx.gui.testutils import qWaitForWindowExposed
+from silx.gui.testutils import qWaitForWindowExposed, TestCaseQt
 from silx.gui import qt
-from silx.gui.plot import PlotTools
+from silx.gui.plot import PlotWindow, PlotTools
 
 
 # Makes sure a QApplication exists
@@ -48,7 +49,9 @@ def _tearDownPositionInfoDocTest(docTest):
     """
     plot = docTest.globs['plot']
     qWaitForWindowExposed(plot)
-
+    plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+    plot.close()
+    del plot
 
 positionInfoTestSuite = doctest.DocTestSuite(
     PlotTools, tearDown=_tearDownPositionInfoDocTest,
@@ -58,10 +61,70 @@ positionInfoTestSuite = doctest.DocTestSuite(
 For now only PositionInfo.
 """
 
+class TestPositionInfo(TestCaseQt):
+    """Tests for PositionInfo widget."""
+
+    def setUp(self):
+        super(TestPositionInfo, self).setUp()
+        self.plot = PlotWindow()
+        self.plot.show()
+        self.qWaitForWindowExposed(self.plot)
+        self.mouseMove(self.plot)  # Move to center
+
+    def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
+        del self.plot
+        super(TestPositionInfo, self).tearDown()
+
+    def _test(self, positionWidget, converterNames):
+        """General test of PositionInfo.
+
+        - Add it to a toolbar and
+        - Move mouse around the center of the PlotWindow.
+        """
+        toolBar = qt.QToolBar()
+        self.plot.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+
+        toolBar.addWidget(positionWidget)
+
+        converters = positionWidget.getConverters()
+        self.assertEqual(len(converters), len(converterNames))
+        for index, name in enumerate(converterNames):
+            self.assertEqual(converters[index][0], name)
+
+        # Move mouse around PlotWindow's center
+        xCenter, yCenter = self.plot.width() // 2, self.plot.height() // 2
+        self.mouseMove(self.plot, pos=(xCenter + 1, yCenter + 1))
+        self.qWait(10)
+
+    def testDefaultConverters(self):
+        """Test PositionInfo with default converters"""
+        positionWidget = PlotTools.PositionInfo(self.plot)
+        self._test(positionWidget, ('X', 'Y'))
+
+    def testCustomConverters(self):
+        """Test PositionInfo with custom converters"""
+        positionWidget = PlotTools.PositionInfo(self.plot, converters=[
+            ('Coords', lambda x, y: (int(x), int(y))),
+            ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
+            ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
+        self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
+
+    def testFailingConverters(self):
+        """Test PositionInfo with failing custom converters"""
+        def raiseException(x, y):
+            raise RuntimeError()
+
+        positionWidget = PlotTools.PositionInfo(
+            self.plot, converters=[('Exception', raiseException)])
+        self._test(positionWidget, ['Exception'])
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(positionInfoTestSuite)
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPositionInfo))
     return test_suite
 
 
