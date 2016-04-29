@@ -23,6 +23,8 @@
 #
 # ###########################################################################*/
 """Widget displaying curves legends and allowing to operate on curves.
+
+This widget is meant to work with :class:`PlotWindow`.
 """
 
 __authors__ = ["T. Rueter", "T. Vincent"]
@@ -607,7 +609,7 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
 
 class LegendListView(qt.QListView):
 
-    sigLegendSignal = qt.pyqtSignal(object)
+    sigLegendSignal = qt.Signal(object)
     __mouseClickedEvent = 'mouseClicked'
     __checkBoxClickedEvent = 'checkBoxClicked'
     __legendClickedEvent = 'legendClicked'
@@ -763,7 +765,7 @@ class BaseContextMenu(qt.QMenu):
 
 
 class LegendListContextMenu(BaseContextMenu):
-    sigContextMenu = qt.pyqtSignal(object)
+    sigContextMenu = qt.Signal(object)
 
     def __init__(self, model):
         BaseContextMenu.__init__(self, model)
@@ -889,70 +891,3 @@ class LegendListContextMenu(BaseContextMenu):
             'event': "setActiveCurve",
         }
         self.sigContextMenu.emit(ddict)
-
-
-if __name__ == '__main__':
-
-    class Notifier(qt.QObject):
-        def __init__(self):
-            qt.QObject.__init__(self)
-            self.chk = True
-
-        def signalReceived(self, **kw):
-            obj = self.sender()
-            _logger.info('NOTIFIER -- signal received\n\tsender: %s',
-                         str(obj))
-
-    notifier = Notifier()
-    legends = ['Legend0',
-               'Legend1',
-               'Long Legend 2',
-               'Foo Legend 3',
-               'Even Longer Legend 4',
-               'Short Leg 5',
-               'Dot symbol 6',
-               'Comma symbol 7']
-    colors = [qt.Qt.darkRed, qt.Qt.green, qt.Qt.yellow, qt.Qt.darkCyan,
-              qt.Qt.blue, qt.Qt.darkBlue, qt.Qt.red, qt.Qt.darkYellow]
-    # symbols = ['circle', 'triangle', 'utriangle',
-    # 'diamond', 'square', 'cross']
-    symbols = ['o', 't', '+', 'x', 's', 'd', '.', ',']
-    app = qt.QApplication([])
-    win = LegendListView()
-    # win = LegendListContextMenu()
-    # win = qt.QWidget()
-    # layout = qt.QVBoxLayout()
-    # layout.setContentsMargins(0,0,0,0)
-    llist = []
-    for idx, (l, c, s) in enumerate(zip(legends, colors, symbols)):
-        ddict = {
-            'color': qt.QColor(c),
-            'linewidth': 4,
-            'symbol': s,
-        }
-        legend = l
-        llist.append((legend, ddict))
-        # item = qt.QListWidgetItem(win)
-        # legendWidget = LegendListItemWidget(l)
-        # legendWidget.icon.setSymbol(s)
-        # legendWidget.icon.setColor(qt.QColor(c))
-        # layout.addWidget(legendWidget)
-        # win.setItemWidget(item, legendWidget)
-    # win = LegendListItemWidget('Some Legend 1')
-    # print(llist)
-    model = LegendModel(legendList=llist)
-    win.setModel(model)
-    win.setSelectionModel(qt.QItemSelectionModel(model))
-    win.setContextMenu()
-    # print('Edit triggers: %d'%win.editTriggers())
-
-    # win = LegendListWidget(None, legends)
-    # win[0].updateItem(ddict)
-    # win.setLayout(layout)
-    win.sigLegendSignal.connect(notifier.signalReceived)
-    win.show()
-
-    win.clear()
-    win.setLegendList(llist)
-
-    app.exec_()
