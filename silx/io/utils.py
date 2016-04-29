@@ -23,15 +23,28 @@
 #############################################################################*/
 """ I/O utility functions"""
 
-import h5py
 import numpy
 import os.path
 import sys
 import time
 
+import logging
+
+try:
+    import h5py
+except ImportError as e:
+    h5py_missing = True
+    h5py_import_error = e
+else:
+    h5py_missing = False
+
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/04/2016"
+__date__ = "29/04/2016"
+
+
+logger = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -300,6 +313,10 @@ def h5ls(h5group, lvl=0):
                 <HDF5 dataset "x": shape (256, 256), type "<f4">
                 <HDF5 dataset "y": shape (256, 256), type "<f4">
     """
+    if h5py_missing:
+        logger.error("h5ls requires h5py")
+        raise h5py_import_error
+
     repr = ''
     if isinstance(h5group, (h5py.File, h5py.Group)):
         h5f = h5group

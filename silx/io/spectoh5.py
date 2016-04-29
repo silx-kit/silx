@@ -23,18 +23,24 @@
 #############################################################################*/
 """This module provides functions to convert a SpecFile into a HDF5 file"""
 
-import h5py
 import logging
+logger = logging.getLogger(__name__)
+
 import re
+
+try:
+    import h5py
+except ImportError as e:
+    logger.error("Module " + __name__ + " requires h5py")
+    raise e
+
 from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
      SpecH5LinkToGroup, SpecH5LinkToDataset
 
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
-
-logger = logging.getLogger(__name__)
-# logger.setLevel(logging.DEBUG)
+__date__ = "29/04/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',

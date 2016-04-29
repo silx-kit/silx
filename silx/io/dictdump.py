@@ -25,16 +25,26 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
-import h5py
 import json
+import logging
 import numpy
 import sys
+
+try:
+    import h5py
+except ImportError as e:
+    h5py_missing = True
+    h5py_import_error = e
+else:
+    h5py_missing = False
 
 from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/04/2016"
+__date__ = "29/04/2016"
+
+logger = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -121,6 +131,9 @@ def dicttoh5(treedict, h5file, h5path='/',
         dicttoh5(city_area, "cities.h5", h5path="/area",
                  create_dataset_args=create_ds_args)
     """
+    if h5py_missing:
+        raise h5py_import_error
+
     if not isinstance(h5file, h5py.File):
         h5f = h5py.File(h5file, mode)
     else:
@@ -169,6 +182,9 @@ def h5todict(h5file, path="/"):
     :param h5file: File name or :class:`h5py.File` object
     :return: dict
     """
+    if h5py_missing:
+        raise h5py_import_error
+
     if not isinstance(h5file, h5py.File):
         h5f = h5py.File(h5file, "r")
     else:
@@ -238,9 +254,12 @@ def dump(ddict, ffile, fmat="json"):
     """
     if fmat.lower() == "json":
         dicttojson(ddict, ffile)
-    elif fmat.lower() == "hdf5":
+    elif fmat.lower() in ["hdf5", "h5"]:
+        if h5py_missing:
+            logger.error("Cannot dump to HDF5 format, missing h5py library")
+            raise h5py_import_error
         dicttoh5(ddict, ffile)
-    elif fmat.lower() == "ini":
+    elif fmat.lower() in ["ini", "cfg"]:
         dicttoini(ddict, ffile)
     else:
         raise IOError("Unknown format " + fmat)
@@ -262,9 +281,12 @@ def load(ffile, fmat="json"):
 
     if fmat.lower() == "json":
         return json.load(f)
-    if fmat.lower() == "hdf5":
+    if fmat.lower() in ["hdf5", "h5"]:
+        if h5py_missing:
+            logger.error("Cannot load from HDF5 format, missing h5py library")
+            raise h5py_import_error
         return h5todict(fname)
-    if fmat.lower() == "ini":
+    if fmat.lower() in ["ini", "cfg"]:
         return ConfigDict().read(fname)
     raise IOError("Unknown format " + fmat)
 

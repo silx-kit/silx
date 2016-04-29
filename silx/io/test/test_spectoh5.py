@@ -24,19 +24,24 @@
 """Tests for SpecFile to HDF5 converter"""
 
 import gc
-import h5py
 from numpy import array_equal
 import os
 import sys
 import tempfile
 import unittest
 
-from ..spech5 import SpecH5
-from ..spectoh5 import convert, write_spec_to_h5
+try:
+    import h5py
+except ImportError:
+    h5py_missing = True
+else:
+    h5py_missing = False
+    from ..spech5 import SpecH5
+    from ..spectoh5 import convert, write_spec_to_h5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "04/04/2016"
+__date__ = "29/04/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -83,6 +88,7 @@ sftext = """#F /tmp/sf.dat
 """
 
 
+@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestConvertSpecHDF5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
