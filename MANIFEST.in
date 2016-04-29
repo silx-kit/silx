@@ -5,3 +5,4 @@ include version.py
 recursive-include silx *.pyx *.pxd *.pxi
 recursive-include silx *.h *.c *.cpp
 recursive-include doc/source *.py *.rst *.png *.ico
+recursive-include qtdesigner_plugins *.py *.rst

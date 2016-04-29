@@ -1,3 +1,11 @@
+silx (0.1.0-1) unstable; urgency=low
+
+  * debian/control
+    - Comment -dbg packages
+  * Upstream version 0.1.0
+
+ -- Thomas Vincent <thomas.vincent@esrf.fr>  Thu, 14 Apr 2016 09:35:28 +0200
+
 silx (0.0.0-1) unstable; urgency=low
 
   * Initial release (Closes: #??????)
