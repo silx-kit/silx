@@ -70,7 +70,7 @@ test_script:
     - "pip install matplotlib"
 
     # Install h5py for silx.io tests
-    - "pip install h5py"
+    - "pip install --pre --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ h5py"
 
     # Install the generated wheel package to test it
     - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx"
