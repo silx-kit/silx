@@ -65,9 +65,7 @@ else:
 
 
 # Makes sure a QApplication exists and do it once for all
-_qapp = qt.QApplication.instance()
-if not _qapp:
-    _qapp = qt.QApplication([])
+_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 def _getBaselineWidgets():

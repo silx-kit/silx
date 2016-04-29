@@ -38,9 +38,7 @@ from silx.gui.plot import ColormapDialog
 
 
 # Makes sure a QApplication exists
-_qapp = qt.QApplication.instance()
-if not _qapp:
-    _qapp = qt.QApplication()
+_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 def _tearDownQt(docTest):
