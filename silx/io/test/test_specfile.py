@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/03/2016"
+__date__ = "29/04/2016"
 
 import gc
 import locale
@@ -115,8 +115,6 @@ try:
     locale.setlocale(locale.LC_NUMERIC, 'de_DE.utf8')
 except locale.Error:
     try_DE = False
-    logger1.warning("de_DE.utf8 locale not installed on your system. " +
-                    "An important i18n test will be skipped.")
 else:
     try_DE = True
     locale.setlocale(locale.LC_NUMERIC, loc)
