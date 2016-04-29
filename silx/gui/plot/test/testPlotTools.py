@@ -70,6 +70,7 @@ class TestPositionInfo(TestCaseQt):
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
         self.mouseMove(self.plot)  # Move to center
+        self.qapp.processEvents()
 
     def tearDown(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
@@ -93,10 +94,10 @@ class TestPositionInfo(TestCaseQt):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        # Move mouse around PlotWindow's center
+        # Move mouse away from center
         xCenter, yCenter = self.plot.width() // 2, self.plot.height() // 2
         self.mouseMove(self.plot, pos=(xCenter + 1, yCenter + 1))
-        self.qWait(10)
+        self.qapp.processEvents()
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
