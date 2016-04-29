@@ -33,7 +33,7 @@ import unittest
 
 import numpy
 
-from silx.gui.test.utils import TestCaseQt
+from silx.gui.testutils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget

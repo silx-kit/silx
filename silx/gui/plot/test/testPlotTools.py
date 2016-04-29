@@ -32,7 +32,7 @@ __date__ = "28/04/2016"
 import doctest
 import unittest
 
-from silx.gui.test.utils import qWaitForWindowExposed
+from silx.gui.testutils import qWaitForWindowExposed
 from silx.gui import qt
 from silx.gui.plot import PlotTools
 
