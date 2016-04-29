@@ -32,9 +32,16 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/03/2016"
 
+import collections
+import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
+
+from .. import qt
+
+
+_logger = logging.getLogger(__name__)
 
 
 class PlotWindow(PlotWidget):
@@ -74,6 +81,11 @@ class PlotWindow(PlotWidget):
     :param bool copy: Toggle visibility if copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
+    :param position: True to display widget with (x, y) mouse position
+                     (Default: False).
+                     It also supports a list of (name, function(x, y)->value)
+                     to customize the displayed values.
+                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
@@ -82,6 +94,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
+                 position=False,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
@@ -139,6 +152,17 @@ class PlotWindow(PlotWidget):
 
         self.printAction = self.group.addAction(PrintAction(self))
         self.printAction.setVisible(print_)
+
+        if position:  # Add PositionInfo widget to the bottom of the plot
+            if isinstance(position, collections.Iterable):
+                converters = position  # Use position as a set of converters
+            else:
+                converters = None
+            self.positionWidget = PositionInfo(self, converters=converters)
+
+            toolBar = qt.QToolBar('Position', self)
+            toolBar.addWidget(self.positionWidget)
+            self.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
 
         self._toolBar = self.toolBar(parent=self)
         self.addToolBar(self._toolBar)

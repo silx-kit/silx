@@ -22,25 +22,48 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for PlotTools"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "28/04/2016"
 
 
+import doctest
 import unittest
 
-from .testColormapDialog import suite as testColormapDialog
-from .testInteraction import suite as testInteractionSuite
-from .testPlotTools import suite as testPlotToolsSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlot import suite as testPlotSuite
+from silx.gui.test.utils import qWaitForWindowExposed
+from silx.gui import qt
+from silx.gui.plot import PlotTools
+
+
+# Makes sure a QApplication exists
+_qapp = qt.QApplication.instance() or qt.QApplication([])
+
+
+def _tearDownPositionInfoDocTest(docTest):
+    """Tear down to use for test from docstring.
+
+    Checks that plot widget is displayed
+    """
+    plot = docTest.globs['plot']
+    qWaitForWindowExposed(plot)
+
+
+positionInfoTestSuite = doctest.DocTestSuite(
+    PlotTools, tearDown=_tearDownPositionInfoDocTest,
+    optionflags=doctest.ELLIPSIS)
+"""Test suite of tests from PlotTools docstrings.
+
+For now only PositionInfo.
+"""
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(testColormapDialog())
-    test_suite.addTest(testInteractionSuite())
-    test_suite.addTest(testPlotToolsSuite())
-    test_suite.addTest(testPlotWidgetSuite())
-    test_suite.addTest(testPlotSuite())
+    test_suite.addTest(positionInfoTestSuite)
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
