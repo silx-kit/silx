@@ -61,6 +61,8 @@ class PlotWindow(PlotWidget):
       and default colormap.
     - keepDataAspectRatioAction: Toggle keep aspect ratio
     - yAxisInvertedAction: Toggle Y Axis direction
+    - crosshairAction: Toggle crosshair cursor
+    - panWithArrowKeysAction: Toggle pan with arrow keys
     - copyAction: Copy plot snapshot to clipboard
     - saveAction: Save plot
     - printAction: Print plot
@@ -79,9 +81,11 @@ class PlotWindow(PlotWidget):
     :param bool colormap: Toggle visibility of colormap action.
     :param bool aspectRatio: Toggle visibility of aspect ration action.
     :param bool yInverted: Toggle visibility of Y axis direction action.
-    :param bool copy: Toggle visibility if copy action.
+    :param bool copy: Toggle visibility of copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
+    :param bool crosshair: Toggle visibility of crosshair action.
+    :param bool panWithKeys: Toggle visibility of pan with arrow keys action.
     :param position: True to display widget with (x, y) mouse position
                      (Default: False).
                      It also supports a list of (name, function(x, y)->value)
@@ -95,7 +99,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 crosshair=False, position=False,
+                 crosshair=False, panWithKeys=False, position=False,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
@@ -141,13 +145,22 @@ class PlotWindow(PlotWidget):
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
 
+        self._separator1 = qt.QAction('separator', self)
+        self._separator1.setSeparator(True)
+        self._separator1.setVisible(crosshair or panWithKeys)
+        self.group.addAction(self._separator1)
+
         self.crosshairAction = self.group.addAction(
             CrosshairAction(self, color='red'))
         self.crosshairAction.setVisible(crosshair)
 
-        self._separator = qt.QAction('separator', self)
-        self._separator.setSeparator(True)
-        self.group.addAction(self._separator)
+        self.panWithArrowKeysAction = self.group.addAction(
+            PanWithArrowKeysAction(self))
+        self.panWithArrowKeysAction.setVisible(panWithKeys)
+
+        self._separator2 = qt.QAction('separator', self)
+        self._separator2.setSeparator(True)
+        self.group.addAction(self._separator2)
 
         self.copyAction = self.group.addAction(CopyAction(self))
         self.copyAction.setVisible(copy)

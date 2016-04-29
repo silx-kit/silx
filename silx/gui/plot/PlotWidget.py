@@ -88,6 +88,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     sigSetGraphCursor = qt.Signal(bool)
     """Signal emitted when plot crosshair cursor has changed"""
 
+    sigSetPanWithArrowKeys = qt.Signal(bool)
+    """Signal emitted when pan with arrow keys has changed"""
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -156,12 +159,18 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
 
         :param bool pan: True to enable panning, False to disable.
         """
-        self._panWithArrowKeys = bool(pan)
+        pan = bool(pan)
+        panHasChanged = self._panWithArrowKeys != pan
+
+        self._panWithArrowKeys = pan
         if not self._panWithArrowKeys:
             self.setFocusPolicy(qt.Qt.NoFocus)
         else:
             self.setFocusPolicy(qt.Qt.StrongFocus)
             self.setFocus(qt.Qt.OtherFocusReason)
+
+        if panHasChanged:
+            self.sigSetPanWithArrowKeys.emit(pan)
 
     # Dict to convert Qt arrow key code to direction str.
     _ARROWS_TO_PAN_DIRECTION = {

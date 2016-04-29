@@ -835,3 +835,23 @@ class CrosshairAction(_PlotAction):
             color=self.color,
             linestyle=self.linestyle,
             linewidth=self.linewidth)
+
+class PanWithArrowKeysAction(_PlotAction):
+    """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+
+        super(PanWithArrowKeysAction, self).__init__(
+            plot, icon='arrow_keys', text='Pan with arrow keys',
+            tooltip='Enable pan with arrow keys when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isPanWithArrowKeys())
+        plot.sigSetPanWithArrowKeys.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setPanWithArrowKeys(checked)
