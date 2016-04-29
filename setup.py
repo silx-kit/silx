@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/03/2016"
+__date__ = "29/04/2016"
 __license__ = "MIT"
 
 
@@ -41,12 +41,12 @@ import platform
 from numpy.distutils.misc_util import Configuration
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
     from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
 except ImportError:
-    from numpy.distutils.core import setup
+    from distutils.core import setup, Command
     from distutils.command.build_py import build_py as _build_py
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
@@ -113,6 +113,24 @@ class build_py(_build_py):
 
 cmdclass['build_py'] = build_py
 
+########
+# Test #
+########
+class PyTest(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+        errno = subprocess.call([sys.executable, 'run_tests.py', '-i'])
+        if errno != 0:
+            raise SystemExit(errno)
+cmdclass['test'] = PyTest
 
 # ################### #
 # build_doc commandes #
