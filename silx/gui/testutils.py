@@ -189,20 +189,24 @@ class TestCaseQt(unittest.TestCase):
         QTest.keyRelease(widget, key, modifier, delay)
 
     @staticmethod
-    def mouseClick(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseClick(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate clicking a mouse button.
 
         See QTest.mouseClick for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
 
     @staticmethod
-    def mouseDClick(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseDClick(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate double clicking a mouse button.
 
         See QTest.mouseDClick for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
 
@@ -216,20 +220,24 @@ class TestCaseQt(unittest.TestCase):
         QTest.mouseMove(widget, pos, delay)
 
     @staticmethod
-    def mousePress(widget, button, modifier=0, pos=None, delay=-1):
+    def mousePress(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate pressing a mouse button.
 
         See QTest.mousePress for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
 
     @staticmethod
-    def mouseRelease(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseRelease(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate releasing a mouse button.
 
         See QTest.mouseRelease for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
 

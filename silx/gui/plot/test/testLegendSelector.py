@@ -34,7 +34,8 @@ import unittest
 
 from silx.gui import qt
 from silx.gui.testutils import TestCaseQt
-from silx.gui.plot.LegendSelector import LegendListView, LegendModel
+from silx.gui.plot import LegendSelector
+
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -70,7 +71,7 @@ class TestLegendSelector(TestCaseQt):
                   qt.Qt.blue, qt.Qt.darkBlue, qt.Qt.red, qt.Qt.darkYellow]
         symbols = ['o', 't', '+', 'x', 's', 'd', '.', ',']
 
-        win = LegendListView()
+        win = LegendSelector.LegendListView()
         # win = LegendListContextMenu()
         # win = qt.QWidget()
         # layout = qt.QVBoxLayout()
@@ -94,7 +95,7 @@ class TestLegendSelector(TestCaseQt):
 
         # win = LegendListItemWidget('Some Legend 1')
         # print(llist)
-        model = LegendModel(legendList=llist)
+        model = LegendSelector.LegendModel(legendList=llist)
         win.setModel(model)
         win.setSelectionModel(qt.QItemSelectionModel(model))
         win.setContextMenu()
@@ -112,10 +113,33 @@ class TestLegendSelector(TestCaseQt):
         self.qWaitForWindowExposed(win)
 
 
+class TestRenameCurveDialog(TestCaseQt):
+    """Basic test for RenameCurveDialog"""
+
+    def _testDialogCB(self):
+        """Callback to make mouse events on the dialog"""
+        self.qWaitForWindowExposed(self.dialog)
+        self.keyClicks(self.dialog.lineEdit, 'changed')
+        self.mouseClick(self.dialog.okButton, qt.Qt.LeftButton)
+
+    def testDialog(self):
+        """Create dialog, change name and press OK"""
+        self.dialog = LegendSelector.RenameCurveDialog(
+            None, 'curve1', ['curve1', 'curve2', 'curve3'])
+
+        qt.QTimer.singleShot(100, self._testDialogCB)
+        ret = self.dialog.exec_()
+        self.assertEqual(ret, qt.QDialog.Accepted)
+        newName = self.dialog.getText()
+        self.assertEqual(newName, 'curve1changed')
+        del self.dialog
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestLegendSelector))
+    for TestClass in (TestLegendSelector, TestRenameCurveDialog):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
 
 
