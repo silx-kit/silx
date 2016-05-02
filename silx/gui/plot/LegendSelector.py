@@ -806,33 +806,41 @@ class LegendListView(qt.QListView):
         self.sigLegendSignal.emit(ddict)
 
 
-class BaseContextMenu(qt.QMenu):
+class LegendListContextMenu(qt.QMenu):
+    sigContextMenu = qt.Signal(object)
+
     def __init__(self, model):
         qt.QMenu.__init__(self, parent=None)
         self.model = model
 
+        self.addAction('Set Active', self.setActiveAction)
+        self.addAction('Map to left', self.mapToLeftAction)
+        self.addAction('Map to right', self.mapToRightAction)
+
+        self._pointsAction = self.addAction(
+            'Points', self.togglePointsAction)
+        self._pointsAction.setCheckable(True)
+
+        self._linesAction = self.addAction('Lines', self.toggleLinesAction)
+        self._linesAction.setCheckable(True)
+
+        self.addAction('Remove curve', self.removeItemAction)
+        self.addAction('Rename curve', self.renameItemAction)
+
     def exec_(self, pos, idx):
         self.__currentIdx = idx
+
+        # Set checkable action state
+        modelIndex = self.currentIdx()
+        self._pointsAction.setChecked(
+            modelIndex.data(LegendModel.showSymbolRole))
+        self._linesAction.setChecked(
+            modelIndex.data(LegendModel.showLineRole))
+
         qt.QMenu.exec_(self, pos)
 
     def currentIdx(self):
         return self.__currentIdx
-
-
-class LegendListContextMenu(BaseContextMenu):
-    sigContextMenu = qt.Signal(object)
-
-    def __init__(self, model):
-        BaseContextMenu.__init__(self, model)
-        actionList = [('Set Active', self.setActiveAction),
-                      ('Map to left', self.mapToLeftAction),
-                      ('Map to right', self.mapToRightAction),
-                      ('Toggle points', self.togglePointsAction),
-                      ('Toggle lines', self.toggleLinesAction),
-                      ('Remove curve', self.removeItemAction),
-                      ('Rename curve', self.renameItemAction)]
-        for name, action in actionList:
-            self.addAction(name, action)
 
     def mapToLeftAction(self):
         _logger.debug('LegendListContextMenu.mapToLeftAction called')
