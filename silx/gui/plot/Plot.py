@@ -347,7 +347,8 @@ class Plot(object):
 
     def addCurve(self, x, y, legend=None, info=None,
                  replace=False, replot=None,
-                 color=None, symbol=None, linestyle=None,
+                 color=None, symbol=None,
+                 linewidth=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
                  fill=None, resetzoom=True, **kw):
@@ -466,7 +467,7 @@ class Plot(object):
         # Store all params with defaults in a dict to treat them at once
         params = {
             'info': info, 'color': color,
-            'symbol': symbol, 'linestyle': linestyle,
+            'symbol': symbol, 'linewidth': linewidth, 'linestyle': linestyle,
             'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
             'xerror': xerror, 'yerror': yerror, 'z': z,
             'selectable': selectable, 'fill': fill
@@ -482,6 +483,7 @@ class Plot(object):
             defaults = {
                 'info': None, 'color': default_color,
                 'symbol': self._defaultPlotPoints,
+                'linewidth': 1,
                 'linestyle': default_linestyle,
                 'xlabel': 'X', 'ylabel': 'Y', 'yaxis': 'left',
                 'xerror': None, 'yerror': None, 'z': 1,
@@ -511,7 +513,7 @@ class Plot(object):
                                             color=color,
                                             symbol=params['symbol'],
                                             linestyle=params['linestyle'],
-                                            linewidth=1,
+                                            linewidth=params['linewidth'],
                                             yaxis=params['yaxis'],
                                             xerror=xerror,
                                             yerror=yerror,
