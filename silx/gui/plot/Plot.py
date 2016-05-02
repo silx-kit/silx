@@ -504,7 +504,14 @@ class Plot(object):
         if replace:
             self.remove(kind='curve')
         else:
-            self.remove(legend, kind='curve')
+            # Remove previous curve from backend
+            # but not from _curves and hiddenCurves to keep its place
+            # This is a subset of self.remove(legend, kind='curve')
+            if legend in self._curves:
+                handle = self._curves[legend]['handle']
+                if handle is not None:
+                    self._backend.remove(handle)
+                    self._setDirtyPlot()
 
         # Filter-out values <= 0
         x, y, color, xerror, yerror = self._logFilterData(
@@ -674,7 +681,14 @@ class Plot(object):
         if replace:
             self.remove(kind='image')
         else:
-            self.remove(legend, kind='image')
+            # Remove previous image from backend
+            # but not from _images to keep its place
+            # This is a subset of self.remove(legend, kind='image')
+            if legend in self._images:
+                 handle = self._images[legend]['handle']
+                 if handle is not None:
+                     self._backend.remove(handle)
+                     self._setDirtyPlot()
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
