@@ -72,6 +72,9 @@ Symbols['x'].translate(qt.QPointF(-0.5, -0.5))
 Symbols['x'] = tr.map(Symbols['x'])
 Symbols['x'].translate(qt.QPointF(0.5, 0.5))
 
+NoSymbols = (None, 'None', 'none', '', ' ')
+"""List of values resulting in no symbol being displayed for a curve"""
+
 
 class LegendIcon(qt.QWidget):
 
@@ -105,7 +108,7 @@ class LegendIcon(qt.QWidget):
     # Modify Symbol
     def setSymbol(self, symbol):
         symbol = str(symbol)
-        if symbol not in [None, "None", "", " "]:
+        if symbol not in NoSymbols:
             if symbol not in Symbols:
                 raise ValueError("Unknown symbol: <%s>" % symbol)
         self.symbol = symbol
@@ -216,7 +219,7 @@ class LegendIcon(qt.QWidget):
                           linePen,
                           qt.QBrush(self.lineColor)))
         if (self.showSymbol and len(self.symbol) and
-                self.symbol not in ["None", " "]):
+                self.symbol not in NoSymbols):
             # PITFALL ahead: Let this be a warning to others
             # symbolPath = Symbols[self.symbol]
             # Copy before translate! Dict is a mutable type
@@ -377,7 +380,15 @@ class LegendModel(qt.QAbstractListModel):
         new = []
         for (legend, icon) in llist:
             showLine = True
-            showSymbol = True
+
+            symbol = icon.get('symbol', None)
+            if symbol in NoSymbols:
+                # Curve had no symbol, give it one and hide it
+                showSymbol = False
+                icon['symbol'] = 'o'
+            else:
+                showSymbol = True
+
             curveType = 0
             # active = icon.get('active', False)
             selected = icon.get('selected', True)
@@ -851,19 +862,12 @@ class LegendListContextMenu(BaseContextMenu):
             'selected': modelIndex.data(qt.Qt.CheckStateRole),
             'type': str(modelIndex.data()),
         }
-        flag = modelIndex.data(LegendModel.showLineRole)
-        if flag:
-            _logger.debug('toggleLinesAction -- lines turned off')
-            ddict['event'] = "toggleLine"
-            ddict['line'] = False
-            self.sigContextMenu.emit(ddict)
-            self.model.setData(modelIndex, False, LegendModel.showLineRole)
-        else:
-            _logger.debug('toggleLinesAction -- lines turned on')
-            ddict['event'] = "toggleLine"
-            ddict['line'] = True
-            self.sigContextMenu.emit(ddict)
-            self.model.setData(modelIndex, True, LegendModel.showLineRole)
+        visible = not modelIndex.data(LegendModel.showLineRole)
+        _logger.debug('toggleLinesAction -- lines visible: %s', str(visible))
+        ddict['event'] = "toggleLine"
+        ddict['line'] = visible
+        self.sigContextMenu.emit(ddict)
+        self.model.setData(modelIndex, visible, LegendModel.showLineRole)
 
     def togglePointsAction(self):
         modelIndex = self.currentIdx()
@@ -876,18 +880,15 @@ class LegendListContextMenu(BaseContextMenu):
         }
         flag = modelIndex.data(LegendModel.showSymbolRole)
         symbol = modelIndex.data(LegendModel.iconSymbolRole)
-        if flag and (symbol is not None):
-            _logger.debug('togglePointsAction -- Symbols turned off')
-            ddict['event'] = "togglePoints"
-            ddict['points'] = False
-            self.sigContextMenu.emit(ddict)
-            self.model.setData(modelIndex, False, LegendModel.showSymbolRole)
-        else:
-            _logger.debug('togglePointsAction -- Symbols turned on')
-            ddict['event'] = "togglePoints"
-            ddict['points'] = True
-            self.sigContextMenu.emit(ddict)
-            self.model.setData(modelIndex, True, LegendModel.showSymbolRole)
+        visible = not flag or symbol in NoSymbols
+        _logger.debug(
+            'togglePointsAction -- Symbols visible: %s', str(visible))
+
+        ddict['event'] = "togglePoints"
+        ddict['points'] = visible
+        ddict['symbol'] = symbol if visible else ''
+        self.sigContextMenu.emit(ddict)
+        self.model.setData(modelIndex, visible, LegendModel.showSymbolRole)
 
     def setActiveAction(self):
         modelIndex = self.currentIdx()
@@ -1034,8 +1035,7 @@ class LegendSelectorAction(_PlotAction):
             legend = ddict['legend']
             x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
             params = params.copy()
-            # TODO if defined, keep previous symbol (legend widget keeps it)
-            params['symbol'] = 'o' if ddict['points'] else ''
+            params['symbol'] = ddict['symbol'] if ddict['points'] else ''
             self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
 
         elif ddict['event'] == "toggleLine":
