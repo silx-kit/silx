@@ -94,6 +94,7 @@ NoLineStyle = (None, 'None', 'none', '', ' ')
 
 
 class LegendIcon(qt.QWidget):
+    """Object displaying a curve linestyle and symbol."""
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -138,34 +139,6 @@ class LegendIcon(qt.QWidget):
         :type style: qt.QColor
         """
         self.symbolColor = qt.QColor(color)
-
-    def setSymbolStyle(self, style):
-        """
-        Possible joices are:
-          Qt.NoBrush
-          Qt.SolidPattern
-          Qt.Dense1Pattern
-          Qt.Dense2Pattern
-          Qt.Dense3Pattern
-          Qt.Dense4Pattern
-          Qt.Dense5Pattern
-          Qt.Dense6Pattern
-          Qt.Dense7Pattern
-          Qt.HorPattern
-          Qt.VerPattern
-          Qt.CrossPattern
-          Qt.BDiagPattern
-          Qt.FDiagPattern
-          Qt.DiagCrossPattern
-          Qt.LinearGradientPattern
-          Qt.ConicalGradientPattern
-          Qt.RadialGradientPattern
-
-        :param int style: Must be in Qt.BrushStyle
-        """
-        if style not in list(range(18)):
-            raise ValueError('Unknown style: %d')
-        self.symbolStyle = int(style)
 
     # Modify Line
 
@@ -264,15 +237,23 @@ class LegendIcon(qt.QWidget):
 
 
 class LegendModel(qt.QAbstractListModel):
+    """Data model of curve legends.
+
+    It holds the information of the curve:
+
+    - color
+    - line width
+    - line style
+    - visibility of the lines
+    - symbol
+    - visibility of the symbols
+    """
     iconColorRole = qt.Qt.UserRole + 0
     iconLineWidthRole = qt.Qt.UserRole + 1
     iconLineStyleRole = qt.Qt.UserRole + 2
     showLineRole = qt.Qt.UserRole + 3
     iconSymbolRole = qt.Qt.UserRole + 4
     showSymbolRole = qt.Qt.UserRole + 5
-    legendTypeRole = qt.Qt.UserRole + 6
-    selectedRole = qt.Qt.UserRole + 7
-    activeRole = qt.Qt.UserRole + 8
 
     def __init__(self, legendList=None, parent=None):
         qt.QAbstractListModel.__init__(self, parent)
@@ -341,10 +322,6 @@ class LegendModel(qt.QAbstractListModel):
             return item[3]
         elif role == self.showSymbolRole:
             return item[4]
-        elif role == self.legendTypeRole:
-            return 0  # item[4] ..curveType..
-        # elif role == qt.Qt.EditRole:
-        #    return str('What now?')
         else:
             _logger.info('Unkown role requested: %s', str(role))
             return None
@@ -419,15 +396,12 @@ class LegendModel(qt.QAbstractListModel):
             else:
                 showSymbol = True
 
-            curveType = 0
-            # active = icon.get('active', False)
             selected = icon.get('selected', True)
             item = [legend,
                     icon,
                     selected,
                     showLine,
-                    showSymbol,
-                    curveType]
+                    showSymbol]
             new.append(item)
         self.legendList = head + new + tail
         qt.QAbstractListModel.endInsertRows(self)
@@ -470,12 +444,10 @@ class LegendModel(qt.QAbstractListModel):
 
 
 class LegendListItemWidget(qt.QAbstractItemDelegate):
+    """Object displaying a single item (i.e., a row) in the list."""
 
     # Notice: LegendListItem does NOT inherit
     # from QObject, it cannot emit signals!
-
-    curveType = 0
-    imageType = 1
 
     def __init__(self, parent=None, itemType=0):
         qt.QItemDelegate.__init__(self, parent)
@@ -653,8 +625,11 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
 
 
 class LegendListView(qt.QListView):
+    """Widget displaying a list of curve legends, line style and symbol."""
 
     sigLegendSignal = qt.Signal(object)
+    """Signal emitting a dict when an action is triggered by the user."""
+
     __mouseClickedEvent = 'mouseClicked'
     __checkBoxClickedEvent = 'checkBoxClicked'
     __legendClickedEvent = 'legendClicked'
@@ -775,8 +750,6 @@ class LegendListView(qt.QListView):
 
         # TODO: Check for doubleclicks on legend/icon and spawn editors
 
-        # item is tupel: (legend, icon, checkState, curveType)
-        # item = model[idx]
         ddict = {
             'legend': str(modelIndex.data(qt.Qt.DisplayRole)),
             'icon': {
@@ -784,8 +757,7 @@ class LegendListView(qt.QListView):
                     LegendModel.iconLineWidthRole)),
                 'linestyle': str(modelIndex.data(
                     LegendModel.iconLineStyleRole)),
-                'symbol': str(modelIndex.data(LegendModel.iconSymbolRole)),
-                'color': modelIndex.data(LegendModel.legendTypeRole)
+                'symbol': str(modelIndex.data(LegendModel.iconSymbolRole))
             },
             'selected': modelIndex.data(qt.Qt.CheckStateRole),
             'type': str(modelIndex.data())
@@ -807,7 +779,10 @@ class LegendListView(qt.QListView):
 
 
 class LegendListContextMenu(qt.QMenu):
+    """Contextual menu associated to items in a :class:`LegendListView`."""
+
     sigContextMenu = qt.Signal(object)
+    """Signal emitting a dict upon contextual menu actions."""
 
     def __init__(self, model):
         qt.QMenu.__init__(self, parent=None)
@@ -949,7 +924,9 @@ class LegendListContextMenu(qt.QMenu):
 
 
 class RenameCurveDialog(qt.QDialog):
-    def __init__(self, parent = None, current="", curves = []):
+    """Dialog box to input the name of a curve."""
+
+    def __init__(self, parent=None, current="", curves=[]):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Rename Curve %s" % current)
         self.curves = curves
@@ -959,7 +936,7 @@ class RenameCurveDialog(qt.QDialog):
         self.hbox = qt.QWidget(self)
         self.hboxLayout = qt.QHBoxLayout(self.hbox)
         self.hboxLayout.addStretch(1)
-        self.okButton    = qt.QPushButton(self.hbox)
+        self.okButton = qt.QPushButton(self.hbox)
         self.okButton.setText('OK')
         self.hboxLayout.addWidget(self.okButton)
         self.cancelButton = qt.QPushButton(self.hbox)
@@ -1034,7 +1011,7 @@ class LegendSelectorAction(_PlotAction):
         self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
 
     def renameCurve(self, oldLegend, newLegend):
-        x, y,legend, info, params = self.plot.getCurve(oldLegend)[0:5]
+        x, y, legend, info, params = self.plot.getCurve(oldLegend)[0:5]
         self.plot.removeCurve(oldLegend)
         self.plot.addCurve(x, y, legend=newLegend, **params)
         self.updateLegends()
