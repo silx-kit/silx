@@ -473,6 +473,9 @@ class Plot(object):
             'selectable': selectable, 'fill': fill
         }
 
+        # Check if curve is previously active
+        wasActive = self.getActiveCurve(just_legend=True) == legend
+
         # First, try to get defaults from existing curve with same name
         previousCurve = self._curves.get(legend, None)
         if previousCurve is not None:
@@ -528,7 +531,7 @@ class Plot(object):
             'handle': handle, 'x': x, 'y': y, 'params': params
         }
 
-        if len(self._curves) == 1:
+        if len(self._curves) == 1 or wasActive:
             self.setActiveCurve(legend)
 
         if resetzoom:
