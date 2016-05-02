@@ -685,8 +685,16 @@ class LegendListView(qt.QListView):
         # call _handleMouseClick after editing was handled
         # If right click (context menu) is aborted, no
         # signal is emitted..
-        self._handleMouseClick(
-            self.indexAt(self.__lastPosition))
+        self._handleMouseClick(self.indexAt(self.__lastPosition))
+
+    def mouseDoubleClickEvent(self, event):
+        self.__lastButton = event.button()
+        self.__lastPosition = event.pos()
+        qt.QListView.mouseDoubleClickEvent(self, event)
+        # call _handleMouseClick after editing was handled
+        # If right click (context menu) is aborted, no
+        # signal is emitted..
+        self._handleMouseClick(self.indexAt(self.__lastPosition))
 
     def mouseReleaseEvent(self, event):
         _logger.debug('LegendListView.mouseReleaseEvent -- ' +
@@ -714,8 +722,8 @@ class LegendListView(qt.QListView):
         idx = modelIndex.row()
 
         delegate = self.itemDelegate()
+        cbClicked = False
         if isinstance(delegate, LegendListItemWidget):
-            cbClicked = False
             for cb in delegate.cbDict.values():
                 cbRect = cb.geometry()
                 if cbRect.contains(self.__lastPosition):
