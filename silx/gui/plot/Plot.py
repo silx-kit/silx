@@ -169,6 +169,13 @@ They provide the new state:
 - 'setYAxisAutoScale' event with a 'state' key (bool)
 - 'setYAxisInverted' event with a 'state' key (bool)
 - 'setYAxisLogarithmic' event with a 'state' key (bool)
+
+A 'contentChanged' event is triggered when the content of the plot is updated.
+It provides the following keys:
+
+- 'action': The change of the plot: 'add' or 'remove'
+- 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
+- 'legend': The legend of the primitive changed.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -511,6 +518,7 @@ class Plot(object):
                 handle = self._curves[legend]['handle']
                 if handle is not None:
                     self._backend.remove(handle)
+                    self._curves[legend]['handle'] = None
                     self._setDirtyPlot()
 
         # Filter-out values <= 0
@@ -546,6 +554,9 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
+
+        self.notify(
+            'contentChanged', action='add', kind='curve', legend=legend)
 
         return legend
 
@@ -688,6 +699,7 @@ class Plot(object):
                  handle = self._images[legend]['handle']
                  if handle is not None:
                      self._backend.remove(handle)
+                     self._images[legend]['handle'] = None
                      self._setDirtyPlot()
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
@@ -726,6 +738,10 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
+
+        self.notify(
+            'contentChanged', action='add', kind='image', legend=legend)
+
         return legend
 
     def addItem(self, xdata, ydata, legend=None, info=None,
@@ -773,6 +789,8 @@ class Plot(object):
         self._setDirtyPlot(overlayOnly=overlay)
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}
+
+        self.notify('contentChanged', action='add', kind='item', legend=legend)
 
         return legend
 
@@ -981,6 +999,9 @@ class Plot(object):
 
         self._setDirtyPlot(overlayOnly=draggable)
 
+        self.notify(
+            'contentChanged', action='add', kind='marker', legend=legend)
+
         return legend
 
     # Hide
@@ -1103,6 +1124,9 @@ class Plot(object):
                             self._colorIndex = 0
                             self._styleIndex = 0
 
+                        self.notify('contentChanged', action='remove',
+                                    kind='curve', legend=legend)
+
                 elif aKind == 'image':
                     if legend in self._images:
                          handle = self._images[legend]['handle']
@@ -1111,18 +1135,29 @@ class Plot(object):
                              self._setDirtyPlot()
                          del self._images[legend]
 
+                         self.notify('contentChanged', action='remove',
+                                     kind='image', legend=legend)
+
                 elif aKind == 'item':
                     item = self._items.pop(legend, None)
-                    if item is not None and item['handle'] is not None:
-                        self._backend.remove(item['handle'])
-                        self._setDirtyPlot(overlayOnly=item['overlay'])
+                    if item is not None:
+                        if item['handle'] is not None:
+                            self._backend.remove(item['handle'])
+                            self._setDirtyPlot(overlayOnly=item['overlay'])
+
+                        self.notify('contentChanged', action='remove',
+                                    kind='item', legend=legend)
 
                 elif aKind == 'marker':
                     marker = self._markers.pop(legend, None)
-                    if marker is not None and marker['handle'] is not None:
-                        self._backend.remove(marker['handle'])
-                        self._setDirtyPlot(
-                            overlayOnly=marker['params']['draggable'])
+                    if marker is not None:
+                        if marker['handle'] is not None:
+                            self._backend.remove(marker['handle'])
+                            self._setDirtyPlot(
+                                overlayOnly=marker['params']['draggable'])
+
+                        self.notify('contentChanged', action='remove',
+                                    kind='marker', legend=legend)
 
                 else:
                     _logger.warning('remove: Unhandled item kind %s', aKind)
@@ -1434,7 +1469,7 @@ class Plot(object):
 
     # Getters
 
-    def getAllCurves(self, just_legend=False):
+    def getAllCurves(self, just_legend=False, withhidden=False):
         """Returns all curves legend or info and data.
 
         It returns an empty list in case of not having any curve.
@@ -1453,12 +1488,13 @@ class Plot(object):
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
                                  and info.
+        :param bool withhidden: False (default) to skip hidden curves.
         :return: list of legends or list of [x, y, legend, info, params]
         :rtype: list of str or list of list
         """
         output = []
         for key in self._curves:
-            if self.isCurveHidden(key):
+            if not withhidden and self.isCurveHidden(key):
                 continue
             if just_legend:
                 output.append(key)

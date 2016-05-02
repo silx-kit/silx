@@ -91,6 +91,16 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     sigSetPanWithArrowKeys = qt.Signal(bool)
     """Signal emitted when pan with arrow keys has changed"""
 
+    sigContentChanged = qt.Signal(str, str, str)
+    """Signal emitted when the content of the plot is changed.
+
+    It provides 3 informations:
+
+    - action: The change of the plot: 'add' or 'remove'
+    - kind: The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
+    - legend: The legend of the primitive changed.
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -140,6 +150,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             self.sigSetGraphGrid.emit(kwargs['which'])
         elif event == 'setGraphCursor':
             self.sigSetGraphCursor.emit(kwargs['state'])
+        elif event == 'contentChanged':
+            self.sigContentChanged.emit(
+                kwargs['action'], kwargs['kind'], kwargs['legend'])
 
         Plot.Plot.notify(self, event, **kwargs)
 
