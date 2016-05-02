@@ -1284,8 +1284,11 @@ class Plot(object):
         """Return the currently active curve.
 
         It returns None in case of not having an active curve.
-        Default output has the form: [xvalues, yvalues, legend, info, params]
-        where dict is a dictionary containing curve parameters.
+        Default output has the form: [x, y, legend, info, params]
+        where params is a dictionary containing curve parameters.
+
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
 
         :param bool just_legend: True to get the legend of the curve,
                                  False (the default) to get the curve data
@@ -1365,7 +1368,10 @@ class Plot(object):
         It returns None in case of not having an active image.
 
         Default output has the form: [data, legend, info, pixmap, params]
-        where dict is a dictionnary containing image parameters.
+        where params is a dictionnary containing image parameters.
+
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
 
         :param bool just_legend: True to get the legend of the image,
                                  False (the default) to get the image data
@@ -1424,6 +1430,9 @@ class Plot(object):
         If just_legend is True, it returns a list of the form:
             [legend0, legend1, ..., legendn]
 
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
+
         :param bool just_legend: True to get the legend of the curves,
                                  False (the default) to get the curves' data
                                  and info.
@@ -1447,6 +1456,9 @@ class Plot(object):
 
         It returns None in case of not having the curve.
 
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
+
         :param str legend: legend associated to the curve
         :return: None or list [x, y, legend, parameters]
         """
@@ -1461,6 +1473,9 @@ class Plot(object):
         """Return the data and info of a specific image.
 
         It returns None in case of not having an active curve.
+
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
 
         :param str legend: legend associated to the curve
         :return: None or list [image, legend, info, pixmap, params]

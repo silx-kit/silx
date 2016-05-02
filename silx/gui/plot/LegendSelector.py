@@ -27,7 +27,7 @@
 This widget is meant to work with :class:`PlotWindow`.
 """
 
-__authors__ = ["T. Rueter", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Rueter", "T. Vincent"]
 __license__ = "MIT"
 __data__ = "28/04/2016"
 
@@ -36,6 +36,8 @@ import logging
 import sys
 
 from .. import qt
+
+from .PlotActions import _PlotAction
 
 
 _logger = logging.getLogger(__name__)
@@ -648,12 +650,12 @@ class LegendListView(qt.QListView):
             row = 0
         model = self.model()
         model.insertLegendList(row, legendList)
-        _logger.info('LegendListView.setLegendList(legendList) finished')
+        _logger.debug('LegendListView.setLegendList(legendList) finished')
 
     def clear(self):
         model = self.model()
         model.removeRows(0, model.rowCount())
-        _logger.info('LegendListView.clear() finished')
+        _logger.debug('LegendListView.clear() finished')
 
     def setContextMenu(self, contextMenu=None):
         delegate = self.itemDelegate()
@@ -891,3 +893,180 @@ class LegendListContextMenu(BaseContextMenu):
             'event': "setActiveCurve",
         }
         self.sigContextMenu.emit(ddict)
+
+
+class RenameCurveDialog(qt.QDialog):
+    def __init__(self, parent = None, current="", curves = []):
+        qt.QDialog.__init__(self, parent)
+        self.setWindowTitle("Rename Curve %s" % current)
+        self.curves = curves
+        layout = qt.QVBoxLayout(self)
+        self.lineEdit = qt.QLineEdit(self)
+        self.lineEdit.setText(current)
+        self.hbox = qt.QWidget(self)
+        self.hboxLayout = qt.QHBoxLayout(self.hbox)
+        self.hboxLayout.addStretch(1)
+        self.okButton    = qt.QPushButton(self.hbox)
+        self.okButton.setText('OK')
+        self.hboxLayout.addWidget(self.okButton)
+        self.cancelButton = qt.QPushButton(self.hbox)
+        self.cancelButton.setText('Cancel')
+        self.hboxLayout.addWidget(self.cancelButton)
+        self.hboxLayout.addStretch(1)
+        layout.addWidget(self.lineEdit)
+        layout.addWidget(self.hbox)
+        self.okButton.clicked.connect(self.preAccept)
+        self.cancelButton.clicked.connect(self.reject)
+
+    def preAccept(self):
+        text = str(self.lineEdit.text())
+        addedText = ""
+        if len(text):
+            if text not in self.curves:
+                self.accept()
+                return
+            else:
+                addedText = "Curve already exists."
+        text = "Invalid Curve Name"
+        msg = qt.QMessageBox(self)
+        msg.setIcon(qt.QMessageBox.Critical)
+        msg.setWindowTitle(text)
+        text += "\n%s" % addedText
+        msg.setText(text)
+        msg.exec_()
+
+    def getText(self):
+        return str(self.lineEdit.text())
+
+
+class LegendSelectorAction(_PlotAction):
+    """QAction toggling Legend widget visibility on a :class:`.PlotWindow`.
+
+    It makes the link between the LegendListView widget and the PlotWindow.
+
+    :param plot: :class:`.PlotWindow` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        self._legendWidget = None  # Store LegendListView
+        self._legendDockWidget = None  # DockWidget containing legendWidget
+
+        super(LegendSelectorAction, self).__init__(
+            plot, icon=qt.QIcon(), text='Legends panel',
+            tooltip='Show/Hide curve legends panel',
+            triggered=self.toggleLegendVisibility,
+            checkable=False, parent=parent)
+
+    def _buildLegendWidget(self):
+        """Create the legendWidget if not already created."""
+        if self._legendWidget is not None:
+            return
+
+        self._legendWidget = LegendListView()
+
+        self._legendDockWidget = qt.QDockWidget(
+            self.plot.windowTitle() + " Legend", self.plot)
+        self._legendDockWidget.layout().setContentsMargins(0, 0, 0, 0)
+        self._legendDockWidget.setWidget(self._legendWidget)
+
+        width = self.plot.centralWidget().width()
+        height = self.plot.centralWidget().height()
+        if width > (1.25 * height):
+            area = qt.Qt.RightDockWidgetArea
+        else:
+            area = qt.Qt.BottomDockWidgetArea
+        self.plot.addDockWidget(area, self._legendDockWidget)
+
+        self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
+
+    def renameCurve(self, oldLegend, newLegend):
+        x, y,legend, info, params = self.plot.getCurve(oldLegend)[0:5]
+        self.plot.removeCurve(oldLegend)
+        self.plot.addCurve(x, y, legend=newLegend, **params)
+        self.updateLegends()
+
+    def _legendSignalHandler(self, ddict):
+        """Handles events from the LegendListView signal"""
+        _logger.debug("Legend signal ddict = ", ddict)
+
+        if ddict['event'] == "legendClicked":
+            if ddict['button'] == "left":
+                self.plot.setActiveCurve(ddict['legend'])
+
+        elif ddict['event'] == "removeCurve":
+            self.plot.removeCurve(ddict['legend'])
+
+        elif ddict['event'] == "renameCurve":
+            curveList = self.plot.getAllCurves(just_legend=True)
+            oldLegend = ddict['legend']
+            dialog = RenameCurveDialog(self.plot, oldLegend, curveList)
+            ret = dialog.exec_()
+            if ret:
+                newLegend = dialog.getText()
+                self.renameCurve(oldLegend, newLegend)
+
+        elif ddict['event'] == "setActiveCurve":
+            self.plot.setActiveCurve(ddict['legend'])
+
+        elif ddict['event'] == "checkBoxClicked":
+            self.plot.hideCurve(ddict['legend'], not ddict['selected'])
+
+        elif ddict['event'] in ["mapToRight", "mapToLeft"]:
+            legend = ddict['legend']
+            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            params = params.copy()
+            if ddict['event'] == "mapToRight":
+                params['yaxis'] = "right"
+            else:
+                params['yaxis'] = "left"
+            self.plot.addCurve(x, y, legend=legend, **params)
+
+        elif ddict['event'] == "togglePoints":
+            legend = ddict['legend']
+            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            params = params.copy()
+            # TODO if defined, keep previous symbol (legend widget keeps it)
+            params['symbol'] = 'o' if ddict['points'] else ''
+            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+
+        elif ddict['event'] == "toggleLine":
+            legend = ddict['legend']
+            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            params = params.copy()
+            params['linestyle'] = '-' if ddict['line'] else ''
+            self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
+
+        else:
+            _logger.debug("unhandled event %s", str(ddict['event']))
+
+    def updateLegends(self):
+        if self._legendWidget is None:
+            return
+        if self._legendDockWidget.isHidden():
+            return
+
+        legendList = []
+        for x, y, legend, info, params in self.plot.getAllCurves():
+            curveInfo = {
+                'color': qt.QColor(params['color']),
+                'linewidth': 2,
+                'symbol': params['symbol'],
+                'selected': not self.plot.isCurveHidden(legend)}
+            legendList.append((legend, curveInfo))
+
+        self._legendWidget.setLegendList(legendList)
+
+    def toggleLegendVisibility(self, checked=False):
+        """Toggle visibility of legend panel.
+
+        checked parameter is ignored (Here for compatibility with Qt signal).
+        """
+        if self._legendDockWidget is None:
+            self._buildLegendWidget()
+
+        if self._legendDockWidget.isHidden():
+            self._legendDockWidget.show()
+            self.updateLegends()
+        else:
+            self._legendDockWidget.hide()

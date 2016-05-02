@@ -38,6 +38,7 @@ import logging
 from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
+from .LegendSelector import LegendSelectorAction
 
 from .. import qt
 
@@ -145,10 +146,14 @@ class PlotWindow(PlotWidget):
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
 
+        # TODO make the option button
         self._separator1 = qt.QAction('separator', self)
         self._separator1.setSeparator(True)
-        self._separator1.setVisible(crosshair or panWithKeys)
+
         self.group.addAction(self._separator1)
+
+        self.legendSelectorAction = self.group.addAction(
+            LegendSelectorAction(self))
 
         self.crosshairAction = self.group.addAction(
             CrosshairAction(self, color='red'))
