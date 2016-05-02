@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "02/05/2016"
 
 import unittest
 import numpy
@@ -54,7 +54,7 @@ class TestBilinear(unittest.TestCase):
             else:
                 logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)" % (i, j, k, l))
                 ok += 1
-        logger.info("Success rate: %.1f" % (100. * ok / self.N))
+        logger.debug("Success rate: %.1f" % (100. * ok / self.N))
         self.assertEqual(ok, self.N, "Maximum is always found")
 
     def test_max_search_half(self):
@@ -94,7 +94,6 @@ class TestBilinear(unittest.TestCase):
 
         x2d = numpy.zeros_like(y[:-1, :]) + (x[:, :-1] + 0.5)
         y2d = numpy.zeros_like(x[:, :-1]) + (y[:-1, :] + 0.5)
-        print(x2d.shape, y2d.shape)
         res1 = b.map_coordinates((y2d, x2d))
         self.assertEquals(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
 

@@ -25,7 +25,8 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "02/05/2016"
+__doc__ = "Bilinear interpolator and peak finder for images"
 
 import cython
 cimport cython
@@ -37,16 +38,16 @@ logger = logging.getLogger("silx.image.bilinear")
 
 cdef class BilinearImage:
     """Bilinear interpolator for images  ...
-    ... or data on a regular grid
+    ... or any data on a regular grid
     """
     cdef:
         readonly float[:, ::1] data
         readonly float maxi, mini
         readonly size_t width, height
 
-    cpdef size_t cp_local_maxi(self, size_t)
+    cpdef size_t coarse_local_maxi(self, size_t)
     cdef size_t c_local_maxi(self, size_t) nogil
-    cdef float cfunc(self, float, float) nogil
+    cdef float c_funct(self, float, float) nogil
 
     def __cinit__(self, data not None):
         """ Constructor
@@ -63,24 +64,27 @@ cdef class BilinearImage:
     def __dealloc__(self):
         self.data = None
 
-    def __call__(self, x):
-        """Function f((y,x)) where f is a continuous function made from the image
-        and (y,x) are pixel coordinates
+    def __call__(self, coord):
+        """Function f((y, x)) where f is a continuous function 
+        made from the image and (y,x)=(row, column) is the pixel coordinates 
+        in natural C-order
         
-        :param x: 2-tuple of float
+        :param x: 2-tuple of float (row, column)
         :return: Interpolated signal from the image 
         """
-        return self.cfunc(x[1], x[0])
+        return self.c_funct(coord[1], coord[0])
    
     @cython.boundscheck(False)
     @cython.wraparound(False)            
-    cdef float cfunc(self, float x, float y) nogil:
-        """Function f(x, y) where f is a continuous function made from the image
-        and (y,x) are pixel coordinates
+    cdef float c_funct(self, float x, float y) nogil:
+        """Function f(x, y) where f is a continuous function 
+        made from the image.
         
-        :param x (float): horizontal coordinate
-        :param y (float): vertical coordinate
-        :return: Interpolated signal from the image 
+        :param x (float): column coordinate
+        :param y (float): row coordinate
+        :return: Interpolated signal from the image (nearest for outside)
+        
+        Cython only function due to NOGIL 
         """
         cdef:
             float d0 = min(max(y, 0.0), (self.height - 1.0))
@@ -112,15 +116,17 @@ cdef class BilinearImage:
     
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def opp_f(self, x):
-        """Function -f((y,x)) (for peak finding via minimizer)
+    def opp_f(self, coord):
+        """Function -f((y,x)) for peak finding via minimizer. 
         
-        :param x: 2-tuple of float
+        Gives large number outside the boundaries to return into the image  
+               
+        :param x: 2-tuple of float in natural C order, i.e (row, column)
         :return: Negative interpolated signal from the image
         """
         cdef:
             float d0, d1, res
-        d0, d1 = x
+        d0, d1 = coord
         if d0 < 0: 
             res = self.mini + d0
         elif d1 < 0:
@@ -130,27 +136,27 @@ cdef class BilinearImage:
         elif d1 > self.width - 1:
             res = self.mini - d1 + self.width - 1
         else:
-            res = self.cfunc(d1, d0)
+            res = self.c_funct(d1, d0)
         return - res
     
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    def local_maxi(self, x):
-        """
-        Return the local maximum ... with sub-pixel refinement
+    def local_maxi(self, coord):
+        """Return the nearest local maximum ... with sub-pixel refinement
 
-        @param x: 2-tuple of integers
-        @param w: half with of the window: 1 or 2 are advised
-        @return: 2-tuple of float with the nearest local maximum
-
+        Nearest maximum search: 
+            steepest ascent
 
         Sub-pixel refinement:
-        Second order Taylor expansion of the function; first derivative is null
-        delta = x-i = -Inverse[Hessian].gradient
+            Second order Taylor expansion of the function; 
+            At the maximum, the first derivative is null
+            delta = x-i = -Inverse[Hessian].gradient
+            if Hessian is singular or |delta|>1: 
+                use a center of mass.
 
-        if Hessian is singular or |delta|>1: use a center of mass.
-
+        :param coord: 2-tuple of scalar (row, column)
+        :return: 2-tuple of float with the nearest local maximum
         """
         cdef:
             int res, current0, current1
@@ -158,7 +164,7 @@ cdef class BilinearImage:
             float tmp, sum0 = 0, sum1 = 0, sum = 0
             float a00, a01, a02, a10, a11, a12, a20, a21, a22
             float d00, d11, d01, denom, delta0, delta1        
-        res = self.c_local_maxi(round(x[0]) * self.width + round(x[1]))
+        res = self.c_local_maxi(round(coord[0]) * self.width + round(coord[1]))
 
         current0 = res // self.width
         current1 = res % self.width
@@ -199,24 +205,30 @@ cdef class BilinearImage:
                 
         return (float(current0), float(current1))
 
-    cpdef size_t cp_local_maxi(self, size_t x):
+    cpdef size_t coarse_local_maxi(self, size_t x):
+        """Return the nearest local maximum ... 
+        ... without sub-pixel refinement
+
+        :param idx: start index (=row*width+column)
+        :return: local maximum index
+        """
         return self.c_local_maxi(x)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     @cython.cdivision(True)
-    cdef size_t c_local_maxi(self, size_t x) nogil:
-        """
-        Return the local maximum ... without sub-pixel refinement
+    cdef size_t c_local_maxi(self, size_t idx) nogil:
+        """Return the nearest local maximum ... 
+        ... without sub-pixel refinement
 
-        @param x: start index
-        @param w: half with of the window: 1 or 2 are advised
-        @return: local maximum index
+        :param idx: start index (=row*width+column)
+        :return: local maximum index
 
+        This method is Cython only due to the NOGIL
         """
         cdef:
-            int current0 = x // self.width
-            int current1 = x % self.width
+            int current0 = idx // self.width
+            int current1 = idx % self.width
             int i0, i1, start0, stop0, start1, stop1, new0, new1
             float tmp, value, old_value
 
@@ -240,10 +252,10 @@ cdef class BilinearImage:
         return self.width * current0 + current1
 
     def map_coordinates(self, coordinates):
-        """ map coordinates of the array 
-        
-        :param coordinate: 2-tuple of array of the same size 
-        :return: list of values at given coordinates  
+        """Map coordinates of the array on the image 
+               
+        :param coordinates: 2-tuple of array of the same size (row_array, column_array) 
+        :return: array of values at given coordinates  
         """
         cdef:
             float[:] d0, d1, res
@@ -255,5 +267,5 @@ cdef class BilinearImage:
         assert size == d1.size
         res = numpy.empty(size, dtype=numpy.float32)
         for i in range(size):
-            res[i] = self.cfunc(d1[i], d0[i])
+            res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)  
