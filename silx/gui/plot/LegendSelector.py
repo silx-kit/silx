@@ -854,8 +854,8 @@ class LegendListContextMenu(qt.QMenu):
             'type': str(modelIndex.data()),
             'event': "removeCurve"
         }
-        self.sigContextMenu.emit(ddict)
         self.model.removeRow(modelIndex.row())
+        self.sigContextMenu.emit(ddict)
 
     def renameItemAction(self):
         _logger.debug('LegendListContextMenu.renameCurveAction called')
@@ -885,8 +885,8 @@ class LegendListContextMenu(qt.QMenu):
         ddict['event'] = "toggleLine"
         ddict['line'] = visible
         ddict['linestyle'] = linestyle if visible else ''
-        self.sigContextMenu.emit(ddict)
         self.model.setData(modelIndex, visible, LegendModel.showLineRole)
+        self.sigContextMenu.emit(ddict)
 
     def togglePointsAction(self):
         modelIndex = self.currentIdx()
@@ -906,8 +906,8 @@ class LegendListContextMenu(qt.QMenu):
         ddict['event'] = "togglePoints"
         ddict['points'] = visible
         ddict['symbol'] = symbol if visible else ''
-        self.sigContextMenu.emit(ddict)
         self.model.setData(modelIndex, visible, LegendModel.showSymbolRole)
+        self.sigContextMenu.emit(ddict)
 
     def setActiveAction(self):
         modelIndex = self.currentIdx()
@@ -1011,10 +1011,14 @@ class LegendSelectorAction(_PlotAction):
         self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
 
     def renameCurve(self, oldLegend, newLegend):
+        """Change the name of a curve using remove and addCurve
+
+        :param str oldLegend: The legend of the curve to be change
+        :param str newLegend: The new legend of the curve
+        """
         x, y, legend, info, params = self.plot.getCurve(oldLegend)[0:5]
-        self.plot.removeCurve(oldLegend)
-        self.plot.addCurve(x, y, legend=newLegend, **params)
-        self.updateLegends()
+        self.plot.remove(oldLegend, kind='curve')
+        self.plot.addCurve(x, y, legend=newLegend, resetzoom=False, **params)
 
     def _legendSignalHandler(self, ddict):
         """Handles events from the LegendListView signal"""
@@ -1069,14 +1073,17 @@ class LegendSelectorAction(_PlotAction):
         else:
             _logger.debug("unhandled event %s", str(ddict['event']))
 
-    def updateLegends(self):
+    def updateLegends(self, *args):
+        """Sync the LegendSelector widget displayed info with the plot.
+        """
         if self._legendWidget is None:
             return
         if self._legendDockWidget.isHidden():
             return
 
         legendList = []
-        for x, y, legend, info, params in self.plot.getAllCurves():
+        curves = self.plot.getAllCurves(withhidden=True)
+        for x, y, legend, info, params in curves:
             curveInfo = {
                 'color': qt.QColor(params['color']),
                 'linewidth': params['linewidth'],
@@ -1098,5 +1105,7 @@ class LegendSelectorAction(_PlotAction):
         if self._legendDockWidget.isHidden():
             self._legendDockWidget.show()
             self.updateLegends()
+            self.plot.sigContentChanged.connect(self.updateLegends)
         else:
+            self.plot.sigContentChanged.disconnect(self.updateLegends)
             self._legendDockWidget.hide()
