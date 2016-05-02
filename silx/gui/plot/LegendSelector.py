@@ -76,6 +76,23 @@ NoSymbols = (None, 'None', 'none', '', ' ')
 """List of values resulting in no symbol being displayed for a curve"""
 
 
+LineStyles = {
+    None: qt.Qt.NoPen,
+    'None': qt.Qt.NoPen,
+    'none': qt.Qt.NoPen,
+    '': qt.Qt.NoPen,
+    ' ': qt.Qt.NoPen,
+    '-': qt.Qt.SolidLine,
+    '--': qt.Qt.DashLine,
+    ':': qt.Qt.DotLine,
+    '-.': qt.Qt.DashDotLine
+}
+"""Conversion from matplotlib-like linestyle to Qt"""
+
+NoLineStyle = (None, 'None', 'none', '', ' ')
+"""List of style values resulting in no line being displayed for a curve"""
+
+
 class LegendIcon(qt.QWidget):
 
     def __init__(self, parent=None):
@@ -86,7 +103,7 @@ class LegendIcon(qt.QWidget):
         self.showSymbol = True
 
         # Line attributes
-        self.lineStyle = qt.Qt.SolidLine
+        self.lineStyle = qt.Qt.NoPen
         self.lineWidth = 1.
         self.lineColor = qt.Qt.green
 
@@ -159,21 +176,21 @@ class LegendIcon(qt.QWidget):
         self.lineWidth = float(width)
 
     def setLineStyle(self, style):
-        """
-        Possible joices are:
-          Qt.NoPen
-          Qt.SolidLine
-          Qt.DashLine
-          Qt.DotLine
-          Qt.DashDotLine
-          Qt.DashDotDotLine
-          Qt.CustomDashLine
+        """Set the linestyle.
 
-        :param int style: Must be in Qt.PenStyle
+        Possible line styles:
+
+        - '', ' ', 'None': No line
+        - '-': solid
+        - '--': dashed
+        - ':': dotted
+        - '-.': dash and dot
+
+        :param str style: The linestyle to use
         """
-        if style not in list(range(7)):
-            raise ValueError('Unknown style: %d')
-        self.lineStyle = int(style)
+        if style not in LineStyles:
+            raise ValueError('Unknown style: %s', style)
+        self.lineStyle = LineStyles[style]
 
     # Paint
 
@@ -249,12 +266,13 @@ class LegendIcon(qt.QWidget):
 class LegendModel(qt.QAbstractListModel):
     iconColorRole = qt.Qt.UserRole + 0
     iconLineWidthRole = qt.Qt.UserRole + 1
-    showLineRole = qt.Qt.UserRole + 2
-    iconSymbolRole = qt.Qt.UserRole + 3
-    showSymbolRole = qt.Qt.UserRole + 4
-    legendTypeRole = qt.Qt.UserRole + 5
-    selectedRole = qt.Qt.UserRole + 6
-    activeRole = qt.Qt.UserRole + 7
+    iconLineStyleRole = qt.Qt.UserRole + 2
+    showLineRole = qt.Qt.UserRole + 3
+    iconSymbolRole = qt.Qt.UserRole + 4
+    showSymbolRole = qt.Qt.UserRole + 5
+    legendTypeRole = qt.Qt.UserRole + 6
+    selectedRole = qt.Qt.UserRole + 7
+    activeRole = qt.Qt.UserRole + 8
 
     def __init__(self, legendList=None, parent=None):
         qt.QAbstractListModel.__init__(self, parent)
@@ -315,6 +333,8 @@ class LegendModel(qt.QAbstractListModel):
             return item[1]['color']
         elif role == self.iconLineWidthRole:
             return item[1]['linewidth']
+        elif role == self.iconLineStyleRole:
+            return item[1]['linestyle']
         elif role == self.iconSymbolRole:
             return item[1]['symbol']
         elif role == self.showLineRole:
@@ -349,6 +369,8 @@ class LegendModel(qt.QAbstractListModel):
                 item[1]['color'] = qt.QColor(value)
             elif role == self.iconLineWidthRole:
                 item[1]['linewidth'] = int(value)
+            elif role == self.iconLineStyleRole:
+                item[1]['linestyle'] = str(value)
             elif role == self.iconSymbolRole:
                 item[1]['symbol'] = str(value)
             elif role == qt.Qt.CheckStateRole:
@@ -379,11 +401,19 @@ class LegendModel(qt.QAbstractListModel):
         tail = self.legendList[row:]
         new = []
         for (legend, icon) in llist:
-            showLine = True
+            linestyle = icon.get('linestyle', None)
+            if linestyle in NoLineStyle:
+                # Curve had no line, give it one and hide it
+                # So when toggle line, it will display a solid line
+                showLine = False
+                icon['linestyle'] = '-'
+            else:
+                showLine = True
 
             symbol = icon.get('symbol', None)
             if symbol in NoSymbols:
                 # Curve had no symbol, give it one and hide it
+                # So when toggle symbol, it will display 'o'
                 showSymbol = False
                 icon['symbol'] = 'o'
             else:
@@ -527,6 +557,7 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
         # Draw icon
         iconColor = modelIndex.data(LegendModel.iconColorRole)
         iconLineWidth = modelIndex.data(LegendModel.iconLineWidthRole)
+        iconLineStyle = modelIndex.data(LegendModel.iconLineStyleRole)
         iconSymbol = modelIndex.data(LegendModel.iconSymbolRole)
         icon = LegendIcon()
         icon.resize(iconRect.size())
@@ -536,6 +567,7 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
         icon.setSymbolColor(iconColor)
         icon.setLineColor(iconColor)
         icon.setLineWidth(iconLineWidth)
+        icon.setLineStyle(iconLineStyle)
         icon.setSymbol(iconSymbol)
         icon.symbolOutlineBrush = backgroundBrush
         icon.paint(painter, iconRect, option.palette)
@@ -750,6 +782,8 @@ class LegendListView(qt.QListView):
             'icon': {
                 'linewidth': str(modelIndex.data(
                     LegendModel.iconLineWidthRole)),
+                'linestyle': str(modelIndex.data(
+                    LegendModel.iconLineStyleRole)),
                 'symbol': str(modelIndex.data(LegendModel.iconSymbolRole)),
                 'color': modelIndex.data(LegendModel.legendTypeRole)
             },
@@ -862,10 +896,12 @@ class LegendListContextMenu(BaseContextMenu):
             'selected': modelIndex.data(qt.Qt.CheckStateRole),
             'type': str(modelIndex.data()),
         }
+        linestyle = modelIndex.data(LegendModel.iconLineStyleRole)
         visible = not modelIndex.data(LegendModel.showLineRole)
         _logger.debug('toggleLinesAction -- lines visible: %s', str(visible))
         ddict['event'] = "toggleLine"
         ddict['line'] = visible
+        ddict['linestyle'] = linestyle if visible else ''
         self.sigContextMenu.emit(ddict)
         self.model.setData(modelIndex, visible, LegendModel.showLineRole)
 
@@ -1042,7 +1078,7 @@ class LegendSelectorAction(_PlotAction):
             legend = ddict['legend']
             x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
             params = params.copy()
-            params['linestyle'] = '-' if ddict['line'] else ''
+            params['linestyle'] = ddict['linestyle'] if ddict['line'] else ''
             self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
 
         else:
@@ -1058,7 +1094,8 @@ class LegendSelectorAction(_PlotAction):
         for x, y, legend, info, params in self.plot.getAllCurves():
             curveInfo = {
                 'color': qt.QColor(params['color']),
-                'linewidth': 2,
+                'linewidth': params['linewidth'],
+                'linestyle': params['linestyle'],
                 'symbol': params['symbol'],
                 'selected': not self.plot.isCurveHidden(legend)}
             legendList.append((legend, curveInfo))
