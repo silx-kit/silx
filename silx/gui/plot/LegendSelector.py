@@ -442,7 +442,7 @@ class LegendModel(qt.QAbstractListModel):
         self.editorDict[event] = editor
 
 
-class LegendListItemWidget(qt.QAbstractItemDelegate):
+class LegendListItemWidget(qt.QItemDelegate):
     """Object displaying a single item (i.e., a row) in the list."""
 
     # Notice: LegendListItem does NOT inherit
@@ -472,7 +472,7 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
         :param QStyleOptionViewItem option:
         :param QModelIndex modelIndex:
         """
-        # painter.save()
+        painter.save()
         # Rect geometry
         width = option.rect.width()
         height = option.rect.height()
@@ -495,18 +495,17 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
         # Calculate label position
         x = rect.left() + iconRect.width()
         y = rect.top()
-        labelRect = qt.QRect(qt.QPoint(x, y),
-                             legendSize)
+        labelRect = qt.QRect(qt.QPoint(x, y), legendSize)
         labelRect.translate(qt.QPoint(10, 0))
 
         # Calculate the checkbox rectangle
         x = rect.right() - 30
         y = rect.top()
-        chBoxRect = qt.QRect(qt.QPoint(x, y),
-                             rect.bottomRight())
+        chBoxRect = qt.QRect(qt.QPoint(x, y), rect.bottomRight())
 
         # Remember the rectangles
         idx = modelIndex.row()
+        self.cbDict[idx] = chBoxRect
         self.iconDict[idx] = iconRect
         self.labelDict[idx] = labelRect
 
@@ -548,35 +547,22 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
             checkState = qt.Qt.Checked
         else:
             checkState = qt.Qt.Unchecked
+
         if sys.platform.upper().startswith("DARWIN"):
             MAC_QT_4_8_4_ISSUE = True
         else:
             MAC_QT_4_8_4_ISSUE = False
         if MAC_QT_4_8_4_ISSUE:
             painter.save()
-        else:
-            # Remember the paint device
-            originalPaintDevice = painter.device()
-            # Painter needs to end before
-            painter.end()
 
-        try:
-            cb = self.cbDict[idx]
-        except KeyError:
-            cb = qt.QCheckBox()
-            self.cbDict[idx] = cb
-        cb.setCheckState(checkState)
-        cb.setGeometry(chBoxRect)
-        cb.render(painter.device(),
-                  chBoxRect.topLeft(),
-                  qt.QRegion(),
-                  qt.QWidget.DrawChildren)
+        self.drawCheck(
+            painter, qt.QStyleOptionViewItem(), chBoxRect, checkState)
+
+        painter.restore()
 
         # Reset painter
         if MAC_QT_4_8_4_ISSUE:
             painter.restore()
-        else:
-            painter.begin(originalPaintDevice)
 
     def editorEvent(self, event, model, option, modelIndex):
         # From the docs:
@@ -587,19 +573,13 @@ class LegendListItemWidget(qt.QAbstractItemDelegate):
             return True
         elif event.button() == qt.Qt.LeftButton:
             # Check if checkbox was clicked
-            for cb in self.cbDict.values():
-                cbRect = cb.geometry()
-                cbClicked = cbRect.contains(event.pos())
-                if cbClicked:
-                    break
-            if cbClicked:
-                # Edit checkbox
-                currentState = modelIndex.data(qt.Qt.CheckStateRole)
-                newState = not currentState
-                idx = modelIndex.row()
-                self.cbDict[idx].setCheckState(
-                    qt.Qt.Checked if newState else qt.Qt.Unchecked)
-                model.setData(modelIndex, newState, qt.Qt.CheckStateRole)
+            idx = modelIndex.row()
+            cbRect = self.cbDict[idx]
+            if cbRect.contains(event.pos()):
+                # Toggle checkbox
+                model.setData(modelIndex,
+                              not modelIndex.data(qt.Qt.CheckStateRole),
+                              qt.Qt.CheckStateRole)
             event.ignore()
             return True
         else:
@@ -743,8 +723,7 @@ class LegendListView(qt.QListView):
         delegate = self.itemDelegate()
         cbClicked = False
         if isinstance(delegate, LegendListItemWidget):
-            for cb in delegate.cbDict.values():
-                cbRect = cb.geometry()
+            for cbRect in delegate.cbDict.values():
                 if cbRect.contains(self.__lastPosition):
                     cbClicked = True
                     break
