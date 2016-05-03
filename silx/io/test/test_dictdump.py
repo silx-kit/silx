@@ -25,13 +25,18 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/04/2016"
+__date__ = "29/04/2016"
 
-import h5py
 import numpy
 import os
 import tempfile
 import unittest
+
+try:
+    import h5py
+    h5py_missing = False
+except ImportError:
+    h5py_missing = True
 
 from collections import defaultdict
 
@@ -51,6 +56,7 @@ city_attrs["Europe"]["France"]["Grenoble"]["coordinates"] = [45.1830, 5.7196]
 city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 
 
+@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestDictToH5(unittest.TestCase):
     def setUp(self):
         fd, self.h5_fname = tempfile.mkstemp(text=False)
@@ -170,7 +176,6 @@ class TestDictToIni(unittest.TestCase):
             else:
                 self.assertEqual(read, original,
                             "Read <%s> instead of <%s>" % (read, original))
-
 
 
 def suite():
