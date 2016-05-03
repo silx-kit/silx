@@ -1008,6 +1008,9 @@ class LegendSelectorAction(_PlotAction):
             area = qt.Qt.BottomDockWidgetArea
         self.plot.addDockWidget(area, self._legendDockWidget)
 
+        self._legendDockWidget.visibilityChanged.connect(
+            self._dockWidgetVisibilityChangedHandler)
+
         self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
 
     def renameCurve(self, oldLegend, newLegend):
@@ -1094,6 +1097,13 @@ class LegendSelectorAction(_PlotAction):
 
         self._legendWidget.setLegendList(legendList)
 
+    def _dockWidgetVisibilityChangedHandler(self, visible):
+        if visible:
+            self.updateLegends()
+            self.plot.sigContentChanged.connect(self.updateLegends)
+        else:
+            self.plot.sigContentChanged.disconnect(self.updateLegends)
+
     def toggleLegendVisibility(self, checked=False):
         """Toggle visibility of legend panel.
 
@@ -1104,8 +1114,5 @@ class LegendSelectorAction(_PlotAction):
 
         if self._legendDockWidget.isHidden():
             self._legendDockWidget.show()
-            self.updateLegends()
-            self.plot.sigContentChanged.connect(self.updateLegends)
         else:
-            self.plot.sigContentChanged.disconnect(self.updateLegends)
             self._legendDockWidget.hide()
