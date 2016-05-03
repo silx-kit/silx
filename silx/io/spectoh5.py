@@ -21,7 +21,11 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides functions to convert a SpecFile into a HDF5 file"""
+"""This module provides functions to convert a SpecFile into a HDF5 file.
+
+.. note:: These functions depend on the `h5py <http://www.h5py.org/>`_ 
+    library, which is not a mandatory dependency for `silx`.
+"""
 
 import logging
 logger = logging.getLogger(__name__)
@@ -40,7 +44,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "03/05/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',

@@ -42,7 +42,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "03/05/2016"
 
 logger = logging.getLogger(__name__)
 
@@ -84,9 +84,12 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     If a dictionary value is a sub-dictionary, a group is created. If it is
     any other data type, it is cast into a numpy array and written as a
-    :mod:`h5py` dataset.
+    :mod:`h5py` dataset. Dictionary keys must be strings and cannot contain
+    the ``/`` character.
 
-    Dictionary keys must be strings and cannot contain the ``/`` character.
+    .. note::
+
+        This function requires `h5py <http://www.h5py.org/>`_ to be installed.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character is not allowed
@@ -174,10 +177,15 @@ def h5todict(h5file, path="/"):
     """Read HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
-    .. warning:: If you write a dictionary to a HDF5 file with 
+    .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
+
+    .. note:: If you write a dictionary to a HDF5 file with 
         :func:`dicttoh5` and then read it back with :func:`h5todict`, data
         types are not preserved. All values are cast to numpy arrays before
-        being written to file, and they are read back as numpy arrays.
+        being written to file, and they are read back as numpy arrays (or
+        scalars). In some cases, you may find that a list of heterogeneous
+        data types is converted to a numpy array of strings.
 
     :param h5file: File name or :class:`h5py.File` object
     :return: dict
@@ -250,7 +258,9 @@ def dump(ddict, ffile, fmat="json"):
 
     :param ddict: Dictionary with string keys
     :param ffile: File name or file-like object with a ``write`` method
-    :param fmat: Output format: ``json``, ``hdf5`` or ``ini``
+    :param fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
+        Dumping to a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
     """
     if fmat.lower() == "json":
         dicttojson(ddict, ffile)
@@ -270,6 +280,8 @@ def load(ffile, fmat="json"):
 
     :param ffile: File name or file-like object with a ``read`` method
     :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+        Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
     :return: Dictionary
     """
     if not hasattr(ffile, "read"):

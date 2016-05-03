@@ -88,7 +88,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         ``footer`` strings, to mark them as comments. Default: ``#``.
     :param autoheader: In `CSV` or `txt`, ``True`` causes the first header
          line to be written as a standard CSV header line with column labels
-         separated by the specified CSV delimiter.
+         separated by the specified CSV delimiter.
 
     When saving to Specfile format, each curve is saved as a separate scan
     with two data columns (``x`` and ``y``).
@@ -240,11 +240,11 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
         or a list of two different format strings (e.g. ``["%d", "%.7g"]``).
         Default is ``"%.7g"``.
     :param scan_number: Scan number (default 1).
-    :param mode: Mode for opening file: ``w`` (default), ``a``,  ``r+``,
+    :param mode: Mode for opening file: ``w`` (default), ``a``,  ``r+``,
         ``w+``, ``a+``. This parameter is only relevant if ``specfile`` is a
         path.
-    :param write_file_header: If True, write a file header before writing the
-        scan (``#F`` and ``#D`` line).
+    :param write_file_header: If ``True``, write a file header before writing
+        the scan (``#F`` and ``#D`` line).
     :param close_file: If ``True``, close the file after saving curve.
     :return: ``None`` if ``close_file`` is ``True``, else return the file
         handle.
@@ -312,6 +312,9 @@ def h5ls(h5group, lvl=0):
             +fieldE
                 <HDF5 dataset "x": shape (256, 256), type "<f4">
                 <HDF5 dataset "y": shape (256, 256), type "<f4">
+
+    .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
     """
     if h5py_missing:
         logger.error("h5ls requires h5py")
