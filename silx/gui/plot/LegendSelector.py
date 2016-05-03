@@ -34,6 +34,7 @@ __data__ = "28/04/2016"
 
 import logging
 import sys
+import weakref
 
 from .. import qt
 
@@ -695,7 +696,7 @@ class LegendListView(qt.QListView):
     def mousePressEvent(self, event):
         self.__lastButton = event.button()
         self.__lastPosition = event.pos()
-        #super(LegendListView, self).mousePressEvent(event)
+        super(LegendListView, self).mousePressEvent(event)
         # call _handleMouseClick after editing was handled
         # If right click (context menu) is aborted, no
         # signal is emitted..
@@ -704,7 +705,7 @@ class LegendListView(qt.QListView):
     def mouseDoubleClickEvent(self, event):
         self.__lastButton = event.button()
         self.__lastPosition = event.pos()
-        #super(LegendListView, self).mouseDoubleClickEvent(event)
+        super(LegendListView, self).mouseDoubleClickEvent(event)
         # call _handleMouseClick after editing was handled
         # If right click (context menu) is aborted, no
         # signal is emitted..
@@ -965,36 +966,25 @@ class RenameCurveDialog(qt.QDialog):
         return str(self.lineEdit.text())
 
 
-class LegendSelectorAction(_PlotAction):
-    """QAction toggling Legend widget visibility on a :class:`.PlotWindow`.
+class LegendsDockWidget(qt.QDockWidget):
+    """QDockWidget with a :class:`LegendSelector` connected to a PlotWindow.
 
     It makes the link between the LegendListView widget and the PlotWindow.
 
     :param plot: :class:`.PlotWindow` instance on which to operate
-    :param parent: See :class:`QAction`
+    :param parent: See :class:`QDockWidget`
     """
 
     def __init__(self, plot, parent=None):
-        self._legendWidget = None  # Store LegendListView
-        self._legendDockWidget = None  # DockWidget containing legendWidget
+        assert plot is not None
+        self._plotRef = weakref.ref(plot)
 
-        super(LegendSelectorAction, self).__init__(
-            plot, icon=qt.QIcon(), text='Legends panel',
-            tooltip='Show/Hide curve legends panel',
-            triggered=self.toggleLegendVisibility,
-            checkable=False, parent=parent)
-
-    def _buildLegendWidget(self):
-        """Create the legendWidget if not already created."""
-        if self._legendWidget is not None:
-            return
+        super(LegendsDockWidget, self).__init__("Legends", self.plot)
 
         self._legendWidget = LegendListView()
 
-        self._legendDockWidget = qt.QDockWidget(
-            self.plot.windowTitle() + " Legend", self.plot)
-        self._legendDockWidget.layout().setContentsMargins(0, 0, 0, 0)
-        self._legendDockWidget.setWidget(self._legendWidget)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setWidget(self._legendWidget)
 
         width = self.plot.centralWidget().width()
         height = self.plot.centralWidget().height()
@@ -1002,12 +992,17 @@ class LegendSelectorAction(_PlotAction):
             area = qt.Qt.RightDockWidgetArea
         else:
             area = qt.Qt.BottomDockWidgetArea
-        self.plot.addDockWidget(area, self._legendDockWidget)
+        self.plot.addDockWidget(area, self)
 
-        self._legendDockWidget.visibilityChanged.connect(
-            self._dockWidgetVisibilityChangedHandler)
+        self.visibilityChanged.connect(
+            self._visibilityChangedHandler)
 
         self._legendWidget.sigLegendSignal.connect(self._legendSignalHandler)
+
+    @property
+    def plot(self):
+        """The :class:`.PlotWindow` this widget is attached to."""
+        return self._plotRef()
 
     def renameCurve(self, oldLegend, newLegend):
         """Change the name of a curve using remove and addCurve
@@ -1075,11 +1070,6 @@ class LegendSelectorAction(_PlotAction):
     def updateLegends(self, *args):
         """Sync the LegendSelector widget displayed info with the plot.
         """
-        if self._legendWidget is None:
-            return
-        if self._legendDockWidget.isHidden():
-            return
-
         legendList = []
         curves = self.plot.getAllCurves(withhidden=True)
         for x, y, legend, info, params in curves:
@@ -1093,22 +1083,9 @@ class LegendSelectorAction(_PlotAction):
 
         self._legendWidget.setLegendList(legendList)
 
-    def _dockWidgetVisibilityChangedHandler(self, visible):
+    def _visibilityChangedHandler(self, visible):
         if visible:
             self.updateLegends()
             self.plot.sigContentChanged.connect(self.updateLegends)
         else:
             self.plot.sigContentChanged.disconnect(self.updateLegends)
-
-    def toggleLegendVisibility(self, checked=False):
-        """Toggle visibility of legend panel.
-
-        checked parameter is ignored (Here for compatibility with Qt signal).
-        """
-        if self._legendDockWidget is None:
-            self._buildLegendWidget()
-
-        if self._legendDockWidget.isHidden():
-            self._legendDockWidget.show()
-        else:
-            self._legendDockWidget.hide()

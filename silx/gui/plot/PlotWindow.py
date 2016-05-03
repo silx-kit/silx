@@ -38,7 +38,7 @@ import logging
 from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
-from .LegendSelector import LegendSelectorAction
+from .LegendSelector import LegendsDockWidget
 
 from .. import qt
 
@@ -184,11 +184,12 @@ class PlotWindow(PlotWidget):
         self.menuBar().addMenu(self._menu)
 
     @property
-    def legendSelectorAction(self):
-        """Action toggling Legend panel visibility (lazy-loaded)."""
-        if not hasattr(self, '_legendSelectorAction'):
-            self._legendSelectorAction = LegendSelectorAction(self)
-        return self._legendSelectorAction
+    def legendsDockWidget(self):
+        """DockWidget with Legend panel (lazy-loaded)."""
+        if not hasattr(self, '_legendsDockWidget'):
+            self._legendsDockWidget = LegendsDockWidget(self)
+            self._legendsDockWidget.hide()
+        return self._legendsDockWidget
 
     @property
     def crosshairAction(self):
@@ -229,7 +230,7 @@ class PlotWindow(PlotWidget):
     def _controlButtonClicked(self):
         """Display Options button sub-menu."""
         controlMenu = qt.QMenu()
-        controlMenu.addAction(self.legendSelectorAction)
+        controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
         controlMenu.exec_(self.cursor().pos())
