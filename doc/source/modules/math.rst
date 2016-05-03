@@ -1,4 +1,4 @@
-silx.math module
+:mod:`silx.math`
 ----------------
 
 .. autofunction:: silx.math.histogramnd

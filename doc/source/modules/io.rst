@@ -1,5 +1,9 @@
-silx.io.specfile module
-----------------------------
+
+:mod:`silx.io`: Input-output
+=============================
+
+:mod:`silx.io.specfile`: Reading SpecFile
+------------------------------------------
 
 .. automodule:: silx.io.specfile
     :members:
@@ -30,8 +34,8 @@ silx.io.specfile module
     .. automethod:: __getitem__(key)
 
 
-silx.io.spech5 module
-----------------------------
+:mod:`silx.io.spech5`: h5py-like API to SpecFile
+------------------------------------------------
 
 .. automodule:: silx.io.spech5
     :members:
@@ -39,26 +43,26 @@ silx.io.spech5 module
     :undoc-members:
     :special-members: __getitem__, __len__, __contains__
 
-silx.io.spectoh5 module
---------------------------------
+:mod:`silx.io.spectoh5`: SpecFile to HDF5 conversion
+-----------------------------------------------------
 
 .. automodule:: silx.io.spectoh5
     :members:
 
-silx.io.dictdump module
---------------------------------
+:mod:`silx.io.dictdump`: Dumping and loading dictionaries
+----------------------------------------------------------
 
 .. automodule:: silx.io.dictdump
     :members:
     
-silx.io.configdict module
---------------------------------
+:mod:`silx.io.configdict`: Configuration files I/O
+---------------------------------------------------
 
 .. automodule:: silx.io.configdict
     :members:
 
-silx.io.utils module
---------------------------------
+:mod:`silx.io.utils`: I/O utilities
+------------------------------------
 
 .. automodule:: silx.io.utils
     :members:
