@@ -62,8 +62,6 @@ class PlotWindow(PlotWidget):
       and default colormap.
     - keepDataAspectRatioAction: Toggle keep aspect ratio
     - yAxisInvertedAction: Toggle Y Axis direction
-    - crosshairAction: Toggle crosshair cursor
-    - panWithArrowKeysAction: Toggle pan with arrow keys
     - copyAction: Copy plot snapshot to clipboard
     - saveAction: Save plot
     - printAction: Print plot
@@ -85,8 +83,9 @@ class PlotWindow(PlotWidget):
     :param bool copy: Toggle visibility of copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
-    :param bool crosshair: Toggle visibility of crosshair action.
-    :param bool panWithKeys: Toggle visibility of pan with arrow keys action.
+    :param bool control: True to display an Options button with a sub-menu
+                         to show legends, toggle crosshair and pan with arrows.
+                         (Default: False)
     :param position: True to display widget with (x, y) mouse position
                      (Default: False).
                      It also supports a list of (name, function(x, y)->value)
@@ -100,7 +99,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 crosshair=False, panWithKeys=False, position=False,
+                 control=False, position=False,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
@@ -146,26 +145,9 @@ class PlotWindow(PlotWidget):
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
 
-        # TODO make the option button
-        self._separator1 = qt.QAction('separator', self)
-        self._separator1.setSeparator(True)
-
-        self.group.addAction(self._separator1)
-
-        self.legendSelectorAction = self.group.addAction(
-            LegendSelectorAction(self))
-
-        self.crosshairAction = self.group.addAction(
-            CrosshairAction(self, color='red'))
-        self.crosshairAction.setVisible(crosshair)
-
-        self.panWithArrowKeysAction = self.group.addAction(
-            PanWithArrowKeysAction(self))
-        self.panWithArrowKeysAction.setVisible(panWithKeys)
-
-        self._separator2 = qt.QAction('separator', self)
-        self._separator2.setSeparator(True)
-        self.group.addAction(self._separator2)
+        self._separator = qt.QAction('separator', self)
+        self._separator.setSeparator(True)
+        self.group.addAction(self._separator)
 
         self.copyAction = self.group.addAction(CopyAction(self))
         self.copyAction.setVisible(copy)
@@ -176,21 +158,51 @@ class PlotWindow(PlotWidget):
         self.printAction = self.group.addAction(PrintAction(self))
         self.printAction.setVisible(print_)
 
-        if position:  # Add PositionInfo widget to the bottom of the plot
-            if isinstance(position, collections.Iterable):
-                converters = position  # Use position as a set of converters
-            else:
-                converters = None
-            self.positionWidget = PositionInfo(self, converters=converters)
-
-            toolBar = qt.QToolBar('Position', self)
-            toolBar.addWidget(self.positionWidget)
+        if control or position:
+            toolBar = qt.QToolBar(self)
             self.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+
+            if control:
+                self.controlButton = qt.QPushButton("Options")
+                self.controlButton.setAutoDefault(False)
+                self.controlButton.clicked.connect(self._controlButtonClicked)
+
+                toolBar.addWidget(self.controlButton)
+
+            if position:  # Add PositionInfo widget to the bottom of the plot
+                if isinstance(position, collections.Iterable):
+                    converters = position  # Use position as a set of converters
+                else:
+                    converters = None
+                self.positionWidget = PositionInfo(self, converters=converters)
+
+                toolBar.addWidget(self.positionWidget)
 
         self._toolBar = self.toolBar(parent=self)
         self.addToolBar(self._toolBar)
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
+
+    @property
+    def legendSelectorAction(self):
+        """Action toggling Legend panel visibility (lazy-loaded)."""
+        if not hasattr(self, '_legendSelectorAction'):
+            self._legendSelectorAction = LegendSelectorAction(self)
+        return self._legendSelectorAction
+
+    @property
+    def crosshairAction(self):
+        """Action toggling crosshair cursor mode (lazy-loaded)."""
+        if not hasattr(self, '_crosshairAction'):
+            self._crosshairAction = CrosshairAction(self, color='red')
+        return self._crosshairAction
+
+    @property
+    def panWithArrowKeysAction(self):
+        """Action toggling pan with arrow keys (lazy-loaded)."""
+        if not hasattr(self, '_panWithArrowKeysAction'):
+            self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
+        return self._panWithArrowKeysAction
 
     def toolBar(self, title='Plot', parent=None):
         """Return a QToolBar from the QAction of the PlotWindow.
@@ -213,3 +225,11 @@ class PlotWindow(PlotWidget):
         for action in self.group.actions():
             menu.addAction(action)
         return menu
+
+    def _controlButtonClicked(self):
+        """Display Options button sub-menu."""
+        controlMenu = qt.QMenu()
+        controlMenu.addAction(self.legendSelectorAction)
+        controlMenu.addAction(self.crosshairAction)
+        controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.exec_(self.cursor().pos())
