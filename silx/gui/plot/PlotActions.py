@@ -105,7 +105,7 @@ class _PlotAction(qt.QAction):
         self.setCheckable(checkable)
 
         if triggered is not None:
-            self.triggered.connect(triggered)
+            self.triggered[bool].connect(triggered)
 
     @property
     def plot(self):
