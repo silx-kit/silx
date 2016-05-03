@@ -651,12 +651,11 @@ class LegendListView(qt.QListView):
         # self.setFlow(qt.QListView.LeftToRight)
 
         # Control selection
-        self.setSelectionMode(qt.QAbstractItemView.ExtendedSelection)
+        self.setSelectionMode(qt.QAbstractItemView.NoSelection)
 
         if model is None:
             model = LegendModel()
         self.setModel(model)
-        self.setSelectionModel(qt.QItemSelectionModel(model))
         self.setContextMenu(contextMenu)
 
     def setLegendList(self, legendList, row=None):
@@ -711,10 +710,15 @@ class LegendListView(qt.QListView):
         # signal is emitted..
         self._handleMouseClick(self.indexAt(self.__lastPosition))
 
+    def mouseMoveEvent(self, event):
+        # LegendListView.mouseMoveEvent is overwritten
+        # to suppress unwanted behavior in the delegate.
+        pass
+
     def mouseReleaseEvent(self, event):
-        _logger.debug('LegendListView.mouseReleaseEvent -- ' +
-                      'is overwritten to subpress unwanted ' +
-                      'behavior in the delegate.')
+        # LegendListView.mouseReleaseEvent is overwritten
+        # to subpress unwanted behavior in the delegate.
+        pass
 
     def _handleMouseClick(self, modelIndex):
         """
@@ -809,7 +813,7 @@ class LegendListContextMenu(qt.QMenu):
         self._linesAction.setChecked(
             modelIndex.data(LegendModel.showLineRole))
 
-        super(LegendListContextMenu, self).exec_(pos)
+        super(LegendListContextMenu, self).popup(pos)
 
     def currentIdx(self):
         return self.__currentIdx
