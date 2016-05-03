@@ -23,7 +23,7 @@
 #############################################################################*/
 """Tests for utils module"""
 
-import h5py
+
 import numpy
 import os
 import re
@@ -32,12 +32,19 @@ import tempfile
 import unittest
 
 from ..utils import savespec, save1D
-from ..utils import h5ls
+
+try:
+    import h5py
+except ImportError:
+    h5py_missing = True
+else:
+    h5py_missing = False
+    from ..utils import h5ls
 
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/04/2016"
+__date__ = "29/04/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -168,6 +175,7 @@ def assert_match_any_string_in_list(test, pattern, list_of_strings):
     return False
 
 
+@unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestH5Ls(unittest.TestCase):
     """Test displaying the following HDF5 file structure:
 

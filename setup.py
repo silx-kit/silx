@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "16/03/2016"
+__date__ = "29/04/2016"
 __license__ = "MIT"
 
 
@@ -404,7 +404,7 @@ cmdclass['debian_src'] = sdist_debian
 
 setup_kwargs = config.todict()
 
-install_requires = ["numpy", "h5py"]
+install_requires = ["numpy"]
 setup_requires = ["numpy"]
 
 setup_kwargs.update(

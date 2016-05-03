@@ -25,16 +25,26 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
-import h5py
 import json
+import logging
 import numpy
 import sys
+
+try:
+    import h5py
+except ImportError as e:
+    h5py_missing = True
+    h5py_import_error = e
+else:
+    h5py_missing = False
 
 from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/04/2016"
+__date__ = "03/05/2016"
+
+logger = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
 
@@ -74,9 +84,12 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     If a dictionary value is a sub-dictionary, a group is created. If it is
     any other data type, it is cast into a numpy array and written as a
-    :mod:`h5py` dataset.
+    :mod:`h5py` dataset. Dictionary keys must be strings and cannot contain
+    the ``/`` character.
 
-    Dictionary keys must be strings and cannot contain the ``/`` character.
+    .. note::
+
+        This function requires `h5py <http://www.h5py.org/>`_ to be installed.
 
     :param treedict: Nested dictionary/tree structure with strings as keys
          and array-like objects as leafs. The ``"/"`` character is not allowed
@@ -121,6 +134,9 @@ def dicttoh5(treedict, h5file, h5path='/',
         dicttoh5(city_area, "cities.h5", h5path="/area",
                  create_dataset_args=create_ds_args)
     """
+    if h5py_missing:
+        raise h5py_import_error
+
     if not isinstance(h5file, h5py.File):
         h5f = h5py.File(h5file, mode)
     else:
@@ -161,14 +177,22 @@ def h5todict(h5file, path="/"):
     """Read HDF5 file and return a nested dictionary with the complete file
     structure and all data.
 
-    .. warning:: If you write a dictionary to a HDF5 file with 
+    .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
+
+    .. note:: If you write a dictionary to a HDF5 file with 
         :func:`dicttoh5` and then read it back with :func:`h5todict`, data
         types are not preserved. All values are cast to numpy arrays before
-        being written to file, and they are read back as numpy arrays.
+        being written to file, and they are read back as numpy arrays (or
+        scalars). In some cases, you may find that a list of heterogeneous
+        data types is converted to a numpy array of strings.
 
     :param h5file: File name or :class:`h5py.File` object
     :return: dict
     """
+    if h5py_missing:
+        raise h5py_import_error
+
     if not isinstance(h5file, h5py.File):
         h5f = h5py.File(h5file, "r")
     else:
@@ -234,13 +258,18 @@ def dump(ddict, ffile, fmat="json"):
 
     :param ddict: Dictionary with string keys
     :param ffile: File name or file-like object with a ``write`` method
-    :param fmat: Output format: ``json``, ``hdf5`` or ``ini``
+    :param fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
+        Dumping to a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
     """
     if fmat.lower() == "json":
         dicttojson(ddict, ffile)
-    elif fmat.lower() == "hdf5":
+    elif fmat.lower() in ["hdf5", "h5"]:
+        if h5py_missing:
+            logger.error("Cannot dump to HDF5 format, missing h5py library")
+            raise h5py_import_error
         dicttoh5(ddict, ffile)
-    elif fmat.lower() == "ini":
+    elif fmat.lower() in ["ini", "cfg"]:
         dicttoini(ddict, ffile)
     else:
         raise IOError("Unknown format " + fmat)
@@ -251,6 +280,8 @@ def load(ffile, fmat="json"):
 
     :param ffile: File name or file-like object with a ``read`` method
     :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+        Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
+        installed.
     :return: Dictionary
     """
     if not hasattr(ffile, "read"):
@@ -262,9 +293,12 @@ def load(ffile, fmat="json"):
 
     if fmat.lower() == "json":
         return json.load(f)
-    if fmat.lower() == "hdf5":
+    if fmat.lower() in ["hdf5", "h5"]:
+        if h5py_missing:
+            logger.error("Cannot load from HDF5 format, missing h5py library")
+            raise h5py_import_error
         return h5todict(fname)
-    if fmat.lower() == "ini":
+    if fmat.lower() in ["ini", "cfg"]:
         return ConfigDict().read(fname)
     raise IOError("Unknown format " + fmat)
 

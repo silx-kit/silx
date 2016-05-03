@@ -23,11 +23,73 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
+"""
+This module handles read and write operations to INI files, with data type
+preservation and support for nesting subsections to any depth.
+
+Data to be written to INI must be stored in a dictionary with string keys.
+Data cannot be stored at the root level of the dictionary, it must be inside
+a sub-dictionary. This means that in the INI file, all parameters must be
+in a section, and if you need a `default` section you must define it
+explicitly.
+
+Usage example:
+==============
+
+Write a dictionary to an INI file::
+
+    from silx.io.configdict import ConfigDict
+
+    ddict = {
+            'simple_types': {
+                'float': 1.0,
+                'int': 1,
+                'string': 'Hello World',
+            },
+            'containers': {
+                'list': [-1, 'string', 3.0, False],
+                'array': numpy.array([1.0, 2.0, 3.0]),
+                'dict': {
+                    'key1': 'Hello World',
+                    'key2': 2.0,
+                }
+            }
+        }
+
+    ConfigDict(initdict=ddict).write("foo.ini")
+
+
+Read an INI file into a dictionary like structure::
+
+    from silx.io.configdict import ConfigDict
+
+    confdict = ConfigDict()
+    confdict.read("foo.ini")
+
+    print("Available sections in INI file:")
+    print(confdict.keys())
+
+    for key in confdict:
+        for subkey in confdict[key]:
+            print("Section %s, parameter %s:" % (key, subkey))
+            print(confdict[key][subkey])
+
+
+Classes:
+========
+
+- :class:`ConfigDict`
+- :class:`OptionStr`
+
+"""
+
+
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/04/2016"
+__date__ = "28/04/2016"
 
 import numpy
+import re
 import sys
 if sys.version < '3.0':
     import ConfigParser as configparser
@@ -79,6 +141,8 @@ def _parse_simple_types(sstr):
             try:
                 return _boolean(sstr)
             except ValueError:
+                if sstr.strip() == "None":
+                    return None
                 # un-escape string
                 sstr = sstr.lstrip("\\")
                 # un-escape commas
@@ -102,6 +166,9 @@ def _parse_container(sstr):
     :raise: ``ValueError`` if string is not a list or an array
     """
     sstr = sstr.strip()
+
+    if not sstr:
+        raise ValueError
 
     if sstr.find(',') == -1:
         # it is not a list
@@ -160,7 +227,7 @@ def _parse_list_line(sstr):
 
 class OptionStr(str):
     """String class providing typecasting methods to parse values in a
-    :class:``ConfigDict`` generated configuration file.
+    :class:`ConfigDict` generated configuration file.
     """
     def toint(self):
         """
@@ -171,7 +238,7 @@ class OptionStr(str):
 
     def tofloat(self):
         """
-        :return: ``float``
+        :return: Floating point value
         :raise: ``ValueError`` if conversion to ``float`` failed
         """
         return float(self)
@@ -199,11 +266,11 @@ class OptionStr(str):
         """Return a list or a numpy array.
 
         Any string containing a comma (``,``) character will be interpreted
-        as a list: for instance ``"-1, Hello World, 3.0"``, or ``"2.0,``
+        as a list: for instance ``-1, Hello World, 3.0``, or ``"2.0,``
 
         The format for numpy arrays is a blank space delimited list of values
-        between square brackets: ``"[ 1.3 2.2 3.1 ]"``, or
-        ``"[ [ 1 2 3 ] [ 1 4 9 ] ]"``"""
+        between square brackets: ``[ 1.3 2.2 3.1 ]``, or
+        ``[ [ 1 2 3 ] [ 1 4 9 ] ]``"""
         return _parse_container(self)
 
     def tobestguess(self):
@@ -357,15 +424,27 @@ class ConfigDict(dict):
             fp.close()
 
     def _escape_str(self, sstr):
-        """Escape strings and individual commas with a ``/`` character.
+        """Escape strings and special characters in strings with a ``\``
+        character.
 
         This way, we ensure these strings cannot be interpreted as a numeric
-        or boolean types, and commas in strings are not interpreted as list
-        items separators..
+        or boolean types and commas in strings are not interpreted as list
+        items separators. We also escape ``%`` when it is not followed by a
+        ``(``, as required by ``configparser`` because ``%`` is used in
+        the interpolation syntax
+        (https://docs.python.org/3/library/configparser.html#interpolation-of-values).
         """
-        sstr = "\\" + sstr
+        non_str = r'^([0-9]+|[0-9]*\.[0-9]*|none|false|true|on|off|yes|no)$'
+        if re.match(non_str, sstr.lower()):
+            sstr = "\\" + sstr
         # Escape commas
         sstr = sstr.replace(",", "\,")
+
+        if sys.version > '3.0':
+            # Escape % except in "%%" and "%("
+            # argparse will handle converting %% back to %
+            sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
+
         return sstr
 
     def __write(self, fp, ddict, secthead=None):
@@ -400,7 +479,7 @@ class ConfigDict(dict):
                 fp.write('%s = %s\n' % (key, ddict[key]))
 
         for key in strkey:
-            fp.write('%s = \%s\n' % (key, self._escape_str(ddict[key])))
+            fp.write('%s = %s\n' % (key, self._escape_str(ddict[key])))
 
         for key in listkey:
             fp.write('%s = ' % key)

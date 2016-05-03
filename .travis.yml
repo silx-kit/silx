@@ -62,6 +62,9 @@ script:
     # Install from source package
     - pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx
 
+    # Install h5py for silx.io tests
+    - "pip install --pre --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ h5py"
+
     # Print Python info
     - python ci/info_platform.py
     - pip freeze
