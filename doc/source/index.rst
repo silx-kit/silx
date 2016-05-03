@@ -12,8 +12,8 @@ Contents:
    :maxdepth: 2
 
    modules/gui/index.rst
-   modules/io.rst
-   modules/math.rst
+   modules/io/index.rst
+   modules/math/index.rst
 
 
 Indices and tables
