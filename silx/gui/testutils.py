@@ -67,29 +67,13 @@ else:
 # Makes sure a QApplication exists and do it once for all
 _qapp = qt.QApplication.instance() or qt.QApplication([])
 
-
-def _getBaselineWidgets():
-    """Returns the list of QWidgets that exists regardless of application.
-
-    Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
-    is done, then get all QWidgets from QApplication.
-
-    :return: list of widgets
-    """
-    qapp = qt.QApplication.instance()
-
-    _dummyWidget = qt.QWidget()
-    _dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    _dummyWidget.show()
-    _dummyWidget.close()
-    del _dummyWidget
-    qapp.processEvents()
-
-    return qapp.allWidgets()
-
-
-_baselineWidgets = _getBaselineWidgets()
-"""List of QWidgets that exists before the tests are run."""
+# Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
+_dummyWidget = qt.QWidget()
+_dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+_dummyWidget.show()
+_dummyWidget.close()
+del _dummyWidget
+qt.QApplication.instance().processEvents()
 
 
 class TestCaseQt(unittest.TestCase):
@@ -114,12 +98,18 @@ class TestCaseQt(unittest.TestCase):
     QTest = QTest
     """The Qt QTest class from the used Qt binding."""
 
+    def setUp(self):
+        """Get the list of existing widgets."""
+        self.__previousWidgets = self.qapp.allWidgets()
+
     def tearDown(self):
         """Test fixture checking that no more widgets exists."""
         gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
-                   if widget not in _baselineWidgets]
+                   if widget not in self.__previousWidgets]
+        del self.__previousWidgets
+
         if widgets:
             exceptionMsg = "Test ended with widgets alive: %s" % str(widgets)
 
