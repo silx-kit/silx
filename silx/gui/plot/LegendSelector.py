@@ -548,21 +548,10 @@ class LegendListItemWidget(qt.QItemDelegate):
         else:
             checkState = qt.Qt.Unchecked
 
-        if sys.platform.upper().startswith("DARWIN"):
-            MAC_QT_4_8_4_ISSUE = True
-        else:
-            MAC_QT_4_8_4_ISSUE = False
-        if MAC_QT_4_8_4_ISSUE:
-            painter.save()
-
         self.drawCheck(
             painter, qt.QStyleOptionViewItem(), chBoxRect, checkState)
 
         painter.restore()
-
-        # Reset painter
-        if MAC_QT_4_8_4_ISSUE:
-            painter.restore()
 
     def editorEvent(self, event, model, option, modelIndex):
         # From the docs:
