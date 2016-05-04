@@ -146,7 +146,7 @@ very specific compiler used to compile your version of Python.
 But in most cases you can find an unofficial source for the
 wheel.
 
-For the ``h5py``, you can find a wheel at Christoph Gohlke's repository:
+For the ``h5py`` module, you can find a wheel at Christoph Gohlke's repository:
 
 http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
@@ -158,4 +158,11 @@ To install a wheel from an alternative repository, download the appropriate
 Mac OS X specific instructions
 ==============================
 
-TODO
+Until recently, the `h5py` developers provided Mac OS X wheels. Therefore,
+the easiest way to install `h5py` on this system is to get an older version
+using pip::
+
+    pip install h5py==2.5.0
+    
+Starting from version `2.6.0`, you will need to compile `h5py` and it's
+dependencies (mainly HDF5) yourself.
