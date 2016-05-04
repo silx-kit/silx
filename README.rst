@@ -38,7 +38,7 @@ Dependencies
 
 The GUI widgets of the silx package depends on the following extra packages:
 
-* A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
+* A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ (using API version 2) or `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
 
 Supported platforms: Linux, Windows, Mac OS X.
