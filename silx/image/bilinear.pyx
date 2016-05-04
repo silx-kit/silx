@@ -25,13 +25,13 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "02/05/2016"
+__date__ = "04/05/2016"
 __doc__ = "Bilinear interpolator and peak finder for images"
 
 import cython
 cimport cython
 import numpy
-from libc.math cimport floor, ceil
+from libc.math cimport floor, ceil, sin, cos, sqrt, atan2  
 import logging
 logger = logging.getLogger("silx.image.bilinear") 
 
@@ -269,3 +269,56 @@ cdef class BilinearImage:
         for i in range(size):
             res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)  
+    
+    def profile_line(self, src, dst, int linewidth=1):
+        """Return the intensity profile of an image measured along a scan line.
+        
+        :param src(2-tuple of numeric scalar: The start point of the scan line.
+        :param dst(2-tuple of numeric scalar): The end point of the scan line. 
+        The destination point is included in the profile, in contrast to standard numpy indexing.
+        :return (1d array): The intensity profile along the scan line. The length of the profile
+        is the ceil of the computed length of the scan line.
+        
+        Inspired from skimage
+        """
+        cdef:
+            float src_row, src_col, dst_row, dst_col, d_row, d_col, theta, 
+            float length, col_width, row_width, sum, row, col, new_row, new_col   
+            int lengt, i, j, cnt
+            float[::1] result
+        src_row, src_col = src
+        dst_row, dst_col = dst
+        d_row = dst_row - src_row
+        d_col = dst_col - src_col
+        theta = atan2(d_row, d_col)
+        lengt = <int> ceil(sqrt(d_row * d_row + d_col * d_col) + 1)
+        
+        col_width = sin(-theta)
+        row_width = cos(theta) 
+        
+        result = numpy.zeros(lengt, dtype=numpy.float32)
+               
+        for i in range(lengt):
+            sum = 0
+            cnt = 0
+            row = src_row + i * d_row / lengt
+            col = src_col + i * d_row / lengt
+            if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
+                cnt += 1
+                sum = sum + self.c_funct(col, row)
+            for j in range((linewidth - 1) // 2):
+                # On one side of the line
+                new_row = row + j * row_width
+                new_col = col + j * col_width
+                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                    cnt += 1
+                    sum = sum + self.c_funct(new_col, new_row)
+                # On the other 
+                new_row = row - j * row_width
+                new_col = col - j * col_width
+                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                    cnt += 1
+                    sum = sum + self.c_funct(new_col, new_row)
+            if cnt:
+                result[i] = sum / cnt
+        return result
