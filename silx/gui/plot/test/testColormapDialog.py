@@ -32,15 +32,13 @@ __date__ = "30/03/2016"
 import doctest
 import unittest
 
-from silx.gui.test.utils import qWaitForWindowExposed
+from silx.gui.testutils import qWaitForWindowExposed
 from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 
 
 # Makes sure a QApplication exists
-_qapp = qt.QApplication.instance()
-if not _qapp:
-    _qapp = qt.QApplication()
+_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
 def _tearDownQt(docTest):
@@ -50,6 +48,9 @@ def _tearDownQt(docTest):
     """
     dialogWidget = docTest.globs['dialog']
     qWaitForWindowExposed(dialogWidget)
+    dialogWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+    dialogWidget.close()
+    del dialogWidget
 
 
 cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)

@@ -65,33 +65,15 @@ else:
 
 
 # Makes sure a QApplication exists and do it once for all
-_qapp = qt.QApplication.instance()
-if not _qapp:
-    _qapp = qt.QApplication([])
+_qapp = qt.QApplication.instance() or qt.QApplication([])
 
-
-def _getBaselineWidgets():
-    """Returns the list of QWidgets that exists regardless of application.
-
-    Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
-    is done, then get all QWidgets from QApplication.
-
-    :return: list of widgets
-    """
-    qapp = qt.QApplication.instance()
-
-    _dummyWidget = qt.QWidget()
-    _dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
-    _dummyWidget.show()
-    _dummyWidget.close()
-    del _dummyWidget
-    qapp.processEvents()
-
-    return qapp.allWidgets()
-
-
-_baselineWidgets = _getBaselineWidgets()
-"""List of QWidgets that exists before the tests are run."""
+# Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
+_dummyWidget = qt.QWidget()
+_dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+_dummyWidget.show()
+_dummyWidget.close()
+del _dummyWidget
+qt.QApplication.instance().processEvents()
 
 
 class TestCaseQt(unittest.TestCase):
@@ -100,6 +82,11 @@ class TestCaseQt(unittest.TestCase):
     It creates a QApplication before running the tests.
     WARNING: The QApplication is shared by all tests, which might have side
     effects.
+
+    After each test, this class is checking for wigdets remaining alive.
+    To allow some widgets to remain alive at the end of a test, set the
+    allowedLeakingWidgets attribute to the number of widgets that can remain
+    alive at the end of the test.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -116,23 +103,30 @@ class TestCaseQt(unittest.TestCase):
     QTest = QTest
     """The Qt QTest class from the used Qt binding."""
 
+    def setUp(self):
+        """Get the list of existing widgets."""
+        self.allowedLeakingWidgets = 0
+        self.__previousWidgets = self.qapp.allWidgets()
+
     def tearDown(self):
         """Test fixture checking that no more widgets exists."""
         gc.collect()
 
         widgets = [widget for widget in self.qapp.allWidgets()
-                   if widget not in _baselineWidgets]
-        if widgets:
-            exceptionMsg = "Test ended with widgets alive: %s" % str(widgets)
+                   if widget not in self.__previousWidgets]
+        del self.__previousWidgets
 
-            for widget in widgets:  # Delete them for future tests
-                widget.setParent(None)
-                widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-                widget.close()
-            del widgets
-            self.qapp.processEvents()  # For close to take place
+        allowedLeakingWidgets = self.allowedLeakingWidgets
+        self.allowedLeakingWidgets = 0
 
-            raise RuntimeError(exceptionMsg)
+        if widgets and len(widgets) <= allowedLeakingWidgets:
+            _logger.info(
+                '%s: %d remaining widgets after test' % (self.id(),
+                                                         len(widgets)))
+
+        if len(widgets) > allowedLeakingWidgets:
+            raise RuntimeError(
+                "Test ended with widgets alive: %s" % str(widgets))
 
     @property
     def qapp(self):
@@ -191,20 +185,24 @@ class TestCaseQt(unittest.TestCase):
         QTest.keyRelease(widget, key, modifier, delay)
 
     @staticmethod
-    def mouseClick(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseClick(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate clicking a mouse button.
 
         See QTest.mouseClick for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
 
     @staticmethod
-    def mouseDClick(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseDClick(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate double clicking a mouse button.
 
         See QTest.mouseDClick for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
 
@@ -218,20 +216,24 @@ class TestCaseQt(unittest.TestCase):
         QTest.mouseMove(widget, pos, delay)
 
     @staticmethod
-    def mousePress(widget, button, modifier=0, pos=None, delay=-1):
+    def mousePress(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate pressing a mouse button.
 
         See QTest.mousePress for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
 
     @staticmethod
-    def mouseRelease(widget, button, modifier=0, pos=None, delay=-1):
+    def mouseRelease(widget, button, modifier=None, pos=None, delay=-1):
         """Simulate releasing a mouse button.
 
         See QTest.mouseRelease for details.
         """
+        if modifier is None:
+            modifier=qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
 

@@ -85,6 +85,22 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     sigSetGraphGrid = qt.Signal(str)
     """Signal emitted when plot grid has changed"""
 
+    sigSetGraphCursor = qt.Signal(bool)
+    """Signal emitted when plot crosshair cursor has changed"""
+
+    sigSetPanWithArrowKeys = qt.Signal(bool)
+    """Signal emitted when pan with arrow keys has changed"""
+
+    sigContentChanged = qt.Signal(str, str, str)
+    """Signal emitted when the content of the plot is changed.
+
+    It provides 3 informations:
+
+    - action: The change of the plot: 'add' or 'remove'
+    - kind: The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
+    - legend: The legend of the primitive changed.
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -132,6 +148,11 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             self.sigSetKeepDataAspectRatio.emit(kwargs['state'])
         elif event == 'setGraphGrid':
             self.sigSetGraphGrid.emit(kwargs['which'])
+        elif event == 'setGraphCursor':
+            self.sigSetGraphCursor.emit(kwargs['state'])
+        elif event == 'contentChanged':
+            self.sigContentChanged.emit(
+                kwargs['action'], kwargs['kind'], kwargs['legend'])
 
         Plot.Plot.notify(self, event, **kwargs)
 
@@ -151,12 +172,18 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
 
         :param bool pan: True to enable panning, False to disable.
         """
-        self._panWithArrowKeys = bool(pan)
+        pan = bool(pan)
+        panHasChanged = self._panWithArrowKeys != pan
+
+        self._panWithArrowKeys = pan
         if not self._panWithArrowKeys:
             self.setFocusPolicy(qt.Qt.NoFocus)
         else:
             self.setFocusPolicy(qt.Qt.StrongFocus)
             self.setFocus(qt.Qt.OtherFocusReason)
+
+        if panHasChanged:
+            self.sigSetPanWithArrowKeys.emit(pan)
 
     # Dict to convert Qt arrow key code to direction str.
     _ARROWS_TO_PAN_DIRECTION = {

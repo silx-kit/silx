@@ -32,9 +32,18 @@ __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/03/2016"
 
+import collections
+import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
+from .PlotTools import PositionInfo
+from .LegendSelector import LegendsDockWidget
+
+from .. import qt
+
+
+_logger = logging.getLogger(__name__)
 
 
 class PlotWindow(PlotWidget):
@@ -71,9 +80,17 @@ class PlotWindow(PlotWidget):
     :param bool colormap: Toggle visibility of colormap action.
     :param bool aspectRatio: Toggle visibility of aspect ration action.
     :param bool yInverted: Toggle visibility of Y axis direction action.
-    :param bool copy: Toggle visibility if copy action.
+    :param bool copy: Toggle visibility of copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
+    :param bool control: True to display an Options button with a sub-menu
+                         to show legends, toggle crosshair and pan with arrows.
+                         (Default: False)
+    :param position: True to display widget with (x, y) mouse position
+                     (Default: False).
+                     It also supports a list of (name, function(x, y)->value)
+                     to customize the displayed values.
+                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
@@ -82,6 +99,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
+                 control=False, position=False,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
@@ -140,10 +158,52 @@ class PlotWindow(PlotWidget):
         self.printAction = self.group.addAction(PrintAction(self))
         self.printAction.setVisible(print_)
 
+        if control or position:
+            toolBar = qt.QToolBar(self)
+            self.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+
+            if control:
+                self.controlButton = qt.QPushButton("Options")
+                self.controlButton.setAutoDefault(False)
+                self.controlButton.clicked.connect(self._controlButtonClicked)
+
+                toolBar.addWidget(self.controlButton)
+
+            if position:  # Add PositionInfo widget to the bottom of the plot
+                if isinstance(position, collections.Iterable):
+                    converters = position  # Use position as a set of converters
+                else:
+                    converters = None
+                self.positionWidget = PositionInfo(self, converters=converters)
+
+                toolBar.addWidget(self.positionWidget)
+
         self._toolBar = self.toolBar(parent=self)
         self.addToolBar(self._toolBar)
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
+
+    @property
+    def legendsDockWidget(self):
+        """DockWidget with Legend panel (lazy-loaded)."""
+        if not hasattr(self, '_legendsDockWidget'):
+            self._legendsDockWidget = LegendsDockWidget(self)
+            self._legendsDockWidget.hide()
+        return self._legendsDockWidget
+
+    @property
+    def crosshairAction(self):
+        """Action toggling crosshair cursor mode (lazy-loaded)."""
+        if not hasattr(self, '_crosshairAction'):
+            self._crosshairAction = CrosshairAction(self, color='red')
+        return self._crosshairAction
+
+    @property
+    def panWithArrowKeysAction(self):
+        """Action toggling pan with arrow keys (lazy-loaded)."""
+        if not hasattr(self, '_panWithArrowKeysAction'):
+            self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
+        return self._panWithArrowKeysAction
 
     def toolBar(self, title='Plot', parent=None):
         """Return a QToolBar from the QAction of the PlotWindow.
@@ -166,3 +226,11 @@ class PlotWindow(PlotWidget):
         for action in self.group.actions():
             menu.addAction(action)
         return menu
+
+    def _controlButtonClicked(self):
+        """Display Options button sub-menu."""
+        controlMenu = qt.QMenu()
+        controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
+        controlMenu.addAction(self.crosshairAction)
+        controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.exec_(self.cursor().pos())

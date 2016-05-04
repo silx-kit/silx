@@ -105,7 +105,7 @@ class _PlotAction(qt.QAction):
         self.setCheckable(checkable)
 
         if triggered is not None:
-            self.triggered.connect(triggered)
+            self.triggered[bool].connect(triggered)
 
     @property
     def plot(self):
@@ -799,3 +799,59 @@ class CopyAction(_PlotAction):
         pngData = _plotAsPNG(self.plot)
         image = qt.QImage.fromData(pngData, 'png')
         qt.QApplication.clipboard().setImage(image)
+
+
+class CrosshairAction(_PlotAction):
+    """QAction toggling crosshair cursor on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param str color: Color to use to draw the crosshair
+    :param int linewidth: Width of the crosshair cursor
+    :param str linestyle: Style of line. See :meth:`.Plot.setGraphCursor`
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, color='black', linewidth=1, linestyle='-',
+                 parent=None):
+        self.color = color
+        """Color used to draw the crosshair (str)."""
+
+        self.linewidth = linewidth
+        """Width of the crosshair cursor (int)."""
+
+        self.linestyle = linestyle
+        """Style of line of the cursor (str)."""
+
+        super(CrosshairAction, self).__init__(
+            plot, icon='crosshair', text='Crosshair Cursor',
+            tooltip='Enable crosshair cursor when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.getGraphCursor() is not None)
+        plot.sigSetGraphCursor.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setGraphCursor(checked,
+            color=self.color,
+            linestyle=self.linestyle,
+            linewidth=self.linewidth)
+
+class PanWithArrowKeysAction(_PlotAction):
+    """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+
+        super(PanWithArrowKeysAction, self).__init__(
+            plot, icon='arrow_keys', text='Pan with arrow keys',
+            tooltip='Enable pan with arrow keys when checked',
+            triggered=self._actionTriggered,
+            checkable=True, parent=parent)
+        self.setChecked(plot.isPanWithArrowKeys())
+        plot.sigSetPanWithArrowKeys.connect(self.setChecked)
+
+    def _actionTriggered(self, checked=False):
+        self.plot.setPanWithArrowKeys(checked)

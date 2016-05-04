@@ -31,6 +31,8 @@ import unittest
 
 from .testColormapDialog import suite as testColormapDialog
 from .testInteraction import suite as testInteractionSuite
+from .testLegendSelector import suite as testLegendSelectorSuite
+from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlot import suite as testPlotSuite
 
@@ -39,6 +41,8 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(testColormapDialog())
     test_suite.addTest(testInteractionSuite())
+    test_suite.addTest(testLegendSelectorSuite())
+    test_suite.addTest(testPlotToolsSuite())
     test_suite.addTest(testPlotWidgetSuite())
     test_suite.addTest(testPlotSuite())
     return test_suite
