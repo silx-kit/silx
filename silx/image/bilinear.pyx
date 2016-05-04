@@ -304,21 +304,21 @@ cdef class BilinearImage:
             row = src_row + i * d_row / lengt
             col = src_col + i * d_row / lengt
             if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
-                cnt += 1
+                cnt = cnt + 1
                 sum = sum + self.c_funct(col, row)
             for j in range((linewidth - 1) // 2):
                 # On one side of the line
                 new_row = row + j * row_width
                 new_col = col + j * col_width
                 if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                    cnt += 1
+                    cnt = cnt + 1
                     sum = sum + self.c_funct(new_col, new_row)
                 # On the other 
                 new_row = row - j * row_width
                 new_col = col - j * col_width
                 if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                    cnt += 1
+                    cnt = cnt + 1
                     sum = sum + self.c_funct(new_col, new_row)
             if cnt:
-                result[i] = sum / cnt
+                result[i] += sum / cnt
         return result
