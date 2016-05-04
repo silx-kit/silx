@@ -201,6 +201,19 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         key = event.key()
         if self._panWithArrowKeys and key in self._ARROWS_TO_PAN_DIRECTION:
             self.pan(self._ARROWS_TO_PAN_DIRECTION[key], factor=0.1)
+
+            # Send a mouse move event to the plot widget to take into account
+            # that even if mouse didn't move on the screen, it moved relative
+            # to the plotted data.
+            qapp = qt.QApplication.instance()
+            event = qt.QMouseEvent(
+                qt.QEvent.MouseMove,
+                self.centralWidget().mapFromGlobal(qt.QCursor.pos()),
+                qt.Qt.NoButton,
+                qapp.mouseButtons(),
+                qapp.keyboardModifiers())
+            qapp.sendEvent(self.centralWidget(), event)
+
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.
