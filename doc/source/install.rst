@@ -136,7 +136,6 @@ you can install pip yourself.
 Download the script https://bootstrap.pypa.io/get-pip.py and execute it::
 
     python get-pip.py
-   
 
 Installing dependencies
 -----------------------
@@ -145,7 +144,6 @@ Some of the dependencies can be simply installed with pip::
 
     pip install numpy
     pip install matplotlib
-    pip install PyQt4
     pip install PySide
 
 Dependencies that are not available as a wheel may require the
@@ -153,13 +151,15 @@ very specific compiler used to compile your version of Python.
 But in most cases you can find an unofficial source for the
 wheel.
 
-Regarding `h5py` module, you can find a wheel at Christoph Gohlke's repository:
+Regarding the `h5py` and `PyQt4` modules, you can find the wheels at 
+Christoph Gohlke's repository:
 
 http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
-Download the appropriate `.whl` file for your system and install it with pip::
+Download the appropriate `.whl` file for your system and install them with pip::
 
     pip install h5py*.whl
+    pip install PyQt4*.whl
     
 Mac OS X specific instructions
 ==============================
