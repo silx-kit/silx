@@ -101,6 +101,15 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     - legend: The legend of the primitive changed.
     """
 
+    sigActiveCurveChanged = qt.Signal(object, object)
+    """Signal emitted when the active curve has changed.
+
+    It provides 2 informations:
+
+    - previous: The legend of the previous active curve or None
+    - legend: The legend of the new active curve or None if no curve is active
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -153,7 +162,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         elif event == 'contentChanged':
             self.sigContentChanged.emit(
                 kwargs['action'], kwargs['kind'], kwargs['legend'])
-
+        elif event == 'activeCurveChanged':
+            self.sigActiveCurveChanged.emit(
+                kwargs['previous'], kwargs['legend'])
         Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys

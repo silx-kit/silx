@@ -176,6 +176,9 @@ It provides the following keys:
 - 'action': The change of the plot: 'add' or 'remove'
 - 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
 - 'legend': The legend of the primitive changed.
+
+A 'activeCurveChanged' event with a 'legend' key (str or None) is triggered
+when active curve changes.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -1411,6 +1414,11 @@ class Plot(object):
         self._backend.setGraphYLabel(yLabel, axis='left')  # TODO y2 axis
 
         self._setDirtyPlot()
+
+        if oldActiveCurveLegend != self._activeCurve:
+            self.notify('activeCurveChanged',
+                        previous=oldActiveCurveLegend,
+                        legend=self._activeCurve)
 
         return self._activeCurve
 
