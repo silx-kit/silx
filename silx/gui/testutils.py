@@ -82,6 +82,11 @@ class TestCaseQt(unittest.TestCase):
     It creates a QApplication before running the tests.
     WARNING: The QApplication is shared by all tests, which might have side
     effects.
+
+    After each test, this class is checking for wigdets remaining alive.
+    To allow some widgets to remain alive at the end of a test, set the
+    allowedLeakingWidgets attribute to the number of widgets that can remain
+    alive at the end of the test.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -100,6 +105,7 @@ class TestCaseQt(unittest.TestCase):
 
     def setUp(self):
         """Get the list of existing widgets."""
+        self.allowedLeakingWidgets = 0
         self.__previousWidgets = self.qapp.allWidgets()
 
     def tearDown(self):
@@ -110,17 +116,17 @@ class TestCaseQt(unittest.TestCase):
                    if widget not in self.__previousWidgets]
         del self.__previousWidgets
 
-        if widgets:
-            exceptionMsg = "Test ended with widgets alive: %s" % str(widgets)
+        allowedLeakingWidgets = self.allowedLeakingWidgets
+        self.allowedLeakingWidgets = 0
 
-            for widget in widgets:  # Delete them for future tests
-                widget.setParent(None)
-                widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-                widget.close()
-            del widgets
-            self.qapp.processEvents()  # For close to take place
+        if widgets and len(widgets) <= allowedLeakingWidgets:
+            _logger.info(
+                '%s: %d remaining widgets after test' % (self.id(),
+                                                         len(widgets)))
 
-            raise RuntimeError(exceptionMsg)
+        if len(widgets) > allowedLeakingWidgets:
+            raise RuntimeError(
+                "Test ended with widgets alive: %s" % str(widgets))
 
     @property
     def qapp(self):

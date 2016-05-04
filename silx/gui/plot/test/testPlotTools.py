@@ -76,6 +76,11 @@ class TestPositionInfo(TestCaseQt):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
+
+        # A QMenu remains with PySide for those tests, allow it for now
+        if qt.BINDING == 'PySide':
+            self.allowedLeakingWidgets = 1
+
         super(TestPositionInfo, self).tearDown()
 
     def _test(self, positionWidget, converterNames):
