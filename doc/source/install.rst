@@ -17,7 +17,8 @@ directory::
     
 .. note::
     
-    Replace the ``pip`` command with ``pip3`` to install silx for Python 3.
+    Replace the ``pip`` command with ``pip3`` to install silx or any
+    other library for Python 3.
     
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
@@ -69,9 +70,17 @@ Download the following ``.deb`` files:
 - ``python-silx_x.y.z-1~bpo8+1_amd64.deb`` (or ``python3-silx_x.y.z-1~bpo8+1_amd64.deb``)
 - ``python-silx-doc_x.y.z-1~bpo8+1_all.deb``
 
+.. note::
+    
+    Replace ``x.y.z`` with the actual version number.
+
 Install them with the ``dpkg`` command::
 
     sudo dpkg -i python-silx_x.y.z-1~bpo8+1_amd64.deb python-silx-doc_x.y.z-1~bpo8+1_all.deb
+    
+Or for Python3::
+
+    sudo dpkg -i python3-silx_x.y.z-1~bpo8+1_amd64.deb python-silx-doc_x.y.z-1~bpo8+1_all.deb
 
 Source package
 --------------
@@ -95,7 +104,6 @@ Or::
 The ``--upgrade`` option is not mandatory, but it ensures that you install the
 downloaded version even if a previous version silx was already installed.
 
-
 Advanced building options
 -------------------------
 
@@ -113,7 +121,6 @@ There are few advanced options to ``setup.py build``:
   Use the one provided by the development team.
 * ``--no-openmp``: Recompiles the Cython code without OpenMP support (default under MacOSX).
 * ``--openmp``: Recompiles the Cython code with OpenMP support (Default under Windows and Linux).
-
 
 Windows specific instructions
 =============================
@@ -146,12 +153,11 @@ very specific compiler used to compile your version of Python.
 But in most cases you can find an unofficial source for the
 wheel.
 
-For the ``h5py`` module, you can find a wheel at Christoph Gohlke's repository:
+Regarding `h5py` module, you can find a wheel at Christoph Gohlke's repository:
 
 http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
-To install a wheel from an alternative repository, download the appropriate
-`.whl` file and install it with pip::
+Download the appropriate `.whl` file for your system and install it with pip::
 
     pip install h5py*.whl
     
