@@ -175,6 +175,7 @@ class PlotWindow(PlotWidget):
                 else:
                     converters = None
                 self.positionWidget = PositionInfo(self, converters=converters)
+                self.positionWidget.autoSnapToActiveCurve = True
 
                 toolBar.addWidget(self.positionWidget)
 
