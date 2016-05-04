@@ -22,7 +22,7 @@ directory::
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
 If you managed to install silx with one of the 3 previous commands and 
-everything is working, you can leave this page.
+everything is working, you can stop reading.
 
 Dependencies
 ============
