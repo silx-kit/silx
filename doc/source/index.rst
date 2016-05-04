@@ -6,7 +6,8 @@
 Welcome to silx's documentation!
 ================================
 
-Contents:
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
@@ -14,7 +15,14 @@ Contents:
    modules/gui/index.rst
    modules/io/index.rst
    modules/math/index.rst
+      
+Install
+-------
 
+.. toctree::
+   :maxdepth: 2
+
+   install.rst
 
 Indices and tables
 ==================

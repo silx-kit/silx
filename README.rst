@@ -35,7 +35,7 @@ Dependencies
 * `Python <https://www.python.org/>`_ 2.7, 3.4 and 3.5.
 * `numpy <http://www.numpy.org>`_
 
-The GUI widgets of the silx package depends on the following extra packages:
+The GUI widgets of the silx package depend on the following extra packages:
 
 * A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
