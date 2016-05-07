@@ -204,6 +204,13 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             # in principle, one should not need to change it, however, if there are
             # points to be excluded, one has to be able to exclude them.
             # We can only hope that the sequence is properly arranged
+            if xdata.size == ydata.size:
+                if len(xdata.shape) != 1:
+                    msg =  "Need to reshape input xdata."
+                    _logger.warning(msg)
+                xdata.shape = -1
+            else:
+                raise ValueError("Cannot reshape xdata to deal with NaN in ydata")
             ydata = ydata[idx]
             xdata = xdata[idx]
             sigma = sigma[idx]
@@ -222,7 +229,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             # What to do?
             try:
                 # Let's see if the function is able to deal with non-finite data
-                msg = "Cheking if function can deal with non-finite data"
+                msg = "Checking if function can deal with non-finite data"
                 _logger.debug(msg)
                 evaluation = model(xdata, *parameters)
                 function_call_counter  += 1

@@ -28,11 +28,7 @@ Nominal tests of the histogramnd function.
 import unittest
 
 import numpy
-
-# ==============================================================
-# ==============================================================
-# ==============================================================
-
+import sys
 
 class Test_curve_fit(unittest.TestCase):
     """
@@ -54,7 +50,7 @@ class Test_curve_fit(unittest.TestCase):
             return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
 
         self.my_exp = myexp
-        
+
         def gauss(x, *params):
             params=numpy.array(params, copy=False, dtype=numpy.float)
             result =  params[0] + params[1] * x
@@ -87,7 +83,7 @@ class Test_curve_fit(unittest.TestCase):
                 return tmp * 2.3548200450309493*(x - p[1])/(p[2]*p[2])
 
         self.gauss_derivative = gauss_derivative
-            
+
     def tearDown(self):
         self.instance = None
         self.gauss = None
@@ -152,7 +148,7 @@ class Test_curve_fit(unittest.TestCase):
             p[i] += delta_par
             yPlus = self.gauss(x, *p)
             p[i] = parameters_actual[i] - delta_par
-            yMinus = self.gauss(x, *p) 
+            yMinus = self.gauss(x, *p)
             numerical_derivative = (yPlus - yMinus) / (2 * delta_par)
             #numerical_derivative = (self.gauss(x, *p) - y) / delta_par
             p[i] = parameters_actual[i]
@@ -163,7 +159,7 @@ class Test_curve_fit(unittest.TestCase):
             if not test_condition:
                 msg = "Error calculating derivative of parameter %d." % i
                 msg += "\n diff min = %g diff max = %g" % (diff.min(), diff.max())
-                self.assertTrue(test_condition, msg)                               
+                self.assertTrue(test_condition, msg)
 
     def testUnconstrainedFitAnalyticalDerivative(self):
         parameters_actual = [10.5,2,1000.0,20.,15]
@@ -194,9 +190,50 @@ class Test_curve_fit(unittest.TestCase):
         parameters_estimate = [0.0,1.0,900.0, 25., 10]
         model_function = self.gauss
 
+        for check_finite in [True, False]:
+            fittedpar, cov = self.instance(model_function, x, y,
+                                           parameters_estimate,
+                                           sigma=sigma,
+                                           check_finite=check_finite)
+            test_condition = numpy.allclose(parameters_actual, fittedpar)
+            if not test_condition:
+                msg = "Unsuccessfull fit\n"
+                for i in range(len(fittedpar)):
+                    msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                          fittedpar[i])
+                self.assertTrue(test_condition, msg)
+
+    def testDataWithNaN(self):
+        parameters_actual = [10.5,2,1000.0,20.,15]
+        x = numpy.arange(10000.).reshape(1000,10)
+        y = self.gauss(x, *parameters_actual)
+        sigma = numpy.sqrt(y)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        model_function = self.gauss
+        x[500] = numpy.inf
+        # check default behavior
+        try:
+            self.instance(model_function, x, y,
+                                           parameters_estimate,
+                                           sigma=sigma)
+        except ValueError:
+            info = "%s" % sys.exc_info()[1]
+            self.assertTrue("array must not contain inf" in info)
+
+        # check requested behavior
+        try:
+            self.instance(model_function, x, y,
+                                           parameters_estimate,
+                                           sigma=sigma,
+                                           check_finite=True)
+        except ValueError:
+            info = "%s" % sys.exc_info()[1]
+            self.assertTrue("array must not contain inf" in info)
+
         fittedpar, cov = self.instance(model_function, x, y,
                                        parameters_estimate,
-                                       sigma=sigma)
+                                       sigma=sigma,
+                                       check_finite=False)
         test_condition = numpy.allclose(parameters_actual, fittedpar)
         if not test_condition:
             msg = "Unsuccessfull fit\n"
@@ -204,10 +241,36 @@ class Test_curve_fit(unittest.TestCase):
                 msg += "Expected %g obtained %g\n" % (parameters_actual[i],
                                                       fittedpar[i])
             self.assertTrue(test_condition, msg)
-        
-# ==============================================================
-# ==============================================================
-# ==============================================================
+
+        # testing now with ydata containing NaN
+        x = numpy.arange(10000.).reshape(1000,10)
+        y[500] = numpy.nan
+        fittedpar, cov = self.instance(model_function, x, y,
+                                       parameters_estimate,
+                                       sigma=sigma,
+                                       check_finite=False)
+
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+
+        # testing now with sigma containing NaN
+        sigma[300] = numpy.nan
+        fittedpar, cov = self.instance(model_function, x, y,
+                                   parameters_estimate,
+                                   sigma=sigma,
+                                   check_finite=False)
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
 
 
 test_cases = (Test_curve_fit,)
