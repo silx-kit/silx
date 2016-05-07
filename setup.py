@@ -41,12 +41,12 @@ import platform
 from numpy.distutils.misc_util import Configuration
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
     from setuptools.command.build_py import build_py as _build_py
     from setuptools.command.build_ext import build_ext
     from setuptools.command.sdist import sdist
 except ImportError:
-    from numpy.distutils.core import setup
+    from numpy.distutils.core import setup, Command
     from distutils.command.build_py import build_py as _build_py
     from distutils.command.build_ext import build_ext
     from distutils.command.sdist import sdist
@@ -60,6 +60,7 @@ DRY_RUN = len(sys.argv) == 1 or (len(sys.argv) >= 2 and (
     '--help' in sys.argv[1:] or
     sys.argv[1] in ('--help-commands', 'egg_info', '--version',
                     'clean', '--name')))
+
 
 def get_version():
     import version
@@ -113,6 +114,26 @@ class build_py(_build_py):
 
 cmdclass['build_py'] = build_py
 
+
+########
+# Test #
+########
+
+class PyTest(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import subprocess
+        errno = subprocess.call([sys.executable, 'run_tests.py', '-i'])
+        if errno != 0:
+            raise SystemExit(errno)
+cmdclass['test'] = PyTest
 
 # ################### #
 # build_doc commandes #
@@ -408,17 +429,17 @@ install_requires = ["numpy"]
 setup_requires = ["numpy"]
 
 setup_kwargs.update(
-    name=PROJECT,
-    version=get_version(),
-    url="https://github.com/silx-kit/silx",
-    author="data analysis unit",
-    author_email="silx@esrf.fr",
-    classifiers=classifiers,
-    description="Software library for X-Ray data analysis",
-    long_description=get_readme(),
-    install_requires=install_requires,
-    setup_requires=setup_requires,
-    cmdclass=cmdclass,
-    )
+                    name=PROJECT,
+                    version=get_version(),
+                    url="https://github.com/silx-kit/silx",
+                    author="data analysis unit",
+                    author_email="silx@esrf.fr",
+                    classifiers=classifiers,
+                    description="Software library for X-Ray data analysis",
+                    long_description=get_readme(),
+                    install_requires=install_requires,
+                    setup_requires=setup_requires,
+                    cmdclass=cmdclass,
+                     )
 
 setup(**setup_kwargs)
