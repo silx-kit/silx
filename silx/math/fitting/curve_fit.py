@@ -114,8 +114,8 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
                                          Sum obtained when adding parameter with index constraints[i][1]
 
         model_deriv - None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
-                      It will be called as model_deriv(xdata, parameters, index) where parameters are the current values
-                      of the fitting parameters, index is the fitting parameter index for which the the derivative has
+                      It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
+                      values of the fitting parameters, index is the fitting parameter index for which the the derivative has
                       to be provided in the supplied array of xdata points.
 
         epsfcn : float
@@ -186,6 +186,8 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             sigma = numpy.asarray_chkfinite(sigma)
         else:
             sigma = numpy.ones((ydata.shape), dtype=numpy.float)
+        ydata.shape = -1
+        sigma.shape = -1
     else:
         ydata = numpy.asarray(ydata)
         xdata = numpy.asarray(xdata)
@@ -482,7 +484,7 @@ def ChisqAlphaBeta(model, parameters, x, y, weight, constraints=None,
     beta = numpy.zeros((1,n_free),numpy.float)
     #delta = (fitparam + numpy.equal(fitparam,0.0)) * 0.00001
     delta = (fitparam + numpy.equal(fitparam,0.0)) * numpy.sqrt(epsfcn)
-    nr  = x.shape[0]
+    nr  = y.size
     ##############
     # Prior to each call to the function one has to re-calculate the
     # parameters
@@ -537,6 +539,7 @@ def ChisqAlphaBeta(model, parameters, x, y, weight, constraints=None,
     if last_evaluation is None:
         if constraints is None:
             yfit = model(x, *fitparam)
+            yfit.shape = -1
         else:
             newpar = getparameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar,noigno)

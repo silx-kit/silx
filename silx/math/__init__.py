@@ -27,3 +27,4 @@ __license__ = "MIT"
 __date__ = "01/02/2016"
 
 from .histogramnd import histogramnd
+from .fitting.curve_fit import curve_fit

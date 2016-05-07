@@ -1,0 +1,224 @@
+# coding: utf-8
+# /*##########################################################################
+# Copyright (C) 2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ############################################################################*/
+"""
+Nominal tests of the histogramnd function.
+"""
+
+import unittest
+
+import numpy
+
+# ==============================================================
+# ==============================================================
+# ==============================================================
+
+
+class Test_curve_fit(unittest.TestCase):
+    """
+    Unit tests of the curve_fit function.
+    """
+
+    ndims = None
+
+    def setUp(self):
+        try:
+            from silx.math import curve_fit
+            self.instance = curve_fit
+        except ImportError:
+            self.instance = None
+
+        def myexp(x):
+            # put a (bad) filter to avoid over/underflows
+            # with no python looping
+            return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
+
+        self.my_exp = myexp
+        
+        def gauss(x, *params):
+            params=numpy.array(params, copy=False, dtype=numpy.float)
+            result =  params[0] + params[1] * x
+            for i in range(2, len(params), 3):
+                p = params[i:(i+3)]
+                dummy=2.3548200450309493*(x - p[1])/p[2]
+                result += p[0] * self.my_exp(-0.5 * dummy * dummy)
+            return result
+
+        self.gauss = gauss
+
+        def gauss_derivative(x, params, idx):
+            if idx == 0:
+                return numpy.ones(len(x), numpy.float)
+            if idx == 1:
+                return x
+            gaussian_peak = (idx - 2) // 3
+            gaussian_parameter = (idx - 2) % 3
+            actual_idx = 2 + 3 * gaussian_peak
+            p = params[actual_idx:(actual_idx+3)]
+            if gaussian_parameter == 0:
+                return self.gauss(x, *[0, 0, 1.0, p[1], p[2]])
+            if gaussian_parameter == 1:
+                tmp = self.gauss(x, *[0, 0, p[0], p[1], p[2]])
+                tmp *= 2.3548200450309493*(x - p[1])/p[2]
+                return tmp * 2.3548200450309493/p[2]
+            if gaussian_parameter == 2:
+                tmp = self.gauss(x, *[0, 0, p[0], p[1], p[2]])
+                tmp *= 2.3548200450309493*(x - p[1])/p[2]
+                return tmp * 2.3548200450309493*(x - p[1])/(p[2]*p[2])
+
+        self.gauss_derivative = gauss_derivative
+            
+    def tearDown(self):
+        self.instance = None
+        self.gauss = None
+        self.gauss_derivative = None
+        self.my_exp = None
+        self.model_function = None
+        self.model_derivative = None
+
+    def testImport(self):
+        self.assertTrue(self.instance is not None,
+                        "Cannot import curve_fit from silx.math")
+
+    def testUnconstrainedFitNoWeight(self):
+        parameters_actual = [10.5,2,1000.0,20.,15]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        model_function = self.gauss
+
+        fittedpar, cov = self.instance(model_function, x, y, parameters_estimate)
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+
+    def testUnconstrainedFitWeight(self):
+        parameters_actual = [10.5,2,1000.0,20.,15]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        sigma = numpy.sqrt(y)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        model_function = self.gauss
+
+        fittedpar, cov = self.instance(model_function, x, y,
+                                       parameters_estimate,
+                                       sigma=sigma)
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+
+    def testDerivativeFunction(self):
+        parameters_actual = [10.5,2,10000.0,20.,150, 5000, 900., 300]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        delta = numpy.sqrt(numpy.finfo(numpy.float).eps)
+        for i in range(len(parameters_actual)):
+            p = parameters_actual * 1
+            if p[i] == 0:
+                delta_par = delta
+            else:
+                delta_par = p[i] * delta
+            if i > 2:
+                p[0] = 0.0
+                p[1] = 0.0
+            p[i] += delta_par
+            yPlus = self.gauss(x, *p)
+            p[i] = parameters_actual[i] - delta_par
+            yMinus = self.gauss(x, *p) 
+            numerical_derivative = (yPlus - yMinus) / (2 * delta_par)
+            #numerical_derivative = (self.gauss(x, *p) - y) / delta_par
+            p[i] = parameters_actual[i]
+            derivative = self.gauss_derivative(x, p, i)
+            diff = numerical_derivative - derivative
+            test_condition = numpy.allclose(numerical_derivative,
+                                           derivative, atol=5.0e-6)
+            if not test_condition:
+                msg = "Error calculating derivative of parameter %d." % i
+                msg += "\n diff min = %g diff max = %g" % (diff.min(), diff.max())
+                self.assertTrue(test_condition, msg)                               
+
+    def testUnconstrainedFitAnalyticalDerivative(self):
+        parameters_actual = [10.5,2,1000.0,20.,15]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        sigma = numpy.sqrt(y)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        model_function = self.gauss
+        model_deriv = self.gauss_derivative
+
+        fittedpar, cov = self.instance(model_function, x, y,
+                                       parameters_estimate,
+                                       sigma=sigma,
+                                       model_deriv=model_deriv)
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+
+    def testBadlyShapedData(self):
+        parameters_actual = [10.5,2,1000.0,20.,15]
+        x = numpy.arange(10000.).reshape(1000,10)
+        y = self.gauss(x, *parameters_actual)
+        sigma = numpy.sqrt(y)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        model_function = self.gauss
+
+        fittedpar, cov = self.instance(model_function, x, y,
+                                       parameters_estimate,
+                                       sigma=sigma)
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+        
+# ==============================================================
+# ==============================================================
+# ==============================================================
+
+
+test_cases = (Test_curve_fit,)
+
+def suite():
+    loader = unittest.defaultTestLoader
+    test_suite = unittest.TestSuite()
+    for test_class in test_cases:
+        tests = loader.loadTestsFromTestCase(test_class)
+        test_suite.addTests(tests)
+    return test_suite
+
+if __name__ == '__main__':
+    unittest.main(defaultTest="suite")

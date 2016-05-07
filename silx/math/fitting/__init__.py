@@ -22,45 +22,8 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "06/05/2016"
 
-import numpy
-
-from numpy.distutils.misc_util import Configuration
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('math', parent_package, top_path)
-    config.add_subpackage('test')
-
-    # =====================================
-    # histogramnd
-    # =====================================
-    histo_dir = 'histogramnd'
-    histo_src = ['/'.join([histo_dir, srcf])
-                 for srcf in ['histogramnd.pyx',
-                              'src/histogramnd_c.c']]
-    histo_inc = ['/'.join([histo_dir, 'include']),
-                 numpy.get_include()]
-
-    config.add_extension('histogramnd',
-                         sources=histo_src,
-                         include_dirs=histo_inc,
-                         language='c')
-    # =====================================
-    # curve_fit
-    # =====================================
-
-    config.add_subpackage('fitting')
-
-    # =====================================
-    # =====================================
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+from . import curve_fit
