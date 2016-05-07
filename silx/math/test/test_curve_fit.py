@@ -161,6 +161,50 @@ class Test_curve_fit(unittest.TestCase):
                 msg += "\n diff min = %g diff max = %g" % (diff.min(), diff.max())
                 self.assertTrue(test_condition, msg)
 
+    def testConstrainedFit(self):
+        CFREE       = 0
+        CPOSITIVE   = 1
+        CQUOTED     = 2
+        CFIXED      = 3
+        CFACTOR     = 4
+        CDELTA      = 5
+        CSUM        = 6
+        parameters_actual = [10.5,2,10000.0, 20.,150, 5000, 900., 300]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        parameters_estimate = [0.0,1.0,900.0, 25., 10, 400, 850, 200]
+        model_function = self.gauss
+        model_deriv = self.gauss_derivative
+        constraints_all_free = [[0,0,0]] * len(parameters_actual)
+        constraints_all_positive = [[1,0,0]] * len(parameters_actual)
+        constraints_delta_position = [[0, 0, 0]] * len(parameters_actual)
+        constraints_delta_position[6] = [CDELTA, 3, 880]
+        constraints_sum_position = constraints_all_positive * 1 
+        constraints_sum_position[6] = [CSUM, 3, 920]
+        constraints_factor = constraints_delta_position * 1
+        constraints_factor[2] = [CFACTOR, 5, 2]
+        constraints_list = [None,
+                            constraints_all_free,
+                            constraints_all_positive,
+                            constraints_delta_position,
+                            constraints_sum_position]
+        for constraints in constraints_list:
+            for model_deriv in [None, self.gauss_derivative]:
+                for sigma in [None, numpy.sqrt(y)]:
+                    fittedpar, cov = self.instance(model_function, x, y,
+                                       parameters_estimate,
+                                       sigma=sigma,
+                                       constraints=constraints,
+                                       model_deriv=model_deriv)
+
+        test_condition = numpy.allclose(parameters_actual, fittedpar)
+        if not test_condition:
+            msg = "Unsuccessfull fit\n"
+            for i in range(len(fittedpar)):
+                msg += "Expected %g obtained %g\n" % (parameters_actual[i],
+                                                      fittedpar[i])
+            self.assertTrue(test_condition, msg)
+
     def testUnconstrainedFitAnalyticalDerivative(self):
         parameters_actual = [10.5,2,1000.0,20.,15]
         x = numpy.arange(10000.)
