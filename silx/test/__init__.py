@@ -64,3 +64,14 @@ def suite():
     test_suite.addTest(test_math_suite())
     test_suite.addTest(test_bilinear.suite())
     return test_suite
+
+
+def run_tests():
+    """Run test complete test_suite"""
+    runner = unittest.TextTestRunner()
+    if not runner.run(suite()).wasSuccessful():
+        print("Test suite failed")
+        return 1
+    else:
+        print("Test suite succeeded")
+        return 0
