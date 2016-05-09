@@ -25,12 +25,13 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "04/05/2016"
+__date__ = "09/05/2016"
 __doc__ = "Bilinear interpolator and peak finder for images"
 
 import cython
 cimport cython
 import numpy
+cimport numpy
 from libc.math cimport floor, ceil, sin, cos, sqrt, atan2  
 import logging
 logger = logging.getLogger("silx.image.bilinear") 
@@ -285,14 +286,18 @@ cdef class BilinearImage:
             float src_row, src_col, dst_row, dst_col, d_row, d_col, theta, 
             float length, col_width, row_width, sum, row, col, new_row, new_col   
             int lengt, i, j, cnt
-            float[::1] result
+            numpy.ndarray[numpy.float32_t, ndim = 1] result
         src_row, src_col = src
         dst_row, dst_col = dst
+        if (src_row == dst_row) and (src_col == dst_col):
+            logger.warning("Source and destination points are the same")
+            return numpy.array([self.c_funct(src_col, src_row)])
         d_row = dst_row - src_row
         d_col = dst_col - src_col
         theta = atan2(d_row, d_col)
         lengt = <int> ceil(sqrt(d_row * d_row + d_col * d_col) + 1)
-        
+        d_row /= <float> (lengt -1)
+        d_col /= <float> (lengt -1)
         col_width = sin(-theta)
         row_width = cos(theta) 
         
@@ -301,8 +306,8 @@ cdef class BilinearImage:
         for i in range(lengt):
             sum = 0
             cnt = 0
-            row = src_row + i * d_row / lengt
-            col = src_col + i * d_row / lengt
+            row = src_row + i * d_row 
+            col = src_col + i * d_col 
             if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
                 cnt = cnt + 1
                 sum = sum + self.c_funct(col, row)
