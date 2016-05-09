@@ -17,8 +17,12 @@ directory::
     
 .. note::
     
-    Replace the ``pip`` command with ``pip3`` to install silx or any
-    other library for Python 3.
+    Maybe you'll need to replace the ``pip`` command with ``pip3`` to install
+    silx or any other library for Python 3.
+        
+.. note::
+    
+    This installs silx without the optional dependencies. 
     
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
@@ -42,11 +46,7 @@ The GUI widgets depend on the following extra packages:
 
 Tools for reading and writing HDF5 files depend on the following package:
 
-* h5py
-
-  .. note::
-
-      The instructions for installing h5py can be found here: http://docs.h5py.org/en/latest/build.html
+* `h5py <http://docs.h5py.org/en/latest/build.html>`_
       
 Build dependencies
 ------------------
@@ -153,6 +153,7 @@ Some of the dependencies can be simply installed with pip::
 
     pip install numpy
     pip install matplotlib
+    pip install PyQt5
     pip install PySide
 
 Dependencies that are not available as a wheel may require the
@@ -186,5 +187,10 @@ using pip::
 If you require `h5py` version `2.6.0`, you will need to compile it as well as
 it's dependencies (mainly HDF5) yourself.
 
-Installing `PyQt` on Mac OS X is currently not trivial. You can download the
-source package on the `Riverbank Computing website <https://www.riverbankcomputing.com/software/pyqt/download5>`_.
+A PyQt5 wheel is now available for Python 3.5 on Mac OS X: 
+https://pypi.python.org/simple/pyqt5/.
+Download it and install it with::
+
+    pip install PyQt5-5.6-cp35-cp35m-macosx_10_6_intel.whl
+
+This should work for all versions of Mac OS X from 10.6. 
