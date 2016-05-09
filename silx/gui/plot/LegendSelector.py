@@ -1045,8 +1045,15 @@ class LegendsDockWidget(qt.QDockWidget):
         legendList = []
         curves = self.plot.getAllCurves(withhidden=True)
         for x, y, legend, info, params in curves:
+            # Use active color if curve is active
+            if legend == self.plot.getActiveCurve(just_legend=True):
+                print('got an active curve')
+                color = self.plot.getActiveCurveColor()
+            else:
+                color = params['color']
+
             curveInfo = {
-                'color': qt.QColor(params['color']),
+                'color': qt.QColor(color),
                 'linewidth': params['linewidth'],
                 'linestyle': params['linestyle'],
                 'symbol': params['symbol'],
@@ -1059,5 +1066,7 @@ class LegendsDockWidget(qt.QDockWidget):
         if visible:
             self.updateLegends()
             self.plot.sigContentChanged.connect(self.updateLegends)
+            self.plot.sigActiveCurveChanged.connect(self.updateLegends)
         else:
             self.plot.sigContentChanged.disconnect(self.updateLegends)
+            self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)

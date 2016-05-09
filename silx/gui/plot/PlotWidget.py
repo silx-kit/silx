@@ -101,6 +101,15 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     - legend: The legend of the primitive changed.
     """
 
+    sigActiveCurveChanged = qt.Signal(object, object)
+    """Signal emitted when the active curve has changed.
+
+    It provides 2 informations:
+
+    - previous: The legend of the previous active curve or None
+    - legend: The legend of the new active curve or None if no curve is active
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -153,7 +162,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         elif event == 'contentChanged':
             self.sigContentChanged.emit(
                 kwargs['action'], kwargs['kind'], kwargs['legend'])
-
+        elif event == 'activeCurveChanged':
+            self.sigActiveCurveChanged.emit(
+                kwargs['previous'], kwargs['legend'])
         Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys
@@ -201,6 +212,19 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         key = event.key()
         if self._panWithArrowKeys and key in self._ARROWS_TO_PAN_DIRECTION:
             self.pan(self._ARROWS_TO_PAN_DIRECTION[key], factor=0.1)
+
+            # Send a mouse move event to the plot widget to take into account
+            # that even if mouse didn't move on the screen, it moved relative
+            # to the plotted data.
+            qapp = qt.QApplication.instance()
+            event = qt.QMouseEvent(
+                qt.QEvent.MouseMove,
+                self.centralWidget().mapFromGlobal(qt.QCursor.pos()),
+                qt.Qt.NoButton,
+                qapp.mouseButtons(),
+                qapp.keyboardModifiers())
+            qapp.sendEvent(self.centralWidget(), event)
+
         else:
             # Only call base class implementation when key is not handled.
             # See QWidget.keyPressEvent for details.

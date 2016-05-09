@@ -32,6 +32,9 @@ __date__ = "28/04/2016"
 import logging
 import numbers
 import traceback
+import weakref
+
+import numpy
 
 from .. import qt
 
@@ -85,10 +88,22 @@ class PositionInfo(qt.QWidget):
     """
 
     def __init__(self, plot, converters=None, parent=None):
+        self._plotRef = weakref.ref(plot)
+
         super(PositionInfo, self).__init__(parent)
 
         if converters is None:
             converters = (('X', lambda x, y: x), ('Y', lambda x, y: y))
+
+        self.autoSnapToActiveCurve = False
+        """Toggle snapping use position to active curve.
+
+        - True to snap used coordinates to the active curve if the active curve
+        is displayed with symbols and mouse is close enough.
+        If the mouse is not close to a point of the curve, values are
+        displayed in red.
+        - False (the default) to always use mouse coordinates.
+        """
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
 
@@ -115,6 +130,11 @@ class PositionInfo(qt.QWidget):
         # Connect to Plot events
         plot.sigPlotSignal.connect(self._plotEvent)
 
+    @property
+    def plot(self):
+        """The :class:`.PlotWindow` this widget is attached to."""
+        return self._plotRef()
+
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
         return [(name, func) for lineEdit, name, func in self._fields]
@@ -125,9 +145,41 @@ class PositionInfo(qt.QWidget):
         :param dict event: Plot event
         """
         if event['event'] == 'mouseMoved':
-            x, y = event['x'], event['y']
+            x, y = event['x'], event['y']  # Position in data
+            styleSheet = "color: rgb(0, 0, 0);"  # Default style
+
+            if self.autoSnapToActiveCurve and self.plot.getGraphCursor():
+                # Check if near active curve with symbols.
+
+                styleSheet = "color: rgb(255, 0, 0);"  # Style far from curve
+
+                activeCurve = self.plot.getActiveCurve()
+                if activeCurve:
+                    xData, yData, legend, info, params = activeCurve[0:5]
+                    if params['symbol']:  # Only handled if symbols on curve
+                        closestIndex = numpy.argmin(
+                            pow(xData - x, 2) + pow(yData - y, 2))
+
+                        xClosest = xData[closestIndex]
+                        yClosest = yData[closestIndex]
+
+                        closestInPixels = self.plot.dataToPixel(
+                            xClosest, yClosest, axis=params['yaxis'])
+                        if closestInPixels is not None:
+                            xClosest, yClosest = closestInPixels
+                            xPixel, yPixel = event['xpixel'], event['ypixel']
+
+                            if (abs(xClosest - xPixel) < 5 and
+                                    abs(yClosest - yPixel) < 5):
+                                # Update lineEdit style sheet
+                                styleSheet = "color: rgb(0, 0, 0);"
+
+                                # if close enough, wrap to data point coords
+                                x, y = xClosest, yClosest
 
             for lineEdit, name, func in self._fields:
+                lineEdit.setStyleSheet(styleSheet)
+
                 try:
                     value = func(x, y)
                 except:
