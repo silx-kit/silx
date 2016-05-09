@@ -26,12 +26,11 @@
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
 __date__ = "09/05/2016"
-__doc__ = "Bilinear interpolator and peak finder for images"
+__doc__ = "Bilinear interpolator, peak finder, line-profile for images"
 
 import cython
-cimport cython
+from cython.view cimport array as cvarray
 import numpy
-cimport numpy
 from libc.math cimport floor, ceil, sin, cos, sqrt, atan2  
 import logging
 logger = logging.getLogger("silx.image.bilinear") 
@@ -288,7 +287,7 @@ cdef class BilinearImage:
             float src_row, src_col, dst_row, dst_col, d_row, d_col, theta, 
             float length, col_width, row_width, sum, row, col, new_row, new_col   
             int lengt, i, j, cnt
-            numpy.ndarray[numpy.float32_t, ndim = 1] result
+            float[::1] result
         src_row, src_col = src
         dst_row, dst_col = dst
         if (src_row == dst_row) and (src_col == dst_col):
@@ -329,4 +328,5 @@ cdef class BilinearImage:
                         sum = sum + self.c_funct(new_col, new_row)
                 if cnt:
                     result[i] += sum / cnt
-        return result
+        # Ensures the result is exported as numpy array and not memory view.
+        return numpy.asarray(result) 
