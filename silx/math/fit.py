@@ -56,108 +56,127 @@ CSUM        = 6
 CIGNORED    = 7
 
 def curve_fit(model, xdata, ydata, p0, sigma=None,
-              max_iter=100,
               constraints=None, model_deriv=None, epsfcn=None,
               deltachi=None, full_output=0,
               check_finite=True,
-              left_derivative=False, **kw):
+              left_derivative=False,
+              max_iter=100, **kw):
     """
     Use non-linear least squares Levenberg-Marduardt algorithm to fit a function, f, to
     data with optional constraints on the fitted parameters.
 
     Assumes ``ydata = f(xdata, *params) + eps``
 
-    Parameters
-    ----------
-        f : callable
-            The model function, f(x, ...).  It must take the independent
-            variable as the first argument and the parameters to fit as
-            separate remaining arguments.
-            The returned value is a one dimensional array of floats.
-        xdata : An M-length sequence.
-            The independent variable where the data is measured.
-        ydata : An M-length sequence
-            The dependent data --- nominally f(xdata, ...)
-        p0 : N-length sequence
-            Initial guess for the parameters.
-        sigma : None or M-length sequence, optional
-            If not None, the uncertainties in the ydata array. These are used as
-            weights in the least-squares problem
-            i.e. minimising ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )``
-            If None, the uncertainties are assumed to be 1
+    :param model: callable
+        The model function, f(x, ...).  It must take the independent
+        variable as the first argument and the parameters to fit as
+        separate remaining arguments.
+        The returned value is a one dimensional array of floats.
+
+    :param xdata: An M-length sequence.
+        The independent variable where the data is measured.
+
+    :param ydata: An M-length sequence
+        The dependent data --- nominally f(xdata, ...)
+
+    :param p0: N-length sequence
+        Initial guess for the parameters.
+
+    :param sigma: None or M-length sequence, optional
+        If not None, the uncertainties in the ydata array. These are used as
+        weights in the least-squares problem
+        i.e. minimising ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )``
+        If None, the uncertainties are assumed to be 1
+
+    :param constraints:
+        If provided, it is a 2D sequence of dimension (n_parameters, 3) where,
+        for each parameter denoted by the index i, the meaning is
+
+                     - constraints[i][0]
+
+                        - 0 - Free (CFREE)
+                        - 1 - Positive (CPOSITIVE)
+                        - 2 - Quoted (CQUOTED)
+                        - 3 - Fixed (CFIXED)
+                        - 4 - Factor (CFACTOR)
+                        - 5 - Delta (CDELTA)
+                        - 6 - Sum (CSUM)
 
 
-    Additional keywords
-    -------------------
+                     - constraints[i][1]
 
-        constraints - if provided, it is a 2D sequence of dimension (n_parameters, 3) where, for each
-                         parameter denoted by the index i, the meaning is
+                        - Ignored if constraints[i][0] is 0, 1, 3
+                        - Min value of the parameter if constraints[i][0] is CQUOTED
+                        - Index of fitted parameter to which it is related
 
-                     constraints[i][0] -> 0 - Free (CFREE)
-                                          1 - Positive (CPOSITIVE)
-                                          2 - Quoted (CQUOTED)
-                                          3 - Fixed (CFIXED)
-                                          4 - Factor (CFACTOR)
-                                          5 - Delta (CDELTA)
-                                          6 - Sum (CSUM)
+                     - constraints[i][2]
+                     
+                        - Ignored if constraints[i][0] is 0, 1, 3
+                        - Max value of the parameter if constraints[i][0] is CQUOTED
+                        - Factor to apply to related parameter with index constraints[i][1]
+                        - Difference with parameter with index constraints[i][1]
+                        - Sum obtained when adding parameter with index constraints[i][1]
+    :type constraints: *optional*, None or 2D sequence
+
+    :param model_deriv:
+        None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
+        It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
+        values of the fitting parameters, index is the fitting parameter index for which the the derivative has
+        to be provided in the supplied array of xdata points.
+    :type model_deriv: *optional*, None or callable
 
 
-                     constraints[i][1] -> Ignored if constraints[i][0] is 0, 1, 3
-                                         Min value of the parameter if constraints[i][0] is CQUOTED
-                                         Index of fitted parameter to which it is related
+    :param epsfcn: float
+        A variable used in determining a suitable parameter variation when
+        calculating the numerical derivatives (for model_deriv=None). 
+        Normally the actual step length will be sqrt(epsfcn)*x
+        Original Gefit module was using epsfcn 1.0e-10 while default value
+        is now numpy.finfo(numpy.float).eps as in scipy
+    :type epsfcn: *optional*, float
 
-                     constraints[i][2] -> Ignored if constraints[i][0] is 0, 1, 3
-                                         Max value of the parameter if constraints[i][0] is CQUOTED
-                                         Factor to apply to related parameter with index constraints[i][1]
-                                         Difference with parameter with index constraints[i][1]
-                                         Sum obtained when adding parameter with index constraints[i][1]
+    :param left_derivative:
+            This parameter only has an influence if no derivative function
+            is provided. When True the left and right derivatives of the
+            model will be calculated for each fitted parameters thus leading to
+            the double number of function evaluations. Default is False.
+            Original Gefit module was always using left_derivative as True.
+    :type left_derivative: *optional*, bool
 
-        model_deriv - None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
-                      It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
-                      values of the fitting parameters, index is the fitting parameter index for which the the derivative has
-                      to be provided in the supplied array of xdata points.
+    :param full_output: bool, optional
+        non-zero to return all optional outputs. The default is 0
 
-        epsfcn : float
-            A variable used in determining a suitable parameter variation when
-            calculating the numerical derivatives (for model_deriv=None). 
-            Normally the actual step length will be sqrt(epsfcn)*x
-            Original Gefit module was using epsfcn 1.0e-10 while default value
-            is now numpy.finfo(numpy.float).eps as in scipy
+    :param check_finite: bool, optional
+            If True, check that the input arrays do not contain nans of infs,
+            and raise a ValueError if they do. Setting this parameter to
+            False will ignore input arrays values containing nans.
+            Default is True.
 
-        max_iter - Maximum number of iterations (default is 100)
-
-        full_output : bool, optional
-            non-zero to return all optional outputs. The default is 0
-
-        check_finite : bool, optional
-                If True, check that the input arrays do not contain nans of infs,
-                and raise a ValueError if they do. Setting this parameter to
-                False will ignore input arrays values containing nans.
-                Default is True.
-
-        left_derivative: bool, optional
-                This parameter only has an influence if no derivative function
-                is provided. When True the left and right derivatives of the
-                model will be calculated for each fitted parameters thus leading to
-                the double number of function evaluations. Default is False.
-                Original Gefit module was always using left_derivative.
+    :param left_derivative: bool, optional
+            This parameter only has an influence if no derivative function
+            is provided. When True the left and right derivatives of the
+            model will be calculated for each fitted parameters thus leading to
+            the double number of function evaluations. Default is False.
+            Original Gefit module was always using left_derivative.
     
-        Returns
-        -------
-        popt : array
-            Optimal values for the parameters so that the sum of the squared error
-            of ``f(xdata, *popt) - ydata`` is minimized
-        pcov : 2d array
-            If no constraints are applied, this array contains the estimated covariance
-            of popt. The diagonals provide the variance of the parameter estimate.
-            To compute one standard deviation errors use ``perr = np.sqrt(np.diag(pcov))``.
-            If constraints are applied, this array does not contain the estimated covariance of
-            the parameters actually used during the fitting process but the uncertainties after
-            recalculating the covariance if all the parameters were free.
-            To get the actual uncertainties following error propagation of the actually fitted
-            parameters one should set full_output to True and access the uncertainties key.
-        infodict : dict
-            a dictionary of optional outputs with the keys:
+    :param max_iter: Maximum number of iterations (default is 100)
+
+    :return: Returns a tuple of length 2 (or 3 if full_ouput is True) with the content:
+
+         ``popt``: array
+           Optimal values for the parameters so that the sum of the squared error
+           of ``f(xdata, *popt) - ydata`` is minimized
+         ``pcov``: 2d array
+           If no constraints are applied, this array contains the estimated covariance
+           of popt. The diagonals provide the variance of the parameter estimate.
+           To compute one standard deviation errors use ``perr = np.sqrt(np.diag(pcov))``.
+           If constraints are applied, this array does not contain the estimated covariance of
+           the parameters actually used during the fitting process but the uncertainties after
+           recalculating the covariance if all the parameters were free.
+           To get the actual uncertainties following error propagation of the actually fitted
+           parameters one should set full_output to True and access the uncertainties key.
+         ``infodict``: dict
+           a dictionary of optional outputs with the keys:
+
             ``uncertainties``
                 The actual uncertainty on the optimized parameters.
             ``nfev``
@@ -171,7 +190,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             ``reduced_chisq``
                 The chi square ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )`` divided
                 by the number of degrees of freedom ``(M - number_of_free_parameters)``
-        """
+    """
     function_call_counter  = 0
     if numpy.isscalar(p0):
         p0 = [p0]
@@ -466,82 +485,94 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     Get chi square, the curvature matrix alpha and the matrix beta according to the input parameters.
     If all the parameters are unconstrained, the covariance matrix is the inverse of the alpha matrix.
 
-    Parameters
-    ----------
-        model : callable
-            The model function, f(x, ...).  It must take the independent
-            variable as the first argument and the parameters to fit as
-            separate remaining arguments.
-            The returned value is a one dimensional array of floats.
-        parameters : N-length sequence
-            Values of parameters at which function and derivatives are to be calculated.
-        x : An M-length sequence.
-            The independent variable where the data is measured.
-        y : An M-length sequence
-            The dependent data --- nominally f(xdata, ...)
-        weight : M-length sequence
-            Weights to be applied in the calculation of chi suare
-            As a reminder `` chisq = np.sum(weigth * (model(x, *parameters) - y))``
+    :param model: callable
+        The model function, f(x, ...).  It must take the independent
+        variable as the first argument and the parameters to fit as
+        separate remaining arguments.
+        The returned value is a one dimensional array of floats.
 
-    Additional keywords
-    -------------------
+    :param parameters: N-length sequence
+        Values of parameters at which function and derivatives are to be calculated.
 
-        constraints - if provided, it is a 2D sequence of dimension (n_parameters, 3) where, for each
-                         parameter denoted by the index i, the meaning is
+    :param x: An M-length sequence.
+        The independent variable where the data is measured.
 
-                     constraints[i][0] -> 0 - Free (CFREE)
-                                          1 - Positive (CPOSITIVE)
-                                          2 - Quoted (CQUOTED)
-                                          3 - Fixed (CFIXED)
-                                          4 - Factor (CFACTOR)
-                                          5 - Delta (CDELTA)
-                                          6 - Sum (CSUM)
+    :param y: An M-length sequence
+        The dependent data --- nominally f(xdata, ...)
+        
+    :param weight: M-length sequence
+        Weights to be applied in the calculation of chi suare
+        As a reminder `` chisq = np.sum(weigth * (model(x, *parameters) - y)**2)``
+
+    :param constraints:
+        If provided, it is a 2D sequence of dimension (n_parameters, 3) where,
+        for each parameter denoted by the index i, the meaning is
+
+                     - constraints[i][0]
+
+                        - 0 - Free (CFREE)
+                        - 1 - Positive (CPOSITIVE)
+                        - 2 - Quoted (CQUOTED)
+                        - 3 - Fixed (CFIXED)
+                        - 4 - Factor (CFACTOR)
+                        - 5 - Delta (CDELTA)
+                        - 6 - Sum (CSUM)
 
 
-                     constraints[i][1] -> Ignored if constraints[i][0] is 0, 1, 3
-                                         Min value of the parameter if constraints[i][0] is CQUOTED
-                                         Index of fitted parameter to which it is related
+                     - constraints[i][1]
 
-                     constraints[i][2] -> Ignored if constraints[i][0] is 0, 1, 3
-                                         Max value of the parameter if constraints[i][0] is CQUOTED
-                                         Factor to apply to related parameter with index constraints[i][1]
-                                         Difference with parameter with index constraints[i][1]
-                                         Sum obtained when adding parameter with index constraints[i][1]
+                        - Ignored if constraints[i][0] is 0, 1, 3
+                        - Min value of the parameter if constraints[i][0] is CQUOTED
+                        - Index of fitted parameter to which it is related
 
-        model_deriv - None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
-                      It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
-                      values of the fitting parameters, index is the fitting parameter index for which the the derivative has
-                      to be provided in the supplied array of xdata points.
+                     - constraints[i][2]
+                     
+                        - Ignored if constraints[i][0] is 0, 1, 3
+                        - Max value of the parameter if constraints[i][0] is CQUOTED
+                        - Factor to apply to related parameter with index constraints[i][1]
+                        - Difference with parameter with index constraints[i][1]
+                        - Sum obtained when adding parameter with index constraints[i][1]
+    :type constraints: *optional*, None or 2D sequence
 
-        epsfcn : float
-            A variable used in determining a suitable parameter variation when
-            calculating the numerical derivatives (for model_deriv=None). 
-            Normally the actual step length will be sqrt(epsfcn)*x
-            Original Gefit module was using epsfcn 1.0e-10 while default value
-            is now numpy.finfo(numpy.float).eps as in scipy
+    :param model_deriv:
+        None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
+        It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
+        values of the fitting parameters, index is the fitting parameter index for which the the derivative has
+        to be provided in the supplied array of xdata points.
+    :type model_deriv: *optional*, None or callable
 
-        left_derivative: bool, optional
-                This parameter only has an influence if no derivative function
-                is provided. When True the left and right derivatives of the
-                model will be calculated for each fitted parameters thus leading to
-                the double number of function evaluations. Default is False.
-                Original Gefit module was always using left_derivative as True.
 
-        last_evaluation: An M-length array
-                Used for optimization purposes. If supplied, this array will be taken as the result of
-                evaluating the function, that is as the result of ``model(x, *parameters)`` thus avoiding
-                the evaluation call.
+    :param epsfcn: float
+        A variable used in determining a suitable parameter variation when
+        calculating the numerical derivatives (for model_deriv=None). 
+        Normally the actual step length will be sqrt(epsfcn)*x
+        Original Gefit module was using epsfcn 1.0e-10 while default value
+        is now numpy.finfo(numpy.float).eps as in scipy
+    :type epsfcn: *optional*, float
 
-        full_output: bool, optional
-                Additional output used for internal purposes with the keys:
-            ``function_calls``
-                The number of model function calls performed.
-            ``fitparam``
-                A sequence with the actual free parameters
-            ``free_index``
-                Sequence with the indices of the free parameters in input parameters sequence. 
-            ``noigno``
-                Sequence with the indices of the original parameters considered in the calculations.
+    :param left_derivative:
+            This parameter only has an influence if no derivative function
+            is provided. When True the left and right derivatives of the
+            model will be calculated for each fitted parameters thus leading to
+            the double number of function evaluations. Default is False.
+            Original Gefit module was always using left_derivative as True.
+    :type left_derivative: *optional*, bool
+
+    :param last_evaluation: An M-length array
+            Used for optimization purposes. If supplied, this array will be taken as the result of
+            evaluating the function, that is as the result of ``model(x, *parameters)`` thus avoiding
+            the evaluation call.
+
+    :param full_output: bool, optional
+            Additional output used for internal purposes with the keys:
+        ``function_calls``
+            The number of model function calls performed.
+        ``fitparam``
+            A sequence with the actual free parameters
+        ``free_index``
+            Sequence with the indices of the free parameters in input parameters sequence. 
+        ``noigno``
+            Sequence with the indices of the original parameters considered in the calculations.
     """
     if epsfcn is None:
         epsfcn = numpy.finfo(numpy.float).eps
