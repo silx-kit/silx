@@ -17,20 +17,27 @@ directory::
     
 .. note::
     
-    Replace the ``pip`` command with ``pip3`` to install silx or any
-    other library for Python 3.
+    Maybe you'll need to replace the ``pip`` command with ``pip3`` to install
+    silx or any other library for Python 3.
+        
+.. note::
+    
+    This installs silx without the optional dependencies. 
     
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
-If you managed to install silx with one of the 3 previous commands and 
-everything is working, you can stop reading.
+If you managed to install silx with one of the 3 previous commands and 
+everything is working, you can stop reading here.
 
 Dependencies
 ============
 
 silx is a Python library whose installation relies on Numpy.
 
-The supported Python versions are: 2.7, 3.5
+The supported Python versions are: 2.7, 3.4, 3.5
+
+On Windows it is recommended to use Python 3.5, because with previous Python
+versions it might be difficult to compile the extensions.
 
 The GUI widgets depend on the following extra packages:
 
@@ -39,11 +46,7 @@ The GUI widgets depend on the following extra packages:
 
 Tools for reading and writing HDF5 files depend on the following package:
 
-* h5py
-
-  .. note::
-
-      The instructions for installing h5py can be found here: http://docs.h5py.org/en/latest/build.html
+* `h5py <http://docs.h5py.org/en/latest/build.html>`_
       
 Build dependencies
 ------------------
@@ -58,8 +61,8 @@ from Cython v0.17 and newer).
 Installing silx
 ===============
 
-Installing from Debian package
-------------------------------
+Installing a Debian package
+---------------------------
 
 Debian 8 packages are available at http://www.edna-site.org/pub/debian/. 
 This installation method has the advantage of taking care of the optional 
@@ -85,7 +88,7 @@ Or for Python3::
 Source package
 --------------
 
-A source package can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
+A source package can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
@@ -102,7 +105,7 @@ Or::
     pip install . --user --upgrade
     
 The ``--upgrade`` option is not mandatory, but it ensures that you install the
-downloaded version even if a previous version silx was already installed.
+downloaded version even if a previous version of `silx` was already installed.
 
 Advanced building options
 -------------------------
@@ -137,6 +140,12 @@ Download the script https://bootstrap.pypa.io/get-pip.py and execute it::
 
     python get-pip.py
 
+.. note::
+
+    This assumes that the python interpreter is on your path. Otherwise,
+    you need to specify the full python path (something like 
+    ``c:\python35\python get-pip.py``)
+
 Installing dependencies
 -----------------------
 
@@ -144,6 +153,7 @@ Some of the dependencies can be simply installed with pip::
 
     pip install numpy
     pip install matplotlib
+    pip install PyQt5
     pip install PySide
 
 Dependencies that are not available as a wheel may require the
@@ -161,14 +171,26 @@ Download the appropriate `.whl` file for your system and install them with pip::
     pip install h5py*.whl
     pip install PyQt4*.whl
     
-Mac OS X specific instructions
+`PyQt5` can be downloaded as a binary package for `Python 3.5` on the 
+`Riverbank Computing website <https://www.riverbankcomputing.com/software/pyqt/download5>`_.
+This package contains everything needed for `PyQt5`, including `Qt`.
+
+Mac OS X specific instructions
 ==============================
 
-Until recently, the `h5py` developers provided Mac OS X wheels. Therefore,
+Until recently, the `h5py` developers provided Mac OS X wheels. Therefore,
 the easiest way to install `h5py` on this system is to get an older version
 using pip::
 
     pip install h5py==2.5.0
     
-Starting from version `2.6.0`, you will need to compile `h5py` and it's
-dependencies (mainly HDF5) yourself.
+If you require `h5py` version `2.6.0`, you will need to compile it as well as
+it's dependencies (mainly HDF5) yourself.
+
+A PyQt5 wheel is now available for Python 3.5 on Mac OS X: 
+https://pypi.python.org/simple/pyqt5/.
+Download it and install it with::
+
+    pip install PyQt5-5.6-cp35-cp35m-macosx_10_6_intel.whl
+
+This should work for all versions of Mac OS X from 10.6. 
