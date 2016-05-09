@@ -55,8 +55,6 @@ CDELTA      = 5
 CSUM        = 6
 CIGNORED    = 7
 
-ONED = 0
-
 def curve_fit(model, xdata, ydata, p0, sigma=None,
               max_iter=100,
               constraints=None, model_deriv=None, epsfcn=None,
@@ -392,7 +390,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
                             txt += "A = %g B = %g"  % (A, B)
                             raise ValueError("Invalid parameter limits")
                     newpar[free_index[i]] = pwork [0] [i]
-                newpar=numpy.array(getparameters(newpar,constraints))
+                newpar=numpy.array(_get_parameters(newpar,constraints))
             workpar = numpy.take(newpar, noigno)
             yfit = model(x, *workpar)
             if last_evaluation is None:
@@ -607,7 +605,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     pwork = parameters.__copy__()
     for i in range(n_free):
         pwork [free_index[i]] = fitparam [i]
-    newpar = getparameters(pwork.tolist(), constraints)
+    newpar = _get_parameters(pwork.tolist(), constraints)
     newpar = numpy.take(newpar,noigno)
     if n_free == 0:
         raise ValueError("No free parameters to fit")
@@ -623,14 +621,14 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         if model_deriv is None:
             #pwork = parameters.__copy__()
             pwork[free_index[i]] = fitparam [i] + delta [i]
-            newpar = getparameters(pwork.tolist(), constraints)
+            newpar = _get_parameters(pwork.tolist(), constraints)
             newpar=numpy.take(newpar,noigno)
             f1 = model(x, *newpar)
             f1.shape = -1
             function_calls += 1
             if left_derivative:
                 pwork[free_index[i]] = fitparam [i] - delta [i]
-                newpar = getparameters(pwork.tolist(),constraints)
+                newpar = _get_parameters(pwork.tolist(),constraints)
                 newpar=numpy.take(newpar,noigno)
                 f2 = model(x, *newpar)
                 function_calls += 1
@@ -657,7 +655,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             yfit = model(x, *fitparam)
             yfit.shape = -1
         else:
-            newpar = getparameters(pwork.tolist(), constraints)
+            newpar = _get_parameters(pwork.tolist(), constraints)
             newpar = numpy.take(newpar,noigno)
             yfit = model(x, *newpar)
             yfit.shape = -1
@@ -691,7 +689,15 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     else:
         return chisq, alpha, beta
 
-def getparameters(parameters, constraints):
+def _get_parameters(parameters, constraints):
+    """
+    Apply constraints to input parameters.
+
+    Parameters not depending on other parameters, they are returned as the input.
+
+    Parameters depending on other parameters, return the value after applying the
+    relation to the parameter wo which they are related.
+    """
     # 0 = Free       1 = Positive     2 = Quoted
     # 3 = Fixed      4 = Factor       5 = Delta
     if constraints is None:
@@ -706,14 +712,7 @@ def getparameters(parameters, constraints):
             #newparam.append(parameters[i] * parameters[i])
             newparam.append(abs(parameters[i]))
         elif constraints[i][0] == CQUOTED:
-            if 1:
-                newparam.append(parameters[i])
-            else:
-                pmax=max(constraints[i][1],constraints[i][2])
-                pmin=min(constraints[i][1],constraints[i][2])
-                A = 0.5 * (pmax + pmin)
-                B = 0.5 * (pmax - pmin)
-                newparam.append(A + B * numpy.sin(parameters[i]))
+            newparam.append(parameters[i])
         elif abs(constraints[i][0]) == CFIXED:
             newparam.append(parameters[i])
         else:
@@ -726,7 +725,7 @@ def getparameters(parameters, constraints):
         elif constraints[i][0] == CIGNORED:
             # The whole ignored stuff should not be documented because setting
             # a parameter to 0 is not the same as being ignored.
-            # Being if=gnored should imply the parameter is simply not accounted for
+            # Being ignored should imply the parameter is simply not accounted for
             # and should be stripped out of the list of parameters by the program
             # using this module
             newparam[i] = 0
@@ -782,7 +781,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
             sigma_par [i] = sigma_par[int(constraints[i][1])]
     return sigma_par
 
-def test(npoints):
+def main(npoints=10000):
 
     def gauss(t0, *param0):
         param=numpy.array(param0)
@@ -797,14 +796,11 @@ def test(npoints):
         return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
 
     xx = numpy.arange(npoints, dtype=numpy.float)
-    ###xx=numpy.resize(xx,(npoints,1))
     yy = gauss(xx, *[10.5,2,1000.0,20.,15])
-    #yy[500,0] = yy[500, 0]/0.
-    #xx[500, 0] = yy[500, 0]/0.
     sy = numpy.sqrt(abs(yy))
     parameters = [0.0,1.0,900.0, 25., 10]
     stime = time.time()
-    #easier to handle
+
     fittedpar, cov, ddict = curve_fit(gauss, xx, yy, parameters,
                                                  sigma=sy,
                                                  left_derivative=False,
@@ -817,18 +813,6 @@ def test(npoints):
     print("chi square  = ",ddict["chisq"])
     print("Fitted pars = ",fittedpar)
     print("Sigma pars  = ", sigmapars)
-    """    
-    weight = 1./ (sy + (sy==0))
-    weight = weight * weight
-    yfit = gauss(xx, *fittedpar)
-    print("CALCULATED = ", (weight * pow(yy-yfit, 2)).sum()/(len(yy) - len(sigmapars)))
-    print("RETURNED = ", ddict["reduced_chisq"])
-    for i in range(len(parameters)):
-        a = fittedpar.copy()
-        a[i] += sigmapars[i]
-        yfit = gauss(xx, *a)
-        print(i, "CALCULATED = ", (weight * pow(yy-yfit, 2)).sum()/(len(yy) - len(sigmapars)))
-    """
     try:
         from scipy.optimize import curve_fit as cfit
         SCIPY = True
@@ -847,14 +831,6 @@ def test(npoints):
         print("Counter = ", counter)
         print("scipy = ", scipy_fittedpar)
         print("Sigma = ", numpy.sqrt(numpy.diag(scipy_cov)))
-        print("TYPES = ", type(scipy_fittedpar))
-
-
 
 if __name__ == "__main__":
-  test(10000)
-  #import profile
-  #profile.run('test(10000)',"test")
-  #import pstats
-  #p=pstats.Stats("test")
-  #p.strip_dirs().sort_stats(-1).print_stats()
+  main(10000)

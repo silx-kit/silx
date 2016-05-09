@@ -49,12 +49,6 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=histo_inc,
                          language='c')
     # =====================================
-    # curve_fit
-    # =====================================
-
-    config.add_subpackage('fit')
-
-    # =====================================
     # =====================================
 
     return config
