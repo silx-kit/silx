@@ -52,7 +52,7 @@ def configuration(parent_package='', top_path=None):
     # curve_fit
     # =====================================
 
-    config.add_subpackage('fitting')
+    config.add_subpackage('fit')
 
     # =====================================
     # =====================================
