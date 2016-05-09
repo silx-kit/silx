@@ -93,26 +93,25 @@ cdef class BilinearImage:
             int i0, i1, j0, j1
             float x0, x1, y0, y1, res
             
-        with nogil:
-            x0 = floor(d0)
-            x1 = ceil(d0)
-            y0 = floor(d1)
-            y1 = ceil(d1)
-            i0 = < int > x0
-            i1 = < int > x1
-            j0 = < int > y0
-            j1 = < int > y1
-            if (i0 == i1) and (j0 == j1):
-                res = self.data[i0, j0]
-            elif i0 == i1:
-                res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
-            elif j0 == j1:
-                res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
-            else:
-                res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
-                    + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
-                    + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
-                    + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
+        x0 = floor(d0)
+        x1 = ceil(d0)
+        y0 = floor(d1)
+        y1 = ceil(d1)
+        i0 = < int > x0
+        i1 = < int > x1
+        j0 = < int > y0
+        j1 = < int > y1
+        if (i0 == i1) and (j0 == j1):
+            res = self.data[i0, j0]
+        elif i0 == i1:
+            res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
+        elif j0 == j1:
+            res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
+        else:
+            res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
+                + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
+                + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
+                + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
         return res
     
     @cython.boundscheck(False)
@@ -268,9 +267,9 @@ cdef class BilinearImage:
         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
         assert size == d1.size
         res = numpy.empty(size, dtype=numpy.float32)
-#         with nogil: #investigate why this seg-faults with PyEval_SaveThread: NULL tstate
-        for i in range(size):
-            res[i] = self.c_funct(d1[i], d0[i])
+        with nogil:
+            for i in range(size):
+                res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)  
     
     @cython.boundscheck(False)
@@ -306,28 +305,28 @@ cdef class BilinearImage:
         
         result = numpy.zeros(lengt, dtype=numpy.float32)
                
-#         with nogil: #investigate why this seg-faults with PyEval_SaveThread: NULL tstate
-        for i in range(lengt):
-            sum = 0
-            cnt = 0
-            row = src_row + i * d_row 
-            col = src_col + i * d_col 
-            if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
-                cnt = cnt + 1
-                sum = sum + self.c_funct(col, row)
-            for j in range((linewidth - 1) // 2):
-                # On one side of the line
-                new_row = row + j * row_width
-                new_col = col + j * col_width
-                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+        with nogil:
+            for i in range(lengt):
+                sum = 0
+                cnt = 0
+                row = src_row + i * d_row 
+                col = src_col + i * d_col 
+                if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
                     cnt = cnt + 1
-                    sum = sum + self.c_funct(new_col, new_row)
-                # On the other 
-                new_row = row - j * row_width
-                new_col = col - j * col_width
-                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                    cnt = cnt + 1
-                    sum = sum + self.c_funct(new_col, new_row)
-            if cnt:
-                result[i] += sum / cnt
+                    sum = sum + self.c_funct(col, row)
+                for j in range((linewidth - 1) // 2):
+                    # On one side of the line
+                    new_row = row + j * row_width
+                    new_col = col + j * col_width
+                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                        cnt = cnt + 1
+                        sum = sum + self.c_funct(new_col, new_row)
+                    # On the other 
+                    new_row = row - j * row_width
+                    new_col = col - j * col_width
+                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                        cnt = cnt + 1
+                        sum = sum + self.c_funct(new_col, new_row)
+                if cnt:
+                    result[i] += sum / cnt
         return result

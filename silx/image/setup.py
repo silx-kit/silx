@@ -24,9 +24,9 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "09/05/2016"
 
-
+import numpy
 from numpy.distutils.misc_util import Configuration
 
 
@@ -35,6 +35,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('test')
     config.add_extension('bilinear',
                          sources=["bilinear.pyx"],
+                         include_dirs=numpy.get_include(),
                          language='c')
     return config
 
