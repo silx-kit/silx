@@ -39,6 +39,7 @@ __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
 from numpy.linalg import inv
+from numpy.linalg.linalg import LinAlgError
 import time
 import logging
 
@@ -152,9 +153,11 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             If no constraints are applied, this array contains the estimated covariance
             of popt. The diagonals provide the variance of the parameter estimate.
             To compute one standard deviation errors use ``perr = np.sqrt(np.diag(pcov))``.
-            If constraints are applied, this array contains the estimated covariance of
-            the parameters used during the fitting process. To get the actual uncertainties
-            one should set full_output to True and access the uncertainties key.
+            If constraints are applied, this array does not contain the estimated covariance of
+            the parameters actually used during the fitting process but the uncertainties after
+            recalculating the covariance if all the parameters were free.
+            To get the actual uncertainties following error propagation of the actually fitted
+            parameters one should set full_output to True and access the uncertainties key.
         infodict : dict
             a dictionary of optional outputs with the keys:
             ``uncertainties``
@@ -334,14 +337,19 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
         ignored or not between calls.
         """
         iteration_counter += 1
-        chisq0, alpha0, beta, n_free, free_index, noigno, fitparam,\
-        derivfactor, function_calls  = ChisqAlphaBeta(
+        chisq0, alpha0, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x,y, weight,constraints,
+                                                 x,y, weight, constraints=constraints,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
-                                                 last_evaluation=last_evaluation)
+                                                 last_evaluation=last_evaluation,
+                                                 full_output=True)
+        n_free = internal_output["n_free"]
+        free_index = internal_output["free_index"]
+        noigno = internal_output["noigno"]
+        fitparam = internal_output["fitparam"]
+        function_calls = internal_output["function_calls"]
         function_call_counter += function_calls
         #print("chisq0 = ", chisq0, n_free, fittedpar)
         #raise
@@ -417,25 +425,126 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
                 #print("iter = ",iiter,"chisq = ", chisq)
                 last_evaluation = yfit
             iiter = iiter -1
-    cov = inv(alpha0)
+    # this is the covariance matrix of the actually fitted parameters
+    cov0 = inv(alpha0)
+    if constraints is None:
+        cov = cov0
+    else:
+        # yet another call needed with all the parameters being free
+        chisq, alpha, beta, internal_output = chisq_alpha_beta(
+                                                 model, fittedpar,
+                                                 x,y, weight, constraints=None,
+                                                 model_deriv=model_deriv,
+                                                 epsfcn=epsfcn,
+                                                 left_derivative=left_derivative,
+                                                 last_evaluation=last_evaluation,
+                                                 full_output=True)
+        # obtained chisq should be identical to chisq0
+        try:
+            cov = inv(alpha)
+        except LinAlgError:
+            _logger.critical("Error calculating covariance matrix after successful fit")
+            cov = None
     if not full_output:
         return fittedpar, cov
     else:
-        sigma0 = numpy.sqrt(abs(numpy.diag(cov)))
-        sigmapar = getsigmaparameters(fittedpar, sigma0, constraints)
+        sigma0 = numpy.sqrt(abs(numpy.diag(cov0)))
+        sigmapar = _get_sigma_parameters(fittedpar, sigma0, constraints)
         ddict = {}
         ddict["chisq"] = chisq0
         ddict["reduced_chisq"] = chisq0 / (len(yfit)-n_free)
+        ddict["covariance"] = cov0
         ddict["uncertainties"] = sigmapar
         ddict["fvec"] = last_evaluation
         ddict["nfev"] = function_call_counter
         ddict["niter"] = iteration_counter
         return fittedpar, cov, ddict #, chisq/(len(yfit)-len(sigma0)), sigmapar,niter,lastdeltachi
 
-
-def ChisqAlphaBeta(model, parameters, x, y, weight, constraints=None,
+def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                    model_deriv=None, epsfcn=None, left_derivative=False,
-                   last_evaluation=None):
+                   last_evaluation=None, full_output=False):
+
+    """
+    Get chi square, the curvature matrix alpha and the matrix beta according to the input parameters.
+    If all the parameters are unconstrained, the covariance matrix is the inverse of the alpha matrix.
+
+    Parameters
+    ----------
+        model : callable
+            The model function, f(x, ...).  It must take the independent
+            variable as the first argument and the parameters to fit as
+            separate remaining arguments.
+            The returned value is a one dimensional array of floats.
+        parameters : N-length sequence
+            Values of parameters at which function and derivatives are to be calculated.
+        x : An M-length sequence.
+            The independent variable where the data is measured.
+        y : An M-length sequence
+            The dependent data --- nominally f(xdata, ...)
+        weight : M-length sequence
+            Weights to be applied in the calculation of chi suare
+            As a reminder `` chisq = np.sum(weigth * (model(x, *parameters) - y))``
+
+    Additional keywords
+    -------------------
+
+        constraints - if provided, it is a 2D sequence of dimension (n_parameters, 3) where, for each
+                         parameter denoted by the index i, the meaning is
+
+                     constraints[i][0] -> 0 - Free (CFREE)
+                                          1 - Positive (CPOSITIVE)
+                                          2 - Quoted (CQUOTED)
+                                          3 - Fixed (CFIXED)
+                                          4 - Factor (CFACTOR)
+                                          5 - Delta (CDELTA)
+                                          6 - Sum (CSUM)
+
+
+                     constraints[i][1] -> Ignored if constraints[i][0] is 0, 1, 3
+                                         Min value of the parameter if constraints[i][0] is CQUOTED
+                                         Index of fitted parameter to which it is related
+
+                     constraints[i][2] -> Ignored if constraints[i][0] is 0, 1, 3
+                                         Max value of the parameter if constraints[i][0] is CQUOTED
+                                         Factor to apply to related parameter with index constraints[i][1]
+                                         Difference with parameter with index constraints[i][1]
+                                         Sum obtained when adding parameter with index constraints[i][1]
+
+        model_deriv - None (default) or function providing the derivatives of the fitting function respect to the fitted parameters.
+                      It will be called as model_deriv(xdata, parameters, index) where parameters is a sequence with the current
+                      values of the fitting parameters, index is the fitting parameter index for which the the derivative has
+                      to be provided in the supplied array of xdata points.
+
+        epsfcn : float
+            A variable used in determining a suitable parameter variation when
+            calculating the numerical derivatives (for model_deriv=None). 
+            Normally the actual step length will be sqrt(epsfcn)*x
+            Original Gefit module was using epsfcn 1.0e-10 while default value
+            is now numpy.finfo(numpy.float).eps as in scipy
+
+        left_derivative: bool, optional
+                This parameter only has an influence if no derivative function
+                is provided. When True the left and right derivatives of the
+                model will be calculated for each fitted parameters thus leading to
+                the double number of function evaluations. Default is False.
+                Original Gefit module was always using left_derivative as True.
+
+        last_evaluation: An M-length array
+                Used for optimization purposes. If supplied, this array will be taken as the result of
+                evaluating the function, that is as the result of ``model(x, *parameters)`` thus avoiding
+                the evaluation call.
+
+        full_output: bool, optional
+                Additional output used for internal purposes with the keys:
+            ``function_calls``
+                The number of model function calls performed.
+            ``fitparam``
+                A sequence with the actual free parameters
+            ``free_index``
+                Sequence with the indices of the free parameters in input parameters sequence. 
+            ``noigno``
+                Sequence with the indices of the original parameters considered in the calculations.
+    """
     if epsfcn is None:
         epsfcn = numpy.finfo(numpy.float).eps
     else:
@@ -570,8 +679,17 @@ def ChisqAlphaBeta(model, parameters, x, y, weight, constraints=None,
         else:
             alpha = numpy.concatenate((alpha, help1),1)
     chisq = (help0 * deltay).sum()
-    return chisq, alpha, beta, \
-           n_free, free_index, noigno, fitparam, derivfactor, function_calls
+    if full_output:
+        ddict = {}
+        ddict["n_free"] = n_free
+        ddict["free_index"] = free_index
+        ddict["noigno"] = noigno
+        ddict["fitparam"] = fitparam
+        ddict["derivfactor"] = derivfactor
+        ddict["function_calls"] = function_calls
+        return chisq, alpha, beta, ddict
+    else:
+        return chisq, alpha, beta
 
 def getparameters(parameters, constraints):
     # 0 = Free       1 = Positive     2 = Quoted
@@ -606,12 +724,29 @@ def getparameters(parameters, constraints):
         elif constraints[i][0] == CDELTA:
             newparam[i] = constraints[i][2]+newparam[int(constraints[i][1])]
         elif constraints[i][0] == CIGNORED:
+            # The whole ignored stuff should not be documented because setting
+            # a parameter to 0 is not the same as being ignored.
+            # Being if=gnored should imply the parameter is simply not accounted for
+            # and should be stripped out of the list of parameters by the program
+            # using this module
             newparam[i] = 0
         elif constraints[i][0] == CSUM:
             newparam[i] = constraints[i][2]-newparam[int(constraints[i][1])]
     return newparam
 
-def getsigmaparameters(parameters,sigma0,constraints):
+def _get_sigma_parameters(parameters, sigma0, constraints):
+    """
+    Internal function propagating the uncertainty on the actually fitted parameters and related parameters to the
+    final parameters considering the applied constraints.
+    
+    Parameters
+    ----------
+        parameters : 1D sequence of length equal to the number of free parameters N
+            The parameters acually used in the fitting process.
+        sigma0 : 1D sequence of length N
+            The independent variable where the data is measured.
+        constraints : The set of constraints applied in the fitting process
+    """
     # 0 = Free       1 = Positive     2 = Quoted
     # 3 = Fixed      4 = Factor       5 = Delta
     if constraints is None:
@@ -647,38 +782,20 @@ def getsigmaparameters(parameters,sigma0,constraints):
             sigma_par [i] = sigma_par[int(constraints[i][1])]
     return sigma_par
 
-def fitpar2par(fitpar,constraints,free_index):
-    newparam = []
-    for i in range(len(constraints [0])):
-        if constraints[0][free_index[i]] == CFREE:
-            newparam.append(fitpar[i])
-        elif constraints[0][free_index[i]] == CPOSITIVE:
-            newparam.append(fitpar[i] * fitpar [i])
-        elif abs(constraints[0][free_index[i]]) == CQUOTED:
-            pmax=max(constraints[1] [free_index[i]],constraints[2] [free_index[i]])
-            pmin=min(constraints[1] [free_index[i]],constraints[2] [free_index[i]])
-            A = 0.5 * (pmax + pmin)
-            B = 0.5 * (pmax - pmin)
-            newparam.append(A + B * numpy.sin(fitpar[i]))
-    return newparam
-
-def gauss(t0, *param0):
-    global counter
-    counter += 1
-    param=numpy.array(param0)
-    t=numpy.array(t0)
-    dummy=2.3548200450309493*(t-param[3])/param[4]
-    return param[0] + param[1] * t + param[2] * myexp(-0.5 * dummy * dummy)
-
-def myexp(x):
-    # put a (bad) filter to avoid over/underflows
-    # with no python looping
-    return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
-
-
-counter = 0
 def test(npoints):
-    global counter
+
+    def gauss(t0, *param0):
+        param=numpy.array(param0)
+        t=numpy.array(t0)
+        dummy=2.3548200450309493*(t-param[3])/param[4]
+        return param[0] + param[1] * t + param[2] * myexp(-0.5 * dummy * dummy)
+
+
+    def myexp(x):
+        # put a (bad) filter to avoid over/underflows
+        # with no python looping
+        return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
+
     xx = numpy.arange(npoints, dtype=numpy.float)
     ###xx=numpy.resize(xx,(npoints,1))
     yy = gauss(xx, *[10.5,2,1000.0,20.,15])
@@ -686,7 +803,6 @@ def test(npoints):
     #xx[500, 0] = yy[500, 0]/0.
     sy = numpy.sqrt(abs(yy))
     parameters = [0.0,1.0,900.0, 25., 10]
-    counter = 0
     stime = time.time()
     #easier to handle
     fittedpar, cov, ddict = curve_fit(gauss, xx, yy, parameters,
@@ -697,8 +813,8 @@ def test(npoints):
     etime = time.time()
     sigmapars = numpy.sqrt(numpy.diag(cov))
     print("Took ",etime - stime, "seconds")
-    print("Counter = ", counter)
-    #print("chi square  = ",chisq)
+    print("Function calls  = ",ddict["nfev"])
+    print("chi square  = ",ddict["chisq"])
     print("Fitted pars = ",fittedpar)
     print("Sigma pars  = ", sigmapars)
     """    
