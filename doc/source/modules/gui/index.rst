@@ -1,4 +1,6 @@
 
+.. pymodule:: silx.gui
+
 :mod:`silx.gui`: Graphical user interface
 =========================================
 
