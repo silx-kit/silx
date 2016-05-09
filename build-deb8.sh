@@ -38,13 +38,15 @@ then
    export PATH=/usr/lib/ccache:$PATH
 fi
 
-# Enable to skip tests during build
-#export PYBUILD_DISABLE_python2=test
-#export PYBUILD_DISABLE_python3=test
-#export DEB_BUILD_OPTIONS=nocheck
 
 python setup.py debian_src
-cp dist/${tarname} package
+cp -f dist/${tarname} package
+
+if [ -f dist/${project}-testimages.tar.gz ]
+then
+  cp -f dist/${project}-testimages.tar.gz package
+fi
+
 cd package
 tar -xzf ${tarname}
 newname=${project}_${strictversion}.orig.tar.gz
@@ -52,19 +54,55 @@ directory=${project}-${strictversion}
 echo tarname $tarname newname $newname
 if [ $tarname != $newname ]
 then
+  if [ -h $newname ]
+  then
+    rm ${newname}
+  fi
     ln -s ${tarname} ${newname}
 fi
+
+if [ -f ${project}-testimages.tar.gz ]
+then
+  if [ ! -h  python-${project}_${strictversion}.orig-testimages.tar.gz ]
+  then
+    ln -s ${project}-testimages.tar.gz python-${project}_${strictversion}.orig-testimages.tar.gz
+  fi
+fi
+
 cd ${directory}
 cp -r ../debian .
 cp ../../copyright debian
-dch -v ${strictversion}-1 "upstream development build of silx ${version}"
-dch --bpo "silx snapshot version ${version} built for debian ${debian}"
+
+#handle test images
+if [ -f ../python-${project}_${strictversion}.orig-testimages.tar.gz ]
+then
+  if [ ! -d testimages ]
+  then
+    mkdir testimages
+  fi
+  cd testimages
+  tar -xzf  ../../python-${project}_${strictversion}.orig-testimages.tar.gz
+  cd ..
+else
+  # Disable to skip tests during build
+  echo No test data
+  #export PYBUILD_DISABLE_python2=test
+  #export PYBUILD_DISABLE_python3=test
+  #export DEB_BUILD_OPTIONS=nocheck
+fi
+
+dch -v ${strictversion}-1 "upstream development build of ${project} ${version}"
+dch --bpo "${project} snapshot ${version} built for debian ${debian}"
 dpkg-buildpackage -r
 rc=$?
 if [ $rc -eq 0 ]
 then
   cd ..
-  sudo su -c  "dpkg -i *.deb"
+  if [ -z $1 ]
+  #Provide an option name for avoiding auto-install
+  then
+    sudo su -c  "dpkg -i *.deb"
+  fi
   #rm -rf ${directory}
   cd ..
 else

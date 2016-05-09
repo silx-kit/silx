@@ -1,0 +1,18 @@
+
+.. pymodule:: silx.gui
+
+:mod:`silx.io`: Input-output
+=============================
+
+.. toctree::
+   :maxdepth: 1
+   
+   configdict.rst
+   dictdump.rst
+   specfile.rst
+   spech5.rst
+   spectoh5.rst
+   utils.rst
+
+
+
