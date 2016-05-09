@@ -25,11 +25,11 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "04/05/2016"
-__doc__ = "Bilinear interpolator and peak finder for images"
+__date__ = "09/05/2016"
+__doc__ = "Bilinear interpolator, peak finder, line-profile for images"
 
 import cython
-cimport cython
+from cython.view cimport array as cvarray
 import numpy
 from libc.math cimport floor, ceil, sin, cos, sqrt, atan2  
 import logging
@@ -92,26 +92,25 @@ cdef class BilinearImage:
             int i0, i1, j0, j1
             float x0, x1, y0, y1, res
             
-        with nogil:
-            x0 = floor(d0)
-            x1 = ceil(d0)
-            y0 = floor(d1)
-            y1 = ceil(d1)
-            i0 = < int > x0
-            i1 = < int > x1
-            j0 = < int > y0
-            j1 = < int > y1
-            if (i0 == i1) and (j0 == j1):
-                res = self.data[i0, j0]
-            elif i0 == i1:
-                res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
-            elif j0 == j1:
-                res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
-            else:
-                res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
-                    + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
-                    + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
-                    + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
+        x0 = floor(d0)
+        x1 = ceil(d0)
+        y0 = floor(d1)
+        y1 = ceil(d1)
+        i0 = < int > x0
+        i1 = < int > x1
+        j0 = < int > y0
+        j1 = < int > y1
+        if (i0 == i1) and (j0 == j1):
+            res = self.data[i0, j0]
+        elif i0 == i1:
+            res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
+        elif j0 == j1:
+            res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
+        else:
+            res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
+                + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
+                + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
+                + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
         return res
     
     @cython.boundscheck(False)
@@ -251,6 +250,7 @@ cdef class BilinearImage:
             current0, current1 = new0, new1
         return self.width * current0 + current1
 
+    @cython.boundscheck(False)
     def map_coordinates(self, coordinates):
         """Map coordinates of the array on the image 
                
@@ -266,10 +266,12 @@ cdef class BilinearImage:
         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
         assert size == d1.size
         res = numpy.empty(size, dtype=numpy.float32)
-        for i in range(size):
-            res[i] = self.c_funct(d1[i], d0[i])
+        with nogil:
+            for i in range(size):
+                res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)  
     
+    @cython.boundscheck(False)
     def profile_line(self, src, dst, int linewidth=1):
         """Return the intensity profile of an image measured along a scan line.
         
@@ -288,37 +290,43 @@ cdef class BilinearImage:
             float[::1] result
         src_row, src_col = src
         dst_row, dst_col = dst
+        if (src_row == dst_row) and (src_col == dst_col):
+            logger.warning("Source and destination points are the same")
+            return numpy.array([self.c_funct(src_col, src_row)])
         d_row = dst_row - src_row
         d_col = dst_col - src_col
         theta = atan2(d_row, d_col)
         lengt = <int> ceil(sqrt(d_row * d_row + d_col * d_col) + 1)
-        
+        d_row /= <float> (lengt -1)
+        d_col /= <float> (lengt -1)
         col_width = sin(-theta)
         row_width = cos(theta) 
         
         result = numpy.zeros(lengt, dtype=numpy.float32)
                
-        for i in range(lengt):
-            sum = 0
-            cnt = 0
-            row = src_row + i * d_row / lengt
-            col = src_col + i * d_row / lengt
-            if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
-                cnt = cnt + 1
-                sum = sum + self.c_funct(col, row)
-            for j in range((linewidth - 1) // 2):
-                # On one side of the line
-                new_row = row + j * row_width
-                new_col = col + j * col_width
-                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+        with nogil:
+            for i in range(lengt):
+                sum = 0
+                cnt = 0
+                row = src_row + i * d_row 
+                col = src_col + i * d_col 
+                if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
                     cnt = cnt + 1
-                    sum = sum + self.c_funct(new_col, new_row)
-                # On the other 
-                new_row = row - j * row_width
-                new_col = col - j * col_width
-                if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                    cnt = cnt + 1
-                    sum = sum + self.c_funct(new_col, new_row)
-            if cnt:
-                result[i] += sum / cnt
-        return result
+                    sum = sum + self.c_funct(col, row)
+                for j in range((linewidth - 1) // 2):
+                    # On one side of the line
+                    new_row = row + j * row_width
+                    new_col = col + j * col_width
+                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                        cnt = cnt + 1
+                        sum = sum + self.c_funct(new_col, new_row)
+                    # On the other 
+                    new_row = row - j * row_width
+                    new_col = col - j * col_width
+                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                        cnt = cnt + 1
+                        sum = sum + self.c_funct(new_col, new_row)
+                if cnt:
+                    result[i] += sum / cnt
+        # Ensures the result is exported as numpy array and not memory view.
+        return numpy.asarray(result) 
