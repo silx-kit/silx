@@ -252,6 +252,7 @@ cdef class BilinearImage:
             current0, current1 = new0, new1
         return self.width * current0 + current1
 
+    @cython.boundscheck(False)
     def map_coordinates(self, coordinates):
         """Map coordinates of the array on the image 
                
@@ -267,10 +268,12 @@ cdef class BilinearImage:
         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
         assert size == d1.size
         res = numpy.empty(size, dtype=numpy.float32)
+#         with nogil: #investigate why this seg-faults with PyEval_SaveThread: NULL tstate
         for i in range(size):
             res[i] = self.c_funct(d1[i], d0[i])
         return numpy.asarray(res).reshape(shape)  
     
+    @cython.boundscheck(False)
     def profile_line(self, src, dst, int linewidth=1):
         """Return the intensity profile of an image measured along a scan line.
         
@@ -303,6 +306,7 @@ cdef class BilinearImage:
         
         result = numpy.zeros(lengt, dtype=numpy.float32)
                
+#         with nogil: #investigate why this seg-faults with PyEval_SaveThread: NULL tstate
         for i in range(lengt):
             sum = 0
             cnt = 0
