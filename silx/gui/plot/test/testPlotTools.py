@@ -33,6 +33,7 @@ import doctest
 import numpy
 import unittest
 
+from silx.testutils import testLogging
 from silx.gui.testutils import qWaitForWindowExposed, TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import PlotWindow, PlotTools
@@ -117,6 +118,7 @@ class TestPositionInfo(TestCaseQt):
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
+    @testLogging(PlotTools.__name__, error=2)
     def testFailingConverters(self):
         """Test PositionInfo with failing custom converters"""
         def raiseException(x, y):
@@ -125,6 +127,7 @@ class TestPositionInfo(TestCaseQt):
         positionWidget = PlotTools.PositionInfo(
             self.plot, converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'])
+
 
 def suite():
     test_suite = unittest.TestSuite()
