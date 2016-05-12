@@ -2,18 +2,19 @@
 Simple instructions
 ===================
 
-The simple way of installing the silx library is::
+The simple way of installing the silx library on Windows is::
 
     pip install silx
     
-On Linux, run this command as sudo::
-
-    sudo pip install silx
-
-If you don't have sudo permissions, you can install silx in your home 
+On Linux, we recommend you install silx in your home 
 directory::
 
     pip install silx --user
+
+Alternatively, if you need to install silx for all users on a Linux server,
+you can do it with::
+
+    sudo pip install silx
     
 .. note::
     
@@ -23,6 +24,10 @@ directory::
 .. note::
     
     This installs silx without the optional dependencies. 
+    
+To install Linux on Debian, you should probably use the solution presented
+in `Installing a Debian package`_. This method requires sudo privileges, but
+has the benefit of installing.
     
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
@@ -64,9 +69,7 @@ Installing silx
 Installing a Debian package
 ---------------------------
 
-Debian 8 packages are available at http://www.edna-site.org/pub/debian/. 
-This installation method has the advantage of taking care of the optional 
-dependencies for you.
+Debian 8 packages are available at http://www.edna-site.org/pub/debian/.
 
 Download the following ``.deb`` files:
 
@@ -84,6 +87,10 @@ Install them with the ``dpkg`` command::
 Or for Python3::
 
     sudo dpkg -i python3-silx_x.y.z-1~bpo8+1_amd64.deb python-silx-doc_x.y.z-1~bpo8+1_all.deb
+    
+After silx is installed, you can solve the broken dependencies with::
+
+    sudo apt-get -f install
 
 Source package
 --------------
