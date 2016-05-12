@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "29/04/2016"
+__date__ = "11/05/2016"
 __license__ = "MIT"
 
 
@@ -180,28 +180,6 @@ else:
     cmdclass['build_doc'] = build_doc
 
 
-# ############################# #
-# numpy.distutils Configuration #
-# ############################# #
-
-def configuration(parent_package='', top_path=None):
-    """Recursive construction of package info to be used in setup().
-
-    See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
-    """  # noqa
-    config = Configuration(None, parent_package, top_path)
-    config.set_options(
-        ignore_setup_xxx_py=True,
-        assume_default_configuration=True,
-        delegate_options_to_subpackages=True,
-        quiet=True)
-    config.add_subpackage(PROJECT)
-    return config
-
-
-config = configuration()
-
-
 # ############## #
 # OpenMP support #
 # ############## #
@@ -240,44 +218,6 @@ def check_openmp():
 
 
 USE_OPENMP = check_openmp()
-
-
-# ############## #
-# Compiler flags #
-# ############## #
-
-class BuildExtFlags(build_ext):
-    """Handle compiler and linker flags.
-
-    If OpenMP is disabled, it removes OpenMP compile flags.
-    If building with MSVC, compiler flags are converted from gcc flags.
-    """
-
-    COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
-
-    LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
-
-    def build_extensions(self):
-        # Remove OpenMP flags if OpenMP is disabled
-        if not USE_OPENMP:
-            for ext in self.extensions:
-                ext.extra_compile_args = [
-                    f for f in ext.extra_compile_args if f != '-fopenmp']
-                ext.extra_link_args = [
-                    f for f in ext.extra_link_args if f != '-fopenmp']
-
-        # Convert flags from gcc to MSVC if required
-        if self.compiler.compiler_type == 'msvc':
-            for ext in self.extensions:
-                ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
-                                          for f in ext.extra_compile_args]
-                ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
-                                       for f in ext.extra_link_args]
-
-        build_ext.build_extensions(self)
-
-
-cmdclass['build_ext'] = BuildExtFlags
 
 
 # ############## #
@@ -327,6 +267,66 @@ def check_cython():
 
 
 USE_CYTHON = check_cython()
+
+
+# ############################# #
+# numpy.distutils Configuration #
+# ############################# #
+
+def configuration(parent_package='', top_path=None):
+    """Recursive construction of package info to be used in setup().
+
+    See http://docs.scipy.org/doc/numpy/reference/distutils.html#numpy.distutils.misc_util.Configuration
+    """  # noqa
+    config = Configuration(None, parent_package, top_path)
+    config.set_options(
+        ignore_setup_xxx_py=True,
+        assume_default_configuration=True,
+        delegate_options_to_subpackages=True,
+        quiet=True)
+    config.add_subpackage(PROJECT)
+    return config
+
+
+config = configuration()
+
+
+# ############## #
+# Compiler flags #
+# ############## #
+
+class BuildExtFlags(build_ext):
+    """Handle compiler and linker flags.
+
+    If OpenMP is disabled, it removes OpenMP compile flags.
+    If building with MSVC, compiler flags are converted from gcc flags.
+    """
+
+    COMPILE_ARGS_CONVERTER = {'-fopenmp': '/openmp'}
+
+    LINK_ARGS_CONVERTER = {'-fopenmp': ' '}
+
+    def build_extensions(self):
+        # Remove OpenMP flags if OpenMP is disabled
+        if not USE_OPENMP:
+            for ext in self.extensions:
+                ext.extra_compile_args = [
+                    f for f in ext.extra_compile_args if f != '-fopenmp']
+                ext.extra_link_args = [
+                    f for f in ext.extra_link_args if f != '-fopenmp']
+
+        # Convert flags from gcc to MSVC if required
+        if self.compiler.compiler_type == 'msvc':
+            for ext in self.extensions:
+                ext.extra_compile_args = [self.COMPILE_ARGS_CONVERTER.get(f, f)
+                                          for f in ext.extra_compile_args]
+                ext.extra_link_args = [self.LINK_ARGS_CONVERTER.get(f, f)
+                                       for f in ext.extra_link_args]
+
+        build_ext.build_extensions(self)
+
+
+cmdclass['build_ext'] = BuildExtFlags
 
 
 def fake_cythonize(extensions):
