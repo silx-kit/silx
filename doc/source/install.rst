@@ -27,7 +27,7 @@ you can do it with::
     
 To install Linux on Debian, you should probably use the solution presented
 in `Installing a Debian package`_. This method requires sudo privileges, but
-has the benefit of installing.
+has the benefit of installing dependencies in a simple way.
     
 The rest of this document deals with specific technical details such as 
 dependencies, building from sources, and alternative installation methods.
