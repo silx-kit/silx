@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,41 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Access project's data files.
+"""
 
-__authors__ = ["T. Vincent"]
+__authors__ = ["Thomas Vincent"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
-
-from numpy.distutils.misc_util import Configuration
+__date__ = "12/05/2016"
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('image')
-    config.add_subpackage('resources')
-    config.add_subpackage('test')
-    config.add_subpackage('third_party')
-
-    return config
+import os
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+data_dir = os.path.abspath(os.path.dirname(__file__))
+"""Path to the directory containing data files.
 
-    setup(configuration=configuration)
+This path can be overloaded by setting the SILX_DATA_DIR environment variable
+to an alternative directory path.
+This is usefull for run_tests.py to run tests in-place in the build directory.
+"""
+
+if 'SILX_DATA_DIR' in os.environ:
+    if not os.path.isdir(os.environ['SILX_DATA_DIR']):
+        raise RuntimeError(
+            "SILX_DATA_DIR environment variable set to %s\n"
+            "which is not a directory." % os.environ['SILX_DATA_DIR'])
+    data_dir = os.path.abspath(os.environ['SILX_DATA_DIR'])
+
+
+def resource_filename(resource):
+    """Return filename corresponding to resource.
+
+    :param str resource: Resource file path relative to resource directory
+                         using '/' path separator.
+    :return: Name of the resource file in the file system
+    """
+    filename = os.path.join(data_dir, *resource.split('/'))
+    if not os.path.isfile(filename):
+        raise ValueError('File does not exist: %s' % filename)
+    return filename

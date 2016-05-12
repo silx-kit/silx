@@ -440,6 +440,7 @@ setup_kwargs.update(
                     install_requires=install_requires,
                     setup_requires=setup_requires,
                     cmdclass=cmdclass,
-                     )
+                    include_package_data=True,
+                    )
 
 setup(**setup_kwargs)
