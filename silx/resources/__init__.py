@@ -22,41 +22,59 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Access project's data files.
+"""Access project's data and documentation files.
+
+All access to data and documentation files MUST be made through the functions
+of this modules to ensure access accross different software distribution
+schemes (i.e., Linux packaging, zipped package)
 """
 
-__authors__ = ["Thomas Vincent"]
+__authors__ = ["V.A. Sole", "Thomas Vincent"]
 __license__ = "MIT"
 __date__ = "12/05/2016"
 
 
 import os
+import pkg_resources
 
 
-data_dir = os.path.abspath(os.path.dirname(__file__))
-"""Path to the directory containing data files.
+# This should only be used for Linux packaging:
+# Patch this variable if data is not installed the source directory
+_RESOURCES_DIR = None
 
-This path can be overloaded by setting the SILX_DATA_DIR environment variable
-to an alternative directory path.
-This is usefull for run_tests.py to run tests in-place in the build directory.
-"""
-
-if 'SILX_DATA_DIR' in os.environ:
-    if not os.path.isdir(os.environ['SILX_DATA_DIR']):
-        raise RuntimeError(
-            "SILX_DATA_DIR environment variable set to %s\n"
-            "which is not a directory." % os.environ['SILX_DATA_DIR'])
-    data_dir = os.path.abspath(os.environ['SILX_DATA_DIR'])
+# This should only be used for Linux packaging:
+# Patch this variable if documentation is not installed in a doc/ subfolder
+# of the resources directory
+_RESOURCES_DOC_DIR = None
 
 
 def resource_filename(resource):
     """Return filename corresponding to resource.
 
-    :param str resource: Resource file path relative to resource directory
+    resource can be the name of either a file or a directory.
+    The existence of the resource is not checked.
+
+    :param str resource: Resource path relative to resource directory
                          using '/' path separator.
-    :return: Name of the resource file in the file system
+    :return: Absolute resource path in the file system
     """
-    filename = os.path.join(data_dir, *resource.split('/'))
-    if not os.path.isfile(filename):
-        raise ValueError('File does not exist: %s' % filename)
-    return filename
+    if _RESOURCES_DIR is not None:
+        return os.path.join(_RESOURCES_DIR, *resource.split('/'))
+    else:
+        return pkg_resources.resource_filename(__name__, resource)
+
+
+def doc_filename(resource):
+    """Return filename corresponding to documentation resource.
+
+    resource can be the name of either a file or a directory.
+    The existence of the resource is not checked.
+
+    :param str resource: Resource path relative to documentation directory
+                         using '/'-separated path.
+    :return: Absolute resource path in the file system
+    """
+    if _RESOURCES_DOC_DIR is not None:
+        return os.path.join(_RESOURCES_DOC_DIR, *resource.split('/'))
+    else:
+        return resource_filename('doc/' + resource)
