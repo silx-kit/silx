@@ -65,7 +65,7 @@ directory::
     
     This installs silx without the optional dependencies. 
     
-To install Linux on Debian, you should probably use the solution presented
+To install silx on Debian, you should probably use the solution presented
 in `Installing a Debian package`_. This method requires sudo privileges, but
 has the benefit of installing dependencies in a simple way.
 
