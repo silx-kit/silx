@@ -441,8 +441,7 @@ setup_kwargs.update(
                     setup_requires=setup_requires,
                     cmdclass=cmdclass,
                     include_package_data=True,
-                    # Resources management is not zip safe
-                    zip_safe=False,
+                    zip_safe=True
                     )
 
 setup(**setup_kwargs)
