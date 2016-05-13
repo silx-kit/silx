@@ -440,8 +440,11 @@ setup_kwargs.update(
                     install_requires=install_requires,
                     setup_requires=setup_requires,
                     cmdclass=cmdclass,
-                    include_package_data=True,
-                    zip_safe=True
+                    package_data={'silx.resources': [
+                        # Add here all resources files
+                        'gui/icons/*.png',
+                        ]},
+                    zip_safe=False,
                     )
 
 setup(**setup_kwargs)
