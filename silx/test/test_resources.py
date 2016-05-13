@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,58 +22,42 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Full silx test suite.
-
-silx.gui tests depends on Qt.
-To disable them, set WITH_QT_TEST environement variable to 'False'.
-"""
+"""Test for resource files management."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "13/05/2016"
 
 
-import logging
 import os
 import unittest
 
-
-logging.basicConfig()
-logger = logging.getLogger(__name__)
+import silx.resources
 
 
-from .test_version import suite as test_version_suite
-from .test_resources import suite as test_resources_suite
-from ..io.test import suite as test_io_suite
-from ..math.test import suite as test_math_suite
-from ..image.test import test_bilinear
+class TestResources(unittest.TestCase):
+    def test_resource_dir(self):
+        """Get a resource directory"""
+        icons_dirname = silx.resources.resource_filename('gui/icons/')
+        self.assertTrue(os.path.isdir(icons_dirname))
 
+    def test_resource_file(self):
+        """Get a resource file name"""
+        filename = silx.resources.resource_filename('gui/icons/colormap.png')
+        self.assertTrue(os.path.isfile(filename))
 
-if os.environ.get('WITH_QT_TEST', 'True') == 'True':
-    from ..gui.test import suite as test_gui_suite
-else:
-    logger.warning('silx.gui tests are disabled (WITH_QT_TEST=False)')
-    test_gui_suite = None
+    def test_resource_notexisting(self):
+        """Get a not existing resource"""
+        filename = silx.resources.resource_filename('not_exisiting_file.txt')
+        self.assertFalse(os.path.exists(filename))
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_version_suite())
-    test_suite.addTest(test_resources_suite())
-    if test_gui_suite is not None:
-        test_suite.addTest(test_gui_suite())
-    test_suite.addTest(test_io_suite())
-    test_suite.addTest(test_math_suite())
-    test_suite.addTest(test_bilinear.suite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestResources))
     return test_suite
 
 
-def run_tests():
-    """Run test complete test_suite"""
-    runner = unittest.TextTestRunner()
-    if not runner.run(suite()).wasSuccessful():
-        print("Test suite failed")
-        return 1
-    else:
-        print("Test suite succeeded")
-        return 0
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
