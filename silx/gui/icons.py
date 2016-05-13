@@ -45,7 +45,7 @@ def getQIcon(name):
     :raises: ValueError when name is not known
     """
     try:
-        filename = resource_filename('icons/%s.png' % name)
+        filename = resource_filename('gui/icons/%s.png' % name)
     except ValueError:
         raise ValueError('Not an icon name: %s' % name)
 
