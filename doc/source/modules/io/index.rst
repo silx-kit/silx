@@ -1,5 +1,5 @@
 
-.. pymodule:: silx.gui
+.. py:module:: silx.io
 
 :mod:`silx.io`: Input-output
 =============================
