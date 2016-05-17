@@ -119,6 +119,18 @@ class TestBilinear(unittest.TestCase):
         self.assertLess(abs(res_hor - g).max(), 1e-5, "correct horizontal profile")
         self.assertLess(abs(res_ver - g).max(), 1e-5, "correct vertical profile")
 
+        # Profile with linewidth=3
+        expected_profile = img[:, N // 2 - 1:N // 2 + 2].mean(axis=1)
+        res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1), linewidth=3)
+        res_ver = b.profile_line((0, N // 2), (N - 1, N // 2), linewidth=3)
+
+        self.assertEquals(len(res_hor), N, "Profile has correct length")
+        self.assertEquals(len(res_ver), N, "Profile has correct length")
+        self.assertLess(abs(res_hor - expected_profile).max(), 1e-5,
+                        "correct horizontal profile")
+        self.assertLess(abs(res_ver - expected_profile).max(), 1e-5,
+                        "correct vertical profile")
+
 
 def suite():
     testsuite = unittest.TestSuite()
