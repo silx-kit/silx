@@ -284,8 +284,8 @@ cdef class BilinearImage:
         Inspired from skimage
         """
         cdef:
-            float src_row, src_col, dst_row, dst_col, d_row, d_col, theta, 
-            float length, col_width, row_width, sum, row, col, new_row, new_col   
+            float src_row, src_col, dst_row, dst_col, d_row, d_col
+            float length, col_width, row_width, sum, row, col, new_row, new_col
             int lengt, i, j, cnt
             float[::1] result
         src_row, src_col = src
@@ -295,38 +295,39 @@ cdef class BilinearImage:
             return numpy.array([self.c_funct(src_col, src_row)])
         d_row = dst_row - src_row
         d_col = dst_col - src_col
-        theta = atan2(d_row, d_col)
-        lengt = <int> ceil(sqrt(d_row * d_row + d_col * d_col) + 1)
+
+        # Offsets to deal with linewidth
+        length = sqrt(d_row * d_row + d_col * d_col)
+        row_width = d_col / length
+        col_width = - d_row / length
+
+        lengt = <int> ceil(length + 1)
         d_row /= <float> (lengt -1)
         d_col /= <float> (lengt -1)
-        col_width = sin(-theta)
-        row_width = cos(theta) 
-        
+
         result = numpy.zeros(lengt, dtype=numpy.float32)
-               
+
+        # Offset position to the center of the bottom pixels of the profile
+        src_row -= row_width * (linewidth - 1) / 2.
+        src_col -= col_width * (linewidth - 1) / 2.
+
         with nogil:
             for i in range(lengt):
                 sum = 0
                 cnt = 0
-                row = src_row + i * d_row 
-                col = src_col + i * d_col 
-                if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
-                    cnt = cnt + 1
-                    sum = sum + self.c_funct(col, row)
-                for j in range((linewidth - 1) // 2):
-                    # On one side of the line
+
+                row = src_row + i * d_row
+                col = src_col + i * d_col
+
+                for j in range(linewidth):
                     new_row = row + j * row_width
                     new_col = col + j * col_width
-                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                        cnt = cnt + 1
-                        sum = sum + self.c_funct(new_col, new_row)
-                    # On the other 
-                    new_row = row - j * row_width
-                    new_col = col - j * col_width
-                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                    if ((new_col >= 0) and (new_col < self.width) and
+                            (new_row >= 0) and (new_row < self.height)):
                         cnt = cnt + 1
                         sum = sum + self.c_funct(new_col, new_row)
                 if cnt:
                     result[i] += sum / cnt
+
         # Ensures the result is exported as numpy array and not memory view.
-        return numpy.asarray(result) 
+        return numpy.asarray(result)
