@@ -46,9 +46,9 @@ class TestResources(unittest.TestCase):
         filename = silx.resources.resource_filename('gui/icons/colormap.png')
         self.assertTrue(os.path.isfile(filename))
 
-    def test_resource_notexisting(self):
-        """Get a not existing resource"""
-        filename = silx.resources.resource_filename('not_exisiting_file.txt')
+    def test_resource_nonexistent(self):
+        """Get a non existent resource"""
+        filename = silx.resources.resource_filename('non_existent_file.txt')
         self.assertFalse(os.path.exists(filename))
 
 

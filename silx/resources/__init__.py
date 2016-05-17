@@ -31,7 +31,7 @@ of this modules to ensure access accross different distribution schemes:
 - Installing package as a zip (through the use of pkg_resources)
 - Linux packaging willing to install data files (and doc files) in
   alternative folders. In this case, this file must be patched.
-- Forzen fat binary application using silx (forzen with cx_Freeze or py2app).
+- Frozen fat binary application using silx (forzen with cx_Freeze or py2app).
   This needs special care for the resource files in the setup:
 
   - With cx_Freeze, add silx/resources to include_files::
@@ -40,7 +40,7 @@ of this modules to ensure access accross different distribution schemes:
     silx_include_files = (os.path.dirname(silx.resources.__file__),
                           os.path.join('silx', 'resources'))
     setup(...
-          options={'build_exe': {'include_files': [silx_resources_files]}}
+          options={'build_exe': {'include_files': [silx_include_files]}}
           )
 
 
