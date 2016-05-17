@@ -699,6 +699,9 @@ class PrintAction(_PlotAction):
     :param parent: See :class:`QAction`.
     """
 
+    # Share QPrinter instance to propose latest used as default
+    _printer = None
+
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
             plot, icon='document-print', text='Print...',
@@ -707,6 +710,16 @@ class PrintAction(_PlotAction):
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Print)
 
+    @property
+    def printer(self):
+        """The QPrinter instance used by the actions.
+
+        This is shared accross all instances of PrintAct
+        """
+        if self._printer is None:
+            PrintAction._printer = qt.QPrinter()
+        return self._printer
+
     def printPlotAsWidget(self):
         """Open the print dialog and print the plot.
 
@@ -714,8 +727,7 @@ class PrintAction(_PlotAction):
 
         :return: True if successful
         """
-        printer = qt.QPrinter()
-        dialog = qt.QPrintDialog(printer, self.plot)
+        dialog = qt.QPrintDialog(self.printer, self.plot)
         dialog.setWindowTitle('Print Plot')
         if not dialog.exec_():
             return False
@@ -724,10 +736,10 @@ class PrintAction(_PlotAction):
         widget = self.plot.centralWidget()
 
         painter = qt.QPainter()
-        if not painter.begin(printer):
+        if not painter.begin(self.printer):
             return False
 
-        pageRect = printer.pageRect()
+        pageRect = self.printer.pageRect()
         xScale = pageRect.width() / widget.width()
         yScale = pageRect.height() / widget.height()
         scale = min(xScale, yScale)
@@ -748,8 +760,7 @@ class PrintAction(_PlotAction):
         :return: True if successful
         """
         # Init printer and start printer dialog
-        printer = qt.QPrinter()
-        dialog = qt.QPrintDialog(printer, self.plot)
+        dialog = qt.QPrintDialog(self.printer, self.plot)
         dialog.setWindowTitle('Print Plot')
         if not dialog.exec_():
             return False
@@ -760,13 +771,13 @@ class PrintAction(_PlotAction):
         pixmap = qt.QPixmap()
         pixmap.loadFromData(pngData, 'png')
 
-        xScale = printer.pageRect().width() / pixmap.width()
-        yScale = printer.pageRect().height() / pixmap.height()
+        xScale = self.printer.pageRect().width() / pixmap.width()
+        yScale = self.printer.pageRect().height() / pixmap.height()
         scale = min(xScale, yScale)
 
         # Draw pixmap with painter
         painter = qt.QPainter()
-        if not painter.begin(printer):
+        if not painter.begin(self.printer):
             return False
 
         painter.drawPixmap(0, 0,
