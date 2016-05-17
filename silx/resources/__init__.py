@@ -72,6 +72,11 @@ except ImportError:
 # E.g., replace with _RESOURCES_DIR = '/usr/share/silx/data'
 _RESOURCES_DIR = None
 
+# For packaging purpose, patch this variable to use an alternative directory
+# E.g., replace with _RESOURCES_DIR = '/usr/share/silx/doc'
+# Not in use, uncomment when functionnality is needed
+# _RESOURCES_DOC_DIR = None
+
 # cx_Freeze forzen support
 # See http://cx-freeze.readthedocs.io/en/latest/faq.html#using-data-files
 if getattr(sys, 'frozen', False):
@@ -93,6 +98,14 @@ def resource_filename(resource):
                          using '/' path separator.
     :return: Absolute resource path in the file system
     """
+    # Not in use, uncomment when functionnality is needed
+    # If _RESOURCES_DOC_DIR is set, use it to get resources in doc/ subflodler
+    # from an alternative directory.
+    # if _RESOURCES_DOC_DIR is not None and (resource is 'doc' or
+    #         resource.startswith('doc/')):
+    #     # Remove doc folder from resource relative path
+    #     return os.path.join(_RESOURCES_DOC_DIR, *resource.split('/')[1:])
+
     if _RESOURCES_DIR is not None:  # if set, use this directory
         return os.path.join(_RESOURCES_DIR, *resource.split('/'))
     elif pkg_resources is None:  # Fallback if pkg_resources is not available
@@ -100,27 +113,3 @@ def resource_filename(resource):
                             *resource.split('/'))
     else:  # Preferred way to get resources as it supports zipfile package
         return pkg_resources.resource_filename(__name__, resource)
-
-# The following is commented out as it is not used so far.
-# Management of documentation files that are used by the library
-# This is not intended to handle the sphinx documentation.
-
-# For packaging purpose, patch this variable to use an alternative directory
-# E.g., replace with _RESOURCES_DIR = '/usr/share/silx/doc'
-
-# _RESOURCES_DOC_DIR = None
-
-# def doc_filename(resource):
-#     """Return filename corresponding to documentation resource.
-#
-#     resource can be the name of either a file or a directory.
-#     The existence of the resource is not checked.
-#
-#     :param str resource: Resource path relative to documentation directory
-#                          using '/'-separated path.
-#     :return: Absolute resource path in the file system
-#     """
-#     if _RESOURCES_DOC_DIR is not None:
-#         return os.path.join(_RESOURCES_DOC_DIR, *resource.split('/'))
-#     else:
-#         return resource_filename('doc/' + resource)
