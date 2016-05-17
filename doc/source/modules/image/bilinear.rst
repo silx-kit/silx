@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.image
 
-:func:`silx.image.bilinear`: Multidimensional histogram
-----------------------------------------------------------
+:mod:`silx.image.bilinear`: Bilinear interpolator
+-------------------------------------------------
 
 .. automodule:: silx.image.bilinear
    :members:
