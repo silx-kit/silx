@@ -22,47 +22,42 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Set of icons for buttons.
-
-Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
-"""
+"""Test for resource files management."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/05/2016"
+__date__ = "13/05/2016"
 
 
-from . import qt
-from ..resources import resource_filename
+import os
+import unittest
+
+import silx.resources
 
 
-def getQIcon(name):
-    """Create a QIcon from its name.
+class TestResources(unittest.TestCase):
+    def test_resource_dir(self):
+        """Get a resource directory"""
+        icons_dirname = silx.resources.resource_filename('gui/icons/')
+        self.assertTrue(os.path.isdir(icons_dirname))
 
-    :param str name: Name of the icon, in one of the defined icons
-                     in this module.
-    :return: Corresponding QIcon
-    :raises: ValueError when name is not known
-    """
-    try:
-        filename = resource_filename('gui/icons/%s.png' % name)
-    except ValueError:
-        raise ValueError('Not an icon name: %s' % name)
+    def test_resource_file(self):
+        """Get a resource file name"""
+        filename = silx.resources.resource_filename('gui/icons/colormap.png')
+        self.assertTrue(os.path.isfile(filename))
 
-    return qt.QIcon(filename)
+    def test_resource_nonexistent(self):
+        """Get a non existent resource"""
+        filename = silx.resources.resource_filename('non_existent_file.txt')
+        self.assertFalse(os.path.exists(filename))
 
 
-def getQPixmap(name):
-    """Create a QPixmap from its name.
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestResources))
+    return test_suite
 
-    :param str name: Name of the icon, in one of the defined icons
-                     in this module.
-    :return: Corresponding QPixmap
-    :raises: ValueError when name is not known
-    """
-    try:
-        filename = resource_filename('icons/%s.png')
-    except ValueError:
-        raise ValueError('Not an icon name: %s' % name)
 
-    return qt.QPixmap(filename)
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

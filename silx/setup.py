@@ -36,6 +36,7 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('io')
     config.add_subpackage('math')
     config.add_subpackage('image')
+    config.add_subpackage('resources')
     config.add_subpackage('test')
     config.add_subpackage('third_party')
 
