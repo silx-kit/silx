@@ -58,9 +58,9 @@ def configuration(parent_package='', top_path=None):
     # histogramnd_lut
     # =====================================
     histo_dir = 'histogramnd'
-    histo_src = [os.path.join([histo_dir, srcf])
+    histo_src = [os.path.join(histo_dir, srcf)
                  for srcf in ['histogramnd_lut.pyx']]
-    histo_inc = [os.path.join([histo_dir, 'include']),
+    histo_inc = [os.path.join(histo_dir, 'include'),
                  numpy.get_include()]
 
     config.add_extension('histogramnd_lut',
