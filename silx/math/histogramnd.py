@@ -594,3 +594,143 @@ def histogramnd(sample,
                             ''.format(rc))
 
     return histo, cumul
+
+
+class HistogramLut(object):
+    """
+    ``HistogramLut(sample, bins_rng, n_bins, last_bin_closed=True)``
+    The HistogramLut class allows you to bin data onto a regular grid.
+    The use of HistogramLut is interesting when several sets of data that
+    share the same coordinates (*sample*) have to be mapped onto the same grid.
+
+    .. seealso::
+        `silx.math.histogramnd`
+
+    :param sample:
+        The coordinates of the data to be histogrammed.
+        Its shape must be either (N,) if it contains one dimensional
+        coordinates, or an (N, D) array where the rows are the
+        coordinates of points in a D dimensional space.
+        The following dtypes are supported : :class:`numpy.float64`,
+        :class:`numpy.float32`, :class:`numpy.int32`.
+    :type sample: :class:`numpy.array`
+
+    :param bins_rng:
+        A (N, 2) array containing the lower and upper
+        bin edges along each dimension.
+    :type bins_rng: array_like
+
+    :param n_bins:
+        The number of bins :
+            * a scalar (same number of bins for all dimensions)
+            * a D elements array (number of bins for each dimensions)
+    :type n_bins: scalar or array_like
+
+    :param dtype: data type of the weighted histogram. If None, the data type
+        will be the same as the first weights array provided (on first call of
+        the instance).
+    :type dtype: `numpy.dtype`
+
+    :param last_bin_closed:
+        By default the last bin is half
+        open (i.e.: [x,y) ; x included, y
+        excluded), like all the other bins.
+        Set this parameter to true if you want
+        the LAST bin to be closed.
+    :type last_bin_closed: *optional*, :class:`python.boolean`
+    """
+    def __init__(self,
+                 sample,
+                 bins_rng,
+                 n_bins,
+                 last_bin_closed=True,
+                 dtype=None):
+        """
+        TTTTT
+        """
+        lut, histo = _histo_get_lut(sample,
+                                    bins_rng,
+                                    n_bins,
+                                    last_bin_closed=last_bin_closed)
+        self.__n_bins = n_bins
+        self.__bins_rng = bins_rng
+        self.__lut = lut
+        self.__histo = histo
+        self.__dtype = dtype
+        self.reset()
+        
+    def reset(self):
+        self.__weighted_histo = None
+        self.__n_histo = 0
+
+    def __get_weighted_histo(self):
+        if self.__n_histo > 0:
+            return self.__weighted_histo.copy()
+        else:
+            return None
+
+    def __get_histo(self):
+        return self.__histo.copy()
+#        if self.__n_histo > 0:
+#            return self.__histo.copy() * self.__n_histo
+#        else:
+#            return None
+
+    def __get_dtype(self):
+        return self.__dtype
+
+    def __get_bins_rng(self):
+        return self.__bins_rng
+
+    def __get_n_bins(self):
+        return self.__n_bins
+
+    def __get_n_histo(self):
+        return self.__n_histo
+
+    def accumulate(self,
+                   weights,
+                   weight_min=None,
+                   weight_max=None):
+
+        if self.__dtype is None:
+            self.__dtype = weights.dtype
+
+        w_histo = _histo_from_lut(weights,
+                                  self.__lut,
+                                  shape=self.__histo.shape,
+                                  weighted_histo=self.__weighted_histo,
+                                  dtype=self.__dtype,
+                                  weight_min=weight_min,
+                                  weight_max=weight_max)
+        self.__weighted_histo = w_histo
+        self.__n_histo += 1
+
+    def apply(self,
+              weights,
+              weighted_histo=None,
+              weight_min=None,
+              weight_max=None):
+
+        if weighted_histo is None:
+            if self.__dtype is None:
+                dtype = weights.dtype
+            else:
+                dtype = self.__dtype
+
+        w_histo = _histog_from_lut(weights,
+                                   self.__lut,
+                                   shape=self.__histo.shape,
+                                   weighted_histo=weighted_histo,
+                                   dtype=dtype,
+                                   weight_min=weight_min,
+                                   weight_max=weight_max)
+        return self.__histo, w_histo
+
+    histo = property(__get_histo)
+    """ Test doc property """
+    weighted_histo = property(__get_weighted_histo)
+    dtype = property(__get_dtype)
+    bins_rng = property(__get_bins_rng)
+    n_bins = property(__get_n_bins)
+    n_histo = property(__get_n_histo)

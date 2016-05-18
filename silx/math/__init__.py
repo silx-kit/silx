@@ -27,4 +27,4 @@ __license__ = "MIT"
 __date__ = "01/02/2016"
 
 from .histogramnd import histogramnd
-from .histogramnd_lut import HistogramLut
+from .histogramnd import HistogramLut
