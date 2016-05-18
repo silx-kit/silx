@@ -75,7 +75,7 @@ see `Source package`_.
 Installing a Debian package
 ---------------------------
 
-Debian 8 packages are available at http://www.edna-site.org/pub/debian/.
+Debian 8 packages are available at http://www.silx.org/pub/debian/binary/.
 
 Download the following ``.deb`` files:
 
