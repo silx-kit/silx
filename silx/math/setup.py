@@ -47,7 +47,7 @@ def configuration(parent_package='', top_path=None):
     histo_inc = ['/'.join([histo_dir, 'include']),
                  numpy.get_include()]
 
-    config.add_extension('histogramnd',
+    config.add_extension('chistogramnd',
                          sources=histo_src,
                          include_dirs=histo_inc,
                          language='c')
