@@ -27,9 +27,9 @@
     library, which is not a mandatory dependency for `silx`.
 """
 
+import numpy
 import logging
 logger = logging.getLogger(__name__)
-
 import re
 
 try:
@@ -44,7 +44,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/05/2016"
+__date__ = "18/05/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -143,6 +143,11 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             else:
                 ds = h5f[h5_name]
 
+            # add HDF5 attributes
+            for key in obj.attrs:
+                if overwrite_data or key not in ds.attrs:
+                    ds.attrs.create(key, numpy.string_(obj.attrs[key]))
+
             # link:
             #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
             if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
@@ -163,6 +168,11 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             else:
                 grp = h5f[h5_name]
 
+            # add HDF5 attributes
+            for key in obj.attrs:
+                if overwrite_data or key not in grp.attrs:
+                    grp.attrs.create(key,  numpy.string_(obj.attrs[key]))
+
             # link:
             # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
             if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
@@ -172,6 +182,12 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
                 create_link(link_name, grp)
 
     sfh5.visititems(append_spec_member_to_h5)
+
+    # visititems didn't create attributes for the root group
+    root_grp = h5f[h5path]
+    for key in sfh5.attrs:
+        if overwrite_data or key not in root_grp.attrs:
+            root_grp.attrs.create(key,  numpy.string_(sfh5.attrs[key]))
 
     # Close file if it was opened in this function
     if not isinstance(h5file, h5py.File):
@@ -200,6 +216,5 @@ def convert(specfile, h5file, mode="w-",
     if mode not in ["w", "w-"]:
         raise IOError("File mode must be 'w' or 'w-'. Use write_spec_to_h5" +
                       " to append Spec data to an existing HDF5 file.")
-    write_spec_to_h5(specfile, h5file, h5path='/',
-                     mode=mode,
+    write_spec_to_h5(specfile, h5file, h5path='/', mode=mode,
                      create_dataset_args=create_dataset_args)
