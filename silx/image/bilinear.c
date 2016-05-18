@@ -231,8 +231,8 @@ void __Pyx_call_destructor(T* x) {
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#define __PYX_HAVE__bilinear
-#define __PYX_HAVE_API__bilinear
+#define __PYX_HAVE__silx__image__bilinear
+#define __PYX_HAVE_API__silx__image__bilinear
 #include "math.h"
 #include "pythread.h"
 #include "string.h"
@@ -421,7 +421,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "bilinear.pyx",
+  "silx/image/bilinear.pyx",
   "stringsource",
 };
 struct __pyx_memoryview_obj;
@@ -517,22 +517,22 @@ typedef volatile __pyx_atomic_int_type __pyx_atomic_int;
 
 
 /*--- Type declarations ---*/
-struct __pyx_obj_8bilinear_BilinearImage;
+struct __pyx_obj_4silx_5image_8bilinear_BilinearImage;
 struct __pyx_array_obj;
 struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
 
-/* "bilinear.pyx":39
+/* "silx/image/bilinear.pyx":39
  * 
  * 
  * cdef class BilinearImage:             # <<<<<<<<<<<<<<
  *     """Bilinear interpolator for images ... or any data on a regular grid
  *     """
  */
-struct __pyx_obj_8bilinear_BilinearImage {
+struct __pyx_obj_4silx_5image_8bilinear_BilinearImage {
   PyObject_HEAD
-  struct __pyx_vtabstruct_8bilinear_BilinearImage *__pyx_vtab;
+  struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *__pyx_vtab;
   __Pyx_memviewslice data;
   float maxi;
   float mini;
@@ -618,7 +618,7 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "bilinear.pyx":39
+/* "silx/image/bilinear.pyx":39
  * 
  * 
  * cdef class BilinearImage:             # <<<<<<<<<<<<<<
@@ -626,12 +626,12 @@ struct __pyx_memoryviewslice_obj {
  *     """
  */
 
-struct __pyx_vtabstruct_8bilinear_BilinearImage {
-  size_t (*coarse_local_maxi)(struct __pyx_obj_8bilinear_BilinearImage *, size_t, int __pyx_skip_dispatch);
-  size_t (*c_local_maxi)(struct __pyx_obj_8bilinear_BilinearImage *, size_t);
-  float (*c_funct)(struct __pyx_obj_8bilinear_BilinearImage *, float, float);
+struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage {
+  size_t (*coarse_local_maxi)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, size_t, int __pyx_skip_dispatch);
+  size_t (*c_local_maxi)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, size_t);
+  float (*c_funct)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, float, float);
 };
-static struct __pyx_vtabstruct_8bilinear_BilinearImage *__pyx_vtabptr_8bilinear_BilinearImage;
+static struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *__pyx_vtabptr_4silx_5image_8bilinear_BilinearImage;
 
 
 /* "View.MemoryView":302
@@ -1041,9 +1041,9 @@ static int __Pyx_check_binary_version(void);
 
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
-static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, float __pyx_v_x, float __pyx_v_y); /* proto*/
-static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x, int __pyx_skip_dispatch); /* proto*/
-static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_idx); /* proto*/
+static float __pyx_f_4silx_5image_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, float __pyx_v_x, float __pyx_v_y); /* proto*/
+static size_t __pyx_f_4silx_5image_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x, int __pyx_skip_dispatch); /* proto*/
+static size_t __pyx_f_4silx_5image_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_idx); /* proto*/
 static char *__pyx_memoryview_get_item_pointer(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_index); /* proto*/
 static PyObject *__pyx_memoryview_is_slice(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_obj); /* proto*/
 static PyObject *__pyx_memoryview_setitem_slice_assignment(struct __pyx_memoryview_obj *__pyx_v_self, PyObject *__pyx_v_dst, PyObject *__pyx_v_src); /* proto*/
@@ -1060,8 +1060,8 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 
 /* Module declarations from 'libc.math' */
 
-/* Module declarations from 'bilinear' */
-static PyTypeObject *__pyx_ptype_8bilinear_BilinearImage = 0;
+/* Module declarations from 'silx.image.bilinear' */
+static PyTypeObject *__pyx_ptype_4silx_5image_8bilinear_BilinearImage = 0;
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
 static PyTypeObject *__pyx_memoryview_type = 0;
@@ -1104,10 +1104,10 @@ static void __pyx_memoryview_refcount_objects_in_slice(char *, Py_ssize_t *, Py_
 static void __pyx_memoryview_slice_assign_scalar(__Pyx_memviewslice *, int, size_t, void *, int); /*proto*/
 static void __pyx_memoryview__slice_assign_scalar(char *, Py_ssize_t *, Py_ssize_t *, int, size_t, void *); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_float = { "float", NULL, sizeof(float), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "bilinear"
-int __pyx_module_is_main_bilinear = 0;
+#define __Pyx_MODULE_NAME "silx.image.bilinear"
+int __pyx_module_is_main_silx__image__bilinear = 0;
 
-/* Implementation of 'bilinear' */
+/* Implementation of 'silx.image.bilinear' */
 static PyObject *__pyx_builtin_round;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ValueError;
@@ -1118,19 +1118,19 @@ static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
-static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_data); /* proto */
-static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coordinates); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_src, PyObject *__pyx_v_dst, int __pyx_v_linewidth); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4data___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4mini___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_5width___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_6height___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static int __pyx_pf_4silx_5image_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_data); /* proto */
+static void __pyx_pf_4silx_5image_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_10coarse_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_12map_coordinates(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coordinates); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_14profile_line(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_src, PyObject *__pyx_v_dst, int __pyx_v_linewidth); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4data___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4mini___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_5width___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_6height___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array_getbuffer_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -1163,7 +1163,7 @@ static PyObject *__pyx_memoryview_MemoryView_10memoryview_20copy(struct __pyx_me
 static PyObject *__pyx_memoryview_MemoryView_10memoryview_22copy_fortran(struct __pyx_memoryview_obj *__pyx_v_self); /* proto */
 static void __pyx_memoryviewslice_MemoryView_16_memoryviewslice___dealloc__(struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
 static PyObject *__pyx_memoryviewslice__get__base_MemoryView_16_memoryviewslice_4base___get__(struct __pyx_memoryviewslice_obj *__pyx_v_self); /* proto */
-static PyObject *__pyx_tp_new_8bilinear_BilinearImage(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static PyObject *__pyx_tp_new_4silx_5image_8bilinear_BilinearImage(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_array(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_Enum(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_tp_new_memoryview(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
@@ -1391,7 +1391,7 @@ static PyObject *__pyx_tuple__18;
 static PyObject *__pyx_tuple__19;
 static PyObject *__pyx_tuple__20;
 
-/* "bilinear.pyx":51
+/* "silx/image/bilinear.pyx":51
  *     cdef float c_funct(self, float, float) nogil
  * 
  *     def __cinit__(self, data not None):             # <<<<<<<<<<<<<<
@@ -1400,8 +1400,8 @@ static PyObject *__pyx_tuple__20;
  */
 
 /* Python wrapper */
-static int __pyx_pw_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_4silx_5image_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_4silx_5image_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -1440,14 +1440,14 @@ static int __pyx_pw_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self,
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("bilinear.BilinearImage.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return -1;
   __pyx_L4_argument_unpacking_done:;
   if (unlikely(((PyObject *)__pyx_v_data) == Py_None)) {
     PyErr_Format(PyExc_TypeError, "Argument '%.200s' must not be None", "data"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage___cinit__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_data);
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage___cinit__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_data);
 
   /* function exit code */
   goto __pyx_L0;
@@ -1458,7 +1458,7 @@ static int __pyx_pw_8bilinear_13BilinearImage_1__cinit__(PyObject *__pyx_v_self,
   return __pyx_r;
 }
 
-static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_data) {
+static int __pyx_pf_4silx_5image_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_data) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1475,7 +1475,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "bilinear.pyx":56
+  /* "silx/image/bilinear.pyx":56
  *         :param data: image as a 2D array
  *         """
  *         assert data.ndim == 2             # <<<<<<<<<<<<<<
@@ -1497,7 +1497,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   }
   #endif
 
-  /* "bilinear.pyx":57
+  /* "silx/image/bilinear.pyx":57
  *         """
  *         assert data.ndim == 2
  *         self.height = data.shape[0]             # <<<<<<<<<<<<<<
@@ -1513,7 +1513,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_self->height = __pyx_t_4;
 
-  /* "bilinear.pyx":58
+  /* "silx/image/bilinear.pyx":58
  *         assert data.ndim == 2
  *         self.height = data.shape[0]
  *         self.width = data.shape[1]             # <<<<<<<<<<<<<<
@@ -1529,7 +1529,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->width = __pyx_t_4;
 
-  /* "bilinear.pyx":59
+  /* "silx/image/bilinear.pyx":59
  *         self.height = data.shape[0]
  *         self.width = data.shape[1]
  *         self.maxi = data.max()             # <<<<<<<<<<<<<<
@@ -1560,7 +1560,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->maxi = __pyx_t_6;
 
-  /* "bilinear.pyx":60
+  /* "silx/image/bilinear.pyx":60
  *         self.width = data.shape[1]
  *         self.maxi = data.max()
  *         self.mini = data.min()             # <<<<<<<<<<<<<<
@@ -1591,7 +1591,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_self->mini = __pyx_t_6;
 
-  /* "bilinear.pyx":61
+  /* "silx/image/bilinear.pyx":61
  *         self.maxi = data.max()
  *         self.mini = data.min()
  *         self.data = numpy.ascontiguousarray(data, dtype=numpy.float32)             # <<<<<<<<<<<<<<
@@ -1630,7 +1630,7 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __pyx_t_9.memview = NULL;
   __pyx_t_9.data = NULL;
 
-  /* "bilinear.pyx":51
+  /* "silx/image/bilinear.pyx":51
  *     cdef float c_funct(self, float, float) nogil
  * 
  *     def __cinit__(self, data not None):             # <<<<<<<<<<<<<<
@@ -1648,14 +1648,14 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_8);
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.__cinit__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = -1;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "bilinear.pyx":63
+/* "silx/image/bilinear.pyx":63
  *         self.data = numpy.ascontiguousarray(data, dtype=numpy.float32)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -1664,17 +1664,17 @@ static int __pyx_pf_8bilinear_13BilinearImage___cinit__(struct __pyx_obj_8biline
  */
 
 /* Python wrapper */
-static void __pyx_pw_8bilinear_13BilinearImage_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
-static void __pyx_pw_8bilinear_13BilinearImage_3__dealloc__(PyObject *__pyx_v_self) {
+static void __pyx_pw_4silx_5image_8bilinear_13BilinearImage_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_4silx_5image_8bilinear_13BilinearImage_3__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
-  __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_pf_4silx_5image_8bilinear_13BilinearImage_2__dealloc__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
 }
 
-static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static void __pyx_pf_4silx_5image_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
@@ -1682,7 +1682,7 @@ static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bi
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "bilinear.pyx":64
+  /* "silx/image/bilinear.pyx":64
  * 
  *     def __dealloc__(self):
  *         self.data = None             # <<<<<<<<<<<<<<
@@ -1696,7 +1696,7 @@ static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bi
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "bilinear.pyx":63
+  /* "silx/image/bilinear.pyx":63
  *         self.data = numpy.ascontiguousarray(data, dtype=numpy.float32)
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -1708,12 +1708,12 @@ static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bi
   goto __pyx_L0;
   __pyx_L1_error:;
   __PYX_XDEC_MEMVIEW(&__pyx_t_1, 1);
-  __Pyx_WriteUnraisable("bilinear.BilinearImage.__dealloc__", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("silx.image.bilinear.BilinearImage.__dealloc__", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
 }
 
-/* "bilinear.pyx":66
+/* "silx/image/bilinear.pyx":66
  *         self.data = None
  * 
  *     def __call__(self, coord):             # <<<<<<<<<<<<<<
@@ -1722,12 +1722,12 @@ static void __pyx_pf_8bilinear_13BilinearImage_2__dealloc__(struct __pyx_obj_8bi
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_5__call__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_4__call__[] = "Function f((y, x)) where f is a continuous function \n        made from the image and (y,x)=(row, column) is the pixel coordinates \n        in natural C-order\n\n        :param x: 2-tuple of float (row, column)\n        :return: Interpolated signal from the image \n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_5__call__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_4__call__[] = "Function f((y, x)) where f is a continuous function \n        made from the image and (y,x)=(row, column) is the pixel coordinates \n        in natural C-order\n\n        :param x: 2-tuple of float (row, column)\n        :return: Interpolated signal from the image \n        ";
 #if CYTHON_COMPILING_IN_CPYTHON
-struct wrapperbase __pyx_wrapperbase_8bilinear_13BilinearImage_4__call__;
+struct wrapperbase __pyx_wrapperbase_4silx_5image_8bilinear_13BilinearImage_4__call__;
 #endif
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_5__call__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_5__call__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_coord = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -1766,18 +1766,18 @@ static PyObject *__pyx_pw_8bilinear_13BilinearImage_5__call__(PyObject *__pyx_v_
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("__call__", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 66; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("bilinear.BilinearImage.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_4__call__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_coord);
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_4__call__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_coord);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1788,7 +1788,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__call__", 0);
 
-  /* "bilinear.pyx":74
+  /* "silx/image/bilinear.pyx":74
  *         :return: Interpolated signal from the image
  *         """
  *         return self.c_funct(coord[1], coord[0])             # <<<<<<<<<<<<<<
@@ -1804,13 +1804,13 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __pyx_PyFloat_AsFloat(__pyx_t_1); if (unlikely((__pyx_t_3 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyFloat_FromDouble(((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_t_2, __pyx_t_3)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyFloat_FromDouble(((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_t_2, __pyx_t_3)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":66
+  /* "silx/image/bilinear.pyx":66
  *         self.data = None
  * 
  *     def __call__(self, coord):             # <<<<<<<<<<<<<<
@@ -1821,7 +1821,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.__call__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -1829,7 +1829,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8
   return __pyx_r;
 }
 
-/* "bilinear.pyx":78
+/* "silx/image/bilinear.pyx":78
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     cdef float c_funct(self, float x, float y) nogil:             # <<<<<<<<<<<<<<
@@ -1837,7 +1837,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4__call__(struct __pyx_obj_8
  *         made from the image.
  */
 
-static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, float __pyx_v_x, float __pyx_v_y) {
+static float __pyx_f_4silx_5image_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, float __pyx_v_x, float __pyx_v_y) {
   float __pyx_v_d0;
   float __pyx_v_d1;
   int __pyx_v_i0;
@@ -1878,7 +1878,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
 
-  /* "bilinear.pyx":89
+  /* "silx/image/bilinear.pyx":89
  *         """
  *         cdef:
  *             float d0 = min(max(y, 0.0), (self.height - 1.0))             # <<<<<<<<<<<<<<
@@ -1901,7 +1901,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   }
   __pyx_v_d0 = __pyx_t_4;
 
-  /* "bilinear.pyx":90
+  /* "silx/image/bilinear.pyx":90
  *         cdef:
  *             float d0 = min(max(y, 0.0), (self.height - 1.0))
  *             float d1 = min(max(x, 0.0), (self.width - 1.0))             # <<<<<<<<<<<<<<
@@ -1924,7 +1924,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   }
   __pyx_v_d1 = __pyx_t_2;
 
-  /* "bilinear.pyx":94
+  /* "silx/image/bilinear.pyx":94
  *             float x0, x1, y0, y1, res
  * 
  *         x0 = floor(d0)             # <<<<<<<<<<<<<<
@@ -1933,7 +1933,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_x0 = floor(__pyx_v_d0);
 
-  /* "bilinear.pyx":95
+  /* "silx/image/bilinear.pyx":95
  * 
  *         x0 = floor(d0)
  *         x1 = ceil(d0)             # <<<<<<<<<<<<<<
@@ -1942,7 +1942,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_x1 = ceil(__pyx_v_d0);
 
-  /* "bilinear.pyx":96
+  /* "silx/image/bilinear.pyx":96
  *         x0 = floor(d0)
  *         x1 = ceil(d0)
  *         y0 = floor(d1)             # <<<<<<<<<<<<<<
@@ -1951,7 +1951,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_y0 = floor(__pyx_v_d1);
 
-  /* "bilinear.pyx":97
+  /* "silx/image/bilinear.pyx":97
  *         x1 = ceil(d0)
  *         y0 = floor(d1)
  *         y1 = ceil(d1)             # <<<<<<<<<<<<<<
@@ -1960,7 +1960,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_y1 = ceil(__pyx_v_d1);
 
-  /* "bilinear.pyx":98
+  /* "silx/image/bilinear.pyx":98
  *         y0 = floor(d1)
  *         y1 = ceil(d1)
  *         i0 = < int > x0             # <<<<<<<<<<<<<<
@@ -1969,7 +1969,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_i0 = ((int)__pyx_v_x0);
 
-  /* "bilinear.pyx":99
+  /* "silx/image/bilinear.pyx":99
  *         y1 = ceil(d1)
  *         i0 = < int > x0
  *         i1 = < int > x1             # <<<<<<<<<<<<<<
@@ -1978,7 +1978,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_i1 = ((int)__pyx_v_x1);
 
-  /* "bilinear.pyx":100
+  /* "silx/image/bilinear.pyx":100
  *         i0 = < int > x0
  *         i1 = < int > x1
  *         j0 = < int > y0             # <<<<<<<<<<<<<<
@@ -1987,7 +1987,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_j0 = ((int)__pyx_v_y0);
 
-  /* "bilinear.pyx":101
+  /* "silx/image/bilinear.pyx":101
  *         i1 = < int > x1
  *         j0 = < int > y0
  *         j1 = < int > y1             # <<<<<<<<<<<<<<
@@ -1996,7 +1996,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
   __pyx_v_j1 = ((int)__pyx_v_y1);
 
-  /* "bilinear.pyx":102
+  /* "silx/image/bilinear.pyx":102
  *         j0 = < int > y0
  *         j1 = < int > y1
  *         if (i0 == i1) and (j0 == j1):             # <<<<<<<<<<<<<<
@@ -2014,7 +2014,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_5) {
 
-    /* "bilinear.pyx":103
+    /* "silx/image/bilinear.pyx":103
  *         j1 = < int > y1
  *         if (i0 == i1) and (j0 == j1):
  *             res = self.data[i0, j0]             # <<<<<<<<<<<<<<
@@ -2028,7 +2028,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
     goto __pyx_L3;
   }
 
-  /* "bilinear.pyx":104
+  /* "silx/image/bilinear.pyx":104
  *         if (i0 == i1) and (j0 == j1):
  *             res = self.data[i0, j0]
  *         elif i0 == i1:             # <<<<<<<<<<<<<<
@@ -2038,7 +2038,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   __pyx_t_5 = ((__pyx_v_i0 == __pyx_v_i1) != 0);
   if (__pyx_t_5) {
 
-    /* "bilinear.pyx":105
+    /* "silx/image/bilinear.pyx":105
  *             res = self.data[i0, j0]
  *         elif i0 == i1:
  *             res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))             # <<<<<<<<<<<<<<
@@ -2055,7 +2055,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
     goto __pyx_L3;
   }
 
-  /* "bilinear.pyx":106
+  /* "silx/image/bilinear.pyx":106
  *         elif i0 == i1:
  *             res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
  *         elif j0 == j1:             # <<<<<<<<<<<<<<
@@ -2065,7 +2065,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   __pyx_t_5 = ((__pyx_v_j0 == __pyx_v_j1) != 0);
   if (__pyx_t_5) {
 
-    /* "bilinear.pyx":107
+    /* "silx/image/bilinear.pyx":107
  *             res = (self.data[i0, j0] * (y1 - d1)) + (self.data[i0, j1] * (d1 - y0))
  *         elif j0 == j1:
  *             res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))             # <<<<<<<<<<<<<<
@@ -2083,7 +2083,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   }
   /*else*/ {
 
-    /* "bilinear.pyx":109
+    /* "silx/image/bilinear.pyx":109
  *             res = (self.data[i0, j0] * (x1 - d0)) + (self.data[i1, j0] * (d0 - x0))
  *         else:
  *             res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \             # <<<<<<<<<<<<<<
@@ -2094,7 +2094,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
     __pyx_t_17 = __pyx_v_i0;
     __pyx_t_18 = __pyx_v_j0;
 
-    /* "bilinear.pyx":110
+    /* "silx/image/bilinear.pyx":110
  *         else:
  *             res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
  *                 + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \             # <<<<<<<<<<<<<<
@@ -2105,7 +2105,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
     __pyx_t_19 = __pyx_v_i1;
     __pyx_t_20 = __pyx_v_j0;
 
-    /* "bilinear.pyx":111
+    /* "silx/image/bilinear.pyx":111
  *             res = (self.data[i0, j0] * (x1 - d0) * (y1 - d1))  \
  *                 + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
  *                 + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \             # <<<<<<<<<<<<<<
@@ -2116,7 +2116,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
     __pyx_t_21 = __pyx_v_i0;
     __pyx_t_22 = __pyx_v_j1;
 
-    /* "bilinear.pyx":112
+    /* "silx/image/bilinear.pyx":112
  *                 + (self.data[i1, j0] * (d0 - x0) * (y1 - d1))  \
  *                 + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
  *                 + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))             # <<<<<<<<<<<<<<
@@ -2130,7 +2130,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   }
   __pyx_L3:;
 
-  /* "bilinear.pyx":113
+  /* "silx/image/bilinear.pyx":113
  *                 + (self.data[i0, j1] * (x1 - d0) * (d1 - y0))  \
  *                 + (self.data[i1, j1] * (d0 - x0) * (d1 - y0))
  *         return res             # <<<<<<<<<<<<<<
@@ -2140,7 +2140,7 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
   __pyx_r = __pyx_v_res;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":78
+  /* "silx/image/bilinear.pyx":78
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     cdef float c_funct(self, float x, float y) nogil:             # <<<<<<<<<<<<<<
@@ -2150,13 +2150,13 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("bilinear.BilinearImage.c_funct", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("silx.image.bilinear.BilinearImage.c_funct", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   return __pyx_r;
 }
 
-/* "bilinear.pyx":117
+/* "silx/image/bilinear.pyx":117
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     def opp_f(self, coord):             # <<<<<<<<<<<<<<
@@ -2165,20 +2165,20 @@ static float __pyx_f_8bilinear_13BilinearImage_c_funct(struct __pyx_obj_8bilinea
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_7opp_f(PyObject *__pyx_v_self, PyObject *__pyx_v_coord); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_6opp_f[] = "opp_f(self, coord)\n\n        Function -f((y,x)) for peak finding via minimizer.\n\n        Gives large number outside the boundaries to return into the image  \n\n        :param x: 2-tuple of float in natural C order, i.e (row, column)\n        :return: Negative interpolated signal from the image\n        ";
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_7opp_f(PyObject *__pyx_v_self, PyObject *__pyx_v_coord) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_7opp_f(PyObject *__pyx_v_self, PyObject *__pyx_v_coord); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_6opp_f[] = "opp_f(self, coord)\n\n        Function -f((y,x)) for peak finding via minimizer.\n\n        Gives large number outside the boundaries to return into the image  \n\n        :param x: 2-tuple of float in natural C order, i.e (row, column)\n        :return: Negative interpolated signal from the image\n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_7opp_f(PyObject *__pyx_v_self, PyObject *__pyx_v_coord) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("opp_f (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_6opp_f(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coord));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_6opp_f(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coord));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
   float __pyx_v_d0;
   float __pyx_v_d1;
   float __pyx_v_res;
@@ -2196,7 +2196,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("opp_f", 0);
 
-  /* "bilinear.pyx":129
+  /* "silx/image/bilinear.pyx":129
  *         cdef:
  *             float d0, d1, res
  *         d0, d1 = coord             # <<<<<<<<<<<<<<
@@ -2258,7 +2258,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_v_d0 = __pyx_t_5;
   __pyx_v_d1 = __pyx_t_6;
 
-  /* "bilinear.pyx":130
+  /* "silx/image/bilinear.pyx":130
  *             float d0, d1, res
  *         d0, d1 = coord
  *         if d0 < 0:             # <<<<<<<<<<<<<<
@@ -2268,7 +2268,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_t_7 = ((__pyx_v_d0 < 0.0) != 0);
   if (__pyx_t_7) {
 
-    /* "bilinear.pyx":131
+    /* "silx/image/bilinear.pyx":131
  *         d0, d1 = coord
  *         if d0 < 0:
  *             res = self.mini + d0             # <<<<<<<<<<<<<<
@@ -2279,7 +2279,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
     goto __pyx_L5;
   }
 
-  /* "bilinear.pyx":132
+  /* "silx/image/bilinear.pyx":132
  *         if d0 < 0:
  *             res = self.mini + d0
  *         elif d1 < 0:             # <<<<<<<<<<<<<<
@@ -2289,7 +2289,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_t_7 = ((__pyx_v_d1 < 0.0) != 0);
   if (__pyx_t_7) {
 
-    /* "bilinear.pyx":133
+    /* "silx/image/bilinear.pyx":133
  *             res = self.mini + d0
  *         elif d1 < 0:
  *             res = self.mini + d1             # <<<<<<<<<<<<<<
@@ -2300,7 +2300,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
     goto __pyx_L5;
   }
 
-  /* "bilinear.pyx":134
+  /* "silx/image/bilinear.pyx":134
  *         elif d1 < 0:
  *             res = self.mini + d1
  *         elif d0 > (self.height - 1):             # <<<<<<<<<<<<<<
@@ -2310,7 +2310,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_t_7 = ((__pyx_v_d0 > (__pyx_v_self->height - 1)) != 0);
   if (__pyx_t_7) {
 
-    /* "bilinear.pyx":135
+    /* "silx/image/bilinear.pyx":135
  *             res = self.mini + d1
  *         elif d0 > (self.height - 1):
  *             res = self.mini - d0 + self.height - 1             # <<<<<<<<<<<<<<
@@ -2321,7 +2321,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
     goto __pyx_L5;
   }
 
-  /* "bilinear.pyx":136
+  /* "silx/image/bilinear.pyx":136
  *         elif d0 > (self.height - 1):
  *             res = self.mini - d0 + self.height - 1
  *         elif d1 > self.width - 1:             # <<<<<<<<<<<<<<
@@ -2331,7 +2331,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_t_7 = ((__pyx_v_d1 > (__pyx_v_self->width - 1)) != 0);
   if (__pyx_t_7) {
 
-    /* "bilinear.pyx":137
+    /* "silx/image/bilinear.pyx":137
  *             res = self.mini - d0 + self.height - 1
  *         elif d1 > self.width - 1:
  *             res = self.mini - d1 + self.width - 1             # <<<<<<<<<<<<<<
@@ -2343,18 +2343,18 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   }
   /*else*/ {
 
-    /* "bilinear.pyx":139
+    /* "silx/image/bilinear.pyx":139
  *             res = self.mini - d1 + self.width - 1
  *         else:
  *             res = self.c_funct(d1, d0)             # <<<<<<<<<<<<<<
  *         return - res
  * 
  */
-    __pyx_v_res = ((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_d1, __pyx_v_d0);
+    __pyx_v_res = ((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_d1, __pyx_v_d0);
   }
   __pyx_L5:;
 
-  /* "bilinear.pyx":140
+  /* "silx/image/bilinear.pyx":140
  *         else:
  *             res = self.c_funct(d1, d0)
  *         return - res             # <<<<<<<<<<<<<<
@@ -2368,7 +2368,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":117
+  /* "silx/image/bilinear.pyx":117
  *     @cython.boundscheck(False)
  *     @cython.wraparound(False)
  *     def opp_f(self, coord):             # <<<<<<<<<<<<<<
@@ -2381,7 +2381,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("bilinear.BilinearImage.opp_f", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.opp_f", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2389,7 +2389,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
   return __pyx_r;
 }
 
-/* "bilinear.pyx":145
+/* "silx/image/bilinear.pyx":145
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     def local_maxi(self, coord):             # <<<<<<<<<<<<<<
@@ -2398,20 +2398,20 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6opp_f(struct __pyx_obj_8bil
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_9local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_v_coord); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_8local_maxi[] = "local_maxi(self, coord)\n\n        Return the nearest local maximum ... with sub-pixel refinement\n\n        Nearest maximum search: \n            steepest ascent\n\n        Sub-pixel refinement:\n            Second order Taylor expansion of the function; \n            At the maximum, the first derivative is null\n            delta = x-i = -Inverse[Hessian].gradient\n            if Hessian is singular or \\|delta\\|>1: use a center of mass.\n\n        :param coord: 2-tuple of scalar (row, column)\n        :return: 2-tuple of float with the nearest local maximum\n        ";
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_9local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_v_coord) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_9local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_v_coord); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_8local_maxi[] = "local_maxi(self, coord)\n\n        Return the nearest local maximum ... with sub-pixel refinement\n\n        Nearest maximum search: \n            steepest ascent\n\n        Sub-pixel refinement:\n            Second order Taylor expansion of the function; \n            At the maximum, the first derivative is null\n            delta = x-i = -Inverse[Hessian].gradient\n            if Hessian is singular or \\|delta\\|>1: use a center of mass.\n\n        :param coord: 2-tuple of scalar (row, column)\n        :return: 2-tuple of float with the nearest local maximum\n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_9local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_v_coord) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("local_maxi (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_8local_maxi(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coord));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_8local_maxi(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coord));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coord) {
   int __pyx_v_res;
   int __pyx_v_current0;
   int __pyx_v_current1;
@@ -2473,7 +2473,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("local_maxi", 0);
 
-  /* "bilinear.pyx":165
+  /* "silx/image/bilinear.pyx":165
  *             int res, current0, current1
  *             int i0, i1
  *             float tmp, sum0 = 0, sum1 = 0, sum = 0             # <<<<<<<<<<<<<<
@@ -2484,7 +2484,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   __pyx_v_sum1 = 0.0;
   __pyx_v_sum = 0.0;
 
-  /* "bilinear.pyx":168
+  /* "silx/image/bilinear.pyx":168
  *             float a00, a01, a02, a10, a11, a12, a20, a21, a22
  *             float d00, d11, d01, denom, delta0, delta1
  *         res = self.c_local_maxi(round(coord[0]) * self.width + round(coord[1]))             # <<<<<<<<<<<<<<
@@ -2523,9 +2523,9 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_4 = __Pyx_PyInt_As_size_t(__pyx_t_1); if (unlikely((__pyx_t_4 == (size_t)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_res = ((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_local_maxi(__pyx_v_self, __pyx_t_4);
+  __pyx_v_res = ((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_local_maxi(__pyx_v_self, __pyx_t_4);
 
-  /* "bilinear.pyx":170
+  /* "silx/image/bilinear.pyx":170
  *         res = self.c_local_maxi(round(coord[0]) * self.width + round(coord[1]))
  * 
  *         current0 = res // self.width             # <<<<<<<<<<<<<<
@@ -2534,7 +2534,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
   __pyx_v_current0 = (__pyx_v_res / __pyx_v_self->width);
 
-  /* "bilinear.pyx":171
+  /* "silx/image/bilinear.pyx":171
  * 
  *         current0 = res // self.width
  *         current1 = res % self.width             # <<<<<<<<<<<<<<
@@ -2543,7 +2543,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
   __pyx_v_current1 = (__pyx_v_res % __pyx_v_self->width);
 
-  /* "bilinear.pyx":172
+  /* "silx/image/bilinear.pyx":172
  *         current0 = res // self.width
  *         current1 = res % self.width
  *         if (current0 > 0) and (current0 < self.height - 1) and (current1 > 0) and (current1 < self.width - 1):             # <<<<<<<<<<<<<<
@@ -2573,7 +2573,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_5) {
 
-    /* "bilinear.pyx":174
+    /* "silx/image/bilinear.pyx":174
  *         if (current0 > 0) and (current0 < self.height - 1) and (current1 > 0) and (current1 < self.width - 1):
  *             # Use second order polynomial Taylor expansion
  *             a00 = self.data[current0 - 1, current1 - 1]             # <<<<<<<<<<<<<<
@@ -2585,7 +2585,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_8 = (__pyx_v_current1 - 1);
     __pyx_v_a00 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_7 * __pyx_v_self->data.strides[0]) )) + __pyx_t_8)) )));
 
-    /* "bilinear.pyx":175
+    /* "silx/image/bilinear.pyx":175
  *             # Use second order polynomial Taylor expansion
  *             a00 = self.data[current0 - 1, current1 - 1]
  *             a01 = self.data[current0 - 1, current1    ]             # <<<<<<<<<<<<<<
@@ -2597,7 +2597,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_10 = __pyx_v_current1;
     __pyx_v_a01 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_9 * __pyx_v_self->data.strides[0]) )) + __pyx_t_10)) )));
 
-    /* "bilinear.pyx":176
+    /* "silx/image/bilinear.pyx":176
  *             a00 = self.data[current0 - 1, current1 - 1]
  *             a01 = self.data[current0 - 1, current1    ]
  *             a02 = self.data[current0 - 1, current1 + 1]             # <<<<<<<<<<<<<<
@@ -2609,7 +2609,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_12 = (__pyx_v_current1 + 1);
     __pyx_v_a02 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_11 * __pyx_v_self->data.strides[0]) )) + __pyx_t_12)) )));
 
-    /* "bilinear.pyx":177
+    /* "silx/image/bilinear.pyx":177
  *             a01 = self.data[current0 - 1, current1    ]
  *             a02 = self.data[current0 - 1, current1 + 1]
  *             a10 = self.data[current0    , current1 - 1]             # <<<<<<<<<<<<<<
@@ -2621,7 +2621,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_14 = (__pyx_v_current1 - 1);
     __pyx_v_a10 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_13 * __pyx_v_self->data.strides[0]) )) + __pyx_t_14)) )));
 
-    /* "bilinear.pyx":178
+    /* "silx/image/bilinear.pyx":178
  *             a02 = self.data[current0 - 1, current1 + 1]
  *             a10 = self.data[current0    , current1 - 1]
  *             a11 = self.data[current0    , current1    ]             # <<<<<<<<<<<<<<
@@ -2633,7 +2633,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_16 = __pyx_v_current1;
     __pyx_v_a11 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_15 * __pyx_v_self->data.strides[0]) )) + __pyx_t_16)) )));
 
-    /* "bilinear.pyx":179
+    /* "silx/image/bilinear.pyx":179
  *             a10 = self.data[current0    , current1 - 1]
  *             a11 = self.data[current0    , current1    ]
  *             a12 = self.data[current0    , current1 + 1]             # <<<<<<<<<<<<<<
@@ -2645,7 +2645,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_18 = (__pyx_v_current1 + 1);
     __pyx_v_a12 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_17 * __pyx_v_self->data.strides[0]) )) + __pyx_t_18)) )));
 
-    /* "bilinear.pyx":180
+    /* "silx/image/bilinear.pyx":180
  *             a11 = self.data[current0    , current1    ]
  *             a12 = self.data[current0    , current1 + 1]
  *             a20 = self.data[current0 + 1, current1 - 1]             # <<<<<<<<<<<<<<
@@ -2657,7 +2657,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_20 = (__pyx_v_current1 - 1);
     __pyx_v_a20 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_19 * __pyx_v_self->data.strides[0]) )) + __pyx_t_20)) )));
 
-    /* "bilinear.pyx":181
+    /* "silx/image/bilinear.pyx":181
  *             a12 = self.data[current0    , current1 + 1]
  *             a20 = self.data[current0 + 1, current1 - 1]
  *             a21 = self.data[current0 + 1, current1    ]             # <<<<<<<<<<<<<<
@@ -2669,7 +2669,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_22 = __pyx_v_current1;
     __pyx_v_a21 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_21 * __pyx_v_self->data.strides[0]) )) + __pyx_t_22)) )));
 
-    /* "bilinear.pyx":182
+    /* "silx/image/bilinear.pyx":182
  *             a20 = self.data[current0 + 1, current1 - 1]
  *             a21 = self.data[current0 + 1, current1    ]
  *             a22 = self.data[current0 + 1, current1 - 1]             # <<<<<<<<<<<<<<
@@ -2681,7 +2681,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_24 = (__pyx_v_current1 - 1);
     __pyx_v_a22 = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_23 * __pyx_v_self->data.strides[0]) )) + __pyx_t_24)) )));
 
-    /* "bilinear.pyx":183
+    /* "silx/image/bilinear.pyx":183
  *             a21 = self.data[current0 + 1, current1    ]
  *             a22 = self.data[current0 + 1, current1 - 1]
  *             d00 = a12 - 2.0 * a11 + a10             # <<<<<<<<<<<<<<
@@ -2690,7 +2690,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
     __pyx_v_d00 = ((__pyx_v_a12 - (2.0 * __pyx_v_a11)) + __pyx_v_a10);
 
-    /* "bilinear.pyx":184
+    /* "silx/image/bilinear.pyx":184
  *             a22 = self.data[current0 + 1, current1 - 1]
  *             d00 = a12 - 2.0 * a11 + a10
  *             d11 = a21 - 2.0 * a11 + a01             # <<<<<<<<<<<<<<
@@ -2699,7 +2699,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
     __pyx_v_d11 = ((__pyx_v_a21 - (2.0 * __pyx_v_a11)) + __pyx_v_a01);
 
-    /* "bilinear.pyx":185
+    /* "silx/image/bilinear.pyx":185
  *             d00 = a12 - 2.0 * a11 + a10
  *             d11 = a21 - 2.0 * a11 + a01
  *             d01 = (a00 - a02 - a20 + a22) / 4.0             # <<<<<<<<<<<<<<
@@ -2708,7 +2708,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
     __pyx_v_d01 = ((((__pyx_v_a00 - __pyx_v_a02) - __pyx_v_a20) + __pyx_v_a22) / 4.0);
 
-    /* "bilinear.pyx":186
+    /* "silx/image/bilinear.pyx":186
  *             d11 = a21 - 2.0 * a11 + a01
  *             d01 = (a00 - a02 - a20 + a22) / 4.0
  *             denom = 2.0 * (d00 * d11 - d01 * d01)             # <<<<<<<<<<<<<<
@@ -2717,7 +2717,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
     __pyx_v_denom = (2.0 * ((__pyx_v_d00 * __pyx_v_d11) - (__pyx_v_d01 * __pyx_v_d01)));
 
-    /* "bilinear.pyx":187
+    /* "silx/image/bilinear.pyx":187
  *             d01 = (a00 - a02 - a20 + a22) / 4.0
  *             denom = 2.0 * (d00 * d11 - d01 * d01)
  *             if abs(denom) < 1e-10:             # <<<<<<<<<<<<<<
@@ -2727,7 +2727,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_5 = ((fabsf(__pyx_v_denom) < 1e-10) != 0);
     if (__pyx_t_5) {
 
-      /* "bilinear.pyx":188
+      /* "silx/image/bilinear.pyx":188
  *             denom = 2.0 * (d00 * d11 - d01 * d01)
  *             if abs(denom) < 1e-10:
  *                 logger.debug("Singular determinant, Hessian undefined")             # <<<<<<<<<<<<<<
@@ -2747,7 +2747,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     }
     /*else*/ {
 
-      /* "bilinear.pyx":190
+      /* "silx/image/bilinear.pyx":190
  *                 logger.debug("Singular determinant, Hessian undefined")
  *             else:
  *                 delta0 = ((a12 - a10) * d01 + (a01 - a21) * d11) / denom             # <<<<<<<<<<<<<<
@@ -2756,7 +2756,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
       __pyx_v_delta0 = ((((__pyx_v_a12 - __pyx_v_a10) * __pyx_v_d01) + ((__pyx_v_a01 - __pyx_v_a21) * __pyx_v_d11)) / __pyx_v_denom);
 
-      /* "bilinear.pyx":191
+      /* "silx/image/bilinear.pyx":191
  *             else:
  *                 delta0 = ((a12 - a10) * d01 + (a01 - a21) * d11) / denom
  *                 delta1 = ((a10 - a12) * d00 + (a21 - a01) * d01) / denom             # <<<<<<<<<<<<<<
@@ -2765,7 +2765,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
       __pyx_v_delta1 = ((((__pyx_v_a10 - __pyx_v_a12) * __pyx_v_d00) + ((__pyx_v_a21 - __pyx_v_a01) * __pyx_v_d01)) / __pyx_v_denom);
 
-      /* "bilinear.pyx":192
+      /* "silx/image/bilinear.pyx":192
  *                 delta0 = ((a12 - a10) * d01 + (a01 - a21) * d11) / denom
  *                 delta1 = ((a10 - a12) * d00 + (a21 - a01) * d01) / denom
  *                 if abs(delta0) <= 1.0 and abs(delta1) <= 1.0:             # <<<<<<<<<<<<<<
@@ -2783,7 +2783,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
       __pyx_L10_bool_binop_done:;
       if (__pyx_t_5) {
 
-        /* "bilinear.pyx":194
+        /* "silx/image/bilinear.pyx":194
  *                 if abs(delta0) <= 1.0 and abs(delta1) <= 1.0:
  *                     # Result is OK if lower than 0.5.
  *                     return (delta0 + float(current0), delta1 + float(current1))             # <<<<<<<<<<<<<<
@@ -2809,7 +2809,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
       }
       /*else*/ {
 
-        /* "bilinear.pyx":196
+        /* "silx/image/bilinear.pyx":196
  *                     return (delta0 + float(current0), delta1 + float(current1))
  *                 else:
  *                     logger.debug("Failed to find root using second order expansion")             # <<<<<<<<<<<<<<
@@ -2829,7 +2829,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     }
     __pyx_L8:;
 
-    /* "bilinear.pyx":198
+    /* "silx/image/bilinear.pyx":198
  *                     logger.debug("Failed to find root using second order expansion")
  *             # refinement of the position by a simple center of mass of the last valid region used
  *             for i0 in range(current0 - 1, current0 + 2):             # <<<<<<<<<<<<<<
@@ -2840,7 +2840,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     for (__pyx_t_26 = (__pyx_v_current0 - 1); __pyx_t_26 < __pyx_t_25; __pyx_t_26+=1) {
       __pyx_v_i0 = __pyx_t_26;
 
-      /* "bilinear.pyx":199
+      /* "silx/image/bilinear.pyx":199
  *             # refinement of the position by a simple center of mass of the last valid region used
  *             for i0 in range(current0 - 1, current0 + 2):
  *                 for i1 in range(current1 - 1, current1 + 2):             # <<<<<<<<<<<<<<
@@ -2851,7 +2851,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
       for (__pyx_t_28 = (__pyx_v_current1 - 1); __pyx_t_28 < __pyx_t_27; __pyx_t_28+=1) {
         __pyx_v_i1 = __pyx_t_28;
 
-        /* "bilinear.pyx":200
+        /* "silx/image/bilinear.pyx":200
  *             for i0 in range(current0 - 1, current0 + 2):
  *                 for i1 in range(current1 - 1, current1 + 2):
  *                     tmp = self.data[i0, i1]             # <<<<<<<<<<<<<<
@@ -2863,7 +2863,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
         __pyx_t_30 = __pyx_v_i1;
         __pyx_v_tmp = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_29 * __pyx_v_self->data.strides[0]) )) + __pyx_t_30)) )));
 
-        /* "bilinear.pyx":201
+        /* "silx/image/bilinear.pyx":201
  *                 for i1 in range(current1 - 1, current1 + 2):
  *                     tmp = self.data[i0, i1]
  *                     sum0 += tmp * i0             # <<<<<<<<<<<<<<
@@ -2872,7 +2872,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
         __pyx_v_sum0 = (__pyx_v_sum0 + (__pyx_v_tmp * __pyx_v_i0));
 
-        /* "bilinear.pyx":202
+        /* "silx/image/bilinear.pyx":202
  *                     tmp = self.data[i0, i1]
  *                     sum0 += tmp * i0
  *                     sum1 += tmp * i1             # <<<<<<<<<<<<<<
@@ -2881,7 +2881,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  */
         __pyx_v_sum1 = (__pyx_v_sum1 + (__pyx_v_tmp * __pyx_v_i1));
 
-        /* "bilinear.pyx":203
+        /* "silx/image/bilinear.pyx":203
  *                     sum0 += tmp * i0
  *                     sum1 += tmp * i1
  *                     sum += tmp             # <<<<<<<<<<<<<<
@@ -2892,7 +2892,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
       }
     }
 
-    /* "bilinear.pyx":204
+    /* "silx/image/bilinear.pyx":204
  *                     sum1 += tmp * i1
  *                     sum += tmp
  *             if sum > 0:             # <<<<<<<<<<<<<<
@@ -2902,7 +2902,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
     __pyx_t_5 = ((__pyx_v_sum > 0.0) != 0);
     if (__pyx_t_5) {
 
-      /* "bilinear.pyx":205
+      /* "silx/image/bilinear.pyx":205
  *                     sum += tmp
  *             if sum > 0:
  *                 return (sum0 / sum, sum1 / sum)             # <<<<<<<<<<<<<<
@@ -2930,7 +2930,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   }
   __pyx_L3:;
 
-  /* "bilinear.pyx":207
+  /* "silx/image/bilinear.pyx":207
  *                 return (sum0 / sum, sum1 / sum)
  * 
  *         return (float(current0), float(current1))             # <<<<<<<<<<<<<<
@@ -2954,7 +2954,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":145
+  /* "silx/image/bilinear.pyx":145
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     def local_maxi(self, coord):             # <<<<<<<<<<<<<<
@@ -2967,7 +2967,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("bilinear.BilinearImage.local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -2975,7 +2975,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "bilinear.pyx":209
+/* "silx/image/bilinear.pyx":209
  *         return (float(current0), float(current1))
  * 
  *     cpdef size_t coarse_local_maxi(self, size_t x):             # <<<<<<<<<<<<<<
@@ -2983,8 +2983,8 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_8local_maxi(struct __pyx_obj
  * 
  */
 
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x); /*proto*/
-static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x, int __pyx_skip_dispatch) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x); /*proto*/
+static size_t __pyx_f_4silx_5image_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x, int __pyx_skip_dispatch) {
   size_t __pyx_r;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3004,7 +3004,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_o
   else if (unlikely(Py_TYPE(((PyObject *)__pyx_v_self))->tp_dictoffset != 0)) {
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_coarse_local_maxi); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 209; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi)) {
+    if (!PyCFunction_Check(__pyx_t_1) || (PyCFunction_GET_FUNCTION(__pyx_t_1) != (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_11coarse_local_maxi)) {
       __pyx_t_3 = __Pyx_PyInt_FromSize_t(__pyx_v_x); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 209; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_INCREF(__pyx_t_1);
@@ -3043,17 +3043,17 @@ static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_o
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
 
-  /* "bilinear.pyx":217
+  /* "silx/image/bilinear.pyx":217
  *         :return: local maximum index
  *         """
  *         return self.c_local_maxi(x)             # <<<<<<<<<<<<<<
  * 
  *     @cython.boundscheck(False)
  */
-  __pyx_r = ((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_local_maxi(__pyx_v_self, __pyx_v_x);
+  __pyx_r = ((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_local_maxi(__pyx_v_self, __pyx_v_x);
   goto __pyx_L0;
 
-  /* "bilinear.pyx":209
+  /* "silx/image/bilinear.pyx":209
  *         return (float(current0), float(current1))
  * 
  *     cpdef size_t coarse_local_maxi(self, size_t x):             # <<<<<<<<<<<<<<
@@ -3069,7 +3069,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_o
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_WriteUnraisable("bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("silx.image.bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -3077,9 +3077,9 @@ static size_t __pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(struct __pyx_o
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_10coarse_local_maxi[] = "coarse_local_maxi(self, idx)\n\n        Return the nearest local maximum ... without sub-pixel refinement\n\n        :param idx: start index (=row*width+column)\n        :return: local maximum index\n        ";
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_10coarse_local_maxi[] = "coarse_local_maxi(self, idx)\n\n        Return the nearest local maximum ... without sub-pixel refinement\n\n        :param idx: start index (=row*width+column)\n        :return: local maximum index\n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject *__pyx_v_self, PyObject *__pyx_arg_x) {
   size_t __pyx_v_x;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -3092,18 +3092,18 @@ static PyObject *__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi(PyObject
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
-  __Pyx_AddTraceback("bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), ((size_t)__pyx_v_x));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_10coarse_local_maxi(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), ((size_t)__pyx_v_x));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_10coarse_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_x) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3112,7 +3112,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("coarse_local_maxi", 0);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_FromSize_t(__pyx_f_8bilinear_13BilinearImage_coarse_local_maxi(__pyx_v_self, __pyx_v_x, 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 209; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_FromSize_t(__pyx_f_4silx_5image_8bilinear_13BilinearImage_coarse_local_maxi(__pyx_v_self, __pyx_v_x, 1)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 209; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -3121,7 +3121,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct _
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.coarse_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3129,7 +3129,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct _
   return __pyx_r;
 }
 
-/* "bilinear.pyx":222
+/* "silx/image/bilinear.pyx":222
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef size_t c_local_maxi(self, size_t idx) nogil:             # <<<<<<<<<<<<<<
@@ -3137,7 +3137,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_10coarse_local_maxi(struct _
  *         ... without sub-pixel refinement
  */
 
-static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_idx) {
+static size_t __pyx_f_4silx_5image_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, size_t __pyx_v_idx) {
   int __pyx_v_current0;
   int __pyx_v_current1;
   int __pyx_v_i0;
@@ -3172,7 +3172,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
 
-  /* "bilinear.pyx":232
+  /* "silx/image/bilinear.pyx":232
  *         """
  *         cdef:
  *             int current0 = idx // self.width             # <<<<<<<<<<<<<<
@@ -3181,7 +3181,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
  */
   __pyx_v_current0 = (__pyx_v_idx / __pyx_v_self->width);
 
-  /* "bilinear.pyx":233
+  /* "silx/image/bilinear.pyx":233
  *         cdef:
  *             int current0 = idx // self.width
  *             int current1 = idx % self.width             # <<<<<<<<<<<<<<
@@ -3190,7 +3190,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
  */
   __pyx_v_current1 = (__pyx_v_idx % __pyx_v_self->width);
 
-  /* "bilinear.pyx":237
+  /* "silx/image/bilinear.pyx":237
  *             float tmp, value, old_value
  * 
  *         value = self.data[current0, current1]             # <<<<<<<<<<<<<<
@@ -3202,7 +3202,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
   __pyx_t_2 = __pyx_v_current1;
   __pyx_v_value = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_1 * __pyx_v_self->data.strides[0]) )) + __pyx_t_2)) )));
 
-  /* "bilinear.pyx":238
+  /* "silx/image/bilinear.pyx":238
  * 
  *         value = self.data[current0, current1]
  *         old_value = value - 1.0             # <<<<<<<<<<<<<<
@@ -3211,7 +3211,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
  */
   __pyx_v_old_value = (__pyx_v_value - 1.0);
 
-  /* "bilinear.pyx":239
+  /* "silx/image/bilinear.pyx":239
  *         value = self.data[current0, current1]
  *         old_value = value - 1.0
  *         new0, new1 = current0, current1             # <<<<<<<<<<<<<<
@@ -3223,7 +3223,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
   __pyx_v_new0 = __pyx_t_3;
   __pyx_v_new1 = __pyx_t_4;
 
-  /* "bilinear.pyx":241
+  /* "silx/image/bilinear.pyx":241
  *         new0, new1 = current0, current1
  * 
  *         while value > old_value:             # <<<<<<<<<<<<<<
@@ -3234,7 +3234,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     __pyx_t_5 = ((__pyx_v_value > __pyx_v_old_value) != 0);
     if (!__pyx_t_5) break;
 
-    /* "bilinear.pyx":242
+    /* "silx/image/bilinear.pyx":242
  * 
  *         while value > old_value:
  *             old_value = value             # <<<<<<<<<<<<<<
@@ -3243,7 +3243,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
  */
     __pyx_v_old_value = __pyx_v_value;
 
-    /* "bilinear.pyx":243
+    /* "silx/image/bilinear.pyx":243
  *         while value > old_value:
  *             old_value = value
  *             start0 = max(0, current0 - 1)             # <<<<<<<<<<<<<<
@@ -3259,7 +3259,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     }
     __pyx_v_start0 = __pyx_t_8;
 
-    /* "bilinear.pyx":244
+    /* "silx/image/bilinear.pyx":244
  *             old_value = value
  *             start0 = max(0, current0 - 1)
  *             stop0 = min(self.height, current0 + 2)             # <<<<<<<<<<<<<<
@@ -3275,7 +3275,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     }
     __pyx_v_stop0 = __pyx_t_10;
 
-    /* "bilinear.pyx":245
+    /* "silx/image/bilinear.pyx":245
  *             start0 = max(0, current0 - 1)
  *             stop0 = min(self.height, current0 + 2)
  *             start1 = max(0, current1 - 1)             # <<<<<<<<<<<<<<
@@ -3291,7 +3291,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     }
     __pyx_v_start1 = __pyx_t_7;
 
-    /* "bilinear.pyx":246
+    /* "silx/image/bilinear.pyx":246
  *             stop0 = min(self.height, current0 + 2)
  *             start1 = max(0, current1 - 1)
  *             stop1 = min(self.width, current1 + 2)             # <<<<<<<<<<<<<<
@@ -3307,7 +3307,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     }
     __pyx_v_stop1 = __pyx_t_9;
 
-    /* "bilinear.pyx":247
+    /* "silx/image/bilinear.pyx":247
  *             start1 = max(0, current1 - 1)
  *             stop1 = min(self.width, current1 + 2)
  *             for i0 in range(start0, stop0):             # <<<<<<<<<<<<<<
@@ -3318,7 +3318,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     for (__pyx_t_3 = __pyx_v_start0; __pyx_t_3 < __pyx_t_4; __pyx_t_3+=1) {
       __pyx_v_i0 = __pyx_t_3;
 
-      /* "bilinear.pyx":248
+      /* "silx/image/bilinear.pyx":248
  *             stop1 = min(self.width, current1 + 2)
  *             for i0 in range(start0, stop0):
  *                 for i1 in range(start1, stop1):             # <<<<<<<<<<<<<<
@@ -3329,7 +3329,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
       for (__pyx_t_12 = __pyx_v_start1; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
         __pyx_v_i1 = __pyx_t_12;
 
-        /* "bilinear.pyx":249
+        /* "silx/image/bilinear.pyx":249
  *             for i0 in range(start0, stop0):
  *                 for i1 in range(start1, stop1):
  *                     tmp = self.data[i0, i1]             # <<<<<<<<<<<<<<
@@ -3341,7 +3341,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
         __pyx_t_14 = __pyx_v_i1;
         __pyx_v_tmp = (*((float *) ( /* dim=1 */ ((char *) (((float *) ( /* dim=0 */ (__pyx_v_self->data.data + __pyx_t_13 * __pyx_v_self->data.strides[0]) )) + __pyx_t_14)) )));
 
-        /* "bilinear.pyx":250
+        /* "silx/image/bilinear.pyx":250
  *                 for i1 in range(start1, stop1):
  *                     tmp = self.data[i0, i1]
  *                     if tmp > value:             # <<<<<<<<<<<<<<
@@ -3351,7 +3351,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
         __pyx_t_5 = ((__pyx_v_tmp > __pyx_v_value) != 0);
         if (__pyx_t_5) {
 
-          /* "bilinear.pyx":251
+          /* "silx/image/bilinear.pyx":251
  *                     tmp = self.data[i0, i1]
  *                     if tmp > value:
  *                         new0, new1 = i0, i1             # <<<<<<<<<<<<<<
@@ -3363,7 +3363,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
           __pyx_v_new0 = __pyx_t_15;
           __pyx_v_new1 = __pyx_t_16;
 
-          /* "bilinear.pyx":252
+          /* "silx/image/bilinear.pyx":252
  *                     if tmp > value:
  *                         new0, new1 = i0, i1
  *                         value = tmp             # <<<<<<<<<<<<<<
@@ -3377,7 +3377,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
       }
     }
 
-    /* "bilinear.pyx":253
+    /* "silx/image/bilinear.pyx":253
  *                         new0, new1 = i0, i1
  *                         value = tmp
  *             current0, current1 = new0, new1             # <<<<<<<<<<<<<<
@@ -3390,7 +3390,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
     __pyx_v_current1 = __pyx_t_3;
   }
 
-  /* "bilinear.pyx":254
+  /* "silx/image/bilinear.pyx":254
  *                         value = tmp
  *             current0, current1 = new0, new1
  *         return self.width * current0 + current1             # <<<<<<<<<<<<<<
@@ -3400,7 +3400,7 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
   __pyx_r = ((__pyx_v_self->width * __pyx_v_current0) + __pyx_v_current1);
   goto __pyx_L0;
 
-  /* "bilinear.pyx":222
+  /* "silx/image/bilinear.pyx":222
  *     @cython.wraparound(False)
  *     @cython.cdivision(True)
  *     cdef size_t c_local_maxi(self, size_t idx) nogil:             # <<<<<<<<<<<<<<
@@ -3410,13 +3410,13 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_WriteUnraisable("bilinear.BilinearImage.c_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
+  __Pyx_WriteUnraisable("silx.image.bilinear.BilinearImage.c_local_maxi", __pyx_clineno, __pyx_lineno, __pyx_filename, 0);
   __pyx_r = 0;
   __pyx_L0:;
   return __pyx_r;
 }
 
-/* "bilinear.pyx":257
+/* "silx/image/bilinear.pyx":257
  * 
  *     @cython.boundscheck(False)
  *     def map_coordinates(self, coordinates):             # <<<<<<<<<<<<<<
@@ -3425,20 +3425,20 @@ static size_t __pyx_f_8bilinear_13BilinearImage_c_local_maxi(struct __pyx_obj_8b
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_13map_coordinates(PyObject *__pyx_v_self, PyObject *__pyx_v_coordinates); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_12map_coordinates[] = "map_coordinates(self, coordinates)\n\n        Map coordinates of the array on the image\n\n        :param coordinates: 2-tuple of array of the same size (row_array, column_array) \n        :return: array of values at given coordinates\n        ";
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_13map_coordinates(PyObject *__pyx_v_self, PyObject *__pyx_v_coordinates) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_13map_coordinates(PyObject *__pyx_v_self, PyObject *__pyx_v_coordinates); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_12map_coordinates[] = "map_coordinates(self, coordinates)\n\n        Map coordinates of the array on the image\n\n        :param coordinates: 2-tuple of array of the same size (row_array, column_array) \n        :return: array of values at given coordinates\n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_13map_coordinates(PyObject *__pyx_v_self, PyObject *__pyx_v_coordinates) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("map_coordinates (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_12map_coordinates(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coordinates));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_12map_coordinates(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), ((PyObject *)__pyx_v_coordinates));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coordinates) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_12map_coordinates(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_coordinates) {
   __Pyx_memviewslice __pyx_v_d0 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_d1 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_res = { 0, 0, { 0 }, { 0 }, { 0 } };
@@ -3465,7 +3465,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("map_coordinates", 0);
 
-  /* "bilinear.pyx":268
+  /* "silx/image/bilinear.pyx":268
  *             float[:] d0, d1, res
  *             size_t size, i
  *         shape = coordinates[0].shape             # <<<<<<<<<<<<<<
@@ -3480,7 +3480,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __pyx_v_shape = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "bilinear.pyx":269
+  /* "silx/image/bilinear.pyx":269
  *             size_t size, i
  *         shape = coordinates[0].shape
  *         size = coordinates[0].size             # <<<<<<<<<<<<<<
@@ -3496,7 +3496,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_size = __pyx_t_3;
 
-  /* "bilinear.pyx":270
+  /* "silx/image/bilinear.pyx":270
  *         shape = coordinates[0].shape
  *         size = coordinates[0].size
  *         d0 = numpy.ascontiguousarray(coordinates[0].ravel(), dtype=numpy.float32)             # <<<<<<<<<<<<<<
@@ -3557,7 +3557,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "bilinear.pyx":271
+  /* "silx/image/bilinear.pyx":271
  *         size = coordinates[0].size
  *         d0 = numpy.ascontiguousarray(coordinates[0].ravel(), dtype=numpy.float32)
  *         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)             # <<<<<<<<<<<<<<
@@ -3618,7 +3618,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "bilinear.pyx":272
+  /* "silx/image/bilinear.pyx":272
  *         d0 = numpy.ascontiguousarray(coordinates[0].ravel(), dtype=numpy.float32)
  *         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
  *         assert size == d1.size             # <<<<<<<<<<<<<<
@@ -3646,7 +3646,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   }
   #endif
 
-  /* "bilinear.pyx":273
+  /* "silx/image/bilinear.pyx":273
  *         d1 = numpy.ascontiguousarray(coordinates[1].ravel(), dtype=numpy.float32)
  *         assert size == d1.size
  *         res = numpy.empty(size, dtype=numpy.float32)             # <<<<<<<<<<<<<<
@@ -3686,7 +3686,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "bilinear.pyx":274
+  /* "silx/image/bilinear.pyx":274
  *         assert size == d1.size
  *         res = numpy.empty(size, dtype=numpy.float32)
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -3700,7 +3700,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
       #endif
       /*try:*/ {
 
-        /* "bilinear.pyx":275
+        /* "silx/image/bilinear.pyx":275
  *         res = numpy.empty(size, dtype=numpy.float32)
  *         with nogil:
  *             for i in range(size):             # <<<<<<<<<<<<<<
@@ -3711,7 +3711,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
         for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_3; __pyx_t_9+=1) {
           __pyx_v_i = __pyx_t_9;
 
-          /* "bilinear.pyx":276
+          /* "silx/image/bilinear.pyx":276
  *         with nogil:
  *             for i in range(size):
  *                 res[i] = self.c_funct(d1[i], d0[i])             # <<<<<<<<<<<<<<
@@ -3721,11 +3721,11 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
           __pyx_t_10 = __pyx_v_i;
           __pyx_t_11 = __pyx_v_i;
           __pyx_t_12 = __pyx_v_i;
-          *((float *) ( /* dim=0 */ (__pyx_v_res.data + __pyx_t_12 * __pyx_v_res.strides[0]) )) = ((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, (*((float *) ( /* dim=0 */ (__pyx_v_d1.data + __pyx_t_10 * __pyx_v_d1.strides[0]) ))), (*((float *) ( /* dim=0 */ (__pyx_v_d0.data + __pyx_t_11 * __pyx_v_d0.strides[0]) ))));
+          *((float *) ( /* dim=0 */ (__pyx_v_res.data + __pyx_t_12 * __pyx_v_res.strides[0]) )) = ((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, (*((float *) ( /* dim=0 */ (__pyx_v_d1.data + __pyx_t_10 * __pyx_v_d1.strides[0]) ))), (*((float *) ( /* dim=0 */ (__pyx_v_d0.data + __pyx_t_11 * __pyx_v_d0.strides[0]) ))));
         }
       }
 
-      /* "bilinear.pyx":274
+      /* "silx/image/bilinear.pyx":274
  *         assert size == d1.size
  *         res = numpy.empty(size, dtype=numpy.float32)
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -3743,7 +3743,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
       }
   }
 
-  /* "bilinear.pyx":277
+  /* "silx/image/bilinear.pyx":277
  *             for i in range(size):
  *                 res[i] = self.c_funct(d1[i], d0[i])
  *         return numpy.asarray(res).reshape(shape)             # <<<<<<<<<<<<<<
@@ -3816,7 +3816,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":257
+  /* "silx/image/bilinear.pyx":257
  * 
  *     @cython.boundscheck(False)
  *     def map_coordinates(self, coordinates):             # <<<<<<<<<<<<<<
@@ -3833,7 +3833,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   __Pyx_XDECREF(__pyx_t_6);
   __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_AddTraceback("bilinear.BilinearImage.map_coordinates", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.map_coordinates", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_d0, 1);
@@ -3845,7 +3845,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
   return __pyx_r;
 }
 
-/* "bilinear.pyx":280
+/* "silx/image/bilinear.pyx":280
  * 
  *     @cython.boundscheck(False)
  *     def profile_line(self, src, dst, int linewidth=1):             # <<<<<<<<<<<<<<
@@ -3854,9 +3854,9 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_12map_coordinates(struct __p
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_15profile_line(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_8bilinear_13BilinearImage_14profile_line[] = "profile_line(self, src, dst, linewidth=1)\n\n        Return the intensity profile of an image measured along a scan line.\n\n        :param src: The start point of the scan line.\n        :type src: 2-tuple of numeric scalar\n        :param dst: The end point of the scan line.\n            The destination point is included in the profile,\n            in contrast to standard numpy indexing.\n        :type dst: 2-tuple of numeric scalar\n        :param int linewidth: Width of the scanline (unit image pixel).\n        :return: The intensity profile along the scan line.\n            The length of the profile is the ceil of the computed length\n            of the scan line.\n        :rtype: 1d array\n\n        Inspired from skimage\n        ";
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_15profile_line(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_15profile_line(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_4silx_5image_8bilinear_13BilinearImage_14profile_line[] = "profile_line(self, src, dst, linewidth=1)\n\n        Return the intensity profile of an image measured along a scan line.\n\n        :param src: The start point of the scan line.\n        :type src: 2-tuple of numeric scalar\n        :param dst: The end point of the scan line.\n            The destination point is included in the profile,\n            in contrast to standard numpy indexing.\n        :type dst: 2-tuple of numeric scalar\n        :param int linewidth: Width of the scanline (unit image pixel).\n        :return: The intensity profile along the scan line.\n            The length of the profile is the ceil of the computed length\n            of the scan line.\n        :rtype: 1d array\n\n        Inspired from skimage\n        ";
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_15profile_line(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_src = 0;
   PyObject *__pyx_v_dst = 0;
   int __pyx_v_linewidth;
@@ -3919,18 +3919,18 @@ static PyObject *__pyx_pw_8bilinear_13BilinearImage_15profile_line(PyObject *__p
   __pyx_L5_argtuple_error:;
   __Pyx_RaiseArgtupleInvalid("profile_line", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
-  __Pyx_AddTraceback("bilinear.BilinearImage.profile_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.profile_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_14profile_line(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_src, __pyx_v_dst, __pyx_v_linewidth);
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_14profile_line(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self), __pyx_v_src, __pyx_v_dst, __pyx_v_linewidth);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_src, PyObject *__pyx_v_dst, int __pyx_v_linewidth) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_14profile_line(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self, PyObject *__pyx_v_src, PyObject *__pyx_v_dst, int __pyx_v_linewidth) {
   float __pyx_v_src_row;
   float __pyx_v_src_col;
   float __pyx_v_dst_row;
@@ -3972,7 +3972,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("profile_line", 0);
 
-  /* "bilinear.pyx":304
+  /* "silx/image/bilinear.pyx":304
  *             int lengt, i, j, cnt
  *             float[::1] result
  *         src_row, src_col = src             # <<<<<<<<<<<<<<
@@ -4034,7 +4034,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __pyx_v_src_row = __pyx_t_5;
   __pyx_v_src_col = __pyx_t_6;
 
-  /* "bilinear.pyx":305
+  /* "silx/image/bilinear.pyx":305
  *             float[::1] result
  *         src_row, src_col = src
  *         dst_row, dst_col = dst             # <<<<<<<<<<<<<<
@@ -4096,7 +4096,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __pyx_v_dst_row = __pyx_t_6;
   __pyx_v_dst_col = __pyx_t_5;
 
-  /* "bilinear.pyx":306
+  /* "silx/image/bilinear.pyx":306
  *         src_row, src_col = src
  *         dst_row, dst_col = dst
  *         if (src_row == dst_row) and (src_col == dst_col):             # <<<<<<<<<<<<<<
@@ -4114,7 +4114,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __pyx_L8_bool_binop_done:;
   if (__pyx_t_7) {
 
-    /* "bilinear.pyx":307
+    /* "silx/image/bilinear.pyx":307
  *         dst_row, dst_col = dst
  *         if (src_row == dst_row) and (src_col == dst_col):
  *             logger.warning("Source and destination points are the same")             # <<<<<<<<<<<<<<
@@ -4131,7 +4131,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "bilinear.pyx":308
+    /* "silx/image/bilinear.pyx":308
  *         if (src_row == dst_row) and (src_col == dst_col):
  *             logger.warning("Source and destination points are the same")
  *             return numpy.array([self.c_funct(src_col, src_row)])             # <<<<<<<<<<<<<<
@@ -4144,7 +4144,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyFloat_FromDouble(((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_src_col, __pyx_v_src_row)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = PyFloat_FromDouble(((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_src_col, __pyx_v_src_row)); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_9 = PyList_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
@@ -4182,7 +4182,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
     goto __pyx_L0;
   }
 
-  /* "bilinear.pyx":309
+  /* "silx/image/bilinear.pyx":309
  *             logger.warning("Source and destination points are the same")
  *             return numpy.array([self.c_funct(src_col, src_row)])
  *         d_row = dst_row - src_row             # <<<<<<<<<<<<<<
@@ -4191,7 +4191,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_d_row = (__pyx_v_dst_row - __pyx_v_src_row);
 
-  /* "bilinear.pyx":310
+  /* "silx/image/bilinear.pyx":310
  *             return numpy.array([self.c_funct(src_col, src_row)])
  *         d_row = dst_row - src_row
  *         d_col = dst_col - src_col             # <<<<<<<<<<<<<<
@@ -4200,7 +4200,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_d_col = (__pyx_v_dst_col - __pyx_v_src_col);
 
-  /* "bilinear.pyx":313
+  /* "silx/image/bilinear.pyx":313
  * 
  *         # Offsets to deal with linewidth
  *         length = sqrt(d_row * d_row + d_col * d_col)             # <<<<<<<<<<<<<<
@@ -4209,7 +4209,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_length = sqrt(((__pyx_v_d_row * __pyx_v_d_row) + (__pyx_v_d_col * __pyx_v_d_col)));
 
-  /* "bilinear.pyx":314
+  /* "silx/image/bilinear.pyx":314
  *         # Offsets to deal with linewidth
  *         length = sqrt(d_row * d_row + d_col * d_col)
  *         row_width = d_col / length             # <<<<<<<<<<<<<<
@@ -4228,7 +4228,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   }
   __pyx_v_row_width = (__pyx_v_d_col / __pyx_v_length);
 
-  /* "bilinear.pyx":315
+  /* "silx/image/bilinear.pyx":315
  *         length = sqrt(d_row * d_row + d_col * d_col)
  *         row_width = d_col / length
  *         col_width = - d_row / length             # <<<<<<<<<<<<<<
@@ -4248,7 +4248,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   }
   __pyx_v_col_width = (__pyx_t_5 / __pyx_v_length);
 
-  /* "bilinear.pyx":317
+  /* "silx/image/bilinear.pyx":317
  *         col_width = - d_row / length
  * 
  *         lengt = <int> ceil(length + 1)             # <<<<<<<<<<<<<<
@@ -4257,7 +4257,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_lengt = ((int)ceil((__pyx_v_length + 1.0)));
 
-  /* "bilinear.pyx":318
+  /* "silx/image/bilinear.pyx":318
  * 
  *         lengt = <int> ceil(length + 1)
  *         d_row /= <float> (lengt -1)             # <<<<<<<<<<<<<<
@@ -4277,7 +4277,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   }
   __pyx_v_d_row = (__pyx_v_d_row / __pyx_t_5);
 
-  /* "bilinear.pyx":319
+  /* "silx/image/bilinear.pyx":319
  *         lengt = <int> ceil(length + 1)
  *         d_row /= <float> (lengt -1)
  *         d_col /= <float> (lengt -1)             # <<<<<<<<<<<<<<
@@ -4297,7 +4297,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   }
   __pyx_v_d_col = (__pyx_v_d_col / __pyx_t_5);
 
-  /* "bilinear.pyx":321
+  /* "silx/image/bilinear.pyx":321
  *         d_col /= <float> (lengt -1)
  * 
  *         result = numpy.zeros(lengt, dtype=numpy.float32)             # <<<<<<<<<<<<<<
@@ -4337,7 +4337,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "bilinear.pyx":324
+  /* "silx/image/bilinear.pyx":324
  * 
  *         # Offset position to the center of the bottom pixels of the profile
  *         src_row -= row_width * (linewidth - 1) / 2.             # <<<<<<<<<<<<<<
@@ -4346,7 +4346,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_src_row = (__pyx_v_src_row - ((__pyx_v_row_width * (__pyx_v_linewidth - 1)) / 2.));
 
-  /* "bilinear.pyx":325
+  /* "silx/image/bilinear.pyx":325
  *         # Offset position to the center of the bottom pixels of the profile
  *         src_row -= row_width * (linewidth - 1) / 2.
  *         src_col -= col_width * (linewidth - 1) / 2.             # <<<<<<<<<<<<<<
@@ -4355,7 +4355,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
   __pyx_v_src_col = (__pyx_v_src_col - ((__pyx_v_col_width * (__pyx_v_linewidth - 1)) / 2.));
 
-  /* "bilinear.pyx":327
+  /* "silx/image/bilinear.pyx":327
  *         src_col -= col_width * (linewidth - 1) / 2.
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -4369,7 +4369,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
       #endif
       /*try:*/ {
 
-        /* "bilinear.pyx":328
+        /* "silx/image/bilinear.pyx":328
  * 
  *         with nogil:
  *             for i in range(lengt):             # <<<<<<<<<<<<<<
@@ -4380,7 +4380,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
         for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
           __pyx_v_i = __pyx_t_13;
 
-          /* "bilinear.pyx":329
+          /* "silx/image/bilinear.pyx":329
  *         with nogil:
  *             for i in range(lengt):
  *                 sum = 0             # <<<<<<<<<<<<<<
@@ -4389,7 +4389,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
           __pyx_v_sum = 0.0;
 
-          /* "bilinear.pyx":330
+          /* "silx/image/bilinear.pyx":330
  *             for i in range(lengt):
  *                 sum = 0
  *                 cnt = 0             # <<<<<<<<<<<<<<
@@ -4398,7 +4398,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
           __pyx_v_cnt = 0;
 
-          /* "bilinear.pyx":332
+          /* "silx/image/bilinear.pyx":332
  *                 cnt = 0
  * 
  *                 row = src_row + i * d_row             # <<<<<<<<<<<<<<
@@ -4407,7 +4407,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
           __pyx_v_row = (__pyx_v_src_row + (__pyx_v_i * __pyx_v_d_row));
 
-          /* "bilinear.pyx":333
+          /* "silx/image/bilinear.pyx":333
  * 
  *                 row = src_row + i * d_row
  *                 col = src_col + i * d_col             # <<<<<<<<<<<<<<
@@ -4416,7 +4416,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
           __pyx_v_col = (__pyx_v_src_col + (__pyx_v_i * __pyx_v_d_col));
 
-          /* "bilinear.pyx":335
+          /* "silx/image/bilinear.pyx":335
  *                 col = src_col + i * d_col
  * 
  *                 for j in range(linewidth):             # <<<<<<<<<<<<<<
@@ -4427,7 +4427,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
           for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
             __pyx_v_j = __pyx_t_15;
 
-            /* "bilinear.pyx":336
+            /* "silx/image/bilinear.pyx":336
  * 
  *                 for j in range(linewidth):
  *                     new_row = row + j * row_width             # <<<<<<<<<<<<<<
@@ -4436,7 +4436,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
             __pyx_v_new_row = (__pyx_v_row + (__pyx_v_j * __pyx_v_row_width));
 
-            /* "bilinear.pyx":337
+            /* "silx/image/bilinear.pyx":337
  *                 for j in range(linewidth):
  *                     new_row = row + j * row_width
  *                     new_col = col + j * col_width             # <<<<<<<<<<<<<<
@@ -4445,7 +4445,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
             __pyx_v_new_col = (__pyx_v_col + (__pyx_v_j * __pyx_v_col_width));
 
-            /* "bilinear.pyx":338
+            /* "silx/image/bilinear.pyx":338
  *                     new_row = row + j * row_width
  *                     new_col = col + j * col_width
  *                     if ((new_col >= 0) and (new_col < self.width) and             # <<<<<<<<<<<<<<
@@ -4465,7 +4465,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
               goto __pyx_L18_bool_binop_done;
             }
 
-            /* "bilinear.pyx":339
+            /* "silx/image/bilinear.pyx":339
  *                     new_col = col + j * col_width
  *                     if ((new_col >= 0) and (new_col < self.width) and
  *                             (new_row >= 0) and (new_row < self.height)):             # <<<<<<<<<<<<<<
@@ -4483,7 +4483,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
             __pyx_L18_bool_binop_done:;
             if (__pyx_t_7) {
 
-              /* "bilinear.pyx":340
+              /* "silx/image/bilinear.pyx":340
  *                     if ((new_col >= 0) and (new_col < self.width) and
  *                             (new_row >= 0) and (new_row < self.height)):
  *                         cnt = cnt + 1             # <<<<<<<<<<<<<<
@@ -4492,20 +4492,20 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
               __pyx_v_cnt = (__pyx_v_cnt + 1);
 
-              /* "bilinear.pyx":341
+              /* "silx/image/bilinear.pyx":341
  *                             (new_row >= 0) and (new_row < self.height)):
  *                         cnt = cnt + 1
  *                         sum = sum + self.c_funct(new_col, new_row)             # <<<<<<<<<<<<<<
  *                 if cnt:
  *                     result[i] += sum / cnt
  */
-              __pyx_v_sum = (__pyx_v_sum + ((struct __pyx_vtabstruct_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_new_col, __pyx_v_new_row));
+              __pyx_v_sum = (__pyx_v_sum + ((struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self->__pyx_vtab)->c_funct(__pyx_v_self, __pyx_v_new_col, __pyx_v_new_row));
               goto __pyx_L17;
             }
             __pyx_L17:;
           }
 
-          /* "bilinear.pyx":342
+          /* "silx/image/bilinear.pyx":342
  *                         cnt = cnt + 1
  *                         sum = sum + self.c_funct(new_col, new_row)
  *                 if cnt:             # <<<<<<<<<<<<<<
@@ -4515,7 +4515,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
           __pyx_t_7 = (__pyx_v_cnt != 0);
           if (__pyx_t_7) {
 
-            /* "bilinear.pyx":343
+            /* "silx/image/bilinear.pyx":343
  *                         sum = sum + self.c_funct(new_col, new_row)
  *                 if cnt:
  *                     result[i] += sum / cnt             # <<<<<<<<<<<<<<
@@ -4541,7 +4541,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
         }
       }
 
-      /* "bilinear.pyx":327
+      /* "silx/image/bilinear.pyx":327
  *         src_col -= col_width * (linewidth - 1) / 2.
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -4565,7 +4565,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
       }
   }
 
-  /* "bilinear.pyx":346
+  /* "silx/image/bilinear.pyx":346
  * 
  *         # Ensures the result is exported as numpy array and not memory view.
  *         return numpy.asarray(result)             # <<<<<<<<<<<<<<
@@ -4608,7 +4608,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "bilinear.pyx":280
+  /* "silx/image/bilinear.pyx":280
  * 
  *     @cython.boundscheck(False)
  *     def profile_line(self, src, dst, int linewidth=1):             # <<<<<<<<<<<<<<
@@ -4624,7 +4624,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   __Pyx_XDECREF(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_10);
   __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.profile_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.profile_line", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_result, 1);
@@ -4633,7 +4633,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
   return __pyx_r;
 }
 
-/* "bilinear.pyx":43
+/* "silx/image/bilinear.pyx":43
  *     """
  *     cdef:
  *         readonly float[:, ::1] data             # <<<<<<<<<<<<<<
@@ -4642,19 +4642,19 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_14profile_line(struct __pyx_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4data_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4data_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4data_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4data_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_4data___get__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_4data___get__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4data___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4data___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4673,7 +4673,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4data___get__(struct __pyx_o
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.data.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.data.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4681,7 +4681,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4data___get__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "bilinear.pyx":44
+/* "silx/image/bilinear.pyx":44
  *     cdef:
  *         readonly float[:, ::1] data
  *         readonly float maxi, mini             # <<<<<<<<<<<<<<
@@ -4690,19 +4690,19 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4data___get__(struct __pyx_o
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4maxi_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4maxi_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4maxi_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4maxi_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_4maxi___get__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_4maxi___get__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4720,7 +4720,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_o
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.maxi.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.maxi.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4729,19 +4729,19 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4maxi___get__(struct __pyx_o
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4mini_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_4mini_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4mini_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_4mini_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_4mini___get__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_4mini___get__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_4mini___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_4mini___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4759,7 +4759,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4mini___get__(struct __pyx_o
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.mini.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.mini.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4767,7 +4767,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4mini___get__(struct __pyx_o
   return __pyx_r;
 }
 
-/* "bilinear.pyx":45
+/* "silx/image/bilinear.pyx":45
  *         readonly float[:, ::1] data
  *         readonly float maxi, mini
  *         readonly size_t width, height             # <<<<<<<<<<<<<<
@@ -4776,19 +4776,19 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_4mini___get__(struct __pyx_o
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_5width_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_5width_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_5width_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_5width_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_5width___get__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_5width___get__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_5width___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_5width___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4806,7 +4806,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_5width___get__(struct __pyx_
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.width.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.width.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -4815,19 +4815,19 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_5width___get__(struct __pyx_
 }
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_6height_1__get__(PyObject *__pyx_v_self); /*proto*/
-static PyObject *__pyx_pw_8bilinear_13BilinearImage_6height_1__get__(PyObject *__pyx_v_self) {
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_6height_1__get__(PyObject *__pyx_v_self); /*proto*/
+static PyObject *__pyx_pw_4silx_5image_8bilinear_13BilinearImage_6height_1__get__(PyObject *__pyx_v_self) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__get__ (wrapper)", 0);
-  __pyx_r = __pyx_pf_8bilinear_13BilinearImage_6height___get__(((struct __pyx_obj_8bilinear_BilinearImage *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4silx_5image_8bilinear_13BilinearImage_6height___get__(((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_8bilinear_13BilinearImage_6height___get__(struct __pyx_obj_8bilinear_BilinearImage *__pyx_v_self) {
+static PyObject *__pyx_pf_4silx_5image_8bilinear_13BilinearImage_6height___get__(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -4845,7 +4845,7 @@ static PyObject *__pyx_pf_8bilinear_13BilinearImage_6height___get__(struct __pyx
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("bilinear.BilinearImage.height.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("silx.image.bilinear.BilinearImage.height.__get__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -15486,10 +15486,10 @@ static void __pyx_memoryview__slice_assign_scalar(char *__pyx_v_data, Py_ssize_t
 
   /* function exit code */
 }
-static struct __pyx_vtabstruct_8bilinear_BilinearImage __pyx_vtable_8bilinear_BilinearImage;
+static struct __pyx_vtabstruct_4silx_5image_8bilinear_BilinearImage __pyx_vtable_4silx_5image_8bilinear_BilinearImage;
 
-static PyObject *__pyx_tp_new_8bilinear_BilinearImage(PyTypeObject *t, PyObject *a, PyObject *k) {
-  struct __pyx_obj_8bilinear_BilinearImage *p;
+static PyObject *__pyx_tp_new_4silx_5image_8bilinear_BilinearImage(PyTypeObject *t, PyObject *a, PyObject *k) {
+  struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *p;
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -15497,18 +15497,18 @@ static PyObject *__pyx_tp_new_8bilinear_BilinearImage(PyTypeObject *t, PyObject 
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  p = ((struct __pyx_obj_8bilinear_BilinearImage *)o);
-  p->__pyx_vtab = __pyx_vtabptr_8bilinear_BilinearImage;
+  p = ((struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)o);
+  p->__pyx_vtab = __pyx_vtabptr_4silx_5image_8bilinear_BilinearImage;
   p->data.data = NULL;
   p->data.memview = NULL;
-  if (unlikely(__pyx_pw_8bilinear_13BilinearImage_1__cinit__(o, a, k) < 0)) {
+  if (unlikely(__pyx_pw_4silx_5image_8bilinear_13BilinearImage_1__cinit__(o, a, k) < 0)) {
     Py_DECREF(o); o = 0;
   }
   return o;
 }
 
-static void __pyx_tp_dealloc_8bilinear_BilinearImage(PyObject *o) {
-  struct __pyx_obj_8bilinear_BilinearImage *p = (struct __pyx_obj_8bilinear_BilinearImage *)o;
+static void __pyx_tp_dealloc_4silx_5image_8bilinear_BilinearImage(PyObject *o) {
+  struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *p = (struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *)o;
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -15518,7 +15518,7 @@ static void __pyx_tp_dealloc_8bilinear_BilinearImage(PyObject *o) {
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
     ++Py_REFCNT(o);
-    __pyx_pw_8bilinear_13BilinearImage_3__dealloc__(o);
+    __pyx_pw_4silx_5image_8bilinear_13BilinearImage_3__dealloc__(o);
     --Py_REFCNT(o);
     PyErr_Restore(etype, eval, etb);
   }
@@ -15526,50 +15526,50 @@ static void __pyx_tp_dealloc_8bilinear_BilinearImage(PyObject *o) {
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyObject *__pyx_getprop_8bilinear_13BilinearImage_data(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_8bilinear_13BilinearImage_4data_1__get__(o);
+static PyObject *__pyx_getprop_4silx_5image_8bilinear_13BilinearImage_data(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4silx_5image_8bilinear_13BilinearImage_4data_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_8bilinear_13BilinearImage_maxi(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_8bilinear_13BilinearImage_4maxi_1__get__(o);
+static PyObject *__pyx_getprop_4silx_5image_8bilinear_13BilinearImage_maxi(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4silx_5image_8bilinear_13BilinearImage_4maxi_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_8bilinear_13BilinearImage_mini(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_8bilinear_13BilinearImage_4mini_1__get__(o);
+static PyObject *__pyx_getprop_4silx_5image_8bilinear_13BilinearImage_mini(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4silx_5image_8bilinear_13BilinearImage_4mini_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_8bilinear_13BilinearImage_width(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_8bilinear_13BilinearImage_5width_1__get__(o);
+static PyObject *__pyx_getprop_4silx_5image_8bilinear_13BilinearImage_width(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4silx_5image_8bilinear_13BilinearImage_5width_1__get__(o);
 }
 
-static PyObject *__pyx_getprop_8bilinear_13BilinearImage_height(PyObject *o, CYTHON_UNUSED void *x) {
-  return __pyx_pw_8bilinear_13BilinearImage_6height_1__get__(o);
+static PyObject *__pyx_getprop_4silx_5image_8bilinear_13BilinearImage_height(PyObject *o, CYTHON_UNUSED void *x) {
+  return __pyx_pw_4silx_5image_8bilinear_13BilinearImage_6height_1__get__(o);
 }
 
-static PyMethodDef __pyx_methods_8bilinear_BilinearImage[] = {
-  {"opp_f", (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_7opp_f, METH_O, __pyx_doc_8bilinear_13BilinearImage_6opp_f},
-  {"local_maxi", (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_9local_maxi, METH_O, __pyx_doc_8bilinear_13BilinearImage_8local_maxi},
-  {"coarse_local_maxi", (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_11coarse_local_maxi, METH_O, __pyx_doc_8bilinear_13BilinearImage_10coarse_local_maxi},
-  {"map_coordinates", (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_13map_coordinates, METH_O, __pyx_doc_8bilinear_13BilinearImage_12map_coordinates},
-  {"profile_line", (PyCFunction)__pyx_pw_8bilinear_13BilinearImage_15profile_line, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8bilinear_13BilinearImage_14profile_line},
+static PyMethodDef __pyx_methods_4silx_5image_8bilinear_BilinearImage[] = {
+  {"opp_f", (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_7opp_f, METH_O, __pyx_doc_4silx_5image_8bilinear_13BilinearImage_6opp_f},
+  {"local_maxi", (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_9local_maxi, METH_O, __pyx_doc_4silx_5image_8bilinear_13BilinearImage_8local_maxi},
+  {"coarse_local_maxi", (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_11coarse_local_maxi, METH_O, __pyx_doc_4silx_5image_8bilinear_13BilinearImage_10coarse_local_maxi},
+  {"map_coordinates", (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_13map_coordinates, METH_O, __pyx_doc_4silx_5image_8bilinear_13BilinearImage_12map_coordinates},
+  {"profile_line", (PyCFunction)__pyx_pw_4silx_5image_8bilinear_13BilinearImage_15profile_line, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_5image_8bilinear_13BilinearImage_14profile_line},
   {0, 0, 0, 0}
 };
 
-static struct PyGetSetDef __pyx_getsets_8bilinear_BilinearImage[] = {
-  {(char *)"data", __pyx_getprop_8bilinear_13BilinearImage_data, 0, 0, 0},
-  {(char *)"maxi", __pyx_getprop_8bilinear_13BilinearImage_maxi, 0, 0, 0},
-  {(char *)"mini", __pyx_getprop_8bilinear_13BilinearImage_mini, 0, 0, 0},
-  {(char *)"width", __pyx_getprop_8bilinear_13BilinearImage_width, 0, 0, 0},
-  {(char *)"height", __pyx_getprop_8bilinear_13BilinearImage_height, 0, 0, 0},
+static struct PyGetSetDef __pyx_getsets_4silx_5image_8bilinear_BilinearImage[] = {
+  {(char *)"data", __pyx_getprop_4silx_5image_8bilinear_13BilinearImage_data, 0, 0, 0},
+  {(char *)"maxi", __pyx_getprop_4silx_5image_8bilinear_13BilinearImage_maxi, 0, 0, 0},
+  {(char *)"mini", __pyx_getprop_4silx_5image_8bilinear_13BilinearImage_mini, 0, 0, 0},
+  {(char *)"width", __pyx_getprop_4silx_5image_8bilinear_13BilinearImage_width, 0, 0, 0},
+  {(char *)"height", __pyx_getprop_4silx_5image_8bilinear_13BilinearImage_height, 0, 0, 0},
   {0, 0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_8bilinear_BilinearImage = {
+static PyTypeObject __pyx_type_4silx_5image_8bilinear_BilinearImage = {
   PyVarObject_HEAD_INIT(0, 0)
-  "bilinear.BilinearImage", /*tp_name*/
-  sizeof(struct __pyx_obj_8bilinear_BilinearImage), /*tp_basicsize*/
+  "silx.image.bilinear.BilinearImage", /*tp_name*/
+  sizeof(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_8bilinear_BilinearImage, /*tp_dealloc*/
+  __pyx_tp_dealloc_4silx_5image_8bilinear_BilinearImage, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -15583,7 +15583,7 @@ static PyTypeObject __pyx_type_8bilinear_BilinearImage = {
   0, /*tp_as_sequence*/
   0, /*tp_as_mapping*/
   0, /*tp_hash*/
-  __pyx_pw_8bilinear_13BilinearImage_5__call__, /*tp_call*/
+  __pyx_pw_4silx_5image_8bilinear_13BilinearImage_5__call__, /*tp_call*/
   0, /*tp_str*/
   0, /*tp_getattro*/
   0, /*tp_setattro*/
@@ -15596,9 +15596,9 @@ static PyTypeObject __pyx_type_8bilinear_BilinearImage = {
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_8bilinear_BilinearImage, /*tp_methods*/
+  __pyx_methods_4silx_5image_8bilinear_BilinearImage, /*tp_methods*/
   0, /*tp_members*/
-  __pyx_getsets_8bilinear_BilinearImage, /*tp_getset*/
+  __pyx_getsets_4silx_5image_8bilinear_BilinearImage, /*tp_getset*/
   0, /*tp_base*/
   0, /*tp_dict*/
   0, /*tp_descr_get*/
@@ -15606,7 +15606,7 @@ static PyTypeObject __pyx_type_8bilinear_BilinearImage = {
   0, /*tp_dictoffset*/
   0, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_8bilinear_BilinearImage, /*tp_new*/
+  __pyx_tp_new_4silx_5image_8bilinear_BilinearImage, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -15738,7 +15738,7 @@ static PyBufferProcs __pyx_tp_as_buffer_array = {
 
 static PyTypeObject __pyx_type___pyx_array = {
   PyVarObject_HEAD_INIT(0, 0)
-  "bilinear.array", /*tp_name*/
+  "silx.image.bilinear.array", /*tp_name*/
   sizeof(struct __pyx_array_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_array, /*tp_dealloc*/
@@ -15843,7 +15843,7 @@ static PyMethodDef __pyx_methods_Enum[] = {
 
 static PyTypeObject __pyx_type___pyx_MemviewEnum = {
   PyVarObject_HEAD_INIT(0, 0)
-  "bilinear.Enum", /*tp_name*/
+  "silx.image.bilinear.Enum", /*tp_name*/
   sizeof(struct __pyx_MemviewEnum_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_Enum, /*tp_dealloc*/
@@ -16089,7 +16089,7 @@ static PyBufferProcs __pyx_tp_as_buffer_memoryview = {
 
 static PyTypeObject __pyx_type___pyx_memoryview = {
   PyVarObject_HEAD_INIT(0, 0)
-  "bilinear.memoryview", /*tp_name*/
+  "silx.image.bilinear.memoryview", /*tp_name*/
   sizeof(struct __pyx_memoryview_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc_memoryview, /*tp_dealloc*/
@@ -16213,7 +16213,7 @@ static struct PyGetSetDef __pyx_getsets__memoryviewslice[] = {
 
 static PyTypeObject __pyx_type___pyx_memoryviewslice = {
   PyVarObject_HEAD_INIT(0, 0)
-  "bilinear._memoryviewslice", /*tp_name*/
+  "silx.image.bilinear._memoryviewslice", /*tp_name*/
   sizeof(struct __pyx_memoryviewslice_obj), /*tp_basicsize*/
   0, /*tp_itemsize*/
   __pyx_tp_dealloc__memoryviewslice, /*tp_dealloc*/
@@ -16422,7 +16422,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "bilinear.pyx":188
+  /* "silx/image/bilinear.pyx":188
  *             denom = 2.0 * (d00 * d11 - d01 * d01)
  *             if abs(denom) < 1e-10:
  *                 logger.debug("Singular determinant, Hessian undefined")             # <<<<<<<<<<<<<<
@@ -16433,7 +16433,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "bilinear.pyx":196
+  /* "silx/image/bilinear.pyx":196
  *                     return (delta0 + float(current0), delta1 + float(current1))
  *                 else:
  *                     logger.debug("Failed to find root using second order expansion")             # <<<<<<<<<<<<<<
@@ -16444,7 +16444,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "bilinear.pyx":307
+  /* "silx/image/bilinear.pyx":307
  *         dst_row, dst_col = dst
  *         if (src_row == dst_row) and (src_col == dst_col):
  *             logger.warning("Source and destination points are the same")             # <<<<<<<<<<<<<<
@@ -16576,7 +16576,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "bilinear.pyx":36
+  /* "silx/image/bilinear.pyx":36
  * from libc.math cimport floor, ceil, sin, cos, sqrt, atan2
  * import logging
  * logger = logging.getLogger("silx.image.bilinear")             # <<<<<<<<<<<<<<
@@ -16721,14 +16721,14 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_bilinear) {
+  if (__pyx_module_is_main_silx__image__bilinear) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "bilinear")) {
-      if (unlikely(PyDict_SetItemString(modules, "bilinear", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "silx.image.bilinear")) {
+      if (unlikely(PyDict_SetItemString(modules, "silx.image.bilinear", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -16745,25 +16745,25 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  __pyx_vtabptr_8bilinear_BilinearImage = &__pyx_vtable_8bilinear_BilinearImage;
-  __pyx_vtable_8bilinear_BilinearImage.coarse_local_maxi = (size_t (*)(struct __pyx_obj_8bilinear_BilinearImage *, size_t, int __pyx_skip_dispatch))__pyx_f_8bilinear_13BilinearImage_coarse_local_maxi;
-  __pyx_vtable_8bilinear_BilinearImage.c_local_maxi = (size_t (*)(struct __pyx_obj_8bilinear_BilinearImage *, size_t))__pyx_f_8bilinear_13BilinearImage_c_local_maxi;
-  __pyx_vtable_8bilinear_BilinearImage.c_funct = (float (*)(struct __pyx_obj_8bilinear_BilinearImage *, float, float))__pyx_f_8bilinear_13BilinearImage_c_funct;
-  if (PyType_Ready(&__pyx_type_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_type_8bilinear_BilinearImage.tp_print = 0;
+  __pyx_vtabptr_4silx_5image_8bilinear_BilinearImage = &__pyx_vtable_4silx_5image_8bilinear_BilinearImage;
+  __pyx_vtable_4silx_5image_8bilinear_BilinearImage.coarse_local_maxi = (size_t (*)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, size_t, int __pyx_skip_dispatch))__pyx_f_4silx_5image_8bilinear_13BilinearImage_coarse_local_maxi;
+  __pyx_vtable_4silx_5image_8bilinear_BilinearImage.c_local_maxi = (size_t (*)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, size_t))__pyx_f_4silx_5image_8bilinear_13BilinearImage_c_local_maxi;
+  __pyx_vtable_4silx_5image_8bilinear_BilinearImage.c_funct = (float (*)(struct __pyx_obj_4silx_5image_8bilinear_BilinearImage *, float, float))__pyx_f_4silx_5image_8bilinear_13BilinearImage_c_funct;
+  if (PyType_Ready(&__pyx_type_4silx_5image_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_type_4silx_5image_8bilinear_BilinearImage.tp_print = 0;
   #if CYTHON_COMPILING_IN_CPYTHON
   {
-    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_8bilinear_BilinearImage, "__call__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    PyObject *wrapper = PyObject_GetAttrString((PyObject *)&__pyx_type_4silx_5image_8bilinear_BilinearImage, "__call__"); if (unlikely(!wrapper)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     if (Py_TYPE(wrapper) == &PyWrapperDescr_Type) {
-      __pyx_wrapperbase_8bilinear_13BilinearImage_4__call__ = *((PyWrapperDescrObject *)wrapper)->d_base;
-      __pyx_wrapperbase_8bilinear_13BilinearImage_4__call__.doc = __pyx_doc_8bilinear_13BilinearImage_4__call__;
-      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_8bilinear_13BilinearImage_4__call__;
+      __pyx_wrapperbase_4silx_5image_8bilinear_13BilinearImage_4__call__ = *((PyWrapperDescrObject *)wrapper)->d_base;
+      __pyx_wrapperbase_4silx_5image_8bilinear_13BilinearImage_4__call__.doc = __pyx_doc_4silx_5image_8bilinear_13BilinearImage_4__call__;
+      ((PyWrapperDescrObject *)wrapper)->d_base = &__pyx_wrapperbase_4silx_5image_8bilinear_13BilinearImage_4__call__;
     }
   }
   #endif
-  if (__Pyx_SetVtable(__pyx_type_8bilinear_BilinearImage.tp_dict, __pyx_vtabptr_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyObject_SetAttrString(__pyx_m, "BilinearImage", (PyObject *)&__pyx_type_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_ptype_8bilinear_BilinearImage = &__pyx_type_8bilinear_BilinearImage;
+  if (__Pyx_SetVtable(__pyx_type_4silx_5image_8bilinear_BilinearImage.tp_dict, __pyx_vtabptr_4silx_5image_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "BilinearImage", (PyObject *)&__pyx_type_4silx_5image_8bilinear_BilinearImage) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 39; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_ptype_4silx_5image_8bilinear_BilinearImage = &__pyx_type_4silx_5image_8bilinear_BilinearImage;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type___pyx_array.tp_print = 0;
   __pyx_array_type = &__pyx_type___pyx_array;
@@ -16796,7 +16796,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   /*--- Function import code ---*/
   /*--- Execution code ---*/
 
-  /* "bilinear.pyx":26
+  /* "silx/image/bilinear.pyx":26
  * # THE SOFTWARE.
  * 
  * __authors__ = ["J. Kieffer"]             # <<<<<<<<<<<<<<
@@ -16811,7 +16811,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_authors, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 26; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "bilinear.pyx":27
+  /* "silx/image/bilinear.pyx":27
  * 
  * __authors__ = ["J. Kieffer"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
@@ -16820,7 +16820,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 27; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "bilinear.pyx":28
+  /* "silx/image/bilinear.pyx":28
  * __authors__ = ["J. Kieffer"]
  * __license__ = "MIT"
  * __date__ = "09/05/2016"             # <<<<<<<<<<<<<<
@@ -16829,7 +16829,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_09_05_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 28; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "bilinear.pyx":29
+  /* "silx/image/bilinear.pyx":29
  * __license__ = "MIT"
  * __date__ = "09/05/2016"
  * __doc__ = "Bilinear interpolator, peak finder, line-profile for images"             # <<<<<<<<<<<<<<
@@ -16838,7 +16838,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_doc, __pyx_kp_s_Bilinear_interpolator_peak_finde) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 29; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "bilinear.pyx":33
+  /* "silx/image/bilinear.pyx":33
  * import cython
  * from cython.view cimport array as cvarray
  * import numpy             # <<<<<<<<<<<<<<
@@ -16850,7 +16850,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 33; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "bilinear.pyx":35
+  /* "silx/image/bilinear.pyx":35
  * import numpy
  * from libc.math cimport floor, ceil, sin, cos, sqrt, atan2
  * import logging             # <<<<<<<<<<<<<<
@@ -16862,7 +16862,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_logging, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 35; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "bilinear.pyx":36
+  /* "silx/image/bilinear.pyx":36
  * from libc.math cimport floor, ceil, sin, cos, sqrt, atan2
  * import logging
  * logger = logging.getLogger("silx.image.bilinear")             # <<<<<<<<<<<<<<
@@ -16880,7 +16880,7 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_logger, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "bilinear.pyx":1
+  /* "silx/image/bilinear.pyx":1
  * # -*- coding: utf-8 -*-             # <<<<<<<<<<<<<<
  * #
  * #    Project: silx (originally pyFAI)
@@ -17015,11 +17015,11 @@ PyMODINIT_FUNC PyInit_bilinear(void)
   __Pyx_XDECREF(__pyx_t_2);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init bilinear", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init silx.image.bilinear", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init bilinear");
+    PyErr_SetString(PyExc_ImportError, "init silx.image.bilinear");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
