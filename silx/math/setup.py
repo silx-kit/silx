@@ -41,10 +41,10 @@ def configuration(parent_package='', top_path=None):
     # histogramnd
     # =====================================
     histo_dir = 'histogramnd'
-    histo_src = ['/'.join([histo_dir, srcf])
-                 for srcf in ['histogramnd.pyx',
+    histo_src = [os.path.join(histo_dir, srcf)
+                 for srcf in ['chistogramnd.pyx',
                               'src/histogramnd_c.c']]
-    histo_inc = ['/'.join([histo_dir, 'include']),
+    histo_inc = [os.path.join(histo_dir, 'include'),
                  numpy.get_include()]
 
     config.add_extension('chistogramnd',
@@ -59,7 +59,7 @@ def configuration(parent_package='', top_path=None):
     # =====================================
     histo_dir = 'histogramnd'
     histo_src = [os.path.join(histo_dir, srcf)
-                 for srcf in ['histogramnd_lut.pyx']]
+                 for srcf in ['chistogramnd_lut.pyx']]
     histo_inc = [os.path.join(histo_dir, 'include'),
                  numpy.get_include()]
 
