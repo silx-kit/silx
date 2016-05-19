@@ -22,21 +22,52 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Basic tests for IPython console widget"""
+
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "19/05/2016"
 
 
 import unittest
 
-from ..plot.test import suite as test_plot_suite
-from .test_qt import suite as test_qt_suite
-from .test_console import suite as test_console_suite
+from silx.gui.testutils import TestCaseQt
+
+from silx.gui import qt
+from silx.gui.console import IPythonWidget, IPythonDockWidget
+
+_a = 1
+def _f():
+    print("Hello World!")
+
+
+class TestConsole(TestCaseQt):
+    """Basic test for ``module.IPythonDockWidget``"""
+
+    def setUp(self):
+        super(TestConsole, self).setUp()
+        self.console = IPythonDockWidget(
+                available_vars={"a": _a, "f": _f},
+                custom_banner="Welcome!\n")
+        self.console.show()
+        self.qWaitForWindowExposed(self.console)
+
+    def tearDown(self):
+        self.console.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.console.close()
+        del self.console
+        super(TestConsole, self).tearDown()
+
+    def testShow(self):
+        pass
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_qt_suite())
-    test_suite.addTest(test_plot_suite())
-    test_suite.addTest(test_console_suite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestConsole))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
