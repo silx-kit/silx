@@ -45,7 +45,7 @@ build_script:
 
     # Install buils dependencies
     - "pip install wheel"
-    - "pip install --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ numpy"
+    - "pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy"
 
     # Print Python info
     - "python ci\\info_platform.py"
@@ -65,19 +65,19 @@ test_script:
     - "%VENV_TEST_DIR%\\Scripts\\activate.bat"
 
     # Install Qt binding and matplotlib (until they are dependencies)
-    # Install PyQt4 from www.edna-site.org and PyQt5/PySide from pypi
-    - "pip install --pre --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ %QT_BINDINGS%"
+    # Install PyQt4 from www.silx.org and PyQt5/PySide from pypi
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDINGS%"
     - "pip install matplotlib"
 
     # Install h5py for silx.io tests
-    - "pip install --pre --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ h5py"
-    
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py"
+
     # Install IPython and qtconsole for silx.gui.console tests
     - "pip install ipython"
     - "pip install qtconsole"
 
     # Install the generated wheel package to test it
-    - "pip install --pre --find-links dist/ --trusted-host www.edna-site.org --find-links http://www.edna-site.org/pub/wheelhouse/ silx"
+    - "pip install --pre --find-links dist/ --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ silx"
 
     # Print Python info
     - "python ci\\info_platform.py"

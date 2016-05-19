@@ -31,7 +31,7 @@ override_dh_install:
 	dh_install
 
 override_dh_auto_test:
-	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} {interpreter} run_tests.py -i"
+	dh_auto_test -- -s custom --test-args="env PYTHONPATH={build_dir} WITH_QT_TEST=False {interpreter} run_tests.py"
 
 #override_dh_installman:
 #	dh_installman -p silx doc/*.1
