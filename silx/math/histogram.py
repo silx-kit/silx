@@ -30,9 +30,9 @@ __date__ = "15/05/2016"
 TOP DOC
 """
 
-from chistogramnd import chistogramnd as _chistogramnd
-from chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
-from chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
+from .chistogramnd import chistogramnd as _chistogramnd
+from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
+from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
 
 
 def histogramnd(sample,
@@ -288,3 +288,6 @@ class HistogramndLut(object):
     bins_rng = property(__get_bins_rng)
     n_bins = property(__get_n_bins)
     n_histo = property(__get_n_histo)
+
+if __name__ == '__main__':
+    pass
