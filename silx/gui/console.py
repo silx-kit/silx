@@ -27,6 +27,12 @@
 This widget is meant to work with :class:`PlotWindow`. The console keeps a
 reference to the :class:`PlotWindow` to allow interacting with it (adding
 curves, saving data, ...)
+
+This module has a dependency on
+`*IPython* <https://pypi.python.org/pypi/ipython>`_ and
+`*qtconsole* <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
+older versions of *IPython*. An ``ImportError`` will be raised if it is
+imported while the dependencies are not satisfied.
 """
 __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -39,10 +45,11 @@ from . import qt
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-import IPython
-
-# TODO: assess dependencies (pip install ipython, qtconsole)
-# TODO: helpful error message in case ipython or qtconsole are not available
+try:
+    import IPython
+except ImportError as e:
+    _logger.error("Module " + __name__ + " requires IPython")
+    raise e
 
 # qtconsole is a separate module in recent versions of IPython/Jupyter
 # http://blog.jupyter.org/2015/04/15/the-big-split/
@@ -57,8 +64,13 @@ else:
 if qtconsole is not None:
     try:
         from qtconsole.rich_ipython_widget import RichJupyterWidget as RichIPythonWidget
-    except:
-        from qtconsole.rich_ipython_widget import RichIPythonWidget
+    except ImportError:
+        try:
+            from qtconsole.rich_ipython_widget import RichIPythonWidget
+        except ImportError as e:
+            _logger.error("Module " + __name__ + " requires qtconsole")
+            raise e
+
     from qtconsole.inprocess import QtInProcessKernelManager
 else:
     # Import the console machinery from ipython
