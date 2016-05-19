@@ -108,12 +108,17 @@ class IPythonWidget(RichIPythonWidget):
 
     def pushVariables(self, variableDict):
         """ Given a dictionary containing name / value pairs, push those
-        variables to the IPython console widget """
+        variables to the IPython console widget.
+
+        :param variableDict: Dictionary of variables
+        (``{variable_name: object, …}`) to push to the console's
+        interactive namespace.
+        """
         self.kernel_manager.kernel.shell.push(variableDict)
 
 
 class IPythonDockWidget(qt.QDockWidget):
-    """Dock Widget including an IPython Console widget inside
+    """Dock Widget including a :class:`IPythonWidgetIPython` widget inside
     a vertical layout.
 
     :param available_vars: Dictionary of variables
