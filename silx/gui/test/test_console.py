@@ -70,6 +70,10 @@ class TestConsole(TestCaseQt):
     def testShow(self):
         pass
 
+    def testClick(self):
+        self.qWaitForWindowExposed(self.console)
+        self.mouseClick(self.console, qt.Qt.LeftButton)
+
 
 def suite():
     test_suite = unittest.TestSuite()
