@@ -26,6 +26,8 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/02/2016"
 
+import os.path
+
 import numpy
 
 from numpy.distutils.misc_util import Configuration
@@ -39,13 +41,29 @@ def configuration(parent_package='', top_path=None):
     # histogramnd
     # =====================================
     histo_dir = 'histogramnd'
-    histo_src = ['/'.join([histo_dir, srcf])
-                 for srcf in ['histogramnd.pyx',
+    histo_src = [os.path.join(histo_dir, srcf)
+                 for srcf in ['chistogramnd.pyx',
                               'src/histogramnd_c.c']]
-    histo_inc = ['/'.join([histo_dir, 'include']),
+    histo_inc = [os.path.join(histo_dir, 'include'),
                  numpy.get_include()]
 
-    config.add_extension('histogramnd',
+    config.add_extension('chistogramnd',
+                         sources=histo_src,
+                         include_dirs=histo_inc,
+                         language='c')
+    # =====================================
+    # =====================================
+
+    # =====================================
+    # histogramnd_lut
+    # =====================================
+    histo_dir = 'histogramnd'
+    histo_src = [os.path.join(histo_dir, srcf)
+                 for srcf in ['chistogramnd_lut.pyx']]
+    histo_inc = [os.path.join(histo_dir, 'include'),
+                 numpy.get_include()]
+
+    config.add_extension('chistogramnd_lut',
                          sources=histo_src,
                          include_dirs=histo_inc,
                          language='c')
