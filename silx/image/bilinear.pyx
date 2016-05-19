@@ -37,8 +37,7 @@ logger = logging.getLogger("silx.image.bilinear")
 
 
 cdef class BilinearImage:
-    """Bilinear interpolator for images  ...
-    ... or any data on a regular grid
+    """Bilinear interpolator for images ... or any data on a regular grid
     """
     cdef:
         readonly float[:, ::1] data
@@ -51,7 +50,7 @@ cdef class BilinearImage:
 
     def __cinit__(self, data not None):
         """ Constructor
-        
+
         :param data: image as a 2D array    
         """
         assert data.ndim == 2
@@ -68,7 +67,7 @@ cdef class BilinearImage:
         """Function f((y, x)) where f is a continuous function 
         made from the image and (y,x)=(row, column) is the pixel coordinates 
         in natural C-order
-        
+
         :param x: 2-tuple of float (row, column)
         :return: Interpolated signal from the image 
         """
@@ -79,11 +78,11 @@ cdef class BilinearImage:
     cdef float c_funct(self, float x, float y) nogil:
         """Function f(x, y) where f is a continuous function 
         made from the image.
-        
+
         :param x (float): column coordinate
         :param y (float): row coordinate
         :return: Interpolated signal from the image (nearest for outside)
-        
+
         Cython only function due to NOGIL 
         """
         cdef:
@@ -116,10 +115,12 @@ cdef class BilinearImage:
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def opp_f(self, coord):
-        """Function -f((y,x)) for peak finding via minimizer. 
-        
+        """opp_f(self, coord)
+
+        Function -f((y,x)) for peak finding via minimizer.
+
         Gives large number outside the boundaries to return into the image  
-               
+
         :param x: 2-tuple of float in natural C order, i.e (row, column)
         :return: Negative interpolated signal from the image
         """
@@ -142,7 +143,9 @@ cdef class BilinearImage:
     @cython.wraparound(False)
     @cython.cdivision(True)
     def local_maxi(self, coord):
-        """Return the nearest local maximum ... with sub-pixel refinement
+        """local_maxi(self, coord)
+
+        Return the nearest local maximum ... with sub-pixel refinement
 
         Nearest maximum search: 
             steepest ascent
@@ -151,8 +154,7 @@ cdef class BilinearImage:
             Second order Taylor expansion of the function; 
             At the maximum, the first derivative is null
             delta = x-i = -Inverse[Hessian].gradient
-            if Hessian is singular or |delta|>1: 
-                use a center of mass.
+            if Hessian is singular or \|delta\|>1: use a center of mass.
 
         :param coord: 2-tuple of scalar (row, column)
         :return: 2-tuple of float with the nearest local maximum
@@ -205,8 +207,9 @@ cdef class BilinearImage:
         return (float(current0), float(current1))
 
     cpdef size_t coarse_local_maxi(self, size_t x):
-        """Return the nearest local maximum ... 
-        ... without sub-pixel refinement
+        """coarse_local_maxi(self, idx)
+
+        Return the nearest local maximum ... without sub-pixel refinement
 
         :param idx: start index (=row*width+column)
         :return: local maximum index
@@ -252,10 +255,12 @@ cdef class BilinearImage:
 
     @cython.boundscheck(False)
     def map_coordinates(self, coordinates):
-        """Map coordinates of the array on the image 
-               
+        """map_coordinates(self, coordinates)
+
+        Map coordinates of the array on the image
+
         :param coordinates: 2-tuple of array of the same size (row_array, column_array) 
-        :return: array of values at given coordinates  
+        :return: array of values at given coordinates
         """
         cdef:
             float[:] d0, d1, res
@@ -273,19 +278,27 @@ cdef class BilinearImage:
     
     @cython.boundscheck(False)
     def profile_line(self, src, dst, int linewidth=1):
-        """Return the intensity profile of an image measured along a scan line.
-        
-        :param src(2-tuple of numeric scalar: The start point of the scan line.
-        :param dst(2-tuple of numeric scalar): The end point of the scan line. 
-        The destination point is included in the profile, in contrast to standard numpy indexing.
-        :return (1d array): The intensity profile along the scan line. The length of the profile
-        is the ceil of the computed length of the scan line.
-        
+        """profile_line(self, src, dst, linewidth=1)
+
+        Return the intensity profile of an image measured along a scan line.
+
+        :param src: The start point of the scan line.
+        :type src: 2-tuple of numeric scalar
+        :param dst: The end point of the scan line.
+            The destination point is included in the profile,
+            in contrast to standard numpy indexing.
+        :type dst: 2-tuple of numeric scalar
+        :param int linewidth: Width of the scanline (unit image pixel).
+        :return: The intensity profile along the scan line.
+            The length of the profile is the ceil of the computed length
+            of the scan line.
+        :rtype: 1d array
+
         Inspired from skimage
         """
         cdef:
-            float src_row, src_col, dst_row, dst_col, d_row, d_col, theta, 
-            float length, col_width, row_width, sum, row, col, new_row, new_col   
+            float src_row, src_col, dst_row, dst_col, d_row, d_col
+            float length, col_width, row_width, sum, row, col, new_row, new_col
             int lengt, i, j, cnt
             float[::1] result
         src_row, src_col = src
@@ -295,38 +308,39 @@ cdef class BilinearImage:
             return numpy.array([self.c_funct(src_col, src_row)])
         d_row = dst_row - src_row
         d_col = dst_col - src_col
-        theta = atan2(d_row, d_col)
-        lengt = <int> ceil(sqrt(d_row * d_row + d_col * d_col) + 1)
+
+        # Offsets to deal with linewidth
+        length = sqrt(d_row * d_row + d_col * d_col)
+        row_width = d_col / length
+        col_width = - d_row / length
+
+        lengt = <int> ceil(length + 1)
         d_row /= <float> (lengt -1)
         d_col /= <float> (lengt -1)
-        col_width = sin(-theta)
-        row_width = cos(theta) 
-        
+
         result = numpy.zeros(lengt, dtype=numpy.float32)
-               
+
+        # Offset position to the center of the bottom pixels of the profile
+        src_row -= row_width * (linewidth - 1) / 2.
+        src_col -= col_width * (linewidth - 1) / 2.
+
         with nogil:
             for i in range(lengt):
                 sum = 0
                 cnt = 0
-                row = src_row + i * d_row 
-                col = src_col + i * d_col 
-                if (col >= 0) and (col < self.width) and (row >= 0) and (row < self.height):
-                    cnt = cnt + 1
-                    sum = sum + self.c_funct(col, row)
-                for j in range((linewidth - 1) // 2):
-                    # On one side of the line
+
+                row = src_row + i * d_row
+                col = src_col + i * d_col
+
+                for j in range(linewidth):
                     new_row = row + j * row_width
                     new_col = col + j * col_width
-                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
-                        cnt = cnt + 1
-                        sum = sum + self.c_funct(new_col, new_row)
-                    # On the other 
-                    new_row = row - j * row_width
-                    new_col = col - j * col_width
-                    if (new_col >= 0) and (new_col < self.width) and (new_row >= 0) and (new_row < self.height):
+                    if ((new_col >= 0) and (new_col < self.width) and
+                            (new_row >= 0) and (new_row < self.height)):
                         cnt = cnt + 1
                         sum = sum + self.c_funct(new_col, new_row)
                 if cnt:
                     result[i] += sum / cnt
+
         # Ensures the result is exported as numpy array and not memory view.
-        return numpy.asarray(result) 
+        return numpy.asarray(result)

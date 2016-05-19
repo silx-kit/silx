@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 from .test_version import suite as test_version_suite
+from .test_resources import suite as test_resources_suite
 from ..io.test import suite as test_io_suite
 from ..math.test import suite as test_math_suite
 from ..image.test import test_bilinear
@@ -58,6 +59,7 @@ else:
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_version_suite())
+    test_suite.addTest(test_resources_suite())
     if test_gui_suite is not None:
         test_suite.addTest(test_gui_suite())
     test_suite.addTest(test_io_suite())

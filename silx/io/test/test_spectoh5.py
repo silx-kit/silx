@@ -24,7 +24,7 @@
 """Tests for SpecFile to HDF5 converter"""
 
 import gc
-from numpy import array_equal
+from numpy import array_equal, string_
 import os
 import sys
 import tempfile
@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "18/05/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -134,6 +134,22 @@ class TestConvertSpecHDF5(unittest.TestCase):
             "gzip"
         )
 
+    def testAttrs(self):
+        # Test root group (file) attributes
+        self.assertEqual(self.h5f.attrs["NX_class"],
+                         string_("NXroot"))
+        # Test dataset attributes
+        ds = self.h5f["/1.2/instrument/mca_1/data"]
+        self.assertTrue("interpretation" in ds.attrs)
+        self.assertEqual(list(ds.attrs.values()),
+                         [string_("spectrum")])
+        # Test group attributes
+        grp = self.h5f["1.1"]
+        self.assertEqual(grp.attrs["NX_class"],
+                         string_("NXentry"))
+        self.assertEqual(len(list(grp.attrs.keys())),
+                         1)
+
     def testHdf5HasSameMembers(self):
         spec_member_list = []
 
@@ -151,7 +167,6 @@ class TestConvertSpecHDF5(unittest.TestCase):
         # "/" character when it passes the member name to the function,
         # even though an explicit the .name attribute of a member will
         # have a leading "/"
-        # 2. The visit method in h5py doesn't s
         spec_member_list = [m.lstrip("/") for m in spec_member_list]
 
         self.assertEqual(set(hdf5_member_list),
