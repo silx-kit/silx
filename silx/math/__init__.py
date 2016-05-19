@@ -26,4 +26,5 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/02/2016"
 
-from .histogramnd import histogramnd
+from .histogram import histogramnd
+from .histogram import HistogramndLut
