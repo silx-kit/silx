@@ -34,13 +34,22 @@ import unittest
 from silx.gui.testutils import TestCaseQt
 
 from silx.gui import qt
-from silx.gui.console import IPythonWidget, IPythonDockWidget
+try:
+    import silx.gui.console
+except ImportError:
+    console_missing = True
+else:
+    from silx.gui.console import IPythonWidget, IPythonDockWidget
+    console_missing = False
 
+
+# dummy objects to test pushing variables to the interactive namespace
 _a = 1
 def _f():
     print("Hello World!")
 
 
+@unittest.skipIf(console_missing, "Could not import Ipython and/or qtconsole")
 class TestConsole(TestCaseQt):
     """Basic test for ``module.IPythonDockWidget``"""
 
