@@ -277,3 +277,15 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+
+def getQToolButtonFromAction(action):
+    """Return a visible QToolButton corresponding to a QAction.
+
+    :param QAction action: The QAction from which to get QToolButton.
+    :return: A visible QToolButton associated to action or None.
+    """
+    for widget in action.associatedWidgets():
+        if isinstance(widget, qt.QToolButton) and widget.isVisible():
+            return widget
+    return None
