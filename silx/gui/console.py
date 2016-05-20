@@ -22,11 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Widgets offering an IPython console.
+"""This module provides IPython console widgets.
 
-This widget is meant to work with :class:`PlotWindow`. The console keeps a
-reference to the :class:`PlotWindow` to allow interacting with it (adding
-curves, saving data, ...)
+The widgets provide ways to push a variable - any python object - to the
+console's interactive namespace. This provides users with an advanced way
+of interacting with your program. For instance, if your program has a
+:class:`PlotWidget` or a :class:`PlotWindow`, you can push a reference to
+these widgets to allow your users to add curves, save data to files… by using
+the widgets' methods from the console.
 
 This module has a dependency on
 `*IPython* <https://pypi.python.org/pypi/ipython>`_ and
@@ -154,7 +157,7 @@ class IPythonDockWidget(qt.QDockWidget):
 
 def main():
     class MyUselessClass(object):
-        msg = "Dummy plt var to test pushing variables to tho console"
+        msg = "Dummy class to test pushing variables to tho console"
 
         def print_msg(self):
             print(self.msg)
