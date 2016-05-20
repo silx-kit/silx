@@ -1575,6 +1575,17 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
 
+        # Deal with incorrect values
+        if xmax < xmin:
+            _logger.warning('setGraphXLimits xmax < xmin, inverting limits.')
+            xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setGraphXLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
+
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
 
@@ -1601,6 +1612,17 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
 
+        # Deal with incorrect values
+        if ymax < ymin:
+            _logger.warning('setGraphYLimits ymax < ymin, inverting limits.')
+            ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setGraphXLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
+
         assert axis in ('left', 'right')
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
@@ -1619,16 +1641,40 @@ class Plot(object):
         :param float y2min: minimum right axis value or None (the default)
         :param float y2max: maximum right axis value or None (the default)
         """
+        # Deal with incorrect values
         if xmax < xmin:
+            _logger.warning('setLimits xmax < xmin, inverting limits.')
             xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
+
         if ymax < ymin:
+            _logger.warning('setLimits ymax < ymin, inverting limits.')
             ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
-        elif y2max < y2min:
+        else:
+            if y2max < y2min:
+                _logger.warning('setLimits y2max < y2min, inverting limits.')
                 y2min, y2max = y2max, y2min
+            elif y2max == y2min:
+                _logger.warning('setLimits y2max == y2min, expanding limits.')
+                if y2min == 0.:
+                    y2min, y2max = -0.1, 0.1
+                else:
+                    y2min, y2max = y2min * 1.1, y2max * 0.9
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
