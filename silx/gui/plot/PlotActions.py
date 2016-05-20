@@ -520,9 +520,9 @@ class SaveAction(_PlotAction):
 
         if nameFilter in self.CURVE_FILTERS_TXT:
             filter_ = self.CURVE_FILTERS_TXT[nameFilter]
-            fmt=filter_['fmt']
-            csvdelim=filter_['delimiter']
-            autoheader=filter_['header']
+            fmt = filter_['fmt']
+            csvdelim = filter_['delimiter']
+            autoheader = filter_['header']
         else:
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
@@ -561,7 +561,7 @@ class SaveAction(_PlotAction):
                                 curve[4]['xlabel'], curve[4]['ylabel'],
                                 fmt="%.7g", scan_number=1, mode="w",
                                 write_file_header=True,
-                                close_file = False)
+                                close_file=False)
         except IOError:
             self._errorMessage('Save failed\n')
             return False
@@ -573,7 +573,7 @@ class SaveAction(_PlotAction):
                                     curve[4]['xlabel'], curve[4]['ylabel'],
                                     fmt="%.7g", scan_number=scanno, mode="w",
                                     write_file_header=False,
-                                    close_file = False)
+                                    close_file=False)
             except IOError:
                 self._errorMessage('Save failed\n')
                 return False
@@ -843,9 +843,10 @@ class CrosshairAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setGraphCursor(checked,
-            color=self.color,
-            linestyle=self.linestyle,
-            linewidth=self.linewidth)
+                                 color=self.color,
+                                 linestyle=self.linestyle,
+                                 linewidth=self.linewidth)
+
 
 class PanWithArrowKeysAction(_PlotAction):
     """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.

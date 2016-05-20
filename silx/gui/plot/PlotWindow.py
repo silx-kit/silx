@@ -171,7 +171,8 @@ class PlotWindow(PlotWidget):
 
             if position:  # Add PositionInfo widget to the bottom of the plot
                 if isinstance(position, collections.Iterable):
-                    converters = position  # Use position as a set of converters
+                    # Use position as a set of converters
+                    converters = position
                 else:
                     converters = None
                 self.positionWidget = PositionInfo(self, converters=converters)

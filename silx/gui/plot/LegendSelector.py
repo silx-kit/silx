@@ -33,12 +33,9 @@ __data__ = "28/04/2016"
 
 
 import logging
-import sys
 import weakref
 
 from .. import qt
-
-from .PlotActions import _PlotAction
 
 
 _logger = logging.getLogger(__name__)

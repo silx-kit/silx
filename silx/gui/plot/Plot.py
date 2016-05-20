@@ -699,11 +699,11 @@ class Plot(object):
             # but not from _images to keep its place
             # This is a subset of self.remove(legend, kind='image')
             if legend in self._images:
-                 handle = self._images[legend]['handle']
-                 if handle is not None:
-                     self._backend.remove(handle)
-                     self._images[legend]['handle'] = None
-                     self._setDirtyPlot()
+                handle = self._images[legend]['handle']
+                if handle is not None:
+                    self._backend.remove(handle)
+                    self._images[legend]['handle'] = None
+                    self._setDirtyPlot()
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
@@ -1132,14 +1132,14 @@ class Plot(object):
 
                 elif aKind == 'image':
                     if legend in self._images:
-                         handle = self._images[legend]['handle']
-                         if handle is not None:
-                             self._backend.remove(handle)
-                             self._setDirtyPlot()
-                         del self._images[legend]
+                        handle = self._images[legend]['handle']
+                        if handle is not None:
+                            self._backend.remove(handle)
+                            self._setDirtyPlot()
+                        del self._images[legend]
 
-                         self.notify('contentChanged', action='remove',
-                                     kind='image', legend=legend)
+                        self.notify('contentChanged', action='remove',
+                                    kind='image', legend=legend)
 
                 elif aKind == 'item':
                     item = self._items.pop(legend, None)
@@ -2572,19 +2572,19 @@ class Plot(object):
     def insertMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addMarker` instead."""
         _logger.warning(
-                'insertMarker deprecated, use addMarker instead.')
+            'insertMarker deprecated, use addMarker instead.')
         return self.addMarker(*args, **kwargs)
 
     def insertXMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addXMarker` instead."""
         _logger.warning(
-                'insertXMarker deprecated, use addXMarker instead.')
+            'insertXMarker deprecated, use addXMarker instead.')
         return self.addXMarker(*args, **kwargs)
 
     def insertYMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addYMarker` instead."""
         _logger.warning(
-                'insertYMarker deprecated, use addYMarker instead.')
+            'insertYMarker deprecated, use addYMarker instead.')
         return self.addYMarker(*args, **kwargs)
 
     def isActiveCurveHandlingEnabled(self):

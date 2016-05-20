@@ -191,7 +191,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseClick for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
 
@@ -202,7 +202,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseDClick for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
 
@@ -222,7 +222,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mousePress for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
 
@@ -233,7 +233,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseRelease for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
 
