@@ -32,9 +32,9 @@ these widgets to allow your users to add curves, save data to files… by using
 the widgets' methods from the console.
 
 This module has a dependency on
-`*IPython* <https://pypi.python.org/pypi/ipython>`_ and
-`*qtconsole* <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
-older versions of *IPython*. An ``ImportError`` will be raised if it is
+*`IPython <https://pypi.python.org/pypi/ipython>`_* and
+*`qtconsole <https://pypi.python.org/pypi/qtconsole>`_* (or *ipython.qt* for
+older versions of *IPython*). An ``ImportError`` will be raised if it is
 imported while the dependencies are not satisfied.
 """
 __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
@@ -104,10 +104,10 @@ class IPythonWidget(RichIPythonWidget):
        the console.
     """
 
-    def __init__(self, customBanner=None, *args, **kwargs):
+    def __init__(self, custom_banner=None, *args, **kwargs):
         super(IPythonWidget, self).__init__(*args, **kwargs)
-        if customBanner != None:
-            self.banner = customBanner
+        if custom_banner != None:
+            self.banner = custom_banner
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
@@ -121,15 +121,15 @@ class IPythonWidget(RichIPythonWidget):
             guisupport.get_app_qt4().exit()
         self.exit_requested.connect(stop)
 
-    def pushVariables(self, variableDict):
+    def pushVariables(self, variable_dict):
         """ Given a dictionary containing name / value pairs, push those
         variables to the IPython console widget.
 
-        :param variableDict: Dictionary of variables
+        :param variable_dict: Dictionary of variables
         (``{variable_name: object, …}``) to push to the console's
         interactive namespace.
         """
-        self.kernel_manager.kernel.shell.push(variableDict)
+        self.kernel_manager.kernel.shell.push(variable_dict)
 
 
 class IPythonDockWidget(qt.QDockWidget):
@@ -139,22 +139,38 @@ class IPythonDockWidget(qt.QDockWidget):
     :param available_vars: Dictionary of variables to be pushed to the
         console's interactive namespace: ``{"variable_name": object, …}``
     :param custom_banner: Custom welcome message to be printed at the top of
-        the console.
-    :param parent: Parent widget containing this :class:`qt.QDockWidget`
+        the console
+    :param title: Dock widget title
+    :param parent: Parent :class:`qt.QMainWindow` containing this
+        :class:`qt.QDockWidget`
     """
-    def __init__(self, available_vars=None, custom_banner=None, parent=None):
-        super(IPythonDockWidget, self).__init__(parent)
+    def __init__(self, available_vars=None, custom_banner=None,
+                 title="Console", parent=None):
+        super(IPythonDockWidget, self).__init__(title, parent)
 
-        ipyConsole = IPythonWidget(customBanner=custom_banner)
+        self.ipyconsole = IPythonWidget(custom_banner=custom_banner)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWidget(ipyConsole)
+        self.setWidget(self.ipyconsole)
 
         if available_vars is not None:
-            ipyConsole.pushVariables(available_vars)
+            self.ipyconsole.pushVariables(available_vars)
+
+        if parent is not None:
+            self.add_to_main_window(parent)
+
+    def add_to_main_window(self, main_window):
+        if main_window.centralWidget() is not None:
+            width = main_window.centralWidget().width()
+            height = main_window.centralWidget().height()
+
+        main_window.addDockWidget(qt.Qt.BottomDockWidgetArea, self)
+        if main_window.centralWidget() is not None:
+            self.ipyconsole.resize(width, height // 3)
 
 
 def main():
+    """IPython console widget demo"""
     class MyUselessClass(object):
         msg = "Dummy class to test pushing variables to tho console"
 
