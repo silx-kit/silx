@@ -98,7 +98,7 @@ from IPython.lib import guisupport
 
 
 class IPythonWidget(RichIPythonWidget):
-    """ Convenience class for a live IPython console widget.
+    """Live IPython console widget.
 
     :param custom_banner: Custom welcome message to be printed at the top of
        the console.
@@ -126,19 +126,18 @@ class IPythonWidget(RichIPythonWidget):
         variables to the IPython console widget.
 
         :param variableDict: Dictionary of variables
-        (``{variable_name: object, …}`) to push to the console's
+        (``{variable_name: object, …}``) to push to the console's
         interactive namespace.
         """
         self.kernel_manager.kernel.shell.push(variableDict)
 
 
 class IPythonDockWidget(qt.QDockWidget):
-    """Dock Widget including a :class:`IPythonWidgetIPython` widget inside
+    """Dock Widget including a :class:`IPythonWidget` inside
     a vertical layout.
 
-    :param available_vars: Dictionary of variables
-        (``{variable_name: object, …}`) to push to the console's
-        interactive namespace.
+    :param available_vars: Dictionary of variables to be pushed to the
+        console's interactive namespace: ``{"variable_name": object, …}``
     :param custom_banner: Custom welcome message to be printed at the top of
         the console.
     :param parent: Parent widget containing this :class:`qt.QDockWidget`
