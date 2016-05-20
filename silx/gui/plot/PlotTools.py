@@ -214,6 +214,18 @@ class ProfileToolBar(qt.QToolBar):
     - profileWindow: Associated :class:`PlotWindow` displaying the profile.
     - actionGroup: :class:`QActionGroup` of available actions.
 
+    To run the following sample code, a QApplication must be initialized.
+    First, create a PlotWindow and add a :class:`ProfileToolBar`.
+
+    >>> from silx.gui.plot import PlotWindow
+    >>> from silx.gui.plot.PlotTools import ProfileToolBar
+    >>> from silx.gui import qt
+
+    >>> plot = PlotWindow()  # Create a PlotWindow
+    >>> toolBar = ProfileToolBar(plot)  # Create a profile toolbar for the plot
+    >>> plot.addToolBar(toolBar)  # Add it to plot
+    >>> plot.show()  # To display the PlotWindow with the profile toolbar
+
     :param plotWindow: :class:`PlotWindow` instance on which to operate.
     :param profileWindow: :class:`ProfileScanWidget` instance where to
                           display the profile curve or None to create one.
