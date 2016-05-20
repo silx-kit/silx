@@ -84,10 +84,13 @@ class _PlotInteraction(object):
         :param points: The 2D coordinates of the points of the polygon
         :type points: An iterable of (x, y) coordinates
         :param str fill: The fill mode: 'hatch', 'solid' or None
-        :param color: RGBA color to use
+        :param color: RGBA color to use or None to disable display
         :type color: list or tuple of 4 float in the range [0, 1]
         :param name: The key associated with this selection area
         """
+        if color is None:
+            return
+
         points = numpy.asarray(points)
 
         # TODO Not very nice, but as is for now
@@ -382,6 +385,9 @@ class Zoom(_ZoomOnWheel):
         self.x0, self.y0 = x, y
 
     def drag(self, x1, y1):
+        if self.color is None:
+            return  # Do not draw zoom area
+
         dataPos = self.plot.pixelToData(x1, y1)
         assert dataPos is not None
 
@@ -1176,8 +1182,9 @@ class PlotInteraction(object):
                          In 'draw', 'pan', 'select', 'zoom'.
         :param color: Only for 'draw' and 'zoom' modes.
                       Color to use for drawing selection area. Default black.
+                      If None, selection area is not drawn.
         :type color: Color description: The name as a str or
-                     a tuple of 4 floats.
+                     a tuple of 4 floats or None.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
                           In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
                           Default is 'polygon'.
@@ -1188,13 +1195,16 @@ class PlotInteraction(object):
         plot = self._plot()
         assert plot is not None
 
+        if color not in (None, 'video inverted'):
+            color = Colors.rgba(color)
+
         if mode == 'draw':
             assert shape in self._DRAW_MODES
             eventHandlerClass = self._DRAW_MODES[shape]
             parameters = {
                 'shape': shape,
                 'label': label,
-                'color': Colors.rgba(color)
+                'color': color
             }
 
             self._eventHandler.cancel()
@@ -1207,8 +1217,6 @@ class PlotInteraction(object):
 
         elif mode == 'zoom':
             # Ignores shape and label
-            if color != 'video inverted':
-                color = Colors.rgba(color)
             self._eventHandler.cancel()
             self._eventHandler = ZoomAndSelect(plot, color)
 

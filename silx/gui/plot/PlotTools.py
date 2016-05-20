@@ -316,7 +316,7 @@ class ProfileToolBar(qt.QToolBar):
         """Handle horizontal line profile action toggle"""
         if checked:
             self.plotWindow.setInteractiveMode('draw', shape='hline',
-                                               color=self.overlayColor)
+                                               color=None)
             self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
         else:
             self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
@@ -326,7 +326,7 @@ class ProfileToolBar(qt.QToolBar):
         """Handle vertical line profile action toggle"""
         if checked:
             self.plotWindow.setInteractiveMode('draw', shape='vline',
-                                               color=self.overlayColor)
+                                               color=None)
             self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
         else:
             self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
@@ -336,7 +336,7 @@ class ProfileToolBar(qt.QToolBar):
         """Handle line profile action toggle"""
         if checked:
             self.plotWindow.setInteractiveMode('draw', shape='line',
-                                               color=self.overlayColor)
+                                               color=None)
             self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
         else:
             self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
@@ -576,7 +576,8 @@ class ProfileToolBar(qt.QToolBar):
             else:  # General case: use bilinear interpolation
 
                 # Ensure startPt <= endPt
-                if startPt[0] > endPt[0] or startPt[1] > endPt[1]:
+                if (startPt[1] > endPt[1] or (
+                        startPt[1] == endPt[1] and startPt[0] > endPt[0])):
                     startPt, endPt = endPt, startPt
 
                 bilinear = BilinearImage(data)
