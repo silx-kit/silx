@@ -6,3 +6,4 @@
 
 .. automodule:: silx.gui.console
    :members:
+   :exclude-members: main
