@@ -39,6 +39,10 @@ from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
+try:
+    from ..console import IPythonDockWidget, IPythonWidget
+except ImportError:
+    IPythonDockWidget = None
 
 from .. import qt
 
@@ -193,6 +197,23 @@ class PlotWindow(PlotWidget):
         return self._legendsDockWidget
 
     @property
+    def consoleDockWidget(self):
+        """DockWidget with IPython console (lazy-loaded)."""
+        if not hasattr(self, '_consoleDockWidget'):
+            vars = {"plt": self}
+            banner = "The variable 'plt' is available. Use the 'whos' "
+            banner += "and 'help(plt)' commands for more information.\n\n"
+            if IPythonDockWidget is not None:
+                self._consoleDockWidget = IPythonDockWidget(
+                        available_vars=vars,
+                        custom_banner=banner,
+                        parent=self)
+                self._consoleDockWidget.hide()
+            else:
+                self._consoleDockWidget = None
+        return self._consoleDockWidget
+
+    @property
     def crosshairAction(self):
         """Action toggling crosshair cursor mode (lazy-loaded)."""
         if not hasattr(self, '_crosshairAction'):
@@ -234,4 +255,6 @@ class PlotWindow(PlotWidget):
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
+        if self.consoleDockWidget is not None:
+            controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         controlMenu.exec_(self.cursor().pos())
