@@ -151,10 +151,11 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         self.qapp.processEvents()
 
     def tearDown(self):
-        del self.toolBar
+        self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
+        del self.toolBar
 
         super(TestProfileToolBar, self).tearDown()
 
@@ -169,6 +170,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
         for action in (self.toolBar.hLineAction, self.toolBar.vLineAction):
             with self.subTest(mode=action.text()):
+                # Trigger tool button for mode
                 toolButton = getQToolButtonFromAction(action)
                 self.assertIsNot(toolButton, None)
                 self.mouseMove(toolButton)
@@ -186,6 +188,33 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
                 self.mouseMove(widget)
                 self.mouseClick(widget, qt.Qt.LeftButton)
+
+    def testDiagonalProfile(self):
+        """Test diagonal profile, without and with image"""
+        # Use Plot backend widget to submit mouse events
+        widget = self.plot.getWidgetHandle()
+
+        # 2 positions to use for mouse events
+        pos1 = widget.width() * 0.4, widget.height() * 0.4
+        pos2 = widget.width() * 0.6, widget.height() * 0.6
+
+        # Trigger tool button for diagonal profile mode
+        toolButton = getQToolButtonFromAction(self.toolBar.lineAction)
+        self.assertIsNot(toolButton, None)
+        self.mouseMove(toolButton)
+        self.mouseClick(toolButton, qt.Qt.LeftButton)
+
+        for image in (False, True):
+            with self.subTest(image=image):
+                if image:
+                    self.plot.addImage(numpy.arange(100*100).reshape(100, -1))
+
+                self.mouseMove(widget, pos=pos1)
+                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
+                self.mouseMove(widget, pos=pos2)
+                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
+
+                self.plot.clear()
 
 
 def suite():

@@ -490,8 +490,8 @@ class ColormapDialog(qt.QDialog):
 
         It disables leaving the dialog when editing a text field.
         """
-        if (event.key() == qt.Qt.Key_Enter and (self._minValue.hasFocus() or
-                self._maxValue.hasFocus())):
+        if event.key() == qt.Qt.Key_Enter and (self._minValue.hasFocus() or
+                                               self._maxValue.hasFocus()):
             # Bypass QDialog keyPressEvent
             # To avoid leaving the dialog when pressing enter on a text field
             super(qt.QDialog, self).keyPressEvent(event)
