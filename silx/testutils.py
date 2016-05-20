@@ -25,19 +25,60 @@
 """Utilities for writting tests.
 
 To test the number of logging messages of different levels, you can use either
-the :class:`TestLogging` with context or the :func:`testLogging` decorator.
+the :class:`TestLogging` with context or the :func:`test_logging` decorator.
 
 This module is NOT a test suite.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/05/2016"
+__date__ = "20/05/2016"
 
 
+import contextlib
 import functools
 import logging
+import sys
+import unittest
 
+
+# Parametric Test Base Class ##################################################
+
+if sys.hexversion >= 0x030400F0:  # Python >= 3.4
+    class ParametricTestCase(unittest.TestCase):
+        pass
+
+else:
+    class ParametricTestCase(unittest.TestCase):
+        """TestCase with subTest support for Python < 3.4.
+
+        Add subTest method to support parametric tests.
+        API is the same, but behavior differs:
+        If a subTest fails, the following ones are not run.
+        """
+
+        _subtest_msg = None  # Class attribute to provide a default value
+
+        @contextlib.contextmanager
+        def subTest(self, msg=None, **params):
+            """Use as unittest.TestCase.subTest method in Python >= 3.4."""
+            # Format arguments as: '[msg] (key=value, ...)'
+            param_str = ', '.join(['%s=%s' % (k, v) for k, v in params.items()])
+            self._subtest_msg = '[%s] (%s)' % (msg or '', param_str)
+            yield
+            self._subtest_msg = None
+
+        def shortDescription(self):
+            short_desc = super(ParametricTestCase, self).shortDescription()
+            if self._subtest_msg is not None:
+                # Append subTest message to shortDescription
+                short_desc = ' '.join(
+                    [msg for msg in (short_desc, self._subtest_msg) if msg])
+
+            return short_desc if short_desc else None
+
+
+# Test logging messages #######################################################
 
 class TestLogging(logging.Handler):
     """Context checking the number of logging messages from a specified Logger.
@@ -120,8 +161,8 @@ class TestLogging(logging.Handler):
         self.records.append(record)
 
 
-def testLogging(logger=None, critical=None, error=None,
-                warning=None, info=None, debug=None, notset=None):
+def test_logging(logger=None, critical=None, error=None,
+                 warning=None, info=None, debug=None, notset=None):
     """Decorator checking number of logging messages.
 
     Propagation of logging messages is disabled by this decorator.
@@ -130,7 +171,7 @@ def testLogging(logger=None, critical=None, error=None,
     a RuntimeError.
 
     >>> class Test(unittest.TestCase):
-    ...     @testLogging('module_logger_name', error=2, warning=0)
+    ...     @test_logging('module_logger_name', error=2, warning=0)
     ...     def test(self):
     ...         pass  # Test expecting 2 ERROR and 0 WARNING messages
 
