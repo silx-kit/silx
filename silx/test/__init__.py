@@ -47,21 +47,14 @@ from .test_resources import suite as test_resources_suite
 from ..io.test import suite as test_io_suite
 from ..math.test import suite as test_math_suite
 from ..image.test import test_bilinear
-
-
-if os.environ.get('WITH_QT_TEST', 'True') == 'True':
-    from ..gui.test import suite as test_gui_suite
-else:
-    logger.warning('silx.gui tests are disabled (WITH_QT_TEST=False)')
-    test_gui_suite = None
+from ..gui.test import suite as test_gui_suite
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_version_suite())
     test_suite.addTest(test_resources_suite())
-    if test_gui_suite is not None:
-        test_suite.addTest(test_gui_suite())
+    test_suite.addTest(test_gui_suite())
     test_suite.addTest(test_io_suite())
     test_suite.addTest(test_math_suite())
     test_suite.addTest(test_bilinear.suite())
