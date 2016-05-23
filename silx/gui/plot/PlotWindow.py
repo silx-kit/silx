@@ -39,6 +39,7 @@ from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
+from .CurvesROIWidget import CurvesROIDockWidget
 
 from .. import qt
 
@@ -192,6 +193,16 @@ class PlotWindow(PlotWidget):
             self._legendsDockWidget.hide()
         return self._legendsDockWidget
 
+    #@property TODO property not working...
+    def curvesROIDockWidget(self):
+        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        if not hasattr(self, '_curvesROIDockWidget'):
+            self._curvesROIDockWidget = CurvesROIDockWidget(self, name='ROI')
+            self._curvesROIDockWidget.hide()
+            self.addDockWidget(qt.Qt.BottomDockWidgetArea,
+                               self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
+
     @property
     def crosshairAction(self):
         """Action toggling crosshair cursor mode (lazy-loaded)."""
@@ -234,4 +245,5 @@ class PlotWindow(PlotWidget):
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.addAction(self.curvesROIDockWidget().toggleViewAction())
         controlMenu.exec_(self.cursor().pos())
