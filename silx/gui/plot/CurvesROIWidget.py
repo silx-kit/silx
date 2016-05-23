@@ -32,6 +32,7 @@ __license__ = "MIT"
 __date__ = "23/05/2016"
 
 
+import logging
 import os
 import sys
 
@@ -40,9 +41,12 @@ import numpy
 from silx.io.configdict import ConfigDict
 from silx.gui import qt
 
-DEBUG = 0
+
+_logger = logging.getLogger(__name__)
+
+
 class CurvesROIWidget(qt.QWidget):
-    sigMcaROIWidgetSignal = qt.pyqtSignal(object)
+    sigROIWidgetSignal = qt.Signal(object)
 
     def __init__(self, parent=None, name=None):
         super(CurvesROIWidget, self).__init__(parent)
@@ -57,13 +61,11 @@ class CurvesROIWidget(qt.QWidget):
         self.setHeader('<b>Channel ROIs of XXXXXXXXXX<\b>')
         layout.addWidget(self.headerLabel)
         ##############
-        self.mcaROITable     = McaROITable(self)
+        self.mcaROITable = ROITable(self)
         rheight = self.mcaROITable.horizontalHeader().sizeHint().height()
         self.mcaROITable.setMinimumHeight(4*rheight)
-        #self.mcaROITable.setMaximumHeight(4*rheight)
         self.fillFromROIDict = self.mcaROITable.fillFromROIDict
-        self.addROI          = self.mcaROITable.addROI
-        self.getROIListAndDict=self.mcaROITable.getROIListAndDict
+        self.getROIListAndDict = self.mcaROITable.getROIListAndDict
         layout.addWidget(self.mcaROITable)
         self.roiDir = None
         #################
@@ -73,7 +75,7 @@ class CurvesROIWidget(qt.QWidget):
         hboxlayout.setContentsMargins(0, 0, 0, 0)
         hboxlayout.setSpacing(0)
 
-        #hboxlayout.addWidget(qt.HorizontalSpacer(hbox))
+        hboxlayout.addStretch(0)
 
         self.addButton = qt.QPushButton(hbox)
         self.addButton.setText("Add ROI")
@@ -85,7 +87,8 @@ class CurvesROIWidget(qt.QWidget):
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
         hboxlayout.addWidget(self.resetButton)
-        #hboxlayout.addWidget(qt.HorizontalSpacer(hbox))
+
+        hboxlayout.addStretch(0)
 
         self.loadButton = qt.QPushButton(hbox)
         self.loadButton.setText("Load")
@@ -105,14 +108,13 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton.clicked.connect(self._load)
         self.saveButton.clicked.connect(self._save)
-        self.mcaROITable.sigMcaROITableSignal.connect(self._forward)
+        self.mcaROITable.sigROITableSignal.connect(self._forward)
 
     def _add(self):
-        if DEBUG:
-            print("CurvesROIWidget._add")
-        ddict={}
-        ddict['event']   = "AddROI"
-        roilist, roidict  = self.mcaROITable.getROIListAndDict()
+        _logger.debug("CurvesROIWidget._add")
+        ddict = {}
+        ddict['event'] = "AddROI"
+        roilist, roidict = self.mcaROITable.getROIListAndDict()
         ddict['roilist'] = roilist
         ddict['roidict'] = roidict
         self.emitSignal(ddict)
@@ -129,7 +131,7 @@ class CurvesROIWidget(qt.QWidget):
                 # This is to prevent deleting ICR ROI, that is
                 # usually initialized as "Default" type.
                 return
-            roilist,roidict    = self.mcaROITable.getROIListAndDict()
+            roilist, roidict = self.mcaROITable.getROIListAndDict()
             row = roilist.index(key)
             del roilist[row]
             del roidict[key]
@@ -141,25 +143,25 @@ class CurvesROIWidget(qt.QWidget):
             self.mcaROITable.fillFromROIDict(roilist=roilist,
                                              roidict=roidict,
                                              currentroi=currentroi)
-            ddict={}
-            ddict['event']      = "DelROI"
-            ddict['roilist']    = roilist
-            ddict['roidict']    = roidict
+            ddict = {}
+            ddict['event'] = "DelROI"
+            ddict['roilist'] = roilist
+            ddict['roidict'] = roidict
             self.emitSignal(ddict)
 
-    def _forward(self,ddict):
+    def _forward(self, ddict):
         self.emitSignal(ddict)
 
     def _reset(self):
-        ddict={}
-        ddict['event']   = "ResetROI"
-        roilist0, roidict0  = self.mcaROITable.getROIListAndDict()
+        ddict = {}
+        ddict['event'] = "ResetROI"
+        roilist0, roidict0 = self.mcaROITable.getROIListAndDict()
         index = 0
         for key in roilist0:
             if roidict0[key]['type'].upper() == 'DEFAULT':
                 index = roilist0.index(key)
                 break
-        roilist=[]
+        roilist = []
         roidict = {}
         if len(roilist0):
             roilist.append(roilist0[index])
@@ -178,20 +180,17 @@ class CurvesROIWidget(qt.QWidget):
             self.roiDir = qt.QDir.home()
         outfile = qt.QFileDialog(self)
         if hasattr(outfile, "setFilters"):
-            outfile.setFilter('PyMca  *.ini')
+            outfile.setFilter('ROI File  *.ini')
         else:
-            outfile.setNameFilters(['PyMca  *.ini', 'All *'])
+            outfile.setNameFilters(['ROI File  *.ini', 'All *'])
         outfile.setFileMode(outfile.ExistingFile)
         outfile.setDirectory(self.roiDir)
-        ret = outfile.exec_()
-        if not ret:
+        if not outfile.exec_():
             outfile.close()
-            del outfile
             return
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
         outputFile = outfile.selectedFiles()[0]
         outfile.close()
-        del outfile
         self.roiDir = os.path.dirname(outputFile)
         self.load(outputFile)
 
@@ -222,22 +221,19 @@ class CurvesROIWidget(qt.QWidget):
             self.roiDir = qt.QDir.home()
         outfile = qt.QFileDialog(self)
         if hasattr(outfile, "setFilters"):
-            outfile.setFilter('PyMca  *.ini')
+            outfile.setFilter('ROI File  *.ini')
         else:
-            outfile.setNameFilters(['PyMca  *.ini', 'All *'])
+            outfile.setNameFilters(['ROI File  *.ini', 'All *'])
         outfile.setFileMode(outfile.AnyFile)
         outfile.setAcceptMode(qt.QFileDialog.AcceptSave)
         outfile.setDirectory(self.roiDir)
-        ret = outfile.exec_()
-        if not ret:
+        if not outfile.exec_():
             outfile.close()
-            del outfile
             return
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
         outputFile = outfile.selectedFiles()[0]
         extension = ".ini"
         outfile.close()
-        del outfile
         if len(outputFile) < len(extension[:]):
             outputFile += extension[:]
         elif outputFile[-4:] != extension[:]:
@@ -255,15 +251,15 @@ class CurvesROIWidget(qt.QWidget):
         self.save(outputFile)
 
     def save(self, filename):
-        d= ConfigDict()
+        d = ConfigDict()
         d['ROI'] = {}
         d['ROI'] = {'roilist': self.mcaROITable.roilist * 1,
-                    'roidict':{}}
+                    'roidict': {}}
         d['ROI']['roidict'].update(self.mcaROITable.roidict)
         d.write(filename)
 
-    def setData(self,*var,**kw):
-        self.info ={}
+    def setData(self, *var, **kw):
+        self.info = {}
         if 'legend' in kw:
             self.info['legend'] = kw['legend']
             del kw['legend']
@@ -280,7 +276,7 @@ class CurvesROIWidget(qt.QWidget):
         self.setHeader(text="%s ROIs of %s" % (self.info['xlabel'],
                                                self.info['legend']))
 
-    def setHeader(self,*var,**kw):
+    def setHeader(self, *var, **kw):
         if len(var):
             text = var[0]
         elif 'text' in kw:
@@ -292,58 +288,60 @@ class CurvesROIWidget(qt.QWidget):
         self.headerLabel.setText("<b>%s<\b>" % text)
 
     def emitSignal(self, ddict):
-        self.sigMcaROIWidgetSignal.emit(ddict)
+        self.sigROIWidgetSignal.emit(ddict)
 
-class McaROITable(qt.QTableWidget):
-    sigMcaROITableSignal = qt.pyqtSignal(object)
 
-    def __init__(self, *args,**kw):
-        super(McaROITable, self).__init__(*args)
+class ROITable(qt.QTableWidget):
+    sigROITableSignal = qt.Signal(object)
+
+    def __init__(self, *args, **kw):
+        super(ROITable, self).__init__(*args)
         self.setRowCount(1)
-        self.labels=['ROI','Type','From','To','Raw Counts','Net Counts']
+        self.labels = ['ROI', 'Type', 'From', 'To', 'Raw Counts', 'Net Counts']
         self.setColumnCount(len(self.labels))
-        i=0
+        i = 0
         self.setSortingEnabled(False)
         if 'labels' in kw:
             for label in kw['labels']:
                 item = self.horizontalHeaderItem(i)
                 if item is None:
                     item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
+                                               qt.QTableWidgetItem.Type)
                 item.setText(label)
-                self.setHorizontalHeaderItem(i,item)
+                self.setHorizontalHeaderItem(i, item)
                 i = i + 1
         else:
             for label in self.labels:
                 item = self.horizontalHeaderItem(i)
                 if item is None:
                     item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
+                                               qt.QTableWidgetItem.Type)
                 item.setText(label)
-                self.setHorizontalHeaderItem(i,item)
-                i=i+1
+                self.setHorizontalHeaderItem(i, item)
+                i = i + 1
 
-        self.roidict={}
-        self.roilist=[]
+        self.roidict = {}
+        self.roilist = []
         if 'roilist' in kw:
             self.roilist = kw['roilist']
         if 'roidict' in kw:
             self.roidict.update(kw['roilist'])
         self.building = False
         self.build()
-        #self.connect(self,qt.SIGNAL("cellClicked(int, int)"),self._mySlot)
-        #self.connect(self,qt.SIGNAL("cellChanged(int, int)"),self._cellChangedSlot)
         self.cellClicked[(int, int)].connect(self._mySlot)
         self.cellChanged[(int, int)].connect(self._cellChangedSlot)
         verticalHeader = self.verticalHeader()
         verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
 
     def build(self):
-        self.fillFromROIDict(roilist=self.roilist,roidict=self.roidict)
+        self.fillFromROIDict(roilist=self.roilist, roidict=self.roidict)
 
-    def fillFromROIDict(self,roilist=[],roidict={},currentroi=None):
+    def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
+        if roidict is None:
+            roidict = {}
+
         self.building = True
-        line0  = 0
+        line0 = 0
         self.roilist = []
         self.roidict = {}
         for key in roilist:
@@ -353,50 +351,50 @@ class McaROITable(qt.QTableWidget):
                 self.roidict[key] = {}
                 self.roidict[key].update(roi)
                 line0 = line0 + 1
-                nlines=self.rowCount()
+                nlines = self.rowCount()
                 if (line0 > nlines):
                     self.setRowCount(line0)
-                line = line0 -1
+                line = line0 - 1
                 self.roidict[key]['line'] = line
                 ROI = key
                 roitype = "%s" % roi['type']
-                fromdata= "%6g" % (roi['from'])
-                todata  = "%6g" % (roi['to'])
+                fromdata = "%6g" % (roi['from'])
+                todata = "%6g" % (roi['to'])
                 if 'rawcounts' in roi:
-                    rawcounts= "%6g" % (roi['rawcounts'])
+                    rawcounts = "%6g" % (roi['rawcounts'])
                 else:
                     rawcounts = " ?????? "
                 if 'netcounts' in roi:
-                    netcounts= "%6g" % (roi['netcounts'])
+                    netcounts = "%6g" % (roi['netcounts'])
                 else:
                     netcounts = " ?????? "
-                fields  = [ROI,roitype,fromdata,todata,rawcounts,netcounts]
+                fields = [ROI, roitype, fromdata, todata, rawcounts, netcounts]
                 col = 0
                 for field in fields:
                     key2 = self.item(line, col)
                     if key2 is None:
                         key2 = qt.QTableWidgetItem(field,
                                                    qt.QTableWidgetItem.Type)
-                        self.setItem(line,col,key2)
+                        self.setItem(line, col, key2)
                     else:
                         key2.setText(field)
                     if (ROI.upper() == 'ICR') or (ROI.upper() == 'DEFAULT'):
-                            key2.setFlags(qt.Qt.ItemIsSelectable|
+                            key2.setFlags(qt.Qt.ItemIsSelectable |
                                           qt.Qt.ItemIsEnabled)
                     else:
                         if col in [0, 2, 3]:
-                            key2.setFlags(qt.Qt.ItemIsSelectable|
-                                          qt.Qt.ItemIsEnabled|
+                            key2.setFlags(qt.Qt.ItemIsSelectable |
+                                          qt.Qt.ItemIsEnabled |
                                           qt.Qt.ItemIsEditable)
                         else:
-                            key2.setFlags(qt.Qt.ItemIsSelectable|
+                            key2.setFlags(qt.Qt.ItemIsSelectable |
                                           qt.Qt.ItemIsEnabled)
-                    col=col+1
+                    col = col + 1
         self.setRowCount(line0)
         i = 0
         for label in self.labels:
             self.resizeColumnToContents(i)
-            i=i+1
+            i = i + 1
         self.sortByColumn(2, qt.Qt.AscendingOrder)
         for i in range(len(self.roilist)):
             key = str(self.item(i, 0).text())
@@ -407,81 +405,33 @@ class McaROITable(qt.QTableWidget):
         else:
             if currentroi in self.roidict.keys():
                 self.selectRow(self.roidict[currentroi]['line'])
-                if DEBUG:
-                    print("Qt4 ensureCellVisible to be implemented")
+                _logger.debug("Qt4 ensureCellVisible to be implemented")
         self.building = False
 
-    def addROI(self, roi, key=None):
-        nlines = self.numRows()
-        self.setNumRows(nlines+1)
-        line = nlines
-        if key is None:
-            key = "%d " % line
-        self.roidict[key] = {}
-        self.roidict[key]['line'] = line
-        self.roidict[key]['type'] = roi['type']
-        self.roidict[key]['from'] = roi['from']
-        self.roidict[key]['to']   = roi['to']
-        ROI = key
-        roitype = "%s" % roi['type']
-        fromdata= "%6g" % (roi['from'])
-        todata  = "%6g" % (roi['to'])
-        if 'rawcounts' in roi:
-            rawcounts= "%6g" % (roi['rawcounts'])
-        else:
-            rawcounts = " ?????? "
-        self.roidict[key]['rawcounts']   = rawcounts
-        if 'netcounts' in roi:
-            netcounts= "%6g" % (roi['netcounts'])
-        else:
-            netcounts = " ?????? "
-        self.roidict[key]['netcounts']   = netcounts
-        fields  = [ROI,roitype,fromdata,todata,rawcounts,netcounts]
-        col = 0
-        for field in fields:
-            if (ROI == 'ICR') or (ROI.upper() == 'DEFAULT'):
-                key=qttable.QTableItem(self,qttable.QTableItem.Never,field)
-            else:
-                if col == 0:
-                    key=qttable.QTableItem(self,qttable.QTableItem.OnTyping,field)
-                else:
-                    key=qttable.QTableItem(self,qttable.QTableItem.Never,field)
-            self.setItem(line,col,key)
-            col=col+1
-        self.sortByColumn(2, qt.Qt.AscendingOrder)
-        for i in range(len(self.roilist)):
-            nkey = str(self.text(i,0))
-            self.roilist[i] = nkey
-            self.roidict[nkey]['line'] = i
-        self.selectRow(self.roidict[key]['line'])
-        self.ensureCellVisible(self.roidict[key]['line'],0)
-
     def getROIListAndDict(self):
-        return self.roilist,self.roidict
+        return self.roilist, self.roidict
 
     def _mySlot(self, *var, **kw):
-        #selection changed event
-        #get the current selection
+        # selection changed event, get the current selection
         row = self.currentRow()
         col = self.currentColumn()
         if row >= 0:
             ddict = {}
             ddict['event'] = "selectionChanged"
-            ddict['row'  ] = row
-            ddict['col'  ] = col
+            ddict['row'] = row
+            ddict['col'] = col
             if row >= len(self.roilist):
-                if DEBUG:
-                    print("deleting???")
+                _logger.debug("deleting???")
                 return
                 row = 0
             item = self.item(row, 0)
             if item is None:
-                text=""
+                text = ""
             else:
                 text = str(item.text())
             self.roilist[row] = text
-            ddict['roi'  ] = self.roidict[self.roilist[row]]
-            ddict['key']   = self.roilist[row]
+            ddict['roi'] = self.roidict[self.roilist[row]]
+            ddict['key'] = self.roilist[row]
             ddict['colheader'] = self.labels[col]
             ddict['rowheader'] = "%d" % row
             self.emitSignal(ddict)
@@ -490,8 +440,7 @@ class McaROITable(qt.QTableWidget):
         self._emitSelectionChangedSignal(row, 0)
 
     def _cellChangedSlot(self, row, col):
-        if DEBUG:
-            print("_cellChangedSlot(%d, %d)" % (row, col))
+        _logger.debug("_cellChangedSlot(%d, %d)", row, col)
         if self.building:
             return
         if col == 0:
@@ -511,31 +460,30 @@ class McaROITable(qt.QTableWidget):
         except:
             return
         if row >= len(self.roilist):
-            if DEBUG:
-                print("deleting???")
+            _logger.debug("deleting???")
             return
         item = self.item(row, 0)
         if item is None:
-            text=""
+            text = ""
         else:
             text = str(item.text())
         if not len(text):
             return
         if col == 2:
             self.roidict[text]['from'] = value
-        elif col ==3:
+        elif col == 3:
             self.roidict[text]['to'] = value
         self._emitSelectionChangedSignal(row, col)
 
     def nameSlot(self, row, col):
-        if col != 0: return
+        if col != 0:
+            return
         if row >= len(self.roilist):
-            if DEBUG:
-                print("deleting???")
+            _logger.debug("deleting???")
             return
         item = self.item(row, col)
         if item is None:
-            text=""
+            text = ""
         else:
             text = str(item.text())
         if len(text) and (text not in self.roilist):
@@ -549,31 +497,30 @@ class McaROITable(qt.QTableWidget):
     def _emitSelectionChangedSignal(self, row, col):
         ddict = {}
         ddict['event'] = "selectionChanged"
-        ddict['row'  ] = row
-        ddict['col'  ] = col
-        ddict['roi'  ] = self.roidict[self.roilist[row]]
-        ddict['key']   = self.roilist[row]
+        ddict['row'] = row
+        ddict['col'] = col
+        ddict['roi'] = self.roidict[self.roilist[row]]
+        ddict['key'] = self.roilist[row]
         ddict['colheader'] = self.labels[col]
         ddict['rowheader'] = "%d" % row
         self.emitSignal(ddict)
 
-    def mySlot(self,*var,**kw):
+    def mySlot(self, *var, **kw):
         if len(var) == 0:
             self._mySlot()
             return
         if len(var) == 2:
-            ddict={}
+            ddict = {}
             row = var[0]
             col = var[1]
             if col == 0:
                 if row >= len(self.roilist):
-                    if DEBUG:
-                        print("deleting???")
+                    _logger.debug("deleting???")
                     return
                     row = 0
                 item = self.item(row, col)
                 if item is None:
-                    text=""
+                    text = ""
                 else:
                     text = str(item.text())
                 if len(text) and (text not in self.roilist):
@@ -584,35 +531,23 @@ class McaROITable(qt.QTableWidget):
                     del self.roidict[old]
                     ddict = {}
                     ddict['event'] = "selectionChanged"
-                    ddict['row'  ] = row
-                    ddict['col'  ] = col
-                    ddict['roi'  ] = self.roidict[self.roilist[row]]
-                    ddict['key']   = self.roilist[row]
+                    ddict['row'] = row
+                    ddict['col'] = col
+                    ddict['roi'] = self.roidict[self.roilist[row]]
+                    ddict['key'] = self.roilist[row]
                     ddict['colheader'] = self.labels[col]
                     ddict['rowheader'] = "%d" % row
                     self.emitSignal(ddict)
                 else:
                     if item is None:
                         item = qt.QTableWidgetItem(text,
-                                   qt.QTableWidgetItem.Type)
+                                                   qt.QTableWidgetItem.Type)
                     else:
                         item.setText(text)
                     self._mySlot()
 
     def emitSignal(self, ddict):
-        self.sigMcaROITableSignal.emit(ddict)
-
-class SimpleComboBox(qt.QComboBox):
-        def __init__(self,parent = None,name = None,fl = 0,options=['1','2','3']):
-            qt.QComboBox.__init__(self,parent)
-            self.setOptions(options)
-
-        def setOptions(self,options=['1','2','3']):
-            self.clear()
-            self.insertStrList(options)
-
-        def getCurrent(self):
-            return   self.currentItem(),str(self.currentText())
+        self.sigROITableSignal.emit(ddict)
 
 
 class CurvesROIDockWidget(qt.QDockWidget):
@@ -624,7 +559,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
     :param name: See :class:`QDockWidget`
     :param parent: See :class:`QDockWidget`
     """
-    sigROISignal = qt.Signal(object) #TODO who is using it?
+    sigROISignal = qt.Signal(object)
 
     def __init__(self, plot, name=None, parent=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
@@ -643,7 +578,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
         self.visibilityChanged.connect(self._visibilityChangedHandler)
 
-        self.roiWidget.sigMcaROIWidgetSignal.connect(self._roiSignal)
+        self.roiWidget.sigROIWidgetSignal.connect(self._roiSignal)
         # initialize with the ICR
         self._roiSignal({'event': "AddROI"})
 
@@ -678,7 +613,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             if label == 'ROI min':
                 roiDict[self.currentROI]['from'] = x
                 if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +\
+                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
                     self.plot.addXMarker(pos,
                                          legend='ROI middle',
@@ -688,7 +623,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             elif label == 'ROI max':
                 roiDict[self.currentROI]['to'] = x
                 if self._middleROIMarkerFlag:
-                    pos = 0.5 * (roiDict[self.currentROI]['to'] +\
+                    pos = 0.5 * (roiDict[self.currentROI]['to'] +
                                  roiDict[self.currentROI]['from'])
                     self.plot.addXMarker(pos,
                                          legend='ROI middle',
@@ -696,7 +631,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                          color='yellow',
                                          draggable=True)
             elif label == 'ROI middle':
-                delta = x - 0.5 * (roiDict[self.currentROI]['from'] + \
+                delta = x - 0.5 * (roiDict[self.currentROI]['from'] +
                                    roiDict[self.currentROI]['to'])
                 roiDict[self.currentROI]['from'] += delta
                 roiDict[self.currentROI]['to'] += delta
@@ -716,12 +651,11 @@ class CurvesROIDockWidget(qt.QDockWidget):
             self.emitCurrentROISignal()
 
     def _roiSignal(self, ddict):
-        if DEBUG:
-            print("PlotWindow._roiSignal ", ddict)
+        _logger.debug("PlotWindow._roiSignal %s", str(ddict))
         if ddict['event'] == "AddROI":
-            xmin,xmax = self.plot.getGraphXLimits()
+            xmin, xmax = self.plot.getGraphXLimits()
             fromdata = xmin + 0.25 * (xmax - xmin)
-            todata   = xmin + 0.75 * (xmax - xmin)
+            todata = xmin + 0.75 * (xmax - xmin)
             self.plot.remove('ROI min', kind='marker')
             self.plot.remove('ROI max', kind='marker')
             if self._middleROIMarkerFlag:
@@ -782,7 +716,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 currentroi = roiDictKeys[0]
             else:
                 # create again the ICR
-                ddict = {"event":"AddROI"}
+                ddict = {"event": "AddROI"}
                 return self._roiSignal(ddict)
                 currentroi = None
             self.roiWidget.fillFromROIDict(roilist=roiList,
@@ -793,11 +727,10 @@ class CurvesROIDockWidget(qt.QDockWidget):
             print("ActiveROI event")
             pass
         elif ddict['event'] == 'selectionChanged':
-            if DEBUG:
-                print("Selection changed")
+            _logger.debug("Selection changed")
             self.roilist, self.roidict = self.roiWidget.getROIListAndDict()
             fromdata = ddict['roi']['from']
-            todata   = ddict['roi']['to']
+            todata = ddict['roi']['to']
             self.plot.remove('ROI min', kind='marker')
             self.plot.remove('ROI max', kind='marker')
             if ddict['key'] == 'ICR':
@@ -807,13 +740,13 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 draggable = True
                 color = 'blue'
             self.plot.addXMarker(fromdata,
-                                 legend= 'ROI min',
-                                 text= 'ROI min',
+                                 legend='ROI min',
+                                 text='ROI min',
                                  color=color,
                                  draggable=draggable)
             self.plot.addXMarker(todata,
-                                 legend= 'ROI max',
-                                 text= 'ROI max',
+                                 legend='ROI max',
+                                 text='ROI max',
                                  color=color,
                                  draggable=draggable)
             if draggable and self._middleROIMarkerFlag:
@@ -825,8 +758,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                      draggable=True)
             self.currentROI = ddict['key']
             if ddict['colheader'] in ['From', 'To']:
-                dict0 ={}
-                dict0['event']  = "SetActiveCurveEvent"
+                dict0 = {}
+                dict0['event'] = "SetActiveCurveEvent"
                 dict0['legend'] = self.plot.getActiveCurve(just_legend=1)
                 self.plot.setActiveCurve(dict0['legend'])
             elif ddict['colheader'] == 'Raw Counts':
@@ -836,8 +769,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
             else:
                 self.emitCurrentROISignal()
         else:
-            if DEBUG:
-                print("Unknown or ignored event", ddict['event'])
+            _logger.debug("Unknown or ignored event %s", ddict['event'])
 
     def _activeCurveChanged(self, *args):
         self.calculateROIs()
@@ -858,21 +790,16 @@ class CurvesROIDockWidget(qt.QDockWidget):
         activeCurve = self.plot.getActiveCurve(just_legend=False)
         if activeCurve is None:
             xproc = None
-            yproc = None
             self.roiWidget.setHeader('<b>ROIs of XXXXXXXXXX<\b>')
         elif len(activeCurve):
             x, y, legend = activeCurve[0:3]
             idx = numpy.argsort(x, kind='mergesort')
             xproc = numpy.take(x, idx)
-            yproc = numpy.take(y, idx)
             self.roiWidget.setHeader('<b>ROIs of %s<\b>' % legend)
         else:
             xproc = None
-            yproc = None
             self.roiWidget.setHeader('<b>ROIs of XXXXXXXXXX<\b>')
         for key in roiList:
-            #roiDict[key]['rawcounts'] = " ?????? "
-            #roiDict[key]['netcounts'] = " ?????? "
             if key == 'ICR':
                 if xproc is not None:
                     roiDict[key]['from'] = xproc.min()
@@ -880,11 +807,11 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 else:
                     roiDict[key]['from'] = 0
                     roiDict[key]['to'] = -1
-            fromData  = roiDict[key]['from']
+            fromData = roiDict[key]['from']
             toData = roiDict[key]['to']
             if xproc is not None:
-                idx = numpy.nonzero((fromData <= xproc) &\
-                                     (xproc <= toData))[0]
+                idx = numpy.nonzero((fromData <= xproc) &
+                                    (xproc <= toData))[0]
                 if len(idx):
                     xw = x[idx]
                     yw = y[idx]
@@ -894,8 +821,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
                     if deltaX > 0.0:
                         slope = (deltaY/deltaX)
                         background = yw[0] + slope * (xw - xw[0])
-                        netCounts = rawCounts -\
-                                    background.sum(dtype=numpy.float)
+                        netCounts = (rawCounts -
+                                     background.sum(dtype=numpy.float))
                     else:
                         netCounts = 0.0
                 else:
@@ -957,11 +884,3 @@ class CurvesROIDockWidget(qt.QDockWidget):
             else:
                 ymax = max(ymax, y.max())
         return xmin, ymin, xmax, ymax
-
-
-if __name__ == '__main__':
-    app = qt.QApplication([])
-    demo = CurvesROIWidget()
-    demo.show()
-    app.exec_()
-
