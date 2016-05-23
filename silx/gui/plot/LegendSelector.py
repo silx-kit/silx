@@ -960,10 +960,10 @@ class LegendsDockWidget(qt.QDockWidget):
 
         width = self.plot.centralWidget().width()
         height = self.plot.centralWidget().height()
-        if width > (1.25 * height):
-            area = qt.Qt.RightDockWidgetArea
-        else:
-            area = qt.Qt.BottomDockWidgetArea
+        # if width > (1.25 * height):
+        #     area = qt.Qt.RightDockWidgetArea
+        # else:
+        area = qt.Qt.BottomDockWidgetArea
         self.plot.addDockWidget(area, self)
 
         self.visibilityChanged.connect(

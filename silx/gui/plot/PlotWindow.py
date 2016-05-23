@@ -188,12 +188,15 @@ class PlotWindow(PlotWidget):
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
 
+        self._dockWidgets = []
+
     @property
     def legendsDockWidget(self):
         """DockWidget with Legend panel (lazy-loaded)."""
         if not hasattr(self, '_legendsDockWidget'):
             self._legendsDockWidget = LegendsDockWidget(self)
             self._legendsDockWidget.hide()
+            self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
 
     @property
@@ -209,6 +212,7 @@ class PlotWindow(PlotWidget):
                         custom_banner=banner,
                         parent=self)
                 self._consoleDockWidget.hide()
+                self._introduceNewDockWidget(self._consoleDockWidget)
             else:
                 self._consoleDockWidget = None
         return self._consoleDockWidget
@@ -258,3 +262,15 @@ class PlotWindow(PlotWidget):
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         controlMenu.exec_(self.cursor().pos())
+
+    def _introduceNewDockWidget(self, dock_widget):
+        """Maintain a list of dock widgets, in the order in which they are
+        added. Tabify them as soon as there are more than one of them.
+
+        :param dock_widget: Instance of :class:`QDockWidget` to be added.
+        """
+        if dock_widget not in self._dockWidgets:
+            self._dockWidgets.append(dock_widget)
+        if len(self._dockWidgets) >= 2:
+            self.tabifyDockWidget(self._dockWidgets[0],
+                                  self._dockWidgets[-1])
