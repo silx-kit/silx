@@ -170,18 +170,9 @@ class IPythonDockWidget(qt.QDockWidget):
 
 
 def main():
-    """IPython console widget demo"""
-    class MyUselessClass(object):
-        msg = "Dummy class to test pushing variables to tho console"
-
-        def print_msg(self):
-            print(self.msg)
-
+    """Run a Qt app with an IPython console"""
     app = qt.QApplication([])
-    var = MyUselessClass()
-    widget = IPythonDockWidget(available_vars={"var": var},
-                               custom_banner="Type `whos` for a list of " +
-                                             "available variables \n\n")
+    widget = IPythonDockWidget()
     widget.show()
     app.exec_()
 
