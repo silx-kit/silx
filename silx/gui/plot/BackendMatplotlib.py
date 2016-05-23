@@ -35,7 +35,6 @@ import sys
 import numpy
 
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 if 'matplotlib' in sys.modules:

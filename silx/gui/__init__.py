@@ -26,11 +26,4 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
-
-
-import logging as _logging
-
-
-# Init logging once for the whole module
-_logging.basicConfig()
+__date__ = "23/05/2016"

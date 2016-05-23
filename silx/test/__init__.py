@@ -38,7 +38,6 @@ import os
 import unittest
 
 
-logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
