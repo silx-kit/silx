@@ -22,9 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides IPython console widgets.
+"""This module provides an IPython console widget.
 
-The widgets provide ways to push a variable - any python object - to the
+This widget provide ways to push a variable - any python object - to the
 console's interactive namespace. This provides users with an advanced way
 of interacting with your program. For instance, if your program has a
 :class:`PlotWidget` or a :class:`PlotWindow`, you can push a reference to
@@ -46,7 +46,6 @@ import logging
 from . import qt
 
 _logger = logging.getLogger(__name__)
-_logger.setLevel(logging.DEBUG)
 
 try:
     import IPython
@@ -78,14 +77,8 @@ if qtconsole is not None:
 else:
     # Import the console machinery from ipython
 
-    # # Check if we using a frozen version because
-    # # the test of IPython does not find the Qt bindings
-    # import sys
-    # if getattr(sys, 'frozen', False): # work with cx_Freeze
-    #     import IPython.external.qt_loaders
-    #     def has_binding(*var, **kw):
-    #         return True
-    #     IPython.external.qt_loaders.has_binding = has_binding 
+    # The `has_binding` test of IPython does not find the Qt bindings in case silx is
+    # used in a frozen binary
     import IPython.external.qt_loaders
     def has_binding(*var, **kw):
         return True
@@ -111,14 +104,14 @@ class IPythonWidget(RichIPythonWidget):
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
-        kernel_manager.kernel.gui = 'qt4'  # TODO: should "qt4" be hardcoded?
+        #kernel_manager.kernel.gui = 'qt4'   # TODO
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 
         def stop():
             kernel_client.stop_channels()
             kernel_manager.shutdown_kernel()
-            guisupport.get_app_qt4().exit()
+            guisupport.get_app_qt4().exit()     # TODO: qt5?
         self.exit_requested.connect(stop)
 
     def sizeHint(self):

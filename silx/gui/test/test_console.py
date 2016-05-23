@@ -75,7 +75,7 @@ class TestConsole(TestCaseQt):
         self.mouseClick(self.console, qt.Qt.LeftButton)
         self.keyClicks(self.console, 'import silx')
         self.keyClick(self.console, qt.Qt.Key_Enter)
-        self.qWait()
+        self.qapp.processEvents()
 
 
 def suite():
