@@ -121,6 +121,9 @@ class IPythonWidget(RichIPythonWidget):
             guisupport.get_app_qt4().exit()
         self.exit_requested.connect(stop)
 
+    def sizeHint(self):
+        return qt.QSize(500, 300)
+
     def pushVariables(self, variable_dict):
         """ Given a dictionary containing name / value pairs, push those
         variables to the IPython console widget.
@@ -155,18 +158,6 @@ class IPythonDockWidget(qt.QDockWidget):
 
         if available_vars is not None:
             self.ipyconsole.pushVariables(available_vars)
-
-        if parent is not None:
-            self.add_to_main_window(parent)
-
-    def add_to_main_window(self, main_window):
-        if main_window.centralWidget() is not None:
-            width = main_window.centralWidget().width()
-            height = main_window.centralWidget().height()
-
-        main_window.addDockWidget(qt.Qt.BottomDockWidgetArea, self)
-        if main_window.centralWidget() is not None:
-            self.ipyconsole.resize(width, height // 3)
 
 
 def main():
