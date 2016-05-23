@@ -275,7 +275,7 @@ class PlotWindow(PlotWidget):
             # The first created dock widget must be added to a Widget area
             width = self.centralWidget().width()
             height = self.centralWidget().height()
-            if width > (2.0 * height):
+            if width > (2.0 * height) and width > 1000:
                 area = qt.Qt.RightDockWidgetArea
             else:
                 area = qt.Qt.BottomDockWidgetArea
