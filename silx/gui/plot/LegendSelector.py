@@ -950,6 +950,7 @@ class LegendsDockWidget(qt.QDockWidget):
     def __init__(self, plot, parent=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
+        self._isConnected = False  # True if widget connected to plot signals
 
         super(LegendsDockWidget, self).__init__("Legends", self.plot)
 
@@ -1065,8 +1066,12 @@ class LegendsDockWidget(qt.QDockWidget):
     def _visibilityChangedHandler(self, visible):
         if visible:
             self.updateLegends()
-            self.plot.sigContentChanged.connect(self.updateLegends)
-            self.plot.sigActiveCurveChanged.connect(self.updateLegends)
+            if not self._isConnected:
+                self.plot.sigContentChanged.connect(self.updateLegends)
+                self.plot.sigActiveCurveChanged.connect(self.updateLegends)
+                self._isConnected = True
         else:
-            self.plot.sigContentChanged.disconnect(self.updateLegends)
-            self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
+            if self._isConnected:
+                self.plot.sigContentChanged.disconnect(self.updateLegends)
+                self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
+                self._isConnected = False

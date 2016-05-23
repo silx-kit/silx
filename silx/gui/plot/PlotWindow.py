@@ -271,6 +271,16 @@ class PlotWindow(PlotWidget):
         """
         if dock_widget not in self._dockWidgets:
             self._dockWidgets.append(dock_widget)
-        if len(self._dockWidgets) >= 2:
+        if len(self._dockWidgets) == 1:
+            # The first created dock widget must be added to a Widget area
+            width = self.centralWidget().width()
+            height = self.centralWidget().height()
+            if width > (2.0 * height):
+                area = qt.Qt.RightDockWidgetArea
+            else:
+                area = qt.Qt.BottomDockWidgetArea
+            self.addDockWidget(area, dock_widget)
+        else:
+            # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
-                                  self._dockWidgets[-1])
+                                  dock_widget)

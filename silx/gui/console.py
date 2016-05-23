@@ -122,6 +122,7 @@ class IPythonWidget(RichIPythonWidget):
         self.exit_requested.connect(stop)
 
     def sizeHint(self):
+        """Return a reasonable default size for usage in :class:`PlotWindow`"""
         return qt.QSize(500, 300)
 
     def pushVariables(self, variable_dict):
