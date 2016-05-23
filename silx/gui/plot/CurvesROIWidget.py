@@ -1,8 +1,7 @@
-#/*##########################################################################
-# Copyright (C) 2004-2015 V.A. Sole, European Synchrotron Radiation Facility
+# coding: utf-8
+# /*##########################################################################
 #
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,26 +21,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-__author__ = "V.A. Sole - ESRF Data Analysis"
-__contact__ = "sole@esrf.fr"
+# ###########################################################################*/
+"""Widget to handle regions of interest on curves displayed in a PlotWindow.
+
+This widget is meant to work with :class:`PlotWindow`.
+"""
+
+__authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-import sys
+__date__ = "23/05/2016"
+
+
 import os
-
-from silx.gui import qt
-if hasattr(qt, "QString"):
-    QString = qt.QString
-else:
-    QString = str #qt.safe_str
-
-QTVERSION = qt.qVersion()
+import sys
 
 import numpy
-from numpy import argsort, nonzero, take
-from PyMca5.PyMcaCore import PyMcaDirs
-from PyMca5.PyMcaIO import ConfigDict
+
+from silx.io.configdict import ConfigDict
+from silx.gui import qt
 
 DEBUG = 0
 class CurvesROIWidget(qt.QWidget):
@@ -176,9 +173,9 @@ class CurvesROIWidget(qt.QWidget):
 
     def _load(self):
         if self.roiDir is None:
-            self.roiDir = PyMcaDirs.inputDir
+            self.roiDir = qt.QDir.home()
         elif not os.path.isdir(self.roiDir):
-            self.roiDir = PyMcaDirs.inputDir
+            self.roiDir = qt.QDir.home()
         outfile = qt.QFileDialog(self)
         if hasattr(outfile, "setFilters"):
             outfile.setFilter('PyMca  *.ini')
@@ -192,14 +189,14 @@ class CurvesROIWidget(qt.QWidget):
             del outfile
             return
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
-        outputFile = qt.safe_str(outfile.selectedFiles()[0])
+        outputFile = outfile.selectedFiles()[0]
         outfile.close()
         del outfile
         self.roiDir = os.path.dirname(outputFile)
         self.load(outputFile)
 
     def load(self, filename):
-        d = ConfigDict.ConfigDict()
+        d = ConfigDict()
         d.read(filename)
         current = ""
         if self.mcaROITable.rowCount():
@@ -220,9 +217,9 @@ class CurvesROIWidget(qt.QWidget):
 
     def _save(self):
         if self.roiDir is None:
-            self.roiDir = PyMcaDirs.outputDir
+            self.roiDir = qt.QDir.home()
         elif not os.path.isdir(self.roiDir):
-            self.roiDir = PyMcaDirs.outputDir
+            self.roiDir = qt.QDir.home()
         outfile = qt.QFileDialog(self)
         if hasattr(outfile, "setFilters"):
             outfile.setFilter('PyMca  *.ini')
@@ -237,7 +234,7 @@ class CurvesROIWidget(qt.QWidget):
             del outfile
             return
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
-        outputFile = qt.safe_str(outfile.selectedFiles()[0])
+        outputFile = outfile.selectedFiles()[0]
         extension = ".ini"
         outfile.close()
         del outfile
@@ -258,7 +255,7 @@ class CurvesROIWidget(qt.QWidget):
         self.save(outputFile)
 
     def save(self, filename):
-        d= ConfigDict.ConfigDict()
+        d= ConfigDict()
         d['ROI'] = {}
         d['ROI'] = {'roilist': self.mcaROITable.roilist * 1,
                     'roidict':{}}
@@ -306,8 +303,7 @@ class McaROITable(qt.QTableWidget):
         self.labels=['ROI','Type','From','To','Raw Counts','Net Counts']
         self.setColumnCount(len(self.labels))
         i=0
-        if QTVERSION > '4.2.0':
-            self.setSortingEnabled(False)
+        self.setSortingEnabled(False)
         if 'labels' in kw:
             for label in kw['labels']:
                 item = self.horizontalHeaderItem(i)
@@ -363,15 +359,15 @@ class McaROITable(qt.QTableWidget):
                 line = line0 -1
                 self.roidict[key]['line'] = line
                 ROI = key
-                roitype = QString("%s" % roi['type'])
-                fromdata= QString("%6g" % (roi['from']))
-                todata  = QString("%6g" % (roi['to']))
+                roitype = "%s" % roi['type']
+                fromdata= "%6g" % (roi['from'])
+                todata  = "%6g" % (roi['to'])
                 if 'rawcounts' in roi:
-                    rawcounts= QString("%6g" % (roi['rawcounts']))
+                    rawcounts= "%6g" % (roi['rawcounts'])
                 else:
                     rawcounts = " ?????? "
                 if 'netcounts' in roi:
-                    netcounts= QString("%6g" % (roi['netcounts']))
+                    netcounts= "%6g" % (roi['netcounts'])
                 else:
                     netcounts = " ?????? "
                 fields  = [ROI,roitype,fromdata,todata,rawcounts,netcounts]
@@ -427,16 +423,16 @@ class McaROITable(qt.QTableWidget):
         self.roidict[key]['from'] = roi['from']
         self.roidict[key]['to']   = roi['to']
         ROI = key
-        roitype = QString("%s" % roi['type'])
-        fromdata= QString("%6g" % (roi['from']))
-        todata  = QString("%6g" % (roi['to']))
+        roitype = "%s" % roi['type']
+        fromdata= "%6g" % (roi['from'])
+        todata  = "%6g" % (roi['to'])
         if 'rawcounts' in roi:
-            rawcounts= QString("%6g" % (roi['rawcounts']))
+            rawcounts= "%6g" % (roi['rawcounts'])
         else:
             rawcounts = " ?????? "
         self.roidict[key]['rawcounts']   = rawcounts
         if 'netcounts' in roi:
-            netcounts= QString("%6g" % (roi['netcounts']))
+            netcounts= "%6g" % (roi['netcounts'])
         else:
             netcounts = " ?????? "
         self.roidict[key]['netcounts']   = netcounts
@@ -518,14 +514,11 @@ class McaROITable(qt.QTableWidget):
             if DEBUG:
                 print("deleting???")
             return
-        if QTVERSION < '4.0.0':
-            text = str(self.text(row, 0))
+        item = self.item(row, 0)
+        if item is None:
+            text=""
         else:
-            item = self.item(row, 0)
-            if item is None:
-                text=""
-            else:
-                text = str(item.text())
+            text = str(item.text())
         if not len(text):
             return
         if col == 2:
@@ -869,9 +862,9 @@ class CurvesROIDockWidget(qt.QDockWidget):
             self.roiWidget.setHeader('<b>ROIs of XXXXXXXXXX<\b>')
         elif len(activeCurve):
             x, y, legend = activeCurve[0:3]
-            idx = argsort(x, kind='mergesort')
-            xproc = take(x, idx)
-            yproc = take(y, idx)
+            idx = numpy.argsort(x, kind='mergesort')
+            xproc = numpy.take(x, idx)
+            yproc = numpy.take(y, idx)
             self.roiWidget.setHeader('<b>ROIs of %s<\b>' % legend)
         else:
             xproc = None
@@ -890,8 +883,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
             fromData  = roiDict[key]['from']
             toData = roiDict[key]['to']
             if xproc is not None:
-                idx = nonzero((fromData <= xproc) &\
-                                   (xproc <= toData))[0]
+                idx = numpy.nonzero((fromData <= xproc) &\
+                                     (xproc <= toData))[0]
                 if len(idx):
                     xw = x[idx]
                     yw = y[idx]
