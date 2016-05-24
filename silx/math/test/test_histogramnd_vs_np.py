@@ -174,6 +174,26 @@ class _TestHistogramnd(unittest.TestCase):
             return np.array_equal(ar_a, ar_b)
         return np.allclose(ar_a, ar_b, self.rtol)
 
+    def test_bin_ranges(self):
+        """
+
+        """
+        result_c = histogramnd(self.sample,
+                               self.bins_rng,
+                               self.n_bins,
+                               weights=self.weights,
+                               last_bin_closed=True)
+
+        result_np = np.histogramdd(self.sample,
+                                   bins=self.n_bins,
+                                   range=self.bins_rng)
+
+        for i_edges, edges in enumerate(result_c[2]):
+            self.assertTrue(np.array_equal(edges,
+                                           result_np[1][i_edges]),
+                            msg='{0}. Testing bin_edges for dim {1}.'
+                                ''.format('', i_edges+1))
+
     def test_last_bin_closed(self):
         """
 
