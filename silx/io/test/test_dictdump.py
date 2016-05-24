@@ -144,10 +144,10 @@ class TestDictToIni(unittest.TestCase):
             }
         }
 
-        dump(testdict, self.ini_fname, fmat="ini")
+        dump(testdict, self.ini_fname)
 
         #read the data back
-        readdict = load(self.ini_fname, 'ini')
+        readdict = load(self.ini_fname)
 
         testdictkeys = list(testdict.keys())
         readkeys = list(readdict.keys())
