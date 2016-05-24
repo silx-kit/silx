@@ -68,7 +68,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            self.n_bins,
-                                           weights=err_weights)
+                                           weights=err_weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -99,7 +99,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            err_bins_rng,
                                            self.n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -124,7 +124,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            err_n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -145,7 +145,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            err_n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -179,7 +179,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           histo=histo)
+                                           histo=histo)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -206,7 +206,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           histo=histo)
+                                           histo=histo)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -241,7 +241,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           cumul=cumul)
+                                           cumul=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -269,7 +269,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           cumul=cumul)
+                                           cumul=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 

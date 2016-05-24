@@ -31,6 +31,17 @@ import numpy as np
 
 from silx.math import histogramnd
 
+
+def _get_bin_edges(bins_rng, n_bins, n_dims):
+    edges = []
+    for i_dim in range(n_dims):
+        edges.append(bins_rng[i_dim, 0] +
+                     np.arange(n_bins[i_dim] + 1) *
+                     (bins_rng[i_dim, 1] - bins_rng[i_dim, 0]) /
+                     n_bins[i_dim])
+    return tuple(edges)
+
+
 # ==============================================================
 # ==============================================================
 # ==============================================================
@@ -80,6 +91,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         # the tests are performed along one dimension,
         #   all the other bins indices along the other dimensions
         #   are expected to be 2
+        # (e.g : when testing a 2D sample : [0, x] will go into
+        # bin [2, y] because of the bin ranges [-2, 2] and n_bins = 4
+        # for the first dimension)
         self.other_axes_index = 2
         self.bins_rng = np.repeat([[-2., 2.]], ndims, axis=0)
         self.bins_rng[ndims-1] = [-4., 6.]
@@ -116,15 +130,25 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
-        histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
-                                   self.n_bins,
-                                   weights=self.weights)
+        histo, cumul, bin_edges = histogramnd(self.sample,
+                                              self.bins_rng,
+                                              self.n_bins,
+                                              weights=self.weights)
+
+        expected_edges = _get_bin_edges(self.bins_rng,
+                                        self.n_bins,
+                                        self.ndims)
 
         self.assertEqual(cumul.dtype, np.float64)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
+
+        for i_edges, edges in enumerate(expected_edges):
+            self.assertTrue(np.array_equal(bin_edges[i_edges],
+                                           expected_edges[i_edges]),
+                            msg='Testing bin_edges for dim {0}'
+                                ''.format(i_edges+1))
 
     def test_nominal_wo_weights(self):
         """
@@ -138,7 +162,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         histo, cumul = histogramnd(self.sample,
                                    self.bins_rng,
                                    self.n_bins,
-                                   weights=None)
+                                   weights=None)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(cumul is None)
@@ -158,7 +182,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.bins_rng,
                                    self.n_bins,
                                    weights=None,
-                                   cumul=cumul_in)
+                                   cumul=cumul_in)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(cumul is None)
@@ -183,7 +207,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.bins_rng,
                                    self.n_bins,
                                    weights=None,
-                                   histo=histo_in)
+                                   histo=histo_in)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h + 1))
         self.assertTrue(cumul is None)
@@ -205,7 +229,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.bins_rng,
                                    self.n_bins,
                                    weights=self.weights,
-                                   last_bin_closed=True)
+                                   last_bin_closed=True)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
@@ -230,7 +254,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.n_bins,
                                    weights=self.weights.astype(np.int32),
                                    weight_min=weight_min,
-                                   weight_max=weight_max)
+                                   weight_max=weight_max)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
@@ -251,7 +275,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         histo, cumul = histogramnd(self.sample,
                                    self.bins_rng,
                                    self.n_bins,
-                                   weights=self.weights)
+                                   weights=self.weights)[0:2]
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
@@ -265,7 +289,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      self.bins_rng,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
-                                     histo=histo)
+                                     histo=histo)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(cumul, expected_c))
@@ -287,7 +311,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         histo, cumul = histogramnd(self.sample,
                                    self.bins_rng,
                                    self.n_bins,
-                                   weights=self.weights)
+                                   weights=self.weights)[0:2]
 
         sample_2 = self.sample[:]
         if len(sample_2.shape) == 1:
@@ -301,7 +325,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      self.bins_rng,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
-                                     cumul=cumul)
+                                     cumul=cumul)[0:2]
 
         self.assertEqual(cumul.dtype, np.float64)
         self.assertTrue(np.array_equal(histo, expected_h))
@@ -325,7 +349,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         histo, cumul = histogramnd(self.sample,
                                    self.bins_rng,
                                    self.n_bins,
-                                   weights=self.weights)
+                                   weights=self.weights)[0:2]
 
         # converting the cumul array to float
         cumul = cumul.astype(np.float32)
@@ -342,7 +366,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      self.bins_rng,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
-                                     cumul=cumul)
+                                     cumul=cumul)[0:2]
 
         self.assertEqual(cumul.dtype, np.float32)
         self.assertTrue(np.array_equal(histo, expected_h))

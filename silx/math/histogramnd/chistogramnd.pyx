@@ -26,11 +26,12 @@ __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/02/2016"
 
-cimport numpy
+cimport numpy  # noqa
 cimport cython
 import numpy as np
 
 cimport histogramnd_c
+
 
 def chistogramnd(sample,
                  bins_rng,
@@ -131,11 +132,12 @@ def chistogramnd(sample,
             (*n_bins*, *bins_rng*, ...).
     :type cumul: *optional*, :class:`numpy.array`
 
-    :return: Histogram (bin counts, always returned) and weighted histogram of
-        the sample (or *None* if weights is *None*).
-    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`) or
-        (:class:`numpy.array`, None)
-    """
+    :return: Histogram (bin counts, always returned), weighted histogram of
+        the sample (or *None* if weights is *None*) and bin edges for each
+        dimension.
+    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
+        (:class:`numpy.array`, None, `tuple`)
+    """  # noqa
 
     s_shape = sample.shape
 
@@ -249,6 +251,8 @@ def chistogramnd(sample,
 
     n_elem = sample.size // n_dims
 
+    bin_edges = np.zeros(n_bins.sum() + n_bins.size, dtype=np.double)
+
     # wanted to store the functions in a dict (with the supported types
     # as keys, but I couldn't find a way to make it work with cdef
     # functions. so I have to explicitly list them all...
@@ -264,7 +268,7 @@ def chistogramnd(sample,
                  if weights is not None else None)
 
     bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
-                                      dtype=sample_type)
+                                      dtype=np.double)
 
     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
                                     dtype=np.int32)
@@ -276,9 +280,10 @@ def chistogramnd(sample,
     else:
         cumul_c = None
 
+    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+
     rc = 0
 
-    # this aint pretty...
     if cumul is None or cumul.dtype == np.double:
 
         if sample_type == np.float64:
@@ -293,6 +298,7 @@ def chistogramnd(sample,
                                                        n_bins_c,
                                                        histo_c,
                                                        cumul_c,
+                                                       bin_edges_c,
                                                        option_flags,
                                                        weight_min=weight_min,
                                                        weight_max=weight_max)
@@ -307,6 +313,7 @@ def chistogramnd(sample,
                                                       n_bins_c,
                                                       histo_c,
                                                       cumul_c,
+                                                      bin_edges_c,
                                                       option_flags,
                                                       weight_min=weight_min,
                                                       weight_max=weight_max)
@@ -321,6 +328,7 @@ def chistogramnd(sample,
                                                         n_bins_c,
                                                         histo_c,
                                                         cumul_c,
+                                                        bin_edges_c,
                                                         option_flags,
                                                         weight_min=weight_min,
                                                         weight_max=weight_max)
@@ -341,6 +349,7 @@ def chistogramnd(sample,
                                                       n_bins_c,
                                                       histo_c,
                                                       cumul_c,
+                                                      bin_edges_c,
                                                       option_flags,
                                                       weight_min=weight_min,
                                                       weight_max=weight_max)
@@ -355,6 +364,7 @@ def chistogramnd(sample,
                                                      n_bins_c,
                                                      histo_c,
                                                      cumul_c,
+                                                     bin_edges_c,
                                                      option_flags,
                                                      weight_min=weight_min,
                                                      weight_max=weight_max)
@@ -369,6 +379,7 @@ def chistogramnd(sample,
                                                        n_bins_c,
                                                        histo_c,
                                                        cumul_c,
+                                                       bin_edges_c,
                                                        option_flags,
                                                        weight_min=weight_min,
                                                        weight_max=weight_max)
@@ -389,6 +400,7 @@ def chistogramnd(sample,
                                                         n_bins_c,
                                                         histo_c,
                                                         cumul_c,
+                                                        bin_edges_c,
                                                         option_flags,
                                                         weight_min=weight_min,
                                                         weight_max=weight_max)
@@ -403,6 +415,7 @@ def chistogramnd(sample,
                                                        n_bins_c,
                                                        histo_c,
                                                        cumul_c,
+                                                       bin_edges_c,
                                                        option_flags,
                                                        weight_min=weight_min,
                                                        weight_max=weight_max)
@@ -417,6 +430,7 @@ def chistogramnd(sample,
                                                          n_bins_c,
                                                          histo_c,
                                                          cumul_c,
+                                                         bin_edges_c,
                                                          option_flags,
                                                          weight_min=weight_min,
                                                          weight_max=weight_max)
@@ -443,6 +457,7 @@ def chistogramnd(sample,
                                                       n_bins_c,
                                                       histo_c,
                                                       cumul_c,
+                                                      bin_edges_c,
                                                       option_flags,
                                                       weight_min=weight_min,
                                                       weight_max=weight_max)
@@ -457,6 +472,7 @@ def chistogramnd(sample,
                                                      n_bins_c,
                                                      histo_c,
                                                      cumul_c,
+                                                     bin_edges_c,
                                                      option_flags,
                                                      weight_min=weight_min,
                                                      weight_max=weight_max)
@@ -471,6 +487,7 @@ def chistogramnd(sample,
                                                        n_bins_c,
                                                        histo_c,
                                                        cumul_c,
+                                                       bin_edges_c,
                                                        option_flags,
                                                        weight_min=weight_min,
                                                        weight_max=weight_max)
@@ -491,6 +508,7 @@ def chistogramnd(sample,
                                                      n_bins_c,
                                                      histo_c,
                                                      cumul_c,
+                                                     bin_edges_c,
                                                      option_flags,
                                                      weight_min=weight_min,
                                                      weight_max=weight_max)
@@ -505,6 +523,7 @@ def chistogramnd(sample,
                                                     n_bins_c,
                                                     histo_c,
                                                     cumul_c,
+                                                    bin_edges_c,
                                                     option_flags,
                                                     weight_min=weight_min,
                                                     weight_max=weight_max)
@@ -519,6 +538,7 @@ def chistogramnd(sample,
                                                       n_bins_c,
                                                       histo_c,
                                                       cumul_c,
+                                                      bin_edges_c,
                                                       option_flags,
                                                       weight_min=weight_min,
                                                       weight_max=weight_max)
@@ -539,6 +559,7 @@ def chistogramnd(sample,
                                                        n_bins_c,
                                                        histo_c,
                                                        cumul_c,
+                                                       bin_edges_c,
                                                        option_flags,
                                                        weight_min=weight_min,
                                                        weight_max=weight_max)
@@ -553,6 +574,7 @@ def chistogramnd(sample,
                                                       n_bins_c,
                                                       histo_c,
                                                       cumul_c,
+                                                      bin_edges_c,
                                                       option_flags,
                                                       weight_min=weight_min,
                                                       weight_max=weight_max)
@@ -567,6 +589,7 @@ def chistogramnd(sample,
                                                         n_bins_c,
                                                         histo_c,
                                                         cumul_c,
+                                                        bin_edges_c,
                                                         option_flags,
                                                         weight_min=weight_min,
                                                         weight_max=weight_max)
@@ -590,7 +613,13 @@ def chistogramnd(sample,
             raise Exception('histogramnd returned an error : {0}'
                             ''.format(rc))
 
-    return histo, cumul
+    edges = []
+    offset = 0
+    for i_dim in range(n_dims):
+        edges.append(bin_edges[offset:offset + n_bins[i_dim] + 1])
+        offset += n_bins[i_dim] + 1
+
+    return histo, cumul, tuple(edges)
 
 # =====================
 #  double sample, double cumul
@@ -609,6 +638,7 @@ cdef int _histogramnd_double_double_double(double[:] sample,
                                            int[:] n_bins,
                                            numpy.uint32_t[:] histo,
                                            double[:] cumul,
+                                           double[:] bin_edges,
                                            int option_flags,
                                            double weight_min,
                                            double weight_max) nogil:
@@ -621,6 +651,7 @@ cdef int _histogramnd_double_double_double(double[:] sample,
                                                           &n_bins[0],
                                                           &histo[0],
                                                           &cumul[0],
+                                                          &bin_edges[0],
                                                           option_flags,
                                                           weight_min,
                                                           weight_max)
@@ -638,6 +669,7 @@ cdef int _histogramnd_double_float_double(double[:] sample,
                                           int[:] n_bins,
                                           numpy.uint32_t[:] histo,
                                           double[:] cumul,
+                                          double[:] bin_edges,
                                           int option_flags,
                                           float weight_min,
                                           float weight_max) nogil:
@@ -650,6 +682,7 @@ cdef int _histogramnd_double_float_double(double[:] sample,
                                                          &n_bins[0],
                                                          &histo[0],
                                                          &cumul[0],
+                                                         &bin_edges[0],
                                                          option_flags,
                                                          weight_min,
                                                          weight_max)
@@ -667,6 +700,7 @@ cdef int _histogramnd_double_int32_t_double(double[:] sample,
                                             int[:] n_bins,
                                             numpy.uint32_t[:] histo,
                                             double[:] cumul,
+                                            double[:] bin_edges,
                                             int option_flags,
                                             numpy.int32_t weight_min,
                                             numpy.int32_t weight_max) nogil:
@@ -679,6 +713,7 @@ cdef int _histogramnd_double_int32_t_double(double[:] sample,
                                                            &n_bins[0],
                                                            &histo[0],
                                                            &cumul[0],
+                                                           &bin_edges[0],
                                                            option_flags,
                                                            weight_min,
                                                            weight_max)
@@ -697,10 +732,11 @@ cdef int _histogramnd_float_double_double(float[:] sample,
                                           double[:] weights,
                                           int n_dims,
                                           int n_elem,
-                                          float[:] bins_rng,
+                                          double[:] bins_rng,
                                           int[:] n_bins,
                                           numpy.uint32_t[:] histo,
                                           double[:] cumul,
+                                          double[:] bin_edges,
                                           int option_flags,
                                           double weight_min,
                                           double weight_max) nogil:
@@ -713,6 +749,7 @@ cdef int _histogramnd_float_double_double(float[:] sample,
                                                          &n_bins[0],
                                                          &histo[0],
                                                          &cumul[0],
+                                                         &bin_edges[0],
                                                          option_flags,
                                                          weight_min,
                                                          weight_max)
@@ -726,10 +763,11 @@ cdef int _histogramnd_float_float_double(float[:] sample,
                                          float[:] weights,
                                          int n_dims,
                                          int n_elem,
-                                         float[:] bins_rng,
+                                         double[:] bins_rng,
                                          int[:] n_bins,
                                          numpy.uint32_t[:] histo,
                                          double[:] cumul,
+                                         double[:] bin_edges,
                                          int option_flags,
                                          float weight_min,
                                          float weight_max) nogil:
@@ -742,6 +780,7 @@ cdef int _histogramnd_float_float_double(float[:] sample,
                                                         &n_bins[0],
                                                         &histo[0],
                                                         &cumul[0],
+                                                        &bin_edges[0],
                                                         option_flags,
                                                         weight_min,
                                                         weight_max)
@@ -755,10 +794,11 @@ cdef int _histogramnd_float_int32_t_double(float[:] sample,
                                            numpy.int32_t[:] weights,
                                            int n_dims,
                                            int n_elem,
-                                           float[:] bins_rng,
+                                           double[:] bins_rng,
                                            int[:] n_bins,
                                            numpy.uint32_t[:] histo,
                                            double[:] cumul,
+                                           double[:] bin_edges,
                                            int option_flags,
                                            numpy.int32_t weight_min,
                                            numpy.int32_t weight_max) nogil:
@@ -771,6 +811,7 @@ cdef int _histogramnd_float_int32_t_double(float[:] sample,
                                                           &n_bins[0],
                                                           &histo[0],
                                                           &cumul[0],
+                                                          &bin_edges[0],
                                                           option_flags,
                                                           weight_min,
                                                           weight_max)
@@ -789,10 +830,11 @@ cdef int _histogramnd_int32_t_double_double(numpy.int32_t[:] sample,
                                             double[:] weights,
                                             int n_dims,
                                             int n_elem,
-                                            numpy.int32_t[:] bins_rng,
+                                            double[:] bins_rng,
                                             int[:] n_bins,
                                             numpy.uint32_t[:] histo,
                                             double[:] cumul,
+                                            double[:] bin_edges,
                                             int option_flags,
                                             double weight_min,
                                             double weight_max) nogil:
@@ -805,6 +847,7 @@ cdef int _histogramnd_int32_t_double_double(numpy.int32_t[:] sample,
                                                            &n_bins[0],
                                                            &histo[0],
                                                            &cumul[0],
+                                                           &bin_edges[0],
                                                            option_flags,
                                                            weight_min,
                                                            weight_max)
@@ -818,10 +861,11 @@ cdef int _histogramnd_int32_t_float_double(numpy.int32_t[:] sample,
                                            float[:] weights,
                                            int n_dims,
                                            int n_elem,
-                                           numpy.int32_t[:] bins_rng,
+                                           double[:] bins_rng,
                                            int[:] n_bins,
                                            numpy.uint32_t[:] histo,
                                            double[:] cumul,
+                                           double[:] bin_edges,
                                            int option_flags,
                                            float weight_min,
                                            float weight_max) nogil:
@@ -834,6 +878,7 @@ cdef int _histogramnd_int32_t_float_double(numpy.int32_t[:] sample,
                                                           &n_bins[0],
                                                           &histo[0],
                                                           &cumul[0],
+                                                          &bin_edges[0],
                                                           option_flags,
                                                           weight_min,
                                                           weight_max)
@@ -847,10 +892,11 @@ cdef int _histogramnd_int32_t_int32_t_double(numpy.int32_t[:] sample,
                                              numpy.int32_t[:] weights,
                                              int n_dims,
                                              int n_elem,
-                                             numpy.int32_t[:] bins_rng,
+                                             double[:] bins_rng,
                                              int[:] n_bins,
                                              numpy.uint32_t[:] histo,
                                              double[:] cumul,
+                                             double[:] bin_edges,
                                              int option_flags,
                                              numpy.int32_t weight_min,
                                              numpy.int32_t weight_max) nogil:
@@ -863,6 +909,7 @@ cdef int _histogramnd_int32_t_int32_t_double(numpy.int32_t[:] sample,
                                                             &n_bins[0],
                                                             &histo[0],
                                                             &cumul[0],
+                                                            &bin_edges[0],
                                                             option_flags,
                                                             weight_min,
                                                             weight_max)
@@ -885,6 +932,7 @@ cdef int _histogramnd_double_double_float(double[:] sample,
                                           int[:] n_bins,
                                           numpy.uint32_t[:] histo,
                                           float[:] cumul,
+                                          double[:] bin_edges,
                                           int option_flags,
                                           double weight_min,
                                           double weight_max) nogil:
@@ -897,6 +945,7 @@ cdef int _histogramnd_double_double_float(double[:] sample,
                                                          &n_bins[0],
                                                          &histo[0],
                                                          &cumul[0],
+                                                         &bin_edges[0],
                                                          option_flags,
                                                          weight_min,
                                                          weight_max)
@@ -914,6 +963,7 @@ cdef int _histogramnd_double_float_float(double[:] sample,
                                          int[:] n_bins,
                                          numpy.uint32_t[:] histo,
                                          float[:] cumul,
+                                         double[:] bin_edges,
                                          int option_flags,
                                          float weight_min,
                                          float weight_max) nogil:
@@ -926,6 +976,7 @@ cdef int _histogramnd_double_float_float(double[:] sample,
                                                         &n_bins[0],
                                                         &histo[0],
                                                         &cumul[0],
+                                                        &bin_edges[0],
                                                         option_flags,
                                                         weight_min,
                                                         weight_max)
@@ -943,6 +994,7 @@ cdef int _histogramnd_double_int32_t_float(double[:] sample,
                                            int[:] n_bins,
                                            numpy.uint32_t[:] histo,
                                            float[:] cumul,
+                                           double[:] bin_edges,
                                            int option_flags,
                                            numpy.int32_t weight_min,
                                            numpy.int32_t weight_max) nogil:
@@ -955,6 +1007,7 @@ cdef int _histogramnd_double_int32_t_float(double[:] sample,
                                                           &n_bins[0],
                                                           &histo[0],
                                                           &cumul[0],
+                                                          &bin_edges[0],
                                                           option_flags,
                                                           weight_min,
                                                           weight_max)
@@ -973,10 +1026,11 @@ cdef int _histogramnd_float_double_float(float[:] sample,
                                          double[:] weights,
                                          int n_dims,
                                          int n_elem,
-                                         float[:] bins_rng,
+                                         double[:] bins_rng,
                                          int[:] n_bins,
                                          numpy.uint32_t[:] histo,
                                          float[:] cumul,
+                                         double[:] bin_edges,
                                          int option_flags,
                                          double weight_min,
                                          double weight_max) nogil:
@@ -989,6 +1043,7 @@ cdef int _histogramnd_float_double_float(float[:] sample,
                                                         &n_bins[0],
                                                         &histo[0],
                                                         &cumul[0],
+                                                        &bin_edges[0],
                                                         option_flags,
                                                         weight_min,
                                                         weight_max)
@@ -1002,10 +1057,11 @@ cdef int _histogramnd_float_float_float(float[:] sample,
                                         float[:] weights,
                                         int n_dims,
                                         int n_elem,
-                                        float[:] bins_rng,
+                                        double[:] bins_rng,
                                         int[:] n_bins,
                                         numpy.uint32_t[:] histo,
                                         float[:] cumul,
+                                        double[:] bin_edges,
                                         int option_flags,
                                         float weight_min,
                                         float weight_max) nogil:
@@ -1018,6 +1074,7 @@ cdef int _histogramnd_float_float_float(float[:] sample,
                                                        &n_bins[0],
                                                        &histo[0],
                                                        &cumul[0],
+                                                       &bin_edges[0],
                                                        option_flags,
                                                        weight_min,
                                                        weight_max)
@@ -1031,10 +1088,11 @@ cdef int _histogramnd_float_int32_t_float(float[:] sample,
                                           numpy.int32_t[:] weights,
                                           int n_dims,
                                           int n_elem,
-                                          float[:] bins_rng,
+                                          double[:] bins_rng,
                                           int[:] n_bins,
                                           numpy.uint32_t[:] histo,
                                           float[:] cumul,
+                                          double[:] bin_edges,
                                           int option_flags,
                                           numpy.int32_t weight_min,
                                           numpy.int32_t weight_max) nogil:
@@ -1047,6 +1105,7 @@ cdef int _histogramnd_float_int32_t_float(float[:] sample,
                                                          &n_bins[0],
                                                          &histo[0],
                                                          &cumul[0],
+                                                         &bin_edges[0],
                                                          option_flags,
                                                          weight_min,
                                                          weight_max)
@@ -1065,10 +1124,11 @@ cdef int _histogramnd_int32_t_double_float(numpy.int32_t[:] sample,
                                            double[:] weights,
                                            int n_dims,
                                            int n_elem,
-                                           numpy.int32_t[:] bins_rng,
+                                           double[:] bins_rng,
                                            int[:] n_bins,
                                            numpy.uint32_t[:] histo,
                                            float[:] cumul,
+                                           double[:] bin_edges,
                                            int option_flags,
                                            double weight_min,
                                            double weight_max) nogil:
@@ -1081,6 +1141,7 @@ cdef int _histogramnd_int32_t_double_float(numpy.int32_t[:] sample,
                                                           &n_bins[0],
                                                           &histo[0],
                                                           &cumul[0],
+                                                          &bin_edges[0],
                                                           option_flags,
                                                           weight_min,
                                                           weight_max)
@@ -1094,10 +1155,11 @@ cdef int _histogramnd_int32_t_float_float(numpy.int32_t[:] sample,
                                           float[:] weights,
                                           int n_dims,
                                           int n_elem,
-                                          numpy.int32_t[:] bins_rng,
+                                          double[:] bins_rng,
                                           int[:] n_bins,
                                           numpy.uint32_t[:] histo,
                                           float[:] cumul,
+                                          double[:] bin_edges,
                                           int option_flags,
                                           float weight_min,
                                           float weight_max) nogil:
@@ -1110,6 +1172,7 @@ cdef int _histogramnd_int32_t_float_float(numpy.int32_t[:] sample,
                                                          &n_bins[0],
                                                          &histo[0],
                                                          &cumul[0],
+                                                         &bin_edges[0],
                                                          option_flags,
                                                          weight_min,
                                                          weight_max)
@@ -1123,10 +1186,11 @@ cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,
                                             numpy.int32_t[:] weights,
                                             int n_dims,
                                             int n_elem,
-                                            numpy.int32_t[:] bins_rng,
+                                            double[:] bins_rng,
                                             int[:] n_bins,
                                             numpy.uint32_t[:] histo,
                                             float[:] cumul,
+                                            double[:] bin_edges,
                                             int option_flags,
                                             numpy.int32_t weight_min,
                                             numpy.int32_t weight_max) nogil:
@@ -1139,6 +1203,7 @@ cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,
                                                            &n_bins[0],
                                                            &histo[0],
                                                            &cumul[0],
+                                                           &bin_edges[0],
                                                            option_flags,
                                                            weight_min,
                                                            weight_max)
