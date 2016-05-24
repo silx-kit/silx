@@ -59,10 +59,10 @@ for example change its text::
 
     >>> the_button.setText("Spam spam")
 
-An IPython interactive console is a powerful tool that allows you to work
+An IPython interactive console is a powerful tool that enables you to work
 with data and plot it.
 See `this tutorial <https://plot.ly/python/ipython-notebook-tutorial/>`_
-for more information on the rich features of IPython.
+for more information on some of the rich features of IPython.
 """
 __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
