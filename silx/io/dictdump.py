@@ -299,6 +299,6 @@ def load(ffile, fmat="json"):
             raise h5py_import_error
         return h5todict(fname)
     if fmat.lower() in ["ini", "cfg"]:
-        return ConfigDict().read(fname)
+        return ConfigDict(filelist=[fname])
     raise IOError("Unknown format " + fmat)
 
