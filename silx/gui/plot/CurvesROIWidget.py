@@ -40,7 +40,7 @@ import numpy
 
 from silx.io.configdict import ConfigDict
 from silx.io import dictdump
-from silx.gui import qt
+from .. import icons, qt
 
 
 _logger = logging.getLogger(__name__)
@@ -506,6 +506,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         self._middleROIMarkerFlag = False
 
         self._isConnected = False  # True if connected to plot signals
+        self._isInit = False
 
         self.roiWidget = CurvesROIWidget(self, name)
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -513,9 +514,14 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
         self.visibilityChanged.connect(self._visibilityChangedHandler)
 
-        self.roiWidget.sigROIWidgetSignal.connect(self._roiSignal)
-        # initialize with the ICR
-        self._roiSignal({'event': "AddROI"})
+    def toggleViewAction(self):
+        """Returns a checkable action that shows or closes this widget.
+
+        See :class:`QMainWindow`.
+        """
+        action = super(CurvesROIDockWidget, self).toggleViewAction()
+        action.setIcon(icons.getQIcon('plot-roi'))
+        return action
 
     def _visibilityChangedHandler(self, visible):
         """Handle widget's visibilty updates.
@@ -523,6 +529,13 @@ class CurvesROIDockWidget(qt.QDockWidget):
         It is connected to plot signals only when visible.
         """
         if visible:
+            if not self._isInit:
+                # Deferred ROI widget init finalization
+                self._isInit = True
+                self.roiWidget.sigROIWidgetSignal.connect(self._roiSignal)
+                # initialize with the ICR
+                self._roiSignal({'event': "AddROI"})
+
             if not self._isConnected:
                 self.plot.sigPlotSignal.connect(self._handleROIMarkerEvent)
                 self.plot.sigActiveCurveChanged.connect(

@@ -91,11 +91,12 @@ class PlotWindow(PlotWidget):
     :param bool control: True to display an Options button with a sub-menu
                          to show legends, toggle crosshair and pan with arrows.
                          (Default: False)
-    :param position: True to display widget with (x, y) mouse position
-                     (Default: False).
-                     It also supports a list of (name, function(x, y)->value)
-                     to customize the displayed values.
-                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
+    :param bool position: True to display widget with (x, y) mouse position
+                          (Default: False).
+                          It also supports a list of (name, funct(x, y)->value)
+                          to customize the displayed values.
+                          See :class:`silx.gui.plot.PlotTools.PositionInfo`.
+    :param bool roi: Toggle visibilty of ROI action.
     :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
@@ -104,10 +105,12 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 control=False, position=False,
+                 control=False, position=False, roi=True,
                  autoreplot=True):
         super(PlotWindow, self).__init__(
             parent=parent, backend=backend, autoreplot=autoreplot)
+
+        self._dockWidgets = []
 
         # Init actions
         self.group = qt.QActionGroup(self)
@@ -150,6 +153,9 @@ class PlotWindow(PlotWidget):
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
 
+        self.group.addAction(self.roiAction)
+        self.roiAction.setVisible(roi)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -189,8 +195,6 @@ class PlotWindow(PlotWidget):
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
 
-        self._dockWidgets = []
-
     @property
     def legendsDockWidget(self):
         """DockWidget with Legend panel (lazy-loaded)."""
@@ -200,15 +204,20 @@ class PlotWindow(PlotWidget):
             self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
 
-    #@property TODO property not working...
+    @property
     def curvesROIDockWidget(self):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
         if not hasattr(self, '_curvesROIDockWidget'):
-            self._curvesROIDockWidget = CurvesROIDockWidget(self, name='ROI')
+            self._curvesROIDockWidget = CurvesROIDockWidget(self,
+                name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
-            self.addDockWidget(qt.Qt.BottomDockWidgetArea,
-                               self._curvesROIDockWidget)
+            self._introduceNewDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget
+
+    @property
+    def roiAction(self):
+        """QAction toggling curve ROI dock widget"""
+        return self.curvesROIDockWidget.toggleViewAction()
 
     @property
     def consoleDockWidget(self):
@@ -268,11 +277,18 @@ class PlotWindow(PlotWidget):
         """Display Options button sub-menu."""
         controlMenu = qt.QMenu()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.curvesROIDockWidget().toggleViewAction())
+        controlMenu.addAction(self.curvesROIDockWidget.toggleViewAction())
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
+        else:
+            disabledConsoleAction = controlMenu.addAction('Console')
+            disabledConsoleAction.setCheckable(True)
+            disabledConsoleAction.setEnabled(False)
+
+        controlMenu.addSeparator()
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.exec_(self.cursor().pos())
 
     def _introduceNewDockWidget(self, dock_widget):
         """Maintain a list of dock widgets, in the order in which they are
