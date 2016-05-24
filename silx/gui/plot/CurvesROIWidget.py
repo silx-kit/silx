@@ -39,6 +39,7 @@ import sys
 import numpy
 
 from silx.io.configdict import ConfigDict
+from silx.io import dictdump
 from silx.gui import qt
 
 
@@ -85,7 +86,7 @@ class CurvesROIWidget(qt.QWidget):
         self.fillFromROIDict = self.roiTable.fillFromROIDict
         self.getROIListAndDict = self.roiTable.getROIListAndDict
         layout.addWidget(self.roiTable)
-        self.roiDir = None
+        self._roiFileDir = qt.QDir.home().absolutePath()
         #################
 
         hbox = qt.QWidget(self)
@@ -128,7 +129,19 @@ class CurvesROIWidget(qt.QWidget):
         self.saveButton.clicked.connect(self._save)
         self.roiTable.sigROITableSignal.connect(self._forward)
 
+    @property
+    def roiFileDir(self):
+        """The directory from which to load/save ROI from/to files."""
+        if not os.path.isdir(self._roiFileDir):
+            self._roiFileDir = qt.QDir.home().absolutePath()
+        return self._roiFileDir
+
+    @roiFileDir.setter
+    def roiFileDir(self, roiFileDir):
+        self._roiFileDir = str(roiFileDir)
+
     def _add(self):
+        """Add button clicked handler"""
         ddict = {}
         ddict['event'] = "AddROI"
         roilist, roidict = self.roiTable.getROIListAndDict()
@@ -137,6 +150,7 @@ class CurvesROIWidget(qt.QWidget):
         self.sigROIWidgetSignal.emit(ddict)
 
     def _del(self):
+        """Delete button clicked handler"""
         row = self.roiTable.currentRow()
         if row >= 0:
             index = self.roiTable.labels.index('Type')
@@ -167,9 +181,11 @@ class CurvesROIWidget(qt.QWidget):
             self.sigROIWidgetSignal.emit(ddict)
 
     def _forward(self, ddict):
+        """Broadcast events from ROITable signal"""
         self.sigROIWidgetSignal.emit(ddict)
 
     def _reset(self):
+        """Reset button clicked handler"""
         ddict = {}
         ddict['event'] = "ResetROI"
         roilist0, roidict0 = self.roiTable.getROIListAndDict()
@@ -190,24 +206,21 @@ class CurvesROIWidget(qt.QWidget):
         self.sigROIWidgetSignal.emit(ddict)
 
     def _load(self):
-        if self.roiDir is None:
-            self.roiDir = qt.QDir.home()
-        elif not os.path.isdir(self.roiDir):
-            self.roiDir = qt.QDir.home()
-        outfile = qt.QFileDialog(self)
-        if hasattr(outfile, "setFilters"):
-            outfile.setFilter('ROI File  *.ini')
-        else:
-            outfile.setNameFilters(['ROI File  *.ini', 'All *'])
-        outfile.setFileMode(outfile.ExistingFile)
-        outfile.setDirectory(self.roiDir)
-        if not outfile.exec_():
-            outfile.close()
+        """Load button clicked handler"""
+        dialog = qt.QFileDialog(self)
+        dialog.setNameFilters(
+             ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
+        dialog.setFileMode(qt.QFileDialog.ExistingFile)
+        dialog.setDirectory(self.roiFileDir)
+        if not dialog.exec_():
+            dialog.close()
             return
+
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
-        outputFile = outfile.selectedFiles()[0]
-        outfile.close()
-        self.roiDir = os.path.dirname(outputFile)
+        outputFile = dialog.selectedFiles()[0]
+        dialog.close()
+
+        self.roiFileDir = os.path.dirname(outputFile)
         self.load(outputFile)
 
     def load(self, filename):
@@ -215,45 +228,31 @@ class CurvesROIWidget(qt.QWidget):
 
         :param str filename: The file from which to load ROI
         """
-        d = ConfigDict()
-        d.read(filename)
-        current = ""
+        rois = dictdump.load(filename)
+        currentROI = None
         if self.roiTable.rowCount():
-            row = self.roiTable.currentRow()
-            item = self.roiTable.item(row, 0)
+            item = self.roiTable.item(self.roiTable.currentRow(), 0)
             if item is not None:
-                current = str(item.text())
-        self.fillFromROIDict(roilist=d['ROI']['roilist'],
-                             roidict=d['ROI']['roidict'])
-        if current in d['ROI']['roidict'].keys():
-            if current in d['ROI']['roilist']:
-                row = d['ROI']['roilist'].index(current, 0)
-                self.roiTable.setCurrentCell(row, 0)
-                self.roiTable._cellChangedSlot(row, 2)
-                return
-        self.roiTable.setCurrentCell(0, 0)
-        self.roiTable._cellChangedSlot(0, 2)
+                currentROI = str(item.text())
+
+        self.fillFromROIDict(roilist=rois['ROI']['roilist'],
+                             roidict=rois['ROI']['roidict'],
+                             currentroi=currentROI)
 
     def _save(self):
-        if self.roiDir is None:
-            self.roiDir = qt.QDir.home()
-        elif not os.path.isdir(self.roiDir):
-            self.roiDir = qt.QDir.home()
-        outfile = qt.QFileDialog(self)
-        if hasattr(outfile, "setFilters"):
-            outfile.setFilter('ROI File  *.ini')
-        else:
-            outfile.setNameFilters(['ROI File  *.ini', 'All *'])
-        outfile.setFileMode(outfile.AnyFile)
-        outfile.setAcceptMode(qt.QFileDialog.AcceptSave)
-        outfile.setDirectory(self.roiDir)
-        if not outfile.exec_():
-            outfile.close()
+        """Save button clicked handler"""
+        dialog = qt.QFileDialog(self)
+        dialog.setNameFilters(['INI File  *.ini', 'JSON File *.json'])
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
+        dialog.setDirectory(self.roiFileDir)
+        if not dialog.exec_():
+            dialog.close()
             return
         # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
-        outputFile = outfile.selectedFiles()[0]
-        extension = ".ini"
-        outfile.close()
+        outputFile = dialog.selectedFiles()[0]
+        extension = '.' + dialog.selectedNameFilter().split('.')[-1]
+        dialog.close()
         if len(outputFile) < len(extension[:]):
             outputFile += extension[:]
         elif outputFile[-4:] != extension[:]:
@@ -267,7 +266,7 @@ class CurvesROIWidget(qt.QWidget):
                 msg.setText("Input Output Error: %s" % (sys.exc_info()[1]))
                 msg.exec_()
                 return
-        self.roiDir = os.path.dirname(outputFile)
+        self.roiFileDir = os.path.dirname(outputFile)
         self.save(outputFile)
 
     def save(self, filename):
@@ -275,12 +274,9 @@ class CurvesROIWidget(qt.QWidget):
 
         :param str filename: The file to which to save the ROIs
         """
-        d = ConfigDict()
-        d['ROI'] = {}
-        d['ROI'] = {'roilist': self.roiTable.roilist * 1,
-                    'roidict': {}}
-        d['ROI']['roidict'].update(self.roiTable.roidict)
-        d.write(filename)
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        datadict = {'ROI': {'roilist': roilist, 'roidict': roidict}}
+        dictdump.dump(datadict, filename)
 
     def setHeader(self, text='ROIs'):
         """Set the header text of this widget"""
@@ -324,6 +320,12 @@ class ROITable(qt.QTableWidget):
         verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
+        """Set the ROIs
+
+        :param list roilist: List of ROI names (keys of roidict)
+        :param dict roidict: Dict of ROI information
+        :param currentroi: Name of the selected ROI or None (no selection)
+        """
         if roidict is None:
             roidict = {}
 
@@ -396,6 +398,11 @@ class ROITable(qt.QTableWidget):
         self.building = False
 
     def getROIListAndDict(self):
+        """Return the currently defined ROIs
+
+        :return: ROIs information
+        :rtype: ordered dict as a tuple of (list of ROI names, dict of info)
+        """
         return self.roilist, self.roidict
 
     def _cellClickedSlot(self, *var, **kw):
