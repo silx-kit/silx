@@ -83,7 +83,7 @@ class TestCaseQt(unittest.TestCase):
     WARNING: The QApplication is shared by all tests, which might have side
     effects.
 
-    After each test, this class is checking for wigdets remaining alive.
+    After each test, this class is checking for widgets remaining alive.
     To allow some widgets to remain alive at the end of a test, set the
     allowedLeakingWidgets attribute to the number of widgets that can remain
     alive at the end of the test.
