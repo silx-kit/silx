@@ -36,10 +36,37 @@ This module has a dependency on
 *`qtconsole <https://pypi.python.org/pypi/qtconsole>`_* (or *ipython.qt* for
 older versions of *IPython*). An ``ImportError`` will be raised if it is
 imported while the dependencies are not satisfied.
+
+Basic usage example::
+
+    from silx.gui import qt
+    from silx.gui.console import IPythonWidget
+
+    app = qt.QApplication([])
+
+    hello_button = qt.QPushButton("Hello World!", None)
+    hello_button.show()
+
+    console = IPythonWidget()
+    console.show()
+    console.pushVariables({"the_button": hello_button})
+
+    app.exec_()
+
+This program will display a console widget and a push button in two separate
+windows. You will be able to interact with the button from the console,
+for example change its text::
+
+    >>> the_button.setText("Spam spam")
+
+An IPython interactive console is a powerful tool that allows you to work
+with data and plot it.
+See `this tutorial <https://plot.ly/python/ipython-notebook-tutorial/>`_
+for more information on the rich features of IPython.
 """
 __authors__ = ["Tim Rae", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/05/2016"
+__date__ = "24/05/2016"
 
 import logging
 
@@ -52,6 +79,17 @@ try:
 except ImportError as e:
     _logger.error("Module " + __name__ + " requires IPython")
     raise e
+
+# This widget cannot be used inside an interactive IPython shell.
+# It would raise MultipleInstanceError("Multiple incompatible subclass
+# instances of InProcessInteractiveShell are being created").
+try:
+    __IPYTHON__
+except NameError:
+    pass  # Not in IPython
+else:
+    msg = "Module " + __name__ + " cannot be used within an IPython shell"
+    raise ImportError(msg)
 
 # qtconsole is a separate module in recent versions of IPython/Jupyter
 # http://blog.jupyter.org/2015/04/15/the-big-split/
@@ -70,7 +108,7 @@ if qtconsole is not None:
         try:
             from qtconsole.rich_ipython_widget import RichIPythonWidget
         except ImportError as e:
-            _logger.error("Module " + __name__ + " requires qtconsole")
+            _logger.error("Cannot find RichIPythonWidget")
             raise e
 
     from qtconsole.inprocess import QtInProcessKernelManager
@@ -87,8 +125,6 @@ else:
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
     from IPython.qt.inprocess import QtInProcessKernelManager
 
-from IPython.lib import guisupport
-
 
 class IPythonWidget(RichIPythonWidget):
     """Live IPython console widget.
@@ -104,14 +140,12 @@ class IPythonWidget(RichIPythonWidget):
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()
         kernel_manager.start_kernel()
-        #kernel_manager.kernel.gui = 'qt4'   # TODO
         self.kernel_client = kernel_client = self._kernel_manager.client()
         kernel_client.start_channels()
 
         def stop():
             kernel_client.stop_channels()
             kernel_manager.shutdown_kernel()
-            guisupport.get_app_qt4().exit()     # TODO: qt5?
         self.exit_requested.connect(stop)
 
     def sizeHint(self):
@@ -122,9 +156,8 @@ class IPythonWidget(RichIPythonWidget):
         """ Given a dictionary containing name / value pairs, push those
         variables to the IPython console widget.
 
-        :param variable_dict: Dictionary of variables
-        (``{variable_name: object, …}``) to push to the console's
-        interactive namespace.
+        :param variable_dict: Dictionary of variables to be pushed to the
+            console's interactive namespace (```{variable_name: object, …}```)
         """
         self.kernel_manager.kernel.shell.push(variable_dict)
 

@@ -6,4 +6,4 @@
 
 .. automodule:: silx.gui.console
    :members:
-   :exclude-members: main
+   :exclude-members: main, sizeHint
