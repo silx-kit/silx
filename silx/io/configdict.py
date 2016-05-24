@@ -86,8 +86,9 @@ Classes:
 
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/04/2016"
+__date__ = "24/05/2016"
 
+from collections import OrderedDict
 import numpy
 import re
 import sys
@@ -108,7 +109,7 @@ def _boolean(sstr):
 
     :param sstr: String representation of a boolean
     :return: ``True`` or ``False``
-    :raise: ``ValueError`` if ``sstr`` is not a valid string representation 
+    :raise: ``ValueError`` if ``sstr`` is not a valid string representation
         of a boolean
     """
     if sstr.lower() in ['1', 'yes', 'true', 'on']:
@@ -278,7 +279,8 @@ class OptionStr(str):
 
         Conversion to following types is attempted, in this order:
         `list`, `numpy array`, `int`, `float`, `boolean`.
-        If all of these conversions fail, the string is returned unchanged.
+        If all of these conversions fail, the string is returned after
+        removing escape characters.
         """
         try:
             return _parse_container(self)
@@ -286,8 +288,8 @@ class OptionStr(str):
             return _parse_simple_types(self)
 
 
-class ConfigDict(dict):
-    """Store configuration parameters as a dictionary.
+class ConfigDict(OrderedDict):
+    """Store configuration parameters as an ordered dictionary.
 
     Parameters can be grouped into sections, by storing them as
     sub-dictionaries.
@@ -305,14 +307,20 @@ class ConfigDict(dict):
         - value types are guessed when the file is read back
         - to prevent strings from being interpreted as lists, commas are
           escaped with a backslash (``\,``)
-        - strings are prefixed with a leading backslash (``\,``) to prevent
+        - strings may be prefixed with a leading backslash (``\``) to prevent
           conversion to numeric or boolean values
+
+    :param defaultdict: Default dictionary used to initialize the
+        :class:`ConfigDict` instance and reinitialize it in case
+        :meth:`reset` is called
+    :param initdict: Additional initialisation dictionary, added into dict
+        after initialisation with ``defaultdict``
+    :param filelist: List of configuration files to be read and added into
+        dict after ``defaultdict`` and ``initdict``
     """
     def __init__(self, defaultdict=None, initdict=None, filelist=None):
-        if defaultdict is None:
-            defaultdict = {}
-        dict.__init__(self, defaultdict)
-        self.default = defaultdict
+        self.default = defaultdict if defaultdict is not None else OrderedDict()
+        OrderedDict.__init__(self, self.default)
         self.filelist = []
 
         if initdict is not None:
@@ -329,11 +337,15 @@ class ConfigDict(dict):
     def clear(self):
         """ Clear dictionnary
         """
-        dict.clear(self)
+        OrderedDict.clear(self)
         self.filelist = []
 
     def __tolist(self, mylist):
-        """ If ``mylist` is not a list, encapsulate it in a list.
+        """ If ``mylist` is not a list, encapsulate it in a list and return
+        it.
+
+        :param mylist: List to encapsulate
+        :returns: ``mylist`` if it is a list, ``[mylist]`` if it isn't
         """
         if mylist is None:
             return None
@@ -351,16 +363,26 @@ class ConfigDict(dict):
         return self.filelist[len(self.filelist) - 1]
 
     def __convert(self, option):
-        """Used as configparser.ConfigParser().optionxform to transform
+        """Used as ``configparser.ConfigParser().optionxform`` to transform
         option names on every read, get, or set operation.
 
-        This overrides the default ConfigParser behavior to preserve case
-        instead of converting names to lowercase."""
+        This overrides the default :mod:`ConfigParser` behavior, in order to
+        preserve case rather converting names to lowercase.
+
+        :param option: Option name (any string)
+        :return: ``option`` unchanged
+        """
         return option
 
     def read(self, filelist, sections=None):
         """
-        read the input filename into the internal dictionary
+        Read all specified configuration files into the internal dictionary.
+
+        :param filelist: List of names of files to be added into the internal
+            dictionary
+        :param sections: If not ``None``, add only the content of the
+            specified sections
+        :type sections: list
         """
         filelist = self.__tolist(filelist)
         sections = self.__tolist(sections)
@@ -373,6 +395,13 @@ class ConfigDict(dict):
             self.filelist.append([ffile, sections])
 
     def __read(self, cfg, sections=None):
+        """Read a :class:`configparser.ConfigParser` instance into the
+        internal dictionary.
+
+        :param cfg: Instance of :class:`configparser.ConfigParser`
+        :param sections: If not ``None``, add only the content of the
+            specified sections into the internal dictionary
+        """
         cfgsect = cfg.sections()
 
         if sections is None:
@@ -384,18 +413,21 @@ class ConfigDict(dict):
             ddict = self
             for subsectw in sect.split('.'):
                 subsect = subsectw.replace("_|_", ".")
-                if not (subsect in ddict):
-                    ddict[subsect] = {}
+                if not subsect in ddict:
+                    ddict[subsect] = OrderedDict()
                 ddict = ddict[subsect]
             for opt in cfg.options(sect):
                 ddict[opt] = self.__parse_data(cfg.get(sect, opt))
 
     def __parse_data(self, data):
-        """Parse an option retuned by ``ConfigParser``.
+        """Parse an option returned by ``ConfigParser``.
+
+        :param data: Option string to be parsed
 
         The original option is a string, we try to parse it as one of
         following types: `numpx array`, `list`, `float`, `int`, `boolean`,
-        `string`"""
+        `string`
+        """
         return OptionStr(data).tobestguess()
 
     def tostring(self):
@@ -425,12 +457,15 @@ class ConfigDict(dict):
 
     def _escape_str(self, sstr):
         """Escape strings and special characters in strings with a ``\``
-        character.
+        character to ensure they are read back as strings and not parsed.
+
+        :param sstr: String to be escaped
+        :returns sstr: String with escape characters (if needed)
 
         This way, we ensure these strings cannot be interpreted as a numeric
         or boolean types and commas in strings are not interpreted as list
         items separators. We also escape ``%`` when it is not followed by a
-        ``(``, as required by ``configparser`` because ``%`` is used in
+        ``(``, as required by :mod:`configparser` because ``%`` is used in
         the interpolation syntax
         (https://docs.python.org/3/library/configparser.html#interpolation-of-values).
         """
@@ -441,8 +476,7 @@ class ConfigDict(dict):
         sstr = sstr.replace(",", "\,")
 
         if sys.version > '3.0':
-            # Escape % except in "%%" and "%("
-            # argparse will handle converting %% back to %
+            # Escape % characters except in "%%" and "%("
             sstr = re.sub(r'%([^%\(])', r'%%\1', sstr)
 
         return sstr
@@ -456,56 +490,45 @@ class ConfigDict(dict):
             dictionaries recursively.
         """
         dictkey = []
-        listkey = []
-        valkey = []
-        strkey = []
 
         for key in ddict.keys():
-            if isinstance(ddict[key], list):
-                listkey.append(key)
-            elif hasattr(ddict[key], 'keys'):
+            if hasattr(ddict[key], 'keys'):
+                # subsections are added at the end of a section
                 dictkey.append(key)
-            elif isinstance(ddict[key], string_types):
-                strkey.append(key)
-            else:
-                valkey.append(key)
-
-        for key in valkey:
-            if isinstance(ddict[key], numpy.ndarray):
-                fp.write('%s =' % key + ' [ ' +
-                         ' '.join([str(val) for val in ddict[key]]) +
-                         ' ]\n')
-            else:
-                fp.write('%s = %s\n' % (key, ddict[key]))
-
-        for key in strkey:
-            fp.write('%s = %s\n' % (key, self._escape_str(ddict[key])))
-
-        for key in listkey:
-            fp.write('%s = ' % key)
-            llist = []
-            sep = ', '
-            for item in ddict[key]:
-                if isinstance(item, list):
-                    if len(item) == 1:
-                        if isinstance(item[0], string_types):
-                            self._escape_str(item[0])
-                            llist.append('%s,' % self._escape_str(item[0]))
+            elif isinstance(ddict[key], list):
+                fp.write('%s = ' % key)
+                llist = []
+                sep = ', '
+                for item in ddict[key]:
+                    if isinstance(item, list):
+                        if len(item) == 1:
+                            if isinstance(item[0], string_types):
+                                self._escape_str(item[0])
+                                llist.append('%s,' % self._escape_str(item[0]))
+                            else:
+                                llist.append('%s,' % item[0])
                         else:
-                            llist.append('%s,' % item[0])
+                            item2 = []
+                            for val in item:
+                                if isinstance(val, string_types):
+                                    val = self._escape_str(val)
+                                item2.append(val)
+                            llist.append(', '.join([str(val) for val in item2]))
+                        sep = '\n\t'
+                    elif isinstance(item, string_types):
+                        llist.append(self._escape_str(item))
                     else:
-                        item2 = []
-                        for val in item:
-                            if isinstance(val, string_types):
-                                val = self._escape_str(val)
-                            item2.append(val)
-                        llist.append(', '.join([str(val) for val in item2]))
-                    sep = '\n\t'
-                elif isinstance(item, string_types):
-                    llist.append(self._escape_str(item))
+                        llist.append(str(item))
+                fp.write('%s\n' % (sep.join(llist)))
+            elif isinstance(ddict[key], string_types):
+                fp.write('%s = %s\n' % (key, self._escape_str(ddict[key])))
+            else:
+                if isinstance(ddict[key], numpy.ndarray):
+                    fp.write('%s =' % key + ' [ ' +
+                             ' '.join([str(val) for val in ddict[key]]) +
+                             ' ]\n')
                 else:
-                    llist.append(str(item))
-            fp.write('%s\n' % (sep.join(llist)))
+                    fp.write('%s = %s\n' % (key, ddict[key]))
 
         for key in dictkey:
             if secthead is None:
