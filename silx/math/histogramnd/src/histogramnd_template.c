@@ -37,27 +37,28 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                          HISTO_WEIGHT_T *i_weights,
                          int i_n_dim,
                          int i_n_elem,
-                         HISTO_SAMPLE_T *i_bin_ranges,
-                         int *i_n_bin,
+                         double *i_bin_ranges,
+                         int *i_n_bins,
                          uint32_t *o_histo,
                          HISTO_CUMUL_T *o_cumul,
+                         double *o_bin_edges,
                          int i_opt_flags,
                          HISTO_WEIGHT_T i_weight_min,
                          HISTO_WEIGHT_T i_weight_max)
 {
     /* some counters */
-    int i = 0;
+    int i = 0, j = 0;
     long elem_idx = 0;
     
     HISTO_WEIGHT_T * weight_ptr = 0;
     HISTO_SAMPLE_T elem_coord = 0.;
     
     /* computed bin index (i_sample -> grid) */
-    long bin_idx;
+    long bin_idx = 0;
     
-    HISTO_SAMPLE_T * g_min = 0;
-    HISTO_SAMPLE_T * g_max = 0;
-    HISTO_SAMPLE_T * range = 0;
+    double * g_min = 0;
+    double * g_max = 0;
+    double * range = 0;
     
     /* ================================
      * Parsing options, if any.
@@ -89,10 +90,10 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
      * (mostly for the sake of clarity)
      * (maybe faster access too?)
      */
-    g_min = (HISTO_SAMPLE_T *) malloc(i_n_dim *sizeof(HISTO_SAMPLE_T));
-    g_max = (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
+    g_min = (double *) malloc(i_n_dim *sizeof(double));
+    g_max = (double *) malloc(i_n_dim * sizeof(double));
     /* range used to convert from i_coords to bin indices in the grid */
-    range = (HISTO_SAMPLE_T *) malloc(i_n_dim * sizeof(HISTO_SAMPLE_T));
+    range = (double *) malloc(i_n_dim * sizeof(double));
             
     if(!g_min || !g_max || !range)
     {
@@ -102,11 +103,24 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
         return HISTO_ERR_ALLOC;
     }
     
+    j = 0;
     for(i=0; i<i_n_dim; i++)
     {
         g_min[i] = i_bin_ranges[i*2];
         g_max[i] = i_bin_ranges[i*2+1];
         range[i] = g_max[i]-g_min[i];
+        
+        for(bin_idx=0; bin_idx<i_n_bins[i]; j++, bin_idx++)
+        {
+            o_bin_edges[j] = g_min[i] +
+                            bin_idx * (range[i] / i_n_bins[i]);
+                //bin_idx = bin_idx * i_n_bins[i] +
+            //(long)(
+                    //((elem_coord-g_min[i]) * i_n_bins[i]) /
+                    //range[i]
+                  //);
+        }
+        o_bin_edges[j++] = g_max[i];
     }
     
     weight_ptr = i_weights;
@@ -181,7 +195,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                  * bin_idx = (long)floor(
                  *                   (bin_idx +
                  *                   (elem_coord-g_min[i])/range[i]) *
-                 *               i_n_bin[i]
+                 *               i_n_bins[i]
                  *           );
                  */
                 
@@ -190,9 +204,9 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                  * the built-in floor().
                  * Also the value is supposed to be always positive.
                  */
-                bin_idx = bin_idx * i_n_bin[i] +
+                bin_idx = bin_idx * i_n_bins[i] +
                         (long)(
-                                ((elem_coord-g_min[i]) * i_n_bin[i]) /
+                                ((elem_coord-g_min[i]) * i_n_bins[i]) /
                                 range[i]
                               );
             }
@@ -204,7 +218,7 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
                  */
                 if(last_bin_closed && elem_coord==g_max[i])
                 {
-                    bin_idx = (bin_idx + 1) * i_n_bin[i] - 1;
+                    bin_idx = (bin_idx + 1) * i_n_bins[i] - 1;
                 }
                 else
                 {
