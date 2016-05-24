@@ -7,3 +7,7 @@
 .. automodule:: silx.math.histogram
     :members:
     :undoc-members:
+
+.. autoclass:: silx.math.HistogramndLut
+    :members:
+    :undoc-members:
