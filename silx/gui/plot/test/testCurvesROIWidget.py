@@ -90,19 +90,6 @@ class TestCurvesROIWidget(TestCaseQt):
         """Empty plot, display ROI widget"""
         pass
 
-    def _acceptFileDialog(self):
-        """Enter self.tmpFile in first available dialog and accept.
-        
-        Meant to run with QFileDialog.
-        """
-        dialog = self.qapp.activeWindow()
-        if hasattr(dialog, 'accept'):
-            lineEdit = self.qapp.focusWidget()
-            self.keyClicks(lineEdit, self.tmpFile)
-            dialog.accept()
-        else:  # No dialog yet, restart timer
-            qt.QTimer.singleShot(100, self._acceptFileDialog)
-
     def testWithCurves(self):
         """Plot with curves: test all ROI widget buttons"""
         for offset in range(2):
@@ -124,8 +111,7 @@ class TestCurvesROIWidget(TestCaseQt):
             self.tmpFile = os.path.join(tmpDir, 'test.ini')
 
             # Save ROIs
-            self._acceptFileDialog()
-            self.mouseClick(self.widget.roiWidget.saveButton, qt.Qt.LeftButton)
+            self.widget.roiWidget.save(self.tmpFile)
             self.assertTrue(os.path.isfile(self.tmpFile))
 
             # Reset ROIs
@@ -133,8 +119,7 @@ class TestCurvesROIWidget(TestCaseQt):
                             qt.Qt.LeftButton)
 
             # Load ROIs
-            self._acceptFileDialog()
-            self.mouseClick(self.widget.roiWidget.loadButton, qt.Qt.LeftButton)
+            self.widget.roiWidget.load(self.tmpFile)
 
             del self.tmpFile
 
