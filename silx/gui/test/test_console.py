@@ -71,7 +71,6 @@ class TestConsole(TestCaseQt):
         pass
 
     def testInteract(self):
-        self.qWaitForWindowExposed(self.console)
         self.mouseClick(self.console, qt.Qt.LeftButton)
         self.keyClicks(self.console, 'import silx')
         self.keyClick(self.console, qt.Qt.Key_Enter)

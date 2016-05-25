@@ -76,8 +76,14 @@ class TestCurvesROIWidget(TestCaseQt):
         self.qWaitForWindowExposed(self.widget)
 
     def tearDown(self):
+        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.plot.close()
         del self.plot
+
+        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        self.widget.close()
         del self.widget
+
         super(TestCurvesROIWidget, self).tearDown()
 
     def testEmptyPlot(self):

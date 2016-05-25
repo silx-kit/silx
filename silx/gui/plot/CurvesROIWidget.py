@@ -235,9 +235,9 @@ class CurvesROIWidget(qt.QWidget):
             if item is not None:
                 currentROI = str(item.text())
 
-        self.fillFromROIDict(roilist=rois['ROI']['roilist'],
-                             roidict=rois['ROI']['roidict'],
-                             currentroi=currentROI)
+        self.roiTable.fillFromROIDict(roilist=rois['ROI']['roilist'],
+                                      roidict=rois['ROI']['roidict'],
+                                      currentroi=currentROI)
 
     def _save(self):
         """Save button clicked handler"""
