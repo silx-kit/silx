@@ -61,7 +61,7 @@ class CurvesROIWidget(qt.QWidget):
 
     Type of events:
 
-    - AddROI, DelROI and ResetROI with keys: 'roilist', 'roidict'
+    - AddROI, DelROI, LoadROI and ResetROI with keys: 'roilist', 'roidict'
 
     - selectionChanged with keys: 'row', 'col' 'roi', 'key', 'colheader',
       'rowheader'
@@ -235,9 +235,18 @@ class CurvesROIWidget(qt.QWidget):
             if item is not None:
                 currentROI = str(item.text())
 
+        # Remove rawcounts and netcounts from ROIs
+        for roi in rois['ROI']['roidict'].values():
+            roi.pop('rawcounts', None)
+            roi.pop('netcounts', None)
+
         self.roiTable.fillFromROIDict(roilist=rois['ROI']['roilist'],
                                       roidict=rois['ROI']['roidict'],
                                       currentroi=currentROI)
+
+        roilist, roidict = self.roiTable.getROIListAndDict()
+        event = {'event': 'LoadROI', 'roilist': roilist, 'roidict': roidict}
+        self.sigROIWidgetSignal.emit(event)
 
     def _save(self):
         """Save button clicked handler"""
@@ -253,10 +262,10 @@ class CurvesROIWidget(qt.QWidget):
         outputFile = dialog.selectedFiles()[0]
         extension = '.' + dialog.selectedNameFilter().split('.')[-1]
         dialog.close()
-        if len(outputFile) < len(extension[:]):
-            outputFile += extension[:]
-        elif outputFile[-4:] != extension[:]:
-            outputFile += extension[:]
+
+        if not outputFile.endswith(extension):
+            outputFile += extension
+
         if os.path.exists(outputFile):
             try:
                 os.remove(outputFile)
@@ -677,9 +686,10 @@ class CurvesROIDockWidget(qt.QDockWidget):
                                            roidict=roiDict,
                                            currentroi=currentroi)
             self.currentROI = currentroi
-        elif ddict['event'] == 'ActiveROI':
-            print("ActiveROI event")
-            pass
+
+        elif ddict['event'] == 'LoadROI':
+            self.calculateROIs()
+
         elif ddict['event'] == 'selectionChanged':
             _logger.debug("Selection changed")
             self.roilist, self.roidict = self.roiWidget.getROIListAndDict()
@@ -722,6 +732,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 pass
             else:
                 self._emitCurrentROISignal()
+
         else:
             _logger.debug("Unknown or ignored event %s", ddict['event'])
 
