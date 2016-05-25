@@ -272,7 +272,7 @@ def dump(ddict, ffile, fmat=None):
     fmat = fmat.lower()
 
     if fmat == "json":
-        dicttojson(ddict, ffile)
+        dicttojson(ddict, ffile, indent=2)
     elif fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot dump to HDF5 format, missing h5py library")
