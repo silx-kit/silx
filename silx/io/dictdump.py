@@ -279,11 +279,14 @@ def dump(ddict, ffile, fmat="json"):
 def load(ffile, fmat="json"):
     """Load dictionary from a file
 
+    When loading from a JSON or INI file, an OrderedDict is returned to
+    preserve the values' insertion order.
+
     :param ffile: File name or file-like object with a ``read`` method
     :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
         Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
-    :return: Dictionary
+    :return: Dictionary (ordered dictionary for JSON and INI)
     """
     if not hasattr(ffile, "read"):
         f = open(ffile, "r")
