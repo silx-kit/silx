@@ -189,10 +189,12 @@ class _TestHistogramnd(unittest.TestCase):
                                    range=self.bins_rng)
 
         for i_edges, edges in enumerate(result_c[2]):
-            self.assertTrue(np.array_equal(edges,
-                                           result_np[1][i_edges]),
+            # allclose for now until I can try with the latest version (TBD)
+            # of numpy
+            self.assertTrue(np.allclose(edges,
+                                        result_np[1][i_edges]),
                             msg='{0}. Testing bin_edges for dim {1}.'
-                                ''.format('', i_edges+1))
+                                ''.format(self.state_msg, i_edges+1))
 
     def test_last_bin_closed(self):
         """
