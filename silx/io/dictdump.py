@@ -25,6 +25,7 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
+from collections import OrderedDict
 import json
 import logging
 import numpy
@@ -42,7 +43,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/05/2016"
+__date__ = "25/05/2016"
 
 logger = logging.getLogger(__name__)
 
@@ -292,7 +293,7 @@ def load(ffile, fmat="json"):
         fname = ffile.name
 
     if fmat.lower() == "json":
-        return json.load(f)
+        return json.load(f, object_pairs_hook=OrderedDict)
     if fmat.lower() in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot load from HDF5 format, missing h5py library")
