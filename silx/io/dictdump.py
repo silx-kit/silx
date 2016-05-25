@@ -25,6 +25,7 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
+from collections import OrderedDict
 import json
 import logging
 import numpy
@@ -43,7 +44,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/05/2016"
+__date__ = "25/05/2016"
 
 logger = logging.getLogger(__name__)
 
@@ -287,12 +288,15 @@ def dump(ddict, ffile, fmat=None):
 def load(ffile, fmat=None):
     """Load dictionary from a file
 
+    When loading from a JSON or INI file, an OrderedDict is returned to
+    preserve the values' insertion order.
+
     :param ffile: File name or file-like object with a ``read`` method
     :param fmat: Input format: ``json``, ``hdf5`` or ``ini``.
         When None (the default), it uses the filename extension as the format.
         Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
-    :return: Dictionary
+    :return: Dictionary (ordered dictionary for JSON and INI)
     :raises IOError: if file format is not supported
     """
     if not hasattr(ffile, "read"):
@@ -307,8 +311,8 @@ def load(ffile, fmat=None):
     fmat = fmat.lower()
 
     if fmat == "json":
-        return json.load(f)
-    elif fmat in ["hdf5", "h5"]:
+        return json.load(f, object_pairs_hook=OrderedDict)
+    if fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot load from HDF5 format, missing h5py library")
             raise h5py_import_error
