@@ -550,6 +550,8 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 self.plot.sigActiveCurveChanged.connect(
                     self._activeCurveChanged)
                 self._isConnected = True
+
+                self.calculateROIs()
         else:
             if self._isConnected:
                 self.plot.sigPlotSignal.disconnect(self._handleROIMarkerEvent)
@@ -742,10 +744,6 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
     def calculateROIs(self, roiList=None, roiDict=None):
         """Compute ROI information"""
-        if not hasattr(self, "roiWidget"):
-            return
-        if self.roiWidget is None:
-            return
         if roiList is None or roiDict is None:
             roiList, roiDict = self.roiWidget.getROIListAndDict()
 
@@ -790,13 +788,14 @@ class CurvesROIDockWidget(qt.QDockWidget):
                     netCounts = 0.0
                 roiDict[key]['rawcounts'] = rawCounts
                 roiDict[key]['netcounts'] = netCounts
-        if self.currentROI in roiList:
-            self.roiWidget.fillFromROIDict(roilist=roiList,
-                                           roidict=roiDict,
-                                           currentroi=self.currentROI)
-        else:
-            self.roiWidget.fillFromROIDict(roilist=roiList,
-                                           roidict=roiDict)
+            else:
+                roiDict[key].pop('rawcounts', None)
+                roiDict[key].pop('netcounts', None)
+
+        self.roiWidget.fillFromROIDict(
+            roilist=roiList,
+            roidict=roiDict,
+            currentroi=self.currentROI if self.currentROI in roiList else None)
 
     def _emitCurrentROISignal(self):
         ddict = {}
@@ -813,7 +812,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
         """Retrieve the limits based on the curves."""
         curves = self.plot.getAllCurves()
         if not curves:
-            return 0.0, 0.0, 100., 100.
+            return 1.0, 1.0, 100., 100.
 
         xmin, ymin = None, None
         xmax, ymax = None, None
