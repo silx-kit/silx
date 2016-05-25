@@ -22,9 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "19/05/2016"
 
 
 import logging
@@ -70,9 +70,11 @@ else:
 
     from ..plot.test import suite as test_plot_suite
     from .test_qt import suite as test_qt_suite
+    from .test_console import suite as test_console_suite
 
     def suite():
         test_suite = unittest.TestSuite()
         test_suite.addTest(test_qt_suite())
         test_suite.addTest(test_plot_suite())
+        test_suite.addTest(test_console_suite())
         return test_suite
