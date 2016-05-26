@@ -173,6 +173,9 @@ def report_rst(cov, package, version="0.0.0", base=""):
 
         cover = 100.0 * sum_hits / sum_lines if sum_lines else 0
 
+        if base:
+            name = os.path.relpath(fname, base)
+
         res.append('   "%s", "%s", "%s", "%.1f %%"' %
                    (name, sum_lines, sum_hits, cover))
         tot_sum_lines += sum_lines
@@ -323,6 +326,5 @@ if options.coverage:
     cov.save()
     with open("coverage.rst", "w") as fn:
         fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
-    print(cov.report())
 
 sys.exit(exit_status)
