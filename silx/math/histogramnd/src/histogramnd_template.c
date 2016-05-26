@@ -114,11 +114,6 @@ int TEMPLATE(histogramnd, HISTO_SAMPLE_T, HISTO_WEIGHT_T, HISTO_CUMUL_T)
         {
             o_bin_edges[j] = g_min[i] +
                             bin_idx * (range[i] / i_n_bins[i]);
-                //bin_idx = bin_idx * i_n_bins[i] +
-            //(long)(
-                    //((elem_coord-g_min[i]) * i_n_bins[i]) /
-                    //range[i]
-                  //);
         }
         o_bin_edges[j++] = g_max[i];
     }

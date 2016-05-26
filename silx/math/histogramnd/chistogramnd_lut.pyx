@@ -27,32 +27,33 @@ __license__ = "MIT"
 __date__ = "15/05/2016"
 
 
-cimport numpy
+cimport numpy as np  # noqa
 cimport cython
 import numpy as np
 
 ctypedef fused sample_t:
-    numpy.float64_t
-    numpy.float32_t
-    numpy.int32_t
-    numpy.int64_t
+    np.float64_t
+    np.float32_t
+    np.int32_t
+    np.int64_t
 
 ctypedef fused cumul_t:
-    numpy.float64_t
-    numpy.float32_t
-    numpy.int32_t
-    numpy.int64_t
+    np.float64_t
+    np.float32_t
+    np.int32_t
+    np.int64_t
 
 ctypedef fused weights_t:
-    numpy.float64_t
-    numpy.float32_t
-    numpy.int32_t
-    numpy.int64_t
+    np.float64_t
+    np.float32_t
+    np.int32_t
+    np.int64_t
 
 ctypedef fused lut_t:
-    numpy.int64_t
-    numpy.int32_t
-    numpy.int16_t
+    np.int64_t
+    np.int32_t
+    np.int16_t
+
 
 def histogramnd_get_lut(sample,
                         bins_rng,
@@ -110,7 +111,7 @@ def histogramnd_get_lut(sample,
         if bins_rng.shape == (2,):
             pass
         elif bins_rng.shape == (1, 2):
-            bins_rng.shape = -1
+            bins_rng.reshape(-1)
         else:
             err_bins_rng = True
     elif n_dims != 1 and bins_rng.shape != (n_dims, 2):
@@ -124,6 +125,8 @@ def histogramnd_get_lut(sample,
                          '{n_dims}D values)'
                          ''.format(bins_rng=i_bins_rng,
                                    n_dims=n_dims))
+
+    bins_rng = np.double(bins_rng)
 
     # checking n_bins size
     n_bins = np.array(n_bins, ndmin=1)
@@ -158,8 +161,7 @@ def histogramnd_get_lut(sample,
 
     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
 
-    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
-                                      dtype=sample_type)
+    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)))
 
     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
                                     dtype=np.int32)
@@ -186,7 +188,18 @@ def histogramnd_get_lut(sample,
         raise Exception('histogramnd returned an error : {0}'
                         ''.format(rc))
 
-    return lut, histo
+    edges = []
+    bins_rng = bins_rng.reshape(-1)
+    for i_dim in range(n_dims):
+        dim_edges = np.zeros(n_bins[i_dim] + 1)
+        rng_min = bins_rng[2 * i_dim]
+        rng_max = bins_rng[2 * i_dim + 1]
+        dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *
+                          ((rng_max - rng_min) / n_bins[i_dim]))
+        dim_edges[-1] = rng_max
+        edges.append(dim_edges)
+
+    return lut, histo, tuple(edges)
 
 
 # =====================
@@ -195,8 +208,9 @@ def histogramnd_get_lut(sample,
 
 def histogramnd_from_lut(weights,
                          histo_lut,
-                         shape=None,
+                         histo=None,
                          weighted_histo=None,
+                         shape=None,
                          dtype=None,
                          weight_min=None,
                          weight_max=None):
@@ -204,25 +218,58 @@ def histogramnd_from_lut(weights,
     dtype ignored if weighted_histo provided
     """
 
-    if shape is None and weighted_histo is None:
-        raise ValueError('At least one of the following parameters has to be '
-                         'provided : <shape> or <weighted_histo>')
+    if histo is None and weighted_histo is None:
+        if shape is None:
+            raise ValueError('At least one of the following parameters has to '
+                             'be provided : <shape> or <histo> or '
+                             '<weighted_histo>')
 
-    w_type = weights.dtype
-
-    # if not provided, histo dtype is set to the weights dtype
-    if dtype is None:
-        dtype = weights.dtype
-
-    # allocating the weighted_histo array if not provided
-    # + some checks
     if shape is not None:
-        if weighted_histo is not None:
-            if shape != weighted_histo.shape:
-                raise ValueError('<shape> and weighted_histo\'s shape don\'t'
-                                 ' match.')
+        if histo is not None and list(histo.shape) != list(shape):
+            raise ValueError('The <shape> value does not match'
+                             'the <histo> shape.')
+
+        if(weighted_histo is not None and
+           list(weighted_histo.shape) != list(shape)):
+            raise ValueError('The <shape> value does not match'
+                             'the <weighted_histo> shape.')
+    else:
+        if histo is not None:
+            shape = histo.shape
         else:
-            weighted_histo = np.zeros(shape=shape, dtype=dtype)
+            shape = weighted_histo.shape
+
+    if histo is not None:
+        if histo.dtype != np.uint32:
+            raise ValueError('Provided <histo> array doesn\'t have '
+                             'the expected type '
+                             ': should be {0} instead of {1}.'
+                             ''.format(np.uint32, histo.dtype))
+
+        if weighted_histo is not None:
+            if histo.shape != weighted_histo.shape:
+                raise ValueError('The <histo> shape does not match'
+                                 'the <weighted_histo> shape.')
+    else:
+        histo = np.zeros(shape, dtype=np.uint32)
+
+    w_dtype = weights.dtype
+
+    if dtype is None:
+        if weighted_histo is None:
+            dtype = w_dtype
+        else:
+            dtype = weighted_histo.dtype
+    elif weighted_histo is not None:
+        if weighted_histo.dtype != dtype:
+            raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'
+                             ' do not match.')
+        dtype = weighted_histo.dtype
+    else:
+        dtype = w_dtype
+
+    if weighted_histo is None:
+        weighted_histo = np.zeros(shape, dtype=dtype)
 
     if histo_lut.size != weights.size:
         raise ValueError('The LUT and weights arrays must have the same '
@@ -230,7 +277,9 @@ def histogramnd_from_lut(weights,
 
     w_c = np.ascontiguousarray(weights.reshape((weights.size,)))
 
-    w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))
+    h_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+
+    w_h_c = np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
 
     h_lut_c = np.ascontiguousarray(histo_lut.reshape((histo_lut.size,)))
 
@@ -242,19 +291,20 @@ def histogramnd_from_lut(weights,
     try:
         _histogramnd_from_lut_fused(w_c,
                                     h_lut_c,
+                                    h_c,
                                     w_h_c,
                                     weights.size,
                                     filt_min_weights,
-                                    w_type.type(weight_min),
+                                    w_dtype.type(weight_min),
                                     filt_max_weights,
-                                    w_type.type(weight_max))
+                                    w_dtype.type(weight_max))
     except TypeError as ex:
         print(ex)
         raise TypeError('Case not supported - weights:{0} '
                         'and histo:{1}.'
                         ''.format(weights.dtype, dtype))
 
-    return weighted_histo
+    return histo, weighted_histo
 
 
 # =====================
@@ -268,6 +318,7 @@ def histogramnd_from_lut(weights,
 @cython.cdivision(True)
 def _histogramnd_from_lut_fused(weights_t[:] i_weights,
                                 lut_t[:] i_lut,
+                                np.uint32_t[:] o_histo,
                                 cumul_t[:] o_weighted_histo,
                                 int i_n_elems,
                                 bint i_filt_min_weights,
@@ -281,7 +332,8 @@ def _histogramnd_from_lut_fused(weights_t[:] i_weights,
                     continue
                 if i_filt_max_weights and i_weights[i] > i_weight_max:
                     continue
-                o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]
+                o_histo[i_lut[i]] += 1
+                o_weighted_histo[i_lut[i]] += <cumul_t>i_weights[i]  # noqa
 
 
 # =====================
@@ -296,10 +348,10 @@ def _histogramnd_from_lut_fused(weights_t[:] i_weights,
 def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                                int i_n_dims,
                                int i_n_elems,
-                               sample_t[:] i_bins_rng,
+                               double[:] i_bins_rng,
                                int[:] i_n_bins,
                                lut_t[:] o_lut,
-                               numpy.uint32_t[:] o_histo,
+                               np.uint32_t[:] o_histo,
                                bint last_bin_closed):
 
     cdef:
@@ -313,9 +365,9 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
 
         sample_t elem_coord = 0
 
-        sample_t[50] g_min
-        sample_t[50] g_max
-        sample_t[50] bins_range
+        double[50] g_min
+        double[50] g_max
+        double[50] bins_range
 
     for i in range(i_n_dims):
         g_min[i] = i_bins_rng[2*i]
@@ -350,7 +402,7 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                 #  than coordinates higher or equal to the max
                 #  (two tests)
                 if elem_coord < g_max[i]:
-                    bin_idx = <long>(bin_idx * i_n_bins[i] +
+                    bin_idx = <long>(bin_idx * i_n_bins[i] +  # noqa
                                      (((elem_coord - g_min[i]) * i_n_bins[i]) /
                                       bins_range[i]))
                 else:
