@@ -28,3 +28,8 @@ __date__ = "01/02/2016"
 
 from .histogram import histogramnd
 from .histogram import HistogramndLut
+
+import logging
+
+# Init logging once for the whole module
+logging.basicConfig()
