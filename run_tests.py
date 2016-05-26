@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "07/01/2016"
+__date__ = "26/05/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -44,6 +44,12 @@ import time
 import unittest
 
 try:
+    import resource
+except ImportError:
+    resource = None
+    logger.warning("resource module missing")
+
+try:
     import importlib
 except:
     importer = __import__
@@ -51,18 +57,12 @@ else:
     importer = importlib.import_module
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("run_tests")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
+logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
 
-logger.info("Python %s %s" % (sys.version, tuple.__itemsize__ * 8))
-
-try:
-    import resource
-except ImportError:
-    resource = None
-    logger.warning("resource module missing")
 
 try:
     import numpy
@@ -78,6 +78,26 @@ except Exception as error:
     logger.warning("h5py missing: %s" % error)
 else:
     logger.info("h5py %s" % h5py.version.version)
+
+
+def get_project_name(root_dir):
+    """Retrieve project name by running python setup.py --name in root_dir.
+
+    :param str root_dir: Directory where to run the command.
+    :return: The name of the project stored in root_dir
+    """
+    logger.debug("Getting project name in %s" % root_dir)
+    p = subprocess.Popen([sys.executable, "setup.py", "--name"],
+                         shell=False, cwd=root_dir, stdout=subprocess.PIPE)
+    name, stderr_data = p.communicate()
+    logger.debug("subprocess ended with rc= %s" % p.returncode)
+    return name.split()[-1].decode('ascii')
+
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info('Project name: %s' % PROJECT_NAME)
+
 
 class TestResult(unittest.TestResult):
     logger = logging.getLogger("memProf")
@@ -97,23 +117,26 @@ class TestResult(unittest.TestResult):
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-            time.time() - self.__time_start,
-            (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
-                self.__mem_start) / 1e3,
-            test.id()))
+                        time.time() - self.__time_start, memusage, test.id()))
 
 
-class ProfileTestRunner(unittest.TextTestRunner):
-    def _makeResult(self):
-        return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
+if sys.hexversion < 34013184:  # 2.7
+    class ProfileTestRunner(unittest.TextTestRunner):
+        def _makeResult(self):
+            return TestResult()
+else:
+    class ProfileTestRunner(unittest.TextTestRunner):
+        def _makeResult(self):
+            return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
 
 
-def report_rst(cov, package, version="0.0.0"):
+def report_rst(cov, package, version="0.0.0", base=""):
     """
     Generate a report of test coverage in RST (for Sphinx inclusion)
 
     :param cov: test coverage instance
     :param str package: Name of the package
+    :param str base: base directory of modules to include in the report
     :return: RST string
     """
     import tempfile
@@ -139,7 +162,9 @@ def report_rst(cov, package, version="0.0.0"):
 
     for cl in classes:
         name = cl.get("name")
-        # fname = cl.get("filename")
+        fname = cl.get("filename")
+        if not os.path.abspath(fname).startswith(base):
+            continue
         lines = cl.find("lines").getchildren()
         hits = [int(i.get("hits")) for i in lines]
 
@@ -158,20 +183,6 @@ def report_rst(cov, package, version="0.0.0"):
                 100.0 * tot_sum_hits / tot_sum_lines if tot_sum_lines else 0))
     res.append("")
     return os.linesep.join(res)
-
-
-def get_project_name(root_dir):
-    """Retrieve project name by running python setup.py --name in root_dir.
-
-    :param str root_dir: Directory where to run the command.
-    :return: The name of the project stored in root_dir
-    """
-    logger.debug("Getting project name in %s" % root_dir)
-    p = subprocess.Popen([sys.executable, "setup.py", "--name"],
-                         shell=False, cwd=root_dir, stdout=subprocess.PIPE)
-    name, stderr_data = p.communicate()
-    logger.debug("subprocess ended with rc= %s" % p.returncode)
-    return name.split()[-1].decode('ascii')
 
 
 def build_project(name, root_dir):
@@ -202,11 +213,6 @@ def build_project(name, root_dir):
     return home
 
 
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info('Project name: %s' % PROJECT_NAME)
-
-
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description='Run the tests.')
@@ -224,9 +230,10 @@ parser.add_argument("-m", "--memprofile", dest="memprofile",
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
                     help="Increase verbosity")
-parser.add_argument(
-    "test_name", nargs='*', default=(),
-    help="Test names to run (Default: %s.test.suite)" % PROJECT_NAME)
+default_test_name = "%s.test.suite" % PROJECT_NAME
+parser.add_argument("test_name", nargs='*',
+                    default=(default_test_name,),
+                    help="Test names to run (Default: %s)" % default_test_name)
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
@@ -284,16 +291,18 @@ if options.memprofile:
 else:
     runner = unittest.TextTestRunner()
 
-logger.warning(
-    "Test %s %s from %s", PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
+logger.warning("Test %s %s from %s",
+               PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
+
+test_module_name = PROJECT_NAME + '.test'
+logger.info('Import %s', test_module_name)
+test_module = importer(test_module_name)
 
 test_suite = unittest.TestSuite()
+
 if not options.test_name:
     # Do not use test loader to avoid cryptic exception
     # when an error occur during import
-    test_module_name = PROJECT_NAME + '.test'
-    logger.info('Import %s', test_module_name)
-    test_module = importlib.import_module(test_module_name)
     project_test_suite = getattr(test_module, 'suite')
     test_suite.addTest(project_test_suite())
 else:
@@ -313,7 +322,7 @@ if options.coverage:
     cov.stop()
     cov.save()
     with open("coverage.rst", "w") as fn:
-        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION))
+        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
     print(cov.report())
 
 sys.exit(exit_status)
