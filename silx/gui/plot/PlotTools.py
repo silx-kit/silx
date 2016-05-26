@@ -203,6 +203,105 @@ class PositionInfo(qt.QWidget):
                     lineEdit.setText(value)
 
 
+# LimitsToolBar ##############################################################
+
+class LimitsToolBar(qt.QToolBar):
+    """QToolBar displaying and controlling the limits of a :class:`PlotWindow`.
+    """
+
+    class _FloatEdit(qt.QLineEdit):
+        """Field to edit a float value."""
+        def __init__(self, value=None, *args, **kwargs):
+            qt.QLineEdit.__init__(self, *args, **kwargs)
+            self.setValidator(qt.QDoubleValidator())
+            self.setFixedWidth(100)
+            self.setAlignment(qt.Qt.AlignLeft)
+            if value is not None:
+                self.setValue(value)
+
+        def value(self):
+            return float(self.text())
+
+        def setValue(self, value):
+            self.setText('%g' % value)
+
+    def __init__(self, plotWindow, title='Limits', parent=None):
+        """
+
+        :param plotWindow: :class:`PlotWindow` instance on which to operate.
+        :param str title: See :class:`QToolBar`.
+        :param parent: See :class:`QToolBar`.
+        """
+        super(LimitsToolBar, self).__init__(title, parent)
+        assert plotWindow is not None
+        self._plotWindow = plotWindow
+        self._plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
+
+        self._initWidgets()
+
+    @property
+    def plotWindow(self):
+        """The :class:`PlotWindow` the toolbar is attached to."""
+        return self._plotWindow
+
+    def _initWidgets(self):
+        """Create and init Toolbar widgets."""
+        xMin, xMax = self.plotWindow.getGraphXLimits()
+        yMin, yMax = self.plotWindow.getGraphYLimits()
+
+        self.addWidget(qt.QLabel('Limits: '))
+        self.addWidget(qt.QLabel(' X: '))
+        self._xMinFloatEdit = self._FloatEdit(xMin)
+        self._xMinFloatEdit.editingFinished[()].connect(
+            self._xFloatEditChanged)
+        self.addWidget(self._xMinFloatEdit)
+
+        self._xMaxFloatEdit = self._FloatEdit(xMax)
+        self._xMaxFloatEdit.editingFinished[()].connect(
+            self._xFloatEditChanged)
+        self.addWidget(self._xMaxFloatEdit)
+
+        self.addWidget(qt.QLabel(' Y: '))
+        self._yMinFloatEdit = self._FloatEdit(yMin)
+        self._yMinFloatEdit.editingFinished[()].connect(
+            self._yFloatEditChanged)
+        self.addWidget(self._yMinFloatEdit)
+
+        self._yMaxFloatEdit = self._FloatEdit(yMax)
+        self._yMaxFloatEdit.editingFinished[()].connect(
+            self._yFloatEditChanged)
+        self.addWidget(self._yMaxFloatEdit)
+
+    def _plotWindowSlot(self, event):
+        """Listen to :class:`PlotWindow` events."""
+        if event['event'] not in ('limitsChanged',):
+            return
+
+        xMin, xMax = self.plotWindow.getGraphXLimits()
+        yMin, yMax = self.plotWindow.getGraphYLimits()
+
+        self._xMinFloatEdit.setValue(xMin)
+        self._xMaxFloatEdit.setValue(xMax)
+        self._yMinFloatEdit.setValue(yMin)
+        self._yMaxFloatEdit.setValue(yMax)
+
+    def _xFloatEditChanged(self):
+        """Handle X limits changed from the GUI."""
+        xMin, xMax = self._xMinFloatEdit.value(), self._xMaxFloatEdit.value()
+        if xMax < xMin:
+            xMin, xMax = xMax, xMin
+
+        self.plotWindow.setGraphXLimits(xMin, xMax)
+
+    def _yFloatEditChanged(self):
+        """Handle Y limits changed from the GUI."""
+        yMin, yMax = self._yMinFloatEdit.value(), self._yMaxFloatEdit.value()
+        if yMax < yMin:
+            yMin, yMax = yMax, yMin
+
+        self.plotWindow.setGraphYLimits(yMin, yMax)
+
+
 # ProfileToolBar ##############################################################
 
 class ProfileToolBar(qt.QToolBar):
