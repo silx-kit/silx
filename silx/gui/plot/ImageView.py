@@ -1,11 +1,7 @@
-# /*#########################################################################
+# coding: utf-8
+# /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__author__ = "T. Vincent - ESRF Data Analysis"
-__contact__ = "thomas.vincent@esrf.fr"
-__license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__doc__ = """
-QWidget displaying a 2D image with histograms on its sides.
+"""QWidget displaying a 2D image with histograms on its sides.
 
 The :class:`ImageView` implements this widget, and
 :class:`ImageViewMainWindow` provides a main window with additional toolbar
@@ -44,7 +35,7 @@ Basic usage of :class:`ImageView` is through the following methods:
 - :meth:`ImageView.setImage` to update the displayed image.
 
 The :class:`ImageView` uses :class:`PlotWindow` and also
-exposes :class:`PyMca5.PyMcaGraph.Plot` API for further control
+exposes :class:`silx.gui.plot.Plot` API for further control
 (plot title, axes labels, adding other images, ...).
 
 For an example of use, see the implementation of :class:`ImageViewMainWindow`.
@@ -52,25 +43,22 @@ For an example of use, see the implementation of :class:`ImageViewMainWindow`.
 The ImageView module can also be used to open an EDF or TIFF file
 from the shell command line.
 To view an image file:
-``python -m PyMca5.PyMcaGui.plotting.ImageView <file to open>``
+``python -m silx.gui.plot.ImageView <file to open>``
 To get help:
-``python -m PyMca5.PyMcaGui.plotting.ImageView -h``
+``python -m silx.gui.plot.ImageView -h``
 """
 
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "25/05/2016"
 
-# import ######################################################################
 
-import numpy as np
+import numpy
 
-try:
-    from .. import PyMcaQt as qt
-except ImportError:
-    from PyMca5.PyMcaGui import PyMcaQt as qt
+from .. import qt
 
-from .PlotWindow import PlotWindow
-from .Toolbars import ProfileToolBar, LimitsToolBar
-
-from PyMca5.PyMcaGraph import Plot
+from .PlotWindow import PlotWindow, PlotWidget
+from .PlotTools import ProfileToolBar #, LimitsToolBar
 
 
 # utils #######################################################################
@@ -264,7 +252,7 @@ class ImageView(qt.QWidget):
     """Display a single image with horizontal and vertical histograms.
 
     Use :meth:`setImage` to control the displayed image.
-    This class also provides the :class:`PyMca5.PyMcaGraph.Plot` API.
+    This class also provides the :class:`silx.gui.plot.Plot` API.
     """
 
     HISTOGRAMS_COLOR = 'blue'
@@ -310,28 +298,25 @@ class ImageView(qt.QWidget):
         def sizeHint():
             return qt.QSize(self.HISTOGRAMS_HEIGHT, self.HISTOGRAMS_HEIGHT)
 
-        self._histoHPlot = Plot.Plot(backend=backend)
-        self._histoHPlot.setZoomModeEnabled(True)
+        self._histoHPlot = PlotWidget(backend=backend)
+        self._histoHPlot.setInteractiveMode('zoom')
         self._histoHPlot.setCallback(self._histoHPlotCB)
         self._histoHPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoHPlot.getWidgetHandle().minimumSizeHint = sizeHint
 
-        self._imagePlot = PlotWindow(backend=backend, plugins=False,
-                                     colormap=True, flip=True,
-                                     grid=False, togglePoints=False,
-                                     logx=False, logy=False,
-                                     aspect=True)
-        self._imagePlot.usePlotBackendColormap = True
+        self._imagePlot = PlotWindow(backend=backend, logScale=True,
+                                     grid=False, curveStyle=False,
+                                     aspectRatio=True, colormap=True,
+                                     yInverted=True,)
         self._imagePlot.setPanWithArrowKeys(True)
 
-        self._imagePlot.setZoomModeEnabled(True)  # Color is set in setColormap
+        self._imagePlot.setInteractiveMode('zoom')  # Color set in setColormap
         self._imagePlot.sigPlotSignal.connect(self._imagePlotCB)
-        self._imagePlot.hFlipToolButton.clicked.connect(
-            self._updateYAxisInverted)
-        self._imagePlot.sigColormapChangedSignal.connect(self.setColormap)
+        self._imagePlot.sigSetYAxisInverted.connect(self._updateYAxisInverted)
+        #self._imagePlot.sigColormapChangedSignal.connect(self.setColormap)
 
-        self._histoVPlot = Plot.Plot(backend=backend)
-        self._histoVPlot.setZoomModeEnabled(True)
+        self._histoVPlot = PlotWidget(backend=backend)
+        self._histoVPlot.setInteractiveMode('zoom')
         self._histoVPlot.setCallback(self._histoVPlotCB)
         self._histoVPlot.getWidgetHandle().sizeHint = sizeHint
         self._histoVPlot.getWidgetHandle().minimumSizeHint = sizeHint
@@ -370,8 +355,8 @@ class ImageView(qt.QWidget):
             wasUpdatingLimits = self._updatingLimits
             self._updatingLimits = True
 
-            data, legend, info, pixmap = activeImage
-            xScale, yScale = info['plot_xScale'], info['plot_yScale']
+            data, legend, info, pixmap, params = activeImage[0:5]
+            origin, scale = params['origin'], params['scale']
             height, width = data.shape
 
             xMin, xMax = self._imagePlot.getGraphXLimits()
@@ -379,10 +364,10 @@ class ImageView(qt.QWidget):
 
             # Convert plot area limits to image coordinates
             # and work in image coordinates (i.e., in pixels)
-            xMin = int((xMin - xScale[0]) / xScale[1])
-            xMax = int((xMax - xScale[0]) / xScale[1])
-            yMin = int((yMin - yScale[0]) / yScale[1])
-            yMax = int((yMax - yScale[0]) / yScale[1])
+            xMin = int((xMin - origin[0]) / scale[0])
+            xMax = int((xMax - origin[0]) / scale[1])
+            yMin = int((yMin - origin[1]) / scale[1])
+            yMax = int((yMax - origin[1]) / scale[1])
 
             if (xMin < width and xMax >= 0 and
                     yMin < height and yMax >= 0):
@@ -403,8 +388,8 @@ class ImageView(qt.QWidget):
                     # Rebuild histograms for visible area
                     visibleData = data[subsetYMin:subsetYMax,
                                        subsetXMin:subsetXMax]
-                    histoHVisibleData = np.sum(visibleData, axis=0)
-                    histoVVisibleData = np.sum(visibleData, axis=1)
+                    histoHVisibleData = numpy.sum(visibleData, axis=0)
+                    histoVVisibleData = numpy.sum(visibleData, axis=1)
 
                     self._cache = {
                         'dataXMin': subsetXMin,
@@ -413,23 +398,23 @@ class ImageView(qt.QWidget):
                         'dataYMax': subsetYMax,
 
                         'histoH': histoHVisibleData,
-                        'histoHMin': np.min(histoHVisibleData),
-                        'histoHMax': np.max(histoHVisibleData),
+                        'histoHMin': numpy.min(histoHVisibleData),
+                        'histoHMax': numpy.max(histoHVisibleData),
 
                         'histoV': histoVVisibleData,
-                        'histoVMin': np.min(histoVVisibleData),
-                        'histoVMax': np.max(histoVVisibleData)
+                        'histoVMin': numpy.min(histoVVisibleData),
+                        'histoVMax': numpy.max(histoVVisibleData)
                     }
 
                     # Convert to histogram curve and update plots
                     # Taking into account origin and scale
-                    coords = np.arange(2 * histoHVisibleData.size)
+                    coords = numpy.arange(2 * histoHVisibleData.size)
                     xCoords = (coords + 1) // 2 + subsetXMin
-                    xCoords = xScale[0] + xScale[1] * xCoords
-                    xData = np.take(histoHVisibleData, coords // 2)
+                    xCoords = origin[0] + scale[0] * xCoords
+                    xData = numpy.take(histoHVisibleData, coords // 2)
                     self._histoHPlot.addCurve(xCoords, xData,
                                               xlabel='', ylabel='',
-                                              replace=False, replot=False,
+                                              replace=False,
                                               color=self.HISTOGRAMS_COLOR,
                                               linestyle='-',
                                               selectable=False)
@@ -441,13 +426,13 @@ class ImageView(qt.QWidget):
                     self._histoHPlot.setGraphYLimits(vMin - vOffset,
                                                      vMax + vOffset)
 
-                    coords = np.arange(2 * histoVVisibleData.size)
+                    coords = numpy.arange(2 * histoVVisibleData.size)
                     yCoords = (coords + 1) // 2 + subsetYMin
-                    yCoords = yScale[0] + yScale[1] * yCoords
-                    yData = np.take(histoVVisibleData, coords // 2)
+                    yCoords = origin[1] + scale[1] * yCoords
+                    yData = numpy.take(histoVVisibleData, coords // 2)
                     self._histoVPlot.addCurve(yData, yCoords,
                                               xlabel='', ylabel='',
-                                              replace=False, replot=False,
+                                              replace=False,
                                               color=self.HISTOGRAMS_COLOR,
                                               linestyle='-',
                                               selectable=False)
@@ -460,8 +445,8 @@ class ImageView(qt.QWidget):
                                                      vMax + vOffset)
             else:
                 self._dirtyCache()
-                self._histoHPlot.clearCurves()
-                self._histoVPlot.clearCurves()
+                self._histoHPlot.remove(kind='curve')
+                self._histoVPlot.remove(kind='curve')
 
             self._updatingLimits = wasUpdatingLimits
 
@@ -501,20 +486,13 @@ class ImageView(qt.QWidget):
 
             # Set horizontal histo limits
             self._histoHPlot.setGraphXLimits(xMin, xMax)
-            self._histoHPlot.replot()
 
             # Set vertical histo limits
             self._histoVPlot.setGraphYLimits(yMin, yMax)
-            self._histoVPlot.replot()
 
             self._updateRadarView()
 
             self._updatingLimits = False
-
-            # Replot in case limitsChanged due to set*Limits
-            # called from console.
-            # This results in an extra replot call in other cases.
-            self._imagePlot.replot()
 
     def _histoHPlotCB(self, eventDict):
         """Callback for horizontal histogram plot events."""
@@ -522,9 +500,10 @@ class ImageView(qt.QWidget):
             if self._cache is not None:
                 activeImage = self._imagePlot.getActiveImage()
                 if activeImage is not None:
-                    xOrigin, xScaleFactor = activeImage[2]['plot_xScale']
+                    params = activeImage[4]
+                    xOrigin, xScale = params['origin'][0], params['scale'][0]
 
-                    minValue = xOrigin + xScaleFactor * self._cache['dataXMin']
+                    minValue = xOrigin + xScale * self._cache['dataXMin']
                     data = self._cache['histoH']
                     width = data.shape[0]
                     x = int(eventDict['x'])
@@ -536,7 +515,6 @@ class ImageView(qt.QWidget):
                     eventDict['xdata'] != self._imagePlot.getGraphXLimits()):
                 xMin, xMax = eventDict['xdata']
                 self._imagePlot.setGraphXLimits(xMin, xMax)
-                self._imagePlot.replot()
 
     def _histoVPlotCB(self, eventDict):
         """Callback for vertical histogram plot events."""
@@ -544,9 +522,10 @@ class ImageView(qt.QWidget):
             if self._cache is not None:
                 activeImage = self._imagePlot.getActiveImage()
                 if activeImage is not None:
-                    yOrigin, yScaleFactor = activeImage[2]['plot_yScale']
+                    params = activeImage[4]
+                    yOrigin, yScale = params['origin'][1], params['scale'][1]
 
-                    minValue = yOrigin + yScaleFactor * self._cache['dataYMin']
+                    minValue = yOrigin + yScale * self._cache['dataYMin']
                     data = self._cache['histoV']
                     height = data.shape[0]
                     y = int(eventDict['y'])
@@ -558,21 +537,20 @@ class ImageView(qt.QWidget):
                     eventDict['ydata'] != self._imagePlot.getGraphYLimits()):
                 yMin, yMax = eventDict['ydata']
                 self._imagePlot.setGraphYLimits(yMin, yMax)
-                self._imagePlot.replot()
 
     def _radarViewCB(self, left, top, width, height):
         """Slot for radar view visible rectangle changes."""
         if not self._updatingLimits:
             # Takes care of Y axis conversion
             self._imagePlot.setLimits(left, left + width, top, top + height)
-            self._imagePlot.replot()
 
-    def _updateYAxisInverted(self):
+    def _updateYAxisInverted(self, inverted=None):
         """Sync image, vertical histogram and radar view axis orientation."""
-        inverted = self._imagePlot.isYAxisInverted()
+        if inverted is None:
+            # Do not perform this when called from plot signal
+            inverted = self._imagePlot.isYAxisInverted()
 
-        self._imagePlot.invertYAxis(inverted)
-        self._histoVPlot.invertYAxis(inverted)
+        self._histoVPlot.setYAxisInverted(inverted)
 
         # Use scale to invert radarView
         # RadarView default Y direction is from top to bottom
@@ -582,8 +560,6 @@ class ImageView(qt.QWidget):
             self._radarView.scale(1., -1.)
         self._updateRadarView()
 
-        self._imagePlot.replot()
-        self._histoVPlot.replot()
         self._radarView.update()
 
     def getHistogram(self, axis):
@@ -605,11 +581,11 @@ class ImageView(qt.QWidget):
         else:
             if axis == 'x':
                 return dict(
-                    data=np.array(self._cache['histoH'], copy=True),
+                    data=numpy.array(self._cache['histoH'], copy=True),
                     extent=(self._cache['dataXMin'], self._cache['dataXMax']))
             else:
                 return dict(
-                    data=np.array(self._cache['histoV'], copy=True),
+                    data=numpy.array(self._cache['histoV'], copy=True),
                     extent=(self._cache['dataYMin'], self._cache['dataYMax']))
 
     def radarView(self):
@@ -639,7 +615,7 @@ class ImageView(qt.QWidget):
         :return: The toolBar associated to the image plot.
         :rtype: QToolBar
         """
-        return self._imagePlot.toolBar
+        return self._imagePlot._toolBar #TODO ugly!
 
     # High-level API
 
@@ -711,7 +687,7 @@ class ImageView(qt.QWidget):
             cmapDict['colors'] = 256
 
         cursorColor = _cursorColorForColormap(cmapDict['name'])
-        self._imagePlot.setZoomModeEnabled(True, color=cursorColor)
+        self._imagePlot.setInteractiveMode('zoom', color=cursorColor)
 
         self._imagePlot.setDefaultColormap(cmapDict)
 
@@ -721,8 +697,7 @@ class ImageView(qt.QWidget):
 
             self._imagePlot.addImage(data, legend=legend, info=info,
                                      colormap=self.getColormap(),
-                                     replace=False, replot=False)
-            self._imagePlot.replot()
+                                     replace=False)
 
     def setImage(self, image, origin=(0, 0), scale=(1., 1.),
                  copy=True, reset=True):
@@ -751,21 +726,19 @@ class ImageView(qt.QWidget):
         assert scale[1] > 0
 
         if image is None:
-            self._imagePlot.removeImage(self._imageLegend, replot=False)
+            self._imagePlot.remove(self._imageLegend, kind='image')
             return
 
-        data = np.array(image, order='C', copy=copy)
+        data = numpy.array(image, order='C', copy=copy)
         assert data.size != 0
         assert len(data.shape) == 2
         height, width = data.shape
 
         self._imagePlot.addImage(data,
                                  legend=self._imageLegend,
-                                 xScale=(origin[0], scale[0]),
-                                 yScale=(origin[1], scale[1]),
+                                 origin=origin, scale=scale,
                                  colormap=self.getColormap(),
-                                 replace=False,
-                                 replot=False)
+                                 replace=False)
         self._imagePlot.setActiveImage(self._imageLegend)
         self._updateHistograms()
 
@@ -776,10 +749,6 @@ class ImageView(qt.QWidget):
 
         if reset:
             self.resetZoom()
-        else:
-            self._histoHPlot.replot()
-            self._histoVPlot.replot()
-            self._imagePlot.replot()
 
     ####################
     # Plot API proxies #
@@ -788,24 +757,22 @@ class ImageView(qt.QWidget):
     # Rebuild side histograms if active image gets changed through the Plot API
 
     def addImage(self, data, legend=None, info=None,
-                 replace=True, replot=True,
-                 xScale=None, yScale=None, z=0,
+                 replace=True,
+                 origin=None, scale=None, z=0,
                  selectable=False, draggable=False,
                  colormap=None, **kw):
         if legend == self._imagePlot.getActiveImage(just_legend=True):
             # Updating active image, resets side histograms cache
             self._dirtyCache()
 
-        result = self._imagePlot.addImage(data, legend, info, replace, replot,
-                                          xScale, yScale, z,
-                                          selectable, draggable,
-                                          colormap, **kw)
+        result = self._imagePlot.addImage(data, legend, info, replace,
+                                          origin=origin,
+                                          scale=scale,
+                                          z=z,
+                                          selectable=selectable,
+                                          draggable=draggable,
+                                          colormap=colormap, **kw)
         self._updateHistograms()
-
-        if replot:
-            self._histoHPlot.replot()
-            self._histoVPlot.replot()
-
         return result
 
     def clear(self):
@@ -814,32 +781,24 @@ class ImageView(qt.QWidget):
 
     def clearImages(self):
         self._dirtyCache()
-        return self._imagePlot.clearImages()
+        return self._imagePlot.remove(kind='image')
 
-    def removeImage(self, legend, replot=True):
+    def removeImage(self, legend):
         if legend == self._imagePlot.getActiveImage(just_legend=True):
             # Removing active image, resets side histograms cache
             self._dirtyCache()
 
-        result = self._imageView.removeImage(legend, replot)
+        result = self._imageView.removeImage(legend)
         self._updateHistograms()
-
-        if replot:
-            self._histoHPlot.replot()
-            self._histoVPlot.replot()
 
         return result
 
-    def setActiveImage(self, legend, replot=True):
+    def setActiveImage(self, legend):
         # Active image changes, resets side histogram cache
         self._dirtyCache()
 
-        result = self._imagePlot.setActiveImage(legend, replot)
+        result = self._imagePlot.setActiveImage(legend)
         self._updateHistograms()
-
-        if replot:
-            self._histoHPlot.replot()
-            self._histoVPlot.replot()
         return result
 
     # Invert axes
@@ -873,15 +832,15 @@ class ImageViewMainWindow(qt.QMainWindow):
         self.imageView.setGraphXLabel('X')
         self.imageView.setGraphYLabel('Y')
         self.imageView.setGraphTitle('Image')
-        self.imageView._imagePlot.sigColormapChangedSignal.connect(
-            self._colormapUpdated)
+        #self.imageView._imagePlot.sigColormapChangedSignal.connect(
+        #    self._colormapUpdated)
         self.setCentralWidget(self.imageView)
 
         # Using PlotWindow's toolbar
         self.addToolBar(self.imageView.toolBar())
         self.profileToolBar = ProfileToolBar(self.imageView._imagePlot)
         self.addToolBar(self.profileToolBar)
-        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self.imageView))
+        #self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self.imageView))
 
         self.statusBar()
 
@@ -895,9 +854,9 @@ class ImageViewMainWindow(qt.QMainWindow):
 
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
-        if np.isnan(row):
+        if numpy.isnan(row):
             msg = 'Column: %d, Sum: %g' % (int(column), value)
-        elif np.isnan(column):
+        elif numpy.isnan(column):
             msg = 'Row: %d, Sum: %g' % (int(row), value)
         else:
             msg = 'Position: (%d, %d), Value: %g' % (int(row), int(column),
@@ -929,23 +888,24 @@ class ImageViewMainWindow(qt.QMainWindow):
 
 # main ########################################################################
 
-if __name__ == "__main__":
+def main(argv=None):
+    """Display an image from a file in an :class:`ImageView` widget.
+
+    :param argv: list of command line arguments or None (the default)
+                 to use sys.argv.
+    :type argv: list of str
+    :return: Exit status code
+    :rtype: int
+    :raises IOError: if no image can be loaded from the file
+    """
     import argparse
     import os.path
-    import sys
 
-    from PyMca5.PyMcaIO.EdfFile import EdfFile
+    from silx.third_party.EdfFile import EdfFile
 
     # Command-line arguments
     parser = argparse.ArgumentParser(
         description='Browse the images of an EDF file.')
-    parser.add_argument(
-        '-b', '--backend',
-        choices=('mpl', 'opengl', 'osmesa'),
-        help="""The plot backend to use: Matplotlib (mpl, the default),
-        OpenGL 2.1 (opengl, requires appropriate OpenGL drivers) or
-        Off-screen Mesa OpenGL software pipeline (osmesa,
-        requires appropriate OSMesa library).""")
     parser.add_argument(
         '-o', '--origin', nargs=2,
         type=float, default=(0., 0.),
@@ -957,22 +917,24 @@ if __name__ == "__main__":
         help="""Scale factors applied to the image: (sx, sy).
         Default: 1., 1.""")
     parser.add_argument('filename', help='EDF filename of the image to open')
-    args = parser.parse_args()
+    args = parser.parse_args(args=argv)
 
     # Open the input file
     if not os.path.isfile(args.filename):
-        raise RuntimeError('No input file: %s' % args.filename)
+        raise IOError('No input file: %s' % args.filename)
 
     edfFile = EdfFile(args.filename)
     nbFrames = edfFile.GetNumImages()
     if nbFrames == 0:
-        raise RuntimeError(
+        raise IOError(
             'Cannot read image(s) from file: %s' % args.filename)
 
     # Set-up Qt application and main window
     app = qt.QApplication([])
 
-    mainWindow = ImageViewMainWindow(backend=args.backend)
+    mainWindow = ImageViewMainWindow()
+    mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
+
     mainWindow.setImage(edfFile.GetData(0),
                         origin=args.origin,
                         scale=args.scale)
@@ -998,4 +960,10 @@ if __name__ == "__main__":
 
     mainWindow.show()
 
-    sys.exit(app.exec_())
+    return app.exec_()
+
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main(argv=sys.argv[1:]))
