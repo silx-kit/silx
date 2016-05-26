@@ -22,10 +22,10 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["D. Naudet", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "26/05/2016"
 
-from .histogramnd import histogramnd
+from .histogram import histogramnd
 from .histogram import HistogramndLut
 from .fit import curve_fit
