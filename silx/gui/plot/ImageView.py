@@ -58,7 +58,7 @@ import numpy
 from .. import qt
 
 from .PlotWindow import PlotWindow, PlotWidget
-from .PlotTools import ProfileToolBar #, LimitsToolBar
+from .PlotTools import ProfileToolBar, LimitsToolBar
 
 
 # utils #######################################################################
@@ -840,7 +840,7 @@ class ImageViewMainWindow(qt.QMainWindow):
         self.addToolBar(self.imageView.toolBar())
         self.profileToolBar = ProfileToolBar(self.imageView._imagePlot)
         self.addToolBar(self.profileToolBar)
-        #self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self.imageView))
+        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self.imageView))
 
         self.statusBar()
 
