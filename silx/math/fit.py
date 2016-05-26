@@ -43,6 +43,7 @@ from numpy.linalg.linalg import LinAlgError
 import time
 import logging
 
+logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 # codes understood by the routine
