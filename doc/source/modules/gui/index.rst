@@ -1,5 +1,5 @@
 
-.. pymodule:: silx.gui
+.. py:module:: silx.gui
 
 :mod:`silx.gui`: Graphical user interface
 =========================================
@@ -14,6 +14,8 @@ It provides the following modules:
    plot/index.rst
    qt.rst
    icons.rst
+   console.rst
+
 
 How-to:
 

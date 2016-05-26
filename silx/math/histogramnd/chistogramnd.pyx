@@ -32,18 +32,17 @@ import numpy as np
 
 cimport histogramnd_c
 
-
-def histogramnd(sample,
-                bins_rng,
-                n_bins,
-                weights=None,
-                weight_min=None,
-                weight_max=None,
-                last_bin_closed=False,
-                histo=None,
-                cumul=None):
+def chistogramnd(sample,
+                 bins_rng,
+                 n_bins,
+                 weights=None,
+                 weight_min=None,
+                 weight_max=None,
+                 last_bin_closed=False,
+                 histo=None,
+                 cumul=None):
     """
-    histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
+    chistogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
 
     Computes the multidimensional histogram of some data.
 
@@ -592,7 +591,6 @@ def histogramnd(sample,
                             ''.format(rc))
 
     return histo, cumul
-
 
 # =====================
 #  double sample, double cumul

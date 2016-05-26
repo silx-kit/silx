@@ -39,6 +39,10 @@ from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
+try:
+    from ..console import IPythonDockWidget, IPythonWidget
+except ImportError:
+    IPythonDockWidget = None
 
 from .. import qt
 
@@ -175,6 +179,7 @@ class PlotWindow(PlotWidget):
                 else:
                     converters = None
                 self.positionWidget = PositionInfo(self, converters=converters)
+                self.positionWidget.autoSnapToActiveCurve = True
 
                 toolBar.addWidget(self.positionWidget)
 
@@ -183,13 +188,34 @@ class PlotWindow(PlotWidget):
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
 
+        self._dockWidgets = []
+
     @property
     def legendsDockWidget(self):
         """DockWidget with Legend panel (lazy-loaded)."""
         if not hasattr(self, '_legendsDockWidget'):
             self._legendsDockWidget = LegendsDockWidget(self)
             self._legendsDockWidget.hide()
+            self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
+
+    @property
+    def consoleDockWidget(self):
+        """DockWidget with IPython console (lazy-loaded)."""
+        if not hasattr(self, '_consoleDockWidget'):
+            vars = {"plt": self}
+            banner = "The variable 'plt' is available. Use the 'whos' "
+            banner += "and 'help(plt)' commands for more information.\n\n"
+            if IPythonDockWidget is not None:
+                self._consoleDockWidget = IPythonDockWidget(
+                        available_vars=vars,
+                        custom_banner=banner,
+                        parent=self)
+                self._consoleDockWidget.hide()
+                self._introduceNewDockWidget(self._consoleDockWidget)
+            else:
+                self._consoleDockWidget = None
+        return self._consoleDockWidget
 
     @property
     def crosshairAction(self):
@@ -233,4 +259,28 @@ class PlotWindow(PlotWidget):
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
+        if self.consoleDockWidget is not None:
+            controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         controlMenu.exec_(self.cursor().pos())
+
+    def _introduceNewDockWidget(self, dock_widget):
+        """Maintain a list of dock widgets, in the order in which they are
+        added. Tabify them as soon as there are more than one of them.
+
+        :param dock_widget: Instance of :class:`QDockWidget` to be added.
+        """
+        if dock_widget not in self._dockWidgets:
+            self._dockWidgets.append(dock_widget)
+        if len(self._dockWidgets) == 1:
+            # The first created dock widget must be added to a Widget area
+            width = self.centralWidget().width()
+            height = self.centralWidget().height()
+            if width > (2.0 * height) and width > 1000:
+                area = qt.Qt.RightDockWidgetArea
+            else:
+                area = qt.Qt.BottomDockWidgetArea
+            self.addDockWidget(area, dock_widget)
+        else:
+            # Other dock widgets are added as tabs to the same widget area
+            self.tabifyDockWidget(self._dockWidgets[0],
+                                  dock_widget)

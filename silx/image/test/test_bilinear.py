@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "02/05/2016"
+__date__ = "09/05/2016"
 
 import unittest
 import numpy
@@ -74,7 +74,7 @@ class TestBilinear(unittest.TestCase):
             else:
                 logger.debug("Good guess maximum (%i,%i) -> (%.1f,%.1f)" % (i, j, k, l))
                 ok += 1
-        logger.info("Success rate: %.1f" % (100. * ok / self.N))
+        logger.debug("Success rate: %.1f" % (100. * ok / self.N))
         self.assertEqual(ok, self.N, "Maximum is always found")
 
     def test_map(self):
@@ -97,11 +97,46 @@ class TestBilinear(unittest.TestCase):
         res1 = b.map_coordinates((y2d, x2d))
         self.assertEquals(abs(res1 - img[:-1, 1:]).max(), 0, "images are the same (center)")
 
+    def test_profile_grad(self):
+        N = 100
+        img = numpy.arange(N * N).reshape(N, N)
+        b = BilinearImage(img)
+        res1 = b.profile_line((0, 0), (N - 1, N - 1))
+        l = numpy.ceil(numpy.sqrt(2) * N)
+        self.assertEquals(len(res1), l, "Profile has correct length")
+        self.assertLess((res1[:-2] - res1[1:-1]).std(), 1e-3, "profile is linear (excluding last point)")
+
+    def test_profile_gaus(self):
+        N = 100
+        x = numpy.arange(N) - N // 2.0
+        g = numpy.exp(-x * x / (N * N))
+        img = numpy.outer(g, g)
+        b = BilinearImage(img)
+        res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1))
+        res_ver = b.profile_line((0, N // 2), (N - 1, N // 2))
+        self.assertEquals(len(res_hor), N, "Profile has correct length")
+        self.assertEquals(len(res_ver), N, "Profile has correct length")
+        self.assertLess(abs(res_hor - g).max(), 1e-5, "correct horizontal profile")
+        self.assertLess(abs(res_ver - g).max(), 1e-5, "correct vertical profile")
+
+        # Profile with linewidth=3
+        expected_profile = img[:, N // 2 - 1:N // 2 + 2].mean(axis=1)
+        res_hor = b.profile_line((N // 2, 0), (N // 2, N - 1), linewidth=3)
+        res_ver = b.profile_line((0, N // 2), (N - 1, N // 2), linewidth=3)
+
+        self.assertEquals(len(res_hor), N, "Profile has correct length")
+        self.assertEquals(len(res_ver), N, "Profile has correct length")
+        self.assertLess(abs(res_hor - expected_profile).max(), 1e-5,
+                        "correct horizontal profile")
+        self.assertLess(abs(res_ver - expected_profile).max(), 1e-5,
+                        "correct vertical profile")
+
 
 def suite():
     testsuite = unittest.TestSuite()
     testsuite.addTest(TestBilinear("test_max_search_round"))
     testsuite.addTest(TestBilinear("test_max_search_half"))
     testsuite.addTest(TestBilinear("test_map"))
-
+    testsuite.addTest(TestBilinear("test_profile_grad"))
+    testsuite.addTest(TestBilinear("test_profile_gaus"))
     return testsuite

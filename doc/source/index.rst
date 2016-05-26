@@ -14,6 +14,7 @@ Contents
 
    modules/gui/index.rst
    modules/io/index.rst
+   modules/image/index.rst
    modules/math/index.rst
       
 Install

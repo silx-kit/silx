@@ -59,20 +59,19 @@ else:
     define_macros = []
 
 def configuration(parent_package='', top_path=None):
-    current_dir = os.path.dirname(__file__)
     config = Configuration('io', parent_package, top_path)
     config.add_subpackage('test')
 
     srcfiles = ['sfheader','sfinit','sflists','sfdata','sfindex',
                 'sflabel' ,'sfmca', 'sftools','locale_management']
-    sources = [os.path.join(current_dir, 'specfile', 'src', ffile+'.c') for ffile in srcfiles]
-    sources.append(os.path.join(current_dir, 'specfile', 'specfile.pyx'))
+    sources = [os.path.join('specfile', 'src', ffile + '.c') for ffile in srcfiles]
+    sources.append(os.path.join('specfile', 'specfile.pyx'))
 
 
     config.add_extension('specfile',
                          sources=sources,
                          define_macros = define_macros,
-                         include_dirs = [os.path.join(current_dir, 'specfile', 'include'),
+                         include_dirs = [os.path.join('specfile', 'include'),
                                          numpy.get_include()],
                          language='c')
     return config

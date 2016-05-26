@@ -950,6 +950,7 @@ class LegendsDockWidget(qt.QDockWidget):
     def __init__(self, plot, parent=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
+        self._isConnected = False  # True if widget connected to plot signals
 
         super(LegendsDockWidget, self).__init__("Legends", self.plot)
 
@@ -957,14 +958,6 @@ class LegendsDockWidget(qt.QDockWidget):
 
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setWidget(self._legendWidget)
-
-        width = self.plot.centralWidget().width()
-        height = self.plot.centralWidget().height()
-        if width > (1.25 * height):
-            area = qt.Qt.RightDockWidgetArea
-        else:
-            area = qt.Qt.BottomDockWidgetArea
-        self.plot.addDockWidget(area, self)
 
         self.visibilityChanged.connect(
             self._visibilityChangedHandler)
@@ -1045,8 +1038,15 @@ class LegendsDockWidget(qt.QDockWidget):
         legendList = []
         curves = self.plot.getAllCurves(withhidden=True)
         for x, y, legend, info, params in curves:
+            # Use active color if curve is active
+            if legend == self.plot.getActiveCurve(just_legend=True):
+                print('got an active curve')
+                color = self.plot.getActiveCurveColor()
+            else:
+                color = params['color']
+
             curveInfo = {
-                'color': qt.QColor(params['color']),
+                'color': qt.QColor(color),
                 'linewidth': params['linewidth'],
                 'linestyle': params['linestyle'],
                 'symbol': params['symbol'],
@@ -1058,6 +1058,12 @@ class LegendsDockWidget(qt.QDockWidget):
     def _visibilityChangedHandler(self, visible):
         if visible:
             self.updateLegends()
-            self.plot.sigContentChanged.connect(self.updateLegends)
+            if not self._isConnected:
+                self.plot.sigContentChanged.connect(self.updateLegends)
+                self.plot.sigActiveCurveChanged.connect(self.updateLegends)
+                self._isConnected = True
         else:
-            self.plot.sigContentChanged.disconnect(self.updateLegends)
+            if self._isConnected:
+                self.plot.sigContentChanged.disconnect(self.updateLegends)
+                self.plot.sigActiveCurveChanged.disconnect(self.updateLegends)
+                self._isConnected = False
