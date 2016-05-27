@@ -177,11 +177,13 @@ It provides the following keys:
 - 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
 - 'legend': The legend of the primitive changed.
 
-A 'activeCurveChanged' event with a 'legend' and a 'previous' keys
-(str or None) is triggered when active curve has changed.
+'activeCurveChanged' and 'activeImageChanged' events with the following keys:
 
-A 'activeImageChanged' event with a 'legend' and a 'previous' keys
-(str or None) is triggered when active image has changed.
+- 'legend': Name (str) of the current active item or None if no active item.
+- 'previous': Name (str) of the previous active item or None if no item was
+              active. It is the same as 'legend' if 'updated' == True
+- 'updated': (bool) True if active item name did not changed,
+             but active item data or style was updated.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -1425,8 +1427,9 @@ class Plot(object):
 
         self._setDirtyPlot()
 
-        if oldActiveCurveLegend != self._activeCurve:
+        if oldActiveCurveLegend is not None or self._activeCurve is not None:
             self.notify('activeCurveChanged',
+                        updated=oldActiveCurveLegend != self._activeCurve,
                         previous=oldActiveCurveLegend,
                         legend=self._activeCurve)
 
@@ -1485,8 +1488,9 @@ class Plot(object):
             else:
                 self._activeImage = legend
 
-        if oldActiveImageLegend != self._activeImage:
+        if oldActiveImageLegend is not None or self._activeImage is not None:
             self.notify('activeImageChanged',
+                        updated=oldActiveImageLegend != self._activeImage,
                         previous=oldActiveImageLegend,
                         legend=self._activeImage)
 

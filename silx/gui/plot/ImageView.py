@@ -317,7 +317,6 @@ class ImageView(PlotWindow):
         self.sigPlotSignal.connect(self._imagePlotCB)
         self.sigSetYAxisInverted.connect(self._updateYAxisInverted)
         self.sigActiveImageChanged.connect(self._activeImageChangedSlot)
-        #self.sigColormapChangedSignal.connect(self.setColormap)
 
         self._histoVPlot = PlotWidget(backend=backend)
         self._histoVPlot.setInteractiveMode('zoom')
@@ -768,8 +767,7 @@ class ImageViewMainWindow(ImageView):
         self.setGraphXLabel('X')
         self.setGraphYLabel('Y')
         self.setGraphTitle('Image')
-        #self.sigColormapChangedSignal.connect(
-        #    self._colormapUpdated)
+        self.sigActiveImageChanged.connect(self._activeImageChanged)
 
         # Add toolbars and status bar
         self.profileToolBar = ProfileToolBar(self)
@@ -803,8 +801,14 @@ class ImageViewMainWindow(ImageView):
         # Connect to ImageView's signal
         self.valueChanged.connect(self._statusBarSlot)
 
-    def _colormapUpdated(self, colormap):
+    def _activeImageChanged(self, previous, legend):
         """Sync ROI color with current colormap"""
+        activeImage = self.getActiveImage()
+        if activeImage is None:
+            colormap = self.getDefaultColormap()
+        else:
+            colormap = activeImage[4]['colormap']
+
         self.profileToolBar.overlayColor = _cursorColorForColormap(
             colormap['name'])
 
@@ -872,6 +876,9 @@ def main(argv=None):
         type=float, default=(1., 1.),
         help="""Scale factors applied to the image: (sx, sy).
         Default: 1., 1.""")
+    parser.add_argument(
+        '-l', '--log', action="store_true",
+        help="Use logarithm normalization for colormap, default: Linear.")
     parser.add_argument('filename', help='EDF filename of the image to open')
     args = parser.parse_args(args=argv)
 
@@ -890,6 +897,11 @@ def main(argv=None):
 
     mainWindow = ImageViewMainWindow()
     mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
+
+    if args.log:  # Use log normalization by default
+        colormap = mainWindow.getDefaultColormap()
+        colormap['normalization'] = 'log'
+        mainWindow.setColormap(colormap)
 
     mainWindow.setImage(edfFile.GetData(0),
                         origin=args.origin,
