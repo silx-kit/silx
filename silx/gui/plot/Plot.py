@@ -177,8 +177,11 @@ It provides the following keys:
 - 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
 - 'legend': The legend of the primitive changed.
 
-A 'activeCurveChanged' event with a 'legend' key (str or None) is triggered
-when active curve changes.
+A 'activeCurveChanged' event with a 'legend' and a 'previous' keys
+(str or None) is triggered when active curve has changed.
+
+A 'activeImageChanged' event with a 'legend' and a 'previous' keys
+(str or None) is triggered when active image has changed.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -549,6 +552,9 @@ class Plot(object):
             'handle': handle, 'x': x, 'y': y, 'params': params
         }
 
+        self.notify(
+            'contentChanged', action='add', kind='curve', legend=legend)
+
         if len(self._curves) == 1 or wasActive:
             self.setActiveCurve(legend)
 
@@ -557,9 +563,6 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-
-        self.notify(
-            'contentChanged', action='add', kind='curve', legend=legend)
 
         return legend
 
@@ -690,6 +693,9 @@ class Plot(object):
             if params[key] is None:
                 params[key] = defaults[key]
 
+        # Check if curve is previously active
+        wasActive = self.getActiveImage(just_legend=True) == legend
+
         # Add: replace, filter data, add
 
         if replace:
@@ -733,17 +739,17 @@ class Plot(object):
             'params': params
         }
 
-        if len(self._images) == 1:
+        if len(self._images) == 1 or wasActive:
             self.setActiveImage(legend)
+
+        self.notify(
+            'contentChanged', action='add', kind='image', legend=legend)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-
-        self.notify(
-            'contentChanged', action='add', kind='image', legend=legend)
 
         return legend
 
@@ -1132,6 +1138,10 @@ class Plot(object):
 
                 elif aKind == 'image':
                     if legend in self._images:
+                        if self.getActiveImage(just_legend=True) == legend:
+                            # Reset active image
+                            self.setActiveImage(None)
+
                         handle = self._images[legend]['handle']
                         if handle is not None:
                             self._backend.remove(handle)
@@ -1462,6 +1472,8 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
+        oldActiveImageLegend = self.getActiveImage(just_legend=True)
+
         if legend is None:
             self._activeImage = None
         else:
@@ -1472,6 +1484,11 @@ class Plot(object):
                 self._activeImage = None
             else:
                 self._activeImage = legend
+
+        if oldActiveImageLegend != self._activeImage:
+            self.notify('activeImageChanged',
+                        previous=oldActiveImageLegend,
+                        legend=self._activeImage)
 
         return self._activeImage
 

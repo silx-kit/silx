@@ -110,6 +110,15 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     - legend: The legend of the new active curve or None if no curve is active
     """
 
+    sigActiveImageChanged = qt.Signal(object, object)
+    """Signal emitted when the active image has changed.
+
+    It provides 2 informations:
+
+    - previous: The legend of the previous active image or None
+    - legend: The legend of the new active image or None if no image is active
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, autoreplot=True, **kw):
 
@@ -165,6 +174,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         elif event == 'activeCurveChanged':
             self.sigActiveCurveChanged.emit(
                 kwargs['previous'], kwargs['legend'])
+        elif event == 'activeImageChanged':
+            self.sigActiveImageChanged.emit(
+                kwargs['previous'], kwargs['legend'])
         Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys
@@ -219,11 +231,11 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             qapp = qt.QApplication.instance()
             event = qt.QMouseEvent(
                 qt.QEvent.MouseMove,
-                self.centralWidget().mapFromGlobal(qt.QCursor.pos()),
+                self.getWidgetHandle().mapFromGlobal(qt.QCursor.pos()),
                 qt.Qt.NoButton,
                 qapp.mouseButtons(),
                 qapp.keyboardModifiers())
-            qapp.sendEvent(self.centralWidget(), event)
+            qapp.sendEvent(self.getWidgetHandle(), event)
 
         else:
             # Only call base class implementation when key is not handled.
