@@ -347,9 +347,18 @@ class ProfileToolBar(qt.QToolBar):
         if profileWindow is None:
             # Import here to avoid cyclic import
             from .PlotWindow import PlotWindow
-            self.profileWindow = PlotWindow()
+            self.profileWindow = PlotWindow(parent=None, backend=None,
+                                            resetzoom=True, autoScale=True,
+                                            logScale=True, grid=True,
+                                            curveStyle=True, colormap=False,
+                                            aspectRatio=False, yInverted=False,
+                                            copy=True, save=True, print_=True,
+                                            control=False, position=True,
+                                            autoreplot=True)
+            self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
+            self._ownProfileWindow = False
 
         # Actions
         self.browseAction = qt.QAction(
@@ -750,4 +759,24 @@ class ProfileToolBar(qt.QToolBar):
                                 shape='polygon', fill=True,
                                 replace=False)
 
-        self.profileWindow.show()
+        if self._ownProfileWindow and not self.profileWindow.isVisible():
+            # If profile window was created in this widget,
+            # it tries to avoid overlapping this widget when shown
+            winGeom = self.window().frameGeometry()
+            qapp = qt.QApplication.instance()
+            screenGeom = qapp.desktop().availableGeometry(self)
+
+            spaceOnLeftSide = winGeom.left()
+            spaceOnRightSide = screenGeom.width() - winGeom.right()
+
+            profileWindowWidth = self.profileWindow.frameGeometry().width()
+            if (profileWindowWidth < spaceOnRightSide or
+                    spaceOnRightSide > spaceOnLeftSide):
+                # Place profile on the right
+                self.profileWindow.move(winGeom.right(), winGeom.top())
+            else:
+                # Not enough place on the right, place profile on the left
+                self.profileWindow.move(
+                    max(0, winGeom.left() - profileWindowWidth), winGeom.top())
+
+            self.profileWindow.show()
