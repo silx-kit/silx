@@ -101,45 +101,21 @@ class TestPlotWidget(_PlotWidgetTest):
             if expectedRatio is not None:
                 self.assertTrue(numpy.allclose(expectedRatio, ratio))
 
-        def getRatio():
-            xlim = self.plot.getGraphXLimits()
-            ylim = self.plot.getGraphYLimits()
-            ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
-            return ratio
-
         self.plot.setKeepDataAspectRatio()
         self.qapp.processEvents()
-        defaultRatio = getRatio()
-        print('origin',
-              self.plot.getGraphXLimits(),
-              self.plot.getGraphYLimits(),
-              getRatio())
+        xlim = self.plot.getGraphXLimits()
+        ylim = self.plot.getGraphYLimits()
+        defaultRatio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
 
         self.plot.setGraphXLimits(1., 10.)
         checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
-        print('1',
-              self.plot.getGraphXLimits(),
-              self.plot.getGraphYLimits(),
-              getRatio())
         self.qapp.processEvents()
         checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
-        print('1 draw',
-              self.plot.getGraphXLimits(),
-              self.plot.getGraphYLimits(),
-              getRatio())
 
         self.plot.setGraphYLimits(1., 10.)
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
-        print('2',
-              self.plot.getGraphXLimits(),
-              self.plot.getGraphYLimits(),
-              getRatio())
         self.qapp.processEvents()
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
-        print('2 draw',
-              self.plot.getGraphXLimits(),
-              self.plot.getGraphYLimits(),
-              getRatio())
 
 
 class TestPlotImage(_PlotWidgetTest):
