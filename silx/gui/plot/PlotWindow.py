@@ -184,10 +184,7 @@ class PlotWindow(PlotWidget):
 
                 toolBar.addWidget(self.positionWidget)
 
-        self._toolBar = self.toolBar(parent=self)
-        self.addToolBar(self._toolBar)
-        self._menu = self.menu()
-        self.menuBar().addMenu(self._menu)
+        self.addToolBar(self.toolBar())
 
         self._dockWidgets = []
 
@@ -238,10 +235,11 @@ class PlotWindow(PlotWidget):
         :param str title: The title of the QMenu
         :param parent: See :class:`QToolBar`
         """
-        toolbar = qt.QToolBar(title, parent)
-        for action in self.group.actions():
-            toolbar.addAction(action)
-        return toolbar
+        if not hasattr(self, '_toolbar'):
+            self._toolbar = qt.QToolBar(title, parent)
+            for action in self.group.actions():
+                self._toolbar.addAction(action)
+        return self._toolbar
 
     def menu(self, title='Plot', parent=None):
         """Return a QMenu from the QAction of the PlotWindow.
