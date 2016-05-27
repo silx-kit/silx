@@ -76,5 +76,5 @@ See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
-.. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/82p2fyqrfi02ns6h/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/t20100/silx-a9i87
+.. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/mc7r6xwsgpbcdvgr/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/kif/silx
