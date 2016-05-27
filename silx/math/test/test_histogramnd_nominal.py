@@ -174,7 +174,9 @@ class _TestHistogramnd_nominal(unittest.TestCase):
 
         expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
 
-        cumul_in = np.zeros(self.n_bins, dtype=np.double)
+        # creating an array of ones just to make sure that
+        # it is not cleared by histogramnd
+        cumul_in = np.ones(self.n_bins, dtype=np.double)
 
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
 
@@ -187,8 +189,8 @@ class _TestHistogramnd_nominal(unittest.TestCase):
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(cumul is None)
         self.assertTrue(np.array_equal(cumul_in,
-                                       np.zeros(shape=self.n_bins,
-                                                dtype=np.double)))
+                                       np.ones(shape=self.n_bins,
+                                               dtype=np.double)))
 
     def test_nominal_wo_weights_w_histo(self):
         """
