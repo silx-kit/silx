@@ -43,6 +43,14 @@ import sys
 import time
 import unittest
 
+
+logging.basicConfig(level=logging.WARNING)
+logger = logging.getLogger("run_tests")
+logger.setLevel(logging.WARNING)
+
+logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
+
+
 try:
     import resource
 except ImportError:
@@ -55,13 +63,6 @@ except:
     importer = __import__
 else:
     importer = importlib.import_module
-
-
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("run_tests")
-logger.setLevel(logging.WARNING)
-
-logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
 
 
 try:
