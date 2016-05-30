@@ -34,6 +34,7 @@ from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
+from .testPlotWindow import suite as testPlotWindowSuite
 from .testPlot import suite as testPlotSuite
 
 
@@ -44,5 +45,6 @@ def suite():
     test_suite.addTest(testLegendSelectorSuite())
     test_suite.addTest(testPlotToolsSuite())
     test_suite.addTest(testPlotWidgetSuite())
+    test_suite.addTest(testPlotWindowSuite())
     test_suite.addTest(testPlotSuite())
     return test_suite

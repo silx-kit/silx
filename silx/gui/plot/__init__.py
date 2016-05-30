@@ -44,4 +44,6 @@ __date__ = "22/02/2016"
 
 
 from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow  # noqa
+from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
+
+__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']
