@@ -111,7 +111,7 @@ class RadarView(qt.QGraphicsView):
     _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
     _VISIBLE_PEN = qt.QPen(qt.QColor('red'))
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
-    _TOOLTIP = 'Radar View:\nVisible area (in red)\nof the image (in gray).'
+    _TOOLTIP = 'Radar View:\nRed contour: Visible area\nGray area: The image'
 
     _PIXMAP_SIZE = 256
 
@@ -294,9 +294,6 @@ class ImageView(PlotWindow):
 
         # Sync PlotBackend and ImageView
         self._updateYAxisInverted()
-
-        # Set-up focus proxy to handle arrow key event
-        #self.setFocusProxy(self._imagePlot)
 
     def _initWidgets(self, backend):
         """Set-up layout and plots."""
