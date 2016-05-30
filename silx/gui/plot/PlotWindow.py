@@ -326,17 +326,19 @@ class Plot1D(PlotWindow):
     :param str title: The title of the Plot widget
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
+    :param parent: The parent of this widget
     """
 
-    def __init__(self, x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
-        super(Plot1D, self).__init__(parent=None, backend=None,
+    def __init__(self, x_or_y=None, y=None, title='', xlabel='X', ylabel='Y',
+                 parent=None, _autoreplot=True):
+        super(Plot1D, self).__init__(parent=parent, backend=None,
                                      resetzoom=True, autoScale=True,
                                      logScale=True, grid=True,
                                      curveStyle=True, colormap=False,
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
-                                     autoreplot=True)
+                                     autoreplot=_autoreplot)
         self.setGraphTitle(title)
         self.setGraphXLabel(xlabel)
         self.setGraphYLabel(ylabel)
@@ -393,6 +395,7 @@ class Plot2D(PlotWindow):
     :param str title: The title of the Plot widget
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
+    :param parent: The parent of this widget
     """
 
     def __init__(self, data=None, cmap=None, norm='linear',
@@ -400,8 +403,8 @@ class Plot2D(PlotWindow):
                  aspect=False,
                  origin=(0., 0.), scale=(1., 1.),
                  title='', xlabel='X', ylabel='Y',
-                 _autoreplot=True):
-        super(Plot2D, self).__init__(parent=None, backend=None,
+                 parent=None, _autoreplot=True):
+        super(Plot2D, self).__init__(parent=parent, backend=None,
                                      resetzoom=True, autoScale=False,
                                      logScale=False, grid=False,
                                      curveStyle=False, colormap=True,

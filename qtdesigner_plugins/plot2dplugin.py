@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""silx.gui.plot PlotWindow Qt designer plugin."""
+"""silx.gui.plot Plot2D Qt designer plugin."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -39,13 +39,13 @@ elif qt.BINDING == 'PyQt5':
 else:
     raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)
 
-from silx.gui.plot import PlotWindow
+from silx.gui.plot import Plot2D
 
 
-class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
+class Plot2DPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
 
     def __init__(self, parent=None):
-        super(PlotWindowPlugin, self).__init__(parent)
+        super(Plot2DPlugin, self).__init__(parent)
         self.initialized = False
 
     def initialize(self, core):
@@ -58,16 +58,16 @@ class PlotWindowPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        return PlotWindow(parent, autoreplot=False)
+        return Plot2D(parent=parent, _autoreplot=False)
 
     def name(self):
-        return "PlotWindow"
+        return "Plot2D"
 
     def group(self):
         return "silx"
 
     def icon(self):
-        return icons.getQIcon('plot-window')
+        return icons.getQIcon('plot-window-image')
 
     def toolTip(self):
         return ""
