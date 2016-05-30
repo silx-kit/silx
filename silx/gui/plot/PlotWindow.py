@@ -359,10 +359,18 @@ class Plot1D(PlotWindow):
             y = y.reshape(-1, y.shape[-1])  # Make it 2D array
 
             if x_or_y.ndim == 1:
-                x_or_y = x_or_y[None, :]
+                for index, ycurve in enumerate(y):
+                    self.addCurve(x_or_y, ycurve, legend=('curve_%d' % index))
 
-            for xcurve, ycurve in zip(x_or_y, y):
-                self.addCurve(xcurve, ycurve)
+            else:
+                # Make x a 2D array as well
+                x_or_y = x_or_y.reshape(-1, x_or_y.shape[-1])
+                if x_or_y.shape[0] != y.shape[0]:
+                    raise ValueError(
+                        'Not the same dimensions for x and y (%d != %d)' %
+                        (x_or_y.shape[0], y.shape[0]))
+                for index, (xcurve, ycurve) in enumerate(zip(x_or_y, y)):
+                    self.addCurve(xcurve, ycurve, legend=('curve_%d' % index))
 
         self.show()
 
