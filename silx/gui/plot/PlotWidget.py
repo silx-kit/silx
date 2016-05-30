@@ -121,7 +121,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         if callback:
             _logger.warning('deprecated: __init__ callback argument')
 
-        self._panWithArrowKeys = False
+        self._panWithArrowKeys = True
 
         qt.QMainWindow.__init__(self, parent)
         if parent is not None:
