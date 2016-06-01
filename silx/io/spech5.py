@@ -514,7 +514,7 @@ def spec_date_to_iso8601(date, zone=None):
         >>> spec_date_to_iso8601("Sat 2015/03/14 03:53:50")
         '2015-03-14T03:53:50'
     """
-    months = ['Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul',
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul',
               'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
