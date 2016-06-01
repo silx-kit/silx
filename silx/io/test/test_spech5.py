@@ -28,8 +28,11 @@ import os
 import sys
 import tempfile
 import unittest
+import datetime
+from functools import partial
 
-from ..spech5 import SpecH5, SpecH5Group, SpecH5Dataset
+from ..spech5 import (SpecH5, SpecH5Group,
+                      SpecH5Dataset, spec_date_to_iso8601)
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -91,6 +94,98 @@ sftext = """#F /tmp/sf.dat
 @A 4 3 2
 @A 1 1 1
 """
+
+
+class Test_spec_date(unittest.TestCase):
+    """
+    Test of the spec_date_to_iso8601 function.
+    """
+    # TODO : time zone tests
+    # TODO : error cases
+
+    @classmethod
+    def setUpClass(cls):
+        import locale
+        # FYI : not threadsafe
+        cls.locale_saved = locale.setlocale(locale.LC_TIME)
+        locale.setlocale(locale.LC_TIME, 'C')
+
+    @classmethod
+    def tearDownClass(cls):
+        import locale
+        # FYI : not threadsafe
+        locale.setlocale(locale.LC_TIME, cls.locale_saved)
+
+    def setUp(self):
+        # covering all week days
+        self.n_days = range(1, 10)
+        # covering all months
+        self.n_months = range(1, 13)
+
+        self.n_years = [1999, 2016, 2020]
+        self.n_seconds = [0, 5, 26, 59]
+        self.n_minutes = [0, 9, 42, 59]
+        self.n_hours = [0, 2, 17, 23]
+
+        self.formats = ['%a %b %d %H:%M:%S %Y', '%a %Y/%m/%d %H:%M:%S']
+
+        self.check_date_formats = partial(self.__check_date_formats,
+                                          year=self.n_years[0],
+                                          month=self.n_months[0],
+                                          day=self.n_days[0],
+                                          hour=self.n_hours[0],
+                                          minute=self.n_minutes[0],
+                                          second=self.n_seconds[0],
+                                          msg=None)
+
+    def __check_date_formats(self,
+                             year,
+                             month,
+                             day,
+                             hour,
+                             minute,
+                             second,
+                             msg=None):
+        dt = datetime.datetime(year, month, day, hour, minute, second)
+        expected_date = dt.isoformat()
+
+        for i_fmt, fmt in enumerate(self.formats):
+            spec_date = dt.strftime(fmt)
+            iso_date = spec_date_to_iso8601(spec_date)
+            self.assertEqual(iso_date,
+                             expected_date,
+                             msg='Testing {0}. format={1}. '
+                                 'Expected "{2}", got "{3} ({4})" (dt={5}).'
+                                 ''.format(msg,
+                                           i_fmt,
+                                           expected_date,
+                                           iso_date,
+                                           spec_date,
+                                           dt))
+
+    def test_years_nominal(self):
+        for year in self.n_years:
+            self.check_date_formats(year=year, msg='year')
+
+    def test_months_nominal(self):
+        for month in self.n_months:
+            self.check_date_formats(month=month, msg='month')
+
+    def test_days_nominal(self):
+        for day in self.n_days:
+            self.check_date_formats(day=day, msg='day')
+
+    def test_hours_nominal(self):
+        for hour in self.n_hours:
+            self.check_date_formats(hour=hour, msg='hour')
+
+    def test_minutes_nominal(self):
+        for minute in self.n_minutes:
+            self.check_date_formats(minute=minute, msg='minute')
+
+    def test_seconds_nominal(self):
+        for second in self.n_seconds:
+            self.check_date_formats(second=second, msg='second')
 
 
 class TestSpecH5(unittest.TestCase):
@@ -283,6 +378,8 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(Test_spec_date))
     return test_suite
 
 
