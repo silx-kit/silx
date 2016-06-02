@@ -34,6 +34,7 @@ __date__ = "07/03/2016"
 
 import collections
 import logging
+import sys
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
@@ -286,6 +287,11 @@ class PlotWindow(PlotWidget):
                                   dock_widget)
 
 
+def _python_is_console():
+    """True if Python is running in console mode"""
+    return hasattr(sys, 'ps1')
+
+
 class Plot1D(PlotWindow):
     """Widget plotting curves.
 
@@ -372,7 +378,8 @@ class Plot1D(PlotWindow):
                 for index, (xcurve, ycurve) in enumerate(zip(x_or_y, y)):
                     self.addCurve(xcurve, ycurve, legend=('curve_%d' % index))
 
-        self.show()
+        if _python_is_console():
+            self.show()
 
 
 class Plot2D(PlotWindow):
@@ -443,4 +450,5 @@ class Plot2D(PlotWindow):
         if data is not None:
             self.addImage(data, origin=origin, scale=scale)
 
-        self.show()
+        if _python_is_console():
+            self.show()
