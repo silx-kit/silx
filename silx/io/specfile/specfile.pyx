@@ -62,7 +62,7 @@ It is also possible to browse through all scans using :class:`SpecFile` as
 an iterator::
 
     for scan in sf:
-        print(scan.scan_header['S'])
+        print(scan.scan_header_dict['S'])
 
 MCA spectra can be selectively loaded using an instance of :class:`MCA`
 provided by :class:`Scan`::
@@ -93,7 +93,7 @@ import re
 import sys
 
 logging.basicConfig()
-logger1 = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 cimport numpy
 cimport cython
@@ -309,10 +309,6 @@ class Scan(object):
 
         self._header = self._file_header_lines + self._scan_header_lines
 
-        self._labels = None
-        if self.record_exists_in_hdr('L'):
-            self._labels = self._specfile.labels(self._index)
-
         self._scan_header_dict = {}
         self._mca_header_dict = {}
         for line in self._scan_header_lines:
@@ -328,7 +324,18 @@ class Scan(object):
                 _add_or_concatenate(self._mca_header_dict, hkey, hvalue)
             else:
                 # this shouldn't happen
-                logger1.warning("Unable to parse scan header line " + line)
+                _logger.warning("Unable to parse scan header line " + line)
+
+        self._labels = None
+        if self.record_exists_in_hdr('L'):
+            try:
+                self._labels = self._specfile.labels(self._index)
+            except IndexError:
+                # SpecFile.labels raises an IndexError when encountering
+                # a Scan with no data, even if the header exists.
+                L_header = re.sub(r" {2,}", "  ",             # max. 2 spaces
+                                  self._scan_header_dict["L"])
+                self._labels = L_header.split("  ")
 
 
         self._file_header_dict = {}
@@ -340,7 +347,7 @@ class Scan(object):
                 hvalue = match.group(2).strip()
                 _add_or_concatenate(self._file_header_dict, hkey, hvalue)
             else:
-                logger1.warning("Unable to parse file header line " + line)
+                _logger.warning("Unable to parse file header line " + line)
 
         self._motor_names = self._specfile.motor_names(self._index)
         self._motor_positions = self._specfile.motor_positions(self._index)
@@ -427,7 +434,23 @@ class Scan(object):
         (e.g. data.shape).
         """
         if self._data is None:
-            self._data = self._specfile.data(self._index)
+            if ('C' in self._scan_header_dict and
+                "aborted after 0 points" in self._scan_header_dict["C"]):
+                # SpecFile.data() causes a segmentation fault on empty scans
+                self._data = numpy.array([])
+            else:
+                self._data = self._specfile.data(self._index)
+
+            # # alternative way of preventing segfault
+            # try:
+            #     self._specfile.data_column_by_name(self._index,
+            #                                        self._labels[0])
+            # except IndexError:
+            #     # data_column_by_name raises IndexError when data is missing
+            #     self._data = numpy.array([])
+            # else:
+            #     self._data = self._specfile.data(self._index)
+
         return self._data
 
     @property
@@ -566,7 +589,7 @@ cdef class SpecFile(object):
         #SfClose makes a segmentation fault if file failed to open
         if not self.__open_failed:            
             if SfClose(self.handle):
-                logger1.warning("Error while closing SpecFile")
+                _logger.warning("Error while closing SpecFile")
                                         
     def __len__(self):
         """Return the number of scans in the SpecFile
@@ -1153,7 +1176,6 @@ cdef class SpecFile(object):
 
         free(mca_calib)
         return mca_calib_list
-
 
     def get_mca(self, scan_index, mca_index):
         """get_mca(scan_index, mca_index)
