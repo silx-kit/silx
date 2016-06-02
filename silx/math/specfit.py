@@ -37,6 +37,8 @@ from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
 from PyMca5.PyMcaCore import EventHandler
 
+#from .fit import curve_fit
+
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/05/2016"
@@ -50,17 +52,30 @@ class Specfit():
 
     """
 
-    def __init__(self, x=None, y=None, sigmay=None, weight_flag=0, mca_mode=0, auto_fwhm=0, fwhm_points=8,
+    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=0, fwhm_points=8,
                  auto_scaling=0, yscaling=1.0, sensitivity=2.5,
                  residuals_flag=0, event_handler=None):
+        """
+
+        :param x: The independent variable where the data is measured.
+        :param y: The dependent data --- nominally f(xdata, ...).
+        :param sigmay: The uncertainties in the ``y`` array. These are used as
+            weights in the least-squares problem.
+            If ``None``, the uncertainties are assumed to be 1
+        :param auto_fwhm:
+        :param fwhm_points:
+        :param auto_scaling:
+        :param yscaling:
+        :param sensitivity:
+        :param residuals_flag:
+        :param event_handler:
+        """
         self.fitconfig = {}
         self.filterlist = []
         self.filterdict = {}
         self.theorydict = OrderedDict()
         self.dataupdate = None             # FIXME: this seems unused. Document it if it is to be kept as a public attribute
 
-        self.fitconfig['WeightFlag'] = weight_flag
-        self.fitconfig['McaMode'] = mca_mode
         self.fitconfig['AutoFwhm'] = auto_fwhm
         self.fitconfig['FwhmPoints'] = fwhm_points
         self.fitconfig['AutoScaling'] = auto_scaling
@@ -90,54 +105,36 @@ class Specfit():
         self.bkg_internal_oldbkg = numpy.array([])
         self.fitconfig['fittheory'] = None
 
-        self.xdata0 = numpy.array([], numpy.float)
-        self.ydata0 = numpy.array([], numpy.float)
-        self.sigmay0 = numpy.array([], numpy.float)
-        self.xdata = numpy.array([], numpy.float)
-        self.ydata = numpy.array([], numpy.float)
-        self.sigmay = numpy.array([], numpy.float)
-        if y is not None:  # TODO: remove y parameter from init, force user explicit call to setdata?
-            self.setdata(x, y, sigmay)
+        self.setdata(x, y, sigmay)
 
-    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        self.ydata0 = numpy.array(y)
-        self.ydata = numpy.array(y)
+    def setdata(self, x, y, sigmay=None):
+        if y is None:
+            self.xdata0 = numpy.array([], numpy.float)
+            self.ydata0 = numpy.array([], numpy.float)
+            self.sigmay0 = numpy.array([], numpy.float)
+            self.xdata = numpy.array([], numpy.float)
+            self.ydata = numpy.array([], numpy.float)
+            self.sigmay = numpy.array([], numpy.float)
 
-        if x is None:
-            self.xdata0 = numpy.arange(len(self.ydata0))
-            self.xdata = numpy.arange(len(self.ydata0))
         else:
-            self.xdata0 = numpy.array(x)
-            self.xdata = numpy.array(x)
+            self.ydata0 = numpy.array(y)
+            self.ydata = numpy.array(y)
+            if x is None:
+                self.xdata0 = numpy.arange(len(self.ydata0))
+                self.xdata = numpy.arange(len(self.ydata0))
+            else:
+                self.xdata0 = numpy.array(x)
+                self.xdata = numpy.array(x)
 
-        if sigmay is None:
-            dummy = numpy.sqrt(abs(self.ydata0))
-            self.sigmay0 = numpy.reshape(
-                dummy + numpy.equal(dummy, 0), self.ydata0.shape)
-            self.sigmay = numpy.reshape(
-                dummy + numpy.equal(dummy, 0), self.ydata0.shape)
-        else:
-            self.sigmay0 = numpy.array(sigmay)
-            self.sigmay = numpy.array(sigmay)
-
-        if xmin is None:
-            xmin = min(self.xdata)
-
-        if xmax is None:
-            xmax = max(self.xdata)
-
-        if len(self.xdata):
-            # sort the data
-            i1 = numpy.argsort(self.xdata)
-            self.xdata = numpy.take(self.xdata, i1)
-            self.ydata = numpy.take(self.ydata, i1)
-            self.sigmay = numpy.take(self.sigmay, i1)
-
-            # take the data between limits
-            i1 = numpy.nonzero((self.xdata >= xmin) & (self.xdata <= xmax))[0]
-            self.xdata = numpy.take(self.xdata, i1)
-            self.ydata = numpy.take(self.ydata, i1)
-            self.sigmay = numpy.take(self.sigmay, i1)
+            if sigmay is None:
+                dummy = numpy.sqrt(abs(self.ydata0))
+                self.sigmay0 = numpy.reshape(
+                    dummy + numpy.equal(dummy, 0), self.ydata0.shape)
+                self.sigmay = numpy.reshape(
+                    dummy + numpy.equal(dummy, 0), self.ydata0.shape)
+            else:
+                self.sigmay0 = numpy.array(sigmay)
+                self.sigmay = numpy.array(sigmay)
 
     def filter(self, xwork=None, ywork=None, sigmaywork=None):
         # FIXME: could not find any usage of this method. Return status to be removed?
@@ -468,30 +465,26 @@ class Specfit():
             param_constrains[1].append(param['cons1'])
             param_constrains[2].append(param['cons2'])
 
-        data = []
-        i = 0
-        ywork = self.ydata * 1.0
+        ywork = self.ydata
 
         if self.fitconfig['fitbkg'] == "Square Filter":
             ywork = self.squarefilter(
                 self.ydata, self.paramlist[0]['estimation'])
 
-        for xval in self.xdata:
-            if self.sigmay is None:
-                data.append([xval, ywork[i]])
-            else:
-                data.append([xval, ywork[i],
-                             self.sigmay[i]])
-            i += 1
 
         constrains = None if param['code'] in ['FREE', 0, 0.0] else \
             param_constrains
 
-        # TODO: should we replace LeastSquaresFit with silx.math.fit.curve_fit
-        found = LeastSquaresFit(self.fitfunction, param_val, data,
+        # TODO: - replace LeastSquaresFit with silx.math.fit.curve_fit
+        found = LeastSquaresFit(self.fitfunction, param_val,
+                                xdata=self.xdata,
+                                ydata=ywork,
                                 constrains=constrains,
-                                weightflag=self.fitconfig['WeightFlag'],
                                 model_deriv=self.modelderiv)
+        # found = curve_fit(self.fitfunction, self.xdata, ywork, param_val,
+        #                   constraints=constrains,
+        #                   model_deriv=self.modelderiv)
+
         for i, param in enumerate(self.paramlist):
             if param['code'] != 'IGNORE':
                 param['fitresult'] = found[0][i]
