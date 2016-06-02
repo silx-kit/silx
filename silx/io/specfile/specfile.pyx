@@ -434,22 +434,7 @@ class Scan(object):
         (e.g. data.shape).
         """
         if self._data is None:
-            if ('C' in self._scan_header_dict and
-                "aborted after 0 points" in self._scan_header_dict["C"]):
-                # SpecFile.data() causes a segmentation fault on empty scans
-                self._data = numpy.array([])
-            else:
-                self._data = self._specfile.data(self._index)
-
-            # # alternative way of preventing segfault
-            # try:
-            #     self._specfile.data_column_by_name(self._index,
-            #                                        self._labels[0])
-            # except IndexError:
-            #     # data_column_by_name raises IndexError when data is missing
-            #     self._data = numpy.array([])
-            # else:
-            #     self._data = self._specfile.data(self._index)
+            self._data = self._specfile.data(self._index)
 
         return self._data
 
@@ -820,9 +805,14 @@ cdef class SpecFile(object):
                               &error)
         self._handle_error(error)
 
-        nlines = data_info[0]
-        ncolumns = data_info[1]
-        regular = data_info[2]
+        if <long>data_info != 0:
+            nlines = data_info[0]
+            ncolumns = data_info[1]
+            regular = data_info[2]
+        else:
+            nlines = 0
+            ncolumns = 0
+            regular = 0
 
         cdef numpy.ndarray ret_array = numpy.empty((nlines, ncolumns),
                                                    dtype=numpy.double)
