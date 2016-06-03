@@ -35,13 +35,22 @@ import sys
 import PyMca5
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
+def curve_fit(model, xdata, ydata, p0, sigma=None,
+              constraints=None, model_deriv=None):
+    return LeastSquaresFit(model, p0,
+                           xdata=xdata,
+                           ydata=ydata,
+                           sigmadata=sigma,
+                           constrains=constraints,
+                           model_deriv=model_deriv
+                           )
+#from .fit import curve_fit
 from PyMca5.PyMcaCore import EventHandler
 
-#from .fit import curve_fit
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/05/2016"
+__date__ = "03/06/2016"
 
 _logger = logging.getLogger(__name__)
 
@@ -54,7 +63,7 @@ class Specfit():
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=0, fwhm_points=8,
                  auto_scaling=0, yscaling=1.0, sensitivity=2.5,
-                 residuals_flag=0, event_handler=None):
+                 residuals_flag=0, mca_mode=0, event_handler=None):
         """
 
         :param x: The independent variable where the data is measured.
@@ -74,7 +83,7 @@ class Specfit():
         self.filterlist = []
         self.filterdict = {}
         self.theorydict = OrderedDict()
-        self.dataupdate = None             # FIXME: this seems unused. Document it if it is to be kept as a public attribute
+        self.dataupdate = None      # FIXME: this seems to be unused. Document or remove it
 
         self.fitconfig['AutoFwhm'] = auto_fwhm
         self.fitconfig['FwhmPoints'] = fwhm_points
@@ -82,6 +91,7 @@ class Specfit():
         self.fitconfig['Yscaling'] = yscaling
         self.fitconfig['Sensitivity'] = sensitivity
         self.fitconfig['ResidualsFlag'] = residuals_flag
+        self.fitconfig['McaMode'] = mca_mode
 
         if event_handler is not None:
             self.eh = event_handler
@@ -107,7 +117,7 @@ class Specfit():
 
         self.setdata(x, y, sigmay)
 
-    def setdata(self, x, y, sigmay=None):
+    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         if y is None:
             self.xdata0 = numpy.array([], numpy.float)
             self.ydata0 = numpy.array([], numpy.float)
@@ -135,6 +145,15 @@ class Specfit():
             else:
                 self.sigmay0 = numpy.array(sigmay)
                 self.sigmay = numpy.array(sigmay)
+
+            # take the data between limits, using boolean array indexing
+            if (xmin is not None or xmax is not None) and len(self.xdata):
+                xmin = xmin if xmin is not None else min(self.xdata)
+                xmax = xmax if xmax is not None else max(self.xdata)
+                bool_array = (self.xdata >= xmin) & (self.xdata <= xmax)
+                self.xdata = self.xdata[bool_array]
+                self.ydata = self.ydata[bool_array]
+                self.sigmay = self.sigmay[bool_array]
 
     def filter(self, xwork=None, ywork=None, sigmaywork=None):
         # FIXME: could not find any usage of this method. Return status to be removed?
@@ -259,10 +278,10 @@ class Specfit():
         u_term = numpy.zeros(numpy.shape(t), numpy.float)
         if niter > 0:
             for i in range(niter):
-                u_term =  u_term + \
+                u_term = u_term + \
                     self.theoryfun(
                         pars[(nb + i * nu):(nb + (i + 1) * nu)], t)
-        if (nb > 0):
+        if nb > 0:
             result = self.bkgfun(pars[0:nb], t) + u_term
         else:
             result = u_term
@@ -306,7 +325,7 @@ class Specfit():
         bkg_esti_constrains = esti_bkg[1]
         try:
             zz = numpy.array(esti_bkg[2])
-        except:
+        except:   # FIXME
             zz = numpy.zeros(numpy.shape(yy), numpy.float)
         # added scaling support
         yscaling = 1.0
@@ -471,19 +490,14 @@ class Specfit():
             ywork = self.squarefilter(
                 self.ydata, self.paramlist[0]['estimation'])
 
-
         constrains = None if param['code'] in ['FREE', 0, 0.0] else \
             param_constrains
 
-        # TODO: - replace LeastSquaresFit with silx.math.fit.curve_fit
-        found = LeastSquaresFit(self.fitfunction, param_val,
-                                xdata=self.xdata,
-                                ydata=ywork,
-                                constrains=constrains,
-                                model_deriv=self.modelderiv)
-        # found = curve_fit(self.fitfunction, self.xdata, ywork, param_val,
-        #                   constraints=constrains,
-        #                   model_deriv=self.modelderiv)
+        # FIXME: model_deriv signature is currently model_deriv(parameters, index, x)
+        #        it needs to be model_deriv(xdata, parameters, index) when switching to silx.math.fit.curve_fit
+        found = curve_fit(self.fitfunction, self.xdata, ywork, param_val,
+                          constraints=constrains,
+                          model_deriv=self.modelderiv)
 
         for i, param in enumerate(self.paramlist):
             if param['code'] != 'IGNORE':
@@ -585,7 +599,6 @@ class Specfit():
         """
         Square filter Background
         """
-        #yy = self.squarefilter(self.ydata,pars[0])
         return pars[1] * numpy.ones(numpy.shape(x), numpy.float)
 
     def bkg_none(self, pars, x):
@@ -620,7 +633,7 @@ class Specfit():
             fwhm = self.fitconfig['FwhmPoints']
 
             # set an odd number
-            if (fwhm % 2):
+            if fwhm % 2:
                 fittedpar = [fwhm, 0.0]
             else:
                 fittedpar = [fwhm + 1, 0.0]
@@ -676,8 +689,8 @@ class Specfit():
         result.update(self.fitconfig)
         return result
 
-    def mcafit(self, x=None, y=None, sigmay=None, xmin=None, xmax=None,
-               yscaling=None, sensitivity=None, fwhm_points=None):
+    def mcafit(self, x=None, y=None, sigmay=None, yscaling=None,
+               sensitivity=None, fwhm_points=None):
 
         if y is None:
             y = self.ydata0
@@ -685,7 +698,7 @@ class Specfit():
         if x is None:
             x = numpy.arange(len(y)).astype(numpy.float)
 
-        self.setdata(x, y, sigmay, xmin, xmax)
+        self.setdata(x, y, sigmay)
 
         if yscaling is None:
             if self.fitconfig['AutoScaling']:
@@ -1116,7 +1129,7 @@ def test():
     fit.setdata(x=x, y=y)
     #fit.importfun(os.path.join(os.path.dirname(
     #    __file__), "SpecfitFunctions.py"))
-    fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)  # TODO: beurk
+    fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)  # FIXME: beurk
     fit.settheory('Gaussians')
     fit.setbackground('Constant')
     if 1:
