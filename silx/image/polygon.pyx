@@ -1,67 +1,140 @@
-#!/usr/bin/python
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ############################################################################*/
+"""This module provides functions related to polygon filling.
+
+The :class:`Polygon` class provides checking if a point is inside a polygon
+and a way to generate a mask of the polygon.
+
+The :func:`polygon_fill` function generates a mask from a set of points
+defining a polygon.
+
+The whole module uses the (row, col) (i.e., (y, x))) convention
+for 2D coordinates.
+"""
+
+__authors__ = ["Jérôme Kieffer", "T. Vincent"]
+__license__ = "MIT"
+__date__ = "03/06/2016"
+
 
 cimport cython
 import numpy
 cimport numpy
 from cython.parallel import prange
 
+
 cdef class Polygon(object):
+    """Define a polygon that provides inside check and mask generation.
+
+    :param vertices: corners of the polygon
+    :type vertices: Nx2 array of floats of (row, col)
+    """
+
     cdef float[:,:] vertices
     cdef int nvert
-    def __init__(self, vertices):
-        """
-        @param vertices: Nx2 array of floats
-        """
-        self.vertices = numpy.ascontiguousarray(vertices, dtype=numpy.float32)
-        self.nvert = vertices.shape[0]
 
-    def isInside(self, px, py, border_value=True):
-        return self.c_isInside(px, py, border_value)
+    def __init__(self, vertices):
+        self.vertices = numpy.ascontiguousarray(vertices, dtype=numpy.float32)
+        self.nvert = self.vertices.shape[0]
+
+    def isInside(self, row, col):
+        """isInside(self, row, col)
+
+        Check if (row, col) is inside or outside the polygon
+
+        :param float row:
+        :param float col:
+        :return: True if position is inside polygon, False otherwise
+        """
+        return self.c_isInside(row, col)
 
     @cython.cdivision(True)
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef bint c_isInside(self, float px, float py, bint border_value=True) nogil:
-        """
-        Pure C_Cython class implementation
-        """
-        cdef int counter, i
-        cdef float polypoint1x, polypoint1y, polypoint2x, polypoint2y, xinters
-        counter = 0
+    cdef bint c_isInside(self, float row, float col) nogil:
+        """Check if (row, col) is inside or outside the polygon
 
-        polypoint1x = self.vertices[self.nvert-1, 0]
-        polypoint1y = self.vertices[self.nvert-1, 1]
-        for i in range(self.nvert):
-            if (polypoint1x == px) and (polypoint1y == py):
-                return border_value
-            polypoint2x = self.vertices[i, 0]
-            polypoint2y = self.vertices[i, 1]
-            if (py > min(polypoint1y, polypoint2y)):
-                if (py <= max(polypoint1y, polypoint2y)):
-                    if (px <= max(polypoint1x, polypoint2x)):
-                        if (polypoint1y != polypoint2y):
-                            xinters = (py - polypoint1y) * (polypoint2x - polypoint1x) / (polypoint2y - polypoint1y) + polypoint1x
-                            if (polypoint1x == polypoint2x) or (px <= xinters):
-                                counter += 1
-            polypoint1x, polypoint1y = polypoint2x, polypoint2y
-        if counter % 2 == 0:
-            return False
-        else:
-            return True
+        Pure C_Cython class implementation.
+
+        :param float row:
+        :param float col:
+        :return: True if position is inside polygon, False otherwise
+        """
+        cdef int index, is_inside
+        cdef float pt1x, pt1y, pt2x, pt2y, xinters
+        is_inside = 0
+
+        pt1x = self.vertices[self.nvert-1, 1]
+        pt1y = self.vertices[self.nvert-1, 0]
+        for index in range(self.nvert):
+            pt2x = self.vertices[index, 1]
+            pt2y = self.vertices[index, 0]
+
+            if (((pt1y <= row and row < pt2y) or
+                    (pt2y <= row and row < pt1y)) and
+                    # Extra (optional) condition to avoid some computation
+                    (col <= pt1x or col <= pt2x)):
+                xinters = (row - pt1y) * (pt2x - pt1x) / (pt2y - pt1y) + pt1x
+                is_inside ^= col < xinters
+            pt1x, pt1y = pt2x, pt2y
+        return is_inside
 
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    def make_mask(self, int dx, int dy):
-        cdef numpy.ndarray[dtype=numpy.uint8_t,ndim=2] mask = numpy.empty((dx,dy),dtype=numpy.uint8)
-        cdef int i, j
-        for i in prange(dy, nogil=True):
-            for j in range(dx):
-                mask[i,j] = self.c_isInside(j,i)
+    def make_mask(self, int height, int width):
+        """make_mask(self, height, width)
+
+        Create a mask array representing the filled polygon
+
+        :param int height: Height of the mask array
+        :param int width: Width of the mask array
+        :return: 2D array (height, width)
+        """
+        # Possible optimization for fill mask:
+        # Only do it on the vertices ROI, not on the whole mask
+        # treat it line by line, see http://alienryderflex.com/polygon_fill/
+        cdef numpy.ndarray[dtype=numpy.uint8_t, ndim=2] mask = numpy.empty(
+            (height, width), dtype=numpy.uint8)
+        cdef int row, col
+
+        for row in prange(height, nogil=True):
+            for col in range(width):
+                mask[row, col] = self.c_isInside(row, col)
         return mask
 
 
-def make_vertices_np(nr, max_val=1024):
+def polygon_fill(vertices, shape):
+    """polygon_fill(vertices, shape)
+
+    Return a mask of boolean, True for pixels inside a polygon.
+
+    :param vertices: Strip of segments end points (row, column) or (y, x)
+    :type vertices: numpy.ndarray like container of dimension Nx2
+    :param shape: size of the mask as (height, width)
+    :type shape: 2-tuple of int
+    :return: Mask corresponding to the polygon
+    :rtype: numpy.ndarray of dimension shape
     """
-    Generates a set of vertices as nr-tuple of 2-tuple if integers
-    """
-    return numpy.random.randint(0, max_val, nr * 2).reshape((nr, 2)).astype(numpy.float32)
+    return Polygon(vertices).make_mask(shape[0], shape[1])
