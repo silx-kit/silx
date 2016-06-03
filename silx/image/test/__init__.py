@@ -28,10 +28,12 @@ __date__ = "09/05/2016"
 
 import unittest
 from . import test_bilinear
+from . import test_polygon
 
 
 def suite():
     """Test suite for module silx.image.test"""
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_bilinear.suite())
+    test_suite.addTest(test_polygon.suite())
     return test_suite
