@@ -47,12 +47,12 @@ Tools for reading and writing HDF5 files depend on the following package:
 Linux instructions
 ==================
 
-If NumPy is not installed on your system, you need to install it first::
+If NumPy is not installed on your system, you need to install it first
+either with the package manager of your system (recommended way) or with pip::
 
     pip install numpy --user
 
-On Linux, we recommend you install *silx* in your home
-directory::
+On Linux, we recommend you install *silx* in your home directory::
 
     pip install silx --user
     
