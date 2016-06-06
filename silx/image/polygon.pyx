@@ -41,7 +41,6 @@ __date__ = "03/06/2016"
 
 cimport cython
 import numpy
-cimport numpy
 from cython.parallel import prange
 
 
@@ -115,14 +114,16 @@ cdef class Polygon(object):
         # Possible optimization for fill mask:
         # Only do it on the vertices ROI, not on the whole mask
         # treat it line by line, see http://alienryderflex.com/polygon_fill/
-        cdef numpy.ndarray[dtype=numpy.uint8_t, ndim=2] mask = numpy.empty(
-            (height, width), dtype=numpy.uint8)
+        cdef unsigned char[:, :] mask = numpy.empty((height, width),
+                                                    dtype=numpy.uint8)
         cdef int row, col
 
         for row in prange(height, nogil=True):
             for col in range(width):
                 mask[row, col] = self.c_isInside(row, col)
-        return mask
+
+        # Ensures the result is exported as numpy array and not memory view.
+        return numpy.asarray(mask)
 
 
 def polygon_fill(vertices, shape):
