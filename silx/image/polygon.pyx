@@ -112,14 +112,23 @@ cdef class Polygon(object):
         :return: 2D array (height, width)
         """
         # Possible optimization for fill mask:
-        # Only do it on the vertices ROI, not on the whole mask
         # treat it line by line, see http://alienryderflex.com/polygon_fill/
-        cdef unsigned char[:, :] mask = numpy.empty((height, width),
+        cdef unsigned char[:, :] mask = numpy.zeros((height, width),
                                                     dtype=numpy.uint8)
         cdef int row, col
+        cdef int row_min, row_max, col_min, col_max
+        cdef float[:] rows, cols
 
-        for row in prange(height, nogil=True):
-            for col in range(width):
+        rows = self.vertices[:, 0]
+        cols = self.vertices[:, 1]
+
+        row_min = max(int(min(rows)), 0)
+        row_max = min(int(max(rows)) + 1, height)
+        col_min = max(int(min(cols)), 0)
+        col_max = min(int(max(cols)) + 1, width)
+
+        for row in prange(row_min, row_max, nogil=True):
+            for col in range(col_min, col_max):
                 mask[row, col] = self.c_isInside(row, col)
 
         # Ensures the result is exported as numpy array and not memory view.
