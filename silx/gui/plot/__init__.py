@@ -36,6 +36,11 @@ List of Qt widgets:
 
 - :mod:`.PlotWidget`: A widget displaying a single plot.
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
+- :class:`Plot1D`: A widget with tools for curves.
+- :class:`Plot2D`: A widget with tools for images.
+
+- :func:`plot1D`: A function to plot curves from the (i)Python console.
+- :func:`plot2D`: A function to plot an image from the (i)Python console.
 """
 
 __authors__ = ["T. Vincent"]
@@ -44,6 +49,6 @@ __date__ = "22/02/2016"
 
 
 from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
+from .PlotWindow import PlotWindow, Plot1D, Plot2D, plot1D, plot2D  # noqa
 
-__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']
+__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'plot1D', 'plot2D']
