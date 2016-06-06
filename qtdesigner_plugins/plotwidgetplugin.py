@@ -58,7 +58,9 @@ class PlotWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        return PlotWidget(parent, autoreplot=False)
+        plot = PlotWidget(parent)
+        plot.setAutoReplot(False)
+        return plot
 
     def name(self):
         return "PlotWidget"

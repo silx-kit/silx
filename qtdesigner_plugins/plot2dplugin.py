@@ -58,7 +58,9 @@ class Plot2DPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        return Plot2D(parent=parent, _autoreplot=False)
+        plot = Plot2D(parent=parent)
+        plot.setAutoReplot(False)
+        return plot
 
     def name(self):
         return "Plot2D"

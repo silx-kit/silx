@@ -54,7 +54,6 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     :param backend: The backend to use for the plot.
                     The default is to use matplotlib.
     :type backend: str or :class:`BackendBase.BackendBase`
-    :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
     sigPlotSignal = qt.Signal(object)
@@ -111,7 +110,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     """
 
     def __init__(self, parent=None, backend=None,
-                 legends=False, callback=None, autoreplot=True, **kw):
+                 legends=False, callback=None, **kw):
 
         if kw:
             _logger.warning(
@@ -128,8 +127,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
 
-        Plot.Plot.__init__(
-            self, parent, backend=backend, autoreplot=autoreplot)
+        Plot.Plot.__init__(self, parent, backend=backend)
 
         widget = self.getWidgetHandle()
         if widget is not None:
