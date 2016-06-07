@@ -42,7 +42,6 @@ __date__ = "03/06/2016"
 cimport cython
 import numpy
 from libc.math cimport ceil
-from cython.parallel import prange
 
 
 cdef class Polygon(object):
@@ -122,7 +121,8 @@ cdef class Polygon(object):
         row_min = max(int(min(self.vertices[:, 0])), 0)
         row_max = min(int(max(self.vertices[:, 0])) + 1, height)
 
-        for row in prange(row_min, row_max, nogil=True):
+        # Can be replaced by prange(row_min, row_max, nogil=True)
+        for row in range(row_min, row_max):
             # For each line of the image, mark intersection of all segments
             # in the line and then run a xor scan to fill inner parts
             # Adapted from http://alienryderflex.com/polygon_fill/

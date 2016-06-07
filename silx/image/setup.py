@@ -37,8 +37,6 @@ def configuration(parent_package='', top_path=None):
                          language='c')
     config.add_extension('polygon',
                          sources=["polygon.pyx"],
-                         extra_compile_args=['-fopenmp'],
-                         extra_link_args=['-fopenmp'],
                          language='c')
     return config
 
