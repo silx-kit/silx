@@ -233,6 +233,7 @@ void __Pyx_call_destructor(T* x) {
 #include <math.h>
 #define __PYX_HAVE__polygon
 #define __PYX_HAVE_API__polygon
+#include "math.h"
 #include "pythread.h"
 #include "string.h"
 #include "stdlib.h"
@@ -792,6 +793,10 @@ static void __Pyx_WriteUnraisable(const char *name, int clineno,
                                   int lineno, const char *filename,
                                   int full_traceback);
 
+#ifndef __PYX_FORCE_INIT_THREADS
+  #define __PYX_FORCE_INIT_THREADS 0
+#endif
+
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
 #endif
@@ -837,10 +842,6 @@ static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int 
 #endif
 
 static CYTHON_INLINE Py_ssize_t __Pyx_div_Py_ssize_t(Py_ssize_t, Py_ssize_t); /* proto */
-
-#ifndef __PYX_FORCE_INIT_THREADS
-  #define __PYX_FORCE_INIT_THREADS 0
-#endif
 
 #define UNARY_NEG_WOULD_OVERFLOW(x)            (((x) < 0) & ((unsigned long)(x) == 0-(unsigned long)(x)))
 
@@ -1042,6 +1043,8 @@ static PyObject *__pyx_memoryviewslice_assign_item_from_object(struct __pyx_memo
 /* Module declarations from 'cython.view' */
 
 /* Module declarations from 'cython' */
+
+/* Module declarations from 'libc.math' */
 
 /* Module declarations from 'polygon' */
 static PyTypeObject *__pyx_ptype_7polygon_Polygon = 0;
@@ -1900,14 +1903,20 @@ static PyObject *__pyx_pw_7polygon_7Polygon_5make_mask(PyObject *__pyx_v_self, P
 
 static PyObject *__pyx_pf_7polygon_7Polygon_4make_mask(struct __pyx_obj_7polygon_Polygon *__pyx_v_self, int __pyx_v_height, int __pyx_v_width) {
   __Pyx_memviewslice __pyx_v_mask = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_v_row;
-  int __pyx_v_col;
-  CYTHON_UNUSED int __pyx_v_row_min;
-  CYTHON_UNUSED int __pyx_v_row_max;
+  int __pyx_v_row_min;
+  int __pyx_v_row_max;
   int __pyx_v_col_min;
   int __pyx_v_col_max;
-  __Pyx_memviewslice __pyx_v_rows = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_cols = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_row;
+  int __pyx_v_col;
+  int __pyx_v_index;
+  float __pyx_v_pt1x;
+  float __pyx_v_pt1y;
+  float __pyx_v_pt2x;
+  float __pyx_v_pt2y;
+  int __pyx_v_xinters;
+  int __pyx_v_is_inside;
+  int __pyx_v_current;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1916,41 +1925,53 @@ static PyObject *__pyx_pf_7polygon_7Polygon_4make_mask(struct __pyx_obj_7polygon
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   __Pyx_memviewslice __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  long __pyx_t_7;
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  int __pyx_t_9;
-  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  long __pyx_t_11;
-  int __pyx_t_12;
+  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_t_10;
+  int __pyx_t_11;
+  __Pyx_memviewslice __pyx_t_12 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_t_13;
-  int __pyx_t_14;
-  int __pyx_t_15;
-  int __pyx_t_16;
+  Py_ssize_t __pyx_t_14;
+  long __pyx_t_15;
+  Py_ssize_t __pyx_t_16;
   int __pyx_t_17;
   int __pyx_t_18;
   int __pyx_t_19;
+  Py_ssize_t __pyx_t_20;
+  int __pyx_t_21;
+  Py_ssize_t __pyx_t_22;
+  int __pyx_t_23;
+  float __pyx_t_24;
+  float __pyx_t_25;
+  int __pyx_t_26;
+  int __pyx_t_27;
+  long __pyx_t_28;
+  int __pyx_t_29;
+  int __pyx_t_30;
+  int __pyx_t_31;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("make_mask", 0);
 
-  /* "polygon.pyx":116
- *         # Possible optimization for fill mask:
- *         # treat it line by line, see http://alienryderflex.com/polygon_fill/
+  /* "polygon.pyx":114
+ *         :return: 2D array (height, width)
+ *         """
  *         cdef unsigned char[:, :] mask = numpy.zeros((height, width),             # <<<<<<<<<<<<<<
  *                                                     dtype=numpy.uint8)
- *         cdef int row, col
+ *         cdef int row_min, row_max, col_min, col_max  # mask subpart to update
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_height); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_height); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_width); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_width); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
@@ -1958,149 +1979,103 @@ static PyObject *__pyx_pf_7polygon_7Polygon_4make_mask(struct __pyx_obj_7polygon
   __Pyx_GIVEREF(__pyx_t_3);
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_4);
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "polygon.pyx":117
- *         # treat it line by line, see http://alienryderflex.com/polygon_fill/
+  /* "polygon.pyx":115
+ *         """
  *         cdef unsigned char[:, :] mask = numpy.zeros((height, width),
  *                                                     dtype=numpy.uint8)             # <<<<<<<<<<<<<<
- *         cdef int row, col
- *         cdef int row_min, row_max, col_min, col_max
+ *         cdef int row_min, row_max, col_min, col_max  # mask subpart to update
+ *         cdef int row, col, index  # Loop indixes
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_uint8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_uint8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 115; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "polygon.pyx":116
- *         # Possible optimization for fill mask:
- *         # treat it line by line, see http://alienryderflex.com/polygon_fill/
+  /* "polygon.pyx":114
+ *         :return: 2D array (height, width)
+ *         """
  *         cdef unsigned char[:, :] mask = numpy.zeros((height, width),             # <<<<<<<<<<<<<<
  *                                                     dtype=numpy.uint8)
- *         cdef int row, col
+ *         cdef int row_min, row_max, col_min, col_max  # mask subpart to update
  */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsds_unsigned_char(__pyx_t_5);
-  if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_mask = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "polygon.pyx":122
- *         cdef float[:] rows, cols
+  /* "polygon.pyx":121
+ *         cdef int xinters, is_inside, current
  * 
- *         rows = self.vertices[:, 0]             # <<<<<<<<<<<<<<
- *         cols = self.vertices[:, 1]
+ *         row_min = max(int(min(self.vertices[:, 0])), 0)             # <<<<<<<<<<<<<<
+ *         row_max = min(int(max(self.vertices[:, 0])) + 1, height)
  * 
  */
-  if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
-  __pyx_t_7 = __pyx_v_self->vertices;
-  __PYX_INC_MEMVIEW(&__pyx_t_7, 1);
-  __pyx_t_9 = -1;
-  __pyx_t_8.data = __pyx_t_7.data;
-  __pyx_t_8.memview = __pyx_t_7.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 0);
-  __pyx_t_8.shape[0] = __pyx_t_7.shape[0];
-__pyx_t_8.strides[0] = __pyx_t_7.strides[0];
-    __pyx_t_8.suboffsets[0] = -1;
+  __pyx_t_7 = 0;
+  if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  __pyx_t_8 = __pyx_v_self->vertices;
+  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
+  __pyx_t_10 = -1;
+  __pyx_t_9.data = __pyx_t_8.data;
+  __pyx_t_9.memview = __pyx_t_8.memview;
+  __PYX_INC_MEMVIEW(&__pyx_t_9, 0);
+  __pyx_t_9.shape[0] = __pyx_t_8.shape[0];
+__pyx_t_9.strides[0] = __pyx_t_8.strides[0];
+    __pyx_t_9.suboffsets[0] = -1;
 
 {
     Py_ssize_t __pyx_tmp_idx = 0;
-    Py_ssize_t __pyx_tmp_shape = __pyx_t_7.shape[1];
-    Py_ssize_t __pyx_tmp_stride = __pyx_t_7.strides[1];
+    Py_ssize_t __pyx_tmp_shape = __pyx_t_8.shape[1];
+    Py_ssize_t __pyx_tmp_stride = __pyx_t_8.strides[1];
     if (0 && (__pyx_tmp_idx < 0))
         __pyx_tmp_idx += __pyx_tmp_shape;
     if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
         PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 1)");
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
-        __pyx_t_8.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __pyx_v_rows = __pyx_t_8;
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-
-  /* "polygon.pyx":123
- * 
- *         rows = self.vertices[:, 0]
- *         cols = self.vertices[:, 1]             # <<<<<<<<<<<<<<
- * 
- *         row_min = max(int(min(rows)), 0)
- */
-  if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
-  __pyx_t_7 = __pyx_v_self->vertices;
-  __PYX_INC_MEMVIEW(&__pyx_t_7, 1);
-  __pyx_t_9 = -1;
-  __pyx_t_10.data = __pyx_t_7.data;
-  __pyx_t_10.memview = __pyx_t_7.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_10, 0);
-  __pyx_t_10.shape[0] = __pyx_t_7.shape[0];
-__pyx_t_10.strides[0] = __pyx_t_7.strides[0];
-    __pyx_t_10.suboffsets[0] = -1;
-
-{
-    Py_ssize_t __pyx_tmp_idx = 1;
-    Py_ssize_t __pyx_tmp_shape = __pyx_t_7.shape[1];
-    Py_ssize_t __pyx_tmp_stride = __pyx_t_7.strides[1];
-    if (0 && (__pyx_tmp_idx < 0))
-        __pyx_tmp_idx += __pyx_tmp_shape;
-    if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
-        PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 1)");
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    }
-        __pyx_t_10.data += __pyx_tmp_idx * __pyx_tmp_stride;
-}
-
-__PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-  __pyx_v_cols = __pyx_t_10;
-  __pyx_t_10.memview = NULL;
-  __pyx_t_10.data = NULL;
-
-  /* "polygon.pyx":125
- *         cols = self.vertices[:, 1]
- * 
- *         row_min = max(int(min(rows)), 0)             # <<<<<<<<<<<<<<
- *         row_max = min(int(max(rows)) + 1, height)
- *         col_min = max(int(min(cols)), 0)
- */
-  __pyx_t_11 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_rows, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+__PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_t_9, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_min, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_min, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Int(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyNumber_Int(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_t_11); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_t_7); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyObject_RichCompare(__pyx_t_3, __pyx_t_4, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_11 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__pyx_t_12) {
-    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_t_11); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_11) {
+    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_t_7); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_t_5 = __pyx_t_2;
     __pyx_t_2 = 0;
@@ -2109,42 +2084,68 @@ __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_5 = __pyx_t_4;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_v_row_min = __pyx_t_9;
+  __pyx_v_row_min = __pyx_t_10;
 
-  /* "polygon.pyx":126
+  /* "polygon.pyx":122
  * 
- *         row_min = max(int(min(rows)), 0)
- *         row_max = min(int(max(rows)) + 1, height)             # <<<<<<<<<<<<<<
- *         col_min = max(int(min(cols)), 0)
- *         col_max = min(int(max(cols)) + 1, width)
+ *         row_min = max(int(min(self.vertices[:, 0])), 0)
+ *         row_max = min(int(max(self.vertices[:, 0])) + 1, height)             # <<<<<<<<<<<<<<
+ * 
+ *         # Can be replaced by prange(row_min, row_max, nogil=True)
  */
-  __pyx_t_9 = __pyx_v_height;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_rows, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __pyx_v_height;
+  if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  __pyx_t_8 = __pyx_v_self->vertices;
+  __PYX_INC_MEMVIEW(&__pyx_t_8, 1);
+  __pyx_t_13 = -1;
+  __pyx_t_12.data = __pyx_t_8.data;
+  __pyx_t_12.memview = __pyx_t_8.memview;
+  __PYX_INC_MEMVIEW(&__pyx_t_12, 0);
+  __pyx_t_12.shape[0] = __pyx_t_8.shape[0];
+__pyx_t_12.strides[0] = __pyx_t_8.strides[0];
+    __pyx_t_12.suboffsets[0] = -1;
+
+{
+    Py_ssize_t __pyx_tmp_idx = 0;
+    Py_ssize_t __pyx_tmp_shape = __pyx_t_8.shape[1];
+    Py_ssize_t __pyx_tmp_stride = __pyx_t_8.strides[1];
+    if (0 && (__pyx_tmp_idx < 0))
+        __pyx_tmp_idx += __pyx_tmp_shape;
+    if (0 && (__pyx_tmp_idx < 0 || __pyx_tmp_idx >= __pyx_tmp_shape)) {
+        PyErr_SetString(PyExc_IndexError, "Index out of bounds (axis 1)");
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
+        __pyx_t_12.data += __pyx_tmp_idx * __pyx_tmp_stride;
+}
+
+__PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_t_12, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_max, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_max, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Int(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyNumber_Int(__pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Add(__pyx_t_4, __pyx_int_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyNumber_Add(__pyx_t_4, __pyx_int_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_t_9); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_t_10); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_12 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_11 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__pyx_t_12) {
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__pyx_t_11) {
+    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_t_10); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = __pyx_t_3;
     __pyx_t_3 = 0;
@@ -2153,188 +2154,389 @@ __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     __pyx_t_4 = __pyx_t_5;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_10 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_v_row_max = __pyx_t_9;
+  __pyx_v_row_max = __pyx_t_10;
 
-  /* "polygon.pyx":127
- *         row_min = max(int(min(rows)), 0)
- *         row_max = min(int(max(rows)) + 1, height)
- *         col_min = max(int(min(cols)), 0)             # <<<<<<<<<<<<<<
- *         col_max = min(int(max(cols)) + 1, width)
+  /* "polygon.pyx":125
+ * 
+ *         # Can be replaced by prange(row_min, row_max, nogil=True)
+ *         for row in range(row_min, row_max):             # <<<<<<<<<<<<<<
+ *             # For each line of the image, mark intersection of all segments
+ *             # in the line and then run a xor scan to fill inner parts
+ */
+  __pyx_t_10 = __pyx_v_row_max;
+  for (__pyx_t_13 = __pyx_v_row_min; __pyx_t_13 < __pyx_t_10; __pyx_t_13+=1) {
+    __pyx_v_row = __pyx_t_13;
+
+    /* "polygon.pyx":129
+ *             # in the line and then run a xor scan to fill inner parts
+ *             # Adapted from http://alienryderflex.com/polygon_fill/
+ *             pt1x = self.vertices[self.nvert-1, 1]             # <<<<<<<<<<<<<<
+ *             pt1y = self.vertices[self.nvert-1, 0]
+ *             col_min = width - 1
+ */
+    if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 129; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+    __pyx_t_7 = (__pyx_v_self->nvert - 1);
+    __pyx_t_14 = 1;
+    __pyx_v_pt1x = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->vertices.data + __pyx_t_7 * __pyx_v_self->vertices.strides[0]) ) + __pyx_t_14 * __pyx_v_self->vertices.strides[1]) )));
+
+    /* "polygon.pyx":130
+ *             # Adapted from http://alienryderflex.com/polygon_fill/
+ *             pt1x = self.vertices[self.nvert-1, 1]
+ *             pt1y = self.vertices[self.nvert-1, 0]             # <<<<<<<<<<<<<<
+ *             col_min = width - 1
+ *             col_max = 0
+ */
+    if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 130; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+    __pyx_t_15 = (__pyx_v_self->nvert - 1);
+    __pyx_t_16 = 0;
+    __pyx_v_pt1y = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->vertices.data + __pyx_t_15 * __pyx_v_self->vertices.strides[0]) ) + __pyx_t_16 * __pyx_v_self->vertices.strides[1]) )));
+
+    /* "polygon.pyx":131
+ *             pt1x = self.vertices[self.nvert-1, 1]
+ *             pt1y = self.vertices[self.nvert-1, 0]
+ *             col_min = width - 1             # <<<<<<<<<<<<<<
+ *             col_max = 0
+ *             is_inside = 0  # Init with whether first col is inside or not
+ */
+    __pyx_v_col_min = (__pyx_v_width - 1);
+
+    /* "polygon.pyx":132
+ *             pt1y = self.vertices[self.nvert-1, 0]
+ *             col_min = width - 1
+ *             col_max = 0             # <<<<<<<<<<<<<<
+ *             is_inside = 0  # Init with whether first col is inside or not
  * 
  */
-  __pyx_t_11 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_cols, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_4);
-  __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_min, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Int(__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_long(__pyx_t_11); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyObject_RichCompare(__pyx_t_3, __pyx_t_5, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__pyx_t_12) {
-    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_t_11); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __pyx_t_2;
-    __pyx_t_2 = 0;
-  } else {
-    __Pyx_INCREF(__pyx_t_5);
-    __pyx_t_4 = __pyx_t_5;
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_v_col_min = __pyx_t_9;
+    __pyx_v_col_max = 0;
 
-  /* "polygon.pyx":128
- *         row_max = min(int(max(rows)) + 1, height)
- *         col_min = max(int(min(cols)), 0)
- *         col_max = min(int(max(cols)) + 1, width)             # <<<<<<<<<<<<<<
+    /* "polygon.pyx":133
+ *             col_min = width - 1
+ *             col_max = 0
+ *             is_inside = 0  # Init with whether first col is inside or not             # <<<<<<<<<<<<<<
  * 
- *         for row in prange(row_min, row_max, nogil=True):
+ *             for index in range(self.nvert):
  */
-  __pyx_t_9 = __pyx_v_width;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_cols, 1, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_4);
-  __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_max, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Int(__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Add(__pyx_t_5, __pyx_int_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_t_9); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_t_4, Py_LT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_12 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__pyx_t_12) {
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_t_9); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = __pyx_t_3;
-    __pyx_t_3 = 0;
-  } else {
-    __Pyx_INCREF(__pyx_t_4);
-    __pyx_t_5 = __pyx_t_4;
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_v_col_max = __pyx_t_9;
+    __pyx_v_is_inside = 0;
 
-  /* "polygon.pyx":130
- *         col_max = min(int(max(cols)) + 1, width)
+    /* "polygon.pyx":135
+ *             is_inside = 0  # Init with whether first col is inside or not
  * 
- *         for row in prange(row_min, row_max, nogil=True):             # <<<<<<<<<<<<<<
- *             for col in range(col_min, col_max):
- *                 mask[row, col] = self.c_isInside(row, col)
+ *             for index in range(self.nvert):             # <<<<<<<<<<<<<<
+ *                 pt2x = self.vertices[index, 1]
+ *                 pt2y = self.vertices[index, 0]
  */
-  {
-      #ifdef WITH_THREAD
-      PyThreadState *_save;
-      Py_UNBLOCK_THREADS
-      #endif
-      /*try:*/ {
-        __pyx_t_9 = __pyx_v_row_min;
-        __pyx_t_13 = __pyx_v_row_max;
-        if (1 == 0) abort();
-        {
-            #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-                #undef likely
-                #undef unlikely
-                #define likely(x)   (x)
-                #define unlikely(x) (x)
-            #endif
-            __pyx_t_15 = (__pyx_t_13 - __pyx_t_9) / 1;
-            if (__pyx_t_15 > 0)
-            {
-                #ifdef _OPENMP
-                #pragma omp parallel private(__pyx_t_16, __pyx_t_18, __pyx_t_17, __pyx_t_19)
-                #endif /* _OPENMP */
-                {
-                    #ifdef _OPENMP
-                    #pragma omp for firstprivate(__pyx_v_row) lastprivate(__pyx_v_row) lastprivate(__pyx_v_col)
-                    #endif /* _OPENMP */
-                    for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_15; __pyx_t_14++){
-                        {
-                            __pyx_v_row = __pyx_t_9 + 1 * __pyx_t_14;
-                            /* Initialize private variables to invalid values */
-                            __pyx_v_col = ((int)0xbad0bad0);
+    __pyx_t_17 = __pyx_v_self->nvert;
+    for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_17; __pyx_t_18+=1) {
+      __pyx_v_index = __pyx_t_18;
 
-                            /* "polygon.pyx":131
+      /* "polygon.pyx":136
  * 
- *         for row in prange(row_min, row_max, nogil=True):
- *             for col in range(col_min, col_max):             # <<<<<<<<<<<<<<
- *                 mask[row, col] = self.c_isInside(row, col)
+ *             for index in range(self.nvert):
+ *                 pt2x = self.vertices[index, 1]             # <<<<<<<<<<<<<<
+ *                 pt2y = self.vertices[index, 0]
  * 
  */
-                            __pyx_t_16 = __pyx_v_col_max;
-                            for (__pyx_t_17 = __pyx_v_col_min; __pyx_t_17 < __pyx_t_16; __pyx_t_17+=1) {
-                              __pyx_v_col = __pyx_t_17;
+      if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+      __pyx_t_19 = __pyx_v_index;
+      __pyx_t_20 = 1;
+      __pyx_v_pt2x = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->vertices.data + __pyx_t_19 * __pyx_v_self->vertices.strides[0]) ) + __pyx_t_20 * __pyx_v_self->vertices.strides[1]) )));
 
-                              /* "polygon.pyx":132
- *         for row in prange(row_min, row_max, nogil=True):
- *             for col in range(col_min, col_max):
- *                 mask[row, col] = self.c_isInside(row, col)             # <<<<<<<<<<<<<<
+      /* "polygon.pyx":137
+ *             for index in range(self.nvert):
+ *                 pt2x = self.vertices[index, 1]
+ *                 pt2y = self.vertices[index, 0]             # <<<<<<<<<<<<<<
+ * 
+ *                 if ((pt1y <= row and row < pt2y) or
+ */
+      if (unlikely(!__pyx_v_self->vertices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+      __pyx_t_21 = __pyx_v_index;
+      __pyx_t_22 = 0;
+      __pyx_v_pt2y = (*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_self->vertices.data + __pyx_t_21 * __pyx_v_self->vertices.strides[0]) ) + __pyx_t_22 * __pyx_v_self->vertices.strides[1]) )));
+
+      /* "polygon.pyx":139
+ *                 pt2y = self.vertices[index, 0]
+ * 
+ *                 if ((pt1y <= row and row < pt2y) or             # <<<<<<<<<<<<<<
+ *                         (pt2y <= row and row < pt1y)):
+ *                     # Intersection casted to int so that ]x, x+1] => x
+ */
+      __pyx_t_23 = ((__pyx_v_pt1y <= __pyx_v_row) != 0);
+      if (!__pyx_t_23) {
+        goto __pyx_L9_next_or;
+      } else {
+      }
+      __pyx_t_23 = ((__pyx_v_row < __pyx_v_pt2y) != 0);
+      if (!__pyx_t_23) {
+      } else {
+        __pyx_t_11 = __pyx_t_23;
+        goto __pyx_L8_bool_binop_done;
+      }
+      __pyx_L9_next_or:;
+
+      /* "polygon.pyx":140
+ * 
+ *                 if ((pt1y <= row and row < pt2y) or
+ *                         (pt2y <= row and row < pt1y)):             # <<<<<<<<<<<<<<
+ *                     # Intersection casted to int so that ]x, x+1] => x
+ *                     xinters = (<int>ceil(pt1x + (row - pt1y) *
+ */
+      __pyx_t_23 = ((__pyx_v_pt2y <= __pyx_v_row) != 0);
+      if (__pyx_t_23) {
+      } else {
+        __pyx_t_11 = __pyx_t_23;
+        goto __pyx_L8_bool_binop_done;
+      }
+      __pyx_t_23 = ((__pyx_v_row < __pyx_v_pt1y) != 0);
+      __pyx_t_11 = __pyx_t_23;
+      __pyx_L8_bool_binop_done:;
+      if (__pyx_t_11) {
+
+        /* "polygon.pyx":142
+ *                         (pt2y <= row and row < pt1y)):
+ *                     # Intersection casted to int so that ]x, x+1] => x
+ *                     xinters = (<int>ceil(pt1x + (row - pt1y) *             # <<<<<<<<<<<<<<
+ *                                (pt2x - pt1x) / (pt2y - pt1y))) - 1
+ * 
+ */
+        __pyx_t_24 = ((__pyx_v_row - __pyx_v_pt1y) * (__pyx_v_pt2x - __pyx_v_pt1x));
+
+        /* "polygon.pyx":143
+ *                     # Intersection casted to int so that ]x, x+1] => x
+ *                     xinters = (<int>ceil(pt1x + (row - pt1y) *
+ *                                (pt2x - pt1x) / (pt2y - pt1y))) - 1             # <<<<<<<<<<<<<<
+ * 
+ *                     # Update column range to patch
+ */
+        __pyx_t_25 = (__pyx_v_pt2y - __pyx_v_pt1y);
+        if (unlikely(__pyx_t_25 == 0)) {
+          #ifdef WITH_THREAD
+          PyGILState_STATE __pyx_gilstate_save = PyGILState_Ensure();
+          #endif
+          PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+          #ifdef WITH_THREAD
+          PyGILState_Release(__pyx_gilstate_save);
+          #endif
+          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 143; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        }
+
+        /* "polygon.pyx":142
+ *                         (pt2y <= row and row < pt1y)):
+ *                     # Intersection casted to int so that ]x, x+1] => x
+ *                     xinters = (<int>ceil(pt1x + (row - pt1y) *             # <<<<<<<<<<<<<<
+ *                                (pt2x - pt1x) / (pt2y - pt1y))) - 1
+ * 
+ */
+        __pyx_v_xinters = (((int)ceil((__pyx_v_pt1x + (__pyx_t_24 / __pyx_t_25)))) - 1);
+
+        /* "polygon.pyx":146
+ * 
+ *                     # Update column range to patch
+ *                     if xinters < col_min:             # <<<<<<<<<<<<<<
+ *                         col_min = xinters
+ *                     if xinters > col_max:
+ */
+        __pyx_t_11 = ((__pyx_v_xinters < __pyx_v_col_min) != 0);
+        if (__pyx_t_11) {
+
+          /* "polygon.pyx":147
+ *                     # Update column range to patch
+ *                     if xinters < col_min:
+ *                         col_min = xinters             # <<<<<<<<<<<<<<
+ *                     if xinters > col_max:
+ *                         col_max = xinters
+ */
+          __pyx_v_col_min = __pyx_v_xinters;
+          goto __pyx_L12;
+        }
+        __pyx_L12:;
+
+        /* "polygon.pyx":148
+ *                     if xinters < col_min:
+ *                         col_min = xinters
+ *                     if xinters > col_max:             # <<<<<<<<<<<<<<
+ *                         col_max = xinters
+ * 
+ */
+        __pyx_t_11 = ((__pyx_v_xinters > __pyx_v_col_max) != 0);
+        if (__pyx_t_11) {
+
+          /* "polygon.pyx":149
+ *                         col_min = xinters
+ *                     if xinters > col_max:
+ *                         col_max = xinters             # <<<<<<<<<<<<<<
+ * 
+ *                     if xinters < 0:
+ */
+          __pyx_v_col_max = __pyx_v_xinters;
+          goto __pyx_L13;
+        }
+        __pyx_L13:;
+
+        /* "polygon.pyx":151
+ *                         col_max = xinters
+ * 
+ *                     if xinters < 0:             # <<<<<<<<<<<<<<
+ *                         # Add an intersection to init value of xor scan
+ *                         is_inside ^= 1
+ */
+        __pyx_t_11 = ((__pyx_v_xinters < 0) != 0);
+        if (__pyx_t_11) {
+
+          /* "polygon.pyx":153
+ *                     if xinters < 0:
+ *                         # Add an intersection to init value of xor scan
+ *                         is_inside ^= 1             # <<<<<<<<<<<<<<
+ *                     elif xinters < width:
+ *                         # Mark intersection in mask
+ */
+          __pyx_v_is_inside = (__pyx_v_is_inside ^ 1);
+          goto __pyx_L14;
+        }
+
+        /* "polygon.pyx":154
+ *                         # Add an intersection to init value of xor scan
+ *                         is_inside ^= 1
+ *                     elif xinters < width:             # <<<<<<<<<<<<<<
+ *                         # Mark intersection in mask
+ *                         mask[row, xinters] ^= 1
+ */
+        __pyx_t_11 = ((__pyx_v_xinters < __pyx_v_width) != 0);
+        if (__pyx_t_11) {
+
+          /* "polygon.pyx":156
+ *                     elif xinters < width:
+ *                         # Mark intersection in mask
+ *                         mask[row, xinters] ^= 1             # <<<<<<<<<<<<<<
+ *                     # else: do not consider intersection on the right
+ * 
+ */
+          __pyx_t_26 = __pyx_v_row;
+          __pyx_t_27 = __pyx_v_xinters;
+          *((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_26 * __pyx_v_mask.strides[0]) ) + __pyx_t_27 * __pyx_v_mask.strides[1]) )) ^= 1;
+          goto __pyx_L14;
+        }
+        __pyx_L14:;
+        goto __pyx_L7;
+      }
+      __pyx_L7:;
+
+      /* "polygon.pyx":159
+ *                     # else: do not consider intersection on the right
+ * 
+ *                 pt1x, pt1y = pt2x, pt2y             # <<<<<<<<<<<<<<
+ * 
+ *             if col_min < col_max:
+ */
+      __pyx_t_25 = __pyx_v_pt2x;
+      __pyx_t_24 = __pyx_v_pt2y;
+      __pyx_v_pt1x = __pyx_t_25;
+      __pyx_v_pt1y = __pyx_t_24;
+    }
+
+    /* "polygon.pyx":161
+ *                 pt1x, pt1y = pt2x, pt2y
+ * 
+ *             if col_min < col_max:             # <<<<<<<<<<<<<<
+ *                 # Clip column range to mask
+ *                 if col_min < 0:
+ */
+    __pyx_t_11 = ((__pyx_v_col_min < __pyx_v_col_max) != 0);
+    if (__pyx_t_11) {
+
+      /* "polygon.pyx":163
+ *             if col_min < col_max:
+ *                 # Clip column range to mask
+ *                 if col_min < 0:             # <<<<<<<<<<<<<<
+ *                     col_min = 0
+ *                 if col_max > width - 1:
+ */
+      __pyx_t_11 = ((__pyx_v_col_min < 0) != 0);
+      if (__pyx_t_11) {
+
+        /* "polygon.pyx":164
+ *                 # Clip column range to mask
+ *                 if col_min < 0:
+ *                     col_min = 0             # <<<<<<<<<<<<<<
+ *                 if col_max > width - 1:
+ *                     col_max = width - 1
+ */
+        __pyx_v_col_min = 0;
+        goto __pyx_L16;
+      }
+      __pyx_L16:;
+
+      /* "polygon.pyx":165
+ *                 if col_min < 0:
+ *                     col_min = 0
+ *                 if col_max > width - 1:             # <<<<<<<<<<<<<<
+ *                     col_max = width - 1
+ * 
+ */
+      __pyx_t_11 = ((__pyx_v_col_max > (__pyx_v_width - 1)) != 0);
+      if (__pyx_t_11) {
+
+        /* "polygon.pyx":166
+ *                     col_min = 0
+ *                 if col_max > width - 1:
+ *                     col_max = width - 1             # <<<<<<<<<<<<<<
+ * 
+ *                 # xor exclusive scan
+ */
+        __pyx_v_col_max = (__pyx_v_width - 1);
+        goto __pyx_L17;
+      }
+      __pyx_L17:;
+
+      /* "polygon.pyx":169
+ * 
+ *                 # xor exclusive scan
+ *                 for col in range(col_min, col_max + 1):             # <<<<<<<<<<<<<<
+ *                     current = mask[row, col]
+ *                     mask[row, col] = is_inside
+ */
+      __pyx_t_28 = (__pyx_v_col_max + 1);
+      for (__pyx_t_17 = __pyx_v_col_min; __pyx_t_17 < __pyx_t_28; __pyx_t_17+=1) {
+        __pyx_v_col = __pyx_t_17;
+
+        /* "polygon.pyx":170
+ *                 # xor exclusive scan
+ *                 for col in range(col_min, col_max + 1):
+ *                     current = mask[row, col]             # <<<<<<<<<<<<<<
+ *                     mask[row, col] = is_inside
+ *                     is_inside = current ^ is_inside
+ */
+        __pyx_t_18 = __pyx_v_row;
+        __pyx_t_29 = __pyx_v_col;
+        __pyx_v_current = (*((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_18 * __pyx_v_mask.strides[0]) ) + __pyx_t_29 * __pyx_v_mask.strides[1]) )));
+
+        /* "polygon.pyx":171
+ *                 for col in range(col_min, col_max + 1):
+ *                     current = mask[row, col]
+ *                     mask[row, col] = is_inside             # <<<<<<<<<<<<<<
+ *                     is_inside = current ^ is_inside
+ * 
+ */
+        __pyx_t_30 = __pyx_v_row;
+        __pyx_t_31 = __pyx_v_col;
+        *((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_30 * __pyx_v_mask.strides[0]) ) + __pyx_t_31 * __pyx_v_mask.strides[1]) )) = __pyx_v_is_inside;
+
+        /* "polygon.pyx":172
+ *                     current = mask[row, col]
+ *                     mask[row, col] = is_inside
+ *                     is_inside = current ^ is_inside             # <<<<<<<<<<<<<<
  * 
  *         # Ensures the result is exported as numpy array and not memory view.
  */
-                              __pyx_t_18 = __pyx_v_row;
-                              __pyx_t_19 = __pyx_v_col;
-                              *((unsigned char *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_mask.data + __pyx_t_18 * __pyx_v_mask.strides[0]) ) + __pyx_t_19 * __pyx_v_mask.strides[1]) )) = ((struct __pyx_vtabstruct_7polygon_Polygon *)__pyx_v_self->__pyx_vtab)->c_isInside(__pyx_v_self, __pyx_v_row, __pyx_v_col);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        #if ((defined(__APPLE__) || defined(__OSX__)) && (defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && (__GNUC_MINOR__ > 95)))))
-            #undef likely
-            #undef unlikely
-            #define likely(x)   __builtin_expect(!!(x), 1)
-            #define unlikely(x) __builtin_expect(!!(x), 0)
-        #endif
+        __pyx_v_is_inside = (__pyx_v_current ^ __pyx_v_is_inside);
       }
-
-      /* "polygon.pyx":130
- *         col_max = min(int(max(cols)) + 1, width)
- * 
- *         for row in prange(row_min, row_max, nogil=True):             # <<<<<<<<<<<<<<
- *             for col in range(col_min, col_max):
- *                 mask[row, col] = self.c_isInside(row, col)
- */
-      /*finally:*/ {
-        /*normal exit:*/{
-          #ifdef WITH_THREAD
-          Py_BLOCK_THREADS
-          #endif
-          goto __pyx_L5;
-        }
-        __pyx_L5:;
-      }
+      goto __pyx_L15;
+    }
+    __pyx_L15:;
   }
 
-  /* "polygon.pyx":135
+  /* "polygon.pyx":175
  * 
  *         # Ensures the result is exported as numpy array and not memory view.
  *         return numpy.asarray(mask)             # <<<<<<<<<<<<<<
@@ -2342,13 +2544,13 @@ __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_mask, 2, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_mask, 2, (PyObject *(*)(char *)) __pyx_memview_get_unsigned_char, (int (*)(char *, PyObject *)) __pyx_memview_set_unsigned_char, 0);; if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_2 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
     __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
@@ -2360,23 +2562,23 @@ __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = PyTuple_New(1+1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
-    PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_4);
-    __Pyx_GIVEREF(__pyx_t_4);
-    __pyx_t_4 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
+    PyTuple_SET_ITEM(__pyx_t_1, 0+1, __pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_5);
+    __pyx_t_5 = 0;
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_r = __pyx_t_5;
-  __pyx_t_5 = 0;
+  __pyx_r = __pyx_t_4;
+  __pyx_t_4 = 0;
   goto __pyx_L0;
 
   /* "polygon.pyx":105
@@ -2395,21 +2597,19 @@ __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __PYX_XDEC_MEMVIEW(&__pyx_t_6, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
   __Pyx_AddTraceback("polygon.Polygon.make_mask", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __PYX_XDEC_MEMVIEW(&__pyx_v_mask, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_rows, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_v_cols, 1);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "polygon.pyx":138
+/* "polygon.pyx":178
  * 
  * 
  * def polygon_fill(vertices, shape):             # <<<<<<<<<<<<<<
@@ -2450,11 +2650,11 @@ static PyObject *__pyx_pw_7polygon_1polygon_fill(PyObject *__pyx_self, PyObject 
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_shape)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("polygon_fill", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("polygon_fill", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "polygon_fill") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "polygon_fill") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2467,7 +2667,7 @@ static PyObject *__pyx_pw_7polygon_1polygon_fill(PyObject *__pyx_self, PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("polygon_fill", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("polygon_fill", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("polygon.polygon_fill", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2495,26 +2695,26 @@ static PyObject *__pyx_pf_7polygon_polygon_fill(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("polygon_fill", 0);
 
-  /* "polygon.pyx":150
+  /* "polygon.pyx":190
  *     :rtype: numpy.ndarray of dimension shape
  *     """
  *     return Polygon(vertices).make_mask(shape[0], shape[1])             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_vertices);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_vertices);
   __Pyx_GIVEREF(__pyx_v_vertices);
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_7polygon_Polygon)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_7polygon_Polygon)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_make_mask); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_make_mask); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_3 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -2528,7 +2728,7 @@ static PyObject *__pyx_pf_7polygon_polygon_fill(CYTHON_UNUSED PyObject *__pyx_se
       __pyx_t_6 = 1;
     }
   }
-  __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   if (__pyx_t_5) {
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
@@ -2539,7 +2739,7 @@ static PyObject *__pyx_pf_7polygon_polygon_fill(CYTHON_UNUSED PyObject *__pyx_se
   __Pyx_GIVEREF(__pyx_t_4);
   __pyx_t_3 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -2547,7 +2747,7 @@ static PyObject *__pyx_pf_7polygon_polygon_fill(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "polygon.pyx":138
+  /* "polygon.pyx":178
  * 
  * 
  * def polygon_fill(vertices, shape):             # <<<<<<<<<<<<<<
@@ -14064,8 +14264,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_min = __Pyx_GetBuiltinName(__pyx_n_s_min); if (!__pyx_builtin_min) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_max = __Pyx_GetBuiltinName(__pyx_n_s_max); if (!__pyx_builtin_max) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 126; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_min = __Pyx_GetBuiltinName(__pyx_n_s_min); if (!__pyx_builtin_min) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 121; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_max = __Pyx_GetBuiltinName(__pyx_n_s_max); if (!__pyx_builtin_max) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 127; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14208,17 +14408,17 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "polygon.pyx":138
+  /* "polygon.pyx":178
  * 
  * 
  * def polygon_fill(vertices, shape):             # <<<<<<<<<<<<<<
  *     """polygon_fill(vertices, shape)
  * 
  */
-  __pyx_tuple__12 = PyTuple_Pack(2, __pyx_n_s_vertices, __pyx_n_s_shape); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__12 = PyTuple_Pack(2, __pyx_n_s_vertices, __pyx_n_s_shape); if (unlikely(!__pyx_tuple__12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_polygon_fill, 138, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_mntdirect__tmp_14_days_tvincent, __pyx_n_s_polygon_fill, 178, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "View.MemoryView":276
  *         return self.name
@@ -14282,13 +14482,6 @@ static int __Pyx_InitCachedConstants(void) {
 }
 
 static int __Pyx_InitGlobals(void) {
-  /* InitThreads.init */
-  #ifdef WITH_THREAD
-PyEval_InitThreads();
-#endif
-
-if (unlikely(PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14462,7 +14655,7 @@ PyMODINIT_FUNC PyInit_polygon(void)
  * 
  * cimport cython
  * import numpy             # <<<<<<<<<<<<<<
- * from cython.parallel import prange
+ * from libc.math cimport ceil
  * 
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14470,16 +14663,16 @@ PyMODINIT_FUNC PyInit_polygon(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_numpy, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 43; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "polygon.pyx":138
+  /* "polygon.pyx":178
  * 
  * 
  * def polygon_fill(vertices, shape):             # <<<<<<<<<<<<<<
  *     """polygon_fill(vertices, shape)
  * 
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7polygon_1polygon_fill, NULL, __pyx_n_s_polygon); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_7polygon_1polygon_fill, NULL, __pyx_n_s_polygon); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_polygon_fill, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_polygon_fill, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "polygon.pyx":1
