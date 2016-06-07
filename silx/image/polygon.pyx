@@ -41,6 +41,7 @@ __date__ = "03/06/2016"
 
 cimport cython
 import numpy
+from libc.math cimport ceil
 from cython.parallel import prange
 
 
@@ -111,25 +112,64 @@ cdef class Polygon(object):
         :param int width: Width of the mask array
         :return: 2D array (height, width)
         """
-        # Possible optimization for fill mask:
-        # treat it line by line, see http://alienryderflex.com/polygon_fill/
         cdef unsigned char[:, :] mask = numpy.zeros((height, width),
                                                     dtype=numpy.uint8)
-        cdef int row, col
-        cdef int row_min, row_max, col_min, col_max
-        cdef float[:] rows, cols
+        cdef int row_min, row_max, col_min, col_max  # mask subpart to update
+        cdef int row, col, index  # Loop indixes
+        cdef float pt1x, pt1y, pt2x, pt2y  # segment end points
+        cdef int xinters, is_inside, current
 
-        rows = self.vertices[:, 0]
-        cols = self.vertices[:, 1]
-
-        row_min = max(int(min(rows)), 0)
-        row_max = min(int(max(rows)) + 1, height)
-        col_min = max(int(min(cols)), 0)
-        col_max = min(int(max(cols)) + 1, width)
+        row_min = max(int(min(self.vertices[:, 0])), 0)
+        row_max = min(int(max(self.vertices[:, 0])) + 1, height)
 
         for row in prange(row_min, row_max, nogil=True):
-            for col in range(col_min, col_max):
-                mask[row, col] = self.c_isInside(row, col)
+            # For each line of the image, mark intersection of all segments
+            # in the line and then run a xor scan to fill inner parts
+            # Adapted from http://alienryderflex.com/polygon_fill/
+            pt1x = self.vertices[self.nvert-1, 1]
+            pt1y = self.vertices[self.nvert-1, 0]
+            col_min = width - 1
+            col_max = 0
+            is_inside = 0  # Init with whether first col is inside or not
+
+            for index in range(self.nvert):
+                pt2x = self.vertices[index, 1]
+                pt2y = self.vertices[index, 0]
+
+                if ((pt1y <= row and row < pt2y) or
+                        (pt2y <= row and row < pt1y)):
+                    # Intersection casted to int so that ]x, x+1] => x
+                    xinters = (<int>ceil(pt1x + (row - pt1y) *
+                               (pt2x - pt1x) / (pt2y - pt1y))) - 1
+
+                    # Update column range to patch
+                    if xinters < col_min:
+                        col_min = xinters
+                    if xinters > col_max:
+                        col_max = xinters
+
+                    if xinters < 0:
+                        # Add an intersection to init value of xor scan
+                        is_inside ^= 1
+                    elif xinters < width:
+                        # Mark intersection in mask
+                        mask[row, xinters] ^= 1
+                    # else: do not consider intersection on the right
+
+                pt1x, pt1y = pt2x, pt2y
+
+            if col_min < col_max:
+                # Clip column range to mask
+                if col_min < 0:
+                    col_min = 0
+                if col_max > width - 1:
+                    col_max = width - 1
+
+                # xor exclusive scan
+                for col in range(col_min, col_max + 1):
+                    current = mask[row, col]
+                    mask[row, col] = is_inside
+                    is_inside = current ^ is_inside
 
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(mask)

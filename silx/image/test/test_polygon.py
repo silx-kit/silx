@@ -71,8 +71,8 @@ class TestPolygonFill(ParametricTestCase):
                 if not numpy.all(numpy.equal(ref_mask, mask)):
                     _logger.debug('%s failed with mask != ref_mask:',
                                   test_name)
-                    _logger.debug(str(mask))
-                    _logger.debug(str(ref_mask))
+                    _logger.debug('result:\n%s', str(mask))
+                    _logger.debug('ref:\n%s', str(ref_mask))
                 self.assertTrue(numpy.all(numpy.equal(ref_mask, mask)))
 
     def test_eight(self):
@@ -106,8 +106,8 @@ class TestPolygonFill(ParametricTestCase):
                 if not numpy.all(numpy.equal(ref_mask, mask)):
                     _logger.debug('%s failed with mask != ref_mask:',
                                   test_name)
-                    _logger.debug(str(mask))
-                    _logger.debug(str(ref_mask))
+                    _logger.debug('result:\n%s', str(mask))
+                    _logger.debug('ref:\n%s', str(ref_mask))
                 self.assertTrue(numpy.all(numpy.equal(ref_mask, mask)))
 
     def test_shapes(self):
@@ -146,8 +146,8 @@ class TestPolygonFill(ParametricTestCase):
                 if not numpy.all(numpy.equal(ref_mask, mask)):
                     _logger.debug('%s failed with mask != ref_mask:',
                                   test_name)
-                    _logger.debug(str(mask))
-                    _logger.debug(str(ref_mask))
+                    _logger.debug('result:\n%s', str(mask))
+                    _logger.debug('ref:\n%s', str(ref_mask))
                 self.assertTrue(numpy.all(numpy.equal(ref_mask, mask)))
 
 
