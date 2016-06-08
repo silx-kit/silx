@@ -107,18 +107,20 @@ class TestResult(unittest.TestResult):
 
     def startTest(self, test):
         if resource:
-            self.__mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+            self.__mem_start = \
+                resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
     def stopTest(self, test):
         unittest.TestResult.stopTest(self, test)
         if resource:
-            memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - self.__mem_start) * 0.001
+            memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
+                        self.__mem_start) * 0.001
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-                        time.time() - self.__time_start, memusage, test.id()))
+            time.time() - self.__time_start, memusage, test.id()))
 
 
 if sys.hexversion < 34013184:  # 2.7

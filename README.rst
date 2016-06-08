@@ -19,9 +19,13 @@ To install silx locally, run::
  
     pip install silx --user
 
-Pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5 on Windows and for Python 2.7 on Mac OS X.
-
+On Linux, to install silx with pip, you must install numpy first.
 Unofficial Debian8 packages are available at http://www.edna-site.org/pub/debian/
+
+On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5.
+
+On Mac OS X, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
+
 
 The latest development version can be obtained from the git repository::
 
