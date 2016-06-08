@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -22,33 +23,62 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt widgets for 1D and 2D plotting.
-
-This package provides a set of widgets for plotting curve and images.
-Those widgets supports interaction (e.g., zoom, pan, selections).
-
-The plotting API is inherited from and thus mostly compatible with
-`PyMca <http://pymca.sourceforge.net/>`_ plot API.
-
-List of Qt widgets:
-
-.. currentmodule:: silx.gui.plot
-
-- :mod:`.PlotWidget`: A widget displaying a single plot.
-- :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
-- :class:`Plot1D`: A widget with tools for curves.
-- :class:`Plot2D`: A widget with tools for images.
-
-- :func:`plot1D`: A function to plot curves from the (i)Python console.
-- :func:`plot2D`: A function to plot an image from the (i)Python console.
-"""
+"""silx.gui.plot Plot2D Qt designer plugin."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/02/2016"
+__date__ = "30/05/2016"
 
 
-from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D, plot1D, plot2D  # noqa
+from silx.gui import icons, qt
 
-__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'plot1D', 'plot2D']
+if qt.BINDING == 'PyQt4':
+    from PyQt4 import QtDesigner
+elif qt.BINDING == 'PyQt5':
+    from PyQt5 import QtDesigner
+else:
+    raise RuntimeError("Unsupport Qt BINDING: %s" % qt.BINDING)
+
+from silx.gui.plot import Plot2D
+
+
+class Plot2DPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
+
+    def __init__(self, parent=None):
+        super(Plot2DPlugin, self).__init__(parent)
+        self.initialized = False
+
+    def initialize(self, core):
+        if self.initialized:
+            return
+
+        self.initialized = True
+
+    def isInitialized(self):
+        return self.initialized
+
+    def createWidget(self, parent):
+        plot = Plot2D(parent=parent)
+        plot.setAutoReplot(False)
+        return plot
+
+    def name(self):
+        return "Plot2D"
+
+    def group(self):
+        return "silx"
+
+    def icon(self):
+        return icons.getQIcon('plot-window-image')
+
+    def toolTip(self):
+        return ""
+
+    def whatsThis(self):
+        return ""
+
+    def isContainer(self):
+        return False
+
+    def includeFile(self):
+        return "silx.gui.plot.PlotWindow"
