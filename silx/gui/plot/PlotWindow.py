@@ -105,15 +105,8 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-<<<<<<< HEAD
-                 control=False, position=False, roi=True,
-                 autoreplot=True):
-        super(PlotWindow, self).__init__(
-            parent=parent, backend=backend, autoreplot=autoreplot)
-=======
-                 control=False, position=False):
+                 control=False, position=False, roi=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
->>>>>>> 3d1e1e70cdd9c6b194676b85a946324f3541e345
 
         self._dockWidgets = []
 
