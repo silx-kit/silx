@@ -532,7 +532,7 @@ class _TestHistogramnd(unittest.TestCase):
                                  self.n_bins,
                                  weights=weights_2,
                                  last_bin_closed=True,
-                                 cumul=result_c[1])
+                                 weighted_histo=result_c[1])
 
         result_np_2 = np.histogramdd(sample_2,
                                      bins=self.n_bins,
@@ -573,7 +573,7 @@ class _TestHistogramnd(unittest.TestCase):
                                  self.n_bins,
                                  weights=self.weights,
                                  last_bin_closed=True,
-                                 cumul=cumul)
+                                 weighted_histo=cumul)
 
         result_np_1 = np.histogramdd(self.sample,
                                      bins=self.n_bins,

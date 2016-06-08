@@ -246,7 +246,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                    self.bins_rng,
                                    self.n_bins,
                                    weights=None,
-                                   cumul=cumul_in)[0:2]
+                                   weighted_histo=cumul_in)[0:2]
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(cumul is None)
@@ -389,7 +389,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      self.bins_rng,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
-                                     cumul=cumul)[0:2]
+                                     weighted_histo=cumul)[0:2]
 
         self.assertEqual(cumul.dtype, np.float64)
         self.assertTrue(np.array_equal(histo, expected_h))
@@ -430,7 +430,7 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                                      self.bins_rng,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
-                                     cumul=cumul)[0:2]
+                                     weighted_histo=cumul)[0:2]
 
         self.assertEqual(cumul.dtype, np.float32)
         self.assertTrue(np.array_equal(histo, expected_h))
