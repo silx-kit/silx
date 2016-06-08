@@ -46,10 +46,6 @@ class TestLegendSelector(TestCaseQt):
 
     def testLegendSelector(self):
         """Test copied from __main__ of LegendSelector in PyMca"""
-        # Some widgets remains after the test with PySide, allow them for now
-        if qt.BINDING == 'PySide':
-            self.allowedLeakingWidgets = 4
-
         class Notifier(qt.QObject):
             def __init__(self):
                 qt.QObject.__init__(self)

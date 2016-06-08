@@ -235,7 +235,6 @@ class Plot(object):
     :param backend: The backend to use. A str in:
                     'matplotlib', 'mpl', 'none'
                     or a :class:`BackendBase.BackendBase` class
-    :param bool autoreplot: Toggle autoreplot mode (Default: True).
     """
 
     defaultBackend = 'matplotlib'
@@ -244,8 +243,8 @@ class Plot(object):
     colorList = _COLORLIST
     colorDict = _COLORDICT
 
-    def __init__(self, parent=None, backend=None, autoreplot=True):
-        self._autoreplot = bool(autoreplot)
+    def __init__(self, parent=None, backend=None):
+        self._autoreplot = True
         self._dirty = False
 
         if backend is None:

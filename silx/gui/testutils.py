@@ -87,6 +87,8 @@ class TestCaseQt(unittest.TestCase):
     To allow some widgets to remain alive at the end of a test, set the
     allowedLeakingWidgets attribute to the number of widgets that can remain
     alive at the end of the test.
+    With PySide, this test is not run for now as it seems PySide
+    is leaking widgets internally.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -115,6 +117,9 @@ class TestCaseQt(unittest.TestCase):
         widgets = [widget for widget in self.qapp.allWidgets()
                    if widget not in self.__previousWidgets]
         del self.__previousWidgets
+
+        if qt.BINDING == 'PySide':
+            return  # Do not test for leaking widgets with PySide
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
         self.allowedLeakingWidgets = 0
@@ -277,3 +282,15 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+
+def getQToolButtonFromAction(action):
+    """Return a visible QToolButton corresponding to a QAction.
+
+    :param QAction action: The QAction from which to get QToolButton.
+    :return: A visible QToolButton associated to action or None.
+    """
+    for widget in action.associatedWidgets():
+        if isinstance(widget, qt.QToolButton) and widget.isVisible():
+            return widget
+    return None
