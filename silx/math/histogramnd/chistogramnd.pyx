@@ -179,20 +179,20 @@ def chistogramnd(sample,
     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
                  if weights is not None else None)
 
-    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
-                                      dtype=np.double)
+    bins_rng_c = bins_rng #np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
+                 #                     dtype=np.double)
 
-    n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
-                                    dtype=np.int32)
+    n_bins_c = n_bins #np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
+               #                     dtype=np.int32)
 
-    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+    histo_c = histo #np.ascontiguousarray(histo.reshape((histo.size,)))
 
     if cumul is not None:
-        cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))
+        cumul_c = cumul#np.ascontiguousarray(cumul.reshape((cumul.size,)))
     else:
         cumul_c = None
 
-    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+    bin_edges_c = bin_edges #np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
 
     rc = 0
 
