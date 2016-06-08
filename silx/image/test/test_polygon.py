@@ -45,9 +45,6 @@ _logger.setLevel(logging.WARNING)
 class TestPolygonFill(ParametricTestCase):
     """basic poylgon test"""
 
-# tests: non square mask, y=y, x=x, point outside mask
-# with and without border
-
     def test_squares(self):
         """Test polygon fill for a square polygons"""
         mask_shape = 4, 4
@@ -119,12 +116,12 @@ class TestPolygonFill(ParametricTestCase):
             'concave polygon': (
                 [(1, 1), (4, 3), (1, 5), (2, 3)],
                 numpy.array((
-                    (0, 0, 0, 0, 0, 0),
-                    (0, 0, 0, 0, 0, 0),
-                    (0, 0, 1, 1, 1, 0),
-                    (0, 0, 0, 1, 0, 0),
-                    (0, 0, 0, 0, 0, 0),
-                    (0, 0, 0, 0, 0, 0)), dtype=numpy.uint8)),
+                    (0, 0, 0, 0, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0, 0, 0),
+                    (0, 0, 1, 1, 1, 0, 0, 0),
+                    (0, 0, 0, 1, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0, 0, 0)), dtype=numpy.uint8)),
             'concave polygon partly outside mask': (
                 [(-1, -1), (4, 3), (1, 5), (2, 3)],
                 numpy.array((
@@ -132,6 +129,8 @@ class TestPolygonFill(ParametricTestCase):
                     (0, 1, 0, 0, 0, 0),
                     (0, 0, 1, 1, 1, 0),
                     (0, 0, 0, 1, 0, 0),
+                    (0, 0, 0, 0, 0, 0),
+                    (0, 0, 0, 0, 0, 0),
                     (0, 0, 0, 0, 0, 0),
                     (0, 0, 0, 0, 0, 0)), dtype=numpy.uint8)),
             'polygon surrounding mask': (
