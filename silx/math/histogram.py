@@ -143,7 +143,7 @@ def histogramnd(sample,
                 weight_max=None,
                 last_bin_closed=False,
                 histo=None,
-                cumul=None):
+                weighted_histo=None):
     """
     histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
 
@@ -157,6 +157,10 @@ def histogramnd(sample,
         coordinates of points in a D dimensional space.
         The following dtypes are supported : :class:`numpy.float64`,
         :class:`numpy.float32`, :class:`numpy.int32`.
+
+        .. warning:: if sample is not a C_CONTIGUOUS ndarray (e.g : a non
+            contiguous slice) then histogramnd will have to do make an internal
+            copy.
     :type sample: :class:`numpy.array`
 
     :param bins_rng:
@@ -221,7 +225,7 @@ def histogramnd(sample,
             (*n_bins*, *bins_rng*, ...).
     :type histo: *optional*, :class:`numpy.array`
 
-    :param cumul:
+    :param weighted_histo:
         Use this parameter if you want to pass your
         own weighted histogram array instead of
         the created by this function. New
@@ -232,6 +236,10 @@ def histogramnd(sample,
             call to histogramnd then the user is
             responsible for providing the same parameters
             (*n_bins*, *bins_rng*, ...).
+
+        .. warning:: if weighted_histo is not a C_CONTIGUOUS ndarray (e.g : a
+            non contiguous slice) then histogramnd will have to do make an
+            internal copy.
     :type cumul: *optional*, :class:`numpy.array`
 
     :return: Histogram (bin counts, always returned), weighted histogram of
@@ -248,7 +256,7 @@ def histogramnd(sample,
                          weight_max=weight_max,
                          last_bin_closed=last_bin_closed,
                          histo=histo,
-                         cumul=cumul)
+                         cumul=weighted_histo)
 
 
 class HistogramndLut(object):
