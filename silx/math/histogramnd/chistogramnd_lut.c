@@ -5892,8 +5892,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
-  int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int32_t_is_signed;
+  int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int16_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
@@ -6004,8 +6004,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
-  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
+  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
@@ -21802,9 +21802,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
-  int __pyx_v____pyx_int16_t_is_signed;
   int __pyx_v____pyx_int32_t_is_signed;
   int __pyx_v____pyx_int64_t_is_signed;
+  int __pyx_v____pyx_int16_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -21911,9 +21911,9 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
-  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
   __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
+  __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}

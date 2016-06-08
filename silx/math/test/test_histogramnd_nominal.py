@@ -150,6 +150,68 @@ class _TestHistogramnd_nominal(unittest.TestCase):
                             msg='Testing bin_edges for dim {0}'
                                 ''.format(i_edges+1))
 
+    def test_nominal_uncontiguous_sample(self):
+        """
+        """
+        expected_h_tpl = np.array([2, 1, 1, 1, 1])
+        expected_c_tpl = np.array([-700.7, -0.5, 0.01, 300.3, 500.5])
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+        expected_c = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+        self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
+
+        shape = list(self.sample.shape)
+        shape[0] *= 2
+        sample = np.zeros(shape, dtype=self.sample.dtype)
+        uncontig_sample = sample[::2, ...]
+        uncontig_sample[:] = self.sample
+
+        self.assertFalse(uncontig_sample.flags['C_CONTIGUOUS'],
+                         msg='Making sure the array is not contiguous.')
+
+        histo, cumul, bin_edges = histogramnd(uncontig_sample,
+                                              self.bins_rng,
+                                              self.n_bins,
+                                              weights=self.weights)
+
+        self.assertEqual(cumul.dtype, np.float64)
+        self.assertEqual(histo.dtype, np.uint32)
+        self.assertTrue(np.array_equal(histo, expected_h))
+        self.assertTrue(np.array_equal(cumul, expected_c))
+
+    def test_nominal_uncontiguous_weights(self):
+        """
+        """
+        expected_h_tpl = np.array([2, 1, 1, 1, 1])
+        expected_c_tpl = np.array([-700.7, -0.5, 0.01, 300.3, 500.5])
+
+        expected_h = np.zeros(shape=self.n_bins, dtype=np.double)
+        expected_c = np.zeros(shape=self.n_bins, dtype=np.double)
+
+        self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
+        self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
+
+        shape = list(self.weights.shape)
+        shape[0] *= 2
+        weights = np.zeros(shape, dtype=self.weights.dtype)
+        uncontig_weights = weights[::2, ...]
+        uncontig_weights[:] = self.weights
+
+        self.assertFalse(uncontig_weights.flags['C_CONTIGUOUS'],
+                         msg='Making sure the array is not contiguous.')
+
+        histo, cumul, bin_edges = histogramnd(self.sample,
+                                              self.bins_rng,
+                                              self.n_bins,
+                                              weights=uncontig_weights)
+
+        self.assertEqual(cumul.dtype, np.float64)
+        self.assertEqual(histo.dtype, np.uint32)
+        self.assertTrue(np.array_equal(histo, expected_h))
+        self.assertTrue(np.array_equal(cumul, expected_c))
+
     def test_nominal_wo_weights(self):
         """
         """

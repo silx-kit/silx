@@ -303,6 +303,54 @@ class _TestHistogramnd_errors(unittest.TestCase):
             self.assertIsNotNone(ex_str, msg=test_msg)
             self.assertEqual(ex_str, expected_txt, msg=test_msg)
 
+    def test_uncontiguous_histo(self):
+        """
+        """
+        # non contiguous array
+        shape = np.array(self.n_bins, ndmin=1)
+        shape[0] *= 2
+        histo_tmp = np.zeros(shape)
+        histo = histo_tmp[::2, ...]
+
+        expected_txt = ('<histo> must be a C_CONTIGUOUS numpy array.')
+
+        ex_str = None
+        try:
+            histogramnd(self.sample,
+                        self.bins_rng,
+                        self.n_bins,
+                        weights=self.weights,
+                        histo=histo)
+        except ValueError as ex:
+            ex_str = str(ex)
+
+        self.assertIsNotNone(ex_str)
+        self.assertEqual(ex_str, expected_txt)
+
+    def test_uncontiguous_cumul(self):
+        """
+        """
+        # non contiguous array
+        shape = np.array(self.n_bins, ndmin=1)
+        shape[0] *= 2
+        cumul_tmp = np.zeros(shape)
+        cumul = cumul_tmp[::2, ...]
+
+        expected_txt = ('<cumul> must be a C_CONTIGUOUS numpy array.')
+
+        ex_str = None
+        try:
+            histogramnd(self.sample,
+                        self.bins_rng,
+                        self.n_bins,
+                        weights=self.weights,
+                        cumul=cumul)
+        except ValueError as ex:
+            ex_str = str(ex)
+
+        self.assertIsNotNone(ex_str)
+        self.assertEqual(ex_str, expected_txt)
+
 
 class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
     """
