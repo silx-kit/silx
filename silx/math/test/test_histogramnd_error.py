@@ -213,7 +213,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
             self.assertIsNotNone(ex_str, msg=test_msg)
             self.assertEqual(ex_str, expected_txt, msg=test_msg)
 
-    def test_cumul_shape(self):
+    def test_weighted_histo_shape(self):
         """
         """
         # using the same values as histo
@@ -241,7 +241,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           cumul=cumul)[0:2]
+                                           weighted_histo=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -266,10 +266,10 @@ class _TestHistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
-                                           self.n_bins,
-                                           weights=self.weights,
-                                           cumul=cumul)[0:2]
+                                             self.bins_rng,
+                                             self.n_bins,
+                                             weights=self.weights,
+                                             weighted_histo=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -327,7 +327,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
         self.assertIsNotNone(ex_str)
         self.assertEqual(ex_str, expected_txt)
 
-    def test_uncontiguous_cumul(self):
+    def test_uncontiguous_weighted_histo(self):
         """
         """
         # non contiguous array
@@ -344,7 +344,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                         self.bins_rng,
                         self.n_bins,
                         weights=self.weights,
-                        cumul=cumul)
+                        weighted_histo=cumul)
         except ValueError as ex:
             ex_str = str(ex)
 
