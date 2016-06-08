@@ -28,6 +28,17 @@ import sys
 from silx.gui import qt
 from collections import OrderedDict
 
+def float_else_zero(sstring):
+    """Return converted string to float. If conversion fail, return zero.
+
+    :param sstring: String to be converted
+    :return: ``float(sstrinq)`` if ``sstring`` can be converted to float
+        (e.g. ``"3.14"``), else ``0``
+    """
+    try:
+        return float(sstring)
+    except ValueError:
+        return 0
 
 class QComboTableItem(qt.QComboBox):
     """:class:`qt.QComboBox` augmented with a ``sigCellChanged`` signal
@@ -172,32 +183,32 @@ class Parameters(qt.QTableWidget):
             self.setRowCount(line+1)
 
         # default configuration for fit parameters
-        self.parameters[param] = {'line': line,
-                                  'fields': ['name',
-                                             'estimation',
-                                             'fitresult',
-                                             'sigma',
-                                             'code',
-                                             'val1',
-                                             'val2'],
-                                  'estimation': '0',
-                                  'fitresult': '',
-                                  'sigma': '',
-                                  'code': 'FREE',
-                                  'val1': '',
-                                  'val2': '',
-                                  'cons1': 0,
-                                  'cons2': 0,
-                                  'vmin': '0',
-                                  'vmax': '1',
-                                  'relatedto': '',
-                                  'factor': '1.0',
-                                  'delta': '0.0',
-                                  'sum': '0.0',
-                                  'group': '',
-                                  'name': param,
-                                  'xmin': None,
-                                  'xmax': None}
+        self.parameters[param] = OrderedDict((('line', line),
+                                              ('fields', ['name',
+                                                          'estimation',
+                                                          'fitresult',
+                                                          'sigma',
+                                                          'code',
+                                                          'val1',
+                                                          'val2']),
+                                             ('estimation', '0'),
+                                             ('fitresult', ''),
+                                             ('sigma', ''),
+                                             ('code', 'FREE'),
+                                             ('val1', ''),
+                                             ('val2', ''),
+                                             ('cons1', 0),
+                                             ('cons2', 0),
+                                             ('vmin', '0'),
+                                             ('vmax', '1'),
+                                             ('relatedto', ''),
+                                             ('factor', '1.0'),
+                                             ('delta', '0.0'),
+                                             ('sum', '0.0'),
+                                             ('group', ''),
+                                             ('name', param),
+                                             ('xmin', None),
+                                             ('xmax', None)))
         self.setReadWrite(param, 'estimation')
         self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
 
@@ -381,7 +392,11 @@ class Parameters(qt.QTableWidget):
             # FIXME: validate() shouldn't have side effects. Move this bit to configure()?
         if field == 'val1' and str(self.parameters[param]['code']) in ['DELTA', 'FACTOR', 'SUM']:
             best, candidates = self.get_related_candidates(param)
+            # We expect val1 to be a fit parameter name
             if str(newvalue) in candidates:
+                return True
+            # but it might also be the index of a fit parameter
+            elif list(self.parameters.keys())[int(float(newvalue))] in candidates:
                 return True
             else:
                 return False
@@ -401,7 +416,7 @@ class Parameters(qt.QTableWidget):
         :param param: Fit parameter name
         :param oldvalue: Cell value before change attempt
         :param newvalue: New value to be validated
-        :return:
+        :return: ``True`` if code was successfully updated
         """
 
         if str(newvalue) in ['FREE', 'POSITIVE', 'QUOTED', 'FIXED']:
@@ -414,13 +429,14 @@ class Parameters(qt.QTableWidget):
             # I should check here that some parameter is set
             best, candidates = self.get_related_candidates(param)
             if len(candidates) == 0:
-                return 0
+                return False
             self.configure(name=param,
                            code=newvalue,
                            relatedto=best)
             if str(oldvalue) == 'IGNORE':
                 self.free_rest_of_group(param)
             return True
+
         elif str(newvalue) == 'IGNORE':
             # I should check if the group can be ignored
             # for the time being I just fix all of them to ignore
@@ -617,217 +633,140 @@ class Parameters(qt.QTableWidget):
         # Restore previous _configuring flag
         self.__configuring = _oldvalue
 
-    def configure(self, name, code=None, val1=None, sigma=None, **kw):
+    def configure(self, name, code=None, val1=None, val2=None,
+                  sigma=None, estimation=None, fitresult=None,
+                  group=None, xmin=None, xmax=None,
+                  # what about cons1 and cons2?
+                  **kw):
+        if len(kw):
+            raise ValueError("Fields not handled:" + str(list(kw.keys())))
         error = 0
         paramlist = list(self.parameters.keys())
 
         if name not in self.parameters:
             return 1
 
+        # update code first, if specified
         if code is not None:
-            newvalue = str(code)
-        #
-        # if val1 is not None:
-        #     oldvalue = self.parameters[name]["val1"]
-        #     if str(self.parameters[name]['code']) in\
-        #             ['DELTA', 'FACTOR', 'SUM']:
-        #         newvalue = str(val1)
-        #     elif val1 == "":
-        #         newvalue = ""
-        #     else:
-        #         newvalue = "%8g" % float(str(val1))
-        #     error, self.parameters[name]["val1"] = (0, newvalue) if\
-        #         self.validate(name, "val1", oldvalue, newvalue) else\
-        #         (1, oldvalue)
-        #
-        # if sigma is not None:
-        #     oldvalue = self.parameters[name]["sigma"]
-        #     if sigma == "":
-        #         newvalue = ""
-        #     else:
-        #         newvalue = float(str(sigma))
-        #         newvalue = "%8g" % newvalue
-        #     error, self.parameters[name]["sigma"] = (0, newvalue) if\
-        #          self.validate(name, "sigma", oldvalue, newvalue) else\
-        #          (1, oldvalue)
-
-
-        for key in kw.keys():
-            if key in self.parameters[name]['fields']:
-                oldvalue = self.parameters[name][key]
-                if len(str(kw[key])):
-                    keyDone = False
-                    if key == "val1":
-                        if str(self.parameters[name]['code']) in\
-                                ['DELTA', 'FACTOR', 'SUM']:
-                            newvalue = str(kw[key])
-                            keyDone = True
-                        #else:     #  Fixme
-
-                    if not keyDone:
-                        newvalue = float(str(kw[key]))
-                        if key is 'sigma':
-                            newvalue = "%6.3g" % newvalue
-                        else:
-                            newvalue = "%8g" % newvalue
-                else:
-                    newvalue = ""
-                # avoid endless recursivity
-                if self.validate(name, key, oldvalue, newvalue):
-                    self.parameters[name][key] = newvalue
-                else:
-                    self.parameters[name][key] = oldvalue
-                    error = 1
-            elif key in self.parameters[name].keys():
-                newvalue = str(kw[key])
-                self.parameters[name][key] = newvalue
-
-
-        if code is not None:
+            code = str(code)
             self.parameters[name]['code'] = code
-            for i in range(self.parameters[name]['code_item'].count()):
-                if str(code) == str(self.parameters[name]['code_item'].itemText(i)):
-                    self.parameters[name]['code_item'].setCurrentIndex(i)
-                    break
-            if str(code) == 'QUOTED':
-                if 'val1' in kw.keys():
-                    self.parameters[name][
-                        'vmin'] = self.parameters[name]['val1']
-                if 'val2' in kw.keys():
-                    self.parameters[name][
-                        'vmax'] = self.parameters[name]['val2']
-            if str(code) == 'DELTA':
-                if 'val1'in kw.keys():
-                    if kw['val1'] in self.parameters:
-                        self.parameters[name]['relatedto'] = kw['val1']
-                    else:
-                        self.parameters[name]['relatedto'] =\
-                            paramlist[int(float(str(kw['val1'])))]
-                if 'val2'in kw.keys():
-                    self.parameters[name][
-                        'delta'] = self.parameters[name]['val2']
-            if str(code) == 'SUM':
-                if 'val1' in kw.keys():
-                    if kw['val1'] in self.parameters:
-                        self.parameters[name]['relatedto'] = kw['val1']
-                    else:
-                        self.parameters[name]['relatedto'] =\
-                            paramlist[int(float(str(kw['val1'])))]
-                if 'val2' in kw.keys():
-                    self.parameters[name][
-                        'sum'] = self.parameters[name]['val2']
-            if str(code) == 'FACTOR':
-                if 'val1'in kw.keys():
-                    if kw['val1'] in self.parameters:
-                        self.parameters[name]['relatedto'] = kw['val1']
-                    else:
-                        self.parameters[name]['relatedto'] =\
-                            paramlist[int(float(str(kw['val1'])))]
-                if 'val2'in kw.keys():
-                    self.parameters[name][
-                        'factor'] = self.parameters[name]['val2']
+            # update combobox
+            index = self.parameters[name]['code_item'].findText(code)
+            self.parameters[name]['code_item'].setCurrentIndex(index)
         else:
-            # Update the proper parameter in case of change in val1 and
-            # val2
-            if str(self.parameters[name]['code']) == 'QUOTED':
-                self.parameters[name][
-                    'vmin'] = self.parameters[name]['val1']
-                self.parameters[name][
-                    'vmax'] = self.parameters[name]['val2']
-                # print "vmin =",str(self.parameters[name]['vmin'])
-            if str(self.parameters[name]['code']) == 'DELTA':
-                self.parameters[name][
-                    'relatedto'] = self.parameters[name]['val1']
-                self.parameters[name][
-                    'delta'] = self.parameters[name]['val2']
-            if str(self.parameters[name]['code']) == 'SUM':
-                self.parameters[name][
-                    'relatedto'] = self.parameters[name]['val1']
-                self.parameters[name][
-                    'sum'] = self.parameters[name]['val2']
-            if str(self.parameters[name]['code']) == 'FACTOR':
-                self.parameters[name][
-                    'relatedto'] = self.parameters[name]['val1']
-                self.parameters[name][
-                    'factor'] = self.parameters[name]['val2']
+            code = self.parameters[name]['code']
 
-        # Update val1 and val2 according to the parameters
-        # and Update the table
-        if str(self.parameters[name]['code']) in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
-            self.parameters[name]['val1'] = ''
-            self.parameters[name]['val2'] = ''
+        # val1 and sigma have special formats
+        if val1 is not None:
+            oldvalue = self.parameters[name]["val1"]
+            if str(self.parameters[name]['code']) in\
+                    ['DELTA', 'FACTOR', 'SUM']:
+                newvalue = str(val1)
+            elif val1 == "":
+                newvalue = ""
+            else:
+                newvalue = "%8g" % float(str(val1))
+            error, self.parameters[name]["val1"] = (0, newvalue) if\
+                self.validate(name, "val1", oldvalue, newvalue) else\
+                (1, oldvalue)
+            print(oldvalue, newvalue, self.validate(name, "val1", oldvalue, newvalue), self.parameters[name]["val1"])
+
+        if sigma is not None:
+            oldvalue = self.parameters[name]["sigma"]
+            if sigma == "":
+                newvalue = ""
+            else:
+                newvalue = float(str(sigma))
+                newvalue = "%6.3g" % newvalue
+            error, self.parameters[name]["sigma"] = (0, newvalue) if\
+                 self.validate(name, "sigma", oldvalue, newvalue) else\
+                 (1, oldvalue)
+
+        # other fields are formatted as "%8g"
+        keys_params = (("val2", val2), ("estimation", estimation),
+                         ("fitresult", fitresult))
+        for key, param in keys_params:
+            if param is not None:
+                oldvalue = self.parameters[name][key]
+                newvalue = "%8g" % float(str(param))
+                error, self.parameters[name][key] = (0, newvalue) if\
+                    self.validate(name, key, oldvalue, newvalue) else\
+                    (1, oldvalue)
+
+        # the rest of the parameters are treated as strings
+        keys_params = (("group", group), ("xmin", xmin),
+                         ("xmax", xmax))
+        for key, param in keys_params:
+            if param is not None:
+                self.parameters[name][key] = str(param)
+
+        # val1 and val2 have different meanings depending on the code
+        if code == 'QUOTED':
+            if val1 is not None:
+                self.parameters[name]['vmin'] = self.parameters[name]['val1']
+            else:
+                self.parameters[name]['val1'] = self.parameters[name]['vmin']
+            if val2 is not None:
+                self.parameters[name]['vmax'] = self.parameters[name]['val2']
+            else:
+                self.parameters[name]['val2'] = self.parameters[name]['vmax']
+
+            self.parameters[name]['cons1'] =\
+                float_else_zero(self.parameters[name]['val1'])
+            self.parameters[name]['cons2'] =\
+                float_else_zero(self.parameters[name]['val2'])
+
+            if self.parameters[name]['cons1'] > self.parameters[name]['cons2']:
+                self.parameters[name]['cons1'], self.parameters[name]['cons2'] =\
+                    self.parameters[name]['cons2'], self.parameters[name]['cons1']
+
+        elif code in ['DELTA', 'SUM', 'FACTOR']:
+            # For these codes, val1 refers to the fit parameter on which the
+            # constraint depends
+            if (val1 is not None and val1 in paramlist) or val1 is None:
+                self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
+
+            elif val1 is not None:
+                # val1 could be the index of the fit parameter
+                self.parameters[name]['relatedto'] = paramlist[int(val1)]
+
+            # the field to which val2 is assigned is defined by the code
+            # (code "DELTA" -> field "delta", "SUM" -> "sum",
+            # "FACTOR" -> "factor"...)
+            key = code.lower()
+            self.parameters[name][key] = self.parameters[name]["val2"]
+
+            print(list((k, v) for (k, v) in self.parameters[name].items() if "_item" not in k))
+            print("\n")
+
+            # FIXME: val1 is sometimes specified as an index rather than a param name
+            self.parameters[name]['val1'] = self.parameters[name]['relatedto']
+            #self.parameters[name]['val2'] = self.parameters[name]['factor']
+
+            self.parameters[name]['cons1'] =\
+                paramlist.index(str(self.parameters[name]['val1']))
+
+            try:
+                self.parameters[name]['cons2'] =\
+                    float(str(self.parameters[name]['val2']))
+            except ValueError:
+                error = 1
+                self.parameters[name]['cons2'] = 1.0 if code == "FACTOR" else 0.0
+
+        elif code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
+            self.parameters[name]['val1'] = ""
+            self.parameters[name]['val2'] = ""
             self.parameters[name]['cons1'] = 0
             self.parameters[name]['cons2'] = 0
+
+        # cell read-write flags depend on code as well
+        if code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
             self.setReadWrite(name, 'estimation')
             self.setReadOnly(name, ['fitresult', 'sigma', 'val1', 'val2'])
-        elif str(self.parameters[name]['code']) == 'QUOTED':
-            self.parameters[name]['val1'] = self.parameters[name]['vmin']
-            self.parameters[name]['val2'] = self.parameters[name]['vmax']
-            try:
-                self.parameters[name]['cons1'] =\
-                    float(str(self.parameters[name]['val1']))
-            except:
-                self.parameters[name]['cons1'] = 0
-            try:
-                self.parameters[name]['cons2'] =\
-                    float(str(self.parameters[name]['val2']))
-            except:
-                self.parameters[name]['cons2'] = 0
-            if self.parameters[name]['cons1'] > self.parameters[name]['cons2']:
-                buf = self.parameters[name]['cons1']
-                self.parameters[name][
-                    'cons1'] = self.parameters[name]['cons2']
-                self.parameters[name]['cons2'] = buf
-            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
-            self.setReadOnly(name, ['fitresult', 'sigma'])
-        elif str(self.parameters[name]['code']) == 'FACTOR':
-            self.parameters[name][
-                'val1'] = self.parameters[name]['relatedto']
-            self.parameters[name]['val2'] = self.parameters[name]['factor']
-            self.parameters[name]['cons1'] =\
-                paramlist.index(str(self.parameters[name]['val1']))
-            try:
-                self.parameters[name]['cons2'] =\
-                    float(str(self.parameters[name]['val2']))
-            except ValueError:
-                error = 1
-                print("Forcing factor to 1")
-                self.parameters[name]['cons2'] = 1.0
-            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
-            self.setReadOnly(name, ['fitresult', 'sigma'])
-        elif str(self.parameters[name]['code']) == 'DELTA':
-            self.parameters[name][
-                'val1'] = self.parameters[name]['relatedto']
-            self.parameters[name]['val2'] = self.parameters[name]['delta']
-            self.parameters[name]['cons1'] =\
-                paramlist.index(str(self.parameters[name]['val1']))
-            try:
-                self.parameters[name]['cons2'] =\
-                    float(str(self.parameters[name]['val2']))
-            except ValueError:
-                error = 1
-                print("Forcing delta to 0")
-                self.parameters[name]['cons2'] = 0.0
-            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
-            self.setReadOnly(name, ['fitresult', 'sigma'])
-        elif str(self.parameters[name]['code']) == 'SUM':
-            self.parameters[name][
-                'val1'] = self.parameters[name]['relatedto']
-            self.parameters[name]['val2'] = self.parameters[name]['sum']
-            self.parameters[name]['cons1'] =\
-                paramlist.index(str(self.parameters[name]['val1']))
-            try:
-                self.parameters[name]['cons2'] =\
-                    float(str(self.parameters[name]['val2']))
-            except:
-                error = 1
-                print("Forcing sum to 0")
-                self.parameters[name]['cons2'] = 0.0
-            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
-            self.setReadOnly(name, ['fitresult', 'sigma'])
         else:
             self.setReadWrite(name, ['estimation', 'val1', 'val2'])
             self.setReadOnly(name, ['fitresult', 'sigma'])
+
         return error
 
     def cget(self, param):
