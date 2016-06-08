@@ -5,6 +5,8 @@ With PyQt_, it is possible to use ``silx.gui`` widgets (and widgets written with
 
 The following ``silx.gui`` widgets are available in the Qt Designer:
 
+- :class:`silx.gui.plot.Plot1D`
+- :class:`silx.gui.plot.Plot2D`
 - :class:`silx.gui.plot.PlotWidget`
 - :class:`silx.gui.plot.PlotWindow`
 
