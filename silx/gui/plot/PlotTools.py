@@ -353,8 +353,7 @@ class ProfileToolBar(qt.QToolBar):
                                             curveStyle=True, colormap=False,
                                             aspectRatio=False, yInverted=False,
                                             copy=True, save=True, print_=True,
-                                            control=False, position=True,
-                                            autoreplot=True)
+                                            control=False, position=True)
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
