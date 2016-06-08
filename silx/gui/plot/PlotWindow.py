@@ -34,11 +34,13 @@ __date__ = "07/03/2016"
 
 import collections
 import logging
+import sys
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
+from .CurvesROIWidget import CurvesROIDockWidget
 try:
     from ..console import IPythonDockWidget, IPythonWidget
 except ImportError:
@@ -92,10 +94,10 @@ class PlotWindow(PlotWidget):
                          (Default: False)
     :param position: True to display widget with (x, y) mouse position
                      (Default: False).
-                     It also supports a list of (name, function(x, y)->value)
+                     It also supports a list of (name, funct(x, y)->value)
                      to customize the displayed values.
                      See :class:`silx.gui.plot.PlotTools.PositionInfo`.
-    :param bool autoreplot: Toggle autoreplot mode (Default: True).
+    :param bool roi: Toggle visibilty of ROI action.
     """
 
     def __init__(self, parent=None, backend=None,
@@ -103,10 +105,10 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 control=False, position=False,
-                 autoreplot=True):
-        super(PlotWindow, self).__init__(
-            parent=parent, backend=backend, autoreplot=autoreplot)
+                 control=False, position=False, roi=True):
+        super(PlotWindow, self).__init__(parent=parent, backend=backend)
+
+        self._dockWidgets = []
 
         # Init actions
         self.group = qt.QActionGroup(self)
@@ -149,6 +151,9 @@ class PlotWindow(PlotWidget):
             YAxisInvertedAction(self))
         self.yAxisInvertedAction.setVisible(yInverted)
 
+        self.group.addAction(self.roiAction)
+        self.roiAction.setVisible(roi)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -188,8 +193,6 @@ class PlotWindow(PlotWidget):
         self._menu = self.menu()
         self.menuBar().addMenu(self._menu)
 
-        self._dockWidgets = []
-
     @property
     def legendsDockWidget(self):
         """DockWidget with Legend panel (lazy-loaded)."""
@@ -200,6 +203,21 @@ class PlotWindow(PlotWidget):
         return self._legendsDockWidget
 
     @property
+    def curvesROIDockWidget(self):
+        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        if not hasattr(self, '_curvesROIDockWidget'):
+            self._curvesROIDockWidget = CurvesROIDockWidget(self,
+                name='Regions Of Interest')
+            self._curvesROIDockWidget.hide()
+            self._introduceNewDockWidget(self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
+
+    @property
+    def roiAction(self):
+        """QAction toggling curve ROI dock widget"""
+        return self.curvesROIDockWidget.toggleViewAction()
+
+    @property
     def consoleDockWidget(self):
         """DockWidget with IPython console (lazy-loaded)."""
         if not hasattr(self, '_consoleDockWidget'):
@@ -208,9 +226,9 @@ class PlotWindow(PlotWidget):
             banner += "and 'help(plt)' commands for more information.\n\n"
             if IPythonDockWidget is not None:
                 self._consoleDockWidget = IPythonDockWidget(
-                        available_vars=vars,
-                        custom_banner=banner,
-                        parent=self)
+                    available_vars=vars,
+                    custom_banner=banner,
+                    parent=self)
                 self._consoleDockWidget.hide()
                 self._introduceNewDockWidget(self._consoleDockWidget)
             else:
@@ -257,10 +275,17 @@ class PlotWindow(PlotWidget):
         """Display Options button sub-menu."""
         controlMenu = qt.QMenu()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.crosshairAction)
-        controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.addAction(self.curvesROIDockWidget.toggleViewAction())
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
+        else:
+            disabledConsoleAction = controlMenu.addAction('Console')
+            disabledConsoleAction.setCheckable(True)
+            disabledConsoleAction.setEnabled(False)
+
+        controlMenu.addSeparator()
+        controlMenu.addAction(self.crosshairAction)
+        controlMenu.addAction(self.panWithArrowKeysAction)
         controlMenu.exec_(self.cursor().pos())
 
     def _introduceNewDockWidget(self, dock_widget):
@@ -284,3 +309,173 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+
+class Plot1D(PlotWindow):
+    """PlotWindow with tools specific for curves.
+
+    :param parent: The parent of this widget
+    """
+
+    def __init__(self, parent=None):
+        super(Plot1D, self).__init__(parent=parent, backend=None,
+                                     resetzoom=True, autoScale=True,
+                                     logScale=True, grid=True,
+                                     curveStyle=True, colormap=False,
+                                     aspectRatio=False, yInverted=False,
+                                     copy=True, save=True, print_=True,
+                                     control=True, position=True)
+
+class Plot2D(PlotWindow):
+    """PlotWindow with a toolbar specific for images.
+
+    :param parent: The parent of this widget
+    """
+
+    def __init__(self, parent=None):
+        super(Plot2D, self).__init__(parent=parent, backend=None,
+                                     resetzoom=True, autoScale=False,
+                                     logScale=False, grid=False,
+                                     curveStyle=False, colormap=True,
+                                     aspectRatio=True, yInverted=True,
+                                     copy=True, save=True, print_=True,
+                                     control=False, position=True)
+
+
+def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
+    """Plot curves in a dedicated widget.
+
+    Examples:
+
+    The following examples must run with a Qt QApplication initialized.
+
+    First import :func:`plot1D` function:
+
+    >>> from silx.gui.plot import plot1D
+    >>> import numpy
+
+    Plot a single curve given some values:
+
+    >>> values = numpy.random.random(100)
+    >>> plot_1curve = plot1D(values, title='Random data')
+
+    Plot a single curve given the x and y values:
+
+    >>> angles = numpy.linspace(0, numpy.pi, 100)
+    >>> sin_a = numpy.sin(angles)
+    >>> plot_sinus = plot1D(angles, sin_a,
+    ...                     xlabel='angle (radian)', ylabel='sin(a)')
+
+    Plot many curves by giving a 2D array:
+
+    >>> curves = numpy.random.random(10 * 100).reshape(10, 100)
+    >>> plot_curves = plot1D(curves)
+
+    Plot many curves sharing the same x values:
+
+    >>> angles = numpy.linspace(0, numpy.pi, 100)
+    >>> values = (numpy.sin(angles), numpy.cos(angles))
+    >>> plot = plot1D(angles, values)
+
+    :param x_or_y: x values or y values if y is not provided
+    :param y: y values (x_or_y) must be provided
+    :param str title: The title of the Plot widget
+    :param str xlabel: The label of the X axis
+    :param str ylabel: The label of the Y axis
+    """
+    plot = Plot1D()
+    plot.setGraphTitle(title)
+    plot.setGraphXLabel(xlabel)
+    plot.setGraphYLabel(ylabel)
+
+    # Handle x_or_y and y arguments
+    if x_or_y is None and y is not None:
+        # Only y is provided, reorder arguments
+        x_or_y, y = y, None
+
+    if x_or_y is not None:
+        x_or_y = numpy.array(x_or_y, copy=False)
+
+        if y is None:  # x_or_y is y and no x provided, create x values
+            y = x_or_y
+            x_or_y = numpy.arange(x_or_y.shape[-1], dtype=numpy.float32)
+
+        y = numpy.array(y, copy=False)
+        y = y.reshape(-1, y.shape[-1])  # Make it 2D array
+
+        if x_or_y.ndim == 1:
+            for index, ycurve in enumerate(y):
+                plot.addCurve(x_or_y, ycurve, legend=('curve_%d' % index))
+
+        else:
+            # Make x a 2D array as well
+            x_or_y = x_or_y.reshape(-1, x_or_y.shape[-1])
+            if x_or_y.shape[0] != y.shape[0]:
+                raise ValueError(
+                    'Not the same dimensions for x and y (%d != %d)' %
+                    (x_or_y.shape[0], y.shape[0]))
+            for index, (xcurve, ycurve) in enumerate(zip(x_or_y, y)):
+                plot.addCurve(xcurve, ycurve, legend=('curve_%d' % index))
+
+    plot.show()
+    return plot
+
+
+def plot2D(data=None, cmap=None, norm='linear',
+           vmin=None, vmax=None,
+           aspect=False,
+           origin=(0., 0.), scale=(1., 1.),
+           title='', xlabel='X', ylabel='Y'):
+    """Plot an image in a dedicated widget.
+
+    Example to plot an image.
+    This example must run with a Qt QApplication initialized.
+
+    >>> from silx.gui.plot import plot2D
+    >>> import numpy
+
+    >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
+    >>> plot = plot2D(data, title='Random data')
+
+    :param data: data to plot as an image
+    :type data: numpy.ndarray-like with 2 dimensions
+    :param str cmap: The name of the colormap to use for the plot.
+    :param str norm: The normalization of the colormap:
+                     'linear' (default) or 'log'
+    :param float vmin: The value to use for the min of the colormap
+    :param float vmax: The value to use for the max of the colormap
+    :param bool aspect: True to keep aspect ratio (Default: False)
+    :param origin: (ox, oy) The origin of the image in the plot
+    :type origin: 2-tuple of floats
+    :param scale: (sx, sy) The scale of the image in the plot
+                  (i.e., the size of the image's pixel in plot coordinates)
+    :type scale: 2-tuple of floats
+    :param str title: The title of the Plot widget
+    :param str xlabel: The label of the X axis
+    :param str ylabel: The label of the Y axis
+    """
+    plot = Plot2D()
+    plot.setGraphTitle(title)
+    plot.setGraphXLabel(xlabel)
+    plot.setGraphYLabel(ylabel)
+
+    # Update default colormap with input parameters
+    colormap = plot.getDefaultColormap()
+    if cmap is not None:
+        colormap['name'] = cmap
+    colormap['normalization'] = norm
+    if vmin is not None:
+        colormap['vmin'] = vmin
+    if vmax is not None:
+        colormap['vmax'] = vmax
+    if vmin is not None and vmax is not None:
+        colormap['autoscale'] = False
+    plot.setDefaultColormap(colormap)
+
+    plot.setKeepDataAspectRatio(aspect)
+
+    if data is not None:
+        plot.addImage(data, origin=origin, scale=scale)
+
+    plot.show()
+    return plot
