@@ -135,13 +135,10 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
         is now numpy.finfo(numpy.float).eps as in scipy
     :type epsfcn: *optional*, float
 
-    :param left_derivative:
-            This parameter only has an influence if no derivative function
-            is provided. When True the left and right derivatives of the
-            model will be calculated for each fitted parameters thus leading to
-            the double number of function evaluations. Default is False.
-            Original Gefit module was always using left_derivative as True.
-    :type left_derivative: *optional*, bool
+    :param deltachi: float
+        A variable used to control the minimum change in chisq to consider the
+        fitting process not worth to be continued. Default is 0.1 %.
+    :type deltachi: *optional*, float
 
     :param full_output: bool, optional
         non-zero to return all optional outputs. The default is 0
@@ -152,13 +149,14 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             False will ignore input arrays values containing nans.
             Default is True.
 
-    :param left_derivative: bool, optional
+    :param left_derivative:
             This parameter only has an influence if no derivative function
             is provided. When True the left and right derivatives of the
             model will be calculated for each fitted parameters thus leading to
             the double number of function evaluations. Default is False.
-            Original Gefit module was always using left_derivative.
-    
+            Original Gefit module was always using left_derivative as True.
+    :type left_derivative: *optional*, bool
+
     :param max_iter: Maximum number of iterations (default is 100)
 
     :return: Returns a tuple of length 2 (or 3 if full_ouput is True) with the content:
@@ -197,7 +195,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
         p0 = [p0]
     parameters = numpy.array(p0, dtype=numpy.float64, copy=False)
     if deltachi is None:
-        deltachi = 0.01
+        deltachi = 0.001
 
     # NaNs can not be handled
     if check_finite:
@@ -296,10 +294,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
 
     # check if constraints have been passed as text
     constrained_fit = False
-    if constraints is None:
-        pass
-        #constraints = [[0, 0, 0]] * nparameters
-    if constraints:
+    if constraints is not None:
         string_type = type("string")
         for i in range(nparameters):
             if hasattr(constraints[i][0], "upper"):
@@ -431,8 +426,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
             else:
                 flag = 1
                 fittedpar = newpar.__copy__()
-                lastdeltachi = absdeltachi / (chisq0 + (chisq0==0))
-                #print("lastdeltachi = ", lastdeltachi, "absdeltachi", absdeltachi)
+                lastdeltachi = 100 * (absdeltachi / (chisq + (chisq==0)))
                 if (lastdeltachi) < deltachi:
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
@@ -440,7 +434,6 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
                     _logger.warning("Iteration finished due to too small absolute chi decrement")
                 chisq0 = chisq
                 flambda = flambda / 10.0
-                #print("iter = ",iiter,"chisq = ", chisq)
                 last_evaluation = yfit
             iiter = iiter -1
     # this is the covariance matrix of the actually fitted parameters
