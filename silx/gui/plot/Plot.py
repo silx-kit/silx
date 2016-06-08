@@ -1116,6 +1116,10 @@ class Plot(object):
                     self._hiddenCurves.discard(legend)
 
                     if legend in self._curves:
+                        if self.getActiveCurve(just_legend=True) == legend:
+                            # Reset active curve
+                            self.setActiveCurve(None)
+
                         handle = self._curves[legend]['handle']
                         if handle is not None:
                             self._backend.remove(handle)

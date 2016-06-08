@@ -144,32 +144,31 @@ class TestDictToIni(unittest.TestCase):
             }
         }
 
-        dump(testdict, self.ini_fname, fmat="ini")
+        dump(testdict, self.ini_fname)
 
         #read the data back
-        readinstance = ConfigDict()
-        readinstance.read(self.ini_fname)
+        readdict = load(self.ini_fname)
 
         testdictkeys = list(testdict.keys())
-        readkeys = list(readinstance.keys())
+        readkeys = list(readdict.keys())
 
         self.assertTrue(len(readkeys) == len(testdictkeys),
                         "Number of read keys not equal")
 
-        self.assertEqual(readinstance['simple_types']["interpstring"],
+        self.assertEqual(readdict['simple_types']["interpstring"],
                          "interpolation: 5 % is too much")
 
         testdict['simple_types']["interpstring"] = "interpolation: 5 % is too much"
 
         for key in testdict["simple_types"]:
             original = testdict['simple_types'][key]
-            read = readinstance['simple_types'][key]
+            read = readdict['simple_types'][key]
             self.assertEqual(read, original,
                              "Read <%s> instead of <%s>" % (read, original))
 
         for key in testdict["containers"]:
             original = testdict["containers"][key]
-            read = readinstance["containers"][key]
+            read = readdict["containers"][key]
             if key == 'array':
                 self.assertEqual(read.all(), original.all(),
                             "Read <%s> instead of <%s>" % (read, original))
