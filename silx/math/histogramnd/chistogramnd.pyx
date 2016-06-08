@@ -42,102 +42,14 @@ def chistogramnd(sample,
                  last_bin_closed=False,
                  histo=None,
                  cumul=None):
-    """
-    chistogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, cumul=None)
 
-    Computes the multidimensional histogram of some data.
+    # see silx.math.histogramnd for the doc
 
-    :param sample:
-        The data to be histogrammed.
-        Its shape must be either
-        (N,) if it contains one dimensional coordinates,
-        or an (N,D) array where the rows are the
-        coordinates of points in a D dimensional space.
-        The following dtypes are supported : :class:`numpy.float64`,
-        :class:`numpy.float32`, :class:`numpy.int32`.
-    :type sample: :class:`numpy.array`
+    if cumul is not None and cumul.flags['C_CONTIGUOUS'] is False:
+        raise ValueError('<cumul> must be a C_CONTIGUOUS numpy array.')
 
-    :param bins_rng:
-        A (N, 2) array containing the lower and upper
-        bin edges along each dimension.
-    :type bins_rng: array_like
-
-    :param n_bins:
-        The number of bins :
-            * a scalar (same number of bins for all dimensions)
-            * a D elements array (number of bins for each dimensions)
-    :type n_bins: scalar or array_like
-
-    :param weights:
-        A N elements numpy array of values associated with
-        each sample.
-        The values of the *cumul* array
-        returned by the function are equal to the sum of
-        the weights associated with the samples falling
-        into each bin.
-        The following dtypes are supported : :class:`numpy.float64`,
-        :class:`numpy.float32`, :class:`numpy.int32`.
-
-        .. note:: If None, the weighted histogram returned will be None.
-    :type weights: *optional*, :class:`numpy.array`
-
-    :param weight_min:
-        Use this parameter to filter out all samples whose
-        weights are lower than this value.
-
-        .. note:: This value will be cast to the same type
-            as *weights*.
-    :type weight_min: *optional*, scalar
-
-    :param weight_max:
-        Use this parameter to filter out all samples whose
-        weights are higher than this value.
-
-        .. note:: This value will be cast to the same type
-            as *weights*.
-
-    :type weight_max: *optional*, scalar
-
-    :param last_bin_closed:
-        By default the last bin is half
-        open (i.e.: [x,y) ; x included, y
-        excluded), like all the other bins.
-        Set this parameter to true if you want
-        the LAST bin to be closed.
-    :type last_bin_closed: *optional*, :class:`python.boolean`
-
-    :param histo:
-        Use this parameter if you want to pass your
-        own histogram array instead of the one
-        created by this function. New values
-        will be added to this array. The returned array
-        will then be this one (same reference).
-
-        .. warning:: If the histo array was created by a previous
-            call to histogramnd then the user is
-            responsible for providing the same parameters
-            (*n_bins*, *bins_rng*, ...).
-    :type histo: *optional*, :class:`numpy.array`
-
-    :param cumul:
-        Use this parameter if you want to pass your
-        own weighted histogram array instead of
-        the created by this function. New
-        values will be added to this array. The returned array
-        will then be this one (same reference).
-
-        .. warning:: If the cumul array was created by a previous
-            call to histogramnd then the user is
-            responsible for providing the same parameters
-            (*n_bins*, *bins_rng*, ...).
-    :type cumul: *optional*, :class:`numpy.array`
-
-    :return: Histogram (bin counts, always returned), weighted histogram of
-        the sample (or *None* if weights is *None*) and bin edges for each
-        dimension.
-    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
-        (:class:`numpy.array`, None, `tuple`)
-    """  # noqa
+    if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
+        raise ValueError('<histo> must be a C_CONTIGUOUS numpy array.')
 
     s_shape = sample.shape
 
@@ -267,20 +179,20 @@ def chistogramnd(sample,
     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
                  if weights is not None else None)
 
-    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
-                                      dtype=np.double)
+    bins_rng_c = bins_rng #np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
+                 #                     dtype=np.double)
 
-    n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
-                                    dtype=np.int32)
+    n_bins_c = n_bins #np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
+               #                     dtype=np.int32)
 
-    histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+    histo_c = histo #np.ascontiguousarray(histo.reshape((histo.size,)))
 
     if cumul is not None:
-        cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))
+        cumul_c = cumul#np.ascontiguousarray(cumul.reshape((cumul.size,)))
     else:
         cumul_c = None
 
-    bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+    bin_edges_c = bin_edges #np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
 
     rc = 0
 
