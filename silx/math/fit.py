@@ -56,14 +56,14 @@ CDELTA      = 5
 CSUM        = 6
 CIGNORED    = 7
 
-def curve_fit(model, xdata, ydata, p0, sigma=None,
+def leastsq(model, xdata, ydata, p0, sigma=None,
               constraints=None, model_deriv=None, epsfcn=None,
               deltachi=None, full_output=0,
               check_finite=True,
               left_derivative=False,
-              max_iter=100, **kw):
+              max_iter=100):
     """
-    Use non-linear least squares Levenberg-Marduardt algorithm to fit a function, f, to
+    Use non-linear least squares Levenberg-Marquardt algorithm to fit a function, f, to
     data with optional constraints on the fitted parameters.
 
     Assumes ``ydata = f(xdata, *params) + eps``
@@ -806,7 +806,18 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
             sigma_par [i] = sigma_par[int(constraints[i][1])]
     return sigma_par
 
-def main(npoints=10000):
+def main(arv=None):
+    if argv is None:
+        npoints = 10000
+    elif hasattr(arv, "__len__"):
+        if len(arv) > 1:
+            npoints = int(argv[1])
+        else:
+            print("Usage:")
+            print("fit [npoints]")
+    else:
+        # expected a number
+        npoints = argv
 
     def gauss(t0, *param0):
         param=numpy.array(param0)
@@ -826,7 +837,7 @@ def main(npoints=10000):
     parameters = [0.0,1.0,900.0, 25., 10]
     stime = time.time()
 
-    fittedpar, cov, ddict = curve_fit(gauss, xx, yy, parameters,
+    fittedpar, cov, ddict = leastsq(gauss, xx, yy, parameters,
                                                  sigma=sy,
                                                  left_derivative=False,
                                                  full_output=True,
@@ -858,4 +869,4 @@ def main(npoints=10000):
         print("Sigma = ", numpy.sqrt(numpy.diag(scipy_cov)))
 
 if __name__ == "__main__":
-  main(10000)
+  main()

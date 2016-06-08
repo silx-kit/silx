@@ -30,17 +30,17 @@ import unittest
 import numpy
 import sys
 
-class Test_curve_fit(unittest.TestCase):
+class Test_leastsq(unittest.TestCase):
     """
-    Unit tests of the curve_fit function.
+    Unit tests of the leastsq function.
     """
 
     ndims = None
 
     def setUp(self):
         try:
-            from silx.math import curve_fit
-            self.instance = curve_fit
+            from silx.math import leastsq
+            self.instance = leastsq
         except ImportError:
             self.instance = None
 
@@ -94,7 +94,7 @@ class Test_curve_fit(unittest.TestCase):
 
     def testImport(self):
         self.assertTrue(self.instance is not None,
-                        "Cannot import curve_fit from silx.math")
+                        "Cannot import leastsq from silx.math")
 
     def testUnconstrainedFitNoWeight(self):
         parameters_actual = [10.5,2,1000.0,20.,15]
@@ -317,7 +317,7 @@ class Test_curve_fit(unittest.TestCase):
             self.assertTrue(test_condition, msg)
 
 
-test_cases = (Test_curve_fit,)
+test_cases = (Test_leastsq,)
 
 def suite():
     loader = unittest.defaultTestLoader

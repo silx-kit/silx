@@ -5,4 +5,4 @@
 ----------------------------------------------------------
 
 .. automodule:: silx.math.fit
-   :members: curve_fit, chisq_alpha_beta
+   :members: leastsq, chisq_alpha_beta

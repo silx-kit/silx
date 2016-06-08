@@ -28,4 +28,4 @@ __date__ = "26/05/2016"
 
 from .histogram import histogramnd
 from .histogram import HistogramndLut
-from .fit import curve_fit
+from .fit import leastsq
