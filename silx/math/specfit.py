@@ -36,11 +36,11 @@ import PyMca5
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
 def curve_fit(model, xdata, ydata, p0, sigma=None,
-              constraints=None, model_deriv=None, weightflag=0):
+              constraints=None, model_deriv=None):
     return LeastSquaresFit(model, p0,
                            xdata=xdata,
                            ydata=ydata,
-                           # weightflag=1 if sigma is not None else 0,
+                           weightflag=1 if sigma is not None else 0,
                            sigmadata=sigma,
                            constrains=constraints,
                            model_deriv=model_deriv,
@@ -51,40 +51,55 @@ from PyMca5.PyMcaCore import EventHandler
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/06/2016"
+__date__ = "09/06/2016"
 
 _logger = logging.getLogger(__name__)
 
 
 class Specfit():
     """
-    Fitting functions manager
+    Multi-peak fitting functions manager
 
+    Data attributes::
+
+     - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
+       and uncertainties. These attributes are not modified after
+       initialization.
+     - ``xdata``, ``ydata`` and ``sigmay`` store the data after
+       removing values where ``xdata < xmin`` or ``xdata > xmax``.
+       These attributes may be modified at a latter stage by filters.
     """
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=0, fwhm_points=8,
                  auto_scaling=0, yscaling=1.0, sensitivity=2.5,
                  residuals_flag=0, mca_mode=0, event_handler=None):
         """
+        :param x: Abscissa data. If ``None``, ``self.xdata`` is set to
+            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
+        :type x: Sequence or numpy array or None
+        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
+            shape as ``x`` if ``x`` is not ``None``.
+        :type y: Sequence or numpy array or None
+        :param sigmay: The uncertainties in the ``ydata`` array. These are
+            used as weights in the least-squares problem.
+            If ``None``, the uncertainties are assumed to be 1.
+        :type sigmay: Sequence or numpy array or None
 
-        :param x: The independent variable where the data is measured.
-        :param y: The dependent data --- nominally f(xdata, ...).
-        :param sigmay: The uncertainties in the ``y`` array. These are used as
-            weights in the least-squares problem.
-            If ``None``, the uncertainties are assumed to be 1
         :param auto_fwhm:
         :param fwhm_points:
         :param auto_scaling:
         :param yscaling:
         :param sensitivity:
         :param residuals_flag:
+        :param mca_mode:
         :param event_handler:
         """
         self.fitconfig = {}
-        self.filterlist = []
-        self.filterdict = {}
-        self.theorydict = OrderedDict()
-        self.dataupdate = None      # FIXME: this seems to be unused. Document or remove it
+        """Dictionary of fit configuration parameters.
+
+        Keys are: 'fittheory', 'fitbkg', 'AutoFwhm', 'FwhmPoints',
+        'AutoScaling', 'Yscaling', 'Sensitivity', 'ResidualsFlag',
+        'McaMode'"""
 
         self.fitconfig['AutoFwhm'] = auto_fwhm
         self.fitconfig['FwhmPoints'] = fwhm_points
@@ -93,7 +108,23 @@ class Specfit():
         self.fitconfig['Sensitivity'] = sensitivity
         self.fitconfig['ResidualsFlag'] = residuals_flag
         self.fitconfig['McaMode'] = mca_mode
+        self.fitconfig['fitbkg'] = 'No Background'
+        self.fitconfig['fittheory'] = None
 
+
+        # self.filterlist = []  # FIXME: unused (see commented code filter(), add_filter()...)
+        # self.filterdict = {}  # FIXME: totally unused even in commented code
+        self.theorydict = OrderedDict()
+        """Dictionary of functions to be fitted to individual peaks.
+
+        Keys are descriptive theory names (e.g "Gaussians" or "Step up").
+        Values are lists:
+        ``[function, parameters, estimate, configure, derivative]``
+        """
+
+        self.dataupdate = None      # FIXME: this seems to be unused. Document or remove it
+
+        # TODO: document eh
         if event_handler is not None:
             self.eh = event_handler
         else:
@@ -108,17 +139,53 @@ class Specfit():
              ('Internal', [self.bkg_internal,
                            ['Curvature', 'Iterations', 'Constant'],
                            self.estimate_builtin_bkg])])
+        """Dictionary of background functions.
 
-        self.fitconfig['fitbkg'] = 'No Background'
+        Keys are descriptive theory names (e.g "Constant" or "Linear").
+        Values are list: ``[function, parameters, estimate]``
+
+        ``function`` is a callable function with the signature ``function(x, params) -> y``
+        where params is a sequence of parameters.
+
+        ``parameters`` is a sequence of parameter names (e.g. could be
+        for a linear function ``["constant", "slope"]``).
+
+        ``estimate`` is a function to compute initial values for parameters.
+        It should have the following signature: ????????????
+        """  # FIXME estimate signature
+
+        # TODO: document following attributes
         self.bkg_internal_oldx = numpy.array([])
         self.bkg_internal_oldy = numpy.array([])
         self.bkg_internal_oldpars = [0, 0]
         self.bkg_internal_oldbkg = numpy.array([])
-        self.fitconfig['fittheory'] = None
 
         self.setdata(x, y, sigmay)
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
+        """Set data attributes::
+
+            - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
+              and uncertainties. These attributes are not modified after
+              initialization.
+            - ``xdata``, ``ydata`` and ``sigmay`` store the data after
+              removing values where ``xdata < xmin`` or ``xdata > xmax``.
+              These attributes may be modified at a latter stage by filters.
+
+
+        :param x: Abscissa data. If ``None``, ``self.xdata`` is set to
+            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
+        :type x: Sequence or numpy array or None
+        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
+            shape as ``x`` if ``x`` is not ``None``.
+        :type y: Sequence or numpy array or None
+        :param sigmay: The uncertainties in the ``ydata`` array. These are
+            used as weights in the least-squares problem.
+            If ``None``, the uncertainties are assumed to be 1.
+        :type sigmay: Sequence or numpy array or None
+        :param xmin: Lower value of x values to use for fitting
+        :param xmax: Upper value of x values to use for fitting
+        """
         if y is None:
             self.xdata0 = numpy.array([], numpy.float)
             self.ydata0 = numpy.array([], numpy.float)
@@ -137,12 +204,9 @@ class Specfit():
                 self.xdata0 = numpy.array(x)
                 self.xdata = numpy.array(x)
 
+            # default weight in the least-square problem is 1.
             if sigmay is None:
-                dummy = numpy.sqrt(abs(self.ydata0))
-                self.sigmay0 = numpy.reshape(
-                    dummy + numpy.equal(dummy, 0), self.ydata0.shape)
-                self.sigmay = numpy.reshape(
-                    dummy + numpy.equal(dummy, 0), self.ydata0.shape)
+                self.sigmay = numpy.ones(self.ydata.shape, dtype=numpy.float)
             else:
                 self.sigmay0 = numpy.array(sigmay)
                 self.sigmay = numpy.array(sigmay)
@@ -156,76 +220,111 @@ class Specfit():
                 self.ydata = self.ydata[bool_array]
                 self.sigmay = self.sigmay[bool_array]
 
-    def filter(self, xwork=None, ywork=None, sigmaywork=None):
-        # FIXME: could not find any usage of this method. Return status to be removed?
-        if xwork is None:
-            xwork = self.xdata0
-        if ywork is None:
-            ywork = self.ydata0
-        if sigmaywork is None:
-            sigmaywork = self.sigmay0
-        filterstatus = 0
-        for i in self.filterlist:
-            filterstatus += 1
-            try:
-                xwork, ywork, sigmaywork = self.filterlist[i][0](
-                        xwork,
-                        ywork,
-                        sigmaywork,
-                        self.filterlist[i][1],
-                        self.filterlist[i][2])
-            except:   # FIXME: except what?
-                return filterstatus
-        self.xdata = xwork
-        self.ydata = ywork
-        self.sigmay = sigmaywork
-        return filterstatus
-
-    def addfilter(self, filterfun, filtername= "Unknown", *vars, **kw):
-        addfilterstatus = 0
-        kw['filtername'] = filtername
-        self.filterlist.append([filterfun, vars, kw])
-        return addfilterstatus
-
-    def deletefilter(self, filter_indices=None, filter_name=None):
-        """
-        Deletes all specified filters from the internal list of filters
-        (``self.filterlist``).
-
-        :param filter_indices: List of indices of filters to be removed
-        :param filter_name: Name of filter to be removed
-
-        Filters can be specified as a list of indices and/or a filter name.
-
-        Usage examples::
-
-            self.delete(2)                  # del(self.filterlist[2])
-            self.delete(filtername='sort')  # deletes any filter named 'sort'
-
-        """
-        indices = filter_indices if filter_indices is not None else []
-
-        if min(indices) < 0:
-            raise IndexError("Invalid negative filter indices specified")
-        if max(indices) >= len(self.filterlist):
-            raise IndexError("Found filter indices larger than length " +
-                             "of filter list")
-        for i in indices:
-            del(self.filterlist[i])
-
-        if filter_name is not None:
-            len_before_removal = len(self.filterlist)
-            self.filterlist = [item for item in self.filterlist if
-                               item[2]['filtername'] != filter_name]
-            if len(self.filterlist) == len_before_removal:
-                _logger.error("No filter named '%s' found" % filter_name)
+    # def filter(self, xwork=None, ywork=None, sigmaywork=None):
+    #     """Apply filters to data and save the resulting filtered data in
+    #     attributes ``xdata``, ``ydata`` and ``sigmay``
+    #
+    #     All filter functions in internal list ``filterlist`` are applied
+    #     to the data.
+    #
+    #     If return value `r` is lower than ``len(self.filterlist)`` it means
+    #     that there was an error during the application of filter index `r`.
+    #     If any error happened, the data attributes ``xdata``, ``ydata`` and
+    #     ``sigmay`` are left unchanged. This means that either all filters are
+    #     applied, or none of them.
+    #
+    #     :param xwork: Abscissa values of data to be filtered.
+    #         If ``None``, use ``self.xdata0``
+    #     :param ywork: Ordinate values of data to be filtered.
+    #         If ``None``, use ``self.ydata0``
+    #     :param sigmaywork: Uncertainties of ``ywork``.
+    #         If ``None``, use ``self.sigmay0``
+    #     :return: Number of filters successfully applied. If this value is
+    #         lower than ``len(self.filterlist)``, this method failed and
+    #         data was left unchanged.
+    #     """
+    #     # FIXME: could not find any usage of this method.
+    #     #     For loop was probably wrong, so I doubt this was ever used.
+    #     #     (it was `for i in self.filterlist` instead of `for i in range(len(self.filterlist))`
+    #     # TODO: document
+    #     # TODO: i modified return value. Now we return previous return value - 1. Check if this does not cause any issue.
+    #     if xwork is None:
+    #         xwork = self.xdata0
+    #     if ywork is None:
+    #         ywork = self.ydata0
+    #     if sigmaywork is None:
+    #         sigmaywork = self.sigmay0
+    #
+    #     for i, _filter in enumerate(self.filterlist):
+    #         try:
+    #             xwork, ywork, sigmaywork = _filter[0](
+    #                     xwork,
+    #                     ywork,
+    #                     sigmaywork,
+    #                     _filter[1],
+    #                     _filter[2])
+    #         except:   # FIXME: except what? Dangerous.
+    #             return i
+    #
+    #     self.xdata = xwork
+    #     self.ydata = ywork
+    #     self.sigmay = sigmaywork
+    #     return len(self.filterlist)
+    #
+    # def addfilter(self, filterfun, filtername="Unknown", *vars, **kw):
+    #     """Append a filter to ``self.filterlist``.
+    #
+    #     :param filterfun: Filter function. This function must have the
+    #         following signature::
+    #
+    #             xdata, ydata, sigmay = filterfun(x_in, y_in, sigmay_in, *vars, **kw)
+    #     :param filtername: Name of filter. This is added to the dict in filter[2]
+    #     :param vars: Sequence of parameters for ``filterfun``
+    #     :param kw: Dictionary of named parameters for ``filterfun``
+    #     """
+    #     kw['filtername'] = filtername
+    #     self.filterlist.append([filterfun, vars, kw])
+    #
+    # def deletefilter(self, filter_indices=None, filter_name=None):
+    #     """
+    #     Deletes all specified filters from the internal list of filters
+    #     (``self.filterlist``).
+    #
+    #     :param filter_indices: List of indices of filters to be removed
+    #     :param filter_name: Name of filter to be removed
+    #
+    #     Filters can be specified as a list of indices and/or a filter name.
+    #
+    #     Usage examples::
+    #
+    #         self.delete(2)                  # del(self.filterlist[2])
+    #         self.delete(filtername='sort')  # deletes any filter named 'sort'
+    #     """
+    #     # FIXME: could not find any usage of this method.
+    #     # TODO: document
+    #     indices = filter_indices if filter_indices is not None else []
+    #
+    #     if min(indices) < 0:
+    #         raise IndexError("Invalid negative filter indices specified")
+    #     if max(indices) >= len(self.filterlist):
+    #         raise IndexError("Found filter indices larger than length " +
+    #                          "of filter list")
+    #     for i in indices:
+    #         del(self.filterlist[i])
+    #
+    #     if filter_name is not None:
+    #         len_before_removal = len(self.filterlist)
+    #         self.filterlist = [item for item in self.filterlist if
+    #                            item[2]['filtername'] != filter_name]
+    #         if len(self.filterlist) == len_before_removal:
+    #             _logger.error("No filter named '%s' found" % filter_name)
 
     def addtheory(self, theory, function, parameters, estimate=None,
                   configure=None, derivative=None):
-        """
+        """Add a new theory to dictionary ``self.theorydict``.
 
         :param theory: String with the name describing the function
-        :param function: Actual function
+        :param function: Actual peak function
         :param parameters: Parameters names for function ``['p1','p2',…]``
         :param estimate: Initial parameters estimation
         :param configure: Optional function to be called to initialize
@@ -239,20 +338,26 @@ class Specfit():
                                    estimate, configure, derivative]
 
     def addbackground(self, background, function, parameters, estimate=None):
-        """
+        """Add a new background function to dictionary ``self.bkgdict``.
 
         :param background: String with the name describing the function
         :param function: Actual function
         :param parameters: Parameters names ['p1','p2','p3',...]
-        :param estimate:   The initial parameters estimation function if any
+        :param estimate: The initial parameters estimation function if any
         """
         self.bkgdict[background] = [function, parameters, estimate]
 
     def settheory(self, theory):
-        """
+        """Pick a theory from ``self.theorydict``.
+
+        This updates the following attributes:
+
+            - ``fitconfig['fittheory']``
+            - ``theoryfun``
+            - ``modelderiv``
 
         :param theory: Name of the theory to be used.
-            It has to be one of the keys of ``self.theorydict``
+        :raise: KeyError if ``theory`` is not a key of ``self.theorydict``.
         """
         if theory in self.theorydict:
             self.fitconfig['fittheory'] = theory
@@ -261,16 +366,29 @@ class Specfit():
             if len(self.theorydict[theory]) > 5:
                 if self.theorydict[theory][5] is not None:
                     self.modelderiv = self.myderiv
+        else:
+            msg = "No theory with name %s in theorydict.\n" % theory
+            msg += "Available theories: %s\n" % self.theorydict.keys()
+            raise KeyError(msg)
 
     def setbackground(self, theory):
-        """
+        """Choose a background type from within ``self.bkgdict``.
+
+        This updates the following attributes:
+
+            - ``fitconfig['fitbkg']``
+            - ``bkgfun``
 
         :param theory: The name of the background to be used.
-            It has to be one of the keys of self.bkgdict
+        :raise: KeyError if ``theory`` is not a key of ``self.bkgdict``.
         """
         if theory in self.bkgdict:
             self.fitconfig['fitbkg'] = theory
             self.bkgfun = self.bkgdict[theory][0]
+        else:
+            msg = "No theory with name %s in bkgdict.\n" % theory
+            msg += "Available theories: %s\n" % self.bkgdict.keys()
+            raise KeyError(msg)
 
     def fitfunction(self, pars, t):
         nb = len(self.bkgdict[self.fitconfig['fitbkg']][1])
@@ -554,14 +672,24 @@ class Specfit():
         return newdata
 
     def bkg_constant(self, pars, x):
-        """
-        Constant background
+        """Constant background function ``y = constant``
+
+        :param pars: Background function parameters: ``(constant, )``
+        :param x: Abscissa values
+        :type x: numpy.ndarray
+        :return: Array of the same shape as ``x`` filled with constant values
+        :rtype: numpy.ndarray
         """
         return pars[0] * numpy.ones(numpy.shape(x), numpy.float)
 
     def bkg_linear(self, pars, x):
-        """
-        Linear background
+        """Linear background function ``y = constant + slope * x``
+
+        :param pars: Background function parameters: ``(constant, slope)``
+        :param x: Abscissa values
+        :type x: numpy.ndarray
+        :return: Array ``y = constant + slope * x``
+        :rtype: numpy.ndarray
         """
         return pars[0] + pars[1] * x
 
@@ -569,6 +697,8 @@ class Specfit():
         """
         Internal Background
         """
+        # TODO: understand and document
+
         # fast
         # return self.zz
         # slow: recalculate the background as function of the parameters
@@ -602,15 +732,37 @@ class Specfit():
         """
         Square filter Background
         """
+        # TODO: docstring
+        # why is this different than bkg_constant?
+        # what is pars[0]?
+        # what defines the (xmin, xmax) limits of the square function?
         return pars[1] * numpy.ones(numpy.shape(x), numpy.float)
 
     def bkg_none(self, pars, x):
-        """
-        Internal Background
+        """Null background function.
+
+        :param pars: Background function parameters. Ignored, only present
+            because other methods expect this signature for all background
+            functions
+        :param x: Abscissa values
+        :type x: numpy.ndarray
+        :return: Array of 0 values of the same shape as x
+        :rtype: numpy.ndarray
         """
         return numpy.zeros(x.shape, numpy.float)
 
     def estimate_builtin_bkg(self, xx, yy):
+        """Compute the initial parameters for the background function before
+        starting the iterative fit.
+
+        :param xx:
+        :param yy:
+        :return: Tuple ``(fitted_param, cons, zz)`` where ``fitted_param``
+            is a list of the estimated parameters, ``xx`` is ? (some kind of
+            2D numpy array related to constaints) and zz is ??
+        """
+        # TODO: understand and document
+        # (this seems to estimate the background parameters)
         self.zz = SpecfitFuns.subac(yy, 1.0001, 1000)
         zz = self.zz
         npoints = len(zz)
@@ -624,6 +776,7 @@ class Specfit():
             # Internal
             fittedpar = [1.000, 10000, 0.0]
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
+            # FIXME: we probably need to change cons[0][i] to cons[i][0]
             cons[0][0] = 3
             cons[0][1] = 3
             cons[0][2] = 3
@@ -632,7 +785,6 @@ class Specfit():
             fittedpar = []
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
         elif self.fitconfig['fitbkg'] == 'Square Filter':
-            fwhm = 5
             fwhm = self.fitconfig['FwhmPoints']
 
             # set an odd number
@@ -643,7 +795,7 @@ class Specfit():
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
             cons[0][0] = 3
             cons[0][1] = 3
-        else:
+        else:  # Linear
             S = float(npoints)
             Sy = numpy.sum(zz)
             Sx = float(numpy.sum(xx))
