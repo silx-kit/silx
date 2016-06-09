@@ -113,6 +113,8 @@ class RadarView(qt.QGraphicsView):
     _DATA_PEN = qt.QPen(qt.QColor('white'))
     _DATA_BRUSH = qt.QBrush(qt.QColor('light gray'))
     _VISIBLE_PEN = qt.QPen(qt.QColor('red'))
+    _VISIBLE_PEN.setWidth(2)
+    _VISIBLE_PEN.setCosmetic(True)
     _VISIBLE_BRUSH = qt.QBrush(qt.QColor(0, 0, 0, 0))
     _TOOLTIP = 'Radar View:\nRed contour: Visible area\nGray area: The image'
 
@@ -121,9 +123,13 @@ class RadarView(qt.QGraphicsView):
     class _DraggableRectItem(qt.QGraphicsRectItem):
         """RectItem which signals its change through visibleRectDragged."""
         def __init__(self, *args, **kwargs):
-            super(RadarView._DraggableRectItem, self).__init__(*args, **kwargs)
+            super(RadarView._DraggableRectItem, self).__init__(
+                *args, **kwargs)
+
+            self._previousCursor = None
             self.setFlag(qt.QGraphicsItem.ItemIsMovable)
             self.setFlag(qt.QGraphicsItem.ItemSendsGeometryChanges)
+            self.setAcceptHoverEvents(True)
             self._ignoreChange = False
             self._constraint = 0, 0, 0, 0
 
@@ -199,6 +205,17 @@ class RadarView(qt.QGraphicsView):
 
             return super(RadarView._DraggableRectItem, self).itemChange(
                 change, value)
+
+        def hoverEnterEvent(self, event):
+            """Called when the mouse enters the rectangle area"""
+            self._previousCursor = self.cursor()
+            self.setCursor(qt.Qt.OpenHandCursor)
+
+        def hoverLeaveEvent(self, event):
+            """Called when the mouse leaves the rectangle area"""
+            if self._previousCursor is not None:
+                self.setCursor(self._previousCursor)
+                self._previousCursor = None
 
     def __init__(self, parent=None):
         self._scene = qt.QGraphicsScene()
@@ -290,7 +307,8 @@ class ImageView(PlotWindow):
                                         curveStyle=False, colormap=True,
                                         aspectRatio=True, yInverted=True,
                                         copy=True, save=True, print_=True,
-                                        control=False, position=False)
+                                        control=False, position=False,
+                                        roi=False)
 
         self._initWidgets(backend)
 

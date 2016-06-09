@@ -386,7 +386,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.lineAction = qt.QAction(
             icons.getQIcon('shape-diagonal'),
-            'Fee Line Profile Mode', None)
+            'Free Line Profile Mode', None)
         self.lineAction.setToolTip(
             'Enables line profile selection mode')
         self.lineAction.setCheckable(True)
