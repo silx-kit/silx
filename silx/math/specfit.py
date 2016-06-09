@@ -390,21 +390,42 @@ class Specfit():
             msg += "Available theories: %s\n" % self.bkgdict.keys()
             raise KeyError(msg)
 
-    def fitfunction(self, pars, t):
-        nb = len(self.bkgdict[self.fitconfig['fitbkg']][1])
-        nu = len(self.theorydict[self.fitconfig['fittheory']][1])
-        niter = int((len(pars) - nb) / nu)
-        u_term = numpy.zeros(numpy.shape(t), numpy.float)
-        if niter > 0:
-            for i in range(niter):
-                u_term = u_term + \
-                    self.theoryfun(
-                        pars[(nb + i * nu):(nb + (i + 1) * nu)], t)
-        if nb > 0:
-            result = self.bkgfun(pars[0:nb], t) + u_term
-        else:
-            result = u_term
+    def fitfunction(self, pars, x):
+        """Fit function.
 
+        This is the sum of the background function plus
+        a number of peak functions.
+
+        :param pars: Sequence all fit parameters. The first few parameters
+            are background parameters, then come the peak function parameters.
+            The total number of fit parameters in ``pars`` will
+            be `nb_bg_pars + nb_peak_pars * nb_peaks`.
+        :param x: Independent variable where the function is calculated.
+        :return: Output of the fit function with ``x`` as input and ``pars``
+            as fit parameters.
+        """
+        fitbkg_key = self.fitconfig['fitbkg']
+        bg_pars_list = self.bkgdict[fitbkg_key][1]
+        nb_bg_pars = len(bg_pars_list)
+
+        fittheory_key = self.fitconfig['fittheory']
+        peak_pars_list = self.theorydict[fittheory_key][1]
+        nb_peak_pars = len(peak_pars_list)
+
+        nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
+
+        result = numpy.zeros(numpy.shape(x), numpy.float)
+
+        # Compute one peak function per peak, and sum the output numpy arrays
+        for i in range(nb_peaks):
+            start_par_index = nb_bg_pars + i * nb_peak_pars
+            end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
+            result += self.theoryfun(pars[start_par_index:end_par_index], x)
+
+        if nb_bg_pars > 0:
+            result += self.bkgfun(pars[0:nb_bg_pars], x)
+
+        # TODO: understand and document this Square Filter business
         if self.fitconfig['fitbkg'] == "Square Filter":
             result = result - pars[1]
             return pars[1] + self.squarefilter(result, pars[0])
@@ -1252,26 +1273,38 @@ class Specfit():
         return areanotdone
 
     def squarefilter(self, y, width):
-        w = int(width) + ((int(width) + 1) % 2)
-        u = int(w / 2)
-        coef = numpy.zeros((2 * u + w), numpy.float)
-        coef[0:u] = -0.5 / float(u)
-        coef[u:(u + w)] = 1.0 / float(w)
-        coef[(u + w):len(coef)] = -0.5 / float(u)
+        """
+
+        :param y:
+        :param width:
+        :return:
+        """ # TODO: document
         if len(y) == 0:
-            if type(y) == type([]):
+            if isinstance(y, list):
                 return []
             else:
                 return numpy.array([])
-        else:
-            if len(y) < len(coef):
-                return y
-            else:
-                result = numpy.zeros(len(y), numpy.float)
-                result[(w - 1):-(w - 1)] = numpy.convolve(y, coef, 0)
-                result[0:w - 1] = result[w - 1]
-                result[-(w - 1):] = result[-(w + 1)]
-                return result
+
+        # make width an odd number of samples and calculate half width
+        width = int(width) + ((int(width) + 1) % 2)
+        half_width = int(width / 2)
+
+        len_coef = 2 * half_width + width
+
+        if len(y) < len_coef:
+            return y
+
+        coef = numpy.zeros((len_coef,), numpy.float)
+
+        coef[0:half_width] = -0.5 / float(half_width)
+        coef[half_width:(half_width + width)] = 1.0 / float(width)
+        coef[(half_width + width):len(coef)] = -0.5 / float(half_width)
+
+        result = numpy.zeros(len(y), numpy.float)
+        result[(width - 1):-(width - 1)] = numpy.convolve(y, coef, 0)
+        result[0:width - 1] = result[width - 1]
+        result[-(width - 1):] = result[-(width + 1)]
+        return result
 
 
 def test():
