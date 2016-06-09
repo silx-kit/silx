@@ -907,6 +907,7 @@ def main(argv=None):
     app = qt.QApplication([])
 
     mainWindow = ImageViewMainWindow()
+    mainWindow.setWindowTitle('ImageView')
     mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
 
     if args.log:  # Use log normalization by default
