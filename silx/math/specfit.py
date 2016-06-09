@@ -36,13 +36,14 @@ import PyMca5
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
 def curve_fit(model, xdata, ydata, p0, sigma=None,
-              constraints=None, model_deriv=None):
+              constraints=None, model_deriv=None, weightflag=0):
     return LeastSquaresFit(model, p0,
                            xdata=xdata,
                            ydata=ydata,
+                           # weightflag=1 if sigma is not None else 0,
                            sigmadata=sigma,
                            constrains=constraints,
-                           model_deriv=model_deriv
+                           model_deriv=model_deriv,
                            )
 #from .fit import curve_fit
 from PyMca5.PyMcaCore import EventHandler
@@ -429,6 +430,8 @@ class Specfit():
 
         An example of such a file can be found at
         `https://github.com/vasole/pymca/blob/master/PyMca5/PyMcaMath/fitting/SpecfitFunctions.py`_
+
+
         """
         sys.path.append(os.path.dirname(file))
         f = os.path.basename(os.path.splitext(file)[0])
@@ -690,7 +693,10 @@ class Specfit():
         return result
 
     def mcafit(self, x=None, y=None, sigmay=None, yscaling=None,
-               sensitivity=None, fwhm_points=None):
+               sensitivity=None, fwhm_points=None, **kw):
+        # TODO: remove this debugging error after investigating usage of this method
+        if len(kw):
+            raise ValueError("Key not handled:" + str(list(kw.keys())))
 
         if y is None:
             y = self.ydata0

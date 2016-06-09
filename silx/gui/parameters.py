@@ -22,7 +22,7 @@
 # #########################################################################*/
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/06/2016"
+__date__ = "09/06/2016"
 
 import sys
 from silx.gui import qt
@@ -395,9 +395,6 @@ class Parameters(qt.QTableWidget):
             # We expect val1 to be a fit parameter name
             if str(newvalue) in candidates:
                 return True
-            # but it might also be the index of a fit parameter
-            elif list(self.parameters.keys())[int(float(newvalue))] in candidates:
-                return True
             else:
                 return False
         # except for code, val1 and name (which is read-only and does not need
@@ -461,7 +458,7 @@ class Parameters(qt.QTableWidget):
             for param in self.parameters:
                 if i <= int(float(str(self.parameters[param]['group']))):
                     i += 1
-            if (group == 0) and (i == 1):
+            if (group == 0) and (i == 1):   # FIXME: why is that?
                 i += 1
             self.add_group(i, group)
             return False
@@ -470,27 +467,31 @@ class Parameters(qt.QTableWidget):
             return False
 
     def add_group(self, newg, gtype):
-        line = 0
+        """Add a fit parameter group with the same fit parameters as an
+        existing group.
+
+        This function is called when the user selects "ADD" in the
+        "constraints" combobox.
+
+        :param int newg: New group number
+        :param int gtype: Group number whose parameters we want to copy
+
+        """
         newparam = []
-        oldparamlist = list(self.parameters)
-        for param in oldparamlist:
-            line += 1
+        # loop through parameters until we encounter group number `gtype`
+        for param in list(self.parameters):
             paramgroup = int(float(str(self.parameters[param]['group'])))
+            # copy parameter names in group number `gtype`
             if paramgroup == gtype:
-                # Try to construct an appropriate name
-                # I have to remove any possible trailing number
-                # and append the group index
+                # but replace `gtype` with `newg`
+                newparam.append(param.rstrip("0123456789") + "%d" % newg)
+
                 xmin = self.parameters[param]['xmin']
                 xmax = self.parameters[param]['xmax']
-                j = len(param) - 1
-                while ('0' < param[j]) & (param[j] < '9'):
-                    j -= 1
-                    if j == -1:
-                        break
-                if j >= 0:
-                    newparam.append(param[0:j + 1] + "%d" % newg)
-                else:
-                    newparam.append("%d" % newg)
+
+        # Add new parameters (one table line per parameter) and configure each
+        # one by updating xmin and xmax to the same values as group `gtype`
+        line = len(list(self.parameters))
         for param in newparam:
             line += 1
             self.newparameterline(param, line)
@@ -633,18 +634,21 @@ class Parameters(qt.QTableWidget):
         # Restore previous _configuring flag
         self.__configuring = _oldvalue
 
+    # fixme: - this can be called from gui events or from other methods,
+    #          with heterogeneous data types
+    #        - str conversions fails when non-ascii characters are input (python2)
     def configure(self, name, code=None, val1=None, val2=None,
                   sigma=None, estimation=None, fitresult=None,
-                  group=None, xmin=None, xmax=None,
-                  # what about cons1 and cons2?
+                  group=None, xmin=None, xmax=None, relatedto=None,
+                  cons1=None, cons2=None,
                   **kw):
+        # TODO: remove this debugging error when widget is complete
         if len(kw):
             raise ValueError("Fields not handled:" + str(list(kw.keys())))
-        error = 0
         paramlist = list(self.parameters.keys())
 
         if name not in self.parameters:
-            return 1
+            raise KeyError("'%s' is not in the parameter list" % name)
 
         # update code first, if specified
         if code is not None:
@@ -658,47 +662,28 @@ class Parameters(qt.QTableWidget):
 
         # val1 and sigma have special formats
         if val1 is not None:
-            oldvalue = self.parameters[name]["val1"]
-            if str(self.parameters[name]['code']) in\
-                    ['DELTA', 'FACTOR', 'SUM']:
-                newvalue = str(val1)
-            elif val1 == "":
-                newvalue = ""
-            else:
-                newvalue = "%8g" % float(str(val1))
-            error, self.parameters[name]["val1"] = (0, newvalue) if\
-                self.validate(name, "val1", oldvalue, newvalue) else\
-                (1, oldvalue)
-            print(oldvalue, newvalue, self.validate(name, "val1", oldvalue, newvalue), self.parameters[name]["val1"])
+            fmt = None if self.parameters[name]['code'] in\
+                          ['DELTA', 'FACTOR', 'SUM'] else "%8g"
+            self._update_field(name, "val1", val1, fmat=fmt)
 
         if sigma is not None:
-            oldvalue = self.parameters[name]["sigma"]
-            if sigma == "":
-                newvalue = ""
-            else:
-                newvalue = float(str(sigma))
-                newvalue = "%6.3g" % newvalue
-            error, self.parameters[name]["sigma"] = (0, newvalue) if\
-                 self.validate(name, "sigma", oldvalue, newvalue) else\
-                 (1, oldvalue)
+            self._update_field(name, "sigma", sigma, fmat="%6.3g")
 
         # other fields are formatted as "%8g"
         keys_params = (("val2", val2), ("estimation", estimation),
-                         ("fitresult", fitresult))
-        for key, param in keys_params:
-            if param is not None:
-                oldvalue = self.parameters[name][key]
-                newvalue = "%8g" % float(str(param))
-                error, self.parameters[name][key] = (0, newvalue) if\
-                    self.validate(name, key, oldvalue, newvalue) else\
-                    (1, oldvalue)
+                       ("fitresult", fitresult))
+        for key, value in keys_params:
+            if value is not None:
+                self._update_field(name, key, value, fmat="%8g")
 
-        # the rest of the parameters are treated as strings
+        # the rest of the parameters are treated as strings and don't need
+        # validation
         keys_params = (("group", group), ("xmin", xmin),
-                         ("xmax", xmax))
-        for key, param in keys_params:
-            if param is not None:
-                self.parameters[name][key] = str(param)
+                       ("xmax", xmax), ("relatedto", relatedto),
+                       ("cons1", cons1), ("cons2", cons2))
+        for key, value in keys_params:
+            if value is not None:
+                self.parameters[name][key] = str(value)
 
         # val1 and val2 have different meanings depending on the code
         if code == 'QUOTED':
@@ -711,46 +696,47 @@ class Parameters(qt.QTableWidget):
             else:
                 self.parameters[name]['val2'] = self.parameters[name]['vmax']
 
+            # cons1 and cons2 are scalar representations of val1 and val2
             self.parameters[name]['cons1'] =\
                 float_else_zero(self.parameters[name]['val1'])
             self.parameters[name]['cons2'] =\
                 float_else_zero(self.parameters[name]['val2'])
 
+            # cons1, cons2 = min(val1, val2), max(val1, val2)
             if self.parameters[name]['cons1'] > self.parameters[name]['cons2']:
                 self.parameters[name]['cons1'], self.parameters[name]['cons2'] =\
                     self.parameters[name]['cons2'], self.parameters[name]['cons1']
 
         elif code in ['DELTA', 'SUM', 'FACTOR']:
-            # For these codes, val1 refers to the fit parameter on which the
+            # For these codes, val1 is the fit parameter name on which the
             # constraint depends
             if (val1 is not None and val1 in paramlist) or val1 is None:
                 self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
 
             elif val1 is not None:
                 # val1 could be the index of the fit parameter
-                self.parameters[name]['relatedto'] = paramlist[int(val1)]
+                try:
+                    self.parameters[name]['relatedto'] = paramlist[int(val1)]
+                except ValueError:
+                    self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
 
-            # the field to which val2 is assigned is defined by the code
-            # (code "DELTA" -> field "delta", "SUM" -> "sum",
-            # "FACTOR" -> "factor"...)
+            # update fields "delta", "sum" or "factor"
             key = code.lower()
             self.parameters[name][key] = self.parameters[name]["val2"]
 
-            print(list((k, v) for (k, v) in self.parameters[name].items() if "_item" not in k))
-            print("\n")
-
             # FIXME: val1 is sometimes specified as an index rather than a param name
             self.parameters[name]['val1'] = self.parameters[name]['relatedto']
-            #self.parameters[name]['val2'] = self.parameters[name]['factor']
 
-            self.parameters[name]['cons1'] =\
-                paramlist.index(str(self.parameters[name]['val1']))
+            # cons1 is the index of the fit parameter in the ordered dict
+            if self.parameters[name]['val1'] in paramlist:
+                self.parameters[name]['cons1'] =\
+                    paramlist.index(self.parameters[name]['val1'])
 
+            # cons2 is the constraint value (factor, delta or sum)
             try:
                 self.parameters[name]['cons2'] =\
                     float(str(self.parameters[name]['val2']))
             except ValueError:
-                error = 1
                 self.parameters[name]['cons2'] = 1.0 if code == "FACTOR" else 0.0
 
         elif code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
@@ -759,15 +745,45 @@ class Parameters(qt.QTableWidget):
             self.parameters[name]['cons1'] = 0
             self.parameters[name]['cons2'] = 0
 
-        # cell read-write flags depend on code as well
+        self._update_cell_flags(name, code)
+
+    def _update_field(self, name, field, value, fmat=None):
+        """Update field in ``self.parameters`` dictionary, if the new value
+        is valid.
+
+        :param name: Fit parameter name
+        :param field: Field name
+        :param value: New value to assign
+        :type value: String
+        :param fmat: Format string (e.g. "%8g") to be applied if value represents
+            a scalar. If ``None``, format is not modified. If ``value`` is an
+            empty string, ``fmat`` is ignored.
+        """
+        if value is not None:
+            oldvalue = self.parameters[name][field]
+            if fmat is not None:
+                newvalue = fmat % float(value) if value != "" else ""
+            else:
+                newvalue = value
+            self.parameters[name][field] = newvalue if\
+                self.validate(name, field, oldvalue, newvalue) else\
+                oldvalue
+
+    def _update_cell_flags(self, name, code=None):
+        """Set table cell flags in a complete row to read-only or read-write,
+        depending on the constraint code
+
+        :param name: Fit parameter name identifying the row
+        :param code: Constraint code, in `'FREE', 'POSITIVE', 'IGNORE',`
+            `'FIXED', 'FACTOR', 'DELTA', 'SUM', 'ADD'`
+        :return:
+        """
         if code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
             self.setReadWrite(name, 'estimation')
             self.setReadOnly(name, ['fitresult', 'sigma', 'val1', 'val2'])
         else:
             self.setReadWrite(name, ['estimation', 'val1', 'val2'])
             self.setReadOnly(name, ['fitresult', 'sigma'])
-
-        return error
 
     def cget(self, param):
         """
