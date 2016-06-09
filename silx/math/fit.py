@@ -427,7 +427,10 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 flag = 1
                 fittedpar = newpar.__copy__()
                 lastdeltachi = 100 * (absdeltachi / (chisq + (chisq==0)))
-                if (lastdeltachi) < deltachi:
+                if iteration_counter < 2:
+                  # ignore any limit, the fit *has* to be improved
+                  pass
+                elif (lastdeltachi) < deltachi:
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
                     iiter = 0
