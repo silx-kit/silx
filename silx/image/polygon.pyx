@@ -30,6 +30,8 @@ and a way to generate a mask of the polygon.
 The :func:`polygon_fill` function generates a mask from a set of points
 defining a polygon.
 
+The :func:`draw_line` function generates coordinates of a line in an image.
+
 The whole module uses the (row, col) (i.e., (y, x))) convention
 for 2D coordinates.
 """
@@ -188,3 +190,70 @@ def polygon_fill(vertices, shape):
     :rtype: numpy.ndarray of dimension shape
     """
     return Polygon(vertices).make_mask(shape[0], shape[1])
+
+
+@cython.wraparound(False)
+@cython.boundscheck(False)
+def draw_line(int row0, int col0, int row1, int col1):
+    """line(row0, col0, row1, col1) -> numpy.ndarray
+
+    Line includes both end points.
+
+    Using Bresenham line algorithm:
+    Bresenham, J. E.
+    Algorithm for computer control of a digital plotter.
+    IBM Systems Journal. Vol 4 No 1. 1965. pp 25-30
+
+    :param int row0: Start point row
+    :param int col0: Start point col
+    :param int row1: End point row
+    :param int col1: End point col
+    :return: (row, col) coordinates of pixels in the line
+    :rtype: Nx2 numpy.ndarrau
+    """
+    cdef int drow, dcol, invert_coords
+    cdef int db, da, delta, b, a, step_a, step_b
+
+    cdef int[:, :] result  # Store coordinates of points of the line
+
+    dcol = abs(col1 - col0)
+    drow = abs(row1 - row0)
+    invert_coords = dcol < drow
+
+    # Set a and b according to segment octant
+    if not invert_coords:
+        da = dcol
+        db = drow
+        step_a = 1 if col1 > col0 else -1
+        step_b = 1 if row1 > row0 else -1
+        a = col0
+        b = row0
+
+    else:
+        da = drow
+        db = dcol
+        step_a = 1 if row1 > row0 else -1
+        step_b = 1 if col1 > col0 else -1
+        a = row0
+        b = col0
+
+    result = numpy.empty((da + 1, 2), dtype=numpy.int32)
+
+    delta = 2 * db - da
+    for index in range(da + 1):
+        if invert_coords:
+            result[index, 0] = a
+            result[index, 1] = b
+        else:
+            result[index, 0] = b
+            result[index, 1] = a
+
+        if delta >= 0:  # M2: Move by step_a + step_b
+            b += step_b
+            delta -= 2 * da
+        # else M1: Move by step_a
+
+        a += step_a
+        delta += 2 * db
+
+    return numpy.asarray(result)
