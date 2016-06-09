@@ -265,8 +265,6 @@ def histogramnd_from_lut(weights,
             raise ValueError('Provided <dtype> and <weighted_histo>\'s dtype'
                              ' do not match.')
         dtype = weighted_histo.dtype
-    else:
-        dtype = w_dtype
 
     if weighted_histo is None:
         weighted_histo = np.zeros(shape, dtype=dtype)
@@ -285,8 +283,17 @@ def histogramnd_from_lut(weights,
 
     rc = 0
 
-    filt_min_weights = weight_min is not None
-    filt_max_weights = weight_max is not None
+    if weight_min is None:
+        weight_min = 0
+        filt_min_weights = False
+    else:
+        filt_min_weights = True
+
+    if weight_max is None:
+        weight_max = 0
+        filt_max_weights = False
+    else:
+        filt_max_weights = True
 
     try:
         _histogramnd_from_lut_fused(w_c,
@@ -302,7 +309,7 @@ def histogramnd_from_lut(weights,
         print(ex)
         raise TypeError('Case not supported - weights:{0} '
                         'and histo:{1}.'
-                        ''.format(weights.dtype, dtype))
+                        ''.format(weights.dtype, histo.dtype))
 
     return histo, weighted_histo
 

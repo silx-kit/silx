@@ -295,7 +295,7 @@ class HistogramndLut(object):
                  sample,
                  bins_rng,
                  n_bins,
-                 last_bin_closed=True,
+                 last_bin_closed=False,
                  dtype=None):
         lut, histo, edges = _histo_get_lut(sample,
                                            bins_rng,
@@ -319,6 +319,13 @@ class HistogramndLut(object):
         """
         self.__weighted_histo = None
         self.__histo = None
+
+    @property
+    def lut(self):
+        """
+        Copy of the Lut
+        """
+        return self.__lut.copy()
 
     @property
     def histo(self):
@@ -498,8 +505,9 @@ class HistogramndLut(object):
         """
         histo, w_histo = _histo_from_lut(weights,
                                          self.__lut,
-                                         shape=self.__shape,
+                                         histo=histo,
                                          weighted_histo=weighted_histo,
+                                         shape=self.__shape,
                                          dtype=self.__dtype,
                                          weight_min=weight_min,
                                          weight_max=weight_max)
