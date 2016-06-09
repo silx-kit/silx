@@ -35,8 +35,8 @@ def configuration(parent_package='', top_path=None):
     config.add_extension('bilinear',
                          sources=["bilinear.pyx"],
                          language='c')
-    config.add_extension('polygon',
-                         sources=["polygon.pyx"],
+    config.add_extension('shapes',
+                         sources=["shapes.pyx"],
                          language='c')
     return config
 

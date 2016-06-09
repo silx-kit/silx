@@ -35,7 +35,7 @@ import unittest
 import numpy
 
 from silx.testutils import ParametricTestCase
-from silx.image import polygon
+from silx.image import shapes
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ class TestPolygonFill(ParametricTestCase):
 
                 vertices = [(rows[0], cols[0]), (rows[1], cols[0]),
                             (rows[1], cols[1]), (rows[0], cols[1])]
-                mask = polygon.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -100,7 +100,7 @@ class TestPolygonFill(ParametricTestCase):
 
         for test_name, (vertices, ref_mask) in tests.items():
             with self.subTest(msg=test_name):
-                mask = polygon.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -143,7 +143,7 @@ class TestPolygonFill(ParametricTestCase):
 
         for test_name, (vertices, ref_mask) in tests.items():
             with self.subTest(msg=test_name):
-                mask = polygon.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -189,7 +189,7 @@ class TestDrawLine(ParametricTestCase):
                     cols = col0 + numpy.arange(0, dcol + step, step)
                 ref_coords = numpy.stack((rows, cols), axis=-1)
 
-                result = polygon.draw_line(row0, col0, row1, col1)
+                result = shapes.draw_line(row0, col0, row1, col1)
                 is_equal = numpy.all(numpy.equal(result, ref_coords))
                 if not is_equal:
                     _logger.debug('%s failed with result != ref_coords:',
@@ -200,7 +200,7 @@ class TestDrawLine(ParametricTestCase):
 
     def test_noline(self):
         """Test pt0 == pt1"""
-        result = polygon.draw_line(1, 2, 1, 2)
+        result = shapes.draw_line(1, 2, 1, 2)
         self.assertTrue(numpy.all(numpy.equal(result, [(1, 2)])))
 
     def test_lines(self):
@@ -232,7 +232,7 @@ class TestDrawLine(ParametricTestCase):
 
                 with self.subTest(msg=name,
                                   pt0=(row0, col0), pt1=(row1, col1)):
-                    result = polygon.draw_line(row0, col0, row1, col1)
+                    result = shapes.draw_line(row0, col0, row1, col1)
                     is_equal = numpy.all(numpy.equal(result, ref_coords))
                     if not is_equal:
                         _logger.debug('%s failed with result != ref_coords:',
