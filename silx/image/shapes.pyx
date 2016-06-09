@@ -24,6 +24,8 @@
 # ############################################################################*/
 """This module provides functions related to polygon filling.
 
+The API of this module is NOT stable.
+
 The :class:`Polygon` class provides checking if a point is inside a polygon
 and a way to generate a mask of the polygon.
 
@@ -102,6 +104,7 @@ cdef class Polygon(object):
             pt1x, pt1y = pt2x, pt2y
         return is_inside
 
+    @cython.cdivision(True)
     @cython.wraparound(False)
     @cython.boundscheck(False)
     def make_mask(self, int height, int width):
@@ -124,54 +127,55 @@ cdef class Polygon(object):
         row_max = min(int(max(self.vertices[:, 0])) + 1, height)
 
         # Can be replaced by prange(row_min, row_max, nogil=True)
-        for row in range(row_min, row_max):
-            # For each line of the image, mark intersection of all segments
-            # in the line and then run a xor scan to fill inner parts
-            # Adapted from http://alienryderflex.com/polygon_fill/
-            pt1x = self.vertices[self.nvert-1, 1]
-            pt1y = self.vertices[self.nvert-1, 0]
-            col_min = width - 1
-            col_max = 0
-            is_inside = 0  # Init with whether first col is inside or not
+        with nogil:
+            for row in range(row_min, row_max):
+                # For each line of the image, mark intersection of all segments
+                # in the line and then run a xor scan to fill inner parts
+                # Adapted from http://alienryderflex.com/polygon_fill/
+                pt1x = self.vertices[self.nvert-1, 1]
+                pt1y = self.vertices[self.nvert-1, 0]
+                col_min = width - 1
+                col_max = 0
+                is_inside = 0  # Init with whether first col is inside or not
 
-            for index in range(self.nvert):
-                pt2x = self.vertices[index, 1]
-                pt2y = self.vertices[index, 0]
+                for index in range(self.nvert):
+                    pt2x = self.vertices[index, 1]
+                    pt2y = self.vertices[index, 0]
 
-                if ((pt1y <= row and row < pt2y) or
-                        (pt2y <= row and row < pt1y)):
-                    # Intersection casted to int so that ]x, x+1] => x
-                    xinters = (<int>ceil(pt1x + (row - pt1y) *
-                               (pt2x - pt1x) / (pt2y - pt1y))) - 1
+                    if ((pt1y <= row and row < pt2y) or
+                            (pt2y <= row and row < pt1y)):
+                        # Intersection casted to int so that ]x, x+1] => x
+                        xinters = (<int>ceil(pt1x + (row - pt1y) *
+                                   (pt2x - pt1x) / (pt2y - pt1y))) - 1
 
-                    # Update column range to patch
-                    if xinters < col_min:
-                        col_min = xinters
-                    if xinters > col_max:
-                        col_max = xinters
+                        # Update column range to patch
+                        if xinters < col_min:
+                            col_min = xinters
+                        if xinters > col_max:
+                            col_max = xinters
 
-                    if xinters < 0:
-                        # Add an intersection to init value of xor scan
-                        is_inside ^= 1
-                    elif xinters < width:
-                        # Mark intersection in mask
-                        mask[row, xinters] ^= 1
-                    # else: do not consider intersection on the right
+                        if xinters < 0:
+                            # Add an intersection to init value of xor scan
+                            is_inside ^= 1
+                        elif xinters < width:
+                            # Mark intersection in mask
+                            mask[row, xinters] ^= 1
+                        # else: do not consider intersection on the right
 
-                pt1x, pt1y = pt2x, pt2y
+                    pt1x, pt1y = pt2x, pt2y
 
-            if col_min < col_max:
-                # Clip column range to mask
-                if col_min < 0:
-                    col_min = 0
-                if col_max > width - 1:
-                    col_max = width - 1
+                if col_min < col_max:
+                    # Clip column range to mask
+                    if col_min < 0:
+                        col_min = 0
+                    if col_max > width - 1:
+                        col_max = width - 1
 
-                # xor exclusive scan
-                for col in range(col_min, col_max + 1):
-                    current = mask[row, col]
-                    mask[row, col] = is_inside
-                    is_inside = current ^ is_inside
+                    # xor exclusive scan
+                    for col in range(col_min, col_max + 1):
+                        current = mask[row, col]
+                        mask[row, col] = is_inside
+                        is_inside = current ^ is_inside
 
         # Ensures the result is exported as numpy array and not memory view.
         return numpy.asarray(mask)
@@ -239,21 +243,22 @@ def draw_line(int row0, int col0, int row1, int col1):
 
     result = numpy.empty((da + 1, 2), dtype=numpy.int32)
 
-    delta = 2 * db - da
-    for index in range(da + 1):
-        if invert_coords:
-            result[index, 0] = a
-            result[index, 1] = b
-        else:
-            result[index, 0] = b
-            result[index, 1] = a
+    with nogil:
+        delta = 2 * db - da
+        for index in range(da + 1):
+            if invert_coords:
+                result[index, 0] = a
+                result[index, 1] = b
+            else:
+                result[index, 0] = b
+                result[index, 1] = a
 
-        if delta >= 0:  # M2: Move by step_a + step_b
-            b += step_b
-            delta -= 2 * da
-        # else M1: Move by step_a
+            if delta >= 0:  # M2: Move by step_a + step_b
+                b += step_b
+                delta -= 2 * da
+            # else M1: Move by step_a
 
-        a += step_a
-        delta += 2 * db
+            a += step_a
+            delta += 2 * db
 
     return numpy.asarray(result)
