@@ -763,7 +763,7 @@ class Plot(object):
         Items are uniquely identified by their legend.
         To add multiple items, call :meth:`addItem` multiple times with
         different legend argument.
-        To replace/update an existing item, call :meth:`addImage` with the
+        To replace/update an existing item, call :meth:`addItem` with the
         existing item legend.
 
         :param numpy.ndarray xdata: The X coords of the points of the shape
