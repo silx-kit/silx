@@ -22,13 +22,34 @@
 #
 # ############################################################################*/
 
+
+"""
+This module provide functions to compute multidimensional histograms.
+The histogramnd
+
+Examples
+========
+
+
+.. code-block:: python
+
+    from silx.math import histogramnd
+Class
+=====
+
+- :class:`HistogramndLut`
+
+Function
+========
+- :func:`histogramnd`
+
+....
+"""
+
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "15/05/2016"
 
-"""
-TOP DOC
-"""
 
 from .chistogramnd import chistogramnd as _chistogramnd
 from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
@@ -134,11 +155,12 @@ def histogramnd(sample,
             (*n_bins*, *bins_rng*, ...).
     :type cumul: *optional*, :class:`numpy.array`
 
-    :return: Histogram (bin counts, always returned) and weighted histogram of
-        the sample (or *None* if weights is *None*).
-    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`) or
-        (:class:`numpy.array`, None)
-    """
+    :return: Histogram (bin counts, always returned), weighted histogram of
+        the sample (or *None* if weights is *None*) and bin edges for each
+        dimension.
+    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
+        (:class:`numpy.array`, None, `tuple`)
+    """  # noqa
     return _chistogramnd(sample,
                          bins_rng,
                          n_bins,
@@ -212,7 +234,7 @@ class HistogramndLut(object):
         self.__histo = histo
         self.__dtype = dtype
         self.reset()
-        
+
     def reset(self):
         self.__weighted_histo = None
         self.__n_histo = 0
