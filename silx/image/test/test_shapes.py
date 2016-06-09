@@ -190,18 +190,14 @@ class TestDrawLine(ParametricTestCase):
                 ref_coords = numpy.stack((rows, cols), axis=-1)
 
                 result = shapes.draw_line(row0, col0, row1, col1)
-                is_equal = numpy.all(numpy.equal(result, ref_coords))
-                if not is_equal:
-                    _logger.debug('%s failed with result != ref_coords:',
-                                  test_name)
-                    _logger.debug('result:\n%s', str(result))
-                    _logger.debug('ref:\n%s', str(ref_coords))
-                self.assertTrue(is_equal)
+                self.assertTrue(self.isEqual(test_name, result, ref_coords))
 
     def test_noline(self):
         """Test pt0 == pt1"""
-        result = shapes.draw_line(1, 2, 1, 2)
-        self.assertTrue(numpy.all(numpy.equal(result, [(1, 2)])))
+        for width in range(4):
+            with self.subTest(width=width):
+                result = shapes.draw_line(1, 2, 1, 2, width)
+                self.assertTrue(numpy.all(numpy.equal(result, [(1, 2)])))
 
     def test_lines(self):
         """Test lines not aligned with axes for 8 slopes and directions"""
@@ -233,13 +229,53 @@ class TestDrawLine(ParametricTestCase):
                 with self.subTest(msg=name,
                                   pt0=(row0, col0), pt1=(row1, col1)):
                     result = shapes.draw_line(row0, col0, row1, col1)
-                    is_equal = numpy.all(numpy.equal(result, ref_coords))
-                    if not is_equal:
-                        _logger.debug('%s failed with result != ref_coords:',
-                                      test_name)
-                        _logger.debug('result:\n%s', str(result))
-                        _logger.debug('ref:\n%s', str(ref_coords))
-                    self.assertTrue(is_equal)
+                    self.assertTrue(self.isEqual(name, result, ref_coords))
+
+    def test_width(self):
+        """Test of line width"""
+
+        lines = { # test_name: row0, col0, row1, col1, width, ref
+            'horizontal w=2':
+                (0, 0, 0, 1, 2, ((0, 0), (1, 0), (0, 1), (1, 1))),
+            'horizontal w=3':
+                (0, 0, 0, 1, 3,
+                 ((-1, 0), (0, 0), (1, 0), (-1, 1), (0, 1), (1, 1))),
+            'vertical w=2':
+                (0, 0, 1, 0, 2, ((0, 0), (0, 1), (1, 0), (1, 1))),
+            'vertical w=3':
+                (0, 0, 1, 0, 3,
+                 ((0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1))),
+            'diagonal w=3':
+                (0, 0, 1, 1, 3,
+                 ((-1, 0), (0, 0), (1, 0), (0, 1), (1, 1), (2, 1))),
+            '1st octant w=3':
+                (0, 0, 1, 2, 3,
+                 ((-1, 0), (0, 0), (1, 0),
+                  (0, 1), (1, 1), (2, 1),
+                  (0, 2), (1, 2), (2, 2))),
+            '2nd octant w=3':
+                (0, 0, 2, 1, 3,
+                 ((0, -1), (0, 0), (0, 1),
+                  (1, 0), (1, 1), (1, 2),
+                  (2, 0), (2, 1), (2, 2))),
+        }
+
+        for test_name, (row0, col0, row1, col1, width, ref) in lines.items():
+            with self.subTest(msg=test_name,
+                              pt0=(row0, col0), pt1=(row1, col1), width=width):
+                result = shapes.draw_line(row0, col0, row1, col1, width)
+                self.assertTrue(self.isEqual(test_name, result, ref))
+
+    def isEqual(self, test_name, result, ref):
+        """Test equality of two numpy arrays and log them if different"""
+        is_equal = numpy.all(numpy.equal(result, ref))
+        if not is_equal:
+            _logger.debug('%s failed with result != ref:',
+                          test_name)
+            _logger.debug('result:\n%s', str(result))
+            _logger.debug('ref:\n%s', str(ref))
+        return is_equal
+
 
 def suite():
     test_suite = unittest.TestSuite()

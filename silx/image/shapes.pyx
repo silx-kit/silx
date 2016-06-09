@@ -198,10 +198,12 @@ def polygon_fill(vertices, shape):
 
 @cython.wraparound(False)
 @cython.boundscheck(False)
-def draw_line(int row0, int col0, int row1, int col1):
+def draw_line(int row0, int col0, int row1, int col1, int width=1):
     """line(row0, col0, row1, col1) -> numpy.ndarray
 
     Line includes both end points.
+    Width is handled by drawing parallel lines, so junctions of lines belonging
+    to different octant with width > 1 will not look nice.
 
     Using Bresenham line algorithm:
     Bresenham, J. E.
@@ -212,17 +214,26 @@ def draw_line(int row0, int col0, int row1, int col1):
     :param int col0: Start point col
     :param int row1: End point row
     :param int col1: End point col
+    :param int width: Thickness of the line in pixels (default 1)
+                      Width must be at least 1.
     :return: (row, col) coordinates of pixels in the line
-    :rtype: Nx2 numpy.ndarrau
+    :rtype: Nx2 numpy.ndarray
     """
     cdef int drow, dcol, invert_coords
     cdef int db, da, delta, b, a, step_a, step_b
+    cdef int index, offset  # Loop indices
 
-    cdef int[:, :] result  # Store coordinates of points of the line
+    cdef int[:, :, :] result  # Store coordinates of points of the line
 
     dcol = abs(col1 - col0)
     drow = abs(row1 - row0)
     invert_coords = dcol < drow
+
+    if dcol == 0 and drow == 0:
+        return numpy.array((row0, col0))
+
+    if width < 1:
+        width = 1
 
     # Set a and b according to segment octant
     if not invert_coords:
@@ -241,17 +252,19 @@ def draw_line(int row0, int col0, int row1, int col1):
         a = row0
         b = col0
 
-    result = numpy.empty((da + 1, 2), dtype=numpy.int32)
+    result = numpy.empty((da + 1, width, 2), dtype=numpy.int32)
 
     with nogil:
+        b -= (width - 1) // 2
         delta = 2 * db - da
         for index in range(da + 1):
-            if invert_coords:
-                result[index, 0] = a
-                result[index, 1] = b
-            else:
-                result[index, 0] = b
-                result[index, 1] = a
+            for offset in range(width):
+                if invert_coords:
+                    result[index, offset, 0] = a
+                    result[index, offset, 1] = b + offset
+                else:
+                    result[index, offset, 0] = b + offset
+                    result[index, offset, 1] = a
 
             if delta >= 0:  # M2: Move by step_a + step_b
                 b += step_b
@@ -261,4 +274,4 @@ def draw_line(int row0, int col0, int row1, int col1):
             a += step_a
             delta += 2 * db
 
-    return numpy.asarray(result)
+    return numpy.asarray(result).reshape(-1, 2)
