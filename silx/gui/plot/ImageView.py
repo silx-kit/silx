@@ -513,7 +513,7 @@ class ImageView(PlotWindow):
                     x = int(eventDict['x'])
                     if x >= minValue and x < minValue + width:
                         self.valueChanged.emit(float('nan'), float(x),
-                                               data[x - minValue])
+                                               data[int(x - minValue)])
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
                     eventDict['xdata'] != self.getGraphXLimits()):
@@ -535,7 +535,7 @@ class ImageView(PlotWindow):
                     y = int(eventDict['y'])
                     if y >= minValue and y < minValue + height:
                         self.valueChanged.emit(float(y), float('nan'),
-                                               data[y - minValue])
+                                               data[int(y - minValue)])
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
                     eventDict['ydata'] != self.getGraphYLimits()):
