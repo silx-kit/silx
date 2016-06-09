@@ -287,8 +287,7 @@ class ImageView(PlotWindow):
                                         curveStyle=False, colormap=True,
                                         aspectRatio=True, yInverted=True,
                                         copy=True, save=True, print_=True,
-                                        control=False, position=False,
-                                        autoreplot=True)
+                                        control=False, position=False)
 
         self._initWidgets(backend)
 
