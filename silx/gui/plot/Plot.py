@@ -177,8 +177,13 @@ It provides the following keys:
 - 'kind': The kind of primitive changed: 'curve', 'image', 'item' or 'marker'
 - 'legend': The legend of the primitive changed.
 
-A 'activeCurveChanged' event with a 'legend' key (str or None) is triggered
-when active curve changes.
+'activeCurveChanged' and 'activeImageChanged' events with the following keys:
+
+- 'legend': Name (str) of the current active item or None if no active item.
+- 'previous': Name (str) of the previous active item or None if no item was
+              active. It is the same as 'legend' if 'updated' == True
+- 'updated': (bool) True if active item name did not changed,
+             but active item data or style was updated.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -548,6 +553,9 @@ class Plot(object):
             'handle': handle, 'x': x, 'y': y, 'params': params
         }
 
+        self.notify(
+            'contentChanged', action='add', kind='curve', legend=legend)
+
         if len(self._curves) == 1 or wasActive:
             self.setActiveCurve(legend)
 
@@ -556,9 +564,6 @@ class Plot(object):
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-
-        self.notify(
-            'contentChanged', action='add', kind='curve', legend=legend)
 
         return legend
 
@@ -689,6 +694,9 @@ class Plot(object):
             if params[key] is None:
                 params[key] = defaults[key]
 
+        # Check if curve is previously active
+        wasActive = self.getActiveImage(just_legend=True) == legend
+
         # Add: replace, filter data, add
 
         if replace:
@@ -698,11 +706,11 @@ class Plot(object):
             # but not from _images to keep its place
             # This is a subset of self.remove(legend, kind='image')
             if legend in self._images:
-                 handle = self._images[legend]['handle']
-                 if handle is not None:
-                     self._backend.remove(handle)
-                     self._images[legend]['handle'] = None
-                     self._setDirtyPlot()
+                handle = self._images[legend]['handle']
+                if handle is not None:
+                    self._backend.remove(handle)
+                    self._images[legend]['handle'] = None
+                    self._setDirtyPlot()
 
         if self.isXAxisLogarithmic() or self.isYAxisLogarithmic():
             _logger.info('Hide image while axes has log scale.')
@@ -732,17 +740,17 @@ class Plot(object):
             'params': params
         }
 
-        if len(self._images) == 1:
+        if len(self._images) == 1 or wasActive:
             self.setActiveImage(legend)
+
+        self.notify(
+            'contentChanged', action='add', kind='image', legend=legend)
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling
             # if the user does not want that, autoscale of the different
             # axes has to be set to off.
             self.resetZoom()
-
-        self.notify(
-            'contentChanged', action='add', kind='image', legend=legend)
 
         return legend
 
@@ -1135,14 +1143,18 @@ class Plot(object):
 
                 elif aKind == 'image':
                     if legend in self._images:
-                         handle = self._images[legend]['handle']
-                         if handle is not None:
-                             self._backend.remove(handle)
-                             self._setDirtyPlot()
-                         del self._images[legend]
+                        if self.getActiveImage(just_legend=True) == legend:
+                            # Reset active image
+                            self.setActiveImage(None)
 
-                         self.notify('contentChanged', action='remove',
-                                     kind='image', legend=legend)
+                        handle = self._images[legend]['handle']
+                        if handle is not None:
+                            self._backend.remove(handle)
+                            self._setDirtyPlot()
+                        del self._images[legend]
+
+                        self.notify('contentChanged', action='remove',
+                                    kind='image', legend=legend)
 
                 elif aKind == 'item':
                     item = self._items.pop(legend, None)
@@ -1418,8 +1430,9 @@ class Plot(object):
 
         self._setDirtyPlot()
 
-        if oldActiveCurveLegend != self._activeCurve:
+        if oldActiveCurveLegend is not None or self._activeCurve is not None:
             self.notify('activeCurveChanged',
+                        updated=oldActiveCurveLegend != self._activeCurve,
                         previous=oldActiveCurveLegend,
                         legend=self._activeCurve)
 
@@ -1465,6 +1478,8 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
+        oldActiveImageLegend = self.getActiveImage(just_legend=True)
+
         if legend is None:
             self._activeImage = None
         else:
@@ -1475,6 +1490,12 @@ class Plot(object):
                 self._activeImage = None
             else:
                 self._activeImage = legend
+
+        if oldActiveImageLegend is not None or self._activeImage is not None:
+            self.notify('activeImageChanged',
+                        updated=oldActiveImageLegend != self._activeImage,
+                        previous=oldActiveImageLegend,
+                        legend=self._activeImage)
 
         return self._activeImage
 
@@ -1578,6 +1599,17 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphXLimits deprecated replot parameter')
 
+        # Deal with incorrect values
+        if xmax < xmin:
+            _logger.warning('setGraphXLimits xmax < xmin, inverting limits.')
+            xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setGraphXLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
+
         self._backend.setGraphXLimits(xmin, xmax)
         self._setDirtyPlot()
 
@@ -1604,6 +1636,17 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setGraphYLimits deprecated replot parameter')
 
+        # Deal with incorrect values
+        if ymax < ymin:
+            _logger.warning('setGraphYLimits ymax < ymin, inverting limits.')
+            ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setGraphXLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
+
         assert axis in ('left', 'right')
         self._backend.setGraphYLimits(ymin, ymax, axis)
         self._setDirtyPlot()
@@ -1622,16 +1665,40 @@ class Plot(object):
         :param float y2min: minimum right axis value or None (the default)
         :param float y2max: maximum right axis value or None (the default)
         """
+        # Deal with incorrect values
         if xmax < xmin:
+            _logger.warning('setLimits xmax < xmin, inverting limits.')
             xmin, xmax = xmax, xmin
+        elif xmax == xmin:
+            _logger.warning('setLimits xmax == xmin, expanding limits.')
+            if xmin == 0.:
+                xmin, xmax = -0.1, 0.1
+            else:
+                xmin, xmax = xmin * 1.1, xmax * 0.9
+
         if ymax < ymin:
+            _logger.warning('setLimits ymax < ymin, inverting limits.')
             ymin, ymax = ymax, ymin
+        elif ymax == ymin:
+            _logger.warning('setLimits ymax == ymin, expanding limits.')
+            if ymin == 0.:
+                ymin, ymax = -0.1, 0.1
+            else:
+                ymin, ymax = ymin * 1.1, ymax * 0.9
 
         if y2min is None or y2max is None:
             # if one limit is None, both are ignored
             y2min, y2max = None, None
-        elif y2max < y2min:
+        else:
+            if y2max < y2min:
+                _logger.warning('setLimits y2max < y2min, inverting limits.')
                 y2min, y2max = y2max, y2min
+            elif y2max == y2min:
+                _logger.warning('setLimits y2max == y2min, expanding limits.')
+                if y2min == 0.:
+                    y2min, y2max = -0.1, 0.1
+                else:
+                    y2min, y2max = y2min * 1.1, y2max * 0.9
 
         self._backend.setLimits(xmin, xmax, ymin, ymax, y2min, y2max)
         self._setDirtyPlot()
@@ -2575,19 +2642,19 @@ class Plot(object):
     def insertMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addMarker` instead."""
         _logger.warning(
-                'insertMarker deprecated, use addMarker instead.')
+            'insertMarker deprecated, use addMarker instead.')
         return self.addMarker(*args, **kwargs)
 
     def insertXMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addXMarker` instead."""
         _logger.warning(
-                'insertXMarker deprecated, use addXMarker instead.')
+            'insertXMarker deprecated, use addXMarker instead.')
         return self.addXMarker(*args, **kwargs)
 
     def insertYMarker(self, *args, **kwargs):
         """Deprecated, use :meth:`addYMarker` instead."""
         _logger.warning(
-                'insertYMarker deprecated, use addYMarker instead.')
+            'insertYMarker deprecated, use addYMarker instead.')
         return self.addYMarker(*args, **kwargs)
 
     def isActiveCurveHandlingEnabled(self):

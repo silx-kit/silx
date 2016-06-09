@@ -63,6 +63,11 @@ Testing
 
 |Travis Status| |Appveyor Status|
 
+To run the tests from the python interpreter, run:
+
+>>> import silx.test
+>>> silx.test.run_tests()
+
 To run the tests, from the source directory, run::
 
     python run_tests.py
