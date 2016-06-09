@@ -53,6 +53,7 @@ __license__ = "MIT"
 __date__ = "25/05/2016"
 
 
+import logging
 import numpy
 
 from .. import qt
@@ -60,6 +61,8 @@ from .. import qt
 from . import PlotWindow, PlotWidget
 from .PlotTools import ProfileToolBar, LimitsToolBar
 
+
+_logger = logging.getLogger(__name__)
 
 # utils #######################################################################
 
@@ -101,7 +104,7 @@ class RadarView(qt.QGraphicsView):
     :meth:`scale` method of QGraphicsView.
     """
 
-    visibleRectDragged = qt.pyqtSignal(float, float, float, float)
+    visibleRectDragged = qt.Signal(float, float, float, float)
     """Signals that the visible rectangle has been dragged.
 
     It provides: left, top, width, height in data coordinates.
@@ -265,7 +268,7 @@ class ImageView(PlotWindow):
     """Minimum size in pixels of the image area."""
 
     # Qt signals
-    valueChanged = qt.pyqtSignal(float, float, float)
+    valueChanged = qt.Signal(float, float, float)
     """Signals that the data value under the cursor has changed.
 
     It provides: row, column, data value.
@@ -875,18 +878,30 @@ def main(argv=None):
     parser.add_argument(
         '-l', '--log', action="store_true",
         help="Use logarithm normalization for colormap, default: Linear.")
-    parser.add_argument('filename', help='EDF filename of the image to open')
+    parser.add_argument(
+        'filename', nargs='?',
+        help='EDF filename of the image to open')
     args = parser.parse_args(args=argv)
 
     # Open the input file
-    if not os.path.isfile(args.filename):
-        raise IOError('No input file: %s' % args.filename)
+    if not args.filename:
+        _logger.warning('No image file provided, displaying dummy data')
+        edfFile = None
+        data = numpy.arange(1024 * 1024.).reshape(1024, 1024)
+        nbFrames = 1
 
-    edfFile = EdfFile(args.filename)
-    nbFrames = edfFile.GetNumImages()
-    if nbFrames == 0:
-        raise IOError(
-            'Cannot read image(s) from file: %s' % args.filename)
+    else:
+        if not os.path.isfile(args.filename):
+            raise IOError('No input file: %s' % args.filename)
+
+        else:
+            edfFile = EdfFile(args.filename)
+            data = edfFile.GetData(0)
+
+            nbFrames = edfFile.GetNumImages()
+            if nbFrames == 0:
+                raise IOError(
+                    'Cannot read image(s) from file: %s' % args.filename)
 
     global app  # QApplication must be global to avoid seg fault on quit
     app = qt.QApplication([])
@@ -899,11 +914,11 @@ def main(argv=None):
         colormap['normalization'] = 'log'
         mainWindow.setColormap(colormap)
 
-    mainWindow.setImage(edfFile.GetData(0),
+    mainWindow.setImage(data,
                         origin=args.origin,
                         scale=args.scale)
 
-    if nbFrames > 1:
+    if edfFile is not None and nbFrames > 1:
         # Add a toolbar for multi-frame EDF support
         multiFrameToolbar = qt.QToolBar('Multi-frame')
         multiFrameToolbar.addWidget(qt.QLabel(
