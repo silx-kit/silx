@@ -31,12 +31,14 @@ import numpy
 import os
 import sys
 
-# TODO: remove dependency on pymca
+# TODO:  remove dependency on pymca
 import PyMca5
 from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
-def curve_fit(model, xdata, ydata, p0, sigma=None,
-              constraints=None, model_deriv=None):
+
+
+def leastsq(model, xdata, ydata, p0, sigma=None,
+            constraints=None, model_deriv=None):
     return LeastSquaresFit(model, p0,
                            xdata=xdata,
                            ydata=ydata,
@@ -45,7 +47,7 @@ def curve_fit(model, xdata, ydata, p0, sigma=None,
                            constrains=constraints,
                            model_deriv=model_deriv,
                            )
-#from .fit import curve_fit
+#from .fit import leastsq
 from PyMca5.PyMcaCore import EventHandler
 
 
@@ -116,7 +118,7 @@ class Specfit():
 
 
         # self.filterlist = []  # FIXME: unused (see commented code filter(), add_filter()...)
-        # self.filterdict = {}  # FIXME: totally unused even in commented code
+        # self.filterdict = {}  # FIXME:  totally unused even in commented code
         self.theorydict = OrderedDict()
         """Dictionary of functions to be fitted to individual peaks.
 
@@ -125,7 +127,7 @@ class Specfit():
         ``[function, parameters, estimate, configure, derivative]``
         """
 
-        self.dataupdate = None      # FIXME: this seems to be unused. Document or remove it
+        self.dataupdate = None      # FIXME:  this seems to be unused. Document or remove it
 
         if event_handler is not None:
             self.eh = event_handler
@@ -157,7 +159,7 @@ class Specfit():
         It should have the following signature: ????????????
         """  # FIXME estimate signature
 
-        # TODO: document following attributes
+        # TODO:  document following attributes
         self.bkg_internal_oldx = numpy.array([])
         self.bkg_internal_oldy = numpy.array([])
         self.bkg_internal_oldpars = [0, 0]
@@ -165,10 +167,67 @@ class Specfit():
 
         self.setdata(x, y, sigmay)
 
-        self.final_theory = []
-        """This list will contain all fit parameter names: background function
+        self.parameter_names = []
+        """This list stores all fit parameter names: background function
         parameters and fit function parameters for every peak. It is filled
-        when :meth:`estimate` is called."""
+        in :meth:`estimate`.
+
+        It is the responsibility of the estimate function defined in
+        :attr:`theorydict` to determine how many parameters there will be,
+        based on how many peaks it detects and how many parameters are needed
+        to fit an individual peak.
+        """
+
+        self.fit_results = []
+        """This list stores detailed information about all fit parameters.
+        It is initialized in :meth:`estimate` and completed with final fit
+        values in :meth:`startfit`.
+
+        Each fit parameter is stored as a dictionary with following fields:
+
+            - 'name': Parameter name.
+            - 'estimation': Estimated value.
+            - 'group': Group number. Group 0 corresponds to the background
+              function parameters. Group ``n`` (for ``n>0``) corresponds to
+              the fit function parameters for the n-th peak.
+            - 'code': Constraint code
+
+                - 0 - FREE
+                - 1 - POSITIVE
+                - 2 - QUOTED
+                - 3 - FIXED
+                - 4 - FACTOR
+                - 5 - DELTA
+                - 6 - SUM
+
+            - 'cons1':
+
+                - Ignored if 'code' is FREE, POSITIVE or FIXED.
+                - Min value of the parameter if code is QUOTED
+                - Index of fitted parameter to which 'cons2' is related
+                  if code is FACTOR, DELTA or SUM.
+
+            - 'cons2':
+
+                - Ignored if 'code' is FREE, POSITIVE or FIXED.
+                - Max value of the parameter if QUOTED
+                - Factor to apply to related parameter with index 'cons1' if
+                  'code' is FACTOR
+                - Difference with parameter with index 'cons1' if
+                  'code' is DELTA
+                - Sum obtained when adding parameter with index 'cons1' if
+                  'code' is SUM
+
+            - 'fitresult': Fitted value.
+            - 'sigma': ???
+            - 'xmin': ???
+            - 'xmax': ???
+        """
+
+        self.modelderiv = None
+        """"""
+        self.theoryfun = None
+        """"""
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data attributes:
@@ -252,11 +311,11 @@ class Specfit():
     #         lower than ``len(self.filterlist)``, this method failed and
     #         data was left unchanged.
     #     """
-    #     # FIXME: could not find any usage of this method.
+    #     # FIXME:  could not find any usage of this method.
     #     #     For loop was probably wrong, so I doubt this was ever used.
     #     #     (it was `for i in self.filterlist` instead of `for i in range(len(self.filterlist))`
-    #     # TODO: document
-    #     # TODO: i modified return value. Now we return previous return value - 1. Check if this does not cause any issue.
+    #     # TODO:  document
+    #     # TODO:  i modified return value. Now we return previous return value - 1. Check if this does not cause any issue.
     #     if xwork is None:
     #         xwork = self.xdata0
     #     if ywork is None:
@@ -272,7 +331,7 @@ class Specfit():
     #                     sigmaywork,
     #                     _filter[1],
     #                     _filter[2])
-    #         except:   # FIXME: except what? Dangerous.
+    #         except:   # FIXME:  except what? Dangerous.
     #             return i
     #
     #     self.xdata = xwork
@@ -310,7 +369,7 @@ class Specfit():
     #         self.delete(filtername='sort')  # deletes any filter named 'sort'
     #     """
     #     # FIXME: could not find any usage of this method.
-    #     # TODO: document
+    #     # TODO:  document
     #     indices = filter_indices if filter_indices is not None else []
     #
     #     if min(indices) < 0:
@@ -342,7 +401,7 @@ class Specfit():
             Its signature should be ``function(parameter_values, parameter_index, x)``
             See Gefit.py module for more information.
         """
-        # FIXME adapt derivative to match signature of :param model_deriv: in silx.mat.fit.curve_fit
+        # FIXME adapt derivative to match signature of :param model_deriv: in silx.mat.fit.leastsq
         self.theorydict[theory] = [function, parameters,
                                    estimate, configure, derivative]
 
@@ -377,7 +436,7 @@ class Specfit():
                     self.modelderiv = self.myderiv
         else:
             msg = "No theory with name %s in theorydict.\n" % theory
-            msg += "Available theories: %s\n" % self.theorydict.keys()
+            msg += "Available theories: %s\n" % self.theorydict.keys()
             raise KeyError(msg)
 
     def setbackground(self, theory):
@@ -396,7 +455,7 @@ class Specfit():
             self.bkgfun = self.bkgdict[theory][0]
         else:
             msg = "No theory with name %s in bkgdict.\n" % theory
-            msg += "Available theories: %s\n" % self.bkgdict.keys()
+            msg += "Available theories: %s\n" % self.bkgdict.keys()
             raise KeyError(msg)
 
     def fitfunction(self, pars, x):
@@ -410,7 +469,7 @@ class Specfit():
             The total number of fit parameters in ``pars`` will
             be `nb_bg_pars + nb_peak_pars * nb_peaks`.
         :param x: Independent variable where the function is calculated.
-        :return: Output of the fit function with ``x`` as input and ``pars``
+        :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
         fitbkg_key = self.fitconfig['fitbkg']
@@ -434,7 +493,7 @@ class Specfit():
         if nb_bg_pars > 0:
             result += self.bkgfun(pars[0:nb_bg_pars], x)
 
-        # TODO: understand and document this Square Filter business
+        # TODO: understand and document this Square Filter business
         if self.fitconfig['fitbkg'] == "Square Filter":
             result = result - pars[1]
             return pars[1] + self.squarefilter(result, pars[0])
@@ -499,27 +558,27 @@ class Specfit():
         fun_esti_constraints = esti_fun[1]
 
         # build the names
-        self.final_theory = []
+        self.parameter_names = []
 
         fitbkg = self.fitconfig['fitbkg']
         for bg_param_name in self.bkgdict[fitbkg][1]:
-            self.final_theory.append(bg_param_name)
+            self.parameter_names.append(bg_param_name)
 
         fittheory = self.fitconfig['fittheory']
         param_index, peak_index = 0, 0
         while param_index < len(fun_esti_parameters):
             peak_index += 1
             for fun_param_name in self.theorydict[fittheory][1]:
-                self.final_theory.append(fun_param_name + "%d" % peak_index)
+                self.parameter_names.append(fun_param_name + "%d" % peak_index)
                 param_index += 1
 
-        self.paramlist = []
+        self.fit_results = []
         nb_fun_params_per_group = len(self.theorydict[fittheory][1])
         group_number = 0 #k
         xmin = min(xwork)
         xmax = max(xwork)
         nb_bg_params = len(bkg_esti_parameters)
-        for (pindex, pname) in enumerate(self.final_theory):
+        for (pindex, pname) in enumerate(self.parameter_names):
             # First come background parameters
             if pindex < nb_bg_params:
                 estimation_value = bkg_esti_parameters[pindex]
@@ -544,7 +603,7 @@ class Specfit():
                     cons1 += nb_bg_params
                 cons2 = fun_esti_constraints[2][fun_param_index]
 
-            self.paramlist.append({'name': pname,
+            self.fit_results.append({'name': pname,
                                    'estimation': estimation_value,
                                    'group': group_number,
                                    'code': constraint_code,
@@ -559,7 +618,7 @@ class Specfit():
         self.chisq = None
         self.eh.event(fit_status_changed, data={'chisq': self.chisq,
                                                 'status': self.state})
-        return self.paramlist
+        return self.fit_results
 
     def estimate_bkg(self, x, y):
         """Estimate background parameters using the function defined in
@@ -572,35 +631,17 @@ class Specfit():
             - ``estimated_param`` is a list of estimated values for each
               background parameter.
             - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
-              where, for each parameter denoted by the index i, the meaning is
 
-                - ``constraints[0][i]``: Constraint code, in:
-
-                    - 0: FREE
-                    - 1: POSITIVE
-                    - 2: QUOTED
-                    - 3: FIXED
-                    - 4: FACTOR
-                    - 5: DELTA
-                    - 6: SUM
-                    - 7: IGNORE
+                - ``constraints[0][i]``: Constraint code.
+                  See explanation about codes in :attr:`paramlist`
 
                 - ``constraints[1][i]``
-
-                    - Ignored if constraints[0] is 0, 1, 3
-                    - Min value of the parameter if constraints[i][0] is QUOTED
-                    - Index of fitted parameter to which it is related
+                  See explanation about 'cons1' in :attr:`paramlist`
+                  documentation.
 
                 - ``constraints[2][i]``
-
-                    - Ignored if constraints[0][i] is 0, 1, 3
-                    - Max value of the parameter if constraints[i][0] is QUOTED
-                    - Factor to apply to related parameter with index
-                      constraints[i][1] if constraints[i][0] is FACTOR
-                    - Difference with parameter with index constraints[i][1]
-                      if constraints[i][0] is DELTA
-                    - Sum obtained when adding parameter with index
-                      constraints[i][1] if constraints[i][0] is SUM
+                  See explanation about 'cons2' in :attr:`paramlist`
+                  documentation.
         """
         # FIXME: switch indexes in constraints
         fitbkg = self.fitconfig['fitbkg']
@@ -626,36 +667,20 @@ class Specfit():
             - ``estimated_param`` is a list of estimated values for each
               background parameter.
             - ``constraints`` is a 2D sequence of dimension (n_parameters, 3)
-              where, for each parameter denoted by the index i, the meaning is
 
-                - constraints[0][i]: Constraint code, in:
+                - ``constraints[0][i]``: Constraint code.
+                  See explanation about codes in :attr:`paramlist`
 
-                    - 0: FREE
-                    - 1: POSITIVE
-                    - 2: QUOTED
-                    - 3: FIXED
-                    - 4: FACTOR
-                    - 5: DELTA
-                    - 6: SUM
-                    - 7: IGNORE
+                - ``constraints[1][i]``
+                  See explanation about 'cons1' in :attr:`paramlist`
+                  documentation.
 
-                - constraints[1][i]
+                - ``constraints[2][i]``
+                  See explanation about 'cons2' in :attr:`paramlist`
+                  documentation.
 
-                    - Ignored if constraints[0] is 0, 1, 3
-                    - Min value of the parameter if constraints[i][0] is QUOTED
-                    - Index of fitted parameter to which it is related
-
-                - constraints[2][i]
-
-                    - Ignored if constraints[0][i] is 0, 1, 3
-                    - Max value of the parameter if constraints[i][0] is QUOTED
-                    - Factor to apply to related parameter with index
-                      constraints[i][1] if constraints[i][0] is FACTOR
-                    - Difference with parameter with index constraints[i][1]
-                      if constraints[i][0] is DELTA
-                    - Sum obtained when adding parameter with index
-                      constraints[i][1] if constraints[i][0] is SUM
         """
+        # Fixme: switch constraint indexes
         fittheory = self.fitconfig['fittheory']
         estimatefunction = self.theorydict[fittheory][2]
         if estimatefunction is not None:
@@ -707,10 +732,11 @@ class Specfit():
                 theory, function, parameters, estimate, configure, derivative)
 
     def startfit(self, mcafit=0):
-        """
-        Launch the fit routine
+        """Fill the parameters entries with an estimation made on the given data.
 
-
+        This method registers and sends a ``'FitStatusChanged'`` event, before
+        starting the fit and after completing. This event sends a
+        `status` (`"Fit in progress"` or `"Ready") and a `chisq` value.
         """
         # Fixme: dataupdate?
         if self.dataupdate is not None:
@@ -723,62 +749,88 @@ class Specfit():
         self.eh.event(fit_status_changed, data={'chisq': self.chisq,
                                                 'status': self.state})
 
-        param_list = self.final_theory
-        length = len(param_list)
         param_val = []
-        param_constrains = [[], [], []]
-        flagconstrains = 0
-        for param in self.paramlist:
+        param_constraints = [[], [], []]
+        # Initial values are set to the ones computed in estimate()
+        for param in self.fit_results:
             param_val.append(param['estimation'])
-            param_constrains[0].append(param['code'])
-            param_constrains[1].append(param['cons1'])
-            param_constrains[2].append(param['cons2'])
+            # FIXME: switch indexes
+            param_constraints[0].append(param['code'])
+            param_constraints[1].append(param['cons1'])
+            param_constraints[2].append(param['cons2'])
 
         ywork = self.ydata
 
         if self.fitconfig['fitbkg'] == "Square Filter":
             ywork = self.squarefilter(
-                self.ydata, self.paramlist[0]['estimation'])
+                self.ydata, self.fit_results[0]['estimation'])
 
-        constrains = None if param['code'] in ['FREE', 0, 0.0] else \
-            param_constrains
+        constraints = None if param['code'] in ['FREE', 0, 0.0] else \
+            param_constraints
 
         # FIXME: model_deriv signature is currently model_deriv(parameters, index, x)
-        #        it needs to be model_deriv(xdata, parameters, index) when switching to silx.math.fit.curve_fit
-        found = curve_fit(self.fitfunction, self.xdata, ywork, param_val,
-                          constraints=constrains,
-                          model_deriv=self.modelderiv)
+        #        it needs to be model_deriv(xdata, parameters, index) when switching to silx.math.fit.leastsq
+        found = leastsq(self.fitfunction, self.xdata, ywork, param_val,
+                        constraints=constraints,
+                        model_deriv=self.modelderiv)
 
-        for i, param in enumerate(self.paramlist):
+        for i, param in enumerate(self.fit_results):
             if param['code'] != 'IGNORE':
                 param['fitresult'] = found[0][i]
-                param['sigma'] = found[2][i]
+                param['sigma'] = found[2][i]     # FIXME: found[1] after switching to new leastsq
 
-        self.chisq = found[1]
+        self.chisq = found[1]  # fixme: will be optional output found[2]["chisq"] of leastsq(full_ouput=True)
         self.state = 'Ready'
         self.eh.event(fit_status_changed, data={'chisq': self.chisq,
-                                              'status': self.state})
+                                                'status': self.state})
 
-    def myderiv(self, param0, index, t0):
-        """Apply derivative function. If no derivative function is provided
-        for the chosen theory, use :meth:`num_deriv`
+    def myderiv(self, param0, index, x):
+        """Apply derivative function to compute partial derivative of
+        :meth:`fitfunction` with respect to fit parameter indexed by ``index``
+        at value ``param0[index]``
+
+        If no derivative function is provided for the chosen theory, use a
+        default symmetric derivative :meth:`num_deriv`
+
+        :param param0: List of all fit parameter values (estimated)
+        :param index: Index of fit parameter which varies for this partial
+            derivative.
+        :param x: Independent variable where :meth:`fitfunction` is computed.
+        :return: Numpy array of the same shape as ``x`` containing the result
+           of the partial derivative.
 
         """
-        nb = len(self.bkgdict[self.fitconfig['fitbkg']][1])
-        if index >= nb:
-            if len(self.theorydict[self.fitconfig['fittheory']]) > 5:
-                if self.theorydict[self.fitconfig['fittheory']][5] is not None:
-                    return self.theorydict[self.fitconfig['fittheory']][5](param0, index - nb, t0)
-                else:
-                    return self.num_deriv(param0, index, t0)
-            else:
-                return self.num_deriv(param0, index, t0)
-        else:
-            return self.num_deriv(param0, index, t0)
+        fitbkg = self.fitconfig['fitbkg']
+        fittheory = self.fitconfig['fittheory']
+        nb_bg_params = len(self.bkgdict[fitbkg][1])
 
-    def num_deriv(self, param0, index, t0):
+        # for custom derivative function, it seems the parameter numbering
+        # must ignore background parameters
+        if index >= nb_bg_params:
+            if len(self.theorydict[fittheory]) > 5:
+                derivative = self.theorydict[fittheory][5]
+                if derivative is not None:
+                    return derivative(param0, index - nb_bg_params, x)
+
+        # if no derivative function is provided, or we are dealing with a
+        # background parameter, use the default one
+        return self.num_deriv(param0, index, x)
+
+    def num_deriv(self, param0, index, x):
+        """Symmetric partial derivative of :meth:`fitfunction` with respect
+        to fit parameter indexed by ``index`` at value ``param0[index]``
+
+        :param param0: List of all fit parameter values (estimated)
+        :param index: Index of fit parameter which varies for this partial
+            derivative.
+        :param x: Independent variable where :meth:`fitfunction` is computed.
+        :return: Numpy array of the same shape as ``x`` containing the result
+            of the partial derivative::
+
+                f([..., p_index+0.00001, ...], x) - f([..., p_index-0.00001, ...], x) / (2 * 0.00001)
+        """
         # numerical derivative
-        x = numpy.array(t0)
+        x = numpy.array(x)
         delta = (param0[index] + numpy.equal(param0[index], 0.0)) * 0.00001
         newpar = param0.__copy__()
         newpar[index] = param0[index] + delta
@@ -791,7 +843,7 @@ class Specfit():
         if x is None:
             x=self.xdata
         if paramlist is None:
-            paramlist=self.paramlist
+            paramlist=self.fit_results
         noigno = []
         for param in paramlist:
             if param['code'] != 'IGNORE':
@@ -1040,7 +1092,7 @@ class Specfit():
                             newpar, newcons = self.mcaresidualssearch()
                             if newpar != []:
                                 newg = 1
-                                for param in self.paramlist:
+                                for param in self.fit_results:
                                     newg = max(
                                         newg, int(float(param['group']) + 1))
                                     param['estimation'] = param['fitresult']
@@ -1048,14 +1100,14 @@ class Specfit():
                                 for pname in self.theorydict[self.fitconfig['fittheory']][1]:
                                     i = i + 1
                                     name = pname + "%d" % newg
-                                    self.paramlist.append({'name': name,
+                                    self.fit_results.append({'name': name,
                                                            'estimation': newpar[i],
                                                            'group': newg,
                                                            'code': newcons[0][i],
                                                            'cons1': newcons[1][i],
                                                            'cons2': newcons[2][i],
                                                            'fitresult': 0.0,
-                                                           'sigma': 0.0})
+                                                             'sigma': 0.0})
                                 self.startfit()
                             else:
                                 break
@@ -1093,7 +1145,7 @@ class Specfit():
             result['fitstate'] = 'Unknown'
         result['fitconfig'] = self.fitconfig
         result['config'] = self.configure()
-        result['paramlist'] = self.paramlist
+        result['paramlist'] = self.fit_results
         result['chisq'] = self.chisq
         result['mca_areas'] = self.mcagetareas()
 
@@ -1107,7 +1159,7 @@ class Specfit():
         if sigmay is None:
             sigmay = self.sigmay
         if paramlist is None:
-            paramlist = self.paramlist
+            paramlist = self.fit_results
         groups = []
         for param in paramlist:
             if param['code'] != 'IGNORE':
@@ -1202,7 +1254,7 @@ class Specfit():
         if sigmay is None:
             sigmay = self.sigmay
         if paramlist is None:
-            paramlist = self.paramlist
+            paramlist = self.fit_results
 
         groups = []
         for param in paramlist:
@@ -1307,11 +1359,11 @@ class Specfit():
         if sigmay is None:
             sigmay = self.sigmay
         if paramlist is None:
-            paramlist = self.paramlist
+            paramlist = self.fit_results
 
         areanotdone = 1
         newg = 1
-        for param in self.paramlist:
+        for param in self.fit_results:
             newg = max(newg, int(float(param['group']) + 1))
         if newg == 1:
             return areanotdone
@@ -1357,7 +1409,7 @@ class Specfit():
         height = numpy.take(y - yfit, idx)[-1]
 
         for pname in self.theorydict[self.fitconfig['fittheory']][1]:
-            self.final_theory.append(pname)
+            self.parameter_names.append(pname)
             if 'Fwhm' in pname:
                 estimation = fwhm
                 code = fwhmcode
@@ -1437,7 +1489,7 @@ def test():
     print("Searched parameters = ", [3.14, 1500, 100., 50.0, 1000, 700., 30.5, 314, 800.5, 15])
     print("Obtained parameters : ")
     dummy_list = []
-    for param in fit.paramlist:
+    for param in fit.fit_results:
         print(param['name'], ' = ', param['fitresult'])
         dummy_list.append(param['fitresult'])
     print("chisq = ", fit.chisq)
