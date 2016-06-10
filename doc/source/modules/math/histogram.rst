@@ -5,5 +5,17 @@
 -------------------------------------------------------
 
 .. automodule:: silx.math.histogram
+
+Function
+--------
+
+.. autofunction:: silx.math.histogram.histogramnd
+
+....
+
+Class
+-----
+
+.. autoclass:: silx.math.histogram.HistogramndLut
     :members:
     :undoc-members:

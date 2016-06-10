@@ -225,10 +225,10 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 if version <= (2, 7):
                     err_h_shape = tuple([long(val) for val in err_h_shape])
 
-            test_msg = ('Testing invalid cumul shape : {0}'
+            test_msg = ('Testing invalid weighted_histo shape : {0}'
                         ''.format(err_h_shape))
 
-            expected_txt = ('Provided <cumul> array doesn\'t have '
+            expected_txt = ('Provided <weighted_histo> array doesn\'t have '
                             'a shape compatible with <n_bins> '
                             ': should be {0} instead of {1}.'
                             ''.format(self.h_shape, err_h_shape))
@@ -253,12 +253,12 @@ class _TestHistogramnd_errors(unittest.TestCase):
         """
         # using the same values as histo
         for err_h_dtype in self.err_histo_dtypes:
-            test_msg = ('Testing invalid cumul dtype : {0}'
+            test_msg = ('Testing invalid weighted_histo dtype : {0}'
                         ''.format(err_h_dtype))
 
             cumul = np.zeros(shape=self.h_shape, dtype=err_h_dtype)
 
-            expected_txt = ('Provided <cumul> array doesn\'t have '
+            expected_txt = ('Provided <weighted_histo> array doesn\'t have '
                             'the expected type '
                             ': should be {0} or {1} instead of {2}.'
                             ''.format(np.float64, np.float32, cumul.dtype))
@@ -266,10 +266,10 @@ class _TestHistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                             self.bins_rng,
-                                             self.n_bins,
-                                             weights=self.weights,
-                                             weighted_histo=cumul)[0:2]
+                                           self.bins_rng,
+                                           self.n_bins,
+                                           weights=self.weights,
+                                           weighted_histo=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -336,7 +336,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
         cumul_tmp = np.zeros(shape)
         cumul = cumul_tmp[::2, ...]
 
-        expected_txt = ('<cumul> must be a C_CONTIGUOUS numpy array.')
+        expected_txt = ('<weighted_histo> must be a C_CONTIGUOUS numpy array.')
 
         ex_str = None
         try:
@@ -393,7 +393,7 @@ class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
                                  (self.n_bins-1,),
                                  (self.n_bins, self.n_bins))
         # these are used for testing the histo parameter as well
-        #   as the cumul parameter.
+        #   as the weighted_histo parameter.
         self.err_histo_dtypes = (np.uint16,
                                  np.float16)
 
@@ -459,7 +459,7 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
                                   10)
                                  )
         # these are used for testing the histo parameter as well
-        #   as the cumul parameter.
+        #   as the weighted_histo parameter.
         self.err_histo_dtypes = (np.uint16,
                                  np.float16)
 

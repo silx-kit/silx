@@ -1602,7 +1602,7 @@ static PyObject *__pyx_builtin_xrange;
 static PyObject *__pyx_builtin_id;
 static PyObject *__pyx_builtin_IndexError;
 static PyObject *__pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_bins_rng, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_weights, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max, PyObject *__pyx_v_last_bin_closed, PyObject *__pyx_v_histo, PyObject *__pyx_v_cumul); /* proto */
+static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_bins_rng, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_weights, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max, PyObject *__pyx_v_last_bin_closed, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -1681,7 +1681,6 @@ static char __pyx_k_test[] = "__test__";
 static char __pyx_k_tile[] = "tile";
 static char __pyx_k_array[] = "array";
 static char __pyx_k_class[] = "__class__";
-static char __pyx_k_cumul[] = "cumul";
 static char __pyx_k_dtype[] = "dtype";
 static char __pyx_k_edges[] = "edges";
 static char __pyx_k_equal[] = "equal";
@@ -1751,6 +1750,7 @@ static char __pyx_k_option_flags[] = "option_flags";
 static char __pyx_k_output_shape[] = "output_shape";
 static char __pyx_k_weights_type[] = "weights_type";
 static char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
+static char __pyx_k_weighted_histo[] = "weighted_histo";
 static char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static char __pyx_k_dtype_is_object[] = "dtype_is_object";
 static char __pyx_k_last_bin_closed[] = "last_bin_closed";
@@ -1775,12 +1775,12 @@ static char __pyx_k_bins_rng_error_expected_n_dims[] = "<bins_rng> error : expec
 static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
 static char __pyx_k_weights_must_be_an_array_whose[] = "<weights> must be an array whose length is equal to the number of samples.";
 static char __pyx_k_Case_not_supported_sample_0_and[] = "Case not supported - sample:{0} and weights:{1}.";
-static char __pyx_k_cumul_must_be_a_C_CONTIGUOUS_nu[] = "<cumul> must be a C_CONTIGUOUS numpy array.";
 static char __pyx_k_histo_must_be_a_C_CONTIGUOUS_nu[] = "<histo> must be a C_CONTIGUOUS numpy array.";
 static char __pyx_k_histogramnd_returned_an_error_0[] = "histogramnd returned an error : {0}";
 static char __pyx_k_n_bins_only_positive_values_all[] = "<n_bins> : only positive values allowed.";
 static char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static char __pyx_k_users_naudet_workspace_dau_devs[] = "/users/naudet/workspace/dau/devs/silx/silx/math/histogramnd/chistogramnd.pyx";
+static char __pyx_k_weighted_histo_must_be_a_C_CONT[] = "<weighted_histo> must be a C_CONTIGUOUS numpy array.";
 static char __pyx_k_All_dimensions_preceding_dimensi[] = "All dimensions preceding dimension %d must be indexed and not sliced";
 static char __pyx_k_Buffer_view_does_not_expose_stri[] = "Buffer view does not expose strides";
 static char __pyx_k_Can_only_create_a_buffer_that_is[] = "Can only create a buffer that is contiguous in memory.";
@@ -1791,8 +1791,8 @@ static char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions no
 static char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static char __pyx_k_Non_native_byte_order_not_suppor[] = "Non-native byte order not supported";
 static char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
-static char __pyx_k_Provided_cumul_array_doesn_t_hav[] = "Provided <cumul> array doesn't have a shape compatible with <n_bins> : should be {0} instead of {1}.";
 static char __pyx_k_Provided_histo_array_doesn_t_hav[] = "Provided <histo> array doesn't have a shape compatible with <n_bins> : should be {0} instead of {1}.";
+static char __pyx_k_Provided_weighted_histo_array_do[] = "Provided <weighted_histo> array doesn't have a shape compatible with <n_bins> : should be {0} instead of {1}.";
 static char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static char __pyx_k_chistogramnd_locals_raise_unsupp[] = "chistogramnd.<locals>.raise_unsupported_type";
 static char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
@@ -1801,8 +1801,8 @@ static char __pyx_k_n_bins_must_be_either_a_scalar_s[] = "n_bins must be either 
 static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran contiguous";
 static char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static char __pyx_k_Provided_cumul_array_doesn_t_hav_2[] = "Provided <cumul> array doesn't have the expected type : should be {0} or {1} instead of {2}.";
 static char __pyx_k_Provided_histo_array_doesn_t_hav_2[] = "Provided <histo> array doesn't have the expected type : should be {0} instead of {1}.";
+static char __pyx_k_Provided_weighted_histo_array_do_2[] = "Provided <weighted_histo> array doesn't have the expected type : should be {0} or {1} instead of {2}.";
 static PyObject *__pyx_kp_s_01_02_2016;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
 static PyObject *__pyx_n_s_C_CONTIGUOUS;
@@ -1826,10 +1826,10 @@ static PyObject *__pyx_kp_s_MemoryView_of_r_object;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_b_O;
 static PyObject *__pyx_kp_s_Out_of_bounds_on_buffer_access_a;
-static PyObject *__pyx_kp_s_Provided_cumul_array_doesn_t_hav;
-static PyObject *__pyx_kp_s_Provided_cumul_array_doesn_t_hav_2;
 static PyObject *__pyx_kp_s_Provided_histo_array_doesn_t_hav;
 static PyObject *__pyx_kp_s_Provided_histo_array_doesn_t_hav_2;
+static PyObject *__pyx_kp_s_Provided_weighted_histo_array_do;
+static PyObject *__pyx_kp_s_Provided_weighted_histo_array_do_2;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_kp_s_Unable_to_convert_item_to_object;
@@ -1852,9 +1852,7 @@ static PyObject *__pyx_n_s_chistogramnd_locals_raise_unsupp;
 static PyObject *__pyx_n_s_class;
 static PyObject *__pyx_kp_s_contiguous_and_direct;
 static PyObject *__pyx_kp_s_contiguous_and_indirect;
-static PyObject *__pyx_n_s_cumul;
 static PyObject *__pyx_n_s_cumul_c;
-static PyObject *__pyx_kp_s_cumul_must_be_a_C_CONTIGUOUS_nu;
 static PyObject *__pyx_n_s_date;
 static PyObject *__pyx_n_s_double;
 static PyObject *__pyx_n_s_dtype;
@@ -1938,6 +1936,8 @@ static PyObject *__pyx_kp_s_users_naudet_workspace_dau_devs;
 static PyObject *__pyx_n_s_w_shape;
 static PyObject *__pyx_n_s_weight_max;
 static PyObject *__pyx_n_s_weight_min;
+static PyObject *__pyx_n_s_weighted_histo;
+static PyObject *__pyx_kp_s_weighted_histo_must_be_a_C_CONT;
 static PyObject *__pyx_n_s_weights;
 static PyObject *__pyx_n_s_weights_c;
 static PyObject *__pyx_kp_s_weights_must_be_an_array_whose;
@@ -1992,7 +1992,8 @@ static PyObject *__pyx_codeobj__28;
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static PyMethodDef __pyx_mdef_12chistogramnd_1chistogramnd = {"chistogramnd", (PyCFunction)__pyx_pw_12chistogramnd_1chistogramnd, METH_VARARGS|METH_KEYWORDS, 0};
+static char __pyx_doc_12chistogramnd_chistogramnd[] = "\n    histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, weighted_histo=None)\n\n    Computes the multidimensional histogram of some data.\n\n    :param sample:\n        The data to be histogrammed.\n        Its shape must be either\n        (N,) if it contains one dimensional coordinates,\n        or an (N,D) array where the rows are the\n        coordinates of points in a D dimensional space.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n\n        .. warning:: if sample is not a C_CONTIGUOUS ndarray (e.g : a non\n            contiguous slice) then histogramnd will have to do make an internal\n            copy.\n    :type sample: :class:`numpy.array`\n\n    :param bins_rng:\n        A (N, 2) array containing the lower and upper\n        bin edges along each dimension.\n    :type bins_rng: array_like\n\n    :param n_bins:\n        The number of bins :\n            * a scalar (same number of bins for all dimensions)\n            * a D elements array (number of bins for each dimensions)\n    :type n_bins: scalar or array_like\n\n    :param weights:\n        A N elements numpy array of values associated with\n        each sample.\n        The values of the *weighted_histo* array\n        returned by the function are equal to the sum of\n        the weights associated with the samples falling\n        into each bin.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n\n        .. note:: If None, the weighted histogram returned will be None.\n    :type weights: *optional*, :class:`numpy.array`\n\n    :param weight_min:\n        Use this parameter to filter out all samples whose\n        weights are lower than this value.\n\n        .. note:: This value will be cast to the same type\n            as *weights*.\n    :type weight_min: *optional*, scalar""\n\n    :param weight_max:\n        Use this parameter to filter out all samples whose\n        weights are higher than this value.\n\n        .. note:: This value will be cast to the same type\n            as *weights*.\n\n    :type weight_max: *optional*, scalar\n\n    :param last_bin_closed:\n        By default the last bin is half\n        open (i.e.: [x,y) ; x included, y\n        excluded), like all the other bins.\n        Set this parameter to true if you want\n        the LAST bin to be closed.\n    :type last_bin_closed: *optional*, :class:`python.boolean`\n\n    :param histo:\n        Use this parameter if you want to pass your\n        own histogram array instead of the one\n        created by this function. New values\n        will be added to this array. The returned array\n        will then be this one (same reference).\n\n        .. warning:: If the histo array was created by a previous\n            call to histogramnd then the user is\n            responsible for providing the same parameters\n            (*n_bins*, *bins_rng*, ...).\n    :type histo: *optional*, :class:`numpy.array`\n\n    :param weighted_histo:\n        Use this parameter if you want to pass your\n        own weighted histogram array instead of\n        the created by this function. New\n        values will be added to this array. The returned array\n        will then be this one (same reference).\n\n        .. warning:: If the weighted_histo array was created by a previous\n            call to histogramnd then the user is\n            responsible for providing the same parameters\n            (*n_bins*, *bins_rng*, ...).\n\n        .. warning:: if weighted_histo is not a C_CONTIGUOUS ndarray (e.g : a\n            non contiguous slice) then histogramnd will have to do make an\n            internal copy.\n    :type weighted_histo: *optional*, :class:`numpy.array`\n\n    :return: Histogram (bin counts, always returned), weighted histogram of\n        the sample (or *None* if weights"" is *None*) and bin edges for each\n        dimension.\n    :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or\n        (:class:`numpy.array`, None, `tuple`)\n    ";
+static PyMethodDef __pyx_mdef_12chistogramnd_1chistogramnd = {"chistogramnd", (PyCFunction)__pyx_pw_12chistogramnd_1chistogramnd, METH_VARARGS|METH_KEYWORDS, __pyx_doc_12chistogramnd_chistogramnd};
 static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_sample = 0;
   PyObject *__pyx_v_bins_rng = 0;
@@ -2002,7 +2003,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
   PyObject *__pyx_v_weight_max = 0;
   PyObject *__pyx_v_last_bin_closed = 0;
   PyObject *__pyx_v_histo = 0;
-  PyObject *__pyx_v_cumul = 0;
+  PyObject *__pyx_v_weighted_histo = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2010,7 +2011,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("chistogramnd (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sample,&__pyx_n_s_bins_rng,&__pyx_n_s_n_bins,&__pyx_n_s_weights,&__pyx_n_s_weight_min,&__pyx_n_s_weight_max,&__pyx_n_s_last_bin_closed,&__pyx_n_s_histo,&__pyx_n_s_cumul,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_sample,&__pyx_n_s_bins_rng,&__pyx_n_s_n_bins,&__pyx_n_s_weights,&__pyx_n_s_weight_min,&__pyx_n_s_weight_max,&__pyx_n_s_last_bin_closed,&__pyx_n_s_histo,&__pyx_n_s_weighted_histo,0};
     PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
 
     /* "chistogramnd.pyx":39
@@ -2045,7 +2046,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
  *                  weight_max=None,
  *                  last_bin_closed=False,             # <<<<<<<<<<<<<<
  *                  histo=None,
- *                  cumul=None):
+ *                  weighted_histo=None):
  */
     values[6] = ((PyObject *)Py_False);
 
@@ -2053,17 +2054,17 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
  *                  weight_max=None,
  *                  last_bin_closed=False,
  *                  histo=None,             # <<<<<<<<<<<<<<
- *                  cumul=None):
- * 
+ *                  weighted_histo=None):
+ *     """
  */
     values[7] = ((PyObject *)Py_None);
 
     /* "chistogramnd.pyx":44
  *                  last_bin_closed=False,
  *                  histo=None,
- *                  cumul=None):             # <<<<<<<<<<<<<<
- * 
- *     # see silx.math.histogramnd for the doc
+ *                  weighted_histo=None):             # <<<<<<<<<<<<<<
+ *     """
+ *     histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, weighted_histo=None)
  */
     values[8] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
@@ -2124,7 +2125,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
         }
         case  8:
         if (kw_args > 0) {
-          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_cumul);
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_weighted_histo);
           if (value) { values[8] = value; kw_args--; }
         }
       }
@@ -2154,7 +2155,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
     __pyx_v_weight_max = values[5];
     __pyx_v_last_bin_closed = values[6];
     __pyx_v_histo = values[7];
-    __pyx_v_cumul = values[8];
+    __pyx_v_weighted_histo = values[8];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
@@ -2164,7 +2165,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_12chistogramnd_chistogramnd(__pyx_self, __pyx_v_sample, __pyx_v_bins_rng, __pyx_v_n_bins, __pyx_v_weights, __pyx_v_weight_min, __pyx_v_weight_max, __pyx_v_last_bin_closed, __pyx_v_histo, __pyx_v_cumul);
+  __pyx_r = __pyx_pf_12chistogramnd_chistogramnd(__pyx_self, __pyx_v_sample, __pyx_v_bins_rng, __pyx_v_n_bins, __pyx_v_weights, __pyx_v_weight_min, __pyx_v_weight_max, __pyx_v_last_bin_closed, __pyx_v_histo, __pyx_v_weighted_histo);
 
   /* "chistogramnd.pyx":36
  * 
@@ -2179,7 +2180,7 @@ static PyObject *__pyx_pw_12chistogramnd_1chistogramnd(PyObject *__pyx_self, PyO
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":172
+/* "chistogramnd.pyx":276
  *     # functions. so I have to explicitly list them all...
  * 
  *     def raise_unsupported_type():             # <<<<<<<<<<<<<<
@@ -2218,17 +2219,17 @@ static PyObject *__pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(P
   __pyx_outer_scope = (struct __pyx_obj_12chistogramnd___pyx_scope_struct__chistogramnd *) __Pyx_CyFunction_GetClosure(__pyx_self);
   __pyx_cur_scope = __pyx_outer_scope;
 
-  /* "chistogramnd.pyx":175
+  /* "chistogramnd.pyx":279
  *         raise TypeError('Case not supported - sample:{0} '
  *                         'and weights:{1}.'
  *                         ''.format(sample_type, weights_type))             # <<<<<<<<<<<<<<
  * 
  *     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Case_not_supported_sample_0_and, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Case_not_supported_sample_0_and, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  if (unlikely(!__pyx_cur_scope->__pyx_v_sample_type)) { __Pyx_RaiseClosureNameError("sample_type"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
-  if (unlikely(!__pyx_cur_scope->__pyx_v_weights_type)) { __Pyx_RaiseClosureNameError("weights_type"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_v_sample_type)) { __Pyx_RaiseClosureNameError("sample_type"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
+  if (unlikely(!__pyx_cur_scope->__pyx_v_weights_type)) { __Pyx_RaiseClosureNameError("weights_type"); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;} }
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2241,7 +2242,7 @@ static PyObject *__pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(P
       __pyx_t_4 = 1;
     }
   }
-  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   if (__pyx_t_3) {
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
@@ -2252,31 +2253,31 @@ static PyObject *__pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(P
   __Pyx_INCREF(__pyx_cur_scope->__pyx_v_weights_type);
   PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_cur_scope->__pyx_v_weights_type);
   __Pyx_GIVEREF(__pyx_cur_scope->__pyx_v_weights_type);
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":173
+  /* "chistogramnd.pyx":277
  * 
  *     def raise_unsupported_type():
  *         raise TypeError('Case not supported - sample:{0} '             # <<<<<<<<<<<<<<
  *                         'and weights:{1}.'
  *                         ''.format(sample_type, weights_type))
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd.pyx":172
+  /* "chistogramnd.pyx":276
  *     # functions. so I have to explicitly list them all...
  * 
  *     def raise_unsupported_type():             # <<<<<<<<<<<<<<
@@ -2305,7 +2306,7 @@ static PyObject *__pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(P
  *                  n_bins,
  */
 
-static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_bins_rng, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_weights, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max, PyObject *__pyx_v_last_bin_closed, PyObject *__pyx_v_histo, PyObject *__pyx_v_cumul) {
+static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_sample, PyObject *__pyx_v_bins_rng, PyObject *__pyx_v_n_bins, PyObject *__pyx_v_weights, PyObject *__pyx_v_weight_min, PyObject *__pyx_v_weight_max, PyObject *__pyx_v_last_bin_closed, PyObject *__pyx_v_histo, PyObject *__pyx_v_weighted_histo) {
   struct __pyx_obj_12chistogramnd___pyx_scope_struct__chistogramnd *__pyx_cur_scope;
   PyObject *__pyx_v_s_shape = NULL;
   PyObject *__pyx_v_n_dims = NULL;
@@ -2494,25 +2495,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_v_weight_min);
   __Pyx_INCREF(__pyx_v_weight_max);
   __Pyx_INCREF(__pyx_v_histo);
-  __Pyx_INCREF(__pyx_v_cumul);
+  __Pyx_INCREF(__pyx_v_weighted_histo);
 
-  /* "chistogramnd.pyx":48
+  /* "chistogramnd.pyx":152
  *     # see silx.math.histogramnd for the doc
  * 
- *     if cumul is not None and cumul.flags['C_CONTIGUOUS'] is False:             # <<<<<<<<<<<<<<
- *         raise ValueError('<cumul> must be a C_CONTIGUOUS numpy array.')
+ *     if weighted_histo is not None and weighted_histo.flags['C_CONTIGUOUS'] is False:             # <<<<<<<<<<<<<<
+ *         raise ValueError('<weighted_histo> must be a C_CONTIGUOUS numpy array.')
  * 
  */
-  __pyx_t_2 = (__pyx_v_cumul != Py_None);
+  __pyx_t_2 = (__pyx_v_weighted_histo != Py_None);
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
   } else {
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_flags); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_flags); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyObject_GetItem(__pyx_t_4, __pyx_n_s_C_CONTIGUOUS); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 48; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_5 = PyObject_GetItem(__pyx_t_4, __pyx_n_s_C_CONTIGUOUS); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 152; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (__pyx_t_5 == Py_False);
@@ -2522,22 +2523,22 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":49
+    /* "chistogramnd.pyx":153
  * 
- *     if cumul is not None and cumul.flags['C_CONTIGUOUS'] is False:
- *         raise ValueError('<cumul> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
+ *     if weighted_histo is not None and weighted_histo.flags['C_CONTIGUOUS'] is False:
+ *         raise ValueError('<weighted_histo> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
  * 
  *     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
  */
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_Raise(__pyx_t_5, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd.pyx":51
- *         raise ValueError('<cumul> must be a C_CONTIGUOUS numpy array.')
+  /* "chistogramnd.pyx":155
+ *         raise ValueError('<weighted_histo> must be a C_CONTIGUOUS numpy array.')
  * 
  *     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:             # <<<<<<<<<<<<<<
  *         raise ValueError('<histo> must be a C_CONTIGUOUS numpy array.')
@@ -2550,9 +2551,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L7_bool_binop_done;
   }
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_flags); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_flags); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyObject_GetItem(__pyx_t_5, __pyx_n_s_C_CONTIGUOUS); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 51; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+  __pyx_t_4 = PyObject_GetItem(__pyx_t_5, __pyx_n_s_C_CONTIGUOUS); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_3 = (__pyx_t_4 == Py_False);
@@ -2562,45 +2563,45 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_L7_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":52
+    /* "chistogramnd.pyx":156
  * 
  *     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
  *         raise ValueError('<histo> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
  * 
  *     s_shape = sample.shape
  */
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd.pyx":54
+  /* "chistogramnd.pyx":158
  *         raise ValueError('<histo> must be a C_CONTIGUOUS numpy array.')
  * 
  *     s_shape = sample.shape             # <<<<<<<<<<<<<<
  * 
  *     n_dims = 1 if len(s_shape) == 1 else s_shape[1]
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 54; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_v_s_shape = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":56
+  /* "chistogramnd.pyx":160
  *     s_shape = sample.shape
  * 
  *     n_dims = 1 if len(s_shape) == 1 else s_shape[1]             # <<<<<<<<<<<<<<
  * 
  *     if weights is not None:
  */
-  __pyx_t_6 = PyObject_Length(__pyx_v_s_shape); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = PyObject_Length(__pyx_v_s_shape); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (((__pyx_t_6 == 1) != 0)) {
     __Pyx_INCREF(__pyx_int_1);
     __pyx_t_4 = __pyx_int_1;
   } else {
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_s_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 56; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_s_shape, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_4 = __pyx_t_5;
     __pyx_t_5 = 0;
@@ -2608,7 +2609,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_n_dims = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":58
+  /* "chistogramnd.pyx":162
  *     n_dims = 1 if len(s_shape) == 1 else s_shape[1]
  * 
  *     if weights is not None:             # <<<<<<<<<<<<<<
@@ -2619,67 +2620,67 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":59
+    /* "chistogramnd.pyx":163
  * 
  *     if weights is not None:
  *         w_shape = weights.shape             # <<<<<<<<<<<<<<
  * 
  *         # making sure the sample and weights sizes are coherent
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 59; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_v_w_shape = __pyx_t_4;
     __pyx_t_4 = 0;
 
-    /* "chistogramnd.pyx":63
+    /* "chistogramnd.pyx":167
  *         # making sure the sample and weights sizes are coherent
  *         # 2 different cases : 2D sample (N,M) and 1D (N)
  *         if len(w_shape) != 1 or w_shape[0] != s_shape[0]:             # <<<<<<<<<<<<<<
  *                 raise ValueError('<weights> must be an array whose length '
  *                                  'is equal to the number of samples.')
  */
-    __pyx_t_6 = PyObject_Length(__pyx_v_w_shape); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = PyObject_Length(__pyx_v_w_shape); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __pyx_t_1 = ((__pyx_t_6 != 1) != 0);
     if (!__pyx_t_1) {
     } else {
       __pyx_t_2 = __pyx_t_1;
       goto __pyx_L11_bool_binop_done;
     }
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_w_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_w_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_4 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_s_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_s_shape, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __pyx_t_2 = __pyx_t_1;
     __pyx_L11_bool_binop_done:;
     if (__pyx_t_2) {
 
-      /* "chistogramnd.pyx":64
+      /* "chistogramnd.pyx":168
  *         # 2 different cases : 2D sample (N,M) and 1D (N)
  *         if len(w_shape) != 1 or w_shape[0] != s_shape[0]:
  *                 raise ValueError('<weights> must be an array whose length '             # <<<<<<<<<<<<<<
  *                                  'is equal to the number of samples.')
  * 
  */
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_Raise(__pyx_t_7, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd.pyx":67
+    /* "chistogramnd.pyx":171
  *                                  'is equal to the number of samples.')
  * 
  *         weights_type = weights.dtype             # <<<<<<<<<<<<<<
  *     else:
  *         weights_type = None
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 67; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_dtype); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     __pyx_cur_scope->__pyx_v_weights_type = __pyx_t_7;
@@ -2688,7 +2689,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":69
+    /* "chistogramnd.pyx":173
  *         weights_type = weights.dtype
  *     else:
  *         weights_type = None             # <<<<<<<<<<<<<<
@@ -2701,7 +2702,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   __pyx_L9:;
 
-  /* "chistogramnd.pyx":74
+  /* "chistogramnd.pyx":178
  *     # (this allows the user to provide native python lists,
  *     #   => easier for testing)
  *     i_bins_rng = bins_rng             # <<<<<<<<<<<<<<
@@ -2711,16 +2712,16 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_v_bins_rng);
   __pyx_v_i_bins_rng = __pyx_v_bins_rng;
 
-  /* "chistogramnd.pyx":75
+  /* "chistogramnd.pyx":179
  *     #   => easier for testing)
  *     i_bins_rng = bins_rng
  *     bins_rng = np.array(bins_rng)             # <<<<<<<<<<<<<<
  *     err_bins_rng = False
  * 
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -2734,16 +2735,16 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_bins_rng); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_bins_rng); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
   } else {
-    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     __Pyx_INCREF(__pyx_v_bins_rng);
     PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_bins_rng);
     __Pyx_GIVEREF(__pyx_v_bins_rng);
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
@@ -2751,7 +2752,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF_SET(__pyx_v_bins_rng, __pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":76
+  /* "chistogramnd.pyx":180
  *     i_bins_rng = bins_rng
  *     bins_rng = np.array(bins_rng)
  *     err_bins_rng = False             # <<<<<<<<<<<<<<
@@ -2760,63 +2761,63 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  */
   __pyx_v_err_bins_rng = 0;
 
-  /* "chistogramnd.pyx":78
+  /* "chistogramnd.pyx":182
  *     err_bins_rng = False
  * 
  *     if n_dims == 1:             # <<<<<<<<<<<<<<
  *         if bins_rng.shape == (2,):
  *             pass
  */
-  __pyx_t_7 = PyObject_RichCompare(__pyx_v_n_dims, __pyx_int_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyObject_RichCompare(__pyx_v_n_dims, __pyx_int_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":79
+    /* "chistogramnd.pyx":183
  * 
  *     if n_dims == 1:
  *         if bins_rng.shape == (2,):             # <<<<<<<<<<<<<<
  *             pass
  *         elif bins_rng.shape == (1, 2):
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_4 = PyObject_RichCompare(__pyx_t_7, __pyx_tuple__4, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_7, __pyx_tuple__4, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_2) {
       goto __pyx_L14;
     }
 
-    /* "chistogramnd.pyx":81
+    /* "chistogramnd.pyx":185
  *         if bins_rng.shape == (2,):
  *             pass
  *         elif bins_rng.shape == (1, 2):             # <<<<<<<<<<<<<<
  *             bins_rng.shape = -1
  *         else:
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__5, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_tuple__5, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     if (__pyx_t_2) {
 
-      /* "chistogramnd.pyx":82
+      /* "chistogramnd.pyx":186
  *             pass
  *         elif bins_rng.shape == (1, 2):
  *             bins_rng.shape = -1             # <<<<<<<<<<<<<<
  *         else:
  *             err_bins_rng = True
  */
-      if (__Pyx_PyObject_SetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape, __pyx_int_neg_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 82; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (__Pyx_PyObject_SetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape, __pyx_int_neg_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L14;
     }
     /*else*/ {
 
-      /* "chistogramnd.pyx":84
+      /* "chistogramnd.pyx":188
  *             bins_rng.shape = -1
  *         else:
  *             err_bins_rng = True             # <<<<<<<<<<<<<<
@@ -2829,24 +2830,24 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     goto __pyx_L13;
   }
 
-  /* "chistogramnd.pyx":85
+  /* "chistogramnd.pyx":189
  *         else:
  *             err_bins_rng = True
  *     elif n_dims != 1 and bins_rng.shape != (n_dims, 2):             # <<<<<<<<<<<<<<
  *         err_bins_rng = True
  * 
  */
-  __pyx_t_7 = PyObject_RichCompare(__pyx_v_n_dims, __pyx_int_1, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyObject_RichCompare(__pyx_v_n_dims, __pyx_int_1, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   if (__pyx_t_1) {
   } else {
     __pyx_t_2 = __pyx_t_1;
     goto __pyx_L15_bool_binop_done;
   }
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_v_n_dims);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_n_dims);
@@ -2854,16 +2855,16 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_int_2);
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_2);
   __Pyx_GIVEREF(__pyx_int_2);
-  __pyx_t_8 = PyObject_RichCompare(__pyx_t_7, __pyx_t_4, Py_NE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyObject_RichCompare(__pyx_t_7, __pyx_t_4, Py_NE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 189; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_2 = __pyx_t_1;
   __pyx_L15_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":86
+    /* "chistogramnd.pyx":190
  *             err_bins_rng = True
  *     elif n_dims != 1 and bins_rng.shape != (n_dims, 2):
  *         err_bins_rng = True             # <<<<<<<<<<<<<<
@@ -2875,7 +2876,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   __pyx_L13:;
 
-  /* "chistogramnd.pyx":88
+  /* "chistogramnd.pyx":192
  *         err_bins_rng = True
  * 
  *     if err_bins_rng:             # <<<<<<<<<<<<<<
@@ -2885,81 +2886,81 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = (__pyx_v_err_bins_rng != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":94
+    /* "chistogramnd.pyx":198
  *                          '(provided <sample> contains '
  *                          '{n_dims}D values)'
  *                          ''.format(bins_rng=i_bins_rng,             # <<<<<<<<<<<<<<
  *                                    n_dims=n_dims))
  * 
  */
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_bins_rng_error_expected_n_dims, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_bins_rng_error_expected_n_dims, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_bins_rng, __pyx_v_i_bins_rng) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_bins_rng, __pyx_v_i_bins_rng) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd.pyx":95
+    /* "chistogramnd.pyx":199
  *                          '{n_dims}D values)'
  *                          ''.format(bins_rng=i_bins_rng,
  *                                    n_dims=n_dims))             # <<<<<<<<<<<<<<
  * 
  *     # checking n_bins size
  */
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_n_dims, __pyx_v_n_dims) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_n_dims, __pyx_v_n_dims) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-    /* "chistogramnd.pyx":94
+    /* "chistogramnd.pyx":198
  *                          '(provided <sample> contains '
  *                          '{n_dims}D values)'
  *                          ''.format(bins_rng=i_bins_rng,             # <<<<<<<<<<<<<<
  *                                    n_dims=n_dims))
  * 
  */
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 94; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 198; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "chistogramnd.pyx":89
+    /* "chistogramnd.pyx":193
  * 
  *     if err_bins_rng:
  *         raise ValueError('<bins_rng> error : expected {n_dims} sets of '             # <<<<<<<<<<<<<<
  *                          'lower and upper bin edges, '
  *                          'got the following instead : {bins_rng}. '
  */
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_4, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_Raise(__pyx_t_7, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 89; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 193; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd.pyx":98
+  /* "chistogramnd.pyx":202
  * 
  *     # checking n_bins size
  *     n_bins = np.array(n_bins, ndmin=1)             # <<<<<<<<<<<<<<
  *     if len(n_bins) == 1:
  *         n_bins = np.tile(n_bins, n_dims)
  */
-  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_array); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_INCREF(__pyx_v_n_bins);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_v_n_bins);
   __Pyx_GIVEREF(__pyx_v_n_bins);
-  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_ndmin, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 98; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_ndmin, __pyx_int_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 202; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -2967,27 +2968,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF_SET(__pyx_v_n_bins, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":99
+  /* "chistogramnd.pyx":203
  *     # checking n_bins size
  *     n_bins = np.array(n_bins, ndmin=1)
  *     if len(n_bins) == 1:             # <<<<<<<<<<<<<<
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):
  */
-  __pyx_t_6 = PyObject_Length(__pyx_v_n_bins); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = PyObject_Length(__pyx_v_n_bins); if (unlikely(__pyx_t_6 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_2 = ((__pyx_t_6 == 1) != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":100
+    /* "chistogramnd.pyx":204
  *     n_bins = np.array(n_bins, ndmin=1)
  *     if len(n_bins) == 1:
  *         n_bins = np.tile(n_bins, n_dims)             # <<<<<<<<<<<<<<
  *     elif n_bins.shape != (n_dims,):
  *         raise ValueError('n_bins must be either a scalar (same number '
  */
-    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_tile); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_tile); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __pyx_t_8 = NULL;
@@ -3002,7 +3003,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         __pyx_t_6 = 1;
       }
     }
-    __pyx_t_4 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     if (__pyx_t_8) {
       PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
@@ -3013,7 +3014,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __Pyx_INCREF(__pyx_v_n_dims);
     PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_6, __pyx_v_n_dims);
     __Pyx_GIVEREF(__pyx_v_n_dims);
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 204; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -3022,57 +3023,57 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     goto __pyx_L18;
   }
 
-  /* "chistogramnd.pyx":101
+  /* "chistogramnd.pyx":205
  *     if len(n_bins) == 1:
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):             # <<<<<<<<<<<<<<
  *         raise ValueError('n_bins must be either a scalar (same number '
  *                          'of bins for all dimensions) or '
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_shape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_shape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_INCREF(__pyx_v_n_dims);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_v_n_dims);
   __Pyx_GIVEREF(__pyx_v_n_dims);
-  __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_t_7, Py_NE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":102
+    /* "chistogramnd.pyx":206
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):
  *         raise ValueError('n_bins must be either a scalar (same number '             # <<<<<<<<<<<<<<
  *                          'of bins for all dimensions) or '
  *                          'an array (number of bins for each '
  */
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_L18:;
 
-  /* "chistogramnd.pyx":110
+  /* "chistogramnd.pyx":214
  *     #   exception is thrown when calling np.zeros
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):             # <<<<<<<<<<<<<<
  *         raise ValueError('<n_bins> : only positive values allowed.')
  * 
  */
-  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_any); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_any); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_equal); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_equal); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_8 = NULL;
@@ -3087,7 +3088,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_t_6 = 1;
     }
   }
-  __pyx_t_10 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   if (__pyx_t_8) {
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
@@ -3098,7 +3099,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(Py_None);
   PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_6, Py_None);
   __Pyx_GIVEREF(Py_None);
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_10, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_10, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -3113,34 +3114,34 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_9) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __Pyx_GIVEREF(__pyx_t_9); __pyx_t_9 = NULL;
     PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (!__pyx_t_1) {
   } else {
     __pyx_t_2 = __pyx_t_1;
     goto __pyx_L20_bool_binop_done;
   }
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_any); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_any); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyObject_RichCompare(__pyx_v_n_bins, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyObject_RichCompare(__pyx_v_n_bins, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_7 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_10))) {
     __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_10);
@@ -3152,60 +3153,60 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_7) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
     PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_2 = __pyx_t_1;
   __pyx_L20_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":111
+    /* "chistogramnd.pyx":215
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
  *         raise ValueError('<n_bins> : only positive values allowed.')             # <<<<<<<<<<<<<<
  * 
  *     output_shape = tuple(n_bins)
  */
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "chistogramnd.pyx":113
+  /* "chistogramnd.pyx":217
  *         raise ValueError('<n_bins> : only positive values allowed.')
  * 
  *     output_shape = tuple(n_bins)             # <<<<<<<<<<<<<<
  * 
  *     # checking the histo array, if provided
  */
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 217; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_v_n_bins);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_n_bins);
   __Pyx_GIVEREF(__pyx_v_n_bins);
-  __pyx_t_10 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyTuple_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyTuple_Type))), __pyx_t_4, NULL); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 217; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_output_shape = ((PyObject*)__pyx_t_10);
   __pyx_t_10 = 0;
 
-  /* "chistogramnd.pyx":116
+  /* "chistogramnd.pyx":220
  * 
  *     # checking the histo array, if provided
  *     if histo is None:             # <<<<<<<<<<<<<<
@@ -3216,33 +3217,33 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":117
+    /* "chistogramnd.pyx":221
  *     # checking the histo array, if provided
  *     if histo is None:
  *         histo = np.zeros(output_shape, dtype=np.uint32)             # <<<<<<<<<<<<<<
  *     else:
  *         if histo.shape != output_shape:
  */
-    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_zeros); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_INCREF(__pyx_v_output_shape);
     PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_v_output_shape);
     __Pyx_GIVEREF(__pyx_v_output_shape);
-    __pyx_t_9 = PyDict_New(); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyDict_New(); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_uint32); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_uint32); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_dtype, __pyx_t_7) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_10, __pyx_t_9); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_10, __pyx_t_9); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -3253,31 +3254,31 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":119
+    /* "chistogramnd.pyx":223
  *         histo = np.zeros(output_shape, dtype=np.uint32)
  *     else:
  *         if histo.shape != output_shape:             # <<<<<<<<<<<<<<
  *             raise ValueError('Provided <histo> array doesn\'t have '
  *                              'a shape compatible with <n_bins> '
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_9 = PyObject_RichCompare(__pyx_t_7, __pyx_v_output_shape, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyObject_RichCompare(__pyx_t_7, __pyx_v_output_shape, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (__pyx_t_1) {
 
-      /* "chistogramnd.pyx":123
+      /* "chistogramnd.pyx":227
  *                              'a shape compatible with <n_bins> '
  *                              ': should be {0} instead of {1}.'
  *                              ''.format(output_shape, histo.shape))             # <<<<<<<<<<<<<<
  *         if histo.dtype != np.uint32:
  *             raise ValueError('Provided <histo> array doesn\'t have '
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_histo_array_doesn_t_hav, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_histo_array_doesn_t_hav, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
       __pyx_t_4 = NULL;
       __pyx_t_6 = 0;
@@ -3291,7 +3292,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
           __pyx_t_6 = 1;
         }
       }
-      __pyx_t_5 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       if (__pyx_t_4) {
         PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -3302,67 +3303,67 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_6, __pyx_t_10);
       __Pyx_GIVEREF(__pyx_t_10);
       __pyx_t_10 = 0;
-      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_5, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 123; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_5, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "chistogramnd.pyx":120
+      /* "chistogramnd.pyx":224
  *     else:
  *         if histo.shape != output_shape:
  *             raise ValueError('Provided <histo> array doesn\'t have '             # <<<<<<<<<<<<<<
  *                              'a shape compatible with <n_bins> '
  *                              ': should be {0} instead of {1}.'
  */
-      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_9);
       __Pyx_GIVEREF(__pyx_t_9);
       __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_7, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_7, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_Raise(__pyx_t_9, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 120; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd.pyx":124
+    /* "chistogramnd.pyx":228
  *                              ': should be {0} instead of {1}.'
  *                              ''.format(output_shape, histo.shape))
  *         if histo.dtype != np.uint32:             # <<<<<<<<<<<<<<
  *             raise ValueError('Provided <histo> array doesn\'t have '
  *                              'the expected type '
  */
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_uint32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_uint32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyObject_RichCompare(__pyx_t_9, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_9, __pyx_t_5, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     if (__pyx_t_1) {
 
-      /* "chistogramnd.pyx":128
+      /* "chistogramnd.pyx":232
  *                              'the expected type '
  *                              ': should be {0} instead of {1}.'
  *                              ''.format(np.uint32, histo.dtype))             # <<<<<<<<<<<<<<
  * 
- *     # checking the cumul array, if provided
+ *     # checking the weighted_histo array, if provided
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_histo_array_doesn_t_hav_2, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_histo_array_doesn_t_hav_2, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_uint32); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_uint32); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __pyx_t_4 = NULL;
       __pyx_t_6 = 0;
@@ -3376,7 +3377,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
           __pyx_t_6 = 1;
         }
       }
-      __pyx_t_8 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       if (__pyx_t_4) {
         PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -3387,129 +3388,129 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __Pyx_GIVEREF(__pyx_t_9);
       __pyx_t_10 = 0;
       __pyx_t_9 = 0;
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 128; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_8, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "chistogramnd.pyx":125
+      /* "chistogramnd.pyx":229
  *                              ''.format(output_shape, histo.shape))
  *         if histo.dtype != np.uint32:
  *             raise ValueError('Provided <histo> array doesn\'t have '             # <<<<<<<<<<<<<<
  *                              'the expected type '
  *                              ': should be {0} instead of {1}.'
  */
-      __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_Raise(__pyx_t_7, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 125; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   __pyx_L22:;
 
-  /* "chistogramnd.pyx":131
+  /* "chistogramnd.pyx":235
  * 
- *     # checking the cumul array, if provided
+ *     # checking the weighted_histo array, if provided
  *     if weights_type is None:             # <<<<<<<<<<<<<<
- *         cumul = None
- *     elif cumul is None:
+ *         weighted_histo = None
+ *     elif weighted_histo is None:
  */
   __pyx_t_1 = (__pyx_cur_scope->__pyx_v_weights_type == Py_None);
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":132
- *     # checking the cumul array, if provided
+    /* "chistogramnd.pyx":236
+ *     # checking the weighted_histo array, if provided
  *     if weights_type is None:
- *         cumul = None             # <<<<<<<<<<<<<<
- *     elif cumul is None:
- *         cumul = np.zeros(output_shape, dtype=np.double)
+ *         weighted_histo = None             # <<<<<<<<<<<<<<
+ *     elif weighted_histo is None:
+ *         weighted_histo = np.zeros(output_shape, dtype=np.double)
  */
     __Pyx_INCREF(Py_None);
-    __Pyx_DECREF_SET(__pyx_v_cumul, Py_None);
+    __Pyx_DECREF_SET(__pyx_v_weighted_histo, Py_None);
     goto __pyx_L25;
   }
 
-  /* "chistogramnd.pyx":133
+  /* "chistogramnd.pyx":237
  *     if weights_type is None:
- *         cumul = None
- *     elif cumul is None:             # <<<<<<<<<<<<<<
- *         cumul = np.zeros(output_shape, dtype=np.double)
+ *         weighted_histo = None
+ *     elif weighted_histo is None:             # <<<<<<<<<<<<<<
+ *         weighted_histo = np.zeros(output_shape, dtype=np.double)
  *     else:
  */
-  __pyx_t_2 = (__pyx_v_cumul == Py_None);
+  __pyx_t_2 = (__pyx_v_weighted_histo == Py_None);
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":134
- *         cumul = None
- *     elif cumul is None:
- *         cumul = np.zeros(output_shape, dtype=np.double)             # <<<<<<<<<<<<<<
+    /* "chistogramnd.pyx":238
+ *         weighted_histo = None
+ *     elif weighted_histo is None:
+ *         weighted_histo = np.zeros(output_shape, dtype=np.double)             # <<<<<<<<<<<<<<
  *     else:
- *         if cumul.shape != output_shape:
+ *         if weighted_histo.shape != output_shape:
  */
-    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_INCREF(__pyx_v_output_shape);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_v_output_shape);
     __Pyx_GIVEREF(__pyx_v_output_shape);
-    __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyDict_New(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_double); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_double); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_10) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_10) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, __pyx_t_8); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_DECREF_SET(__pyx_v_cumul, __pyx_t_10);
+    __Pyx_DECREF_SET(__pyx_v_weighted_histo, __pyx_t_10);
     __pyx_t_10 = 0;
     goto __pyx_L25;
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":136
- *         cumul = np.zeros(output_shape, dtype=np.double)
+    /* "chistogramnd.pyx":240
+ *         weighted_histo = np.zeros(output_shape, dtype=np.double)
  *     else:
- *         if cumul.shape != output_shape:             # <<<<<<<<<<<<<<
- *             raise ValueError('Provided <cumul> array doesn\'t have '
+ *         if weighted_histo.shape != output_shape:             # <<<<<<<<<<<<<<
+ *             raise ValueError('Provided <weighted_histo> array doesn\'t have '
  *                              'a shape compatible with <n_bins> '
  */
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_shape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_8 = PyObject_RichCompare(__pyx_t_10, __pyx_v_output_shape, Py_NE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyObject_RichCompare(__pyx_t_10, __pyx_v_output_shape, Py_NE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     if (__pyx_t_1) {
 
-      /* "chistogramnd.pyx":140
+      /* "chistogramnd.pyx":244
  *                              'a shape compatible with <n_bins> '
  *                              ': should be {0} instead of {1}.'
- *                              ''.format(output_shape, cumul.shape))             # <<<<<<<<<<<<<<
- *         if cumul.dtype != np.float64 and cumul.dtype != np.float32:
- *             raise ValueError('Provided <cumul> array doesn\'t have '
+ *                              ''.format(output_shape, weighted_histo.shape))             # <<<<<<<<<<<<<<
+ *         if weighted_histo.dtype != np.float64 and weighted_histo.dtype != np.float32:
+ *             raise ValueError('Provided <weighted_histo> array doesn\'t have '
  */
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_cumul_array_doesn_t_hav, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_weighted_histo_array_do, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_shape); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       __pyx_t_5 = NULL;
       __pyx_t_6 = 0;
@@ -3523,7 +3524,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
           __pyx_t_6 = 1;
         }
       }
-      __pyx_t_9 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       if (__pyx_t_5) {
         PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
@@ -3534,91 +3535,91 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_6, __pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 140; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-      /* "chistogramnd.pyx":137
+      /* "chistogramnd.pyx":241
  *     else:
- *         if cumul.shape != output_shape:
- *             raise ValueError('Provided <cumul> array doesn\'t have '             # <<<<<<<<<<<<<<
+ *         if weighted_histo.shape != output_shape:
+ *             raise ValueError('Provided <weighted_histo> array doesn\'t have '             # <<<<<<<<<<<<<<
  *                              'a shape compatible with <n_bins> '
  *                              ': should be {0} instead of {1}.'
  */
-      __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
       PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_8);
       __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_10, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_10, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "chistogramnd.pyx":141
+    /* "chistogramnd.pyx":245
  *                              ': should be {0} instead of {1}.'
- *                              ''.format(output_shape, cumul.shape))
- *         if cumul.dtype != np.float64 and cumul.dtype != np.float32:             # <<<<<<<<<<<<<<
- *             raise ValueError('Provided <cumul> array doesn\'t have '
+ *                              ''.format(output_shape, weighted_histo.shape))
+ *         if weighted_histo.dtype != np.float64 and weighted_histo.dtype != np.float32:             # <<<<<<<<<<<<<<
+ *             raise ValueError('Provided <weighted_histo> array doesn\'t have '
  *                              'the expected type '
  */
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = PyObject_RichCompare(__pyx_t_8, __pyx_t_9, Py_NE); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = PyObject_RichCompare(__pyx_t_8, __pyx_t_9, Py_NE); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     if (__pyx_t_2) {
     } else {
       __pyx_t_1 = __pyx_t_2;
       goto __pyx_L28_bool_binop_done;
     }
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_dtype); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_t_9 = PyObject_RichCompare(__pyx_t_10, __pyx_t_8, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyObject_RichCompare(__pyx_t_10, __pyx_t_8, Py_NE); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 141; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __pyx_t_1 = __pyx_t_2;
     __pyx_L28_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "chistogramnd.pyx":145
+      /* "chistogramnd.pyx":249
  *                              'the expected type '
  *                              ': should be {0} or {1} instead of {2}.'
- *                              ''.format(np.double, np.float32, cumul.dtype))             # <<<<<<<<<<<<<<
+ *                              ''.format(np.double, np.float32, weighted_histo.dtype))             # <<<<<<<<<<<<<<
  * 
  *     option_flags = 0
  */
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_cumul_array_doesn_t_hav_2, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Provided_weighted_histo_array_do_2, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_double); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_double); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_dtype); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_10);
       __pyx_t_4 = NULL;
       __pyx_t_6 = 0;
@@ -3632,7 +3633,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
           __pyx_t_6 = 1;
         }
       }
-      __pyx_t_11 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_11 = PyTuple_New(3+__pyx_t_6); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_11);
       if (__pyx_t_4) {
         PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
@@ -3646,35 +3647,35 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_t_7 = 0;
       __pyx_t_5 = 0;
       __pyx_t_10 = 0;
-      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "chistogramnd.pyx":142
- *                              ''.format(output_shape, cumul.shape))
- *         if cumul.dtype != np.float64 and cumul.dtype != np.float32:
- *             raise ValueError('Provided <cumul> array doesn\'t have '             # <<<<<<<<<<<<<<
+      /* "chistogramnd.pyx":246
+ *                              ''.format(output_shape, weighted_histo.shape))
+ *         if weighted_histo.dtype != np.float64 and weighted_histo.dtype != np.float32:
+ *             raise ValueError('Provided <weighted_histo> array doesn\'t have '             # <<<<<<<<<<<<<<
  *                              'the expected type '
  *                              ': should be {0} or {1} instead of {2}.'
  */
-      __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_9);
       __Pyx_GIVEREF(__pyx_t_9);
       __pyx_t_9 = 0;
-      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_8, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_t_8, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
       __Pyx_Raise(__pyx_t_9, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   __pyx_L25:;
 
-  /* "chistogramnd.pyx":147
- *                              ''.format(np.double, np.float32, cumul.dtype))
+  /* "chistogramnd.pyx":251
+ *                              ''.format(np.double, np.float32, weighted_histo.dtype))
  * 
  *     option_flags = 0             # <<<<<<<<<<<<<<
  * 
@@ -3683,7 +3684,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_option_flags = __pyx_int_0;
 
-  /* "chistogramnd.pyx":149
+  /* "chistogramnd.pyx":253
  *     option_flags = 0
  * 
  *     if weight_min is not None:             # <<<<<<<<<<<<<<
@@ -3694,16 +3695,16 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "chistogramnd.pyx":150
+    /* "chistogramnd.pyx":254
  * 
  *     if weight_min is not None:
  *         option_flags |= histogramnd_c.HISTO_WEIGHT_MIN             # <<<<<<<<<<<<<<
  *     else:
  *         weight_min = 0
  */
-    __pyx_t_9 = PyInt_FromLong(HISTO_WEIGHT_MIN); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyInt_FromLong(HISTO_WEIGHT_MIN); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 150; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_option_flags, __pyx_t_8);
@@ -3712,7 +3713,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":152
+    /* "chistogramnd.pyx":256
  *         option_flags |= histogramnd_c.HISTO_WEIGHT_MIN
  *     else:
  *         weight_min = 0             # <<<<<<<<<<<<<<
@@ -3724,7 +3725,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   __pyx_L30:;
 
-  /* "chistogramnd.pyx":154
+  /* "chistogramnd.pyx":258
  *         weight_min = 0
  * 
  *     if weight_max is not None:             # <<<<<<<<<<<<<<
@@ -3735,16 +3736,16 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__pyx_t_2 != 0);
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":155
+    /* "chistogramnd.pyx":259
  * 
  *     if weight_max is not None:
  *         option_flags |= histogramnd_c.HISTO_WEIGHT_MAX             # <<<<<<<<<<<<<<
  *     else:
  *         weight_max = 0
  */
-    __pyx_t_8 = PyInt_FromLong(HISTO_WEIGHT_MAX); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyInt_FromLong(HISTO_WEIGHT_MAX); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_9 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 155; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF_SET(__pyx_v_option_flags, __pyx_t_9);
@@ -3753,7 +3754,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":157
+    /* "chistogramnd.pyx":261
  *         option_flags |= histogramnd_c.HISTO_WEIGHT_MAX
  *     else:
  *         weight_max = 0             # <<<<<<<<<<<<<<
@@ -3765,7 +3766,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   __pyx_L31:;
 
-  /* "chistogramnd.pyx":159
+  /* "chistogramnd.pyx":263
  *         weight_max = 0
  * 
  *     if last_bin_closed is not None and last_bin_closed:             # <<<<<<<<<<<<<<
@@ -3779,21 +3780,21 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __pyx_t_1 = __pyx_t_3;
     goto __pyx_L33_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_last_bin_closed); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_v_last_bin_closed); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_t_1 = __pyx_t_3;
   __pyx_L33_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "chistogramnd.pyx":160
+    /* "chistogramnd.pyx":264
  * 
  *     if last_bin_closed is not None and last_bin_closed:
  *         option_flags |= histogramnd_c.HISTO_LAST_BIN_CLOSED             # <<<<<<<<<<<<<<
  * 
  *     sample_type = sample.dtype
  */
-    __pyx_t_9 = PyInt_FromLong(HISTO_LAST_BIN_CLOSED); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyInt_FromLong(HISTO_LAST_BIN_CLOSED); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_8 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyNumber_InPlaceOr(__pyx_v_option_flags, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF_SET(__pyx_v_option_flags, __pyx_t_8);
@@ -3802,47 +3803,47 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   }
   __pyx_L32:;
 
-  /* "chistogramnd.pyx":162
+  /* "chistogramnd.pyx":266
  *         option_flags |= histogramnd_c.HISTO_LAST_BIN_CLOSED
  * 
  *     sample_type = sample.dtype             # <<<<<<<<<<<<<<
  * 
  *     n_elem = sample.size // n_dims
  */
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_8);
   __pyx_cur_scope->__pyx_v_sample_type = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "chistogramnd.pyx":164
+  /* "chistogramnd.pyx":268
  *     sample_type = sample.dtype
  * 
  *     n_elem = sample.size // n_dims             # <<<<<<<<<<<<<<
  * 
  *     bin_edges = np.zeros(n_bins.sum() + n_bins.size, dtype=np.double)
  */
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_size); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_size); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 268; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = PyNumber_FloorDivide(__pyx_t_8, __pyx_v_n_dims); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyNumber_FloorDivide(__pyx_t_8, __pyx_v_n_dims); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 268; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_v_n_elem = __pyx_t_9;
   __pyx_t_9 = 0;
 
-  /* "chistogramnd.pyx":166
+  /* "chistogramnd.pyx":270
  *     n_elem = sample.size // n_dims
  * 
  *     bin_edges = np.zeros(n_bins.sum() + n_bins.size, dtype=np.double)             # <<<<<<<<<<<<<<
  * 
  *     # wanted to store the functions in a dict (with the supported types
  */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_zeros); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_zeros); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_sum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_sum); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   __pyx_t_10 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
@@ -3855,34 +3856,34 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (__pyx_t_10) {
-    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   } else {
-    __pyx_t_9 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_size); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_size); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_10 = PyNumber_Add(__pyx_t_9, __pyx_t_11); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyNumber_Add(__pyx_t_9, __pyx_t_11); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_10);
   __pyx_t_10 = 0;
-  __pyx_t_10 = PyDict_New(); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyDict_New(); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_double); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_double); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 270; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
@@ -3890,35 +3891,35 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_bin_edges = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":172
+  /* "chistogramnd.pyx":276
  *     # functions. so I have to explicitly list them all...
  * 
  *     def raise_unsupported_type():             # <<<<<<<<<<<<<<
  *         raise TypeError('Case not supported - sample:{0} '
  *                         'and weights:{1}.'
  */
-  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_12chistogramnd_12chistogramnd_1raise_unsupported_type, 0, __pyx_n_s_chistogramnd_locals_raise_unsupp, ((PyObject*)__pyx_cur_scope), __pyx_n_s_chistogramnd, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_CyFunction_NewEx(&__pyx_mdef_12chistogramnd_12chistogramnd_1raise_unsupported_type, 0, __pyx_n_s_chistogramnd_locals_raise_unsupp, ((PyObject*)__pyx_cur_scope), __pyx_n_s_chistogramnd, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_v_raise_unsupported_type = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":177
+  /* "chistogramnd.pyx":281
  *                         ''.format(sample_type, weights_type))
  * 
  *     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))             # <<<<<<<<<<<<<<
  * 
  *     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
  */
-  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_reshape); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_reshape); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_size); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_sample, __pyx_n_s_size); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_7);
   PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_9);
@@ -3934,17 +3935,17 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_9) {
-    __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_7); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_10);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_9); __Pyx_GIVEREF(__pyx_t_9); __pyx_t_9 = NULL;
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_4, NULL); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_4, NULL); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -3960,17 +3961,17 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_8) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_10); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_GOTREF(__pyx_t_5);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_10);
     __Pyx_GIVEREF(__pyx_t_10);
     __pyx_t_10 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 177; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -3978,7 +3979,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_sample_c = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":180
+  /* "chistogramnd.pyx":284
  * 
  *     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
  *                  if weights is not None else None)             # <<<<<<<<<<<<<<
@@ -3988,23 +3989,23 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_1 = (__pyx_v_weights != Py_None);
   if ((__pyx_t_1 != 0)) {
 
-    /* "chistogramnd.pyx":179
+    /* "chistogramnd.pyx":283
  *     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
  * 
  *     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))             # <<<<<<<<<<<<<<
  *                  if weights is not None else None)
  * 
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_10);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_reshape); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_reshape); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_size); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_weights, __pyx_n_s_size); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_7);
@@ -4020,17 +4021,17 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_GOTREF(__pyx_t_4);
     } else {
-      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_12);
       PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_7); __Pyx_GIVEREF(__pyx_t_7); __pyx_t_7 = NULL;
       PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_9);
       __Pyx_GIVEREF(__pyx_t_9);
       __pyx_t_9 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_12, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_12, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     }
@@ -4046,17 +4047,17 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
     }
     if (!__pyx_t_8) {
-      __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_11);
     } else {
-      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_12);
       PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_8); __Pyx_GIVEREF(__pyx_t_8); __pyx_t_8 = NULL;
       PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_4);
       __pyx_t_4 = 0;
-      __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_12, NULL); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 179; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_12, NULL); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 283; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     }
@@ -4065,7 +4066,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __pyx_t_11 = 0;
   } else {
 
-    /* "chistogramnd.pyx":180
+    /* "chistogramnd.pyx":284
  * 
  *     weights_c = (np.ascontiguousarray(weights.reshape((weights.size,)))
  *                  if weights is not None else None)             # <<<<<<<<<<<<<<
@@ -4078,23 +4079,23 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_weights_c = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":182
+  /* "chistogramnd.pyx":286
  *                  if weights is not None else None)
  * 
  *     bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),             # <<<<<<<<<<<<<<
  *                                       dtype=np.double)
  * 
  */
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_reshape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_reshape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_size); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_bins_rng, __pyx_n_s_size); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_12);
   __Pyx_GIVEREF(__pyx_t_12);
@@ -4110,52 +4111,52 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_12) {
-    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
   } else {
-    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_12); __Pyx_GIVEREF(__pyx_t_12); __pyx_t_12 = NULL;
     PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_5);
   __pyx_t_5 = 0;
-  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
 
-  /* "chistogramnd.pyx":183
+  /* "chistogramnd.pyx":287
  * 
  *     bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),
  *                                       dtype=np.double)             # <<<<<<<<<<<<<<
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
  */
-  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_double); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_double); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":182
+  /* "chistogramnd.pyx":286
  *                  if weights is not None else None)
  * 
  *     bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)),             # <<<<<<<<<<<<<<
  *                                       dtype=np.double)
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_10, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 182; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_10, __pyx_t_5); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -4163,23 +4164,23 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_bins_rng_c = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":185
+  /* "chistogramnd.pyx":289
  *                                       dtype=np.double)
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),             # <<<<<<<<<<<<<<
  *                                     dtype=np.int32)
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_reshape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_reshape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_size); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_n_bins, __pyx_n_s_size); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_11);
   __Pyx_GIVEREF(__pyx_t_11);
@@ -4195,52 +4196,52 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_11) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_8); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_8); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_12);
     PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_11); __Pyx_GIVEREF(__pyx_t_11); __pyx_t_11 = NULL;
     PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_8);
     __Pyx_GIVEREF(__pyx_t_8);
     __pyx_t_8 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_12, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_12, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   }
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = PyTuple_New(1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_4);
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
 
-  /* "chistogramnd.pyx":186
+  /* "chistogramnd.pyx":290
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
  *                                     dtype=np.int32)             # <<<<<<<<<<<<<<
  * 
- *     histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
+ *     histo_c = histo.reshape((histo.size,)) #np.ascontiguousarray(histo.reshape((histo.size,)))
  */
-  __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_8) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-  /* "chistogramnd.pyx":185
+  /* "chistogramnd.pyx":289
  *                                       dtype=np.double)
  * 
  *     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),             # <<<<<<<<<<<<<<
  *                                     dtype=np.int32)
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
@@ -4248,23 +4249,139 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_v_n_bins_c = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "chistogramnd.pyx":188
+  /* "chistogramnd.pyx":292
  *                                     dtype=np.int32)
  * 
- *     histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))             # <<<<<<<<<<<<<<
+ *     histo_c = histo.reshape((histo.size,)) #np.ascontiguousarray(histo.reshape((histo.size,)))             # <<<<<<<<<<<<<<
  * 
- *     if cumul is not None:
+ *     if weighted_histo is not None:
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_reshape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_size); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_10);
+  __Pyx_GIVEREF(__pyx_t_10);
+  __pyx_t_10 = 0;
+  __pyx_t_10 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_10)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_10);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
+    }
+  }
+  if (!__pyx_t_10) {
+    __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_GOTREF(__pyx_t_8);
+  } else {
+    __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_12);
+    PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_10); __Pyx_GIVEREF(__pyx_t_10); __pyx_t_10 = NULL;
+    PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_5);
+    __Pyx_GIVEREF(__pyx_t_5);
+    __pyx_t_5 = 0;
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_12, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_v_histo_c = __pyx_t_8;
+  __pyx_t_8 = 0;
+
+  /* "chistogramnd.pyx":294
+ *     histo_c = histo.reshape((histo.size,)) #np.ascontiguousarray(histo.reshape((histo.size,)))
+ * 
+ *     if weighted_histo is not None:             # <<<<<<<<<<<<<<
+ *         cumul_c = weighted_histo.reshape((weighted_histo.size,))  # np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
+ *     else:
+ */
+  __pyx_t_1 = (__pyx_v_weighted_histo != Py_None);
+  __pyx_t_3 = (__pyx_t_1 != 0);
+  if (__pyx_t_3) {
+
+    /* "chistogramnd.pyx":295
+ * 
+ *     if weighted_histo is not None:
+ *         cumul_c = weighted_histo.reshape((weighted_histo.size,))  # np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa             # <<<<<<<<<<<<<<
+ *     else:
+ *         cumul_c = None
+ */
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_reshape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_size); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_5);
+    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_12);
+    __Pyx_GIVEREF(__pyx_t_12);
+    __pyx_t_12 = 0;
+    __pyx_t_12 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
+      __pyx_t_12 = PyMethod_GET_SELF(__pyx_t_4);
+      if (likely(__pyx_t_12)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+        __Pyx_INCREF(__pyx_t_12);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_4, function);
+      }
+    }
+    if (!__pyx_t_12) {
+      __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_GOTREF(__pyx_t_8);
+    } else {
+      __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_12); __Pyx_GIVEREF(__pyx_t_12); __pyx_t_12 = NULL;
+      PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_5);
+      __Pyx_GIVEREF(__pyx_t_5);
+      __pyx_t_5 = 0;
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_10, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_v_cumul_c = __pyx_t_8;
+    __pyx_t_8 = 0;
+    goto __pyx_L35;
+  }
+  /*else*/ {
+
+    /* "chistogramnd.pyx":297
+ *         cumul_c = weighted_histo.reshape((weighted_histo.size,))  # np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
+ *     else:
+ *         cumul_c = None             # <<<<<<<<<<<<<<
+ * 
+ *     bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
+ */
+    __Pyx_INCREF(Py_None);
+    __pyx_v_cumul_c = Py_None;
+  }
+  __pyx_L35:;
+
+  /* "chistogramnd.pyx":299
+ *         cumul_c = None
+ * 
+ *     bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))             # <<<<<<<<<<<<<<
+ * 
+ *     rc = 0
+ */
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_reshape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_bin_edges, __pyx_n_s_reshape); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_histo, __pyx_n_s_size); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_bin_edges, __pyx_n_s_size); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_11);
   PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_12);
   __Pyx_GIVEREF(__pyx_t_12);
@@ -4280,17 +4397,17 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_12) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_11); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_11); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     __Pyx_GOTREF(__pyx_t_4);
   } else {
-    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_12); __Pyx_GIVEREF(__pyx_t_12); __pyx_t_12 = NULL;
     PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_t_11);
     __Pyx_GIVEREF(__pyx_t_11);
     __pyx_t_11 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
@@ -4306,275 +4423,97 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_4); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_8);
   } else {
-    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(1+1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
     PyTuple_SET_ITEM(__pyx_t_9, 0+1, __pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 188; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_v_histo_c = __pyx_t_8;
-  __pyx_t_8 = 0;
-
-  /* "chistogramnd.pyx":190
- *     histo_c = np.ascontiguousarray(histo.reshape((histo.size,)))
- * 
- *     if cumul is not None:             # <<<<<<<<<<<<<<
- *         cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))
- *     else:
- */
-  __pyx_t_1 = (__pyx_v_cumul != Py_None);
-  __pyx_t_3 = (__pyx_t_1 != 0);
-  if (__pyx_t_3) {
-
-    /* "chistogramnd.pyx":191
- * 
- *     if cumul is not None:
- *         cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))             # <<<<<<<<<<<<<<
- *     else:
- *         cumul_c = None
- */
-    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_reshape); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_size); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_11);
-    PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_5);
-    __Pyx_GIVEREF(__pyx_t_5);
-    __pyx_t_5 = 0;
-    __pyx_t_5 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
-      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-      if (likely(__pyx_t_5)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-        __Pyx_INCREF(__pyx_t_5);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_4, function);
-      }
-    }
-    if (!__pyx_t_5) {
-      __pyx_t_10 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_11); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __Pyx_GOTREF(__pyx_t_10);
-    } else {
-      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
-      PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_11);
-      __Pyx_GIVEREF(__pyx_t_11);
-      __pyx_t_11 = 0;
-      __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_12, NULL); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_10);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_9))) {
-      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_9);
-      if (likely(__pyx_t_4)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-        __Pyx_INCREF(__pyx_t_4);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_9, function);
-      }
-    }
-    if (!__pyx_t_4) {
-      __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_10); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_GOTREF(__pyx_t_8);
-    } else {
-      __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
-      PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_10);
-      __Pyx_GIVEREF(__pyx_t_10);
-      __pyx_t_10 = 0;
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_12, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 191; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __pyx_v_cumul_c = __pyx_t_8;
-    __pyx_t_8 = 0;
-    goto __pyx_L35;
-  }
-  /*else*/ {
-
-    /* "chistogramnd.pyx":193
- *         cumul_c = np.ascontiguousarray(cumul.reshape((cumul.size,)))
- *     else:
- *         cumul_c = None             # <<<<<<<<<<<<<<
- * 
- *     bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
- */
-    __Pyx_INCREF(Py_None);
-    __pyx_v_cumul_c = Py_None;
-  }
-  __pyx_L35:;
-
-  /* "chistogramnd.pyx":195
- *         cumul_c = None
- * 
- *     bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))             # <<<<<<<<<<<<<<
- * 
- *     rc = 0
- */
-  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_ascontiguousarray); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_12);
-  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_bin_edges, __pyx_n_s_reshape); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_bin_edges, __pyx_n_s_size); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_11);
-  PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_4);
-  __pyx_t_4 = 0;
-  __pyx_t_4 = NULL;
-  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_10))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_10);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_10, function);
-    }
-  }
-  if (!__pyx_t_4) {
-    __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_11); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __Pyx_GOTREF(__pyx_t_9);
-  } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
-    PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_11);
-    __Pyx_GIVEREF(__pyx_t_11);
-    __pyx_t_11 = 0;
-    __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_5, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_9);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  }
-  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = NULL;
-  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_12))) {
-    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_12);
-    if (likely(__pyx_t_10)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_12);
-      __Pyx_INCREF(__pyx_t_10);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_12, function);
-    }
-  }
-  if (!__pyx_t_10) {
-    __pyx_t_8 = __Pyx_PyObject_CallOneArg(__pyx_t_12, __pyx_t_9); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __Pyx_GOTREF(__pyx_t_8);
-  } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_10); __Pyx_GIVEREF(__pyx_t_10); __pyx_t_10 = NULL;
-    PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_9);
-    __Pyx_GIVEREF(__pyx_t_9);
-    __pyx_t_9 = 0;
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_t_5, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  }
-  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   __pyx_v_bin_edges_c = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "chistogramnd.pyx":197
+  /* "chistogramnd.pyx":301
  *     bin_edges_c = np.ascontiguousarray(bin_edges.reshape((bin_edges.size,)))
  * 
  *     rc = 0             # <<<<<<<<<<<<<<
  * 
- *     if cumul is None or cumul.dtype == np.double:
+ *     if weighted_histo is None or weighted_histo.dtype == np.double:
  */
   __pyx_v_rc = 0;
 
-  /* "chistogramnd.pyx":199
+  /* "chistogramnd.pyx":303
  *     rc = 0
  * 
- *     if cumul is None or cumul.dtype == np.double:             # <<<<<<<<<<<<<<
+ *     if weighted_histo is None or weighted_histo.dtype == np.double:             # <<<<<<<<<<<<<<
  * 
  *         if sample_type == np.float64:
  */
-  __pyx_t_1 = (__pyx_v_cumul == Py_None);
+  __pyx_t_1 = (__pyx_v_weighted_histo == Py_None);
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (!__pyx_t_2) {
   } else {
     __pyx_t_3 = __pyx_t_2;
     goto __pyx_L37_bool_binop_done;
   }
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_double); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __pyx_t_12 = PyObject_RichCompare(__pyx_t_8, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_double); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  __pyx_t_10 = PyObject_RichCompare(__pyx_t_8, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 199; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __pyx_t_3 = __pyx_t_2;
   __pyx_L37_bool_binop_done:;
   if (__pyx_t_3) {
 
-    /* "chistogramnd.pyx":201
- *     if cumul is None or cumul.dtype == np.double:
+    /* "chistogramnd.pyx":305
+ *     if weighted_histo is None or weighted_histo.dtype == np.double:
  * 
  *         if sample_type == np.float64:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 201; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":203
+      /* "chistogramnd.pyx":307
  *         if sample_type == np.float64:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_double_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 203; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (!__pyx_t_2) {
       } else {
         __pyx_t_3 = __pyx_t_2;
@@ -4586,7 +4525,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L41_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":205
+        /* "chistogramnd.pyx":309
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_double_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -4594,9 +4533,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_dims,
  */
         __pyx_t_13 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_13.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 205; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_13.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":206
+        /* "chistogramnd.pyx":310
  * 
  *                 rc = _histogramnd_double_double_double(sample_c,
  *                                                        weights_c,             # <<<<<<<<<<<<<<
@@ -4604,27 +4543,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_elem,
  */
         __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_14.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_14.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":207
+        /* "chistogramnd.pyx":311
  *                 rc = _histogramnd_double_double_double(sample_c,
  *                                                        weights_c,
  *                                                        n_dims,             # <<<<<<<<<<<<<<
  *                                                        n_elem,
  *                                                        bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 207; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":208
+        /* "chistogramnd.pyx":312
  *                                                        weights_c,
  *                                                        n_dims,
  *                                                        n_elem,             # <<<<<<<<<<<<<<
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 208; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":209
+        /* "chistogramnd.pyx":313
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        bins_rng_c,             # <<<<<<<<<<<<<<
@@ -4632,9 +4571,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        histo_c,
  */
         __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_17.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 209; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_17.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":210
+        /* "chistogramnd.pyx":314
  *                                                        n_elem,
  *                                                        bins_rng_c,
  *                                                        n_bins_c,             # <<<<<<<<<<<<<<
@@ -4642,9 +4581,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        cumul_c,
  */
         __pyx_t_18 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_18.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 210; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_18.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":211
+        /* "chistogramnd.pyx":315
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  *                                                        histo_c,             # <<<<<<<<<<<<<<
@@ -4652,9 +4591,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        bin_edges_c,
  */
         __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_19.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 211; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_19.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":212
+        /* "chistogramnd.pyx":316
  *                                                        n_bins_c,
  *                                                        histo_c,
  *                                                        cumul_c,             # <<<<<<<<<<<<<<
@@ -4662,9 +4601,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        option_flags,
  */
         __pyx_t_20 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_20.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 212; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_20.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":213
+        /* "chistogramnd.pyx":317
  *                                                        histo_c,
  *                                                        cumul_c,
  *                                                        bin_edges_c,             # <<<<<<<<<<<<<<
@@ -4672,36 +4611,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        weight_min=weight_min,
  */
         __pyx_t_21 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_21.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 213; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_21.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":214
+        /* "chistogramnd.pyx":318
  *                                                        cumul_c,
  *                                                        bin_edges_c,
  *                                                        option_flags,             # <<<<<<<<<<<<<<
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 214; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":215
+        /* "chistogramnd.pyx":319
  *                                                        bin_edges_c,
  *                                                        option_flags,
  *                                                        weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                        weight_max=weight_max)
  * 
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":216
+        /* "chistogramnd.pyx":320
  *                                                        option_flags,
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 216; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":205
+        /* "chistogramnd.pyx":309
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_double_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -4719,25 +4658,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L40;
       }
 
-      /* "chistogramnd.pyx":218
+      /* "chistogramnd.pyx":322
  *                                                        weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_float_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":220
+        /* "chistogramnd.pyx":324
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_double_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -4745,9 +4684,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_dims,
  */
         __pyx_t_25 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_25.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_25.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":221
+        /* "chistogramnd.pyx":325
  * 
  *                 rc = _histogramnd_double_float_double(sample_c,
  *                                                       weights_c,             # <<<<<<<<<<<<<<
@@ -4755,27 +4694,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_elem,
  */
         __pyx_t_26 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_26.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_26.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":222
+        /* "chistogramnd.pyx":326
  *                 rc = _histogramnd_double_float_double(sample_c,
  *                                                       weights_c,
  *                                                       n_dims,             # <<<<<<<<<<<<<<
  *                                                       n_elem,
  *                                                       bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 222; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":223
+        /* "chistogramnd.pyx":327
  *                                                       weights_c,
  *                                                       n_dims,
  *                                                       n_elem,             # <<<<<<<<<<<<<<
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 223; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":224
+        /* "chistogramnd.pyx":328
  *                                                       n_dims,
  *                                                       n_elem,
  *                                                       bins_rng_c,             # <<<<<<<<<<<<<<
@@ -4783,9 +4722,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       histo_c,
  */
         __pyx_t_27 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_27.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 224; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_27.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":225
+        /* "chistogramnd.pyx":329
  *                                                       n_elem,
  *                                                       bins_rng_c,
  *                                                       n_bins_c,             # <<<<<<<<<<<<<<
@@ -4793,9 +4732,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       cumul_c,
  */
         __pyx_t_28 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_28.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_28.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":226
+        /* "chistogramnd.pyx":330
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  *                                                       histo_c,             # <<<<<<<<<<<<<<
@@ -4803,9 +4742,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       bin_edges_c,
  */
         __pyx_t_29 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_29.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_29.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":227
+        /* "chistogramnd.pyx":331
  *                                                       n_bins_c,
  *                                                       histo_c,
  *                                                       cumul_c,             # <<<<<<<<<<<<<<
@@ -4813,9 +4752,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       option_flags,
  */
         __pyx_t_30 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_30.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 227; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_30.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":228
+        /* "chistogramnd.pyx":332
  *                                                       histo_c,
  *                                                       cumul_c,
  *                                                       bin_edges_c,             # <<<<<<<<<<<<<<
@@ -4823,36 +4762,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       weight_min=weight_min,
  */
         __pyx_t_31 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_31.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_31.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":229
+        /* "chistogramnd.pyx":333
  *                                                       cumul_c,
  *                                                       bin_edges_c,
  *                                                       option_flags,             # <<<<<<<<<<<<<<
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":230
+        /* "chistogramnd.pyx":334
  *                                                       bin_edges_c,
  *                                                       option_flags,
  *                                                       weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                       weight_max=weight_max)
  * 
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 230; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 334; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":231
+        /* "chistogramnd.pyx":335
  *                                                       option_flags,
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 231; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":220
+        /* "chistogramnd.pyx":324
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_double_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -4870,25 +4809,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L40;
       }
 
-      /* "chistogramnd.pyx":233
+      /* "chistogramnd.pyx":337
  *                                                       weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_int32_t_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_int32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":235
+        /* "chistogramnd.pyx":339
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_double_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -4896,9 +4835,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_dims,
  */
         __pyx_t_34 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_34.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 235; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_34.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":236
+        /* "chistogramnd.pyx":340
  * 
  *                 rc = _histogramnd_double_int32_t_double(sample_c,
  *                                                         weights_c,             # <<<<<<<<<<<<<<
@@ -4906,27 +4845,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_elem,
  */
         __pyx_t_35 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_35.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 236; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_35.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":237
+        /* "chistogramnd.pyx":341
  *                 rc = _histogramnd_double_int32_t_double(sample_c,
  *                                                         weights_c,
  *                                                         n_dims,             # <<<<<<<<<<<<<<
  *                                                         n_elem,
  *                                                         bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":238
+        /* "chistogramnd.pyx":342
  *                                                         weights_c,
  *                                                         n_dims,
  *                                                         n_elem,             # <<<<<<<<<<<<<<
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":239
+        /* "chistogramnd.pyx":343
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         bins_rng_c,             # <<<<<<<<<<<<<<
@@ -4934,9 +4873,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         histo_c,
  */
         __pyx_t_36 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_36.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 239; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_36.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":240
+        /* "chistogramnd.pyx":344
  *                                                         n_elem,
  *                                                         bins_rng_c,
  *                                                         n_bins_c,             # <<<<<<<<<<<<<<
@@ -4944,9 +4883,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         cumul_c,
  */
         __pyx_t_37 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_37.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_37.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":241
+        /* "chistogramnd.pyx":345
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  *                                                         histo_c,             # <<<<<<<<<<<<<<
@@ -4954,9 +4893,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         bin_edges_c,
  */
         __pyx_t_38 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_38.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_38.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":242
+        /* "chistogramnd.pyx":346
  *                                                         n_bins_c,
  *                                                         histo_c,
  *                                                         cumul_c,             # <<<<<<<<<<<<<<
@@ -4964,9 +4903,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         option_flags,
  */
         __pyx_t_39 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_39.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 242; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_39.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":243
+        /* "chistogramnd.pyx":347
  *                                                         histo_c,
  *                                                         cumul_c,
  *                                                         bin_edges_c,             # <<<<<<<<<<<<<<
@@ -4974,36 +4913,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         weight_min=weight_min,
  */
         __pyx_t_40 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_40.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 243; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_40.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":244
+        /* "chistogramnd.pyx":348
  *                                                         cumul_c,
  *                                                         bin_edges_c,
  *                                                         option_flags,             # <<<<<<<<<<<<<<
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":245
+        /* "chistogramnd.pyx":349
  *                                                         bin_edges_c,
  *                                                         option_flags,
  *                                                         weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                         weight_max=weight_max)
  * 
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 245; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 349; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":246
+        /* "chistogramnd.pyx":350
  *                                                         option_flags,
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 246; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 350; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":235
+        /* "chistogramnd.pyx":339
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_double_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5022,55 +4961,55 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":249
+        /* "chistogramnd.pyx":353
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.float64
  */
-        __pyx_t_12 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 249; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_10 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 353; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       }
       __pyx_L40:;
       goto __pyx_L39;
     }
 
-    /* "chistogramnd.pyx":252
+    /* "chistogramnd.pyx":356
  * 
  *         # endif sample_type == np.float64
  *         elif sample_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 252; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":254
+      /* "chistogramnd.pyx":358
  *         elif sample_type == np.float32:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_double_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 254; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (!__pyx_t_1) {
       } else {
         __pyx_t_3 = __pyx_t_1;
@@ -5082,7 +5021,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L44_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":256
+        /* "chistogramnd.pyx":360
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_float_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5090,9 +5029,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_dims,
  */
         __pyx_t_43 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_43.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 256; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_43.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":257
+        /* "chistogramnd.pyx":361
  * 
  *                 rc = _histogramnd_float_double_double(sample_c,
  *                                                       weights_c,             # <<<<<<<<<<<<<<
@@ -5100,27 +5039,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_elem,
  */
         __pyx_t_44 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_44.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 257; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_44.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 361; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":258
+        /* "chistogramnd.pyx":362
  *                 rc = _histogramnd_float_double_double(sample_c,
  *                                                       weights_c,
  *                                                       n_dims,             # <<<<<<<<<<<<<<
  *                                                       n_elem,
  *                                                       bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 258; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":259
+        /* "chistogramnd.pyx":363
  *                                                       weights_c,
  *                                                       n_dims,
  *                                                       n_elem,             # <<<<<<<<<<<<<<
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 259; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 363; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":260
+        /* "chistogramnd.pyx":364
  *                                                       n_dims,
  *                                                       n_elem,
  *                                                       bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5128,9 +5067,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       histo_c,
  */
         __pyx_t_45 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_45.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 260; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_45.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":261
+        /* "chistogramnd.pyx":365
  *                                                       n_elem,
  *                                                       bins_rng_c,
  *                                                       n_bins_c,             # <<<<<<<<<<<<<<
@@ -5138,9 +5077,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       cumul_c,
  */
         __pyx_t_46 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_46.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 261; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_46.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 365; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":262
+        /* "chistogramnd.pyx":366
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  *                                                       histo_c,             # <<<<<<<<<<<<<<
@@ -5148,9 +5087,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       bin_edges_c,
  */
         __pyx_t_47 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_47.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 262; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_47.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":263
+        /* "chistogramnd.pyx":367
  *                                                       n_bins_c,
  *                                                       histo_c,
  *                                                       cumul_c,             # <<<<<<<<<<<<<<
@@ -5158,9 +5097,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       option_flags,
  */
         __pyx_t_48 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_48.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 263; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_48.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":264
+        /* "chistogramnd.pyx":368
  *                                                       histo_c,
  *                                                       cumul_c,
  *                                                       bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5168,36 +5107,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       weight_min=weight_min,
  */
         __pyx_t_49 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_49.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 264; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_49.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 368; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":265
+        /* "chistogramnd.pyx":369
  *                                                       cumul_c,
  *                                                       bin_edges_c,
  *                                                       option_flags,             # <<<<<<<<<<<<<<
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 265; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":266
+        /* "chistogramnd.pyx":370
  *                                                       bin_edges_c,
  *                                                       option_flags,
  *                                                       weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                       weight_max=weight_max)
  * 
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 266; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":267
+        /* "chistogramnd.pyx":371
  *                                                       option_flags,
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 267; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":256
+        /* "chistogramnd.pyx":360
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_float_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5215,25 +5154,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L43;
       }
 
-      /* "chistogramnd.pyx":269
+      /* "chistogramnd.pyx":373
  *                                                       weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_float_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 269; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":271
+        /* "chistogramnd.pyx":375
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_float_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5241,9 +5180,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_dims,
  */
         __pyx_t_50 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_50.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 271; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_50.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":272
+        /* "chistogramnd.pyx":376
  * 
  *                 rc = _histogramnd_float_float_double(sample_c,
  *                                                      weights_c,             # <<<<<<<<<<<<<<
@@ -5251,27 +5190,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_elem,
  */
         __pyx_t_51 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_51.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 272; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_51.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 376; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":273
+        /* "chistogramnd.pyx":377
  *                 rc = _histogramnd_float_float_double(sample_c,
  *                                                      weights_c,
  *                                                      n_dims,             # <<<<<<<<<<<<<<
  *                                                      n_elem,
  *                                                      bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 273; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":274
+        /* "chistogramnd.pyx":378
  *                                                      weights_c,
  *                                                      n_dims,
  *                                                      n_elem,             # <<<<<<<<<<<<<<
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 274; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 378; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":275
+        /* "chistogramnd.pyx":379
  *                                                      n_dims,
  *                                                      n_elem,
  *                                                      bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5279,9 +5218,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      histo_c,
  */
         __pyx_t_52 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_52.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 275; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_52.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":276
+        /* "chistogramnd.pyx":380
  *                                                      n_elem,
  *                                                      bins_rng_c,
  *                                                      n_bins_c,             # <<<<<<<<<<<<<<
@@ -5289,9 +5228,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      cumul_c,
  */
         __pyx_t_53 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_53.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_53.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 380; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":277
+        /* "chistogramnd.pyx":381
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  *                                                      histo_c,             # <<<<<<<<<<<<<<
@@ -5299,9 +5238,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      bin_edges_c,
  */
         __pyx_t_54 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_54.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_54.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":278
+        /* "chistogramnd.pyx":382
  *                                                      n_bins_c,
  *                                                      histo_c,
  *                                                      cumul_c,             # <<<<<<<<<<<<<<
@@ -5309,9 +5248,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      option_flags,
  */
         __pyx_t_55 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_55.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 278; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_55.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":279
+        /* "chistogramnd.pyx":383
  *                                                      histo_c,
  *                                                      cumul_c,
  *                                                      bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5319,36 +5258,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      weight_min=weight_min,
  */
         __pyx_t_56 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_56.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 279; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_56.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":280
+        /* "chistogramnd.pyx":384
  *                                                      cumul_c,
  *                                                      bin_edges_c,
  *                                                      option_flags,             # <<<<<<<<<<<<<<
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 280; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 384; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":281
+        /* "chistogramnd.pyx":385
  *                                                      bin_edges_c,
  *                                                      option_flags,
  *                                                      weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                      weight_max=weight_max)
  * 
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 281; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":282
+        /* "chistogramnd.pyx":386
  *                                                      option_flags,
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 282; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":271
+        /* "chistogramnd.pyx":375
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_float_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5366,25 +5305,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L43;
       }
 
-      /* "chistogramnd.pyx":284
+      /* "chistogramnd.pyx":388
  *                                                      weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_int32_t_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 284; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 284; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 284; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 284; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_int32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":286
+        /* "chistogramnd.pyx":390
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_float_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5392,9 +5331,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_dims,
  */
         __pyx_t_57 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_57.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 286; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_57.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":287
+        /* "chistogramnd.pyx":391
  * 
  *                 rc = _histogramnd_float_int32_t_double(sample_c,
  *                                                        weights_c,             # <<<<<<<<<<<<<<
@@ -5402,27 +5341,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_elem,
  */
         __pyx_t_58 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_58.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 287; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_58.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 391; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":288
+        /* "chistogramnd.pyx":392
  *                 rc = _histogramnd_float_int32_t_double(sample_c,
  *                                                        weights_c,
  *                                                        n_dims,             # <<<<<<<<<<<<<<
  *                                                        n_elem,
  *                                                        bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 288; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":289
+        /* "chistogramnd.pyx":393
  *                                                        weights_c,
  *                                                        n_dims,
  *                                                        n_elem,             # <<<<<<<<<<<<<<
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 289; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 393; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":290
+        /* "chistogramnd.pyx":394
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5430,9 +5369,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        histo_c,
  */
         __pyx_t_59 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_59.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 290; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_59.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":291
+        /* "chistogramnd.pyx":395
  *                                                        n_elem,
  *                                                        bins_rng_c,
  *                                                        n_bins_c,             # <<<<<<<<<<<<<<
@@ -5440,9 +5379,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        cumul_c,
  */
         __pyx_t_60 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_60.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 291; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_60.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 395; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":292
+        /* "chistogramnd.pyx":396
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  *                                                        histo_c,             # <<<<<<<<<<<<<<
@@ -5450,9 +5389,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        bin_edges_c,
  */
         __pyx_t_61 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_61.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 292; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_61.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 396; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":293
+        /* "chistogramnd.pyx":397
  *                                                        n_bins_c,
  *                                                        histo_c,
  *                                                        cumul_c,             # <<<<<<<<<<<<<<
@@ -5460,9 +5399,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        option_flags,
  */
         __pyx_t_62 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_62.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 293; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_62.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 397; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":294
+        /* "chistogramnd.pyx":398
  *                                                        histo_c,
  *                                                        cumul_c,
  *                                                        bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5470,36 +5409,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        weight_min=weight_min,
  */
         __pyx_t_63 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_63.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 294; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_63.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":295
+        /* "chistogramnd.pyx":399
  *                                                        cumul_c,
  *                                                        bin_edges_c,
  *                                                        option_flags,             # <<<<<<<<<<<<<<
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 295; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":296
+        /* "chistogramnd.pyx":400
  *                                                        bin_edges_c,
  *                                                        option_flags,
  *                                                        weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                        weight_max=weight_max)
  * 
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 296; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":297
+        /* "chistogramnd.pyx":401
  *                                                        option_flags,
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":286
+        /* "chistogramnd.pyx":390
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_float_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5518,55 +5457,55 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":300
+        /* "chistogramnd.pyx":404
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.float32
  */
-        __pyx_t_12 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 300; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_10 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       }
       __pyx_L43:;
       goto __pyx_L39;
     }
 
-    /* "chistogramnd.pyx":303
+    /* "chistogramnd.pyx":407
  * 
  *         # endif sample_type == np.float32
  *         elif sample_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_12);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-    __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 303; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_int32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 407; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":305
+      /* "chistogramnd.pyx":409
  *         elif sample_type == np.int32:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_double_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float64); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 409; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (!__pyx_t_2) {
       } else {
         __pyx_t_3 = __pyx_t_2;
@@ -5578,7 +5517,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L47_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":307
+        /* "chistogramnd.pyx":411
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_int32_t_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5586,9 +5525,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_dims,
  */
         __pyx_t_64 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_64.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_64.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":308
+        /* "chistogramnd.pyx":412
  * 
  *                 rc = _histogramnd_int32_t_double_double(sample_c,
  *                                                         weights_c,             # <<<<<<<<<<<<<<
@@ -5596,27 +5535,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_elem,
  */
         __pyx_t_65 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_65.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 308; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_65.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 412; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":309
+        /* "chistogramnd.pyx":413
  *                 rc = _histogramnd_int32_t_double_double(sample_c,
  *                                                         weights_c,
  *                                                         n_dims,             # <<<<<<<<<<<<<<
  *                                                         n_elem,
  *                                                         bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":310
+        /* "chistogramnd.pyx":414
  *                                                         weights_c,
  *                                                         n_dims,
  *                                                         n_elem,             # <<<<<<<<<<<<<<
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 310; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 414; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":311
+        /* "chistogramnd.pyx":415
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5624,9 +5563,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         histo_c,
  */
         __pyx_t_66 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_66.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_66.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":312
+        /* "chistogramnd.pyx":416
  *                                                         n_elem,
  *                                                         bins_rng_c,
  *                                                         n_bins_c,             # <<<<<<<<<<<<<<
@@ -5634,9 +5573,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         cumul_c,
  */
         __pyx_t_67 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_67.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 312; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_67.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":313
+        /* "chistogramnd.pyx":417
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  *                                                         histo_c,             # <<<<<<<<<<<<<<
@@ -5644,9 +5583,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         bin_edges_c,
  */
         __pyx_t_68 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_68.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 313; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_68.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":314
+        /* "chistogramnd.pyx":418
  *                                                         n_bins_c,
  *                                                         histo_c,
  *                                                         cumul_c,             # <<<<<<<<<<<<<<
@@ -5654,9 +5593,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         option_flags,
  */
         __pyx_t_69 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_69.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 314; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_69.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":315
+        /* "chistogramnd.pyx":419
  *                                                         histo_c,
  *                                                         cumul_c,
  *                                                         bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5664,36 +5603,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         weight_min=weight_min,
  */
         __pyx_t_70 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_70.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_70.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 419; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":316
+        /* "chistogramnd.pyx":420
  *                                                         cumul_c,
  *                                                         bin_edges_c,
  *                                                         option_flags,             # <<<<<<<<<<<<<<
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 316; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":317
+        /* "chistogramnd.pyx":421
  *                                                         bin_edges_c,
  *                                                         option_flags,
  *                                                         weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                         weight_max=weight_max)
  * 
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":318
+        /* "chistogramnd.pyx":422
  *                                                         option_flags,
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 318; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":307
+        /* "chistogramnd.pyx":411
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_int32_t_double_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5711,25 +5650,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L46;
       }
 
-      /* "chistogramnd.pyx":320
+      /* "chistogramnd.pyx":424
  *                                                         weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_float_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 320; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_float32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":322
+        /* "chistogramnd.pyx":426
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_int32_t_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5737,9 +5676,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_dims,
  */
         __pyx_t_71 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_71.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 322; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_71.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 426; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":323
+        /* "chistogramnd.pyx":427
  * 
  *                 rc = _histogramnd_int32_t_float_double(sample_c,
  *                                                        weights_c,             # <<<<<<<<<<<<<<
@@ -5747,27 +5686,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_elem,
  */
         __pyx_t_72 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_72.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 323; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_72.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 427; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":324
+        /* "chistogramnd.pyx":428
  *                 rc = _histogramnd_int32_t_float_double(sample_c,
  *                                                        weights_c,
  *                                                        n_dims,             # <<<<<<<<<<<<<<
  *                                                        n_elem,
  *                                                        bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 324; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 428; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":325
+        /* "chistogramnd.pyx":429
  *                                                        weights_c,
  *                                                        n_dims,
  *                                                        n_elem,             # <<<<<<<<<<<<<<
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 325; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 429; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":326
+        /* "chistogramnd.pyx":430
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5775,9 +5714,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        histo_c,
  */
         __pyx_t_73 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_73.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_73.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 430; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":327
+        /* "chistogramnd.pyx":431
  *                                                        n_elem,
  *                                                        bins_rng_c,
  *                                                        n_bins_c,             # <<<<<<<<<<<<<<
@@ -5785,9 +5724,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        cumul_c,
  */
         __pyx_t_74 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_74.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_74.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 431; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":328
+        /* "chistogramnd.pyx":432
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  *                                                        histo_c,             # <<<<<<<<<<<<<<
@@ -5795,9 +5734,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        bin_edges_c,
  */
         __pyx_t_75 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_75.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 328; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_75.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 432; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":329
+        /* "chistogramnd.pyx":433
  *                                                        n_bins_c,
  *                                                        histo_c,
  *                                                        cumul_c,             # <<<<<<<<<<<<<<
@@ -5805,9 +5744,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        option_flags,
  */
         __pyx_t_76 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_76.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_76.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 433; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":330
+        /* "chistogramnd.pyx":434
  *                                                        histo_c,
  *                                                        cumul_c,
  *                                                        bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5815,36 +5754,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        weight_min=weight_min,
  */
         __pyx_t_77 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_77.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 330; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_77.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 434; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":331
+        /* "chistogramnd.pyx":435
  *                                                        cumul_c,
  *                                                        bin_edges_c,
  *                                                        option_flags,             # <<<<<<<<<<<<<<
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 331; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":332
+        /* "chistogramnd.pyx":436
  *                                                        bin_edges_c,
  *                                                        option_flags,
  *                                                        weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                        weight_max=weight_max)
  * 
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 332; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":333
+        /* "chistogramnd.pyx":437
  *                                                        option_flags,
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 333; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 437; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":322
+        /* "chistogramnd.pyx":426
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_int32_t_float_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5862,25 +5801,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L46;
       }
 
-      /* "chistogramnd.pyx":335
+      /* "chistogramnd.pyx":439
  *                                                        weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_int32_t_double(sample_c,
  */
-      __pyx_t_12 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_int32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_12 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 335; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_int32); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __pyx_t_10 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_9, Py_EQ); __Pyx_XGOTREF(__pyx_t_10); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":337
+        /* "chistogramnd.pyx":441
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_int32_t_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -5888,9 +5827,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          n_dims,
  */
         __pyx_t_78 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_78.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 337; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_78.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 441; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":338
+        /* "chistogramnd.pyx":442
  * 
  *                 rc = _histogramnd_int32_t_int32_t_double(sample_c,
  *                                                          weights_c,             # <<<<<<<<<<<<<<
@@ -5898,27 +5837,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          n_elem,
  */
         __pyx_t_79 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_79.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 338; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_79.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 442; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":339
+        /* "chistogramnd.pyx":443
  *                 rc = _histogramnd_int32_t_int32_t_double(sample_c,
  *                                                          weights_c,
  *                                                          n_dims,             # <<<<<<<<<<<<<<
  *                                                          n_elem,
  *                                                          bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 339; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 443; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":340
+        /* "chistogramnd.pyx":444
  *                                                          weights_c,
  *                                                          n_dims,
  *                                                          n_elem,             # <<<<<<<<<<<<<<
  *                                                          bins_rng_c,
  *                                                          n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 340; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 444; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":341
+        /* "chistogramnd.pyx":445
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          bins_rng_c,             # <<<<<<<<<<<<<<
@@ -5926,9 +5865,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          histo_c,
  */
         __pyx_t_80 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_80.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 341; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_80.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":342
+        /* "chistogramnd.pyx":446
  *                                                          n_elem,
  *                                                          bins_rng_c,
  *                                                          n_bins_c,             # <<<<<<<<<<<<<<
@@ -5936,9 +5875,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          cumul_c,
  */
         __pyx_t_81 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_81.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 342; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_81.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 446; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":343
+        /* "chistogramnd.pyx":447
  *                                                          bins_rng_c,
  *                                                          n_bins_c,
  *                                                          histo_c,             # <<<<<<<<<<<<<<
@@ -5946,9 +5885,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          bin_edges_c,
  */
         __pyx_t_82 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_82.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 343; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_82.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 447; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":344
+        /* "chistogramnd.pyx":448
  *                                                          n_bins_c,
  *                                                          histo_c,
  *                                                          cumul_c,             # <<<<<<<<<<<<<<
@@ -5956,9 +5895,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          option_flags,
  */
         __pyx_t_83 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_83.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 344; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_83.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 448; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":345
+        /* "chistogramnd.pyx":449
  *                                                          histo_c,
  *                                                          cumul_c,
  *                                                          bin_edges_c,             # <<<<<<<<<<<<<<
@@ -5966,36 +5905,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                          weight_min=weight_min,
  */
         __pyx_t_84 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_84.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 345; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_84.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 449; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":346
+        /* "chistogramnd.pyx":450
  *                                                          cumul_c,
  *                                                          bin_edges_c,
  *                                                          option_flags,             # <<<<<<<<<<<<<<
  *                                                          weight_min=weight_min,
  *                                                          weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 346; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 450; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":347
+        /* "chistogramnd.pyx":451
  *                                                          bin_edges_c,
  *                                                          option_flags,
  *                                                          weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                          weight_max=weight_max)
  * 
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":348
+        /* "chistogramnd.pyx":452
  *                                                          option_flags,
  *                                                          weight_min=weight_min,
  *                                                          weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 348; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 452; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":337
+        /* "chistogramnd.pyx":441
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_int32_t_int32_t_double(sample_c,             # <<<<<<<<<<<<<<
@@ -6014,92 +5953,92 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":351
+        /* "chistogramnd.pyx":455
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.int32:
  */
-        __pyx_t_12 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_12);
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_10 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
       }
       __pyx_L46:;
       goto __pyx_L39;
     }
     /*else*/ {
 
-      /* "chistogramnd.pyx":355
+      /* "chistogramnd.pyx":459
  *         # endif sample_type == np.int32:
  *         else:
  *             raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
- *     # endif cumul is None or cumul.dtype == np.double:
+ *     # endif weighted_histo is None or weighted_histo.dtype == np.double:
  */
-      __pyx_t_12 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+      __pyx_t_10 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 459; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
     }
     __pyx_L39:;
     goto __pyx_L36;
   }
 
-  /* "chistogramnd.pyx":358
+  /* "chistogramnd.pyx":462
  * 
- *     # endif cumul is None or cumul.dtype == np.double:
- *     elif cumul.dtype == np.float32:             # <<<<<<<<<<<<<<
+ *     # endif weighted_histo is None or weighted_histo.dtype == np.double:
+ *     elif weighted_histo.dtype == np.float32:             # <<<<<<<<<<<<<<
  * 
  *         if sample_type == np.float64:
  */
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_cumul, __pyx_n_s_dtype); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_weighted_histo, __pyx_n_s_dtype); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyObject_RichCompare(__pyx_t_12, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __pyx_t_9 = PyObject_RichCompare(__pyx_t_10, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 358; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (__pyx_t_3) {
 
-    /* "chistogramnd.pyx":360
- *     elif cumul.dtype == np.float32:
+    /* "chistogramnd.pyx":464
+ *     elif weighted_histo.dtype == np.float32:
  * 
  *         if sample_type == np.float64:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":362
+      /* "chistogramnd.pyx":466
  *         if sample_type == np.float64:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_double_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (!__pyx_t_1) {
       } else {
         __pyx_t_3 = __pyx_t_1;
@@ -6111,7 +6050,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L51_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":364
+        /* "chistogramnd.pyx":468
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_double_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6119,9 +6058,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_dims,
  */
         __pyx_t_85 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_85.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 364; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_85.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 468; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":365
+        /* "chistogramnd.pyx":469
  * 
  *                 rc = _histogramnd_double_double_float(sample_c,
  *                                                       weights_c,             # <<<<<<<<<<<<<<
@@ -6129,27 +6068,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_elem,
  */
         __pyx_t_86 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_86.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 365; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_86.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":366
+        /* "chistogramnd.pyx":470
  *                 rc = _histogramnd_double_double_float(sample_c,
  *                                                       weights_c,
  *                                                       n_dims,             # <<<<<<<<<<<<<<
  *                                                       n_elem,
  *                                                       bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 470; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":367
+        /* "chistogramnd.pyx":471
  *                                                       weights_c,
  *                                                       n_dims,
  *                                                       n_elem,             # <<<<<<<<<<<<<<
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 367; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 471; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":368
+        /* "chistogramnd.pyx":472
  *                                                       n_dims,
  *                                                       n_elem,
  *                                                       bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6157,9 +6096,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       histo_c,
  */
         __pyx_t_87 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_87.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 368; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_87.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 472; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":369
+        /* "chistogramnd.pyx":473
  *                                                       n_elem,
  *                                                       bins_rng_c,
  *                                                       n_bins_c,             # <<<<<<<<<<<<<<
@@ -6167,9 +6106,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       cumul_c,
  */
         __pyx_t_88 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_88.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 369; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_88.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 473; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":370
+        /* "chistogramnd.pyx":474
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  *                                                       histo_c,             # <<<<<<<<<<<<<<
@@ -6177,9 +6116,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       bin_edges_c,
  */
         __pyx_t_89 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_89.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_89.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 474; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":371
+        /* "chistogramnd.pyx":475
  *                                                       n_bins_c,
  *                                                       histo_c,
  *                                                       cumul_c,             # <<<<<<<<<<<<<<
@@ -6187,9 +6126,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       option_flags,
  */
         __pyx_t_90 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_90.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 371; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_90.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 475; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":372
+        /* "chistogramnd.pyx":476
  *                                                       histo_c,
  *                                                       cumul_c,
  *                                                       bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6197,36 +6136,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       weight_min=weight_min,
  */
         __pyx_t_91 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_91.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 372; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_91.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":373
+        /* "chistogramnd.pyx":477
  *                                                       cumul_c,
  *                                                       bin_edges_c,
  *                                                       option_flags,             # <<<<<<<<<<<<<<
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 477; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":374
+        /* "chistogramnd.pyx":478
  *                                                       bin_edges_c,
  *                                                       option_flags,
  *                                                       weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                       weight_max=weight_max)
  * 
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 478; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":375
+        /* "chistogramnd.pyx":479
  *                                                       option_flags,
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 479; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":364
+        /* "chistogramnd.pyx":468
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_double_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6244,25 +6183,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L50;
       }
 
-      /* "chistogramnd.pyx":377
+      /* "chistogramnd.pyx":481
  *                                                       weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_float_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 377; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":379
+        /* "chistogramnd.pyx":483
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_double_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6270,9 +6209,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_dims,
  */
         __pyx_t_92 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_92.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_92.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 483; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":380
+        /* "chistogramnd.pyx":484
  * 
  *                 rc = _histogramnd_double_float_float(sample_c,
  *                                                      weights_c,             # <<<<<<<<<<<<<<
@@ -6280,27 +6219,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_elem,
  */
         __pyx_t_93 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_93.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 380; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_93.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 484; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":381
+        /* "chistogramnd.pyx":485
  *                 rc = _histogramnd_double_float_float(sample_c,
  *                                                      weights_c,
  *                                                      n_dims,             # <<<<<<<<<<<<<<
  *                                                      n_elem,
  *                                                      bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":382
+        /* "chistogramnd.pyx":486
  *                                                      weights_c,
  *                                                      n_dims,
  *                                                      n_elem,             # <<<<<<<<<<<<<<
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 382; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 486; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":383
+        /* "chistogramnd.pyx":487
  *                                                      n_dims,
  *                                                      n_elem,
  *                                                      bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6308,9 +6247,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      histo_c,
  */
         __pyx_t_94 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_94.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 383; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_94.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 487; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":384
+        /* "chistogramnd.pyx":488
  *                                                      n_elem,
  *                                                      bins_rng_c,
  *                                                      n_bins_c,             # <<<<<<<<<<<<<<
@@ -6318,9 +6257,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      cumul_c,
  */
         __pyx_t_95 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_95.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 384; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_95.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 488; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":385
+        /* "chistogramnd.pyx":489
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  *                                                      histo_c,             # <<<<<<<<<<<<<<
@@ -6328,9 +6267,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      bin_edges_c,
  */
         __pyx_t_96 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_96.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 385; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_96.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 489; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":386
+        /* "chistogramnd.pyx":490
  *                                                      n_bins_c,
  *                                                      histo_c,
  *                                                      cumul_c,             # <<<<<<<<<<<<<<
@@ -6338,9 +6277,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      option_flags,
  */
         __pyx_t_97 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_97.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 386; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_97.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 490; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":387
+        /* "chistogramnd.pyx":491
  *                                                      histo_c,
  *                                                      cumul_c,
  *                                                      bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6348,36 +6287,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      weight_min=weight_min,
  */
         __pyx_t_98 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_98.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 387; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_98.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 491; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":388
+        /* "chistogramnd.pyx":492
  *                                                      cumul_c,
  *                                                      bin_edges_c,
  *                                                      option_flags,             # <<<<<<<<<<<<<<
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 388; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 492; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":389
+        /* "chistogramnd.pyx":493
  *                                                      bin_edges_c,
  *                                                      option_flags,
  *                                                      weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                      weight_max=weight_max)
  * 
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 389; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 493; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":390
+        /* "chistogramnd.pyx":494
  *                                                      option_flags,
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 390; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":379
+        /* "chistogramnd.pyx":483
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_double_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6395,25 +6334,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L50;
       }
 
-      /* "chistogramnd.pyx":392
+      /* "chistogramnd.pyx":496
  *                                                      weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_double_int32_t_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 496; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 496; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 496; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 392; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 496; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":394
+        /* "chistogramnd.pyx":498
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_double_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6421,9 +6360,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_dims,
  */
         __pyx_t_99 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_99.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 394; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_99.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":395
+        /* "chistogramnd.pyx":499
  * 
  *                 rc = _histogramnd_double_int32_t_float(sample_c,
  *                                                        weights_c,             # <<<<<<<<<<<<<<
@@ -6431,27 +6370,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_elem,
  */
         __pyx_t_100 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_100.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 395; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_100.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 499; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":396
+        /* "chistogramnd.pyx":500
  *                 rc = _histogramnd_double_int32_t_float(sample_c,
  *                                                        weights_c,
  *                                                        n_dims,             # <<<<<<<<<<<<<<
  *                                                        n_elem,
  *                                                        bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 396; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 500; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":397
+        /* "chistogramnd.pyx":501
  *                                                        weights_c,
  *                                                        n_dims,
  *                                                        n_elem,             # <<<<<<<<<<<<<<
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 397; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 501; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":398
+        /* "chistogramnd.pyx":502
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6459,9 +6398,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        histo_c,
  */
         __pyx_t_101 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_101.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 398; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_101.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":399
+        /* "chistogramnd.pyx":503
  *                                                        n_elem,
  *                                                        bins_rng_c,
  *                                                        n_bins_c,             # <<<<<<<<<<<<<<
@@ -6469,9 +6408,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        cumul_c,
  */
         __pyx_t_102 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_102.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 399; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_102.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 503; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":400
+        /* "chistogramnd.pyx":504
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  *                                                        histo_c,             # <<<<<<<<<<<<<<
@@ -6479,9 +6418,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        bin_edges_c,
  */
         __pyx_t_103 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_103.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 400; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_103.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":401
+        /* "chistogramnd.pyx":505
  *                                                        n_bins_c,
  *                                                        histo_c,
  *                                                        cumul_c,             # <<<<<<<<<<<<<<
@@ -6489,9 +6428,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        option_flags,
  */
         __pyx_t_104 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_104.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 401; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_104.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 505; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":402
+        /* "chistogramnd.pyx":506
  *                                                        histo_c,
  *                                                        cumul_c,
  *                                                        bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6499,36 +6438,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        weight_min=weight_min,
  */
         __pyx_t_105 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_105.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 402; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_105.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 506; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":403
+        /* "chistogramnd.pyx":507
  *                                                        cumul_c,
  *                                                        bin_edges_c,
  *                                                        option_flags,             # <<<<<<<<<<<<<<
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 403; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 507; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":404
+        /* "chistogramnd.pyx":508
  *                                                        bin_edges_c,
  *                                                        option_flags,
  *                                                        weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                        weight_max=weight_max)
  * 
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 404; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 508; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":405
+        /* "chistogramnd.pyx":509
  *                                                        option_flags,
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 405; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 509; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":394
+        /* "chistogramnd.pyx":498
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_double_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6547,55 +6486,55 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":408
+        /* "chistogramnd.pyx":512
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.float64
  */
-        __pyx_t_5 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 408; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_5);
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_9 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 512; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
       __pyx_L50:;
       goto __pyx_L49;
     }
 
-    /* "chistogramnd.pyx":411
+    /* "chistogramnd.pyx":515
  * 
  *         # endif sample_type == np.float64
  *         elif sample_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 515; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 515; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 515; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 411; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 515; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":413
+      /* "chistogramnd.pyx":517
  *         elif sample_type == np.float32:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_double_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 517; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 517; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 517; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 413; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 517; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (!__pyx_t_2) {
       } else {
         __pyx_t_3 = __pyx_t_2;
@@ -6607,7 +6546,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L54_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":415
+        /* "chistogramnd.pyx":519
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_float_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6615,9 +6554,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_dims,
  */
         __pyx_t_106 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_106.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 415; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_106.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 519; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":416
+        /* "chistogramnd.pyx":520
  * 
  *                 rc = _histogramnd_float_double_float(sample_c,
  *                                                      weights_c,             # <<<<<<<<<<<<<<
@@ -6625,27 +6564,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      n_elem,
  */
         __pyx_t_107 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_107.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 416; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_107.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 520; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":417
+        /* "chistogramnd.pyx":521
  *                 rc = _histogramnd_float_double_float(sample_c,
  *                                                      weights_c,
  *                                                      n_dims,             # <<<<<<<<<<<<<<
  *                                                      n_elem,
  *                                                      bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 417; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 521; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":418
+        /* "chistogramnd.pyx":522
  *                                                      weights_c,
  *                                                      n_dims,
  *                                                      n_elem,             # <<<<<<<<<<<<<<
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 418; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 522; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":419
+        /* "chistogramnd.pyx":523
  *                                                      n_dims,
  *                                                      n_elem,
  *                                                      bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6653,9 +6592,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      histo_c,
  */
         __pyx_t_108 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_108.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 419; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_108.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":420
+        /* "chistogramnd.pyx":524
  *                                                      n_elem,
  *                                                      bins_rng_c,
  *                                                      n_bins_c,             # <<<<<<<<<<<<<<
@@ -6663,9 +6602,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      cumul_c,
  */
         __pyx_t_109 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_109.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 420; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_109.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 524; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":421
+        /* "chistogramnd.pyx":525
  *                                                      bins_rng_c,
  *                                                      n_bins_c,
  *                                                      histo_c,             # <<<<<<<<<<<<<<
@@ -6673,9 +6612,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      bin_edges_c,
  */
         __pyx_t_110 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_110.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 421; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_110.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":422
+        /* "chistogramnd.pyx":526
  *                                                      n_bins_c,
  *                                                      histo_c,
  *                                                      cumul_c,             # <<<<<<<<<<<<<<
@@ -6683,9 +6622,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      option_flags,
  */
         __pyx_t_111 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_111.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 422; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_111.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":423
+        /* "chistogramnd.pyx":527
  *                                                      histo_c,
  *                                                      cumul_c,
  *                                                      bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6693,36 +6632,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                      weight_min=weight_min,
  */
         __pyx_t_112 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_112.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 423; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_112.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 527; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":424
+        /* "chistogramnd.pyx":528
  *                                                      cumul_c,
  *                                                      bin_edges_c,
  *                                                      option_flags,             # <<<<<<<<<<<<<<
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 424; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 528; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":425
+        /* "chistogramnd.pyx":529
  *                                                      bin_edges_c,
  *                                                      option_flags,
  *                                                      weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                      weight_max=weight_max)
  * 
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 425; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 529; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":426
+        /* "chistogramnd.pyx":530
  *                                                      option_flags,
  *                                                      weight_min=weight_min,
  *                                                      weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 426; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":415
+        /* "chistogramnd.pyx":519
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_float_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6740,25 +6679,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L53;
       }
 
-      /* "chistogramnd.pyx":428
+      /* "chistogramnd.pyx":532
  *                                                      weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_float_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 428; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 428; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 428; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 428; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":430
+        /* "chistogramnd.pyx":534
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_float_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6766,9 +6705,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     n_dims,
  */
         __pyx_t_113 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_113.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 430; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_113.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 534; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":431
+        /* "chistogramnd.pyx":535
  * 
  *                 rc = _histogramnd_float_float_float(sample_c,
  *                                                     weights_c,             # <<<<<<<<<<<<<<
@@ -6776,27 +6715,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     n_elem,
  */
         __pyx_t_114 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_114.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 431; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_114.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 535; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":432
+        /* "chistogramnd.pyx":536
  *                 rc = _histogramnd_float_float_float(sample_c,
  *                                                     weights_c,
  *                                                     n_dims,             # <<<<<<<<<<<<<<
  *                                                     n_elem,
  *                                                     bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 432; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 536; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":433
+        /* "chistogramnd.pyx":537
  *                                                     weights_c,
  *                                                     n_dims,
  *                                                     n_elem,             # <<<<<<<<<<<<<<
  *                                                     bins_rng_c,
  *                                                     n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 433; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 537; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":434
+        /* "chistogramnd.pyx":538
  *                                                     n_dims,
  *                                                     n_elem,
  *                                                     bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6804,9 +6743,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     histo_c,
  */
         __pyx_t_115 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_115.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 434; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_115.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 538; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":435
+        /* "chistogramnd.pyx":539
  *                                                     n_elem,
  *                                                     bins_rng_c,
  *                                                     n_bins_c,             # <<<<<<<<<<<<<<
@@ -6814,9 +6753,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     cumul_c,
  */
         __pyx_t_116 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_116.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 435; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_116.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 539; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":436
+        /* "chistogramnd.pyx":540
  *                                                     bins_rng_c,
  *                                                     n_bins_c,
  *                                                     histo_c,             # <<<<<<<<<<<<<<
@@ -6824,9 +6763,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     bin_edges_c,
  */
         __pyx_t_117 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_117.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 436; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_117.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 540; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":437
+        /* "chistogramnd.pyx":541
  *                                                     n_bins_c,
  *                                                     histo_c,
  *                                                     cumul_c,             # <<<<<<<<<<<<<<
@@ -6834,9 +6773,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     option_flags,
  */
         __pyx_t_118 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_118.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 437; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_118.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 541; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":438
+        /* "chistogramnd.pyx":542
  *                                                     histo_c,
  *                                                     cumul_c,
  *                                                     bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6844,36 +6783,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                     weight_min=weight_min,
  */
         __pyx_t_119 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_119.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 438; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_119.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 542; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":439
+        /* "chistogramnd.pyx":543
  *                                                     cumul_c,
  *                                                     bin_edges_c,
  *                                                     option_flags,             # <<<<<<<<<<<<<<
  *                                                     weight_min=weight_min,
  *                                                     weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 439; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 543; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":440
+        /* "chistogramnd.pyx":544
  *                                                     bin_edges_c,
  *                                                     option_flags,
  *                                                     weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                     weight_max=weight_max)
  * 
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 440; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 544; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":441
+        /* "chistogramnd.pyx":545
  *                                                     option_flags,
  *                                                     weight_min=weight_min,
  *                                                     weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 441; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 545; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":430
+        /* "chistogramnd.pyx":534
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_float_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6891,25 +6830,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L53;
       }
 
-      /* "chistogramnd.pyx":443
+      /* "chistogramnd.pyx":547
  *                                                     weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_float_int32_t_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 443; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 443; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 547; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 547; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 443; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 547; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 443; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 547; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":445
+        /* "chistogramnd.pyx":549
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_float_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -6917,9 +6856,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_dims,
  */
         __pyx_t_120 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_120.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 445; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_120.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 549; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":446
+        /* "chistogramnd.pyx":550
  * 
  *                 rc = _histogramnd_float_int32_t_float(sample_c,
  *                                                       weights_c,             # <<<<<<<<<<<<<<
@@ -6927,27 +6866,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_elem,
  */
         __pyx_t_121 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_121.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 446; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_121.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 550; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":447
+        /* "chistogramnd.pyx":551
  *                 rc = _histogramnd_float_int32_t_float(sample_c,
  *                                                       weights_c,
  *                                                       n_dims,             # <<<<<<<<<<<<<<
  *                                                       n_elem,
  *                                                       bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 447; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 551; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":448
+        /* "chistogramnd.pyx":552
  *                                                       weights_c,
  *                                                       n_dims,
  *                                                       n_elem,             # <<<<<<<<<<<<<<
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 448; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 552; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":449
+        /* "chistogramnd.pyx":553
  *                                                       n_dims,
  *                                                       n_elem,
  *                                                       bins_rng_c,             # <<<<<<<<<<<<<<
@@ -6955,9 +6894,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       histo_c,
  */
         __pyx_t_122 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_122.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 449; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_122.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 553; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":450
+        /* "chistogramnd.pyx":554
  *                                                       n_elem,
  *                                                       bins_rng_c,
  *                                                       n_bins_c,             # <<<<<<<<<<<<<<
@@ -6965,9 +6904,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       cumul_c,
  */
         __pyx_t_123 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_123.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 450; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_123.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 554; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":451
+        /* "chistogramnd.pyx":555
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  *                                                       histo_c,             # <<<<<<<<<<<<<<
@@ -6975,9 +6914,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       bin_edges_c,
  */
         __pyx_t_124 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_124.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 451; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_124.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 555; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":452
+        /* "chistogramnd.pyx":556
  *                                                       n_bins_c,
  *                                                       histo_c,
  *                                                       cumul_c,             # <<<<<<<<<<<<<<
@@ -6985,9 +6924,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       option_flags,
  */
         __pyx_t_125 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_125.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 452; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_125.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 556; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":453
+        /* "chistogramnd.pyx":557
  *                                                       histo_c,
  *                                                       cumul_c,
  *                                                       bin_edges_c,             # <<<<<<<<<<<<<<
@@ -6995,36 +6934,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       weight_min=weight_min,
  */
         __pyx_t_126 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_126.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 453; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_126.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 557; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":454
+        /* "chistogramnd.pyx":558
  *                                                       cumul_c,
  *                                                       bin_edges_c,
  *                                                       option_flags,             # <<<<<<<<<<<<<<
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 454; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 558; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":455
+        /* "chistogramnd.pyx":559
  *                                                       bin_edges_c,
  *                                                       option_flags,
  *                                                       weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                       weight_max=weight_max)
  * 
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 455; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 559; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":456
+        /* "chistogramnd.pyx":560
  *                                                       option_flags,
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 456; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 560; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":445
+        /* "chistogramnd.pyx":549
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_float_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7043,55 +6982,55 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":459
+        /* "chistogramnd.pyx":563
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.float32
  */
-        __pyx_t_5 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 459; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_5);
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_9 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 563; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
       __pyx_L53:;
       goto __pyx_L49;
     }
 
-    /* "chistogramnd.pyx":462
+    /* "chistogramnd.pyx":566
  * 
  *         # endif sample_type == np.float32
  *         elif sample_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *             if weights_type == np.float64 or weights_type is None:
  */
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 566; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 566; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+    __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_sample_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 566; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 462; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 566; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":464
+      /* "chistogramnd.pyx":568
  *         elif sample_type == np.int32:
  * 
  *             if weights_type == np.float64 or weights_type is None:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_double_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 568; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float64); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 568; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 568; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 464; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 568; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (!__pyx_t_1) {
       } else {
         __pyx_t_3 = __pyx_t_1;
@@ -7103,7 +7042,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       __pyx_L57_bool_binop_done:;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":466
+        /* "chistogramnd.pyx":570
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_int32_t_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7111,9 +7050,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_dims,
  */
         __pyx_t_127 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_127.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 466; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_127.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 570; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":467
+        /* "chistogramnd.pyx":571
  * 
  *                 rc = _histogramnd_int32_t_double_float(sample_c,
  *                                                        weights_c,             # <<<<<<<<<<<<<<
@@ -7121,27 +7060,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        n_elem,
  */
         __pyx_t_128 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_128.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 467; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_128.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 571; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":468
+        /* "chistogramnd.pyx":572
  *                 rc = _histogramnd_int32_t_double_float(sample_c,
  *                                                        weights_c,
  *                                                        n_dims,             # <<<<<<<<<<<<<<
  *                                                        n_elem,
  *                                                        bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 468; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 572; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":469
+        /* "chistogramnd.pyx":573
  *                                                        weights_c,
  *                                                        n_dims,
  *                                                        n_elem,             # <<<<<<<<<<<<<<
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 469; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 573; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":470
+        /* "chistogramnd.pyx":574
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        bins_rng_c,             # <<<<<<<<<<<<<<
@@ -7149,9 +7088,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        histo_c,
  */
         __pyx_t_129 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_129.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 470; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_129.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 574; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":471
+        /* "chistogramnd.pyx":575
  *                                                        n_elem,
  *                                                        bins_rng_c,
  *                                                        n_bins_c,             # <<<<<<<<<<<<<<
@@ -7159,9 +7098,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        cumul_c,
  */
         __pyx_t_130 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_130.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 471; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_130.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 575; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":472
+        /* "chistogramnd.pyx":576
  *                                                        bins_rng_c,
  *                                                        n_bins_c,
  *                                                        histo_c,             # <<<<<<<<<<<<<<
@@ -7169,9 +7108,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        bin_edges_c,
  */
         __pyx_t_131 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_131.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 472; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_131.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 576; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":473
+        /* "chistogramnd.pyx":577
  *                                                        n_bins_c,
  *                                                        histo_c,
  *                                                        cumul_c,             # <<<<<<<<<<<<<<
@@ -7179,9 +7118,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        option_flags,
  */
         __pyx_t_132 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_132.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 473; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_132.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 577; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":474
+        /* "chistogramnd.pyx":578
  *                                                        histo_c,
  *                                                        cumul_c,
  *                                                        bin_edges_c,             # <<<<<<<<<<<<<<
@@ -7189,36 +7128,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                        weight_min=weight_min,
  */
         __pyx_t_133 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_133.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 474; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_133.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 578; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":475
+        /* "chistogramnd.pyx":579
  *                                                        cumul_c,
  *                                                        bin_edges_c,
  *                                                        option_flags,             # <<<<<<<<<<<<<<
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 475; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 579; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":476
+        /* "chistogramnd.pyx":580
  *                                                        bin_edges_c,
  *                                                        option_flags,
  *                                                        weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                        weight_max=weight_max)
  * 
  */
-        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 476; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_24 = __pyx_PyFloat_AsDouble(__pyx_v_weight_min); if (unlikely((__pyx_t_24 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 580; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":477
+        /* "chistogramnd.pyx":581
  *                                                        option_flags,
  *                                                        weight_min=weight_min,
  *                                                        weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.float32:
  */
-        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 477; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_23 = __pyx_PyFloat_AsDouble(__pyx_v_weight_max); if (unlikely((__pyx_t_23 == (double)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 581; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":466
+        /* "chistogramnd.pyx":570
  *             if weights_type == np.float64 or weights_type is None:
  * 
  *                 rc = _histogramnd_int32_t_double_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7236,25 +7175,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L56;
       }
 
-      /* "chistogramnd.pyx":479
+      /* "chistogramnd.pyx":583
  *                                                        weight_max=weight_max)
  * 
  *             elif weights_type == np.float32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_float_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 479; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 479; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 583; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_float32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 583; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 479; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 583; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 479; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 583; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":481
+        /* "chistogramnd.pyx":585
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_int32_t_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7262,9 +7201,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_dims,
  */
         __pyx_t_134 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_134.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 481; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_134.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 585; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":482
+        /* "chistogramnd.pyx":586
  * 
  *                 rc = _histogramnd_int32_t_float_float(sample_c,
  *                                                       weights_c,             # <<<<<<<<<<<<<<
@@ -7272,27 +7211,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       n_elem,
  */
         __pyx_t_135 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_135.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 482; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_135.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 586; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":483
+        /* "chistogramnd.pyx":587
  *                 rc = _histogramnd_int32_t_float_float(sample_c,
  *                                                       weights_c,
  *                                                       n_dims,             # <<<<<<<<<<<<<<
  *                                                       n_elem,
  *                                                       bins_rng_c,
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 483; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 587; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":484
+        /* "chistogramnd.pyx":588
  *                                                       weights_c,
  *                                                       n_dims,
  *                                                       n_elem,             # <<<<<<<<<<<<<<
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 484; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 588; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":485
+        /* "chistogramnd.pyx":589
  *                                                       n_dims,
  *                                                       n_elem,
  *                                                       bins_rng_c,             # <<<<<<<<<<<<<<
@@ -7300,9 +7239,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       histo_c,
  */
         __pyx_t_136 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_136.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 485; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_136.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 589; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":486
+        /* "chistogramnd.pyx":590
  *                                                       n_elem,
  *                                                       bins_rng_c,
  *                                                       n_bins_c,             # <<<<<<<<<<<<<<
@@ -7310,9 +7249,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       cumul_c,
  */
         __pyx_t_137 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_137.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 486; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_137.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 590; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":487
+        /* "chistogramnd.pyx":591
  *                                                       bins_rng_c,
  *                                                       n_bins_c,
  *                                                       histo_c,             # <<<<<<<<<<<<<<
@@ -7320,9 +7259,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       bin_edges_c,
  */
         __pyx_t_138 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_138.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 487; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_138.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 591; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":488
+        /* "chistogramnd.pyx":592
  *                                                       n_bins_c,
  *                                                       histo_c,
  *                                                       cumul_c,             # <<<<<<<<<<<<<<
@@ -7330,9 +7269,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       option_flags,
  */
         __pyx_t_139 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_139.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 488; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_139.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 592; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":489
+        /* "chistogramnd.pyx":593
  *                                                       histo_c,
  *                                                       cumul_c,
  *                                                       bin_edges_c,             # <<<<<<<<<<<<<<
@@ -7340,36 +7279,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                       weight_min=weight_min,
  */
         __pyx_t_140 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_140.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 489; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_140.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 593; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":490
+        /* "chistogramnd.pyx":594
  *                                                       cumul_c,
  *                                                       bin_edges_c,
  *                                                       option_flags,             # <<<<<<<<<<<<<<
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 490; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 594; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":491
+        /* "chistogramnd.pyx":595
  *                                                       bin_edges_c,
  *                                                       option_flags,
  *                                                       weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                       weight_max=weight_max)
  * 
  */
-        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 491; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_33 = __pyx_PyFloat_AsFloat(__pyx_v_weight_min); if (unlikely((__pyx_t_33 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 595; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":492
+        /* "chistogramnd.pyx":596
  *                                                       option_flags,
  *                                                       weight_min=weight_min,
  *                                                       weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             elif weights_type == np.int32:
  */
-        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 492; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_32 = __pyx_PyFloat_AsFloat(__pyx_v_weight_max); if (unlikely((__pyx_t_32 == (float)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 596; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":481
+        /* "chistogramnd.pyx":585
  *             elif weights_type == np.float32:
  * 
  *                 rc = _histogramnd_int32_t_float_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7387,25 +7326,25 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
         goto __pyx_L56;
       }
 
-      /* "chistogramnd.pyx":494
+      /* "chistogramnd.pyx":598
  *                                                       weight_max=weight_max)
  * 
  *             elif weights_type == np.int32:             # <<<<<<<<<<<<<<
  * 
  *                 rc = _histogramnd_int32_t_int32_t_float(sample_c,
  */
-      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 598; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_int32); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 598; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __pyx_t_9 = PyObject_RichCompare(__pyx_cur_scope->__pyx_v_weights_type, __pyx_t_8, Py_EQ); __Pyx_XGOTREF(__pyx_t_9); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 598; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 494; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_9); if (unlikely(__pyx_t_3 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 598; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       if (__pyx_t_3) {
 
-        /* "chistogramnd.pyx":496
+        /* "chistogramnd.pyx":600
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_int32_t_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7413,9 +7352,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_dims,
  */
         __pyx_t_141 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_sample_c);
-        if (unlikely(!__pyx_t_141.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 496; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_141.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 600; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":497
+        /* "chistogramnd.pyx":601
  * 
  *                 rc = _histogramnd_int32_t_int32_t_float(sample_c,
  *                                                         weights_c,             # <<<<<<<<<<<<<<
@@ -7423,27 +7362,27 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         n_elem,
  */
         __pyx_t_142 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_int32_t(__pyx_v_weights_c);
-        if (unlikely(!__pyx_t_142.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 497; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_142.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 601; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":498
+        /* "chistogramnd.pyx":602
  *                 rc = _histogramnd_int32_t_int32_t_float(sample_c,
  *                                                         weights_c,
  *                                                         n_dims,             # <<<<<<<<<<<<<<
  *                                                         n_elem,
  *                                                         bins_rng_c,
  */
-        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 498; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_22 = __Pyx_PyInt_As_int(__pyx_v_n_dims); if (unlikely((__pyx_t_22 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 602; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":499
+        /* "chistogramnd.pyx":603
  *                                                         weights_c,
  *                                                         n_dims,
  *                                                         n_elem,             # <<<<<<<<<<<<<<
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  */
-        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 499; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_16 = __Pyx_PyInt_As_int(__pyx_v_n_elem); if (unlikely((__pyx_t_16 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 603; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":500
+        /* "chistogramnd.pyx":604
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         bins_rng_c,             # <<<<<<<<<<<<<<
@@ -7451,9 +7390,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         histo_c,
  */
         __pyx_t_143 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bins_rng_c);
-        if (unlikely(!__pyx_t_143.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 500; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_143.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 604; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":501
+        /* "chistogramnd.pyx":605
  *                                                         n_elem,
  *                                                         bins_rng_c,
  *                                                         n_bins_c,             # <<<<<<<<<<<<<<
@@ -7461,9 +7400,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         cumul_c,
  */
         __pyx_t_144 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_n_bins_c);
-        if (unlikely(!__pyx_t_144.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 501; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_144.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 605; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":502
+        /* "chistogramnd.pyx":606
  *                                                         bins_rng_c,
  *                                                         n_bins_c,
  *                                                         histo_c,             # <<<<<<<<<<<<<<
@@ -7471,9 +7410,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         bin_edges_c,
  */
         __pyx_t_145 = __Pyx_PyObject_to_MemoryviewSlice_ds_nn___pyx_t_5numpy_uint32_t(__pyx_v_histo_c);
-        if (unlikely(!__pyx_t_145.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 502; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_145.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 606; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":503
+        /* "chistogramnd.pyx":607
  *                                                         n_bins_c,
  *                                                         histo_c,
  *                                                         cumul_c,             # <<<<<<<<<<<<<<
@@ -7481,9 +7420,9 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         option_flags,
  */
         __pyx_t_146 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_v_cumul_c);
-        if (unlikely(!__pyx_t_146.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 503; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_146.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 607; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":504
+        /* "chistogramnd.pyx":608
  *                                                         histo_c,
  *                                                         cumul_c,
  *                                                         bin_edges_c,             # <<<<<<<<<<<<<<
@@ -7491,36 +7430,36 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *                                                         weight_min=weight_min,
  */
         __pyx_t_147 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_bin_edges_c);
-        if (unlikely(!__pyx_t_147.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 504; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        if (unlikely(!__pyx_t_147.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 608; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":505
+        /* "chistogramnd.pyx":609
  *                                                         cumul_c,
  *                                                         bin_edges_c,
  *                                                         option_flags,             # <<<<<<<<<<<<<<
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)
  */
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 505; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_v_option_flags); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 609; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":506
+        /* "chistogramnd.pyx":610
  *                                                         bin_edges_c,
  *                                                         option_flags,
  *                                                         weight_min=weight_min,             # <<<<<<<<<<<<<<
  *                                                         weight_max=weight_max)
  * 
  */
-        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 506; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_42 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_min); if (unlikely((__pyx_t_42 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 610; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":507
+        /* "chistogramnd.pyx":611
  *                                                         option_flags,
  *                                                         weight_min=weight_min,
  *                                                         weight_max=weight_max)             # <<<<<<<<<<<<<<
  * 
  *             else:
  */
-        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 507; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_41 = __Pyx_PyInt_As_npy_int32(__pyx_v_weight_max); if (unlikely((__pyx_t_41 == (npy_int32)-1) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 611; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-        /* "chistogramnd.pyx":496
+        /* "chistogramnd.pyx":600
  *             elif weights_type == np.int32:
  * 
  *                 rc = _histogramnd_int32_t_int32_t_float(sample_c,             # <<<<<<<<<<<<<<
@@ -7539,52 +7478,52 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
       }
       /*else*/ {
 
-        /* "chistogramnd.pyx":510
+        /* "chistogramnd.pyx":614
  * 
  *             else:
  *                 raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *         # endif sample_type == np.int32:
  */
-        __pyx_t_5 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 510; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_5);
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_9 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 614; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
       __pyx_L56:;
       goto __pyx_L49;
     }
     /*else*/ {
 
-      /* "chistogramnd.pyx":514
+      /* "chistogramnd.pyx":618
  *         # endif sample_type == np.int32:
  *         else:
  *             raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
- *     # end elseif cumul.dtype == np.float32:
+ *     # end elseif weighted_histo.dtype == np.float32:
  */
-      __pyx_t_5 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 514; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_9 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 618; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     }
     __pyx_L49:;
     goto __pyx_L36;
   }
   /*else*/ {
 
-    /* "chistogramnd.pyx":519
+    /* "chistogramnd.pyx":623
  *     else:
- *         # this isnt supposed to happen since cumul type was checked earlier
+ *         # this isnt supposed to happen since weighted_histo type was checked earlier
  *         raise_unsupported_type()             # <<<<<<<<<<<<<<
  * 
  *     if rc != histogramnd_c.HISTO_OK:
  */
-    __pyx_t_5 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 519; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_9 = __pyx_pf_12chistogramnd_12chistogramnd_raise_unsupported_type(__pyx_v_raise_unsupported_type); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 623; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
   __pyx_L36:;
 
-  /* "chistogramnd.pyx":521
+  /* "chistogramnd.pyx":625
  *         raise_unsupported_type()
  * 
  *     if rc != histogramnd_c.HISTO_OK:             # <<<<<<<<<<<<<<
@@ -7594,7 +7533,7 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __pyx_t_3 = ((__pyx_v_rc != HISTO_OK) != 0);
   if (__pyx_t_3) {
 
-    /* "chistogramnd.pyx":522
+    /* "chistogramnd.pyx":626
  * 
  *     if rc != histogramnd_c.HISTO_OK:
  *         if rc == histogramnd_c.HISTO_ERR_ALLOC:             # <<<<<<<<<<<<<<
@@ -7604,93 +7543,93 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __pyx_t_3 = ((__pyx_v_rc == HISTO_ERR_ALLOC) != 0);
     if (__pyx_t_3) {
 
-      /* "chistogramnd.pyx":523
+      /* "chistogramnd.pyx":627
  *     if rc != histogramnd_c.HISTO_OK:
  *         if rc == histogramnd_c.HISTO_ERR_ALLOC:
  *             raise MemoryError('histogramnd failed to allocate memory.')             # <<<<<<<<<<<<<<
  *         else:
  *             raise Exception('histogramnd returned an error : {0}'
  */
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_Raise(__pyx_t_5, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 627; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_Raise(__pyx_t_9, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 627; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
     /*else*/ {
 
-      /* "chistogramnd.pyx":526
+      /* "chistogramnd.pyx":630
  *         else:
  *             raise Exception('histogramnd returned an error : {0}'
  *                             ''.format(rc))             # <<<<<<<<<<<<<<
  * 
  *     edges = []
  */
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_histogramnd_returned_an_error_0, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_histogramnd_returned_an_error_0, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 630; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_12 = __Pyx_PyInt_From_long(__pyx_v_rc); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_9 = NULL;
+      __pyx_t_10 = __Pyx_PyInt_From_long(__pyx_v_rc); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 630; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_10);
+      __pyx_t_4 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_8))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
-        if (likely(__pyx_t_9)) {
+        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_8);
+        if (likely(__pyx_t_4)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
-          __Pyx_INCREF(__pyx_t_9);
+          __Pyx_INCREF(__pyx_t_4);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_8, function);
         }
       }
-      if (!__pyx_t_9) {
-        __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_12); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-        __Pyx_GOTREF(__pyx_t_5);
-      } else {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_10);
-        PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __Pyx_GIVEREF(__pyx_t_9); __pyx_t_9 = NULL;
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_12);
-        __Pyx_GIVEREF(__pyx_t_12);
-        __pyx_t_12 = 0;
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_10, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 526; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_5);
+      if (!__pyx_t_4) {
+        __pyx_t_9 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_10); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 630; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        __Pyx_GOTREF(__pyx_t_9);
+      } else {
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 630; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_5);
+        PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
+        PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_10);
+        __Pyx_GIVEREF(__pyx_t_10);
+        __pyx_t_10 = 0;
+        __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_5, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 630; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-      /* "chistogramnd.pyx":525
+      /* "chistogramnd.pyx":629
  *             raise MemoryError('histogramnd failed to allocate memory.')
  *         else:
  *             raise Exception('histogramnd returned an error : {0}'             # <<<<<<<<<<<<<<
  *                             ''.format(rc))
  * 
  */
-      __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_8 = PyTuple_New(1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 629; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
-      PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_5);
-      __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_8, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_5);
+      PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_9);
+      __Pyx_GIVEREF(__pyx_t_9);
+      __pyx_t_9 = 0;
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_8, NULL); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 629; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __Pyx_Raise(__pyx_t_5, 0, 0, 0);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_Raise(__pyx_t_9, 0, 0, 0);
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 629; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
 
-  /* "chistogramnd.pyx":528
+  /* "chistogramnd.pyx":632
  *                             ''.format(rc))
  * 
  *     edges = []             # <<<<<<<<<<<<<<
  *     offset = 0
  *     for i_dim in range(n_dims):
  */
-  __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 528; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_v_edges = ((PyObject*)__pyx_t_5);
-  __pyx_t_5 = 0;
+  __pyx_t_9 = PyList_New(0); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 632; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_v_edges = ((PyObject*)__pyx_t_9);
+  __pyx_t_9 = 0;
 
-  /* "chistogramnd.pyx":529
+  /* "chistogramnd.pyx":633
  * 
  *     edges = []
  *     offset = 0             # <<<<<<<<<<<<<<
@@ -7700,54 +7639,54 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_INCREF(__pyx_int_0);
   __pyx_v_offset = __pyx_int_0;
 
-  /* "chistogramnd.pyx":530
+  /* "chistogramnd.pyx":634
  *     edges = []
  *     offset = 0
  *     for i_dim in range(n_dims):             # <<<<<<<<<<<<<<
  *         edges.append(bin_edges[offset:offset + n_bins[i_dim] + 1])
  *         offset += n_bins[i_dim] + 1
  */
-  __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
   __Pyx_INCREF(__pyx_v_n_dims);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_n_dims);
+  PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_v_n_dims);
   __Pyx_GIVEREF(__pyx_v_n_dims);
-  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_5, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_9, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   if (likely(PyList_CheckExact(__pyx_t_8)) || PyTuple_CheckExact(__pyx_t_8)) {
-    __pyx_t_5 = __pyx_t_8; __Pyx_INCREF(__pyx_t_5); __pyx_t_6 = 0;
+    __pyx_t_9 = __pyx_t_8; __Pyx_INCREF(__pyx_t_9); __pyx_t_6 = 0;
     __pyx_t_148 = NULL;
   } else {
-    __pyx_t_6 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_148 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_148)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_6 = -1; __pyx_t_9 = PyObject_GetIter(__pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_148 = Py_TYPE(__pyx_t_9)->tp_iternext; if (unlikely(!__pyx_t_148)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   for (;;) {
     if (likely(!__pyx_t_148)) {
-      if (likely(PyList_CheckExact(__pyx_t_5))) {
-        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_5)) break;
+      if (likely(PyList_CheckExact(__pyx_t_9))) {
+        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_9)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_8 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PyList_GET_ITEM(__pyx_t_9, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PySequence_ITEM(__pyx_t_9, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
-        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
+        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_9)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_8 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PyTuple_GET_ITEM(__pyx_t_9, __pyx_t_6); __Pyx_INCREF(__pyx_t_8); __pyx_t_6++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_8 = PySequence_ITEM(__pyx_t_5, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PySequence_ITEM(__pyx_t_9, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
-      __pyx_t_8 = __pyx_t_148(__pyx_t_5);
+      __pyx_t_8 = __pyx_t_148(__pyx_t_9);
       if (unlikely(!__pyx_t_8)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
@@ -7756,46 +7695,46 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
     __Pyx_XDECREF_SET(__pyx_v_i_dim, __pyx_t_8);
     __pyx_t_8 = 0;
 
-    /* "chistogramnd.pyx":531
+    /* "chistogramnd.pyx":635
  *     offset = 0
  *     for i_dim in range(n_dims):
  *         edges.append(bin_edges[offset:offset + n_bins[i_dim] + 1])             # <<<<<<<<<<<<<<
  *         offset += n_bins[i_dim] + 1
  * 
  */
-    __pyx_t_8 = PyObject_GetItem(__pyx_v_n_bins, __pyx_v_i_dim); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 531; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __pyx_t_8 = PyObject_GetItem(__pyx_v_n_bins, __pyx_v_i_dim); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
     __Pyx_GOTREF(__pyx_t_8);
-    __pyx_t_10 = PyNumber_Add(__pyx_v_offset, __pyx_t_8); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 531; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_5 = PyNumber_Add(__pyx_v_offset, __pyx_t_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_8 = PyNumber_Add(__pyx_t_10, __pyx_int_1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 531; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyNumber_Add(__pyx_t_5, __pyx_int_1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = __Pyx_PyObject_GetSlice(__pyx_v_bin_edges, 0, 0, &__pyx_v_offset, &__pyx_t_8, NULL, 0, 0, 1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 531; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyObject_GetSlice(__pyx_v_bin_edges, 0, 0, &__pyx_v_offset, &__pyx_t_8, NULL, 0, 0, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __pyx_t_149 = __Pyx_PyList_Append(__pyx_v_edges, __pyx_t_10); if (unlikely(__pyx_t_149 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 531; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __pyx_t_149 = __Pyx_PyList_Append(__pyx_v_edges, __pyx_t_5); if (unlikely(__pyx_t_149 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 635; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "chistogramnd.pyx":532
+    /* "chistogramnd.pyx":636
  *     for i_dim in range(n_dims):
  *         edges.append(bin_edges[offset:offset + n_bins[i_dim] + 1])
  *         offset += n_bins[i_dim] + 1             # <<<<<<<<<<<<<<
  * 
- *     return histo, cumul, tuple(edges)
+ *     return histo, weighted_histo, tuple(edges)
  */
-    __pyx_t_10 = PyObject_GetItem(__pyx_v_n_bins, __pyx_v_i_dim); if (unlikely(__pyx_t_10 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-    __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_8 = PyNumber_Add(__pyx_t_10, __pyx_int_1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyObject_GetItem(__pyx_v_n_bins, __pyx_v_i_dim); if (unlikely(__pyx_t_5 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 636; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_8 = PyNumber_Add(__pyx_t_5, __pyx_int_1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 636; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_8);
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_10 = PyNumber_InPlaceAdd(__pyx_v_offset, __pyx_t_8); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 532; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = PyNumber_InPlaceAdd(__pyx_v_offset, __pyx_t_8); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 636; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __Pyx_DECREF_SET(__pyx_v_offset, __pyx_t_10);
-    __pyx_t_10 = 0;
+    __Pyx_DECREF_SET(__pyx_v_offset, __pyx_t_5);
+    __pyx_t_5 = 0;
 
-    /* "chistogramnd.pyx":530
+    /* "chistogramnd.pyx":634
  *     edges = []
  *     offset = 0
  *     for i_dim in range(n_dims):             # <<<<<<<<<<<<<<
@@ -7803,31 +7742,31 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
  *         offset += n_bins[i_dim] + 1
  */
   }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-  /* "chistogramnd.pyx":534
+  /* "chistogramnd.pyx":638
  *         offset += n_bins[i_dim] + 1
  * 
- *     return histo, cumul, tuple(edges)             # <<<<<<<<<<<<<<
+ *     return histo, weighted_histo, tuple(edges)             # <<<<<<<<<<<<<<
  * 
  * # =====================
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_5 = PyList_AsTuple(__pyx_v_edges); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 534; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_9 = PyList_AsTuple(__pyx_v_edges); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 638; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_9);
+  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 638; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_10 = PyTuple_New(3); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 534; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_10);
   __Pyx_INCREF(__pyx_v_histo);
-  PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_v_histo);
+  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_histo);
   __Pyx_GIVEREF(__pyx_v_histo);
-  __Pyx_INCREF(__pyx_v_cumul);
-  PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_v_cumul);
-  __Pyx_GIVEREF(__pyx_v_cumul);
-  PyTuple_SET_ITEM(__pyx_t_10, 2, __pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_5);
+  __Pyx_INCREF(__pyx_v_weighted_histo);
+  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_v_weighted_histo);
+  __Pyx_GIVEREF(__pyx_v_weighted_histo);
+  PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_9);
+  __Pyx_GIVEREF(__pyx_t_9);
+  __pyx_t_9 = 0;
+  __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
-  __pyx_r = __pyx_t_10;
-  __pyx_t_10 = 0;
   goto __pyx_L0;
 
   /* "chistogramnd.pyx":36
@@ -8001,14 +7940,14 @@ static PyObject *__pyx_pf_12chistogramnd_chistogramnd(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_v_weight_min);
   __Pyx_XDECREF(__pyx_v_weight_max);
   __Pyx_XDECREF(__pyx_v_histo);
-  __Pyx_XDECREF(__pyx_v_cumul);
+  __Pyx_XDECREF(__pyx_v_weighted_histo);
   __Pyx_DECREF(((PyObject *)__pyx_cur_scope));
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":545
+/* "chistogramnd.pyx":649
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_double_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8026,7 +7965,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":558
+  /* "chistogramnd.pyx":662
  *                                            double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8035,7 +7974,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":559
+  /* "chistogramnd.pyx":663
  * 
  *     return histogramnd_c.histogramnd_double_double_double(&sample[0],
  *                                                           &weights[0],             # <<<<<<<<<<<<<<
@@ -8044,7 +7983,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":562
+  /* "chistogramnd.pyx":666
  *                                                           n_dims,
  *                                                           n_elem,
  *                                                           &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8053,7 +7992,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":563
+  /* "chistogramnd.pyx":667
  *                                                           n_elem,
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8062,7 +8001,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":564
+  /* "chistogramnd.pyx":668
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],
  *                                                           &histo[0],             # <<<<<<<<<<<<<<
@@ -8071,7 +8010,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":565
+  /* "chistogramnd.pyx":669
  *                                                           &n_bins[0],
  *                                                           &histo[0],
  *                                                           &cumul[0],             # <<<<<<<<<<<<<<
@@ -8080,7 +8019,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":566
+  /* "chistogramnd.pyx":670
  *                                                           &histo[0],
  *                                                           &cumul[0],
  *                                                           &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8089,7 +8028,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":558
+  /* "chistogramnd.pyx":662
  *                                            double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8099,7 +8038,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
   __pyx_r = histogramnd_double_double_double((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":545
+  /* "chistogramnd.pyx":649
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_double_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8112,7 +8051,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_double(__Pyx_memvie
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":576
+/* "chistogramnd.pyx":680
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_float_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8130,7 +8069,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":589
+  /* "chistogramnd.pyx":693
  *                                           float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8139,7 +8078,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":590
+  /* "chistogramnd.pyx":694
  * 
  *     return histogramnd_c.histogramnd_double_float_double(&sample[0],
  *                                                          &weights[0],             # <<<<<<<<<<<<<<
@@ -8148,7 +8087,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":593
+  /* "chistogramnd.pyx":697
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8157,7 +8096,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":594
+  /* "chistogramnd.pyx":698
  *                                                          n_elem,
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8166,7 +8105,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":595
+  /* "chistogramnd.pyx":699
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],
  *                                                          &histo[0],             # <<<<<<<<<<<<<<
@@ -8175,7 +8114,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":596
+  /* "chistogramnd.pyx":700
  *                                                          &n_bins[0],
  *                                                          &histo[0],
  *                                                          &cumul[0],             # <<<<<<<<<<<<<<
@@ -8184,7 +8123,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":597
+  /* "chistogramnd.pyx":701
  *                                                          &histo[0],
  *                                                          &cumul[0],
  *                                                          &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8193,7 +8132,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":589
+  /* "chistogramnd.pyx":693
  *                                           float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8203,7 +8142,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
   __pyx_r = histogramnd_double_float_double((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":576
+  /* "chistogramnd.pyx":680
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_float_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8216,7 +8155,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_double(__Pyx_memview
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":607
+/* "chistogramnd.pyx":711
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_int32_t_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8234,7 +8173,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":620
+  /* "chistogramnd.pyx":724
  *                                             numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8243,7 +8182,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":621
+  /* "chistogramnd.pyx":725
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_double(&sample[0],
  *                                                            &weights[0],             # <<<<<<<<<<<<<<
@@ -8252,7 +8191,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":624
+  /* "chistogramnd.pyx":728
  *                                                            n_dims,
  *                                                            n_elem,
  *                                                            &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8261,7 +8200,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":625
+  /* "chistogramnd.pyx":729
  *                                                            n_elem,
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8270,7 +8209,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":626
+  /* "chistogramnd.pyx":730
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],
  *                                                            &histo[0],             # <<<<<<<<<<<<<<
@@ -8279,7 +8218,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":627
+  /* "chistogramnd.pyx":731
  *                                                            &n_bins[0],
  *                                                            &histo[0],
  *                                                            &cumul[0],             # <<<<<<<<<<<<<<
@@ -8288,7 +8227,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":628
+  /* "chistogramnd.pyx":732
  *                                                            &histo[0],
  *                                                            &cumul[0],
  *                                                            &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8297,7 +8236,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":620
+  /* "chistogramnd.pyx":724
  *                                             numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8307,7 +8246,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
   __pyx_r = histogramnd_double_int32_t_double((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":607
+  /* "chistogramnd.pyx":711
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_int32_t_double(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8320,7 +8259,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_double(__Pyx_memvi
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":643
+/* "chistogramnd.pyx":747
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_double_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8338,7 +8277,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":656
+  /* "chistogramnd.pyx":760
  *                                           double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8347,7 +8286,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":657
+  /* "chistogramnd.pyx":761
  * 
  *     return histogramnd_c.histogramnd_float_double_double(&sample[0],
  *                                                          &weights[0],             # <<<<<<<<<<<<<<
@@ -8356,7 +8295,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":660
+  /* "chistogramnd.pyx":764
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8365,7 +8304,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":661
+  /* "chistogramnd.pyx":765
  *                                                          n_elem,
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8374,7 +8313,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":662
+  /* "chistogramnd.pyx":766
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],
  *                                                          &histo[0],             # <<<<<<<<<<<<<<
@@ -8383,7 +8322,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":663
+  /* "chistogramnd.pyx":767
  *                                                          &n_bins[0],
  *                                                          &histo[0],
  *                                                          &cumul[0],             # <<<<<<<<<<<<<<
@@ -8392,7 +8331,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":664
+  /* "chistogramnd.pyx":768
  *                                                          &histo[0],
  *                                                          &cumul[0],
  *                                                          &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8401,7 +8340,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":656
+  /* "chistogramnd.pyx":760
  *                                           double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8411,7 +8350,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
   __pyx_r = histogramnd_float_double_double((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":643
+  /* "chistogramnd.pyx":747
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_double_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8424,7 +8363,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_double(__Pyx_memview
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":674
+/* "chistogramnd.pyx":778
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_float_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8442,7 +8381,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":687
+  /* "chistogramnd.pyx":791
  *                                          float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8451,7 +8390,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":688
+  /* "chistogramnd.pyx":792
  * 
  *     return histogramnd_c.histogramnd_float_float_double(&sample[0],
  *                                                         &weights[0],             # <<<<<<<<<<<<<<
@@ -8460,7 +8399,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":691
+  /* "chistogramnd.pyx":795
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8469,7 +8408,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":692
+  /* "chistogramnd.pyx":796
  *                                                         n_elem,
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8478,7 +8417,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":693
+  /* "chistogramnd.pyx":797
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],
  *                                                         &histo[0],             # <<<<<<<<<<<<<<
@@ -8487,7 +8426,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":694
+  /* "chistogramnd.pyx":798
  *                                                         &n_bins[0],
  *                                                         &histo[0],
  *                                                         &cumul[0],             # <<<<<<<<<<<<<<
@@ -8496,7 +8435,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":695
+  /* "chistogramnd.pyx":799
  *                                                         &histo[0],
  *                                                         &cumul[0],
  *                                                         &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8505,7 +8444,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":687
+  /* "chistogramnd.pyx":791
  *                                          float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8515,7 +8454,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
   __pyx_r = histogramnd_float_float_double((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":674
+  /* "chistogramnd.pyx":778
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_float_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8528,7 +8467,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_double(__Pyx_memviews
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":705
+/* "chistogramnd.pyx":809
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_int32_t_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8546,7 +8485,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":718
+  /* "chistogramnd.pyx":822
  *                                            numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8555,7 +8494,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":719
+  /* "chistogramnd.pyx":823
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_double(&sample[0],
  *                                                           &weights[0],             # <<<<<<<<<<<<<<
@@ -8564,7 +8503,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":722
+  /* "chistogramnd.pyx":826
  *                                                           n_dims,
  *                                                           n_elem,
  *                                                           &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8573,7 +8512,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":723
+  /* "chistogramnd.pyx":827
  *                                                           n_elem,
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8582,7 +8521,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":724
+  /* "chistogramnd.pyx":828
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],
  *                                                           &histo[0],             # <<<<<<<<<<<<<<
@@ -8591,7 +8530,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":725
+  /* "chistogramnd.pyx":829
  *                                                           &n_bins[0],
  *                                                           &histo[0],
  *                                                           &cumul[0],             # <<<<<<<<<<<<<<
@@ -8600,7 +8539,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":726
+  /* "chistogramnd.pyx":830
  *                                                           &histo[0],
  *                                                           &cumul[0],
  *                                                           &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8609,7 +8548,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":718
+  /* "chistogramnd.pyx":822
  *                                            numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8619,7 +8558,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
   __pyx_r = histogramnd_float_int32_t_double((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":705
+  /* "chistogramnd.pyx":809
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_int32_t_double(float[:] sample,             # <<<<<<<<<<<<<<
@@ -8632,7 +8571,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_double(__Pyx_memvie
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":741
+/* "chistogramnd.pyx":845
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_double_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8650,7 +8589,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":754
+  /* "chistogramnd.pyx":858
  *                                             double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8659,7 +8598,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":755
+  /* "chistogramnd.pyx":859
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_double(&sample[0],
  *                                                            &weights[0],             # <<<<<<<<<<<<<<
@@ -8668,7 +8607,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":758
+  /* "chistogramnd.pyx":862
  *                                                            n_dims,
  *                                                            n_elem,
  *                                                            &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8677,7 +8616,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":759
+  /* "chistogramnd.pyx":863
  *                                                            n_elem,
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8686,7 +8625,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":760
+  /* "chistogramnd.pyx":864
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],
  *                                                            &histo[0],             # <<<<<<<<<<<<<<
@@ -8695,7 +8634,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":761
+  /* "chistogramnd.pyx":865
  *                                                            &n_bins[0],
  *                                                            &histo[0],
  *                                                            &cumul[0],             # <<<<<<<<<<<<<<
@@ -8704,7 +8643,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":762
+  /* "chistogramnd.pyx":866
  *                                                            &histo[0],
  *                                                            &cumul[0],
  *                                                            &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8713,7 +8652,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":754
+  /* "chistogramnd.pyx":858
  *                                             double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8723,7 +8662,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
   __pyx_r = histogramnd_int32_t_double_double((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":741
+  /* "chistogramnd.pyx":845
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_double_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8736,7 +8675,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_double(__Pyx_memvi
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":772
+/* "chistogramnd.pyx":876
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_float_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8754,7 +8693,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":785
+  /* "chistogramnd.pyx":889
  *                                            float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8763,7 +8702,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":786
+  /* "chistogramnd.pyx":890
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_double(&sample[0],
  *                                                           &weights[0],             # <<<<<<<<<<<<<<
@@ -8772,7 +8711,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":789
+  /* "chistogramnd.pyx":893
  *                                                           n_dims,
  *                                                           n_elem,
  *                                                           &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8781,7 +8720,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":790
+  /* "chistogramnd.pyx":894
  *                                                           n_elem,
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8790,7 +8729,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":791
+  /* "chistogramnd.pyx":895
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],
  *                                                           &histo[0],             # <<<<<<<<<<<<<<
@@ -8799,7 +8738,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":792
+  /* "chistogramnd.pyx":896
  *                                                           &n_bins[0],
  *                                                           &histo[0],
  *                                                           &cumul[0],             # <<<<<<<<<<<<<<
@@ -8808,7 +8747,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":793
+  /* "chistogramnd.pyx":897
  *                                                           &histo[0],
  *                                                           &cumul[0],
  *                                                           &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8817,7 +8756,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":785
+  /* "chistogramnd.pyx":889
  *                                            float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8827,7 +8766,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
   __pyx_r = histogramnd_int32_t_float_double((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":772
+  /* "chistogramnd.pyx":876
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_float_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8840,7 +8779,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_double(__Pyx_memvie
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":803
+/* "chistogramnd.pyx":907
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_int32_t_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8858,7 +8797,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":816
+  /* "chistogramnd.pyx":920
  *                                              numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8867,7 +8806,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":817
+  /* "chistogramnd.pyx":921
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_double(&sample[0],
  *                                                             &weights[0],             # <<<<<<<<<<<<<<
@@ -8876,7 +8815,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":820
+  /* "chistogramnd.pyx":924
  *                                                             n_dims,
  *                                                             n_elem,
  *                                                             &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8885,7 +8824,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":821
+  /* "chistogramnd.pyx":925
  *                                                             n_elem,
  *                                                             &bins_rng[0],
  *                                                             &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8894,7 +8833,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":822
+  /* "chistogramnd.pyx":926
  *                                                             &bins_rng[0],
  *                                                             &n_bins[0],
  *                                                             &histo[0],             # <<<<<<<<<<<<<<
@@ -8903,7 +8842,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":823
+  /* "chistogramnd.pyx":927
  *                                                             &n_bins[0],
  *                                                             &histo[0],
  *                                                             &cumul[0],             # <<<<<<<<<<<<<<
@@ -8912,7 +8851,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":824
+  /* "chistogramnd.pyx":928
  *                                                             &histo[0],
  *                                                             &cumul[0],
  *                                                             &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -8921,7 +8860,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":816
+  /* "chistogramnd.pyx":920
  *                                              numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_double(&sample[0],             # <<<<<<<<<<<<<<
@@ -8931,7 +8870,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
   __pyx_r = histogramnd_int32_t_int32_t_double((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":803
+  /* "chistogramnd.pyx":907
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_int32_t_double(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -8944,7 +8883,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_double(__Pyx_memv
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":839
+/* "chistogramnd.pyx":943
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_double_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -8962,7 +8901,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":852
+  /* "chistogramnd.pyx":956
  *                                           double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -8971,7 +8910,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":853
+  /* "chistogramnd.pyx":957
  * 
  *     return histogramnd_c.histogramnd_double_double_float(&sample[0],
  *                                                          &weights[0],             # <<<<<<<<<<<<<<
@@ -8980,7 +8919,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":856
+  /* "chistogramnd.pyx":960
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -8989,7 +8928,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":857
+  /* "chistogramnd.pyx":961
  *                                                          n_elem,
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],             # <<<<<<<<<<<<<<
@@ -8998,7 +8937,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":858
+  /* "chistogramnd.pyx":962
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],
  *                                                          &histo[0],             # <<<<<<<<<<<<<<
@@ -9007,7 +8946,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":859
+  /* "chistogramnd.pyx":963
  *                                                          &n_bins[0],
  *                                                          &histo[0],
  *                                                          &cumul[0],             # <<<<<<<<<<<<<<
@@ -9016,7 +8955,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":860
+  /* "chistogramnd.pyx":964
  *                                                          &histo[0],
  *                                                          &cumul[0],
  *                                                          &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9025,7 +8964,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":852
+  /* "chistogramnd.pyx":956
  *                                           double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9035,7 +8974,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
   __pyx_r = histogramnd_double_double_float((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":839
+  /* "chistogramnd.pyx":943
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_double_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -9048,7 +8987,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_double_float(__Pyx_memview
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":870
+/* "chistogramnd.pyx":974
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_float_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -9066,7 +9005,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":883
+  /* "chistogramnd.pyx":987
  *                                          float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9075,7 +9014,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":884
+  /* "chistogramnd.pyx":988
  * 
  *     return histogramnd_c.histogramnd_double_float_float(&sample[0],
  *                                                         &weights[0],             # <<<<<<<<<<<<<<
@@ -9084,7 +9023,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":887
+  /* "chistogramnd.pyx":991
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9093,7 +9032,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":888
+  /* "chistogramnd.pyx":992
  *                                                         n_elem,
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9102,7 +9041,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":889
+  /* "chistogramnd.pyx":993
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],
  *                                                         &histo[0],             # <<<<<<<<<<<<<<
@@ -9111,7 +9050,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":890
+  /* "chistogramnd.pyx":994
  *                                                         &n_bins[0],
  *                                                         &histo[0],
  *                                                         &cumul[0],             # <<<<<<<<<<<<<<
@@ -9120,7 +9059,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":891
+  /* "chistogramnd.pyx":995
  *                                                         &histo[0],
  *                                                         &cumul[0],
  *                                                         &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9129,7 +9068,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":883
+  /* "chistogramnd.pyx":987
  *                                          float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9139,7 +9078,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
   __pyx_r = histogramnd_double_float_float((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":870
+  /* "chistogramnd.pyx":974
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_float_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -9152,7 +9091,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_float_float(__Pyx_memviews
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":901
+/* "chistogramnd.pyx":1005
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_int32_t_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -9170,7 +9109,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":914
+  /* "chistogramnd.pyx":1018
  *                                            numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9179,7 +9118,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":915
+  /* "chistogramnd.pyx":1019
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_float(&sample[0],
  *                                                           &weights[0],             # <<<<<<<<<<<<<<
@@ -9188,7 +9127,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":918
+  /* "chistogramnd.pyx":1022
  *                                                           n_dims,
  *                                                           n_elem,
  *                                                           &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9197,7 +9136,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":919
+  /* "chistogramnd.pyx":1023
  *                                                           n_elem,
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9206,7 +9145,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":920
+  /* "chistogramnd.pyx":1024
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],
  *                                                           &histo[0],             # <<<<<<<<<<<<<<
@@ -9215,7 +9154,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":921
+  /* "chistogramnd.pyx":1025
  *                                                           &n_bins[0],
  *                                                           &histo[0],
  *                                                           &cumul[0],             # <<<<<<<<<<<<<<
@@ -9224,7 +9163,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":922
+  /* "chistogramnd.pyx":1026
  *                                                           &histo[0],
  *                                                           &cumul[0],
  *                                                           &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9233,7 +9172,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":914
+  /* "chistogramnd.pyx":1018
  *                                            numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_double_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9243,7 +9182,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
   __pyx_r = histogramnd_double_int32_t_float((&(*((double *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":901
+  /* "chistogramnd.pyx":1005
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_double_int32_t_float(double[:] sample,             # <<<<<<<<<<<<<<
@@ -9256,7 +9195,7 @@ static int __pyx_f_12chistogramnd__histogramnd_double_int32_t_float(__Pyx_memvie
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":937
+/* "chistogramnd.pyx":1041
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_double_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9274,7 +9213,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":950
+  /* "chistogramnd.pyx":1054
  *                                          double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9283,7 +9222,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":951
+  /* "chistogramnd.pyx":1055
  * 
  *     return histogramnd_c.histogramnd_float_double_float(&sample[0],
  *                                                         &weights[0],             # <<<<<<<<<<<<<<
@@ -9292,7 +9231,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":954
+  /* "chistogramnd.pyx":1058
  *                                                         n_dims,
  *                                                         n_elem,
  *                                                         &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9301,7 +9240,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":955
+  /* "chistogramnd.pyx":1059
  *                                                         n_elem,
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9310,7 +9249,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":956
+  /* "chistogramnd.pyx":1060
  *                                                         &bins_rng[0],
  *                                                         &n_bins[0],
  *                                                         &histo[0],             # <<<<<<<<<<<<<<
@@ -9319,7 +9258,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":957
+  /* "chistogramnd.pyx":1061
  *                                                         &n_bins[0],
  *                                                         &histo[0],
  *                                                         &cumul[0],             # <<<<<<<<<<<<<<
@@ -9328,7 +9267,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":958
+  /* "chistogramnd.pyx":1062
  *                                                         &histo[0],
  *                                                         &cumul[0],
  *                                                         &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9337,7 +9276,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":950
+  /* "chistogramnd.pyx":1054
  *                                          double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9347,7 +9286,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
   __pyx_r = histogramnd_float_double_float((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":937
+  /* "chistogramnd.pyx":1041
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_double_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9360,7 +9299,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_double_float(__Pyx_memviews
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":968
+/* "chistogramnd.pyx":1072
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_float_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9378,7 +9317,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":981
+  /* "chistogramnd.pyx":1085
  *                                         float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9387,7 +9326,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":982
+  /* "chistogramnd.pyx":1086
  * 
  *     return histogramnd_c.histogramnd_float_float_float(&sample[0],
  *                                                        &weights[0],             # <<<<<<<<<<<<<<
@@ -9396,7 +9335,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":985
+  /* "chistogramnd.pyx":1089
  *                                                        n_dims,
  *                                                        n_elem,
  *                                                        &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9405,7 +9344,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":986
+  /* "chistogramnd.pyx":1090
  *                                                        n_elem,
  *                                                        &bins_rng[0],
  *                                                        &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9414,7 +9353,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":987
+  /* "chistogramnd.pyx":1091
  *                                                        &bins_rng[0],
  *                                                        &n_bins[0],
  *                                                        &histo[0],             # <<<<<<<<<<<<<<
@@ -9423,7 +9362,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":988
+  /* "chistogramnd.pyx":1092
  *                                                        &n_bins[0],
  *                                                        &histo[0],
  *                                                        &cumul[0],             # <<<<<<<<<<<<<<
@@ -9432,7 +9371,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":989
+  /* "chistogramnd.pyx":1093
  *                                                        &histo[0],
  *                                                        &cumul[0],
  *                                                        &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9441,7 +9380,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":981
+  /* "chistogramnd.pyx":1085
  *                                         float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9451,7 +9390,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
   __pyx_r = histogramnd_float_float_float((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":968
+  /* "chistogramnd.pyx":1072
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_float_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9464,7 +9403,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_float_float(__Pyx_memviewsl
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":999
+/* "chistogramnd.pyx":1103
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_int32_t_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9482,7 +9421,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":1012
+  /* "chistogramnd.pyx":1116
  *                                           numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9491,7 +9430,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":1013
+  /* "chistogramnd.pyx":1117
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_float(&sample[0],
  *                                                          &weights[0],             # <<<<<<<<<<<<<<
@@ -9500,7 +9439,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":1016
+  /* "chistogramnd.pyx":1120
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9509,7 +9448,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":1017
+  /* "chistogramnd.pyx":1121
  *                                                          n_elem,
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9518,7 +9457,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":1018
+  /* "chistogramnd.pyx":1122
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],
  *                                                          &histo[0],             # <<<<<<<<<<<<<<
@@ -9527,7 +9466,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":1019
+  /* "chistogramnd.pyx":1123
  *                                                          &n_bins[0],
  *                                                          &histo[0],
  *                                                          &cumul[0],             # <<<<<<<<<<<<<<
@@ -9536,7 +9475,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":1020
+  /* "chistogramnd.pyx":1124
  *                                                          &histo[0],
  *                                                          &cumul[0],
  *                                                          &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9545,7 +9484,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":1012
+  /* "chistogramnd.pyx":1116
  *                                           numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_float_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9555,7 +9494,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
   __pyx_r = histogramnd_float_int32_t_float((&(*((float *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":999
+  /* "chistogramnd.pyx":1103
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_float_int32_t_float(float[:] sample,             # <<<<<<<<<<<<<<
@@ -9568,7 +9507,7 @@ static int __pyx_f_12chistogramnd__histogramnd_float_int32_t_float(__Pyx_memview
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":1035
+/* "chistogramnd.pyx":1139
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_double_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -9586,7 +9525,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":1048
+  /* "chistogramnd.pyx":1152
  *                                            double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9595,7 +9534,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":1049
+  /* "chistogramnd.pyx":1153
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_float(&sample[0],
  *                                                           &weights[0],             # <<<<<<<<<<<<<<
@@ -9604,7 +9543,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":1052
+  /* "chistogramnd.pyx":1156
  *                                                           n_dims,
  *                                                           n_elem,
  *                                                           &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9613,7 +9552,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":1053
+  /* "chistogramnd.pyx":1157
  *                                                           n_elem,
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9622,7 +9561,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":1054
+  /* "chistogramnd.pyx":1158
  *                                                           &bins_rng[0],
  *                                                           &n_bins[0],
  *                                                           &histo[0],             # <<<<<<<<<<<<<<
@@ -9631,7 +9570,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":1055
+  /* "chistogramnd.pyx":1159
  *                                                           &n_bins[0],
  *                                                           &histo[0],
  *                                                           &cumul[0],             # <<<<<<<<<<<<<<
@@ -9640,7 +9579,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":1056
+  /* "chistogramnd.pyx":1160
  *                                                           &histo[0],
  *                                                           &cumul[0],
  *                                                           &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9649,7 +9588,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":1048
+  /* "chistogramnd.pyx":1152
  *                                            double weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_double_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9659,7 +9598,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
   __pyx_r = histogramnd_int32_t_double_float((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":1035
+  /* "chistogramnd.pyx":1139
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_double_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -9672,7 +9611,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_double_float(__Pyx_memvie
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":1066
+/* "chistogramnd.pyx":1170
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_float_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -9690,7 +9629,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":1079
+  /* "chistogramnd.pyx":1183
  *                                           float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9699,7 +9638,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":1080
+  /* "chistogramnd.pyx":1184
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_float(&sample[0],
  *                                                          &weights[0],             # <<<<<<<<<<<<<<
@@ -9708,7 +9647,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":1083
+  /* "chistogramnd.pyx":1187
  *                                                          n_dims,
  *                                                          n_elem,
  *                                                          &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9717,7 +9656,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":1084
+  /* "chistogramnd.pyx":1188
  *                                                          n_elem,
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9726,7 +9665,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":1085
+  /* "chistogramnd.pyx":1189
  *                                                          &bins_rng[0],
  *                                                          &n_bins[0],
  *                                                          &histo[0],             # <<<<<<<<<<<<<<
@@ -9735,7 +9674,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":1086
+  /* "chistogramnd.pyx":1190
  *                                                          &n_bins[0],
  *                                                          &histo[0],
  *                                                          &cumul[0],             # <<<<<<<<<<<<<<
@@ -9744,7 +9683,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":1087
+  /* "chistogramnd.pyx":1191
  *                                                          &histo[0],
  *                                                          &cumul[0],
  *                                                          &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9753,7 +9692,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":1079
+  /* "chistogramnd.pyx":1183
  *                                           float weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_float_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9763,7 +9702,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
   __pyx_r = histogramnd_int32_t_float_float((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":1066
+  /* "chistogramnd.pyx":1170
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_float_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -9776,7 +9715,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_float_float(__Pyx_memview
   return __pyx_r;
 }
 
-/* "chistogramnd.pyx":1097
+/* "chistogramnd.pyx":1201
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -9794,7 +9733,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
 
-  /* "chistogramnd.pyx":1110
+  /* "chistogramnd.pyx":1214
  *                                             numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9803,7 +9742,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_1 = 0;
 
-  /* "chistogramnd.pyx":1111
+  /* "chistogramnd.pyx":1215
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_float(&sample[0],
  *                                                            &weights[0],             # <<<<<<<<<<<<<<
@@ -9812,7 +9751,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_2 = 0;
 
-  /* "chistogramnd.pyx":1114
+  /* "chistogramnd.pyx":1218
  *                                                            n_dims,
  *                                                            n_elem,
  *                                                            &bins_rng[0],             # <<<<<<<<<<<<<<
@@ -9821,7 +9760,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_3 = 0;
 
-  /* "chistogramnd.pyx":1115
+  /* "chistogramnd.pyx":1219
  *                                                            n_elem,
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],             # <<<<<<<<<<<<<<
@@ -9830,7 +9769,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_4 = 0;
 
-  /* "chistogramnd.pyx":1116
+  /* "chistogramnd.pyx":1220
  *                                                            &bins_rng[0],
  *                                                            &n_bins[0],
  *                                                            &histo[0],             # <<<<<<<<<<<<<<
@@ -9839,7 +9778,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_5 = 0;
 
-  /* "chistogramnd.pyx":1117
+  /* "chistogramnd.pyx":1221
  *                                                            &n_bins[0],
  *                                                            &histo[0],
  *                                                            &cumul[0],             # <<<<<<<<<<<<<<
@@ -9848,7 +9787,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_6 = 0;
 
-  /* "chistogramnd.pyx":1118
+  /* "chistogramnd.pyx":1222
  *                                                            &histo[0],
  *                                                            &cumul[0],
  *                                                            &bin_edges[0],             # <<<<<<<<<<<<<<
@@ -9857,7 +9796,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
  */
   __pyx_t_7 = 0;
 
-  /* "chistogramnd.pyx":1110
+  /* "chistogramnd.pyx":1214
  *                                             numpy.int32_t weight_max) nogil:
  * 
  *     return histogramnd_c.histogramnd_int32_t_int32_t_float(&sample[0],             # <<<<<<<<<<<<<<
@@ -9867,7 +9806,7 @@ static int __pyx_f_12chistogramnd__histogramnd_int32_t_int32_t_float(__Pyx_memvi
   __pyx_r = histogramnd_int32_t_int32_t_float((&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_sample.data + __pyx_t_1 * __pyx_v_sample.strides[0]) )))), (&(*((__pyx_t_5numpy_int32_t *) ( /* dim=0 */ (__pyx_v_weights.data + __pyx_t_2 * __pyx_v_weights.strides[0]) )))), __pyx_v_n_dims, __pyx_v_n_elem, (&(*((double *) ( /* dim=0 */ (__pyx_v_bins_rng.data + __pyx_t_3 * __pyx_v_bins_rng.strides[0]) )))), (&(*((int *) ( /* dim=0 */ (__pyx_v_n_bins.data + __pyx_t_4 * __pyx_v_n_bins.strides[0]) )))), (&(*((__pyx_t_5numpy_uint32_t *) ( /* dim=0 */ (__pyx_v_histo.data + __pyx_t_5 * __pyx_v_histo.strides[0]) )))), (&(*((float *) ( /* dim=0 */ (__pyx_v_cumul.data + __pyx_t_6 * __pyx_v_cumul.strides[0]) )))), (&(*((double *) ( /* dim=0 */ (__pyx_v_bin_edges.data + __pyx_t_7 * __pyx_v_bin_edges.strides[0]) )))), __pyx_v_option_flags, __pyx_v_weight_min, __pyx_v_weight_max);
   goto __pyx_L0;
 
-  /* "chistogramnd.pyx":1097
+  /* "chistogramnd.pyx":1201
  * @cython.initializedcheck(False)
  * @cython.nonecheck(False)
  * cdef int _histogramnd_int32_t_int32_t_float(numpy.int32_t[:] sample,             # <<<<<<<<<<<<<<
@@ -23323,10 +23262,10 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_b_O, __pyx_k_O, sizeof(__pyx_k_O), 0, 0, 0, 1},
   {&__pyx_kp_s_Out_of_bounds_on_buffer_access_a, __pyx_k_Out_of_bounds_on_buffer_access_a, sizeof(__pyx_k_Out_of_bounds_on_buffer_access_a), 0, 0, 1, 0},
-  {&__pyx_kp_s_Provided_cumul_array_doesn_t_hav, __pyx_k_Provided_cumul_array_doesn_t_hav, sizeof(__pyx_k_Provided_cumul_array_doesn_t_hav), 0, 0, 1, 0},
-  {&__pyx_kp_s_Provided_cumul_array_doesn_t_hav_2, __pyx_k_Provided_cumul_array_doesn_t_hav_2, sizeof(__pyx_k_Provided_cumul_array_doesn_t_hav_2), 0, 0, 1, 0},
   {&__pyx_kp_s_Provided_histo_array_doesn_t_hav, __pyx_k_Provided_histo_array_doesn_t_hav, sizeof(__pyx_k_Provided_histo_array_doesn_t_hav), 0, 0, 1, 0},
   {&__pyx_kp_s_Provided_histo_array_doesn_t_hav_2, __pyx_k_Provided_histo_array_doesn_t_hav_2, sizeof(__pyx_k_Provided_histo_array_doesn_t_hav_2), 0, 0, 1, 0},
+  {&__pyx_kp_s_Provided_weighted_histo_array_do, __pyx_k_Provided_weighted_histo_array_do, sizeof(__pyx_k_Provided_weighted_histo_array_do), 0, 0, 1, 0},
+  {&__pyx_kp_s_Provided_weighted_histo_array_do_2, __pyx_k_Provided_weighted_histo_array_do_2, sizeof(__pyx_k_Provided_weighted_histo_array_do_2), 0, 0, 1, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_kp_s_Unable_to_convert_item_to_object, __pyx_k_Unable_to_convert_item_to_object, sizeof(__pyx_k_Unable_to_convert_item_to_object), 0, 0, 1, 0},
@@ -23349,9 +23288,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
   {&__pyx_kp_s_contiguous_and_direct, __pyx_k_contiguous_and_direct, sizeof(__pyx_k_contiguous_and_direct), 0, 0, 1, 0},
   {&__pyx_kp_s_contiguous_and_indirect, __pyx_k_contiguous_and_indirect, sizeof(__pyx_k_contiguous_and_indirect), 0, 0, 1, 0},
-  {&__pyx_n_s_cumul, __pyx_k_cumul, sizeof(__pyx_k_cumul), 0, 0, 1, 1},
   {&__pyx_n_s_cumul_c, __pyx_k_cumul_c, sizeof(__pyx_k_cumul_c), 0, 0, 1, 1},
-  {&__pyx_kp_s_cumul_must_be_a_C_CONTIGUOUS_nu, __pyx_k_cumul_must_be_a_C_CONTIGUOUS_nu, sizeof(__pyx_k_cumul_must_be_a_C_CONTIGUOUS_nu), 0, 0, 1, 0},
   {&__pyx_n_s_date, __pyx_k_date, sizeof(__pyx_k_date), 0, 0, 1, 1},
   {&__pyx_n_s_double, __pyx_k_double, sizeof(__pyx_k_double), 0, 0, 1, 1},
   {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
@@ -23435,6 +23372,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_w_shape, __pyx_k_w_shape, sizeof(__pyx_k_w_shape), 0, 0, 1, 1},
   {&__pyx_n_s_weight_max, __pyx_k_weight_max, sizeof(__pyx_k_weight_max), 0, 0, 1, 1},
   {&__pyx_n_s_weight_min, __pyx_k_weight_min, sizeof(__pyx_k_weight_min), 0, 0, 1, 1},
+  {&__pyx_n_s_weighted_histo, __pyx_k_weighted_histo, sizeof(__pyx_k_weighted_histo), 0, 0, 1, 1},
+  {&__pyx_kp_s_weighted_histo_must_be_a_C_CONT, __pyx_k_weighted_histo_must_be_a_C_CONT, sizeof(__pyx_k_weighted_histo_must_be_a_C_CONT), 0, 0, 1, 0},
   {&__pyx_n_s_weights, __pyx_k_weights, sizeof(__pyx_k_weights), 0, 0, 1, 1},
   {&__pyx_n_s_weights_c, __pyx_k_weights_c, sizeof(__pyx_k_weights_c), 0, 0, 1, 1},
   {&__pyx_kp_s_weights_must_be_an_array_whose, __pyx_k_weights_must_be_an_array_whose, sizeof(__pyx_k_weights_must_be_an_array_whose), 0, 0, 1, 0},
@@ -23444,11 +23383,11 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 525; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 530; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 627; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 629; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 634; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 277; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 799; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 145; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -23468,100 +23407,100 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "chistogramnd.pyx":49
+  /* "chistogramnd.pyx":153
  * 
- *     if cumul is not None and cumul.flags['C_CONTIGUOUS'] is False:
- *         raise ValueError('<cumul> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
+ *     if weighted_histo is not None and weighted_histo.flags['C_CONTIGUOUS'] is False:
+ *         raise ValueError('<weighted_histo> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
  * 
  *     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_cumul_must_be_a_C_CONTIGUOUS_nu); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 49; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_weighted_histo_must_be_a_C_CONT); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "chistogramnd.pyx":52
+  /* "chistogramnd.pyx":156
  * 
  *     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
  *         raise ValueError('<histo> must be a C_CONTIGUOUS numpy array.')             # <<<<<<<<<<<<<<
  * 
  *     s_shape = sample.shape
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_histo_must_be_a_C_CONTIGUOUS_nu); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 52; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_histo_must_be_a_C_CONTIGUOUS_nu); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "chistogramnd.pyx":64
+  /* "chistogramnd.pyx":168
  *         # 2 different cases : 2D sample (N,M) and 1D (N)
  *         if len(w_shape) != 1 or w_shape[0] != s_shape[0]:
  *                 raise ValueError('<weights> must be an array whose length '             # <<<<<<<<<<<<<<
  *                                  'is equal to the number of samples.')
  * 
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_weights_must_be_an_array_whose); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_weights_must_be_an_array_whose); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "chistogramnd.pyx":79
+  /* "chistogramnd.pyx":183
  * 
  *     if n_dims == 1:
  *         if bins_rng.shape == (2,):             # <<<<<<<<<<<<<<
  *             pass
  *         elif bins_rng.shape == (1, 2):
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 79; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_int_2); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "chistogramnd.pyx":81
+  /* "chistogramnd.pyx":185
  *         if bins_rng.shape == (2,):
  *             pass
  *         elif bins_rng.shape == (1, 2):             # <<<<<<<<<<<<<<
  *             bins_rng.shape = -1
  *         else:
  */
-  __pyx_tuple__5 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_2); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 81; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__5 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_2); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "chistogramnd.pyx":102
+  /* "chistogramnd.pyx":206
  *         n_bins = np.tile(n_bins, n_dims)
  *     elif n_bins.shape != (n_dims,):
  *         raise ValueError('n_bins must be either a scalar (same number '             # <<<<<<<<<<<<<<
  *                          'of bins for all dimensions) or '
  *                          'an array (number of bins for each '
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_n_bins_must_be_either_a_scalar_s); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 102; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_n_bins_must_be_either_a_scalar_s); if (unlikely(!__pyx_tuple__6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 206; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "chistogramnd.pyx":111
+  /* "chistogramnd.pyx":215
  *     # also testing for negative/null values
  *     if np.any(np.equal(n_bins, None)) or np.any(n_bins <= 0):
  *         raise ValueError('<n_bins> : only positive values allowed.')             # <<<<<<<<<<<<<<
  * 
  *     output_shape = tuple(n_bins)
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_n_bins_only_positive_values_all); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 111; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_n_bins_only_positive_values_all); if (unlikely(!__pyx_tuple__7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 215; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "chistogramnd.pyx":172
+  /* "chistogramnd.pyx":276
  *     # functions. so I have to explicitly list them all...
  * 
  *     def raise_unsupported_type():             # <<<<<<<<<<<<<<
  *         raise TypeError('Case not supported - sample:{0} '
  *                         'and weights:{1}.'
  */
-  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_naudet_workspace_dau_devs, __pyx_n_s_raise_unsupported_type, 172, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__8 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_naudet_workspace_dau_devs, __pyx_n_s_raise_unsupported_type, 276, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 276; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-  /* "chistogramnd.pyx":523
+  /* "chistogramnd.pyx":627
  *     if rc != histogramnd_c.HISTO_OK:
  *         if rc == histogramnd_c.HISTO_ERR_ALLOC:
  *             raise MemoryError('histogramnd failed to allocate memory.')             # <<<<<<<<<<<<<<
  *         else:
  *             raise Exception('histogramnd returned an error : {0}'
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_histogramnd_failed_to_allocate_m); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 523; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_s_histogramnd_failed_to_allocate_m); if (unlikely(!__pyx_tuple__9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 627; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
 
@@ -23759,7 +23698,7 @@ static int __Pyx_InitCachedConstants(void) {
  *                  bins_rng,
  *                  n_bins,
  */
-  __pyx_tuple__27 = PyTuple_Pack(33, __pyx_n_s_sample, __pyx_n_s_bins_rng, __pyx_n_s_n_bins, __pyx_n_s_weights, __pyx_n_s_weight_min, __pyx_n_s_weight_max, __pyx_n_s_last_bin_closed, __pyx_n_s_histo, __pyx_n_s_cumul, __pyx_n_s_s_shape, __pyx_n_s_n_dims, __pyx_n_s_w_shape, __pyx_n_s_weights_type, __pyx_n_s_i_bins_rng, __pyx_n_s_err_bins_rng, __pyx_n_s_output_shape, __pyx_n_s_option_flags, __pyx_n_s_sample_type, __pyx_n_s_n_elem, __pyx_n_s_bin_edges, __pyx_n_s_raise_unsupported_type, __pyx_n_s_raise_unsupported_type, __pyx_n_s_sample_c, __pyx_n_s_weights_c, __pyx_n_s_bins_rng_c, __pyx_n_s_n_bins_c, __pyx_n_s_histo_c, __pyx_n_s_cumul_c, __pyx_n_s_bin_edges_c, __pyx_n_s_rc, __pyx_n_s_edges, __pyx_n_s_offset, __pyx_n_s_i_dim); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__27 = PyTuple_Pack(33, __pyx_n_s_sample, __pyx_n_s_bins_rng, __pyx_n_s_n_bins, __pyx_n_s_weights, __pyx_n_s_weight_min, __pyx_n_s_weight_max, __pyx_n_s_last_bin_closed, __pyx_n_s_histo, __pyx_n_s_weighted_histo, __pyx_n_s_s_shape, __pyx_n_s_n_dims, __pyx_n_s_w_shape, __pyx_n_s_weights_type, __pyx_n_s_i_bins_rng, __pyx_n_s_err_bins_rng, __pyx_n_s_output_shape, __pyx_n_s_option_flags, __pyx_n_s_sample_type, __pyx_n_s_n_elem, __pyx_n_s_bin_edges, __pyx_n_s_raise_unsupported_type, __pyx_n_s_raise_unsupported_type, __pyx_n_s_sample_c, __pyx_n_s_weights_c, __pyx_n_s_bins_rng_c, __pyx_n_s_n_bins_c, __pyx_n_s_histo_c, __pyx_n_s_cumul_c, __pyx_n_s_bin_edges_c, __pyx_n_s_rc, __pyx_n_s_edges, __pyx_n_s_offset, __pyx_n_s_i_dim); if (unlikely(!__pyx_tuple__27)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
   __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(9, 0, 33, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_users_naudet_workspace_dau_devs, __pyx_n_s_chistogramnd, 36, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -23845,6 +23784,7 @@ PyMODINIT_FUNC PyInit_chistogramnd(void)
 #endif
 {
   PyObject *__pyx_t_1 = NULL;
+  int __pyx_t_2;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -24024,6 +23964,21 @@ PyMODINIT_FUNC PyInit_chistogramnd(void)
   __Pyx_GOTREF(__pyx_t_1);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_chistogramnd, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 36; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "chistogramnd.pyx":1228
+ * 
+ * 
+ * if __name__=='__main__':             # <<<<<<<<<<<<<<
+ *     pass
+ */
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_name_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_main, Py_EQ)); if (unlikely(__pyx_t_2 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (__pyx_t_2) {
+    goto __pyx_L2;
+  }
+  __pyx_L2:;
 
   /* "chistogramnd.pyx":1
  * # coding: utf-8             # <<<<<<<<<<<<<<
