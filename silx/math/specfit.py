@@ -127,9 +127,9 @@ class Specfit():
 
         self.dataupdate = None      # FIXME: this seems to be unused. Document or remove it
 
-        # TODO: document eh
         if event_handler is not None:
             self.eh = event_handler
+            #: :class:`EventHandler` used for register and sending events
         else:
             self.eh = EventHandler.EventHandler()
 
@@ -171,7 +171,7 @@ class Specfit():
         when :meth:`estimate` is called."""
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        """Set data attributes::
+        """Set data attributes:
 
             - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
               and uncertainties. These attributes are not modified after
@@ -449,7 +449,7 @@ class Specfit():
         starting the estimation and after completing. This event sends a
         `status` (`"Estimate in progress"` or `"Ready to Fit").
         """
-        # TODO: explain estimation process
+        # TODO: explain estimation process
         self.state = 'Estimate in progress'
         self.chisq = None
         fit_status_changed = self.eh.create('FitStatusChanged')
@@ -465,7 +465,7 @@ class Specfit():
                 'SUM',
                 'IGNORE']
 
-        # make sure data are current   # TODO: check if needed
+        # make sure data are current   # TODO: check if needed
         if self.dataupdate is not None:
             if not mcafit:
                 self.dataupdate()
@@ -489,7 +489,7 @@ class Specfit():
             yscaling = self.fitconfig['Yscaling']
         else:
             # FIXME: This might be useless, unless the user explicitly sets
-            # yscaling = None at init or something sets self.fitconfig['Yscaling']=None later
+            # yscaling = None at init or something sets self.fitconfig['Yscaling']=None later
             yscaling = 1.0
 
         # estimate the function
@@ -535,7 +535,7 @@ class Specfit():
                     group_number += 1
 
                 estimation_value = fun_esti_parameters[fun_param_index]
-                constraint_code = CONS[int(fun_esti_constraints[0][fun_param_index])] # FIXME: switch indices in fun_esti_constraints
+                constraint_code = CONS[int(fun_esti_constraints[0][fun_param_index])] # FIXME: switch indices in fun_esti_constraints
                 cons1 = fun_esti_constraints[1][fun_param_index]
                 # cons1 is the index of another fit parameter. In the global
                 # paramlist, we must adjust the index to account for the bg
@@ -574,7 +574,7 @@ class Specfit():
             - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
               where, for each parameter denoted by the index i, the meaning is
 
-                - ``constraints[0][i]``: Constraint code, in:
+                - ``constraints[0][i]``: Constraint code, in:
 
                     - 0: FREE
                     - 1: POSITIVE
@@ -602,7 +602,7 @@ class Specfit():
                     - Sum obtained when adding parameter with index
                       constraints[i][1] if constraints[i][0] is SUM
         """
-        # FIXME: switch indexes in constraints
+        # FIXME: switch indexes in constraints
         fitbkg = self.fitconfig['fitbkg']
         background_estimate_function = self.bkgdict[fitbkg][2]
         if background_estimate_function is not None:
@@ -617,8 +617,8 @@ class Specfit():
         :param x: Sequence of x data
         :param y: sequence of y data
         :param z: ??????????????????
-        :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
-        :param yscaling: Scaling factor for ``y`` data. Default ``None``,
+        :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
+        :param yscaling: Scaling factor for ``y`` data. Default ``None``,
             meaning use value from configuration dictionary
             :attr:`fitconfig` (``'Yscaling'`` field).
         :return: Tuple of two sequences ``(estimated_param, constraints)``:
@@ -628,7 +628,7 @@ class Specfit():
             - ``constraints`` is a 2D sequence of dimension (n_parameters, 3)
               where, for each parameter denoted by the index i, the meaning is
 
-                - constraints[0][i]: Constraint code, in:
+                - constraints[0][i]: Constraint code, in:
 
                     - 0: FREE
                     - 1: POSITIVE
@@ -668,11 +668,13 @@ class Specfit():
         """Import user defined fit functions defined in an external Python
         source file.
 
+        :param file: Name of python source file containing the definition
+            of fit functions.
+
         An example of such a file can be found at
         `https://github.com/vasole/pymca/blob/master/PyMca5/PyMcaMath/fitting/SpecfitFunctions.py`_
+
         Imported functions are saved in :attr:`theorydict`.
-
-
         """
         sys.path.append(os.path.dirname(file))
         f = os.path.basename(os.path.splitext(file)[0])
@@ -689,7 +691,7 @@ class Specfit():
             else None
         configure = newfun.CONFIGURE if hasattr(newfun, "CONFIGURE") else None
 
-        # if theory is a list, we assume all other fit parameters to be lists
+        # if theory is a list, we assume all other fit parameters to be lists
         # of the same length
         if isinstance(theory, list):
             for i in range(len(theory)):
@@ -707,15 +709,19 @@ class Specfit():
     def startfit(self, mcafit=0):
         """
         Launch the fit routine
+
+
         """
+        # Fixme: dataupdate?
         if self.dataupdate is not None:
             if not mcafit:
                 self.dataupdate()
-        FitStatusChanged = self.eh.create('FitStatusChanged')
+
+        fit_status_changed = self.eh.create('FitStatusChanged')
         self.state = 'Fit in progress'
         self.chisq = None
-        self.eh.event(FitStatusChanged, data={'chisq': self.chisq,
-                                              'status': self.state})
+        self.eh.event(fit_status_changed, data={'chisq': self.chisq,
+                                                'status': self.state})
 
         param_list = self.final_theory
         length = len(param_list)
@@ -737,7 +743,7 @@ class Specfit():
         constrains = None if param['code'] in ['FREE', 0, 0.0] else \
             param_constrains
 
-        # FIXME: model_deriv signature is currently model_deriv(parameters, index, x)
+        # FIXME: model_deriv signature is currently model_deriv(parameters, index, x)
         #        it needs to be model_deriv(xdata, parameters, index) when switching to silx.math.fit.curve_fit
         found = curve_fit(self.fitfunction, self.xdata, ywork, param_val,
                           constraints=constrains,
@@ -750,7 +756,7 @@ class Specfit():
 
         self.chisq = found[1]
         self.state = 'Ready'
-        self.eh.event(FitStatusChanged, data={'chisq': self.chisq,
+        self.eh.event(fit_status_changed, data={'chisq': self.chisq,
                                               'status': self.state})
 
     def myderiv(self, param0, index, t0):
@@ -853,7 +859,7 @@ class Specfit():
         """
         Square filter Background
         """
-        # TODO: docstring
+        # TODO: docstring
         # why is this different than bkg_constant?
         # what is pars[0]?
         # what defines the (xmin, xmax) limits of the square function?
@@ -867,7 +873,8 @@ class Specfit():
             functions
         :param x: Abscissa values
         :type x: numpy.ndarray
-        :return: Array of 0 values of the same shape as ``x``
+        :return: Array of 0 values of the same shape as ``x``
+
         """
         return numpy.zeros(x.shape, numpy.float)
 
@@ -878,10 +885,10 @@ class Specfit():
         :param x:
         :param y:
         :return: Tuple ``(fitted_param, constraints, zz)`` where ``fitted_param``
-            is a list of the estimated parameters, ``constraints`` is ? (some kind of
+            is a list of the estimated parameters, ``constraints`` is ? (some kind of
             2D numpy array related to constraints) and zz is ??
         """
-        # TODO: understand and document
+        # TODO: understand and document
         # (this seems to estimate the background parameters)
         self.zz = SpecfitFuns.subac(y, 1.0001, 1000)
         zz = self.zz
@@ -896,7 +903,7 @@ class Specfit():
             # Internal
             fittedpar = [1.000, 10000, 0.0]
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
-            # FIXME: we probably need to change cons[0][i] to cons[i][0]
+            # FIXME: we probably need to change cons[0][i] to cons[i][0]
             cons[0][0] = 3
             cons[0][1] = 3
             cons[0][2] = 3
@@ -1377,7 +1384,7 @@ class Specfit():
         :param y:
         :param width:
         :return:
-        """ # TODO: document
+        """ # TODO: document
         if len(y) == 0:
             if isinstance(y, list):
                 return []
@@ -1419,7 +1426,7 @@ def test():
     fit.setdata(x=x, y=y)
     #fit.importfun(os.path.join(os.path.dirname(
     #    __file__), "SpecfitFunctions.py"))
-    fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)  # FIXME: beurk
+    fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)  # FIXME
     fit.settheory('Gaussians')
     fit.setbackground('Constant')
     if 1:
