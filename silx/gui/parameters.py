@@ -844,7 +844,7 @@ def main(args):
     fit.setbackground('Linear')
     fit.estimate()
     fit.startfit()
-    tab.fillfromfit(fit.paramlist)
+    tab.fillfromfit(fit.fit_results)
     tab.show()
     app.lastWindowClosed.connect(app.quit)
     app.exec_()

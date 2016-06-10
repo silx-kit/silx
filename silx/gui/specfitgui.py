@@ -307,11 +307,11 @@ class SpecfitGui(qt.QWidget):
                 msg.exec_()
                 return
             self.guiparameters.fillfromfit(
-                self.specfit.paramlist, current='Fit')
+                self.specfit.fit_results, current='Fit')
             self.guiparameters.removeallviews(keep='Fit')
             ddict = {}
             ddict['event'] = 'EstimateFinished'
-            ddict['data'] = self.specfit.paramlist
+            ddict['data'] = self.specfit.fit_results
             self._emitSignal(ddict)
 
         return
@@ -338,11 +338,11 @@ class SpecfitGui(qt.QWidget):
             self._emitSignal(ddict)
             # self.guiparameters.removeview(view='Fit')
         else:
-            # for param in self.specfit.paramlist:
+            # for param in self.specfit.fit_results:
             #    print param['name'],param['group'],param['estimation']
-            self.specfit.paramlist = self.guiparameters.fillfitfromtable()
+            self.specfit.fit_results = self.guiparameters.fillfitfromtable()
             if DEBUG:
-                for param in self.specfit.paramlist:
+                for param in self.specfit.fit_results:
                     print(param['name'], param['group'], param['estimation'])
                 print("TESTING")
                 self.specfit.startfit()
@@ -357,11 +357,11 @@ class SpecfitGui(qt.QWidget):
                     raise
                 return
             self.guiparameters.fillfromfit(
-                self.specfit.paramlist, current='Fit')
+                self.specfit.fit_results, current='Fit')
             self.guiparameters.removeallviews(keep='Fit')
             ddict = {}
             ddict['event'] = 'FitFinished'
-            ddict['data'] = self.specfit.paramlist
+            ddict['data'] = self.specfit.fit_results
             self._emitSignal(ddict)
         return
 
@@ -472,11 +472,11 @@ class SpecfitGui(qt.QWidget):
         return
 
     def __initialparameters(self):
-        self.specfit.final_theory = []
-        self.specfit.paramlist = []
+        self.specfit.parameter_names = []
+        self.specfit.fit_results = []
         for pname in self.specfit.bkgdict[self.specfit.fitconfig['fitbkg']][1]:
-            self.specfit.final_theory.append(pname)
-            self.specfit.paramlist.append({'name': pname,
+            self.specfit.parameter_names.append(pname)
+            self.specfit.fit_results.append({'name': pname,
                                            'estimation': 0,
                                            'group': 0,
                                            'code': 'FREE',
@@ -488,8 +488,8 @@ class SpecfitGui(qt.QWidget):
                                            'xmax': None})
         if self.specfit.fitconfig['fittheory'] is not None:
             for pname in self.specfit.theorydict[self.specfit.fitconfig['fittheory']][1]:
-                self.specfit.final_theory.append(pname + "1")
-                self.specfit.paramlist.append({'name': pname + "1",
+                self.specfit.parameter_names.append(pname + "1")
+                self.specfit.fit_results.append({'name': pname + "1",
                                                'estimation': 0,
                                                'group': 1,
                                                'code': 'FREE',
@@ -501,11 +501,11 @@ class SpecfitGui(qt.QWidget):
                                                'xmax': None})
         if self.specfit.fitconfig['McaMode']:
             self.guiparameters.fillfromfit(
-                self.specfit.paramlist, current='Region 1')
+                self.specfit.fit_results, current='Region 1')
             self.guiparameters.removeallviews(keep='Region 1')
         else:
             self.guiparameters.fillfromfit(
-                self.specfit.paramlist, current='Fit')
+                self.specfit.fit_results, current='Fit')
             self.guiparameters.removeallviews(keep='Fit')
         return
 

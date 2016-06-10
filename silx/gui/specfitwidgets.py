@@ -669,7 +669,7 @@ def test():
     # w.fillfrommca(mcaresult)
     fit.estimate()
     fit.startfit()
-    w.fillfromfit(fit.paramlist, current='Fit')
+    w.fillfromfit(fit.fit_results, current='Fit')
     w.removeview(view='Region 1')
     a.exec_()
 
