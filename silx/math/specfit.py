@@ -60,21 +60,21 @@ class Specfit():
     """
     Multi-peak fitting functions manager
 
-    Data attributes::
+    Data attributes:
 
-     - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
+     - :attr:`xdata0`, :attr:`ydata0` and :attr:`sigmay0` store the initial data
        and uncertainties. These attributes are not modified after
        initialization.
-     - ``xdata``, ``ydata`` and ``sigmay`` store the data after
-       removing values where ``xdata < xmin`` or ``xdata > xmax``.
+     - :attr:`xdata`, :attr:`ydata` and :attr:`sigmay` store the data after
+       removing values where :attr:`xdata < xmin` or :attr:`xdata > xmax`.
        These attributes may be modified at a latter stage by filters.
     """
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=0, fwhm_points=8,
-                 auto_scaling=0, yscaling=1.0, sensitivity=2.5,
+                 auto_scaling=False, yscaling=1.0, sensitivity=2.5,
                  residuals_flag=0, mca_mode=0, event_handler=None):
         """
-        :param x: Abscissa data. If ``None``, ``self.xdata`` is set to
+        :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
             ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
         :type x: Sequence or numpy array or None
         :param y: The dependant data ``y = f(x)``. ``y`` must have the same
@@ -87,8 +87,11 @@ class Specfit():
 
         :param auto_fwhm:
         :param fwhm_points:
-        :param auto_scaling:
-        :param yscaling:
+        :param auto_scaling: Enable on disable auto-scaling based on y data.
+            If ``True``, init argument ``yscaling`` is ignored and
+            :attr:`fitconfig` ``['Yscaling']`` is calculated based on data.
+            If ``False``, ``yscaling`` is used.
+        :param yscaling: Scaling parameter for ``y`` data.
         :param sensitivity:
         :param residuals_flag:
         :param mca_mode:
@@ -162,6 +165,11 @@ class Specfit():
 
         self.setdata(x, y, sigmay)
 
+        self.final_theory = []
+        """This list will contain all fit parameter names: background function
+        parameters and fit function parameters for every peak. It is filled
+        when :meth:`estimate` is called."""
+
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data attributes::
 
@@ -173,7 +181,7 @@ class Specfit():
               These attributes may be modified at a latter stage by filters.
 
 
-        :param x: Abscissa data. If ``None``, ``self.xdata`` is set to
+        :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
             ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
         :type x: Sequence or numpy array or None
         :param y: The dependant data ``y = f(x)``. ``y`` must have the same
@@ -206,6 +214,7 @@ class Specfit():
 
             # default weight in the least-square problem is 1.
             if sigmay is None:
+                self.sigmay0 = numpy.ones(self.ydata.shape, dtype=numpy.float)
                 self.sigmay = numpy.ones(self.ydata.shape, dtype=numpy.float)
             else:
                 self.sigmay0 = numpy.array(sigmay)
@@ -234,11 +243,11 @@ class Specfit():
     #     applied, or none of them.
     #
     #     :param xwork: Abscissa values of data to be filtered.
-    #         If ``None``, use ``self.xdata0``
+    #         If ``None``, use :attr:`xdata0``
     #     :param ywork: Ordinate values of data to be filtered.
-    #         If ``None``, use ``self.ydata0``
+    #         If ``None``, use :attr:`ydata0``
     #     :param sigmaywork: Uncertainties of ``ywork``.
-    #         If ``None``, use ``self.sigmay0``
+    #         If ``None``, use :attr:`sigmay0``
     #     :return: Number of filters successfully applied. If this value is
     #         lower than ``len(self.filterlist)``, this method failed and
     #         data was left unchanged.
@@ -272,7 +281,7 @@ class Specfit():
     #     return len(self.filterlist)
     #
     # def addfilter(self, filterfun, filtername="Unknown", *vars, **kw):
-    #     """Append a filter to ``self.filterlist``.
+    #     """Append a filter to :attr:`filterlist``.
     #
     #     :param filterfun: Filter function. This function must have the
     #         following signature::
@@ -288,7 +297,7 @@ class Specfit():
     # def deletefilter(self, filter_indices=None, filter_name=None):
     #     """
     #     Deletes all specified filters from the internal list of filters
-    #     (``self.filterlist``).
+    #     (:attr:`filterlist``).
     #
     #     :param filter_indices: List of indices of filters to be removed
     #     :param filter_name: Name of filter to be removed
@@ -321,7 +330,7 @@ class Specfit():
 
     def addtheory(self, theory, function, parameters, estimate=None,
                   configure=None, derivative=None):
-        """Add a new theory to dictionary ``self.theorydict``.
+        """Add a new theory to dictionary :attr:`theorydict`.
 
         :param theory: String with the name describing the function
         :param function: Actual peak function
@@ -338,7 +347,7 @@ class Specfit():
                                    estimate, configure, derivative]
 
     def addbackground(self, background, function, parameters, estimate=None):
-        """Add a new background function to dictionary ``self.bkgdict``.
+        """Add a new background function to dictionary :attr:`bkgdict`.
 
         :param background: String with the name describing the function
         :param function: Actual function
@@ -348,16 +357,16 @@ class Specfit():
         self.bkgdict[background] = [function, parameters, estimate]
 
     def settheory(self, theory):
-        """Pick a theory from ``self.theorydict``.
+        """Pick a theory from :attr:`theorydict`.
 
         This updates the following attributes:
 
-            - ``fitconfig['fittheory']``
-            - ``theoryfun``
-            - ``modelderiv``
+            - :attr:`fitconfig` ``['fittheory']``
+            - :attr:`theoryfun`
+            - :attr:`modelderiv`
 
         :param theory: Name of the theory to be used.
-        :raise: KeyError if ``theory`` is not a key of ``self.theorydict``.
+        :raise: KeyError if ``theory`` is not a key of :attr:`theorydict`.
         """
         if theory in self.theorydict:
             self.fitconfig['fittheory'] = theory
@@ -372,15 +381,15 @@ class Specfit():
             raise KeyError(msg)
 
     def setbackground(self, theory):
-        """Choose a background type from within ``self.bkgdict``.
+        """Choose a background type from within :attr:`bkgdict``.
 
         This updates the following attributes:
 
-            - ``fitconfig['fitbkg']``
-            - ``bkgfun``
+            - :attr:`fitconfig` ``['fitbkg']``
+            - :attr:`bkgfun`
 
         :param theory: The name of the background to be used.
-        :raise: KeyError if ``theory`` is not a key of ``self.bkgdict``.
+        :raise: KeyError if ``theory`` is not a key of :attr:`bkgdict``.
         """
         if theory in self.bkgdict:
             self.fitconfig['fitbkg'] = theory
@@ -435,12 +444,17 @@ class Specfit():
     def estimate(self, mcafit=0):
         """
         Fill the parameters entries with an estimation made on the given data.
+
+        This method registers and sends a ``'FitStatusChanged'`` event, before
+        starting the estimation and after completing. This event sends a
+        `status` (`"Estimate in progress"` or `"Ready to Fit").
         """
+        # TODO: explain estimation process
         self.state = 'Estimate in progress'
         self.chisq = None
-        FitStatusChanged = self.eh.create('FitStatusChanged')
-        self.eh.event(FitStatusChanged, data={'chisq': self.chisq,
-                                              'status': self.state})
+        fit_status_changed = self.eh.create('FitStatusChanged')
+        self.eh.event(fit_status_changed, data={'chisq': self.chisq,
+                                                'status': self.state})
 
         CONS = ['FREE',
                 'POSITIVE',
@@ -451,115 +465,202 @@ class Specfit():
                 'SUM',
                 'IGNORE']
 
-        # make sure data are current
+        # make sure data are current   # TODO: check if needed
         if self.dataupdate is not None:
             if not mcafit:
                 self.dataupdate()
 
-        xx = self.xdata
-        yy = self.ydata
+        xwork = self.xdata
+        ywork = self.ydata
 
         # estimate the background
-        esti_bkg = self.estimate_bkg(xx, yy)
+        esti_bkg = self.estimate_bkg(xwork, ywork)
         bkg_esti_parameters = esti_bkg[0]
-        bkg_esti_constrains = esti_bkg[1]
+        bkg_esti_constraints = esti_bkg[1]
         try:
             zz = numpy.array(esti_bkg[2])
-        except:   # FIXME
-            zz = numpy.zeros(numpy.shape(yy), numpy.float)
-        # added scaling support
-        yscaling = 1.0
-        if 'AutoScaling' in self.fitconfig:
-            if self.fitconfig['AutoScaling']:
-                yscaling = self.guess_yscaling(y=yy)
-            else:
-                if 'Yscaling' in self.fitconfig:
-                    yscaling = self.fitconfig['Yscaling']
-                else:
-                    self.fitconfig['Yscaling'] = yscaling
+        except IndexError:
+            zz = numpy.zeros(numpy.shape(ywork), numpy.float)
+
+        # scaling
+        if self.fitconfig['AutoScaling']:
+            yscaling = self.guess_yscaling(y=ywork)
+        elif self.fitconfig['Yscaling'] is not None:
+            yscaling = self.fitconfig['Yscaling']
         else:
-            self.fitconfig['AutoScaling'] = 0
-            if 'Yscaling' in self.fitconfig:
-                yscaling = self.fitconfig['Yscaling']
-            else:
-                self.fitconfig['Yscaling'] = yscaling
+            # FIXME: This might be useless, unless the user explicitly sets
+            # yscaling = None at init or something sets self.fitconfig['Yscaling']=None later
+            yscaling = 1.0
 
         # estimate the function
-        estimation = self.estimate_fun(
-            xx, yy, zz, xscaling=1.0, yscaling=yscaling)
-        fun_esti_parameters = estimation[0]
-        fun_esti_constrains = estimation[1]
-        # estimations are made
+        esti_fun = self.estimate_fun(xwork, ywork, zz, yscaling=yscaling)
+
+        fun_esti_parameters = esti_fun[0]
+        fun_esti_constraints = esti_fun[1]
+
         # build the names
         self.final_theory = []
-        for i in self.bkgdict[self.fitconfig['fitbkg']][1]:
-            self.final_theory.append(i)
-        i = 0
-        j = 1
-        while (i < len(fun_esti_parameters)):
-            for k in self.theorydict[self.fitconfig['fittheory']][1]:
-                self.final_theory.append(k + "%d" % j)
-                i = i + 1
-            j = j + 1
+
+        fitbkg = self.fitconfig['fitbkg']
+        for bg_param_name in self.bkgdict[fitbkg][1]:
+            self.final_theory.append(bg_param_name)
+
+        fittheory = self.fitconfig['fittheory']
+        param_index, peak_index = 0, 0
+        while param_index < len(fun_esti_parameters):
+            peak_index += 1
+            for fun_param_name in self.theorydict[fittheory][1]:
+                self.final_theory.append(fun_param_name + "%d" % peak_index)
+                param_index += 1
 
         self.paramlist = []
-        param = self.final_theory
-        j = 0
-        i = 0
-        k = 0
-        xmin = min(xx)
-        xmax = max(xx)
-        # print "xmin = ",xmin,"xmax = ",xmax
-        for pname in self.final_theory:
-            if i < len(bkg_esti_parameters):
-                self.paramlist.append({'name': pname,
-                                       'estimation': bkg_esti_parameters[i],
-                                       'group': 0,
-                                       'code': CONS[int(bkg_esti_constrains[0][i])],
-                                       'cons1': bkg_esti_constrains[1][i],
-                                       'cons2': bkg_esti_constrains[2][i],
-                                       'fitresult': 0.0,
-                                       'sigma': 0.0,
-                                       'xmin': xmin,
-                                       'xmax': xmax})
-                i = i + 1
+        nb_fun_params_per_group = len(self.theorydict[fittheory][1])
+        group_number = 0 #k
+        xmin = min(xwork)
+        xmax = max(xwork)
+        nb_bg_params = len(bkg_esti_parameters)
+        for (pindex, pname) in enumerate(self.final_theory):
+            # First come background parameters
+            if pindex < nb_bg_params:
+                estimation_value = bkg_esti_parameters[pindex]
+                constraint_code = CONS[int(bkg_esti_constraints[0][pindex])]
+                cons1 = bkg_esti_constraints[1][pindex]
+                cons2 = bkg_esti_constraints[2][pindex]
+            # then come peak function parameters
             else:
-                if (j % len(self.theorydict[self.fitconfig['fittheory']][1])) == 0:
-                    k = k + 1
-                if (CONS[int(fun_esti_constrains[0][j])] == "FACTOR") or \
-                   (CONS[int(fun_esti_constrains[0][j])] == "DELTA"):
-                    fun_esti_constrains[1][j] += len(bkg_esti_parameters)
-                self.paramlist.append({'name': pname,
-                                       'estimation': fun_esti_parameters[j],
-                                       'group': k,
-                                       'code': CONS[int(fun_esti_constrains[0][j])],
-                                       'cons1': fun_esti_constrains[1][j],
-                                       'cons2': fun_esti_constrains[2][j],
-                                       'fitresult': 0.0,
-                                       'sigma': 0.0,
-                                       'xmin': xmin,
-                                       'xmax': xmax})
-                j += 1
+                fun_param_index = pindex - nb_bg_params
+
+                # increment group_number for each new fitted peak
+                if (fun_param_index % nb_fun_params_per_group) == 0:
+                    group_number += 1
+
+                estimation_value = fun_esti_parameters[fun_param_index]
+                constraint_code = CONS[int(fun_esti_constraints[0][fun_param_index])] # FIXME: switch indices in fun_esti_constraints
+                cons1 = fun_esti_constraints[1][fun_param_index]
+                # cons1 is the index of another fit parameter. In the global
+                # paramlist, we must adjust the index to account for the bg
+                # params added to the start of the list.
+                if constraint_code in ["FACTOR", "DELTA", "SUM"]:
+                    cons1 += nb_bg_params
+                cons2 = fun_esti_constraints[2][fun_param_index]
+
+            self.paramlist.append({'name': pname,
+                                   'estimation': estimation_value,
+                                   'group': group_number,
+                                   'code': constraint_code,
+                                   'cons1': cons1,
+                                   'cons2': cons2,
+                                   'fitresult': 0.0,
+                                   'sigma': 0.0,
+                                   'xmin': xmin,
+                                   'xmax': xmax})
 
         self.state = 'Ready to Fit'
         self.chisq = None
-        self.eh.event(FitStatusChanged, data={'chisq': self.chisq,
-                                              'status': self.state})
+        self.eh.event(fit_status_changed, data={'chisq': self.chisq,
+                                                'status': self.state})
         return self.paramlist
 
-    def estimate_bkg(self, xx, yy):
-        if self.bkgdict[self.fitconfig['fitbkg']][2] is not None:
-            return self.bkgdict[self.fitconfig['fitbkg']][2](xx, yy)
+    def estimate_bkg(self, x, y):
+        """Estimate background parameters using the function defined in
+        the current fit configuration.
+
+        :param x: Sequence of x data
+        :param y: sequence of y data
+        :return: Tuple of two sequences ``(estimated_param, constraints)``:
+
+            - ``estimated_param`` is a list of estimated values for each
+              background parameter.
+            - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
+              where, for each parameter denoted by the index i, the meaning is
+
+                - ``constraints[0][i]``: Constraint code, in:
+
+                    - 0: FREE
+                    - 1: POSITIVE
+                    - 2: QUOTED
+                    - 3: FIXED
+                    - 4: FACTOR
+                    - 5: DELTA
+                    - 6: SUM
+                    - 7: IGNORE
+
+                - ``constraints[1][i]``
+
+                    - Ignored if constraints[0] is 0, 1, 3
+                    - Min value of the parameter if constraints[i][0] is QUOTED
+                    - Index of fitted parameter to which it is related
+
+                - ``constraints[2][i]``
+
+                    - Ignored if constraints[0][i] is 0, 1, 3
+                    - Max value of the parameter if constraints[i][0] is QUOTED
+                    - Factor to apply to related parameter with index
+                      constraints[i][1] if constraints[i][0] is FACTOR
+                    - Difference with parameter with index constraints[i][1]
+                      if constraints[i][0] is DELTA
+                    - Sum obtained when adding parameter with index
+                      constraints[i][1] if constraints[i][0] is SUM
+        """
+        # FIXME: switch indexes in constraints
+        fitbkg = self.fitconfig['fitbkg']
+        background_estimate_function = self.bkgdict[fitbkg][2]
+        if background_estimate_function is not None:
+            return background_estimate_function(x, y)
         else:
             return [], [[], [], []]
 
-    def estimate_fun(self, xx, yy, zz, xscaling=1.0, yscaling=None):
-        if self.theorydict[self.fitconfig['fittheory']][2] is not None:
-            return self.theorydict[self.fitconfig['fittheory']][2](xx,
-                                                                   yy,
-                                                                   zz,
-                                                                   xscaling=xscaling,
-                                                                   yscaling=yscaling)
+    def estimate_fun(self, x, y, z, xscaling=1.0, yscaling=None):
+        """Estimate background parameters using the function defined in
+        the current fit configuration.
+
+        :param x: Sequence of x data
+        :param y: sequence of y data
+        :param z: ??????????????????
+        :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
+        :param yscaling: Scaling factor for ``y`` data. Default ``None``,
+            meaning use value from configuration dictionary
+            :attr:`fitconfig` (``'Yscaling'`` field).
+        :return: Tuple of two sequences ``(estimated_param, constraints)``:
+
+            - ``estimated_param`` is a list of estimated values for each
+              background parameter.
+            - ``constraints`` is a 2D sequence of dimension (n_parameters, 3)
+              where, for each parameter denoted by the index i, the meaning is
+
+                - constraints[0][i]: Constraint code, in:
+
+                    - 0: FREE
+                    - 1: POSITIVE
+                    - 2: QUOTED
+                    - 3: FIXED
+                    - 4: FACTOR
+                    - 5: DELTA
+                    - 6: SUM
+                    - 7: IGNORE
+
+                - constraints[1][i]
+
+                    - Ignored if constraints[0] is 0, 1, 3
+                    - Min value of the parameter if constraints[i][0] is QUOTED
+                    - Index of fitted parameter to which it is related
+
+                - constraints[2][i]
+
+                    - Ignored if constraints[0][i] is 0, 1, 3
+                    - Max value of the parameter if constraints[i][0] is QUOTED
+                    - Factor to apply to related parameter with index
+                      constraints[i][1] if constraints[i][0] is FACTOR
+                    - Difference with parameter with index constraints[i][1]
+                      if constraints[i][0] is DELTA
+                    - Sum obtained when adding parameter with index
+                      constraints[i][1] if constraints[i][0] is SUM
+        """
+        fittheory = self.fitconfig['fittheory']
+        estimatefunction = self.theorydict[fittheory][2]
+        if estimatefunction is not None:
+            return estimatefunction(x, y, z,
+                                    xscaling=xscaling, yscaling=yscaling)
         else:
             return [], [[], [], []]
 
@@ -569,6 +670,7 @@ class Specfit():
 
         An example of such a file can be found at
         `https://github.com/vasole/pymca/blob/master/PyMca5/PyMcaMath/fitting/SpecfitFunctions.py`_
+        Imported functions are saved in :attr:`theorydict`.
 
 
         """
@@ -698,8 +800,7 @@ class Specfit():
         :param pars: Background function parameters: ``(constant, )``
         :param x: Abscissa values
         :type x: numpy.ndarray
-        :return: Array of the same shape as ``x`` filled with constant values
-        :rtype: numpy.ndarray
+        :return: Array of the same shape as ``x`` filled with constant value
         """
         return pars[0] * numpy.ones(numpy.shape(x), numpy.float)
 
@@ -709,8 +810,7 @@ class Specfit():
         :param pars: Background function parameters: ``(constant, slope)``
         :param x: Abscissa values
         :type x: numpy.ndarray
-        :return: Array ``y = constant + slope * x``
-        :rtype: numpy.ndarray
+        :return: Array ``y = constant + slope * x``
         """
         return pars[0] + pars[1] * x
 
@@ -767,24 +867,23 @@ class Specfit():
             functions
         :param x: Abscissa values
         :type x: numpy.ndarray
-        :return: Array of 0 values of the same shape as x
-        :rtype: numpy.ndarray
+        :return: Array of 0 values of the same shape as ``x``
         """
         return numpy.zeros(x.shape, numpy.float)
 
-    def estimate_builtin_bkg(self, xx, yy):
+    def estimate_builtin_bkg(self, x, y):
         """Compute the initial parameters for the background function before
         starting the iterative fit.
 
-        :param xx:
-        :param yy:
-        :return: Tuple ``(fitted_param, cons, zz)`` where ``fitted_param``
-            is a list of the estimated parameters, ``xx`` is ? (some kind of
-            2D numpy array related to constaints) and zz is ??
+        :param x:
+        :param y:
+        :return: Tuple ``(fitted_param, constraints, zz)`` where ``fitted_param``
+            is a list of the estimated parameters, ``constraints`` is ? (some kind of
+            2D numpy array related to constraints) and zz is ??
         """
         # TODO: understand and document
         # (this seems to estimate the background parameters)
-        self.zz = SpecfitFuns.subac(yy, 1.0001, 1000)
+        self.zz = SpecfitFuns.subac(y, 1.0001, 1000)
         zz = self.zz
         npoints = len(zz)
         if self.fitconfig['fitbkg'] == 'Constant':
@@ -819,9 +918,9 @@ class Specfit():
         else:  # Linear
             S = float(npoints)
             Sy = numpy.sum(zz)
-            Sx = float(numpy.sum(xx))
-            Sxx = float(numpy.sum(xx * xx))
-            Sxy = float(numpy.sum(xx * zz))
+            Sx = float(numpy.sum(x))
+            Sxx = float(numpy.sum(x * x))
+            Sxy = float(numpy.sum(x * zz))
 
             deno = S * Sxx - (Sx * Sx)
             if (deno != 0):
