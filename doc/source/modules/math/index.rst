@@ -8,3 +8,4 @@
    :maxdepth: 1
    
    histogramnd.rst
+   specfit.rst
