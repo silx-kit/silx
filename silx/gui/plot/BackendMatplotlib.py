@@ -35,7 +35,6 @@ import sys
 import numpy
 
 
-logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 if 'matplotlib' in sys.modules:
@@ -86,6 +85,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
     def __init__(self, plot, parent=None):
         super(BackendMatplotlib, self).__init__(plot, parent)
 
+        # matplotlib is handling keep aspect ratio at draw time
+        # When keep aspect ratio is on, and one changes the limits and
+        # ask them *before* next draw has been performed he will get the
+        # limits without applying keep aspect ratio.
+        # This attribute is used to ensure consistent values returned
+        # when getting the limits at the expense of a replot
+        self._dirtyLimits = True
+
         self.fig = Figure()
         self.fig.set_facecolor("w")
 
@@ -110,8 +117,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.matplotlibVersion = matplotlib.__version__
 
         self.setGraphXLimits(0., 100.)
-        self.setGraphYLimits(0., 100., axis='left')
         self.setGraphYLimits(0., 100., axis='right')
+        self.setGraphYLimits(0., 100., axis='left')
 
         self._enableAxis('right', False)
 
@@ -543,6 +550,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         # TODO images, markers? scatter plot? move in remove?
         # Right Y axis only support curve for now
         # Hide right Y axis if no line is present
+        self._dirtyLimits = False
         if not self.ax2.lines:
             self._enableAxis('right', False)
 
@@ -604,8 +612,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if not xAuto and yAuto:
                 self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
-                self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
                 self.setGraphYLimits(y2Limits[0], y2Limits[1], axis='right')
+                self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
 
     def _getDataLimits(self, axesLabel='left'):
         """Returns the bounds of the data.
@@ -753,23 +761,29 @@ class BackendMatplotlib(BackendBase.BackendBase):
         return xmin, xmax, ymin, ymax
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
-        self.setGraphXLimits(xmin, xmax)
-        self.setGraphYLimits(ymin, ymax, axis='left')
+        # Let matplotlib taking care of keep aspect ratio if any
+        self._dirtyLimits = True
+        self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
         if y2min is not None and y2max is not None:
-            self.setGraphYLimits(ymin, ymax, axis='right')
+            if not self.isYAxisInverted():
+                self.ax.set_ylim(min(y2min, y2max), max(y2min, y2max))
+            else:
+                self.ax.set_ylim(max(y2min, y2max), min(y2min, y2max))
+
+        if not self.isYAxisInverted():
+            self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax))
+        else:
+            self.ax.set_ylim(max(ymin, ymax), min(ymin, ymax))
 
     def getGraphXLimits(self):
-        vmin, vmax = self.ax.get_xlim()
-        if vmin > vmax:
-            return vmax, vmin
-        else:
-            return vmin, vmax
+        if self._dirtyLimits and self.isKeepDataAspectRatio():
+            self.replot()  # makes sure we get the right limits
+        return self.ax.get_xbound()
 
     def setGraphXLimits(self, xmin, xmax):
-        if xmax < xmin:
-            xmin, xmax = xmax, xmin
-        self.ax.set_xlim(xmin, xmax)
+        self._dirtyLimits = True
+        self.ax.set_xlim(min(xmin, xmax), max(xmin, xmax))
 
     def getGraphYLimits(self, axis):
         assert axis in ('left', 'right')
@@ -778,20 +792,34 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if not ax.get_visible():
             return None
 
-        vmin, vmax = ax.get_ylim()
-        if vmin > vmax:
-            return vmax, vmin
-        else:
-            return vmin, vmax
+        if self._dirtyLimits and self.isKeepDataAspectRatio():
+            self.replot()  # makes sure we get the right limits
+
+        return ax.get_ybound()
 
     def setGraphYLimits(self, ymin, ymax, axis):
         ax = self.ax2 if axis == 'right' else self.ax
         if ymax < ymin:
             ymin, ymax = ymax, ymin
-        if ax.yaxis_inverted():
-            ax.set_ylim(ymax, ymin)
-        else:
+        self._dirtyLimits = True
+
+        if self.isKeepDataAspectRatio():
+            # matplotlib keeps limits of shared axis when keeping aspect ratio
+            # So x limits are kept when changing y limits....
+            # Change x limits first by taking into account aspect ratio
+            # and then change y limits.. so matplotlib does not need
+            # to make change (to y) to keep aspect ratio
+            xmin, xmax = ax.get_xbound()
+            curYMin, curYMax = ax.get_ybound()
+
+            newXRange = (xmax - xmin) * (ymax - ymin) / (curYMax - curYMin)
+            xcenter = 0.5 * (xmin + xmax)
+            ax.set_xlim(xcenter - 0.5 * newXRange, xcenter + 0.5 * newXRange)
+
+        if not self.isYAxisInverted():
             ax.set_ylim(ymin, ymax)
+        else:
+            ax.set_ylim(ymax, ymin)
 
     # Graph axes
 

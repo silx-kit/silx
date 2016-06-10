@@ -288,8 +288,12 @@ class BackendBase(object):
         provide an asynchronous call to replot in order to optimize the number
         replot operations.
         """
-        if self._plot._getDirtyPlot():
-            self._plot.replot()
+        # This method can be deferred and it might happen that plot has been
+        # destroyed in between, especially with unittests
+
+        plot = self._plotRef()
+        if plot is not None and plot._getDirtyPlot():
+            plot.replot()
 
     def replot(self):
         """Redraw the plot."""

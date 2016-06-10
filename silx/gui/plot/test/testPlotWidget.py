@@ -85,6 +85,38 @@ class TestPlotWidget(_PlotWidgetTest):
         self.assertEqual(self.plot.getGraphXLabel(), xlabel)
         self.assertEqual(self.plot.getGraphYLabel(), ylabel)
 
+    def testChangeLimitsWithAspectRatio(self):
+        def checkLimits(expectedXLim=None, expectedYLim=None,
+                        expectedRatio=None):
+            xlim = self.plot.getGraphXLimits()
+            ylim = self.plot.getGraphYLimits()
+            ratio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
+
+            if expectedXLim is not None:
+                self.assertEqual(expectedXLim, xlim)
+
+            if expectedYLim is not None:
+                self.assertEqual(expectedYLim, ylim)
+
+            if expectedRatio is not None:
+                self.assertTrue(numpy.allclose(expectedRatio, ratio))
+
+        self.plot.setKeepDataAspectRatio()
+        self.qapp.processEvents()
+        xlim = self.plot.getGraphXLimits()
+        ylim = self.plot.getGraphYLimits()
+        defaultRatio = abs(xlim[1] - xlim[0]) / abs(ylim[1] - ylim[0])
+
+        self.plot.setGraphXLimits(1., 10.)
+        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+        self.qapp.processEvents()
+        checkLimits(expectedXLim=(1., 10.), expectedRatio=defaultRatio)
+
+        self.plot.setGraphYLimits(1., 10.)
+        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+        self.qapp.processEvents()
+        checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
+
 
 class TestPlotImage(_PlotWidgetTest):
     """Basic tests for addImage"""

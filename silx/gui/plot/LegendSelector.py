@@ -33,12 +33,9 @@ __data__ = "28/04/2016"
 
 
 import logging
-import sys
 import weakref
 
 from .. import qt
-
-from .PlotActions import _PlotAction
 
 
 _logger = logging.getLogger(__name__)
@@ -1040,7 +1037,6 @@ class LegendsDockWidget(qt.QDockWidget):
         for x, y, legend, info, params in curves:
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
-                print('got an active curve')
                 color = self.plot.getActiveCurveColor()
             else:
                 color = params['color']
