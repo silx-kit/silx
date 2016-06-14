@@ -44,10 +44,11 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO: split mask management from widget, or overkill?
-# TODO: sync with active image, test when no image and deleting image
 # TODO: find a cleaner way for handling active image to avoid test it each time
 # TODO: sync threshold range with colormap
-# TODO: make use of a colormap with more than 3 colors
+# TODO: use a colormap with more than 3 colors + change color of current level
+# TODO: choose mask color depending on image colormap
+# TODO: change pencil interaction to drag
 
 
 class MaskToolsWidget(qt.QWidget):
@@ -70,12 +71,17 @@ class MaskToolsWidget(qt.QWidget):
 
         super(MaskToolsWidget, self).__init__(parent)
         self._initWidgets()
-        self.resetMask()  # Init mask
 
-        # TODO fix
-        # Async connection as active image handler can update the active image.
-        # self.plot.sigActiveImageChanged.connect(
-        #    self._activeImageChanged, qt.Qt.QueuedConnection)
+    def showEvent(self, event):
+        self._activeImageChanged()  # Init mask + enable/disable widget
+        self.plot.sigActiveImageChanged.connect(
+            self._activeImageChanged)
+
+    def hideEvent(self, event):
+        self.plot.sigActiveImageChanged.disconnect(
+            self._activeImageChanged)
+        if len(self._mask):
+            self.plot.remove(self._maskName, kind='image')
 
     @property
     def plot(self):
@@ -92,6 +98,7 @@ class MaskToolsWidget(qt.QWidget):
                                colormap=self._colormap,
                                origin=params['origin'],
                                scale=params['scale'],
+                               z=params['z'] + 1,  # Ensure overlay
                                replace=False, resetzoom=False)
         else:
             self.plot.remove(self._maskName, kind='image')
@@ -279,18 +286,18 @@ class MaskToolsWidget(qt.QWidget):
         thresholdGroup.setLayout(layout)
         return thresholdGroup
 
-    def _activeImageChanged(self, legend, previous):
+    def _activeImageChanged(self, *args):
         """Rest mask if the size of the active image change"""
         activeImage = self.plot.getActiveImage()
-        # TODO properly handle mask becoming active image
         if activeImage is None or activeImage[1] == self._maskName:
             self.setEnabled(False)
             self.resetMask()
         else:
             self.setEnabled(True)
             if activeImage[0].shape != self._mask.shape:
-                # TODO origin scale changed...
                 self.resetMask()
+            else:
+                self._refreshPlot()  # Refresh in case origin or scale changed
 
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
