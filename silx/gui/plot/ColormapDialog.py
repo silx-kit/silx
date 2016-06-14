@@ -400,8 +400,7 @@ class ColormapDialog(qt.QDialog):
             'normalization': 'linear' if isNormLinear else 'log',
             'autoscale': self._rangeAutoscaleButton.isChecked(),
             'vmin': self._minValue.value(),
-            'vmax': self._maxValue.value(),
-            'colors': 256}
+            'vmax': self._maxValue.value()}
         return colormap
 
     def setColormap(self, name=None, normalization=None,

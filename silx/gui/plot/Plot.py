@@ -42,6 +42,10 @@ This dictionary has the following keys:
                data, False to use [vmin, vmax]
 - 'vmin': float, min value, ignored if autoscale is True
 - 'vmax': float, max value, ignored if autoscale is True
+- 'colors': optional, custom colormap.
+            Nx3 or Nx4 numpy array of RGB(A) colors,
+            either uint8 or float in [0, 1].
+            If 'name' is None, then this array is used as the colormap.
 
 
 Plot Events
@@ -1986,8 +1990,7 @@ class Plot(object):
         """
         if colormap is None:
             colormap = {'name': 'gray', 'normalization': 'linear',
-                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                        'colors': 256}
+                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
 
     def getSupportedColormaps(self):

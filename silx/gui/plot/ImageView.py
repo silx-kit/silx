@@ -647,7 +647,7 @@ class ImageView(PlotWindow):
         return self.getDefaultColormap()
 
     def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=256):
+                    autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the default colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -664,6 +664,8 @@ class ImageView(PlotWindow):
           is False.
         - *vmax*: float. The maximum value of the range to use if 'autoscale'
           is False.
+        - *colors*: optional. Nx3 or Nx4 array of float in [0, 1] or uint8.
+                    List of RGB or RGBA colors to use (only if name is None)
 
         :param colormap: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
@@ -676,6 +678,8 @@ class ImageView(PlotWindow):
                            'autoscale' is False.
         :param float vmax: The maximum value of the range to use if
                            'autoscale' is False.
+        :param numpy.ndarray colors: Only used if name is None.
+            Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
         cmapDict = self.getDefaultColormap()
 
@@ -685,7 +689,7 @@ class ImageView(PlotWindow):
             assert autoscale is None
             assert vmin is None
             assert vmax is None
-            assert colors == 256
+            assert colors is None
             for key, value in colormap.items():
                 cmapDict[key] = value
 
@@ -700,9 +704,8 @@ class ImageView(PlotWindow):
                 cmapDict['vmin'] = vmin
             if vmax is not None:
                 cmapDict['vmax'] = vmax
-
-        if 'colors' not in cmapDict:
-            cmapDict['colors'] = 256
+            if colors is not None:
+                cmapDict['colors'] = colors
 
         cursorColor = _cursorColorForColormap(cmapDict['name'])
         self.setInteractiveMode('zoom', color=cursorColor)
