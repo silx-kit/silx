@@ -277,12 +277,53 @@ class TestDrawLine(ParametricTestCase):
         return is_equal
 
 
+class TestCircleFill(ParametricTestCase):
+    """Tests for circle filling"""
+
+    def testCircle(self):
+        """Test circle_fill with different input parameters"""
+
+        square3x3 = numpy.array(((-1, -1, -1, 0, 0, 0, 1, 1, 1),
+                                 (-1, 0, 1, -1, 0, 1, -1, 0, 1)))
+
+        tests = [
+            #crow, ccol, radius, ref_coords = (ref_rows, ref_cols)
+            (0, 0, 1, ((0,), (0,))),
+            (10, 15, 1, ((10,), (15,))),
+            (0, 0, 1.5, square3x3),
+            (5, 10, 2, (5 + square3x3[0], 10 + square3x3[1])),
+            (10, 20, 3.5, (
+                10 + numpy.array((-3, -3, -3,
+                                  -2, -2, -2, -2, -2,
+                                  -1, -1, -1, -1, -1, -1, -1,
+                                  0, 0, 0, 0, 0, 0, 0,
+                                  1, 1, 1, 1, 1, 1, 1,
+                                  2, 2, 2, 2, 2,
+                                  3, 3, 3)),
+                20 + numpy.array((-1, 0, 1,
+                                  -2, -1, 0, 1, 2,
+                                  -3, -2, -1, 0, 1, 2, 3,
+                                  -3, -2, -1, 0, 1, 2, 3,
+                                  -3, -2, -1, 0, 1, 2, 3,
+                                  -2, -1, 0, 1, 2,
+                                  -1, 0, 1)))),
+        ]
+
+        for crow, ccol, radius, ref_coords in tests:
+            with self.subTest(crow=crow, ccol=ccol, radius=radius):
+                coords = shapes.circle_fill(crow, ccol, radius)
+                is_equal = numpy.all(numpy.equal(coords, ref_coords))
+                if not is_equal:
+                    _logger.debug('result:\n%s', str(coords))
+                    _logger.debug('ref:\n%s', str(ref_coords))
+                self.assertTrue(is_equal)
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPolygonFill))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestDrawLine))
+    for testClass in (TestPolygonFill, TestDrawLine, TestCircleFill):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(testClass))
     return test_suite
 
 

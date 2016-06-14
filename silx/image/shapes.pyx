@@ -45,7 +45,7 @@ __date__ = "03/06/2016"
 
 cimport cython
 import numpy
-from libc.math cimport ceil
+from libc.math cimport ceil, fabs
 
 
 cdef class Polygon(object):
@@ -275,3 +275,28 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
             delta += 2 * db
 
     return numpy.asarray(result).reshape(-1, 2)
+
+
+def circle_fill(int crow, int ccol, float radius):
+    """circle_fill(crow, ccol, radius) -> tuple
+
+    Generates coordinate of image points lying in a disk.
+
+    :param int crow: Row of the center of the disk
+    :param int ccol: Column of the center of the disk
+    :param float radius: Radius of the disk
+    :return: The coordinates of points lying in the circle (might be negative)
+    :rtype: 2-tuple of numpy array (rows, cols)
+    """
+    cdef int i_radius, len_coords
+
+    radius = fabs(radius)
+    i_radius = <int>radius
+
+    coords = numpy.arange(-i_radius, ceil(radius) + 1,
+                          dtype=numpy.float32) ** 2
+    len_coords = len(coords)
+    # rows, cols = where(row**2 + col**2 < radius**2)
+    rows, cols = numpy.where(coords.reshape(1, len_coords) +
+                             coords.reshape(len_coords, 1) < radius ** 2)
+    return rows + crow - i_radius, cols + ccol - i_radius
