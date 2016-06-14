@@ -24,8 +24,6 @@
 # ############################################################################*/
 """This module provides functions related to polygon filling.
 
-The API of this module is NOT stable.
-
 The :class:`Polygon` class provides checking if a point is inside a polygon
 and a way to generate a mask of the polygon.
 
@@ -41,6 +39,7 @@ for 2D coordinates.
 __authors__ = ["Jérôme Kieffer", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "03/06/2016"
+__status__ = "dev"
 
 
 cimport cython
@@ -62,8 +61,8 @@ cdef class Polygon(object):
         self.vertices = numpy.ascontiguousarray(vertices, dtype=numpy.float32)
         self.nvert = self.vertices.shape[0]
 
-    def isInside(self, row, col):
-        """isInside(self, row, col)
+    def is_inside(self, row, col):
+        """is_inside(self, row, col)
 
         Check if (row, col) is inside or outside the polygon
 
@@ -71,12 +70,12 @@ cdef class Polygon(object):
         :param float col:
         :return: True if position is inside polygon, False otherwise
         """
-        return self.c_isInside(row, col)
+        return self.c_is_inside(row, col)
 
     @cython.cdivision(True)
     @cython.wraparound(False)
     @cython.boundscheck(False)
-    cdef bint c_isInside(self, float row, float col) nogil:
+    cdef bint c_is_inside(self, float row, float col) nogil:
         """Check if (row, col) is inside or outside the polygon
 
         Pure C_Cython class implementation.
