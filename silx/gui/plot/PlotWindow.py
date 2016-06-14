@@ -41,6 +41,7 @@ from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
+from .MaskToolsWidget import MaskToolsDockWidget
 try:
     from ..console import IPythonDockWidget, IPythonWidget
 except ImportError:
@@ -216,6 +217,20 @@ class PlotWindow(PlotWidget):
         return self.curvesROIDockWidget.toggleViewAction()
 
     @property
+    def maskToolsDockWidget(self):
+        """DockWidget with image mask panel (lazy-loaded)."""
+        if not hasattr(self, '_maskToolsDockWidget'):
+            self._maskToolsDockWidget = MaskToolsDockWidget(self, name='Mask')
+            self._maskToolsDockWidget.hide()
+            self._introduceNewDockWidget(self._maskToolsDockWidget)
+        return self._maskToolsDockWidget
+
+    @property
+    def maskToolsAction(self):
+        """QAction toggling image mask dock widget"""
+        return self.maskToolsDockWidget.toggleViewAction()
+
+    @property
     def consoleDockWidget(self):
         """DockWidget with IPython console (lazy-loaded)."""
         if not hasattr(self, '_consoleDockWidget'):
@@ -274,7 +289,8 @@ class PlotWindow(PlotWidget):
         """Display Options button sub-menu."""
         controlMenu = qt.QMenu()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.curvesROIDockWidget.toggleViewAction())
+        controlMenu.addAction(self.roiAction)
+        controlMenu.addAction(self.maskToolsAction)
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         else:
