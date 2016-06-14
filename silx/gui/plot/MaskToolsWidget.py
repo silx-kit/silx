@@ -45,7 +45,6 @@ _logger = logging.getLogger(__name__)
 
 # TODO: split mask management from widget, or overkill?
 # TODO: find a cleaner way for handling active image to avoid test it each time
-# TODO: sync threshold range with colormap
 # TODO: use a colormap with more than 3 colors + change color of current level
 # TODO: choose mask color depending on image colormap
 # TODO: change pencil interaction to drag
@@ -260,15 +259,15 @@ class MaskToolsWidget(qt.QWidget):
         """Init thresholding widgets"""
         layout = qt.QFormLayout()
 
-        self._minLineEdit = qt.QLineEdit()
-        self._minLineEdit.setText('0')
-        self._minLineEdit.setValidator(qt.QDoubleValidator())
-        layout.addRow('Min:', self._minLineEdit)
+        self.minLineEdit = qt.QLineEdit()
+        self.minLineEdit.setText('0')
+        self.minLineEdit.setValidator(qt.QDoubleValidator())
+        layout.addRow('Min:', self.minLineEdit)
 
-        self._maxLineEdit = qt.QLineEdit()
-        self._maxLineEdit.setText('0')
-        self._maxLineEdit.setValidator(qt.QDoubleValidator())
-        layout.addRow('Max:', self._maxLineEdit)
+        self.maxLineEdit = qt.QLineEdit()
+        self.maxLineEdit.setText('0')
+        self.maxLineEdit.setValidator(qt.QDoubleValidator())
+        layout.addRow('Max:', self.maxLineEdit)
 
         aboveBtn = qt.QPushButton('Mask values > Max')
         aboveBtn.clicked.connect(self._aboveBtnClicked)
@@ -294,6 +293,17 @@ class MaskToolsWidget(qt.QWidget):
             self.resetMask()
         else:
             self.setEnabled(True)
+
+            # Update thresholds according to colormap
+            colormap = activeImage[4]['colormap']
+            if colormap['autoscale']:
+                min_ = numpy.nanmin(activeImage[0])
+                max_ = numpy.nanmax(activeImage[0])
+            else:
+                min_, max_ = colormap['vmin'], colormap['vmax']
+            self.minLineEdit.setText(str(min_))
+            self.maxLineEdit.setText(str(max_))
+
             if activeImage[0].shape != self._mask.shape:
                 self.resetMask()
             else:
@@ -453,8 +463,8 @@ class MaskToolsWidget(qt.QWidget):
         activeImage = self.plot.getActiveImage()
         if (activeImage is not None and
                 self._mask.shape == activeImage[0].shape and
-                self._maxLineEdit.text()):
-            threshold = float(self._maxLineEdit.text())
+                self.maxLineEdit.text()):
+            threshold = float(self.maxLineEdit.text())
             self._mask[activeImage[0] > threshold] = 1
             self._refreshPlot()
 
@@ -463,9 +473,9 @@ class MaskToolsWidget(qt.QWidget):
         activeImage = self.plot.getActiveImage()
         if (activeImage is not None and
                 self._mask.shape == activeImage[0].shape and
-                self._minLineEdit.text() and self._maxLineEdit.text()):
-            min_ = float(self._minLineEdit.text())
-            max_ = float(self._maxLineEdit.text())
+                self.minLineEdit.text() and self.maxLineEdit.text()):
+            min_ = float(self.minLineEdit.text())
+            max_ = float(self.maxLineEdit.text())
             self._mask[numpy.logical_and(min_ <= activeImage[0],
                                          activeImage[0] <= max_)] = 1
             self._refreshPlot()
@@ -475,8 +485,8 @@ class MaskToolsWidget(qt.QWidget):
         activeImage = self.plot.getActiveImage()
         if (activeImage is not None and
                 self._mask.shape == activeImage[0].shape and
-                self._minLineEdit.text()):
-            threshold = float(self._minLineEdit.text())
+                self.minLineEdit.text()):
+            threshold = float(self.minLineEdit.text())
             self._mask[activeImage[0] < threshold] = 1
             self._refreshPlot()
 
