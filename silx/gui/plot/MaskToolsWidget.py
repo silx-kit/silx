@@ -43,64 +43,28 @@ from .. import icons, qt
 _logger = logging.getLogger(__name__)
 
 
-# TODO: split mask management from widget, or overkill?
-# TODO: find a cleaner way for handling active image to avoid test it each time
-# TODO: use a colormap with more than 3 colors + change color of current level
 # TODO: choose mask color depending on image colormap
 # TODO: change pencil interaction to drag
+# TODO use a flow layout? or change orientation depending on dock area
+# TODO get browse action from PlotWindow? anyway sync with other tools
 
 
-class MaskToolsWidget(qt.QWidget):
-    """Widget with tools for drawing mask on an image in a PlotWidget."""
+class Mask(qt.QObject):
+    """A mask field with update operations.
 
-    def __init__(self, plot, parent=None):
-        self._plot = plot
-        self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
-        self._colormap = {
-            'name': None,
-            'normalization': 'linear',
-            'autoscale': False,
-            'vmin': 0., 'vmax': 2.,
-            'colors': numpy.array(
-                ((0, 0, 0, 0), (0.5, 0.5, 0.5, 0.5), (1., 1., 1., 0.5)),
-                dtype=numpy.float32)}
+    Coords follows (row, column) convention and are in mask array coords.
+    """
+
+    sigChanged = qt.Signal()
+    """Signal emitted when the mask has changed"""
+
+    def __init__(self):
         self._mask = numpy.array((), dtype=numpy.uint8)  # Store the mask
-        self._drawingMode = None  # Store current drawing mode
-        self._lastPencilPos = None
+        super(Mask, self).__init__()
 
-        super(MaskToolsWidget, self).__init__(parent)
-        self._initWidgets()
-
-    def showEvent(self, event):
-        self._activeImageChanged()  # Init mask + enable/disable widget
-        self.plot.sigActiveImageChanged.connect(
-            self._activeImageChanged)
-
-    def hideEvent(self, event):
-        self.plot.sigActiveImageChanged.disconnect(
-            self._activeImageChanged)
-        if len(self._mask):
-            self.plot.remove(self._maskName, kind='image')
-
-    @property
-    def plot(self):
-        """The :class:`.PlotWindow` this widget is attached to."""
-        return self._plot
-
-    def _refreshPlot(self):
-        """Update mask image in plot"""
-        if len(self._mask):
-            activeImage = self.plot.getActiveImage()
-            assert activeImage is not None
-            params = activeImage[4]
-            self.plot.addImage(self._mask, legend=self._maskName,
-                               colormap=self._colormap,
-                               origin=params['origin'],
-                               scale=params['scale'],
-                               z=params['z'] + 1,  # Ensure overlay
-                               replace=False, resetzoom=False)
-        else:
-            self.plot.remove(self._maskName, kind='image')
+    def _notify(self):
+        """Notify of mask changed."""
+        self.sigChanged.emit()
 
     def getMask(self, copy=True):
         """Get the current mask as a 2D array.
@@ -113,9 +77,183 @@ class MaskToolsWidget(qt.QWidget):
         """
         return numpy.array(self._mask, copy=copy)
 
+    def clear(self, level):
+        """Set all values of the given mask level to 0.
+
+        :param int level: Value of the mask to set to 0.
+        """
+        assert level > 0 and level < 256
+        self._mask[self._mask == level] = 0
+        self._notify()
+
+    def reset(self, shape=None):
+        """Reset the mask to zero and change its shape
+
+        :param shape: Shape of the new mask or None to have an empty mask
+        :type shape: 2-tuple of int
+        """
+        if shape is None:
+            shape = 0, 0  # Empty 2D array
+        assert len(shape) == 2
+        self._mask = numpy.zeros(shape, dtype=numpy.uint8)
+        self._notify()
+
+    def invert(self, level):
+        """Invert mask of the given mask level.
+
+        0 values become level and level values become 0.
+
+        :param int level: The level to invert.
+        """
+        assert level > 0 and level < 256
+        masked = self._mask == level
+        self._mask[self._mask == 0] = level
+        self._mask[masked] = 0
+        self._notify()
+
+    def updateRectangle(self, level, row, col, height, width, mask=True):
+        """Mask/Unmask a rectangle of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int row: Starting row of the rectangle
+        :param int col: Starting column of the rectangle
+        :param int height:
+        :param int width:
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        assert level > 0 and level < 256
+        selection = self._mask[max(0, row):row+height+1,
+                               max(0, col):col+width+1]
+        if mask:
+            selection[:, :] = level
+        else:
+            selection[selection == level] = 0
+        self._notify()
+
+    def updatePolygon(self, level, vertices, mask=True):
+        """Mask/Unmask a polygon of the given mask level.
+
+        :param int level: Mask level to update.
+        :param vertices: Nx2 array of polygon corners as (row, col)
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        fill = shapes.polygon_fill(vertices, self._mask.shape)
+        if mask:
+            self._mask[fill != 0] = level
+        else:
+            self._mask[numpy.logical_and(fill != 0,
+                                         self._mask == level)] = 0
+        self._notify()
+
+    def updatePoints(self, level, rows, cols, mask=True):
+        """Mask/Unmask points with given coordinates.
+
+        :param int level: Mask level to update.
+        :param rows: Rows of selected points
+        :type rows: 1D numpy.ndarray
+        :param cols: Columns of selected points
+        :type cols: 1D numpy.ndarray
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        valid = numpy.logical_and(
+            numpy.logical_and(rows >= 0, cols >= 0),
+            numpy.logical_and(rows < self._mask.shape[0],
+                              cols < self._mask.shape[1]))
+        rows, cols = rows[valid], cols[valid]
+
+        if mask:
+            self._mask[rows, cols] = level
+        else:
+            inMask = self._mask[rows, cols] == level
+            self._mask[rows[inMask], cols[inMask]] = 0
+        self._notify()
+
+    def updateStencil(self, level, stencil, mask=True):
+        """Mask/Unmask area from boolean mask.
+
+        :param int level: Mask level to update.
+        :param stencil: Boolean mask of mask values to update
+        :type stencil: numpy.array of same dimension as the mask
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        rows, cols = numpy.nonzero(stencil)
+        self.updatePoints(level, rows, cols, mask)
+
+    def updateDisk(self, level, crow, ccol, radius, mask=True):
+        """Mask/Unmask a disk of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int crow: Disk center row.
+        :param int ccol: Disk center column.
+        :param float radius: Radius of the disk in mask array unit
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        rows, cols = shapes.circle_fill(crow, ccol, radius)
+        self.updatePoints(level, rows, cols, mask)
+
+    def updateLine(self, level, row0, col0, row1, col1, width, mask=True):
+        """Mask/Unmask a line of the given mask level.
+
+        :param int level: Mask level to update.
+        :param int row0: Row of the starting point.
+        :param int col0: Column of the starting point.
+        :param int row1: Row of the end point.
+        :param int col1: Column of the end point.
+        :param int width: Width of the line in mask array unit.
+        :param bool mask: True to mask (default), False to unmask.
+        """
+        indices = shapes.draw_line(row0, col0, row1, col1, width)
+        indices = numpy.transpose(indices)
+        self.updatePoints(level, indices[0], indices[1], mask)
+
+
+class MaskToolsWidget(qt.QWidget):
+    """Widget with tools for drawing mask on an image in a PlotWidget."""
+
+    def __init__(self, plot, parent=None):
+        self._plot = plot
+        self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
+
+        self._colormap = {
+            'name': None,
+            'normalization': 'linear',
+            'autoscale': False,
+            'vmin': 0, 'vmax': 255,
+            'colors': None}
+        self._setMaskColors(1, True)
+
+        self._origin = (0., 0.)  # Mask origin in plot
+        self._scale = (1., 1.)  # Mask scale in plot
+        self._z = 1  # Mask layer in plot
+        self._data = numpy.zeros((0, 0), dtype=numpy.uint8)  # Store image
+
+        self._mask = Mask()
+        self._mask.sigChanged.connect(self._updatePlotMask)
+
+        self._drawingMode = None  # Store current drawing mode
+        self._lastPencilPos = None
+
+        super(MaskToolsWidget, self).__init__(parent)
+        self._initWidgets()
+
+    def getMask(self, copy=True):
+        """Get the current mask as a 2D array.
+
+        :param bool copy: True (default) to get a copy of the mask.
+                          If False, the returned array MUST not be modified.
+        :return: The array of the mask with dimension of the 'active' image.
+                 If there is no active image, an empty array is returned.
+        :rtype: 2D numpy.ndarray of uint8
+        """
+        return self._mask.getMask(copy=copy)
+
+    @property
+    def plot(self):
+        """The :class:`.PlotWindow` this widget is attached to."""
+        return self._plot
+
     def _initWidgets(self):
         """Create widgets"""
-        # TODO use a flow layout? or change orientation depending on dock area
         layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
         layout.addWidget(self._initMaskGroupBox())
         layout.addWidget(self._initDrawGroupBox())
@@ -145,7 +283,14 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox.setToolTip(
             """Choose which mask level is edited.
             A mask can have up to 255 non-overlapping levels.""")
+        self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         levelWidget = self._hboxWidget(qt.QLabel('Level:'), self.levelSpinBox)
+
+        self.transparencyCheckBox = qt.QCheckBox('Transparent')
+        self.transparencyCheckBox.setToolTip(
+            'Toggle between transparent and opaque masks display')
+        self.transparencyCheckBox.setChecked(True)
+        self.transparencyCheckBox.toggled[bool].connect(self._updateColors)
 
         invertBtn = qt.QPushButton('Invert')
         invertBtn.setToolTip('Invert current mask level')
@@ -161,6 +306,7 @@ class MaskToolsWidget(qt.QWidget):
 
         layout = qt.QVBoxLayout()
         layout.addWidget(levelWidget)
+        layout.addWidget(self.transparencyCheckBox)
         layout.addWidget(invertBtn)
         layout.addWidget(clearBtn)
         layout.addWidget(clearAllBtn)
@@ -192,7 +338,6 @@ class MaskToolsWidget(qt.QWidget):
         layout.addWidget(container)
 
         # Draw tools
-        # TODO get browse action from PlotWindow? anyway sync with other tools
         self.browseAction = qt.QAction(
             icons.getQIcon('normal'), 'Browse', None)
         self.browseAction.setToolTip(
@@ -285,13 +430,43 @@ class MaskToolsWidget(qt.QWidget):
         thresholdGroup.setLayout(layout)
         return thresholdGroup
 
+    # Handle mask refresh on the plot
+
+    def _updatePlotMask(self):
+        """Update mask image in plot"""
+        mask = self.getMask(copy=False)
+        if len(mask):
+            self.plot.addImage(mask, legend=self._maskName,
+                               colormap=self._colormap,
+                               origin=self._origin,
+                               scale=self._scale,
+                               z=self._z,
+                               replace=False, resetzoom=False)
+        elif self.plot.getImage(self._maskName):
+            self.plot.remove(self._maskName, kind='image')
+
+    # track widget visibility and plot active image changes
+
+    def showEvent(self, event):
+        self._activeImageChanged()  # Init mask + enable/disable widget
+        self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
+
+    def hideEvent(self, event):
+        self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+        if self.plot.getImage(self._maskName):
+            self.plot.remove(self._maskName, kind='image')
+
     def _activeImageChanged(self, *args):
-        """Rest mask if the size of the active image change"""
+        """Update widget and mask according to active image changes"""
         activeImage = self.plot.getActiveImage()
         if activeImage is None or activeImage[1] == self._maskName:
+            # No active image or active image is the mask...
             self.setEnabled(False)
-            self.resetMask()
-        else:
+
+            self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
+            self._mask.reset()
+
+        else:  # There is an active image
             self.setEnabled(True)
 
             # Update thresholds according to colormap
@@ -304,36 +479,56 @@ class MaskToolsWidget(qt.QWidget):
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
 
-            if activeImage[0].shape != self._mask.shape:
-                self.resetMask()
+            self._origin = activeImage[4]['origin']
+            self._scale = activeImage[4]['scale']
+            self._z = activeImage[4]['z'] + 1
+            self._data = activeImage[0]
+            if self._data.shape != self.getMask(copy=False).shape:
+                self._mask.reset(self._data.shape)
             else:
-                self._refreshPlot()  # Refresh in case origin or scale changed
+                # Refresh in case origin, scale, z changed
+                self._updatePlotMask()
+
+    # Handle whole mask operations
+
+    def _setMaskColors(self, level, transparent):
+        """Set-up the mask colormap to highlight current mask level.
+
+        :param int level: The mask level to highlight
+        :param bool transparent: True to make highlighted color transparent,
+                                 False for opaque
+        """
+        assert level > 0 and level < 256
+        colors = numpy.ones((256, 4), dtype=numpy.float32)
+
+        # Set alpha
+        colors[:, -1] = 0.5
+
+        # Set highlighted level color
+        colors[level] = (0., 0., 0., 0.5 if transparent else 1.)
+
+        # Set no mask level
+        colors[0] = (0., 0., 0., 0.)
+
+        self._colormap['colors'] = colors
+
+    def _updateColors(self, *args):
+        """Rebuild mask colormap when selected level or transparency change"""
+        self._setMaskColors(self.levelSpinBox.value(),
+                            self.transparencyCheckBox.isChecked())
+        self._updatePlotMask()
 
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
-        maskValue = self.levelSpinBox.value()
-        self._mask[self._mask == maskValue] = 0
-        self._refreshPlot()
+        self._mask.clear(self.levelSpinBox.value())
 
     def resetMask(self):
         """Reset the mask"""
-        activeImage = self.plot.getActiveImage()
-        if activeImage is None:
-            self._mask = numpy.array((), dtype=numpy.uint8)
-        else:
-            self._mask = numpy.zeros(activeImage[0].shape, dtype=numpy.uint8)
-        self._refreshPlot()
+        self._mask.reset(shape=self._data.shape)
 
     def _handleInvertMask(self):
-        """Invert the current mask level selection.
-
-        What was 0 becomes current mask, what was current mask becomes 0.
-        """
-        maskValue = self.levelSpinBox.value()
-        masked = self._mask == maskValue
-        self._mask[self._mask == 0] = maskValue
-        self._mask[masked] = 0
-        self._refreshPlot()
+        """Invert the current mask level selection."""
+        self._mask.invert(self.levelSpinBox.value())
 
     # Handle drawing tools UI events
 
@@ -367,128 +562,88 @@ class MaskToolsWidget(qt.QWidget):
             self.plot.setInteractiveMode('draw', shape='line')
         self.pencilSetting.setVisible(checked)
 
+    # Handle plot drawing events
+
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
         if (self._drawingMode is None or
                 event['event'] not in ('drawingProgress', 'drawingFinished')):
             return
 
-        activeImage = self.plot.getActiveImage()
-        if activeImage is None:
+        if not len(self._data):
             return
 
-        origin = activeImage[4]['origin']
-        scale = activeImage[4]['scale']
-
-        maskValue = self.levelSpinBox.value()
+        level = self.levelSpinBox.value()
+        doMask = (self.maskStateGroup.checkedId() == 1)
 
         if (self._drawingMode == 'rectangle' and
                 event['event'] == 'drawingFinished'):
-            # Convert to array coords
-            x = int(event['x'] / scale[0] - origin[0])
-            y = int(event['y'] / scale[1] - origin[1])
-            width = int(event['width'] / scale[0])
-            height = int(event['height'] / scale[1])
-            selection = self._mask[max(0, y):y+height+1, max(0, x):x+width+1]
-            if self.maskStateGroup.checkedId() == 1:  # mask
-                selection[:, :] = maskValue
-            else:  # unmask
-                selection[selection == maskValue] = 0
-            self._refreshPlot()
+            # Convert from plot to array coords
+            ox, oy = self._origin
+            sx, sy = self._scale
+            self._mask.updateRectangle(
+                level,
+                row=int((event['y'] - oy) / sy),
+                col=int((event['x'] - ox) / sx),
+                height=int(event['height'] / sy),
+                width=int(event['width'] / sx),
+                mask=doMask)
 
         elif (self._drawingMode == 'polygon' and
                 event['event'] == 'drawingFinished'):
-
-            # Convert points to array coordinates
-            points = (event['points'] / scale - origin).astype(numpy.int)
-            points = points[:, (1, 0)]  # Switch to y, x convention
-            fill = shapes.polygon_fill(points, activeImage[0].shape)
-            if self.maskStateGroup.checkedId() == 1:  # mask
-                self._mask[fill != 0] = maskValue
-            else:  # unmask
-                self._mask[numpy.logical_and(fill != 0,
-                                             self._mask == maskValue)] = 0
-            self._refreshPlot()
+            # Convert from plot to array coords
+            vertices = event['points'] / self._scale - self._origin
+            vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
+            self._mask.updatePolygon(level, vertices, doMask)
 
         elif self._drawingMode == 'pencil':
-            # convert to array coords
-            x, y = event['points'][-1] / scale - origin
-            x, y = int(x), int(y)
+            # convert from plot to array coords
+            col, row = event['points'][-1] / self._scale - self._origin
+            row, col = int(row), int(col)
             brushSize = self.brushSpinBox.value()
 
             # Draw point
-            rows, cols = shapes.circle_fill(y, x, brushSize / 2.)
-            valid = numpy.logical_and(
-                numpy.logical_and(rows >= 0, cols >= 0),
-                numpy.logical_and(rows < self._mask.shape[0],
-                                  cols < self._mask.shape[1]))
-            rows, cols = rows[valid], cols[valid]
-            if self.maskStateGroup.checkedId() == 1:  # mask
-                self._mask[rows, cols] = maskValue
-            else:  # unmask
-                inMask = self._mask[rows, cols] == maskValue
-                self._mask[rows[inMask], cols[inMask]] = 0
+            self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
 
-            # Draw line
-            if (self._lastPencilPos is not None and
-                    self._lastPencilPos != (y, x)):
-                linePoints = shapes.draw_line(self._lastPencilPos[0],
-                                              self._lastPencilPos[1],
-                                              y, x, width=brushSize)
-                # Remove points < 0
-                linePoints = linePoints[numpy.logical_and(
-                    numpy.logical_and(linePoints[:, 0] >= 0,
-                                      linePoints[:, 1] >= 0),
-                    numpy.logical_and(linePoints[:, 0] < self._mask.shape[0],
-                                      linePoints[:, 1] < self._mask.shape[1]))]
-
-                if self.maskStateGroup.checkedId() == 1:  # mask
-                    self._mask[linePoints[:, 0], linePoints[:, 1]] = maskValue
-                else:  # unmask
-                    values = self._mask[linePoints[:, 0], linePoints[:, 1]]
-                    linePoints = linePoints[values == maskValue]
-                    self._mask[linePoints[:, 0], linePoints[:, 1]] = 0
+            if self._lastPencilPos and self._lastPencilPos != (row, col):
+                # Draw the line
+                self._mask.updateLine(
+                    level,
+                    self._lastPencilPos[0], self._lastPencilPos[1],
+                    row, col,
+                    brushSize,
+                    doMask)
 
             if event['event'] == 'drawingFinished':
                 self._lastPencilPos = None
             else:
-                self._lastPencilPos = y, x
-
-            self._refreshPlot()
+                self._lastPencilPos = row, col
 
     # Handle threshold UI events
 
     def _aboveBtnClicked(self):
         """Handle select above button"""
-        activeImage = self.plot.getActiveImage()
-        if (activeImage is not None and
-                self._mask.shape == activeImage[0].shape and
-                self.maxLineEdit.text()):
-            threshold = float(self.maxLineEdit.text())
-            self._mask[activeImage[0] > threshold] = 1
-            self._refreshPlot()
+        if len(self._data) and self.maxLineEdit.text():
+            max_ = float(self.maxLineEdit.text())
+            self._mask.updateStencil(self.levelSpinBox.value(),
+                                     self._data > max_)
 
     def _betweenBtnClicked(self):
         """Handle select between button"""
-        activeImage = self.plot.getActiveImage()
-        if (activeImage is not None and
-                self._mask.shape == activeImage[0].shape and
+        if (len(self._data) and
                 self.minLineEdit.text() and self.maxLineEdit.text()):
             min_ = float(self.minLineEdit.text())
             max_ = float(self.maxLineEdit.text())
-            self._mask[numpy.logical_and(min_ <= activeImage[0],
-                                         activeImage[0] <= max_)] = 1
-            self._refreshPlot()
+            self._mask.updateStencil(self.levelSpinBox.value(),
+                                     numpy.logical_and(min_ <= self._data,
+                                                       self._data <= max_))
 
     def _belowBtnClicked(self):
         """Handle select below button"""
-        activeImage = self.plot.getActiveImage()
-        if (activeImage is not None and
-                self._mask.shape == activeImage[0].shape and
-                self.minLineEdit.text()):
-            threshold = float(self.minLineEdit.text())
-            self._mask[activeImage[0] < threshold] = 1
-            self._refreshPlot()
+        if len(self._data) and self.minLineEdit.text():
+            min_ = float(self.minLineEdit.text())
+            self._mask.updateStencil(self.levelSpinBox.value(),
+                                     self._data < min_)
 
 
 class MaskToolsDockWidget(qt.QDockWidget):
@@ -508,3 +663,14 @@ class MaskToolsDockWidget(qt.QDockWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.maskToolsWidget = MaskToolsWidget(plot)
         self.setWidget(self.maskToolsWidget)
+
+    def getMask(self, copy=False):
+        """Get the current mask as a 2D array.
+
+        :param bool copy: True (default) to get a copy of the mask.
+                          If False, the returned array MUST not be modified.
+        :return: The array of the mask with dimension of the 'active' image.
+                 If there is no active image, an empty array is returned.
+        :rtype: 2D numpy.ndarray of uint8
+        """
+        return self.maskToolsWidget.getMask(copy=copy)
