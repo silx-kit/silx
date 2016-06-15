@@ -339,7 +339,8 @@ class Plot1D(PlotWindow):
                                      curveStyle=True, colormap=False,
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
-                                     control=True, position=True)
+                                     control=True, position=True, roi=True)
+
 
 class Plot2D(PlotWindow):
     """PlotWindow with a toolbar specific for images.
@@ -354,7 +355,7 @@ class Plot2D(PlotWindow):
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=True)
+                                     control=False, position=True, roi=False)
 
 
 def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
