@@ -49,8 +49,8 @@ cdef extern from "fitfunctions.h":
                 int nz,
                 int width)
 
-
-    double* gauss(double* x,
-                  int len_x,
-                  double* pgauss,
-                  int len_pgauss)
+    void sum_gauss(double* x,
+                   int len_x,
+                   double* pgauss,
+                   int len_pgauss,
+                   double* y)

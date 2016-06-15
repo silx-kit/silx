@@ -34,14 +34,12 @@ logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport cython
-cimport numpy  # fixme get rid of this line
-from libc.stdlib cimport free
 
 # fitfunctions.pxd
 from fitfunctions cimport snip1d as _snip1d
 from fitfunctions cimport snip2d as _snip2d
 from fitfunctions cimport snip3d as _snip3d
-from fitfunctions cimport gauss as _gauss
+from fitfunctions cimport sum_gauss as _sum_gauss
 
 
 def snip1d(data, int width):
@@ -175,21 +173,22 @@ def snip3d(data, int width, nx=None, ny=None, nz=None):
     return numpy.asarray(data_c).reshape(data.shape)
 
 
-def gauss(x, *params):
-    """Return a sum of gaussian functions.
+def sum_gauss(x, *params):
+    """gauss(x, *params) -> numpy.ndarray
+
+    Return a sum of gaussian functions.
 
     :param x: Independant variable where the gaussians are calculated
     :type x: 1D numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
         *(height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)*
-    :return:
+    :return: Array of sum of gaussian functions at each ``x`` coordinates.
     """
     cdef:
         double[::1] x_c
         double[::1] params_c
-        double* y_c
-        long i
+        double[::1] y_c
 
     x_c = numpy.array(x,
                       copy=False,
@@ -199,15 +198,17 @@ def gauss(x, *params):
                            copy=False,
                            dtype=numpy.float64,
                            order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
 
 
-    y_c = _gauss(&x_c[0], x.size, &params_c[0], params_c.size)
+    _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
 
-    cdef numpy.ndarray ret_array = numpy.empty((x.size,),
-                                               dtype=numpy.float64)
-    for i in range(x.size):
-        ret_array[i] = y_c[i]
+    # cdef numpy.ndarray ret_array = numpy.empty((x.size,),
+    #                                            dtype=numpy.float64)
+    # for i in range(x.size):
+    #     ret_array[i] = y_c[i]
 
-    free(y_c)
-    return numpy.asarray(ret_array).reshape(x.shape)
+    # free(y_c)
+    return numpy.asarray(y_c).reshape(x.shape)
 

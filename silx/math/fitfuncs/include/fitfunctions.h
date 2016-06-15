@@ -32,7 +32,7 @@ void snip3d(double *data, int nx, int ny, int nz, int width);
 
 /* Fit functions */
 
-double* gauss(double* x, int len_x, double* pgauss, int len_pgauss);
+void sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y);
 
 
 #endif /* #define FITFUNCTIONS_H */
