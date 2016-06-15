@@ -1,3 +1,17 @@
+version: 1.0.{build}
+shallow_clone: true
+build:
+  verbosity: minimal
+
+notifications:
+- provider: Email
+  to:
+  - silx-ci@edna-site.org
+  subject: '[CI] appveyor'
+  on_build_success: false
+  on_build_failure: false
+  on_build_status_changed: true
+  
 os:
     - Visual Studio 2015
 
@@ -88,3 +102,4 @@ test_script:
 artifacts:
     # Archive the generated wheel package in the ci.appveyor.com build report.
     - path: dist\*
+
