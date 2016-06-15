@@ -54,3 +54,52 @@ cdef extern from "fitfunctions.h":
                    double* pgauss,
                    int len_pgauss,
                    double* y)
+
+    void sum_agauss(double* x,
+                    int len_x,
+                    double* pgauss,
+                    int len_pgauss,
+                    double* y)
+
+    void sum_fastagauss(double* x,
+                        int len_x,
+                        double* pgauss,
+                        int len_pgauss,
+                        double* y)
+
+    void sum_splitgauss(double* x,
+                        int len_x,
+                        double* pgauss,
+                        int len_pgauss,
+                        double* y)
+
+    void sum_apvoigt(double* x,
+                     int len_x,
+                     double* pvoigt,
+                     int len_pvoigt,
+                     double* y)
+
+    void sum_pvoigt(double* x,
+                    int len_x,
+                    double* pvoigt,
+                    int len_pvoigt,
+                    double* y)
+
+    void sum_splitpvoigt(double* x,
+                         int len_x,
+                         double* pvoigt,
+                         int len_pvoigt,
+                         double* y)
+
+    void sum_lorentz(double* x,
+                     int len_x,
+                     double* plorentz,
+                     int len_plorentz,
+                     double* y);
+
+    void sum_alorentz(double* x,
+                     int len_x,
+                     double* plorentz,
+                     int len_plorentz,
+                     double* y);
+

@@ -40,6 +40,14 @@ from fitfunctions cimport snip1d as _snip1d
 from fitfunctions cimport snip2d as _snip2d
 from fitfunctions cimport snip3d as _snip3d
 from fitfunctions cimport sum_gauss as _sum_gauss
+from fitfunctions cimport sum_agauss as _sum_agauss
+from fitfunctions cimport sum_fastagauss as _sum_fastagauss
+from fitfunctions cimport sum_splitgauss as _sum_splitgauss
+from fitfunctions cimport sum_apvoigt as _sum_apvoigt
+from fitfunctions cimport sum_pvoigt as _sum_pvoigt
+from fitfunctions cimport sum_splitpvoigt as _sum_splitpvoigt
+from fitfunctions cimport sum_lorentz as _sum_lorentz
+from fitfunctions cimport sum_alorentz as _sum_alorentz
 
 
 def snip1d(data, int width):
@@ -86,7 +94,7 @@ def snip2d(data, int width, nrows=None, ncolumns=None):
     :param data: Data array, preferably 1D and of type *numpy.float64*.
         Else, the data array will be flattened and converted to
         *dtype=numpy.float64* prior to applying the snip filter.
-        If the data is a 2D array, ``nrows`` and ``ncolumns`` don't
+        If the data is a 2D array, ``nrows`` and ``ncolumns`` don't
         need to be specified.
     :type data: numpy.ndarray
     :param width: Width of the snip operator, in number of samples. A wider
@@ -95,11 +103,11 @@ def snip2d(data, int width, nrows=None, ncolumns=None):
     :type width: int
     :param nrows: Number of rows (second dimension) in array.
         If ``None``, it will be inferred from the shape of the data if it
-        is a 2D array.
+        is a 2D array.
     :type nrows: int or None
     :param ncolumns: Number of columns (first dimension) in array
         If ``None``, it will be inferred from the shape of the data if it
-        is a 2D array.
+        is a 2D array.
     :type ncolumns: int or None
     :return: Baseline of the input array, as an array of the same shape.
     :rtype: numpy.ndarray
@@ -133,7 +141,7 @@ def snip3d(data, int width, nx=None, ny=None, nz=None):
     :param data: Data array, preferably 1D and of type *numpy.float64*.
         Else, the data array will be flattened and converted to
         *dtype=numpy.float64* prior to applying the snip filter.
-        If the data is a 3D array, arguments ``nx``, ``ny`` and ``nz`` can
+        If the data is a 3D array, arguments ``nx``, ``ny`` and ``nz`` can
         be omitted.
     :type data: numpy.ndarray
     :param width: Width of the snip operator, in number of samples. A wider
@@ -142,15 +150,15 @@ def snip3d(data, int width, nx=None, ny=None, nz=None):
     :type width: int
     :param nx: Size of first dimension in array.
         If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
+        is a 3D array.
     :type nx: int or None
     :param ny: Size of second dimension in array.
         If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
+        is a 3D array.
     :type ny: int or None
     :param nz: Size of third dimension in array.
         If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
+        is a 3D array.
     :type ny: int or None
     :return: Baseline of the input array, as an array of the same shape.
     :rtype: numpy.ndarray
@@ -174,16 +182,61 @@ def snip3d(data, int width, nx=None, ny=None, nz=None):
 
 
 def sum_gauss(x, *params):
-    """gauss(x, *params) -> numpy.ndarray
+    """sum_gauss(x, *params) -> numpy.ndarray
 
-    Return a sum of gaussian functions.
+    Return a sum of gaussian functions defined by *(height, centroid, fwhm)*,
+    where:
+
+        - *height* is the peak amplitude
+        - *centroid* is the peak x-coordinate
+        - *fwhm* is the full-width at half maximum
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: 1D numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
         *(height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)*
-    :return: Array of sum of gaussian functions at each ``x`` coordinates.
+    :return: Array of sum of gaussian functions at each ``x`` coordinate.
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    # ensure float64 (double) type and 1D contiguous data layout in memory
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    # reshape y_c to match original, possibly unusual, data shape
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_agauss(x, *params):
+    """sum_agauss(x, *params) -> numpy.ndarray
+
+    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    where:
+
+        - *area* is the area underneath the peak
+        - *centroid* is the peak x-coordinate
+        - *fwhm* is the full-width at half maximum
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of gaussian parameters (length must be a multiple
+        of 3):
+        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*
+    :return: Array of sum of gaussian functions at each ``x`` coordinate.
     """
     cdef:
         double[::1] x_c
@@ -201,14 +254,224 @@ def sum_gauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
+    _sum_agauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
 
-    _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
-
-    # cdef numpy.ndarray ret_array = numpy.empty((x.size,),
-    #                                            dtype=numpy.float64)
-    # for i in range(x.size):
-    #     ret_array[i] = y_c[i]
-
-    # free(y_c)
     return numpy.asarray(y_c).reshape(x.shape)
 
+def sum_fastagauss(x, *params):
+    """sum_fastagauss(x, *params) -> numpy.ndarray
+
+    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    where:
+
+        - *area* is the area underneath the peak
+        - *centroid* is the peak x-coordinate
+        - *fwhm* is the full-width at half maximum
+
+    This implementation differs from :func:`sum_agauss` by the usage of a
+    lookup table with precalculated exponential values. This might speed up
+    the computation for large numbers of individual gaussian functions.
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of gaussian parameters (length must be a multiple
+        of 3):
+        *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*
+    :return: Array of sum of gaussian functions at each ``x`` coordinate.
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_fastagauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_splitgauss(x, *params):
+    """sum_splitgauss(x, *params) -> numpy.ndarray
+
+    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    where:
+
+        - *height* is the peak amplitude
+        - *centroid* is the peak x-coordinate
+        - *fwhm1* is the full-width at half maximum for the distribution
+          when ``x < centroid``
+        - *fwhm2* is the full-width at half maximum for the distribution
+          when  ``x > centroid``
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of gaussian parameters (length must be a multiple
+        of 4):
+        *(height1, centroid1, fwhm11, fwhm21, height2, centroid2, fwhm12, fwhm22,...)*
+    :return: Array of sum of split gaussian functions at each ``x`` coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_splitgauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_apvoigt(x, *params):
+    """sum_apvoigt(x, *params) -> numpy.ndarray
+
+    Return a sum of pseudo-Voigt functions, defined by *(area, centroid, fwhm,
+    eta)*.
+
+    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
+    profile using a linear combination of a Gaussian curve ``G(x)`` and a
+    Lorentzian curve ``L(x)`` instead of their convolution.
+
+        - *area* is the area underneath both G(x) and L(x)
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm* is the full-width at half maximum of both functions
+        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of pseudo-Voigt parameters (length must be a multiple
+        of 4):
+        *(area1, centroid1, fwhm1, eta1, area2, centroid2, fwhm2, eta2,...)*
+    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_apvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_pvoigt(x, *params):
+    """sum_pvoigt(x, *params) -> numpy.ndarray
+
+    Return a sum of pseudo-Voigt functions, defined by *(height, centroid,
+    fwhm, eta)*.
+
+    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
+    profile using a linear combination of a Gaussian curve ``G(x)`` and a
+    Lorentzian curve ``L(x)`` instead of their convolution.
+
+        - *height* is the area underneath both G(x) and L(x)
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm* is the full-width at half maximum of both functions
+        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of pseudo-Voigt parameters (length must be a multiple
+        of 4):
+        *(height1, centroid1, fwhm1, eta1, height2, centroid2, fwhm2, eta2,...)*
+    :return: Array of sum of pseudo-Voigt functions at each ``x`` coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_pvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_splitpvoigt(x, *params):
+    """sum_splitpvoigt(x, *params) -> numpy.ndarray
+
+    Return a sum of split pseudo-Voigt functions, defined by *(height,
+    centroid, fwhm1, fwhm2, eta)*.
+
+    The pseudo-Voigt profile ``PV(x)`` is an approximation of the Voigt
+    profile using a linear combination of a Gaussian curve ``G(x)`` and a
+    Lorentzian curve ``L(x)`` instead of their convolution.
+
+        - *height* is the area underneath both G(x) and L(x)
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm1* is the full-width at half maximum of both functions
+          when ``x < centroid``
+        - *fwhm1* is the full-width at half maximum of both functions
+          when ``x > centroid``
+        - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: 1D numpy.ndarray
+    :param params: Array of pseudo-Voigt parameters (length must be a multiple
+        of 5):
+        *(height1, centroid1, fwhm11, fwhm21, eta1,...)*
+    :return: Array of sum of split pseudo-Voigt functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    _sum_splitpvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+# TODO: lorentz, alorentz ...
