@@ -29,20 +29,26 @@ __date__ = "18/02/2016"
 
 import unittest
 
-from .testColormapDialog import suite as testColormapDialog
+from .testColormapDialog import suite as testColormapDialogSuite
+from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
+from .testPlotWindow import suite as testPlotWindowSuite
 from .testPlot import suite as testPlotSuite
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(testColormapDialog())
-    test_suite.addTest(testInteractionSuite())
-    test_suite.addTest(testLegendSelectorSuite())
-    test_suite.addTest(testPlotToolsSuite())
-    test_suite.addTest(testPlotWidgetSuite())
-    test_suite.addTest(testPlotSuite())
+    test_suite.addTests(
+        [testColormapDialogSuite(),
+         testCurvesROIWidgetSuite(),
+         testInteractionSuite(),
+         testLegendSelectorSuite(),
+         testPlotSuite(),
+         testPlotToolsSuite(),
+         testPlotWidgetSuite(),
+         testPlotWindowSuite(),
+        ])
     return test_suite

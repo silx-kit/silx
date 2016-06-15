@@ -38,7 +38,12 @@ import sys
 import os
 import platform
 
-from numpy.distutils.misc_util import Configuration
+try:
+    from numpy.distutils.misc_util import Configuration
+except ImportError:
+    raise ImportError(
+        "To install this package, you must install numpy first\n"
+        "(See https://pypi.python.org/pypi/numpy)")
 
 try:
     from setuptools import setup, Command

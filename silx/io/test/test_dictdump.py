@@ -25,8 +25,9 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "24/05/2016"
 
+from collections import OrderedDict
 import numpy
 import os
 import tempfile
@@ -59,13 +60,12 @@ city_attrs["Europe"]["France"]["Tourcoing"]["area"]
 @unittest.skipIf(h5py_missing, "Could not import h5py")
 class TestDictToH5(unittest.TestCase):
     def setUp(self):
-        fd, self.h5_fname = tempfile.mkstemp(text=False)
-        # Close and delete (we just want the name)
-        os.close(fd)
-        os.unlink(self.h5_fname)
+        self.tempdir = tempfile.mkdtemp()
+        self.h5_fname = os.path.join(self.tempdir, "cityattrs.h5")
 
     def tearDown(self):
         os.unlink(self.h5_fname)
+        os.rmdir(self.tempdir)
 
     def testH5CityAttrs(self):
         filters = {'compression': "gzip", 'shuffle': True,
@@ -144,38 +144,69 @@ class TestDictToIni(unittest.TestCase):
             }
         }
 
-        dump(testdict, self.ini_fname, fmat="ini")
+        dump(testdict, self.ini_fname)
 
         #read the data back
-        readinstance = ConfigDict()
-        readinstance.read(self.ini_fname)
+        readdict = load(self.ini_fname)
 
         testdictkeys = list(testdict.keys())
-        readkeys = list(readinstance.keys())
+        readkeys = list(readdict.keys())
 
         self.assertTrue(len(readkeys) == len(testdictkeys),
                         "Number of read keys not equal")
 
-        self.assertEqual(readinstance['simple_types']["interpstring"],
+        self.assertEqual(readdict['simple_types']["interpstring"],
                          "interpolation: 5 % is too much")
 
         testdict['simple_types']["interpstring"] = "interpolation: 5 % is too much"
 
         for key in testdict["simple_types"]:
             original = testdict['simple_types'][key]
-            read = readinstance['simple_types'][key]
+            read = readdict['simple_types'][key]
             self.assertEqual(read, original,
                              "Read <%s> instead of <%s>" % (read, original))
 
         for key in testdict["containers"]:
             original = testdict["containers"][key]
-            read = readinstance["containers"][key]
+            read = readdict["containers"][key]
             if key == 'array':
                 self.assertEqual(read.all(), original.all(),
                             "Read <%s> instead of <%s>" % (read, original))
             else:
                 self.assertEqual(read, original,
                             "Read <%s> instead of <%s>" % (read, original))
+
+    def testConfigDictOrder(self):
+        """Ensure order is preserved when dictionary is
+        written to file and read back."""
+        test_dict = {'banana': 3, 'apple': 4, 'pear': 1, 'orange': 2}
+        # sort by key
+        test_ordered_dict1 = OrderedDict(sorted(test_dict.items(),
+                                                key=lambda t: t[0]))
+        # sort by value
+        test_ordered_dict2 = OrderedDict(sorted(test_dict.items(),
+                                                key=lambda t: t[1]))
+        # add the two ordered dict as sections of a third ordered dict
+        test_ordered_dict3 = OrderedDict()
+        test_ordered_dict3["section1"] = test_ordered_dict1
+        test_ordered_dict3["section2"] = test_ordered_dict2
+
+        # write to ini and read back as a ConfigDict (inherits OrderedDict)
+        dump(test_ordered_dict3,
+             self.ini_fname, fmat="ini")
+        read_instance = ConfigDict()
+        read_instance.read(self.ini_fname)
+
+        # loop through original and read-back dictionaries,
+        # test identical order for key/value pairs
+        for orig_key, section in zip(test_ordered_dict3.keys(),
+                                     read_instance.keys()):
+            self.assertEqual(orig_key, section)
+            for orig_key2, read_key in zip(test_ordered_dict3[section].keys(),
+                                           read_instance[section].keys()):
+                self.assertEqual(orig_key2, read_key)
+                self.assertEqual(test_ordered_dict3[section][orig_key2],
+                                 read_instance[section][read_key])
 
 
 def suite():

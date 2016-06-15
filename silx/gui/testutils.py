@@ -83,10 +83,12 @@ class TestCaseQt(unittest.TestCase):
     WARNING: The QApplication is shared by all tests, which might have side
     effects.
 
-    After each test, this class is checking for wigdets remaining alive.
+    After each test, this class is checking for widgets remaining alive.
     To allow some widgets to remain alive at the end of a test, set the
     allowedLeakingWidgets attribute to the number of widgets that can remain
     alive at the end of the test.
+    With PySide, this test is not run for now as it seems PySide
+    is leaking widgets internally.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -115,6 +117,9 @@ class TestCaseQt(unittest.TestCase):
         widgets = [widget for widget in self.qapp.allWidgets()
                    if widget not in self.__previousWidgets]
         del self.__previousWidgets
+
+        if qt.BINDING == 'PySide':
+            return  # Do not test for leaking widgets with PySide
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
         self.allowedLeakingWidgets = 0
@@ -191,7 +196,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseClick for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
 
@@ -202,7 +207,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseDClick for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
 
@@ -222,7 +227,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mousePress for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
 
@@ -233,7 +238,7 @@ class TestCaseQt(unittest.TestCase):
         See QTest.mouseRelease for details.
         """
         if modifier is None:
-            modifier=qt.Qt.KeyboardModifiers()
+            modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
 
@@ -277,3 +282,15 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+
+def getQToolButtonFromAction(action):
+    """Return a visible QToolButton corresponding to a QAction.
+
+    :param QAction action: The QAction from which to get QToolButton.
+    :return: A visible QToolButton associated to action or None.
+    """
+    for widget in action.associatedWidgets():
+        if isinstance(widget, qt.QToolButton) and widget.isVisible():
+            return widget
+    return None

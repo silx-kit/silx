@@ -25,9 +25,11 @@
 by text strings to following file formats: `HDF5, INI, JSON`
 """
 
+from collections import OrderedDict
 import json
 import logging
 import numpy
+import os.path
 import sys
 
 try:
@@ -42,7 +44,7 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/05/2016"
+__date__ = "25/05/2016"
 
 logger = logging.getLogger(__name__)
 
@@ -253,36 +255,49 @@ def dicttoini(ddict, inifile, mode="a"):
         inif.close()
 
 
-def dump(ddict, ffile, fmat="json"):
+def dump(ddict, ffile, fmat=None):
     """Dump dictionary to a file
 
     :param ddict: Dictionary with string keys
     :param ffile: File name or file-like object with a ``write`` method
     :param fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
+        When None (the default), it uses the filename extension as the format.
         Dumping to a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
+    :raises IOError: if file format is not supported
     """
-    if fmat.lower() == "json":
-        dicttojson(ddict, ffile)
-    elif fmat.lower() in ["hdf5", "h5"]:
+    if fmat is None:
+        # If file-like object get its name, else use ffile as filename
+        filename = getattr(ffile, 'name', ffile)
+        fmat = os.path.splitext(filename)[1][1:]  # Strip extension leading '.'
+    fmat = fmat.lower()
+
+    if fmat == "json":
+        dicttojson(ddict, ffile, indent=2)
+    elif fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot dump to HDF5 format, missing h5py library")
             raise h5py_import_error
         dicttoh5(ddict, ffile)
-    elif fmat.lower() in ["ini", "cfg"]:
+    elif fmat in ["ini", "cfg"]:
         dicttoini(ddict, ffile)
     else:
         raise IOError("Unknown format " + fmat)
 
 
-def load(ffile, fmat="json"):
+def load(ffile, fmat=None):
     """Load dictionary from a file
 
+    When loading from a JSON or INI file, an OrderedDict is returned to
+    preserve the values' insertion order.
+
     :param ffile: File name or file-like object with a ``read`` method
-    :param fmat: Input format: ``json``, ``hdf5`` or ``ini``
+    :param fmat: Input format: ``json``, ``hdf5`` or ``ini``.
+        When None (the default), it uses the filename extension as the format.
         Loading from a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
-    :return: Dictionary
+    :return: Dictionary (ordered dictionary for JSON and INI)
+    :raises IOError: if file format is not supported
     """
     if not hasattr(ffile, "read"):
         f = open(ffile, "r")
@@ -291,14 +306,19 @@ def load(ffile, fmat="json"):
         f = ffile
         fname = ffile.name
 
-    if fmat.lower() == "json":
-        return json.load(f)
-    if fmat.lower() in ["hdf5", "h5"]:
+    if fmat is None:  # Use file extension as format
+        fmat = os.path.splitext(fname)[1][1:]  # Strip extension leading '.'
+    fmat = fmat.lower()
+
+    if fmat == "json":
+        return json.load(f, object_pairs_hook=OrderedDict)
+    if fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot load from HDF5 format, missing h5py library")
             raise h5py_import_error
         return h5todict(fname)
-    if fmat.lower() in ["ini", "cfg"]:
-        return ConfigDict().read(fname)
-    raise IOError("Unknown format " + fmat)
+    elif fmat in ["ini", "cfg"]:
+        return ConfigDict(filelist=[fname])
+    else:
+        raise IOError("Unknown format " + fmat)
 
