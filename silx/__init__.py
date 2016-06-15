@@ -35,5 +35,4 @@ try:
     from ._version import __date__ as date  # noqa
     from ._version import version, version_info, hexversion, strictversion  # noqa
 except ImportError:
-    raise RuntimeError(
-                       "Do NOT use %s from its sources: build it and use the built version" % project)
+    raise RuntimeError("Do NOT use %s from its sources: build it and use the built version" % project)
