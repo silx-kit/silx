@@ -251,6 +251,13 @@ class MaskToolsWidget(qt.QWidget):
         """The :class:`.PlotWindow` this widget is attached to."""
         return self._plot
 
+    def setDirection(self, direction=qt.QBoxLayout.LeftToRight):
+        """Set the direction of the layout of the widget
+
+        :param direction: QBoxLayout direction
+        """
+        self.layout().setDirection(direction)
+
     def _initWidgets(self):
         """Create widgets"""
         layout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
@@ -674,8 +681,9 @@ class MaskToolsDockWidget(qt.QDockWidget):
         self.setWindowTitle(name)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.maskToolsWidget = MaskToolsWidget(plot)
-        self.setWidget(self.maskToolsWidget)
+        self.setWidget(MaskToolsWidget(plot))
+        self.dockLocationChanged.connect(self._dockLocationChanged)
+        self.topLevelChanged.connect(self._topLevelChanged)
 
     def getMask(self, copy=False):
         """Get the current mask as a 2D array.
@@ -686,7 +694,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
                  If there is no active image, an empty array is returned.
         :rtype: 2D numpy.ndarray of uint8
         """
-        return self.maskToolsWidget.getMask(copy=copy)
+        return self.widget().getMask(copy=copy)
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
@@ -696,3 +704,16 @@ class MaskToolsDockWidget(qt.QDockWidget):
         action = super(MaskToolsDockWidget, self).toggleViewAction()
         action.setIcon(icons.getQIcon('image-select-brush'))
         return action
+
+    def _dockLocationChanged(self, area):
+        if area in (qt.Qt.LeftDockWidgetArea, qt.Qt.RightDockWidgetArea):
+            direction = qt.QBoxLayout.TopToBottom
+        else:
+            direction = qt.QBoxLayout.LeftToRight
+        self.widget().setDirection(direction)
+
+    def _topLevelChanged(self, topLevel):
+        if topLevel:
+            self.widget().setDirection(qt.QBoxLayout.LeftToRight)
+            self.resize(self.widget().minimumSize())
+            self.adjustSize()
