@@ -280,23 +280,28 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox = qt.QSpinBox()
         self.levelSpinBox.setRange(1, 255)
         self.levelSpinBox.setToolTip(
-            """Choose which mask level is edited.
-            A mask can have up to 255 non-overlapping levels.""")
+            'Choose which mask level is edited.\n'
+            'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
-        levelWidget = self._hboxWidget(qt.QLabel('Level:'), self.levelSpinBox)
+        levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
+                                       self.levelSpinBox)
 
-        self.transparencyCheckBox = qt.QCheckBox('Transparent')
+        self.transparencyCheckBox = qt.QCheckBox('Transparent display')
         self.transparencyCheckBox.setToolTip(
             'Toggle between transparent and opaque masks display')
         self.transparencyCheckBox.setChecked(True)
         self.transparencyCheckBox.toggled[bool].connect(self._updateColors)
 
-        invertBtn = qt.QPushButton('Invert')
-        invertBtn.setToolTip('Invert current mask level')
+        invertBtn = qt.QPushButton('Invert Level')
+        invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
+        invertBtn.setToolTip('Invert current mask level <b>%s</b>' %
+                             invertBtn.shortcut().toString())
         invertBtn.clicked.connect(self._handleInvertMask)
 
-        clearBtn = qt.QPushButton('Clear')
-        clearBtn.setToolTip('Clear current mask level')
+        clearBtn = qt.QPushButton('Clear Level')
+        clearBtn.setShortcut(qt.QKeySequence.Delete)
+        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
+                            clearBtn.shortcut().toString())
         clearBtn.clicked.connect(self._handleClearMask)
 
         clearAllBtn = qt.QPushButton('Clear All')
@@ -322,12 +327,12 @@ class MaskToolsWidget(qt.QWidget):
         # Mask/Unmask radio buttons
         maskRadioBtn = qt.QRadioButton('Mask')
         maskRadioBtn.setToolTip(
-            'Make drawing tools extend current mask level area')
+            'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
         maskRadioBtn.setChecked(True)
 
         unmaskRadioBtn = qt.QRadioButton('Unmask')
         unmaskRadioBtn.setToolTip(
-            'Make drawing tools unmask current mask level area')
+            'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
 
         self.maskStateGroup = qt.QButtonGroup()
         self.maskStateGroup.addButton(maskRadioBtn, 1)
@@ -339,29 +344,34 @@ class MaskToolsWidget(qt.QWidget):
         # Draw tools
         self.browseAction = qt.QAction(
             icons.getQIcon('normal'), 'Browse', None)
+        self.browseAction.setShortcut(qt.QKeySequence(qt.Qt.Key_B))
         self.browseAction.setToolTip(
-            'Disables drawing tools, enables zooming interaction mode')
+            'Disables drawing tools, enables zooming interaction mode'
+            ' <b>B</b>')
         self.browseAction.setCheckable(True)
         self.browseAction.toggled[bool].connect(self._browseActionToggled)
 
         self.rectAction = qt.QAction(
             icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
         self.rectAction.setToolTip(
-            'Rectangle selection tool: Mask/Unmask a rectangular region')
+            'Rectangle selection tool: (Un)Mask a rectangular region <b>R</b>')
+        self.rectAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
         self.rectAction.setCheckable(True)
         self.rectAction.toggled[bool].connect(self._rectActionToggled)
 
         self.polygonAction = qt.QAction(
             icons.getQIcon('shape-polygon'), 'Polygon selection', None)
+        self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
-            'Polygon selection tool: Mask/Unmask a polygonal region')
+            'Polygon selection tool: (Un)Mask a polygonal region <b>S</b>')
         self.polygonAction.setCheckable(True)
         self.polygonAction.toggled[bool].connect(self._polygonActionToggled)
 
         self.pencilAction = qt.QAction(
             icons.getQIcon('draw-pencil'), 'Pencil tool', None)
+        self.pencilAction.setShortcut(qt.QKeySequence(qt.Qt.Key_P))
         self.pencilAction.setToolTip(
-            'Pencil tool: Mask/Unmask using a pencil')
+            'Pencil tool: (Un)Mask using a pencil <b>P</b>')
         self.pencilAction.setCheckable(True)
         self.pencilAction.toggled[bool].connect(self._pencilActionToggled)
 
@@ -574,6 +584,10 @@ class MaskToolsWidget(qt.QWidget):
 
         level = self.levelSpinBox.value()
         doMask = (self.maskStateGroup.checkedId() == 1)
+        if qt.QApplication.keyboardModifiers() == qt.Qt.ControlModifier:
+            # Invert masking
+            doMask = not doMask
+
 
         if (self._drawingMode == 'rectangle' and
                 event['event'] == 'drawingFinished'):
