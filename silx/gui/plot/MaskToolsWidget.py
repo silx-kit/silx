@@ -673,3 +673,12 @@ class MaskToolsDockWidget(qt.QDockWidget):
         :rtype: 2D numpy.ndarray of uint8
         """
         return self.maskToolsWidget.getMask(copy=copy)
+
+    def toggleViewAction(self):
+        """Returns a checkable action that shows or closes this widget.
+
+        See :class:`QMainWindow`.
+        """
+        action = super(MaskToolsDockWidget, self).toggleViewAction()
+        action.setIcon(icons.getQIcon('image-select-brush'))
+        return action

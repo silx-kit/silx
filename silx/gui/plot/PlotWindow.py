@@ -105,7 +105,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 control=False, position=False, roi=True):
+                 control=False, position=False, roi=True, mask=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
 
         self._dockWidgets = []
@@ -153,6 +153,9 @@ class PlotWindow(PlotWidget):
 
         self.group.addAction(self.roiAction)
         self.roiAction.setVisible(roi)
+
+        self.group.addAction(self.maskAction)
+        self.maskAction.setVisible(mask)
 
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
@@ -225,7 +228,7 @@ class PlotWindow(PlotWidget):
         return self._maskToolsDockWidget
 
     @property
-    def maskToolsAction(self):
+    def maskAction(self):
         """QAction toggling image mask dock widget"""
         return self.maskToolsDockWidget.toggleViewAction()
 
@@ -289,7 +292,7 @@ class PlotWindow(PlotWidget):
         controlMenu = qt.QMenu()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.roiAction)
-        controlMenu.addAction(self.maskToolsAction)
+        controlMenu.addAction(self.maskAction)
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         else:
@@ -338,7 +341,8 @@ class Plot1D(PlotWindow):
                                      curveStyle=True, colormap=False,
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
-                                     control=True, position=True, roi=True)
+                                     control=True, position=True,
+                                     roi=True, mask=False)
 
 
 class Plot2D(PlotWindow):
@@ -354,7 +358,8 @@ class Plot2D(PlotWindow):
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=True, roi=False)
+                                     control=False, position=True,
+                                     roi=False, mask=True)
 
 
 def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
