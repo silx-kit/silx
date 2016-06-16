@@ -2284,9 +2284,9 @@ class Plot(object):
         ymin, ymax = self.getGraphYLimits(axis=axis)
 
         if x is None:
-            x = 0.5 * (xmax - xmin)
+            x = 0.5 * (xmax + xmin)
         if y is None:
-            y = 0.5 * (ymax - ymin)
+            y = 0.5 * (ymax + ymin)
 
         if x > xmax or x < xmin:
             return None
