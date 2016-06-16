@@ -36,6 +36,8 @@ _logger = logging.getLogger(__name__)
 cimport cython
 
 # fitfunctions.pxd
+from fitfunctions cimport erf_array as _erf
+from fitfunctions cimport erfc_array as _erfc
 from fitfunctions cimport snip1d as _snip1d
 from fitfunctions cimport snip2d as _snip2d
 from fitfunctions cimport snip3d as _snip3d
@@ -48,6 +50,53 @@ from fitfunctions cimport sum_pvoigt as _sum_pvoigt
 from fitfunctions cimport sum_splitpvoigt as _sum_splitpvoigt
 from fitfunctions cimport sum_lorentz as _sum_lorentz
 from fitfunctions cimport sum_alorentz as _sum_alorentz
+from fitfunctions cimport sum_splitlorentz as _sum_splitlorentz
+from fitfunctions cimport sum_downstep as _sum_downstep
+from fitfunctions cimport sum_upstep as _sum_upstep
+from fitfunctions cimport sum_slit as _sum_slit
+from fitfunctions cimport sum_ahypermet as _sum_ahypermet
+from fitfunctions cimport sum_fasthypermet as _sum_fasthypermet
+
+def erf(x):
+    """erf(x) -> numpy.ndarray
+    Return the gaussian error function
+
+    :param x: Independant variable where the gaussian error function is
+        calculated
+    :return: Gaussian error function ``y=erf(x)``
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] y_c
+
+    x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
+
+    status = _erf(&x_c[0], x_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def erfc(x):
+    """erfc(x) -> numpy.ndarray
+    Return the gaussian complementary error function
+
+    :param x: Independant variable where the gaussian complementary error
+        function is calculated
+    :type x: numpy.ndarray
+    :return: Gaussian complementary error function ``y=erfc(x)``
+    :type rtype: numpy.ndarray
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] y_c
+
+    x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
+
+    status = _erfc(&x_c[0], x_c.size, &y_c[0])
+
+    return numpy.asarray(y_c).reshape(x.shape)
 
 
 def snip1d(data, int width):
@@ -76,7 +125,7 @@ def snip1d(data, int width):
     cdef double[::1] data_c
 
     # Ensure we are dealing with a 1D array in contiguous memory
-    data_c = numpy.array(data, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    data_c = numpy.array(data, copy=True, dtype=numpy.float64, order='C').reshape(-1)
 
     _snip1d(&data_c[0], data.size, width)
 
@@ -123,7 +172,7 @@ def snip2d(data, int width, nrows=None, ncolumns=None):
                             "if the data array is not 2D.")
 
     # Convert data to a 1D array in contiguous memory
-    data_c = numpy.array(data, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    data_c = numpy.array(data, copy=True, dtype=numpy.float64, order='C').reshape(-1)
 
     _snip2d(&data_c[0], nrows, ncolumns, width)
 
@@ -174,7 +223,7 @@ def snip3d(data, int width, nx=None, ny=None, nz=None):
                             "if the data array is not 3D.")
 
     # Convert data to a 1D array in contiguous memory
-    data_c = numpy.array(data, copy=False, dtype=numpy.float64, order='C').reshape(-1)
+    data_c = numpy.array(data, copy=True, dtype=numpy.float64, order='C').reshape(-1)
 
     _snip3d(&data_c[0], nx, ny, nz, width)
 
@@ -192,7 +241,7 @@ def sum_gauss(x, *params):
         - *fwhm* is the full-width at half maximum
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
         *(height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)*
@@ -215,7 +264,10 @@ def sum_gauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     # reshape y_c to match original, possibly unusual, data shape
     return numpy.asarray(y_c).reshape(x.shape)
@@ -232,7 +284,7 @@ def sum_agauss(x, *params):
         - *fwhm* is the full-width at half maximum
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
         *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*
@@ -254,9 +306,13 @@ def sum_agauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_agauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_agauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
+
 
 def sum_fastagauss(x, *params):
     """sum_fastagauss(x, *params) -> numpy.ndarray
@@ -273,7 +329,7 @@ def sum_fastagauss(x, *params):
     the computation for large numbers of individual gaussian functions.
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 3):
         *(area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)*
@@ -295,7 +351,10 @@ def sum_fastagauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_fastagauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_fastagauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -314,7 +373,7 @@ def sum_splitgauss(x, *params):
           when  ``x > centroid``
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of gaussian parameters (length must be a multiple
         of 4):
         *(height1, centroid1, fwhm11, fwhm21, height2, centroid2, fwhm12, fwhm22,...)*
@@ -336,7 +395,10 @@ def sum_splitgauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_splitgauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_splitgauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -357,7 +419,7 @@ def sum_apvoigt(x, *params):
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 4):
         *(area1, centroid1, fwhm1, eta1, area2, centroid2, fwhm2, eta2,...)*
@@ -379,7 +441,10 @@ def sum_apvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_apvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_apvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -394,13 +459,13 @@ def sum_pvoigt(x, *params):
     profile using a linear combination of a Gaussian curve ``G(x)`` and a
     Lorentzian curve ``L(x)`` instead of their convolution.
 
-        - *height* is the area underneath both G(x) and L(x)
+        - *height* is the peak amplitude of G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm* is the full-width at half maximum of both functions
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 4):
         *(height1, centroid1, fwhm1, eta1, height2, centroid2, fwhm2, eta2,...)*
@@ -422,7 +487,10 @@ def sum_pvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_pvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_pvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -437,7 +505,7 @@ def sum_splitpvoigt(x, *params):
     profile using a linear combination of a Gaussian curve ``G(x)`` and a
     Lorentzian curve ``L(x)`` instead of their convolution.
 
-        - *height* is the area underneath both G(x) and L(x)
+        - *height* is the peak amplitudefor G(x) and L(x)
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm1* is the full-width at half maximum of both functions
           when ``x < centroid``
@@ -446,7 +514,7 @@ def sum_splitpvoigt(x, *params):
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
     :param x: Independant variable where the gaussians are calculated
-    :type x: 1D numpy.ndarray
+    :type x: numpy.ndarray
     :param params: Array of pseudo-Voigt parameters (length must be a multiple
         of 5):
         *(height1, centroid1, fwhm11, fwhm21, eta1,...)*
@@ -469,9 +537,448 @@ def sum_splitpvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    _sum_splitpvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = _sum_splitpvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
 
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-# TODO: lorentz, alorentz ...
+def sum_lorentz(x, *params):
+    """sum_lorentz(x, *params) -> numpy.ndarray
+
+    Return a sum of Lorentz distributions, also known as Cauchy distribution,
+    defined by *(height, centroid, fwhm)*.
+
+        - *height* is the peak amplitude
+        - *centroid* is the peak x-coordinate
+        - *fwhm* is the full-width at half maximum
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of Lorentz parameters (length must be a multiple
+        of 3):
+        *(height1, centroid1, fwhm1,...)*
+    :return: Array of sum Lorentz functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_lorentz(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_alorentz(x, *params):
+    """sum_lorentz(x, *params) -> numpy.ndarray
+
+    Return a sum of Lorentz distributions, also known as Cauchy distribution,
+    defined by *(area, centroid, fwhm)*.
+
+        - *area* is the area underneath the peak
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm* is the full-width at half maximum
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of Lorentz parameters (length must be a multiple
+        of 3):
+        *(area1, centroid1, fwhm1,...)*
+    :return: Array of sum of Lorentz functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_alorentz(&x_c[0],
+                           x.size,
+                           &params_c[0],
+                           params_c.size,
+                           &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_splitlorentz(x, *params):
+    """sum_splitlorentz(x, *params) -> numpy.ndarray
+
+    Return a sum of split Lorentz distributions,
+    defined by *(height, centroid, fwhm1, fwhm2)*.
+
+        - *height* is the peak amplitude
+        - *centroid* is the peak x-coordinate for both functions
+        - *fwhm1* is the full-width at half maximum for ``x < centroid``
+        - *fwhm2* is the full-width at half maximum for ``x > centroid``
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of Lorentz parameters (length must be a multiple
+        of 4):
+        *(height1, centroid1, fwhm11, fwhm21...)*
+    :return: Array of sum of Lorentz functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_splitlorentz(&x_c[0],
+                               x.size,
+                               &params_c[0],
+                               params_c.size,
+                               &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_downstep(x, *params):
+    """sum_downstep(x, *params) -> numpy.ndarray
+
+    Return a sum of downstep functions.
+    defined by *(height, centroid, fwhm)*.
+
+        - *height* is the step's amplitude
+        - *centroid* is the step's x-coordinate
+        - *fwhm* is the full-width at half maximum for the derivative,
+          which is a measure of the *sharpness* of the step-down's edge
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of downstep parameters (length must be a multiple
+        of 3):
+        *(height1, centroid1, fwhm1,...)*
+    :return: Array of sum of downstep functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_downstep(&x_c[0],
+                           x.size,
+                           &params_c[0],
+                           params_c.size,
+                           &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_upstep(x, *params):
+    """sum_upstep(x, *params) -> numpy.ndarray
+
+    Return a sum of upstep functions.
+    defined by *(height, centroid, fwhm)*.
+
+        - *height* is the step's amplitude
+        - *centroid* is the step's x-coordinate
+        - *fwhm* is the full-width at half maximum for the derivative,
+          which is a measure of the *sharpness* of the step-up's edge
+
+    :param x: Independant variable where the gaussians are calculated
+    :type x: numpy.ndarray
+    :param params: Array of upstep parameters (length must be a multiple
+        of 3):
+        *(height1, centroid1, fwhm1,...)*
+    :return: Array of sum of upstep functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_upstep(&x_c[0],
+                         x.size,
+                         &params_c[0],
+                         params_c.size,
+                         &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_slit(x, *params):
+    """sum_slit(x, *params) -> numpy.ndarray
+
+    Return a sum of slit functions.
+    defined by *(height, position, fwhm, beamfwhm)*.
+
+        - *height* is the slit's amplitude
+        - *position* is the center of the slit's x-coordinate
+        - *fwhm* is the full-width at half maximum of the slit
+        - *beamfwhm* is the full-width at half maximum of the
+          derivative, which is a measure of the *sharpness*
+          of the edges of the slit
+
+    :param x: Independant variable where the slits are calculated
+    :type x: numpy.ndarray
+    :param params: Array of slit parameters (length must be a multiple
+        of 4):
+        *(height1, centroid1, fwhm1, beamfwhm1,...)*
+    :return: Array of sum of slit functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_slit(&x_c[0],
+                       x.size,
+                       &params_c[0],
+                       params_c.size,
+                       &y_c[0])
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_ahypermet(x, *params,
+                  gaussian_term=True, st_term=True, lt_term=True, step_term=True):
+    """sum_ahypermet(x, *params) -> numpy.ndarray
+
+    Return a sum of ahypermet functions.
+    defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,
+    lt_slope_r, step_height_r)*.
+
+        - *area* is the area underneath the gaussian peak
+        - *position* is the center of the various peaks and the position of
+          the step down
+        - *fwhm* is the full-width at half maximum of the terms
+        - *st_area_r* is factor between the gaussian area and the area of the
+          short tail term
+        - *st_slope_r* is a parameter related to the slope of the short tail
+          (the larger, the steeper)
+        - *lt_area_r* is factor between the gaussian area and the area of the
+          long tail term
+        - *lt_slope_r* is a parameter related to the slope of the long tail
+          (the larger, the steeper)
+        - *step_height_r* is the factor between the height of the step down
+          and the gaussian height
+
+    A hypermet function is a sum of four functions (terms):
+
+        - a gaussian terms
+        - a long tail term
+        - a short tail term
+        - a step down term
+
+    :param x: Independant variable where the hypermets are calculated
+    :type x: numpy.ndarray
+    :param params: Array of hypermet parameters (length must be a multiple
+        of 8):
+        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
+        lt_slope_r1, step_height_r1...)*
+    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``
+    :param st_term: If ``True``, enable gaussian term. Default ``True``
+    :param lt_term: If ``True``, enable gaussian term. Default ``True``
+    :param step_term: If ``True``, enable gaussian term. Default ``True``
+    :return: Array of sum of hypermet functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    # Sum binary flags to activate various terms of the equation
+    tail_flags = 1 if gaussian_term else 0
+    if st_term:
+        tail_flags += 2
+    if lt_term:
+        tail_flags += 4
+    if step_term:
+        tail_flags += 8
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_ahypermet(&x_c[0],
+                            x.size,
+                            &params_c[0],
+                            params_c.size,
+                            &y_c[0],
+                            tail_flags)
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)
+
+
+def sum_fasthypermet(x, *params,
+                  gaussian_term=True, st_term=True, lt_term=True, step_term=True):
+    """sum_fasthypermet(x, *params) -> numpy.ndarray
+
+    Return a sum of fasthypermet functions.
+    defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,
+    lt_slope_r, step_height_r)*.
+
+        - *area* is the area underneath the gaussian peak
+        - *position* is the center of the various peaks and the position of
+          the step down
+        - *fwhm* is the full-width at half maximum of the terms
+        - *st_area_r* is factor between the gaussian area and the area of the
+          short tail term
+        - *st_slope_r* is a parameter related to the slope of the short tail
+          (the larger, the steeper)
+        - *lt_area_r* is factor between the gaussian area and the area of the
+          long tail term
+        - *lt_slope_r* is a parameter related to the slope of the long tail
+          (the larger, the steeper)
+        - *step_height_r* is the factor between the height of the step down
+          and the gaussian height
+
+    A hypermet function is a sum of four functions (terms):
+
+        - a gaussian terms
+        - a long tail term
+        - a short tail term
+        - a step down term
+    :param x: Independant variable where the hypermets are calculated
+    :type x: numpy.ndarray
+    :param params: Array of hypermet parameters (length must be a multiple
+        of 8):
+        *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
+        lt_slope_r1, step_height_r1...)*
+    :param gaussian_term: If ``True``, enable gaussian term. Default ``True``
+    :param st_term: If ``True``, enable gaussian term. Default ``True``
+    :param lt_term: If ``True``, enable gaussian term. Default ``True``
+    :param step_term: If ``True``, enable gaussian term. Default ``True``
+    :return: Array of sum of hypermet functions at each ``x``
+        coordinate
+    """
+    cdef:
+        double[::1] x_c
+        double[::1] params_c
+        double[::1] y_c
+
+    # Sum binary flags to activate various terms of the equation
+    tail_flags = 1 if gaussian_term else 0
+    if st_term:
+        tail_flags += 2
+    if lt_term:
+        tail_flags += 4
+    if step_term:
+        tail_flags += 8
+
+    x_c = numpy.array(x,
+                      copy=False,
+                      dtype=numpy.float64,
+                      order='C').reshape(-1)
+    params_c = numpy.array(params,
+                           copy=False,
+                           dtype=numpy.float64,
+                           order='C').reshape(-1)
+    y_c = numpy.empty(shape=(x.size,),
+                      dtype=numpy.float64)
+
+    status = _sum_fasthypermet(&x_c[0],
+                               x.size,
+                               &params_c[0],
+                               params_c.size,
+                               &y_c[0],
+                               tail_flags)
+
+    if status:
+        raise IndexError("Wrong number of parameters for function")
+
+    return numpy.asarray(y_c).reshape(x.shape)

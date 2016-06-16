@@ -40,6 +40,121 @@
 
 #define LOG2  0.69314718055994529
 
+
+int test_params(int len_params,
+                int len_params_one_function,
+                char* fun_name,
+                char* param_names)
+{
+    if (len_params % len_params_one_function) {
+        printf("[%s]Error: Number of parameters must be a multiple of %d.",
+               fun_name, len_params_one_function);
+        printf("\nParameters expected for %s: %s\n",
+               fun_name, param_names);
+        return(1);
+    }
+    if (len_params == 0) {
+        printf("[%s]Error: No parameters specified.", fun_name);
+        printf("\nParameters expected for %s: %s\n",
+               fun_name, param_names);
+        return(1);
+    }
+    return(0);
+}
+
+/* Complementary error function for a single value*/
+double myerfc(double x)
+{
+    double z;
+    double t;
+    double r;
+
+    z=fabs(x);
+    t=1.0/(1.0+0.5*z);
+    r=t * exp(-z * z - 1.26551223 + t * (1.00002368 + t * (0.3740916 +
+      t * (0.09678418 + t * (-0.18628806 + t * (0.27886807 + t * (-1.13520398 +
+      t * (1.48851587 + t * (-0.82215223+t*0.17087277)))))))));
+    if (x<0)
+       r=2.0-r;
+    return (r);
+}
+
+/* Gauss error function for a single value*/
+double myerf(double x)
+{
+    return (1.0 - myerfc(x));
+}
+
+/* Gauss error function for an array
+   y[i]=myerf(x[i])
+   returns status code 0
+*/
+int erf_array(double* x, int len_x, double* y)
+{
+    int j;
+    for (j=0; j<len_x;  j++) {
+        y[j] = myerf(x[j]);
+    }
+    return(0);
+}
+
+/* Complementary error function for an array
+   y[i]=myerfc(x[i])
+   returns status code 0*/
+int erfc_array(double* x, int len_x, double* y)
+{
+    int j;
+    for (j=0; j<len_x;  j++) {
+        y[j] = myerfc(x[j]);
+    }
+    return(0);
+}
+
+/* Use lookup table for fast exp computation */
+double fastexp(double x)
+{
+    int expindex;
+    static double EXP[5000] = {0.0};
+    int i;
+
+/*initialize */
+    if (EXP[0] < 1){
+        for (i=0;i<5000;i++){
+            EXP[i] = exp(-0.01 * i);
+        }
+    }
+/*calculate*/
+    if (x < 0){
+        x = -x;
+        if (x < 50){
+            expindex = (int) (x * 100);
+            return EXP[expindex]*(1.0 - (x - 0.01 * expindex)) ;
+        }else if (x < 100) {
+            expindex = (int) (x * 10);
+            return pow(EXP[expindex]*(1.0 - (x - 0.1 * expindex)),10) ;
+        }else if (x < 1000){
+            expindex = (int) x;
+            return pow(EXP[expindex]*(1.0 - (x - expindex)),20) ;
+        }else if (x < 10000){
+            expindex = (int) (x * 0.1);
+            return pow(EXP[expindex]*(1.0 - (x - 10.0 * expindex)),30) ;
+        }else{
+            return 0;
+        }
+    }else{
+        if (x < 50){
+            expindex = (int) (x * 100);
+            return 1.0/EXP[expindex]*(1.0 - (x - 0.01 * expindex)) ;
+        }else if (x < 100) {
+            expindex = (int) (x * 10);
+            return pow(EXP[expindex]*(1.0 - (x - 0.1 * expindex)),-10) ;
+        }else{
+            return exp(x);
+        }
+    }
+}
+
+
 /*  sum_gauss
     Sum of gaussian functions, defined by (height, centroid, fwhm)
 
@@ -60,15 +175,14 @@
           of elements as x (len_x).
 
 */
-void sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
+int sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
     int i, j;
     double dhelp, inv_two_sqrt_two_log2, sigma;
     double fwhm, centroid, height;
 
-    if (len_pgauss % 3 || len_pgauss == 0) {
-        printf("[sum_gauss]Error: Number of parameters must be a multiple of 3 (height1, centroid1, fwhm1, ...)\n");
-        return;
+    if (test_params(len_pgauss, 3, "sum_gauss", "height, centroid, fwhm")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -92,6 +206,7 @@ void sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
             }
         }
     }
+    return(0);
 }
 
 /*  sum_agauss
@@ -114,15 +229,14 @@ void sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
           of elements as x (len_x).
 
 */
-void sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
+int sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
     int i, j;
     double  dhelp, height, sqrt2PI, sigma, inv_two_sqrt_two_log2;
     double fwhm, centroid, area;
 
-    if (len_pgauss % 3 || len_pgauss == 0) {
-        printf("[sum_agauss]Error: Number of parameters must be a multiple of 3 (area1, centroid1, fwhm1, ...)\n");
-        return;
+    if (test_params(len_pgauss, 3, "sum_agauss", "area, centroid, fwhm")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -148,6 +262,7 @@ void sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
             }
         }
     }
+    return(0);
 }
 
 
@@ -174,16 +289,15 @@ void sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 
 */
 
-void sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
+int sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
     int i, j, expindex;
     double  dhelp, height, sqrt2PI, sigma, inv_two_sqrt_two_log2;
     double fwhm, centroid, area;
     static double EXP[5000];
 
-    if (len_pgauss % 3 || len_pgauss == 0) {
-        printf("[sum_fastgauss]Error: Number of parameters must be a multiple of 3 (area1, centroid1, fwhm1, ...)\n");
-        return;
+    if (test_params(len_pgauss, 3, "sum_fastagauss", "area, centroid, fwhm")) {
+        return(1);
     }
 
     if (EXP[0] < 1){
@@ -227,6 +341,7 @@ void sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double
             }
         }
     }
+    return(0);
 }
 
 /*  sum_splitgauss
@@ -250,15 +365,14 @@ void sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double
           of elements as x (len_x).
 
 */
-void sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
+int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
     int i, j;
     double dhelp, inv_two_sqrt_two_log2, sigma1, sigma2;
     double fwhm1, fwhm2, centroid, height;
 
-    if (len_pgauss % 4 || len_pgauss == 0) {
-        printf("[sum_splitgauss]Error: Number of parameters must be a multiple of 4 (h1, c1, fwhm11, fwhm21...)\n");
-        return;
+    if (test_params(len_pgauss, 4, "sum_splitgauss", "height, centroid, fwhm1, fwhm2")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -293,6 +407,7 @@ void sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double
             }
         }
     }
+    return(0);
 }
 
 /*  sum_apvoigt
@@ -320,15 +435,14 @@ void sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double
           of elements as x (len_x).
 
 */
-void sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
+int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
     int i, j;
     double dhelp, inv_two_sqrt_two_log2, sqrt2PI, sigma, height;
     double area, centroid, fwhm, eta;
 
-    if (len_pvoigt % 4 || len_pvoigt == 0) {
-        printf("[sum_apvoigt]Error: Number of parameters must be a multiple of 4 (a1, c1, fwhm1, eta1...)\n");
-        return;
+    if (test_params(len_pvoigt, 4, "sum_apvoigt", "area, centroid, fwhm, eta")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -362,6 +476,7 @@ void sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y
             }
         }
     }
+    return(0);
 }
 
 /*  sum_pvoigt
@@ -389,15 +504,14 @@ void sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y
           of elements as x (len_x).
 
 */
-void sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
+int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
     int i, j;
     double dhelp, inv_two_sqrt_two_log2, sigma;
     double height, centroid, fwhm, eta;
 
-    if (len_pvoigt % 4 || len_pvoigt == 0) {
-        printf("[sum_pvoigt]Error: Number of parameters must be a multiple of 4 (h1, c1, fwhm1, eta1...)\n");
-        return;
+    if (test_params(len_pvoigt, 4, "sum_pvoigt", "height, centroid, fwhm, eta")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -428,6 +542,7 @@ void sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
             }
         }
     }
+    return(0);
 }
 
 /*  sum_splitpvoigt
@@ -457,15 +572,14 @@ void sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
           of elements as x (len_x).
 
 */
-void sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
+int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
     int i, j;
     double dhelp, inv_two_sqrt_two_log2, x_minus_centroid, sigma1, sigma2;
     double height, centroid, fwhm1, fwhm2, eta;
 
-    if (len_pvoigt % 5 || len_pvoigt == 0) {
-        printf("[sum_splitpvoigt]Error: Num of parameters must be a multiple of 5 (h1, c1, fwhm11, fwhm21, eta1...)\n");
-        return;
+    if (test_params(len_pvoigt, 5, "sum_splitpvoigt", "height, centroid, fwhm1, fwhm2, eta")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -516,6 +630,7 @@ void sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, doubl
             }
         }
     }
+    return(0);
 }
 
 /*  sum_lorentz
@@ -538,15 +653,14 @@ void sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, doubl
           of elements as x (len_x).
 
 */
-void sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
+int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
 {
     int i, j;
     double dhelp;
     double height, centroid, fwhm;
 
-    if (len_plorentz % 3 || len_plorentz == 0) {
-        printf("[sum_lorentz]Error: Number of parameters must be a multiple of 4 (h1, c1, fwhm1, eta1...)\n");
-        return;
+    if (test_params(len_plorentz, 3, "sum_lorentz", "height, centroid, fwhm")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -565,6 +679,7 @@ void sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, doubl
             y[j] += height / dhelp;
         }
     }
+    return(0);
 }
 
 
@@ -588,15 +703,14 @@ void sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, doubl
           of elements as x (len_x).
 
 */
-void sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
+int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
 {
     int i, j;
     double dhelp;
     double area, centroid, fwhm;
 
-    if (len_plorentz % 3 || len_plorentz == 0) {
-        printf("[sum_alorentz]Error: Number of parameters must be a multiple of 4 (h1, c1, fwhm1, eta1...)\n");
-        return;
+    if (test_params(len_plorentz, 3, "sum_alorentz", "area, centroid, fwhm")) {
+        return(1);
     }
 
     /* Initialize output array */
@@ -615,10 +729,458 @@ void sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, doub
             y[j] += area / (0.5 * M_PI * fwhm * dhelp);
         }
     }
+    return(0);
 }
 
 
+/*  sum_splitlorentz
+    Sum of Lorentz functions, defined by (height, centroid, fwhm1, fwhm2).
+
+    *height* is the peak amplitude
+    *centroid* is the peak's x-coordinate
+    *fwhm1* is the full-width at half maximum for x < centroid
+    *fwhm2* is the full-width at half maximum for x > centroid
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the Lorentzians are calculated.
+        - len_x: Number of elements in the x array.
+        - plorentz: Array of lorentz function parameters:
+          (height1, centroid1, fwhm11, fwhm21 ...)
+        - len_lorentz: Number of elements in the plorentz array. Must be
+          a multiple of 4.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+
+*/
+int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
+{
+    int i, j;
+    double dhelp;
+    double height, centroid, fwhm1, fwhm2;
+
+    if (test_params(len_plorentz, 4, "sum_splitlorentz", "height, centroid, fwhm1, fwhm2")) {
+        return(1);
+    }
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    for (i=0; i<len_plorentz/4; i++) {
+        height = plorentz[4*i];
+        centroid = plorentz[4*i+1];
+        fwhm1 = plorentz[4*i+2];
+        fwhm2 = plorentz[4*i+3];
+
+        for (j=0; j<len_x;  j++) {
+            dhelp = (x[j] - centroid);
+            if (dhelp>0) {
+                dhelp = dhelp / (0.5 * fwhm2);
+            }
+            else {
+                dhelp = dhelp / (0.5 * fwhm1);
+            }
+            dhelp = 1.0 + (dhelp * dhelp);
+            y[j] += height / dhelp;
+        }
+    }
+    return(0);
+}
+
+/*  sum_downstep
+    Sum of downstep functions, defined by (height, centroid, fwhm).
+
+    *height* is the step amplitude
+    *centroid* is the step's x-coordinate
+    *fwhm* is the full-width at half maximum of the derivative
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the downstep functions are calculated.
+        - len_x: Number of elements in the x array.
+        - pdstep: Array of downstpe function parameters:
+          (height1, centroid1, fwhm1, ...)
+        - len_pdstep: Number of elements in the pdstep array. Must be
+          a multiple of 3.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+
+*/
+int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y)
+{
+    int i, j;
+    double dhelp, sqrt2_inv_2_sqrt_two_log2 ;
+    double height, centroid, fwhm;
+
+    if (test_params(len_pdstep, 3, "sum_downstep", "height, centroid, fwhm")) {
+        return(1);
+    }
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    sqrt2_inv_2_sqrt_two_log2 = sqrt(2.0) / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_pdstep/3; i++) {
+        height = pdstep[3*i];
+        centroid = pdstep[3*i+1];
+        fwhm = pdstep[3*i+2];
+
+        for (j=0; j<len_x;  j++) {
+            dhelp = fwhm * sqrt2_inv_2_sqrt_two_log2;
+            dhelp = (x[j] - centroid) / dhelp;
+            y[j] += height * 0.5 * myerfc(dhelp);
+        }
+    }
+    return(0);
+}
+
+/*  sum_upstep
+    Sum of upstep functions, defined by (height, centroid, fwhm).
+
+    *height* is the step amplitude
+    *centroid* is the step's x-coordinate
+    *fwhm* is the full-width at half maximum of the derivative
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the upstep functions are calculated.
+        - len_x: Number of elements in the x array.
+        - pustep: Array of downstep function parameters:
+          (height1, centroid1, fwhm1, ...)
+        - len_pustep: Number of elements in the pustep array. Must be
+          a multiple of 3.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+
+*/
+int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
+{
+    int i, j;
+    double dhelp, sqrt2_inv_2_sqrt_two_log2 ;
+    double height, centroid, fwhm;
+
+    if (test_params(len_pustep, 3, "sum_upstep", "height, centroid, fwhm")) {
+        return(1);
+    }
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    sqrt2_inv_2_sqrt_two_log2 = sqrt(2.0) / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_pustep/3; i++) {
+        height = pustep[3*i];
+        centroid = pustep[3*i+1];
+        fwhm = pustep[3*i+2];
+
+        for (j=0; j<len_x;  j++) {
+            dhelp = fwhm * sqrt2_inv_2_sqrt_two_log2;
+            dhelp = (x[j] - centroid) / dhelp;
+            y[j] += height * 0.5 * (1.0 + myerf(dhelp));
+        }
+    }
+    return(0);
+}
 
 
+/*  sum_slit
+    Sum of slit functions, defined by (height, position, fwhm, beamfwhm).
+
+    *height* is the slit height
+    *position* is the slit's center x-coordinate
+    *fwhm* is the full-width at half maximum of the slit
+    *beamfwhm* is the full-width at half maximum of derivative's peaks
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the slit functions are calculated.
+        - len_x: Number of elements in the x array.
+        - pslit: Array of slit function parameters:
+          (height1, centroid1, fwhm1, beamfwhm1 ...)
+        - len_pslit: Number of elements in the pslit array. Must be
+          a multiple of 3.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+
+*/
+int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y)
+{
+    int i, j;
+    double dhelp, dhelp1, dhelp2, sqrt2_inv_2_sqrt_two_log2, centroid1, centroid2;
+    double height, position, fwhm, beamfwhm;
+
+    if (test_params(len_pslit, 4, "sum_slit", "height, centroid, fwhm, beamfwhm")) {
+        return(1);
+    }
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    sqrt2_inv_2_sqrt_two_log2 = sqrt(2.0) / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_pslit/4; i++) {
+        height = pslit[4*i];
+        position = pslit[4*i+1];
+        fwhm = pslit[4*i+2];
+        beamfwhm = pslit[4*i+3];
+
+        centroid1 = position - 0.5 * fwhm;
+        centroid2 = position + 0.5 * fwhm;
+
+        for (j=0; j<len_x;  j++) {
+            dhelp = beamfwhm * sqrt2_inv_2_sqrt_two_log2;
+            dhelp1 = (x[j] - centroid1) / dhelp;
+            dhelp2 = (x[j] - centroid2) / dhelp;
+            y[j] += height * 0.25 * (1.0 + myerf(dhelp1)) *  myerfc(dhelp2);
+        }
+    }
+    return(0);
+}
 
 
+/*  sum_ahypermet
+    Sum of hypermet functions, defined by
+    (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r).
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the functions are calculated.
+        - len_x: Number of elements in the x array.
+        - phypermet: Array of hypermet function parameters:
+          *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
+          lt_slope_r1, step_height_r1, ...)*
+        - len_phypermet: Number of elements in the phypermet array. Must be
+          a multiple of 8.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+        - tail_flags: sum of binary flags to activate the various terms of the
+          function:
+
+              - 1 (b0001): Gaussian term
+              - 2 (b0010): st term
+              - 4 (b0100): lt term
+              - 8 (b1000): step term
+
+          E.g., to activate all termsof the hypermet, use ``tail_flags = 1 + 2 + 4 + 8 = 15``
+
+*/
+int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
+{
+    int i, j;
+    int g_term_flag, st_term_flag, lt_term_flag, step_term_flag;
+    double c1, c2, sigma, height, sigma_sqrt2, sqrt2PI, inv_2_sqrt_2_log2, x_minus_position, epsilon;
+    double area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r;
+
+    if (test_params(len_phypermet, 8, "sum_hypermet",
+                    "height, centroid, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r")) {
+        return(1);
+    }
+
+    g_term_flag    = tail_flags & 1;
+    st_term_flag   = (tail_flags>>1) & 1;
+    lt_term_flag   = (tail_flags>>2) & 1;
+    step_term_flag = (tail_flags>>3) & 1;
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    /* define epsilon to compare floating point values with 0. */
+    epsilon = 0.00000000001;
+
+    sqrt2PI= sqrt(2.0 * M_PI);
+    inv_2_sqrt_2_log2 = 1.0 / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_phypermet/8; i++) {
+        area = phypermet[8*i];
+        position = phypermet[8*i+1];
+        fwhm = phypermet[8*i+2];
+        st_area_r = phypermet[8*i+3];
+        st_slope_r =  phypermet[8*i+4];
+        lt_area_r = phypermet[8*i+5];
+        lt_slope_r = phypermet[8*i+6];
+        step_height_r = phypermet[8*i+7];
+
+        sigma = fwhm * inv_2_sqrt_2_log2;
+        height = area / (sigma * sqrt2PI);
+
+        /* Prevent division by 0 */
+        if (sigma == 0) {
+            printf("fwhm must not be equal to 0");
+            return(1);
+        }
+        sigma_sqrt2 = sigma * 1.4142135623730950488;
+
+        for (j=0; j<len_x;  j++) {
+            x_minus_position = x[j] - position;
+            c2 = (0.5 * x_minus_position * x_minus_position) / (sigma * sigma);
+            /* gaussian term */
+            if (g_term_flag) {
+                y[j] += exp(-c2) * height;
+            }
+
+            /* st term */
+            if (st_term_flag) {
+                if ((abs(st_area_r) > epsilon) && (abs(st_slope_r) > epsilon)) {
+                    c1 = st_area_r * 0.5 * \
+                         myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
+                    y[j] += ((area * c1) / st_slope_r) * \
+                            exp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
+                                (x_minus_position / st_slope_r));
+                }
+            }
+
+            /* lt term */
+            if (lt_term_flag) {
+                if ((abs(lt_area_r) > epsilon) && (abs(lt_slope_r) > epsilon)) {
+                    c1 = lt_area_r * \
+                         0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
+                    y[j] += ((area * c1) / lt_slope_r) * \
+                            exp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
+                                (x_minus_position / lt_slope_r));
+                }
+            }
+
+            /* step term flag */
+            if (step_term_flag) {
+                if (abs(step_height_r) > epsilon) {
+                    y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
+                            0.5 * myerfc(x_minus_position / sigma_sqrt2);
+                }
+            }
+        }
+    }
+    return(0);
+}
+
+/*  sum_fasthypermet
+    Sum of hypermet functions, defined by
+    (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r).
+
+    Parameters:
+    -----------
+
+        - x: Independant variable where the functions are calculated.
+        - len_x: Number of elements in the x array.
+        - phypermet: Array of hypermet function parameters:
+          *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
+          lt_slope_r1, step_height_r1, ...)*
+        - len_phypermet: Number of elements in the phypermet array. Must be
+          a multiple of 8.
+        - y: Output array. Must have memory allocated for the same number
+          of elements as x (len_x).
+        - tail_flags: sum of binary flags to activate the various terms of the
+          function:
+
+              - 1 (b0001): Gaussian term
+              - 2 (b0010): st term
+              - 4 (b0100): lt term
+              - 8 (b1000): step term
+
+          E.g., to activate all termsof the hypermet, use ``tail_flags = 1 + 2 + 4 + 8 = 15``
+
+*/
+int sum_fasthypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
+{
+    int i, j;
+    int g_term_flag, st_term_flag, lt_term_flag, step_term_flag;
+    double c1, c2, sigma, height, sigma_sqrt2, sqrt2PI, inv_2_sqrt_2_log2, x_minus_position, epsilon;
+    double area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r;
+
+    if (test_params(len_phypermet, 8, "sum_hypermet",
+                    "height, centroid, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r")) {
+        return(1);
+    }
+
+    g_term_flag    = tail_flags & 1;
+    st_term_flag   = (tail_flags>>1) & 1;
+    lt_term_flag   = (tail_flags>>2) & 1;
+    step_term_flag = (tail_flags>>3) & 1;
+
+    /* Initialize output array */
+    for (j=0; j<len_x;  j++) {
+        y[j] = 0.;
+    }
+
+    /* define epsilon to compare floating point values with 0. */
+    epsilon = 0.00000000001;
+
+    sqrt2PI= sqrt(2.0 * M_PI);
+    inv_2_sqrt_2_log2 = 1.0 / (2.0 * sqrt(2.0 * LOG2));
+
+    for (i=0; i<len_phypermet/8; i++) {
+        area = phypermet[8*i];
+        position = phypermet[8*i+1];
+        fwhm = phypermet[8*i+2];
+        st_area_r = phypermet[8*i+3];
+        st_slope_r =  phypermet[8*i+4];
+        lt_area_r = phypermet[8*i+5];
+        lt_slope_r = phypermet[8*i+6];
+        step_height_r = phypermet[8*i+7];
+
+        sigma = fwhm * inv_2_sqrt_2_log2;
+        height = area / (sigma * sqrt2PI);
+
+        /* Prevent division by 0 */
+        if (sigma == 0) {
+            printf("fwhm must not be equal to 0");
+            return(1);
+        }
+        sigma_sqrt2 = sigma * 1.4142135623730950488;
+
+        for (j=0; j<len_x;  j++) {
+            x_minus_position = x[j] - position;
+            c2 = (0.5 * x_minus_position * x_minus_position) / (sigma * sigma);
+            /* gaussian term */
+            if (g_term_flag) {
+                y[j] += fastexp(-c2) * height;
+            }
+
+            /* st term */
+            if (st_term_flag) {
+                if ((abs(st_area_r) > epsilon) && (abs(st_slope_r) > epsilon)) {
+                    c1 = st_area_r * 0.5 * \
+                         myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
+                    y[j] += ((area * c1) / st_slope_r) * \
+                            fastexp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
+                                    (x_minus_position / st_slope_r));
+                }
+            }
+
+            /* lt term */
+            if (lt_term_flag) {
+                if ((abs(lt_area_r) > epsilon) && (abs(lt_slope_r) > epsilon)) {
+                    c1 = lt_area_r * \
+                         0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
+                    y[j] += ((area * c1) / lt_slope_r) * \
+                            fastexp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
+                                    (x_minus_position / lt_slope_r));
+                }
+            }
+
+            /* step term flag */
+            if (step_term_flag) {
+                if (abs(step_height_r) > epsilon) {
+                    y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
+                            0.5 * myerfc(x_minus_position / sigma_sqrt2);
+                }
+            }
+        }
+    }
+    return(0);
+}

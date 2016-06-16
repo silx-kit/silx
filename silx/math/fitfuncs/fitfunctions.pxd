@@ -33,6 +33,13 @@ cdef extern from "fitfunctions.h":
         pass
 
 cdef extern from "fitfunctions.h":
+    int erfc_array(double* x,
+                   int len_x,
+                   double* y)
+
+    int erf_array(double* x,
+                  int len_x,
+                  double* y);
 
     void snip1d(double *data,
                 int size,
@@ -49,57 +56,95 @@ cdef extern from "fitfunctions.h":
                 int nz,
                 int width)
 
-    void sum_gauss(double* x,
+    int  sum_gauss(double* x,
                    int len_x,
                    double* pgauss,
                    int len_pgauss,
                    double* y)
 
-    void sum_agauss(double* x,
+    int  sum_agauss(double* x,
                     int len_x,
                     double* pgauss,
                     int len_pgauss,
                     double* y)
 
-    void sum_fastagauss(double* x,
+    int  sum_fastagauss(double* x,
                         int len_x,
                         double* pgauss,
                         int len_pgauss,
                         double* y)
 
-    void sum_splitgauss(double* x,
+    int  sum_splitgauss(double* x,
                         int len_x,
                         double* pgauss,
                         int len_pgauss,
                         double* y)
 
-    void sum_apvoigt(double* x,
+    int  sum_apvoigt(double* x,
                      int len_x,
                      double* pvoigt,
                      int len_pvoigt,
                      double* y)
 
-    void sum_pvoigt(double* x,
+    int  sum_pvoigt(double* x,
                     int len_x,
                     double* pvoigt,
                     int len_pvoigt,
                     double* y)
 
-    void sum_splitpvoigt(double* x,
+    int  sum_splitpvoigt(double* x,
                          int len_x,
                          double* pvoigt,
                          int len_pvoigt,
                          double* y)
 
-    void sum_lorentz(double* x,
+    int  sum_lorentz(double* x,
                      int len_x,
                      double* plorentz,
                      int len_plorentz,
-                     double* y);
+                     double* y)
 
-    void sum_alorentz(double* x,
+    int  sum_alorentz(double* x,
                      int len_x,
                      double* plorentz,
                      int len_plorentz,
-                     double* y);
+                     double* y)
+
+    int  sum_splitlorentz(double* x,
+                         int len_x,
+                         double* plorentz,
+                         int len_plorentz,
+                         double* y)
+
+    int sum_downstep(double* x,
+                     int len_x,
+                     double* pdstep,
+                     int len_pdstep,
+                     double* y)
+
+    int sum_upstep(double* x,
+                   int len_x,
+                   double* pustep,
+                   int len_pustep,
+                   double* y)
+
+    int sum_slit(double* x,
+                 int len_x,
+                 double* pslit,
+                 int len_pslit,
+                 double* y)
+
+    int sum_ahypermet(double* x,
+                      int len_x,
+                      double* phypermet,
+                      int len_phypermet,
+                      double* y,
+                      int tail_flags)
+
+    int sum_fasthypermet(double* x,
+                         int len_x,
+                         double* phypermet,
+                         int len_phypermet,
+                         double* y,
+                         int tail_flags)
 
