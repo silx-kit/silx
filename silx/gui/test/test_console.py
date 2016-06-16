@@ -24,6 +24,8 @@
 # ###########################################################################*/
 """Basic tests for IPython console widget"""
 
+from __future__ import print_function
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "19/05/2016"
