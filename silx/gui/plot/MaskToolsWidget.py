@@ -137,7 +137,7 @@ class Mask(qt.QObject):
         :param vertices: Nx2 array of polygon corners as (row, col)
         :param bool mask: True to mask (default), False to unmask.
         """
-        fill = shapes.polygon_fill(vertices, self._mask.shape)
+        fill = shapes.polygon_fill_mask(vertices, self._mask.shape)
         if mask:
             self._mask[fill != 0] = level
         else:
@@ -202,9 +202,8 @@ class Mask(qt.QObject):
         :param int width: Width of the line in mask array unit.
         :param bool mask: True to mask (default), False to unmask.
         """
-        indices = shapes.draw_line(row0, col0, row1, col1, width)
-        indices = numpy.transpose(indices)
-        self.updatePoints(level, indices[0], indices[1], mask)
+        rows, cols = shapes.draw_line(row0, col0, row1, col1, width)
+        self.updatePoints(level, rows, cols, mask)
 
 
 class MaskToolsWidget(qt.QWidget):
