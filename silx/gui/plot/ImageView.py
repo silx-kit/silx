@@ -308,7 +308,7 @@ class ImageView(PlotWindow):
                                         aspectRatio=True, yInverted=True,
                                         copy=True, save=True, print_=True,
                                         control=False, position=False,
-                                        roi=False)
+                                        roi=False, mask=True)
 
         self._initWidgets(backend)
 
