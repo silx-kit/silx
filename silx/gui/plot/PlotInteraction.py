@@ -44,15 +44,8 @@ from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
 from .BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                           CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
-
-# Float 32 info ###############################################################
-# Using min/max value below limits of float32
-# so operation with such value (e.g., max - min) do not overflow
-
-FLOAT32_SAFE_MIN = -1e37
-FLOAT32_MINPOS = numpy.finfo(numpy.float32).tiny
-FLOAT32_SAFE_MAX = 1e37
-# TODO double support
+from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
+                     applyZoomToPlot)
 
 
 # Base class ##################################################################
@@ -113,76 +106,6 @@ class _PlotInteraction(object):
 
 # Zoom/Pan ####################################################################
 
-def _scale1DRange(min_, max_, center, scale, isLog):
-    """Scale a 1D range given a scale factor and an center point.
-
-    Keeps the values in a smaller range than float32.
-
-    :param float min_: The current min value of the range.
-    :param float max_: The current max value of the range.
-    :param float center: The center of the zoom (i.e., invariant point).
-    :param float scale: The scale to use for zoom
-    :param bool isLog: Whether using log scale or not.
-    :return: The zoomed range.
-    :rtype: tuple of 2 floats: (min, max)
-    """
-    if isLog:
-        # Min and center can be < 0 when
-        # autoscale is off and switch to log scale
-        # max_ < 0 should not happen
-        min_ = numpy.log10(min_) if min_ > 0. else FLOAT32_MINPOS
-        center = numpy.log10(center) if center > 0. else FLOAT32_MINPOS
-        max_ = numpy.log10(max_) if max_ > 0. else FLOAT32_MINPOS
-
-    if min_ == max_:
-        return min_, max_
-
-    offset = (center - min_) / (max_ - min_)
-    range_ = (max_ - min_) / scale
-    newMin = center - offset * range_
-    newMax = center + (1. - offset) * range_
-
-    if isLog:
-        # No overflow as exponent is log10 of a float32
-        newMin = pow(10., newMin)
-        newMax = pow(10., newMax)
-        newMin = numpy.clip(newMin, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-    else:
-        newMin = numpy.clip(newMin, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
-    return newMin, newMax
-
-
-def _applyZoomToPlot(plot, cx, cy, scaleF):
-    """Zoom in/out plot given a scale and a center point.
-
-    :param plot: The plot on which to apply zoom.
-    :param float cx: X coord in data coordinates of the zoom center.
-    :param float cy: Y coord in data coordinates of the zoom center.
-    :param float scaleF: Scale factor of zoom.
-    """
-    dataCenterPos = plot.pixelToData(cx, cy)
-    assert dataCenterPos is not None
-
-    xMin, xMax = plot.getGraphXLimits()
-    xMin, xMax = _scale1DRange(xMin, xMax, dataCenterPos[0], scaleF,
-                               plot.isXAxisLogarithmic())
-
-    yMin, yMax = plot.getGraphYLimits()
-    yMin, yMax = _scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
-                               plot.isYAxisLogarithmic())
-
-    dataPos = plot.pixelToData(cx, cy, axis="right")
-    assert dataPos is not None
-    y2Center = dataPos[1]
-    y2Min, y2Max = plot.getGraphYLimits(axis="right")
-    y2Min, y2Max = _scale1DRange(y2Min, y2Max, y2Center, scaleF,
-                                 plot.isYAxisLogarithmic())
-
-    plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-
-
 class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
 
@@ -191,7 +114,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1./1.1
-            _applyZoomToPlot(self.machine.plot, x, y, scaleF)
+            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def __init__(self, plot):
         """Init.
@@ -480,7 +403,7 @@ class Select(StateMachine, _PlotInteraction):
 
     def onWheel(self, x, y, angle):
         scaleF = 1.1 if angle > 0 else 1./1.1
-        _applyZoomToPlot(self.plot, x, y, scaleF)
+        applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
     def color(self):
@@ -818,7 +741,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1./1.1
-            _applyZoomToPlot(self.machine.plot, x, y, scaleF)
+            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
