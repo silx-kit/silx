@@ -34,7 +34,6 @@ __date__ = "07/03/2016"
 
 import collections
 import logging
-import sys
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
@@ -43,7 +42,7 @@ from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
 try:
-    from ..console import IPythonDockWidget, IPythonWidget
+    from ..console import IPythonDockWidget
 except ImportError:
     IPythonDockWidget = None
 
@@ -205,8 +204,8 @@ class PlotWindow(PlotWidget):
     def curvesROIDockWidget(self):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
         if not hasattr(self, '_curvesROIDockWidget'):
-            self._curvesROIDockWidget = CurvesROIDockWidget(self,
-                name='Regions Of Interest')
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
             self._introduceNewDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget

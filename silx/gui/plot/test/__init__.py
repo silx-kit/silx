@@ -49,6 +49,5 @@ def suite():
          testPlotSuite(),
          testPlotToolsSuite(),
          testPlotWidgetSuite(),
-         testPlotWindowSuite(),
-        ])
+         testPlotWindowSuite()])
     return test_suite

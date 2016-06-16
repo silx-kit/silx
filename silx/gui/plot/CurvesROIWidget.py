@@ -38,7 +38,6 @@ import sys
 
 import numpy
 
-from silx.io.configdict import ConfigDict
 from silx.io import dictdump
 from .. import icons, qt
 
@@ -209,7 +208,7 @@ class CurvesROIWidget(qt.QWidget):
         """Load button clicked handler"""
         dialog = qt.QFileDialog(self)
         dialog.setNameFilters(
-             ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
+            ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.roiFileDir)
         if not dialog.exec_():
