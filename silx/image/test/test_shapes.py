@@ -64,7 +64,7 @@ class TestPolygonFill(ParametricTestCase):
 
                 vertices = [(rows[0], cols[0]), (rows[1], cols[0]),
                             (rows[1], cols[1]), (rows[0], cols[1])]
-                mask = shapes.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill_mask(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -100,7 +100,7 @@ class TestPolygonFill(ParametricTestCase):
 
         for test_name, (vertices, ref_mask) in tests.items():
             with self.subTest(msg=test_name):
-                mask = shapes.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill_mask(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -143,7 +143,7 @@ class TestPolygonFill(ParametricTestCase):
 
         for test_name, (vertices, ref_mask) in tests.items():
             with self.subTest(msg=test_name):
-                mask = shapes.polygon_fill(vertices, ref_mask.shape)
+                mask = shapes.polygon_fill_mask(vertices, ref_mask.shape)
                 is_equal = numpy.all(numpy.equal(ref_mask, mask))
                 if not is_equal:
                     _logger.debug('%s failed with mask != ref_mask:',
@@ -187,7 +187,7 @@ class TestDrawLine(ParametricTestCase):
                 else:
                     step = 1 if dcol > 0 else -1
                     cols = col0 + numpy.arange(0, dcol + step, step)
-                ref_coords = numpy.stack((rows, cols), axis=-1)
+                ref_coords = rows, cols
 
                 result = shapes.draw_line(row0, col0, row1, col1)
                 self.assertTrue(self.isEqual(test_name, result, ref_coords))
@@ -197,7 +197,7 @@ class TestDrawLine(ParametricTestCase):
         for width in range(4):
             with self.subTest(width=width):
                 result = shapes.draw_line(1, 2, 1, 2, width)
-                self.assertTrue(numpy.all(numpy.equal(result, [(1, 2)])))
+                self.assertTrue(numpy.all(numpy.equal(result, [(1,), (2,)])))
 
     def test_lines(self):
         """Test lines not aligned with axes for 8 slopes and directions"""
@@ -224,7 +224,8 @@ class TestDrawLine(ParametricTestCase):
             for name, (drow, dcol, ref_coords) in lines.items():
                 row1 = row0 + drow
                 col1 = col0 + dcol
-                ref_coords = ref_coords + (row0, col0)
+                # Transpose from ((row0, col0), ...) to (rows, cols)
+                ref_coords = numpy.transpose(ref_coords + (row0, col0))
 
                 with self.subTest(msg=name,
                                   pt0=(row0, col0), pt1=(row1, col1)):
@@ -236,28 +237,30 @@ class TestDrawLine(ParametricTestCase):
 
         lines = { # test_name: row0, col0, row1, col1, width, ref
             'horizontal w=2':
-                (0, 0, 0, 1, 2, ((0, 0), (1, 0), (0, 1), (1, 1))),
+                (0, 0, 0, 1, 2, ((0, 1, 0, 1),
+                                 (0, 0, 1, 1))),
             'horizontal w=3':
-                (0, 0, 0, 1, 3,
-                 ((-1, 0), (0, 0), (1, 0), (-1, 1), (0, 1), (1, 1))),
+                (0, 0, 0, 1, 3, ((-1, 0, 1, -1, 0, 1),
+                                 (0, 0, 0, 1, 1, 1))),
             'vertical w=2':
-                (0, 0, 1, 0, 2, ((0, 0), (0, 1), (1, 0), (1, 1))),
+                (0, 0, 1, 0, 2, ((0, 0, 1, 1),
+                                 (0, 1, 0, 1))),
             'vertical w=3':
-                (0, 0, 1, 0, 3,
-                 ((0, -1), (0, 0), (0, 1), (1, -1), (1, 0), (1, 1))),
+                (0, 0, 1, 0, 3, ((0, 0, 0, 1, 1, 1),
+                                 (-1, 0, 1, -1, 0, 1))),
             'diagonal w=3':
-                (0, 0, 1, 1, 3,
-                 ((-1, 0), (0, 0), (1, 0), (0, 1), (1, 1), (2, 1))),
+                (0, 0, 1, 1, 3, ((-1, 0, 1, 0, 1, 2),
+                                 (0, 0, 0, 1, 1, 1))),
             '1st octant w=3':
                 (0, 0, 1, 2, 3,
-                 ((-1, 0), (0, 0), (1, 0),
-                  (0, 1), (1, 1), (2, 1),
-                  (0, 2), (1, 2), (2, 2))),
+                 numpy.array(((-1, 0), (0, 0), (1, 0),
+                              (0, 1), (1, 1), (2, 1),
+                              (0, 2), (1, 2), (2, 2))).T),
             '2nd octant w=3':
                 (0, 0, 2, 1, 3,
-                 ((0, -1), (0, 0), (0, 1),
-                  (1, 0), (1, 1), (1, 2),
-                  (2, 0), (2, 1), (2, 2))),
+                 numpy.array(((0, -1), (0, 0), (0, 1),
+                              (1, 0), (1, 1), (1, 2),
+                              (2, 0), (2, 1), (2, 2))).T),
         }
 
         for test_name, (row0, col0, row1, col1, width, ref) in lines.items():

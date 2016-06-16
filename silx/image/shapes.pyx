@@ -180,8 +180,8 @@ cdef class Polygon(object):
         return numpy.asarray(mask)
 
 
-def polygon_fill(vertices, shape):
-    """polygon_fill(vertices, shape)
+def polygon_fill_mask(vertices, shape):
+    """polygon_fill_mask(vertices, shape)
 
     Return a mask of boolean, True for pixels inside a polygon.
 
@@ -198,7 +198,7 @@ def polygon_fill(vertices, shape):
 @cython.wraparound(False)
 @cython.boundscheck(False)
 def draw_line(int row0, int col0, int row1, int col1, int width=1):
-    """line(row0, col0, row1, col1) -> numpy.ndarray
+    """line(row0, col0, row1, col1) -> tuple
 
     Line includes both end points.
     Width is handled by drawing parallel lines, so junctions of lines belonging
@@ -215,21 +215,24 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
     :param int col1: End point col
     :param int width: Thickness of the line in pixels (default 1)
                       Width must be at least 1.
-    :return: (row, col) coordinates of pixels in the line
-    :rtype: Nx2 numpy.ndarray
+    :return: Array coordinates of points inside the line (might be negative)
+    :rtype: 2-tuple of numpy.ndarray (rows, cols)
     """
     cdef int drow, dcol, invert_coords
     cdef int db, da, delta, b, a, step_a, step_b
     cdef int index, offset  # Loop indices
 
-    cdef int[:, :, :] result  # Store coordinates of points of the line
+    # Store coordinates of points of the line
+    cdef int[:, :] b_coords
+    cdef int[:, :] a_coords
 
     dcol = abs(col1 - col0)
     drow = abs(row1 - row0)
     invert_coords = dcol < drow
 
     if dcol == 0 and drow == 0:
-        return numpy.array((row0, col0))
+        return (numpy.array((row0,), dtype=numpy.int32),
+                numpy.array((col0,), dtype=numpy.int32))
 
     if width < 1:
         width = 1
@@ -251,19 +254,16 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
         a = row0
         b = col0
 
-    result = numpy.empty((da + 1, width, 2), dtype=numpy.int32)
+    b_coords = numpy.empty((da + 1, width), dtype=numpy.int32)
+    a_coords = numpy.empty((da + 1, width), dtype=numpy.int32)
 
     with nogil:
         b -= (width - 1) // 2
         delta = 2 * db - da
         for index in range(da + 1):
             for offset in range(width):
-                if invert_coords:
-                    result[index, offset, 0] = a
-                    result[index, offset, 1] = b + offset
-                else:
-                    result[index, offset, 0] = b + offset
-                    result[index, offset, 1] = a
+                b_coords[index, offset] = b + offset
+                a_coords[index, offset] = a
 
             if delta >= 0:  # M2: Move by step_a + step_b
                 b += step_b
@@ -273,7 +273,12 @@ def draw_line(int row0, int col0, int row1, int col1, int width=1):
             a += step_a
             delta += 2 * db
 
-    return numpy.asarray(result).reshape(-1, 2)
+    if not invert_coords:
+        return (numpy.asarray(b_coords).reshape(-1),
+                numpy.asarray(a_coords).reshape(-1))
+    else:
+        return (numpy.asarray(a_coords).reshape(-1),
+                numpy.asarray(b_coords).reshape(-1))
 
 
 def circle_fill(int crow, int ccol, float radius):
@@ -284,8 +289,8 @@ def circle_fill(int crow, int ccol, float radius):
     :param int crow: Row of the center of the disk
     :param int ccol: Column of the center of the disk
     :param float radius: Radius of the disk
-    :return: The coordinates of points lying in the circle (might be negative)
-    :rtype: 2-tuple of numpy array (rows, cols)
+    :return: Array coordinates of points inside the disk (might be negative)
+    :rtype: 2-tuple of numpy.ndarray (rows, cols)
     """
     cdef int i_radius, len_coords
 
