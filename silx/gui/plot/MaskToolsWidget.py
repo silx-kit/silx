@@ -58,12 +58,26 @@ class Mask(qt.QObject):
     sigChanged = qt.Signal()
     """Signal emitted when the mask has changed"""
 
+    sigUndoable = qt.Signal(bool)
+    """Signal emitted when undo becomes possible/impossible"""
+
+    sigRedoable = qt.Signal(bool)
+    """Signal emitted when redo becomes possible/impossible"""
+
     def __init__(self):
+        self.historyDepth = 10
+        """Maximum number of operation stored in history list for undo"""
+
         self._mask = numpy.array((), dtype=numpy.uint8)  # Store the mask
+
+        # Init lists for undo/redo
+        self._history = []
+        self._redo = []
+
         super(Mask, self).__init__()
 
     def _notify(self):
-        """Notify of mask changed."""
+        """Notify of mask change."""
         self.sigChanged.emit()
 
     def getMask(self, copy=True):
@@ -76,6 +90,56 @@ class Mask(qt.QObject):
         :rtype: 2D numpy.ndarray of uint8
         """
         return numpy.array(self._mask, copy=copy)
+
+    # History control
+
+    def resetHistory(self):
+        """Reset history"""
+        self._history = [numpy.array(self._mask, copy=True)]
+        self._redo = []
+        self.sigUndoable.emit(False)
+        self.sigRedoable.emit(False)
+
+    def commit(self):
+        """Append the current mask to history if changed"""
+        if (not self._history or self._redo or
+                not numpy.all(numpy.equal(self._mask, self._history[-1]))):
+            if self._redo:
+                self._redo = []  # Reset redo as a new action as been performed
+                self.sigRedoable[bool].emit(False)
+
+            while len(self._history) >= self.historyDepth:
+                self._history.pop(0)
+            self._history.append(numpy.array(self._mask, copy=True))
+
+            if len(self._history) == 2:
+                self.sigUndoable.emit(True)
+
+    def undo(self):
+        """Restore previous mask if any"""
+        if len(self._history) > 1:
+            self._redo.append(self._history.pop())
+            self._mask = numpy.array(self._history[-1], copy=True)
+            self._notify()  # Do not store this change in history
+
+            if len(self._redo) == 1:  # First redo
+                self.sigRedoable.emit(True)
+            if len(self._history) == 1:  # Last value in history
+                self.sigUndoable.emit(False)
+
+    def redo(self):
+        """Restore previously undone modification if any"""
+        if self._redo:
+            self._mask = self._redo.pop()
+            self._history.append(numpy.array(self._mask, copy=True))
+            self._notify()
+
+            if not self._redo:  # No more redo
+                self.sigRedoable.emit(False)
+            if len(self._history) == 2:  # Something to undo
+                self.sigUndoable.emit(True)
+
+    # Whole mask operations
 
     def clear(self, level):
         """Set all values of the given mask level to 0.
@@ -95,7 +159,12 @@ class Mask(qt.QObject):
         if shape is None:
             shape = 0, 0  # Empty 2D array
         assert len(shape) == 2
+
+        shapeChanged = (shape != self._mask.shape)
         self._mask = numpy.zeros(shape, dtype=numpy.uint8)
+        if shapeChanged:
+            self.resetHistory()
+
         self._notify()
 
     def invert(self, level):
@@ -110,6 +179,8 @@ class Mask(qt.QObject):
         self._mask[self._mask == 0] = level
         self._mask[masked] = 0
         self._notify()
+
+    # Drawing operations
 
     def updateRectangle(self, level, row, col, height, width, mask=True):
         """Mask/Unmask a rectangle of the given mask level.
@@ -267,17 +338,22 @@ class MaskToolsWidget(qt.QWidget):
         layout.addStretch(1)
         self.setLayout(layout)
 
-    def _hboxWidget(self, *widgets):
+    def _hboxWidget(self, *widgets, **kwargs):
         """Place widgets in widget with horizontal layout
 
-        :params widgets: Widgets to position horizontally
+        :param widgets: Widgets to position horizontally
+        :param bool stretch: True for trailing stretch (default),
+                             False for no trailing stretch
         :return: A QWidget with a QHBoxLayout
         """
+        stretch = kwargs.get('stretch', True)
+
         layout = qt.QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         for widget in widgets:
             layout.addWidget(widget)
-        layout.addStretch(1)
+        if stretch:
+            layout.addStretch(1)
         widget = qt.QWidget()
         widget.setLayout(layout)
         return widget
@@ -315,12 +391,29 @@ class MaskToolsWidget(qt.QWidget):
         clearAllBtn.setToolTip('Clear all mask levels')
         clearAllBtn.clicked.connect(self.resetMask)
 
+        undoBtn = qt.QPushButton('Undo')
+        undoBtn.setShortcut(qt.QKeySequence.Undo)
+        undoBtn.setToolTip('Undo last mask change <b>%s</b>' %
+                           undoBtn.shortcut().toString())
+        self._mask.sigUndoable.connect(undoBtn.setEnabled)
+        undoBtn.clicked.connect(self._mask.undo)
+
+        redoBtn = qt.QPushButton('Redo')
+        redoBtn.setShortcut(qt.QKeySequence.Redo)
+        redoBtn.setToolTip('Redo last undone mask change <b>%s</b>' %
+                           redoBtn.shortcut().toString())
+        self._mask.sigRedoable.connect(redoBtn.setEnabled)
+        redoBtn.clicked.connect(self._mask.redo)
+
+        undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
+
         layout = qt.QVBoxLayout()
         layout.addWidget(levelWidget)
         layout.addWidget(self.transparencyCheckBox)
         layout.addWidget(invertBtn)
         layout.addWidget(clearBtn)
         layout.addWidget(clearAllBtn)
+        layout.addWidget(undoRedoWidget)
         layout.addStretch()
 
         maskGroup = qt.QGroupBox('Mask')
@@ -481,6 +574,7 @@ class MaskToolsWidget(qt.QWidget):
 
             self._data = numpy.zeros((0, 0), dtype=numpy.uint8)
             self._mask.reset()
+            self._mask.commit()
 
         else:  # There is an active image
             self.setEnabled(True)
@@ -501,6 +595,7 @@ class MaskToolsWidget(qt.QWidget):
             self._data = activeImage[0]
             if self._data.shape != self.getMask(copy=False).shape:
                 self._mask.reset(self._data.shape)
+                self._mask.commit()
             else:
                 # Refresh in case origin, scale, z changed
                 self._updatePlotMask()
@@ -537,14 +632,17 @@ class MaskToolsWidget(qt.QWidget):
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
         self._mask.clear(self.levelSpinBox.value())
+        self._mask.commit()
 
     def resetMask(self):
         """Reset the mask"""
         self._mask.reset(shape=self._data.shape)
+        self._mask.commit()
 
     def _handleInvertMask(self):
         """Invert the current mask level selection."""
         self._mask.invert(self.levelSpinBox.value())
+        self._mask.commit()
 
     # Handle drawing tools UI events
 
@@ -595,7 +693,6 @@ class MaskToolsWidget(qt.QWidget):
             # Invert masking
             doMask = not doMask
 
-
         if (self._drawingMode == 'rectangle' and
                 event['event'] == 'drawingFinished'):
             # Convert from plot to array coords
@@ -608,6 +705,7 @@ class MaskToolsWidget(qt.QWidget):
                 height=int(event['height'] / sy),
                 width=int(event['width'] / sx),
                 mask=doMask)
+            self._mask.commit()
 
         elif (self._drawingMode == 'polygon' and
                 event['event'] == 'drawingFinished'):
@@ -615,6 +713,7 @@ class MaskToolsWidget(qt.QWidget):
             vertices = event['points'] / self._scale - self._origin
             vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
             self._mask.updatePolygon(level, vertices, doMask)
+            self._mask.commit()
 
         elif self._drawingMode == 'pencil':
             # convert from plot to array coords
@@ -635,6 +734,7 @@ class MaskToolsWidget(qt.QWidget):
                     doMask)
 
             if event['event'] == 'drawingFinished':
+                self._mask.commit()
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = row, col
@@ -647,6 +747,7 @@ class MaskToolsWidget(qt.QWidget):
             max_ = float(self.maxLineEdit.text())
             self._mask.updateStencil(self.levelSpinBox.value(),
                                      self._data > max_)
+            self._mask.commit()
 
     def _betweenBtnClicked(self):
         """Handle select between button"""
@@ -657,6 +758,7 @@ class MaskToolsWidget(qt.QWidget):
             self._mask.updateStencil(self.levelSpinBox.value(),
                                      numpy.logical_and(min_ <= self._data,
                                                        self._data <= max_))
+            self._mask.commit()
 
     def _belowBtnClicked(self):
         """Handle select below button"""
@@ -664,6 +766,7 @@ class MaskToolsWidget(qt.QWidget):
             min_ = float(self.minLineEdit.text())
             self._mask.updateStencil(self.levelSpinBox.value(),
                                      self._data < min_)
+            self._mask.commit()
 
 
 class MaskToolsDockWidget(qt.QDockWidget):
