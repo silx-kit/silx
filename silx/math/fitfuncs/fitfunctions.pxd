@@ -29,10 +29,6 @@ __date__ = "14/06/2016"
 cimport cython
 
 cdef extern from "fitfunctions.h":
-    struct gaussian_params:
-        pass
-
-cdef extern from "fitfunctions.h":
     int erfc_array(double* x,
                    int len_x,
                    double* y)
@@ -147,4 +143,15 @@ cdef extern from "fitfunctions.h":
                           int len_phypermet,
                           double* y,
                           int tail_flags)
+
+    long seek(long BeginChannel,
+              long EndChannel,
+              long nchannels,
+              double FWHM,
+              double Sensitivity,
+              double debug_info,
+              long max_npeaks,
+              double *yspec,
+              double *peaks,
+              double *relevances)
 

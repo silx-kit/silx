@@ -1,11 +1,5 @@
 #/*##########################################################################
-#
-# The PyMca X-Ray Fluorescence Toolkit
-#
-# Copyright (c) 2004-2014 European Synchrotron Radiation Facility
-#
-# This file is part of the PyMca X-ray Fluorescence Toolkit developed at
-# the ESRF by the Software group.
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +21,15 @@
 #
 #############################################################################*/
 /*
+    This file provides fit functions and peak detection functions.
 
+    It is adapted from PyMca source file "SpecFitFuns.c". The main difference
+    with the original code is that this code does not handle the python
+    wrapping, which is done elsewhere using cython.
+
+    Authors: V.A. Sole, P. Knobel
+    License: MIT
+    Last modified: 17/06/2016
 */
 #include <math.h>
 #include <stdlib.h>
@@ -36,6 +38,17 @@
 
 #ifndef M_PI
 #define M_PI 3.1415926535
+#endif
+
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+
+#ifdef WIN32
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define M_PI 3.1415926535
+#define erf myerf
+#define erfc myerfc
 #endif
 
 #define LOG2  0.69314718055994529
@@ -86,26 +99,26 @@ double myerf(double x)
 }
 
 /* Gauss error function for an array
-   y[i]=myerf(x[i])
+   y[i]=erf(x[i])
    returns status code 0
 */
 int erf_array(double* x, int len_x, double* y)
 {
     int j;
     for (j=0; j<len_x;  j++) {
-        y[j] = myerf(x[j]);
+        y[j] = erf(x[j]);
     }
     return(0);
 }
 
 /* Complementary error function for an array
-   y[i]=myerfc(x[i])
+   y[i]=erfc(x[i])
    returns status code 0*/
 int erfc_array(double* x, int len_x, double* y)
 {
     int j;
     for (j=0; j<len_x;  j++) {
-        y[j] = myerfc(x[j]);
+        y[j] = erfc(x[j]);
     }
     return(0);
 }
@@ -174,6 +187,7 @@ double fastexp(double x)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
@@ -228,6 +242,7 @@ int sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
@@ -287,6 +302,7 @@ int sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 
 int sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
@@ -364,6 +380,7 @@ int sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
 {
@@ -434,6 +451,7 @@ int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
@@ -503,6 +521,7 @@ int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
@@ -571,6 +590,7 @@ int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
 {
@@ -652,6 +672,7 @@ int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
 {
@@ -702,6 +723,7 @@ int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
 {
@@ -753,6 +775,7 @@ int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, doubl
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y)
 {
@@ -809,6 +832,7 @@ int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, d
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y)
 {
@@ -835,7 +859,7 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
         for (j=0; j<len_x;  j++) {
             dhelp = fwhm * sqrt2_inv_2_sqrt_two_log2;
             dhelp = (x[j] - centroid) / dhelp;
-            y[j] += height * 0.5 * myerfc(dhelp);
+            y[j] += height * 0.5 * erfc(dhelp);
         }
     }
     return(0);
@@ -860,6 +884,7 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
 {
@@ -886,7 +911,7 @@ int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
         for (j=0; j<len_x;  j++) {
             dhelp = fwhm * sqrt2_inv_2_sqrt_two_log2;
             dhelp = (x[j] - centroid) / dhelp;
-            y[j] += height * 0.5 * (1.0 + myerf(dhelp));
+            y[j] += height * 0.5 * (1.0 + erf(dhelp));
         }
     }
     return(0);
@@ -913,6 +938,7 @@ int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
         - y: Output array. Must have memory allocated for the same number
           of elements as x (len_x).
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y)
 {
@@ -944,7 +970,7 @@ int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y)
             dhelp = beamfwhm * sqrt2_inv_2_sqrt_two_log2;
             dhelp1 = (x[j] - centroid1) / dhelp;
             dhelp2 = (x[j] - centroid2) / dhelp;
-            y[j] += height * 0.25 * (1.0 + myerf(dhelp1)) *  myerfc(dhelp2);
+            y[j] += height * 0.25 * (1.0 + erf(dhelp1)) *  erfc(dhelp2);
         }
     }
     return(0);
@@ -992,6 +1018,7 @@ int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y)
 
           E.g., to activate all termsof the hypermet, use ``tail_flags = 1 + 2 + 4 + 8 = 15``
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
 {
@@ -1053,7 +1080,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
             if (st_term_flag) {
                 if (fabs(st_slope_r) > epsilon) {
                     c1 = st_area_r * 0.5 * \
-                         myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
+                         erfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
                     y[j] += ((area * c1) / st_slope_r) * \
                             exp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) + \
                                 (x_minus_position / st_slope_r));
@@ -1064,7 +1091,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
             if (lt_term_flag) {
                 if (fabs(lt_slope_r) > epsilon) {
                     c1 = lt_area_r * \
-                         0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
+                         0.5 * erfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
                     y[j] += ((area * c1) / lt_slope_r) * \
                             exp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) + \
                                 (x_minus_position / lt_slope_r));
@@ -1074,7 +1101,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
             /* step term flag */
             if (step_term_flag) {
                 y[j] += step_height_r * (area / (sigma * sqrt2PI)) * \
-                        0.5 * myerfc(x_minus_position / sigma_sqrt2);
+                        0.5 * erfc(x_minus_position / sigma_sqrt2);
             }
         }
     }
@@ -1082,6 +1109,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
 }
 
 /*  sum_fastahypermet
+
     Sum of hypermet functions, defined by
     (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r).
 
@@ -1122,6 +1150,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
 
           E.g., to activate all termsof the hypermet, use ``tail_flags = 1 + 2 + 4 + 8 = 15``
 
+    Adapted from PyMca module SpecFitFuns
 */
 int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
 {
@@ -1182,7 +1211,7 @@ int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet
             /* st term */
             if (st_term_flag && (fabs(st_slope_r) > epsilon) && (x_minus_position / st_slope_r) <= 612) {
                 c1 = st_area_r * 0.5 * \
-                     myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
+                     erfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
                 y[j] += ((area * c1) / st_slope_r) * \
                         fastexp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
                                 (x_minus_position / st_slope_r));
@@ -1191,7 +1220,7 @@ int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet
             /* lt term */
             if (lt_term_flag && (fabs(lt_slope_r) > epsilon) && (x_minus_position / lt_slope_r) <= 612) {
                 c1 = lt_area_r * \
-                     0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
+                     0.5 * erfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
                 y[j] += ((area * c1) / lt_slope_r) * \
                         fastexp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
                                 (x_minus_position / lt_slope_r));
@@ -1201,11 +1230,206 @@ int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet
             /* step term flag */
             if (step_term_flag) {
                 y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
-                        0.5 * myerfc(x_minus_position / sigma_sqrt2);
+                        0.5 * erfc(x_minus_position / sigma_sqrt2);
             }
         }
     }
     return(0);
 }
+
+/* Peak search function, adapted from PyMca SpecFitFuns */
+long seek(long BeginChannel,
+           long EndChannel,
+           long nchannels,
+           double FWHM,
+           double Sensitivity,
+           double debug_info,
+           long max_npeaks,
+           double *yspec,
+           double *peaks,
+           double *relevances)
+{
+    /* local variables */
+    double  sigma, sigma2, sigma4;
+    long    max_gfactor = 100;
+    double  gfactor[100];
+    long    nr_factor;
+    double  sum_factors;
+    double  lowthreshold;
+    double  yspec2[2];
+    double  nom;
+    double  den2;
+    long    begincalc, endcalc;
+    long    channel1;
+    long    lld;
+    long    cch;
+    long    cfac, cfac2;
+    long    ihelp1, ihelp2;
+    long    i, j;
+    long    n_peaks = 0;
+    double  peakstarted = 0;
+
+    /* Make sure the peaks matrix is filled with zeros */
+    for (i=0;i<max_npeaks;i++){
+        peaks[i]      = 0.0;
+        relevances[i] = 0.0;
+    }
+
+    /* prepare the calculation of the Gaussian scaling factors */
+
+    sigma = FWHM / 2.35482;
+    sigma2 = sigma * sigma;
+    sigma4 = sigma2 * sigma2;
+    lowthreshold = 0.01 / sigma2;
+    sum_factors = 0.0;
+
+    /* calculate the factors until lower threshold reached */
+    j = MIN(max_gfactor, ((EndChannel - BeginChannel -2)/2)-1);
+    for (cfac=1;cfac<j+1;cfac++) {
+        cfac2 = cfac * cfac;
+        gfactor[cfac-1] = (sigma2 - cfac2) * exp (-cfac2/(sigma2*2.0)) / sigma4;
+        sum_factors += gfactor[cfac-1];
+
+        if ((gfactor[cfac-1] < lowthreshold)
+           && (gfactor[cfac-1] > (-lowthreshold))){
+            break;
+        }
+    }
+
+    nr_factor = cfac;
+
+    /* What comes now is specific to MCA spectra ... */
+    lld = 0;
+    while (yspec [lld] == 0) {
+        lld++;
+    }
+    lld = lld + (int) (0.5 * FWHM);
+
+    channel1 = BeginChannel - nr_factor - 1;
+    channel1 = MAX (channel1, lld);
+    begincalc = channel1+nr_factor+1;
+    endcalc = MIN (EndChannel+nr_factor+1, nchannels-nr_factor-1);
+    cch = begincalc;
+    if(debug_info){
+        printf("nrfactor  = %ld\n", nr_factor);
+        printf("begincalc = %ld\n", begincalc);
+        printf("endcalc   = %ld\n", endcalc);
+    }
+    /* calculates smoothed value and variance at begincalc */
+    cch = MAX(BeginChannel,0);
+    nom = yspec[cch] / sigma2;
+    den2 = yspec[cch] / sigma4;
+    for (cfac = 1; cfac < nr_factor; cfac++){
+        ihelp1 = cch-cfac;
+        if (ihelp1 < 0){
+            ihelp1 = 0;
+        }
+        ihelp2 = cch+cfac;
+        if (ihelp2 >= nchannels){
+            ihelp2 = nchannels-1;
+        }
+        nom += gfactor[cfac-1] * (yspec[ihelp2] + yspec [ihelp1]);
+        den2 += gfactor[cfac-1] * gfactor[cfac-1] *
+                 (yspec[ihelp2] + yspec [ihelp1]);
+    }
+
+    /* now normalize the smoothed value to the standard deviation */
+    if (den2 <= 0.0) {
+        yspec2[1] = 0.0;
+    }else{
+        yspec2[1] = nom / sqrt(den2);
+    }
+    yspec[0] = yspec[1];
+
+    while (cch <= MIN(EndChannel,nchannels-2)){
+        /* calculate gaussian smoothed values */
+        yspec2[0] = yspec2[1];
+        cch++;
+        nom = yspec[cch]/sigma2;
+        den2 = yspec[cch] / sigma4;
+        for (cfac = 1; cfac < nr_factor; cfac++){
+            ihelp1 = cch-cfac;
+            if (ihelp1 < 0){
+                ihelp1 = 0;
+            }
+            ihelp2 = cch+cfac;
+            if (ihelp2 >= nchannels){
+                ihelp2 = nchannels-1;
+            }
+            nom += gfactor[cfac-1] * (yspec[ihelp2] + yspec [ihelp1]);
+            den2 += gfactor[cfac-1] * gfactor[cfac-1] *
+                     (yspec[ihelp2] + yspec [ihelp1]);
+        }
+        /* now normalize the smoothed value to the standard deviation */
+        if (den2 <= 0) {
+            yspec2[1] = 0;
+        }else{
+            yspec2[1] = nom / sqrt(den2);
+        }
+        /* look if the current point falls in a peak */
+        if (yspec2[1] > Sensitivity) {
+            if(peakstarted == 0){
+                if (yspec2[1] > yspec2[0]){
+                    /* this second test is to prevent a peak from outside
+                    the region from being detected at the beginning of the search */
+                   peakstarted=1;
+                }
+            }
+            /* there is a peak */
+            if (debug_info){
+                printf("At cch = %ld y[cch] = %g\n",cch,yspec[cch]);
+                printf("yspec2[0] = %g\n",yspec2[0]);
+                printf("yspec2[1] = %g\n",yspec2[1]);
+                printf("Sensitivity = %g\n",Sensitivity);
+            }
+            if(peakstarted == 1){
+                /* look for the top of the peak */
+                if (yspec2[1] < yspec2 [0]) {
+                    /* we are close to the top of the peak */
+                    if (debug_info){
+                        printf("we are close to the top of the peak\n");
+                    }
+                    if (n_peaks < max_npeaks) {
+                        peaks[n_peaks] = cch-1;
+                        relevances[n_peaks] = yspec2[0];
+                        n_peaks++;
+                        peakstarted=2;
+                    }else{
+                        printf("Found too many peaks\n");
+                        return (-2);
+                    }
+                }
+            }
+            /* Doublet case */
+            if(peakstarted == 2){
+                if ((cch-peaks[n_peaks-1]) > 0.6 * FWHM) {
+                    if (yspec2[1] > yspec2 [0]){
+                        if(debug_info){
+                            printf("We may have a doublet\n");
+                        }
+                        peakstarted=1;
+                    }
+                }
+            }
+        }else{
+            if (peakstarted==1){
+            /* We were on a peak but we did not find the top */
+                if(debug_info){
+                    printf("We were on a peak but we did not find the top\n");
+                }
+            }
+            peakstarted=0;
+        }
+    }
+    if(debug_info){
+      for (i=0;i< n_peaks;i++){
+        printf("Peak %ld found at ",i+1);
+        printf("index %g with y = %g\n",peaks[i],yspec[(long ) peaks[i]]);
+      }
+    }
+    return (n_peaks);
+}
+
+
 
 
