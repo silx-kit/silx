@@ -34,11 +34,15 @@ __license__ = "MIT"
 __data__ = "08/06/2016"
 
 
+import os
+import sys
 import numpy
 import logging
 
 from silx.image import shapes
 from .. import icons, qt
+from silx.third_party.EdfFile import EdfFile
+from silx.third_party.TiffIO import TiffIO
 
 _logger = logging.getLogger(__name__)
 
@@ -306,6 +310,8 @@ class MaskToolsWidget(qt.QWidget):
         super(MaskToolsWidget, self).__init__(parent)
         self._initWidgets()
 
+        self._maskFileDir = qt.QDir.home().absolutePath()
+
     def getMask(self, copy=True):
         """Get the current mask as a 2D array.
 
@@ -316,6 +322,42 @@ class MaskToolsWidget(qt.QWidget):
         :rtype: 2D numpy.ndarray of uint8
         """
         return self._mask.getMask(copy=copy)
+
+    @property
+    def maskFileDir(self):
+        """The directory from which to load/save mask from/to files."""
+        if not os.path.isdir(self._maskFileDir):
+            self._maskFileDir = qt.QDir.home().absolutePath()
+        return self._maskFileDir
+
+    @maskFileDir.setter
+    def maskFileDir(self, maskFileDir):
+        self._maskFileDir = str(maskFileDir)
+
+    def save(self, filename, kind):
+        """Save current mask in a file
+
+        :param str filename: The file where to save to mask
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
+        :return: True if save succeeded, False otherwise
+        """
+        if kind == 'edf':
+            edfFile = EdfFile(filename, access="w+")
+            edfFile.WriteImage({}, self.getMask(), Append=0)
+            return True
+
+        elif kind == 'tif':
+            tiffFile = TiffIO(filename, mode='w')
+            tiffFile.writeImage(self.getMask(), software='silx')
+            return True
+
+        elif kind == 'npy':
+            try:
+                numpy.save(filename, self.getMask())
+            except IOError:
+                return False
+            return True
+        return False
 
     @property
     def plot(self):
@@ -407,6 +449,9 @@ class MaskToolsWidget(qt.QWidget):
 
         undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
 
+        saveBtn = qt.QPushButton('Save...')
+        saveBtn.clicked.connect(self._saveMask)
+
         layout = qt.QVBoxLayout()
         layout.addWidget(levelWidget)
         layout.addWidget(self.transparencyCheckBox)
@@ -414,7 +459,8 @@ class MaskToolsWidget(qt.QWidget):
         layout.addWidget(clearBtn)
         layout.addWidget(clearAllBtn)
         layout.addWidget(undoRedoWidget)
-        layout.addStretch()
+        layout.addWidget(saveBtn)
+        layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
         maskGroup.setLayout(layout)
@@ -601,6 +647,45 @@ class MaskToolsWidget(qt.QWidget):
                 self._updatePlotMask()
 
     # Handle whole mask operations
+
+    def _saveMask(self):
+        """Open Save mask dialog"""
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Save Mask")
+        dialog.setModal(1)
+        dialog.setNameFilters(
+            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        dialog.setFileMode(qt.QFileDialog.AnyFile)
+        dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
+        dialog.setDirectory(self.maskFileDir)
+        if not dialog.exec_():
+            dialog.close()
+            return
+
+        extension = dialog.selectedNameFilter().split()[-1][1:]
+        filename = dialog.selectedFiles()[0]
+        dialog.close()
+
+        if not filename.lower().endswith(extension):
+            filename += extension
+
+        if os.path.exists(filename):
+            try:
+                os.remove(filename)
+            except IOError:
+                msg = qt.QMessageBox(self)
+                msg.setIcon(qt.QMessageBox.Critical)
+                msg.setText("Cannot save.\n"
+                            "Input Output Error: %s" % (sys.exc_info()[1]))
+                msg.exec_()
+                return
+
+        self.maskFileDir = os.path.dirname(filename)
+        if not self.save(filename, extension[1:]):
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot save file %s\n" % filename)
+            msg.exec_()
 
     def _setMaskColors(self, level, transparent):
         """Set-up the mask colormap to highlight current mask level.
