@@ -257,7 +257,7 @@ class CurvesROIWidget(qt.QWidget):
         if not dialog.exec_():
             dialog.close()
             return
-        # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
+
         outputFile = dialog.selectedFiles()[0]
         extension = '.' + dialog.selectedNameFilter().split('.')[-1]
         dialog.close()

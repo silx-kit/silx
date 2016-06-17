@@ -645,10 +645,12 @@ class SaveAction(_PlotAction):
         if nameFilter == self.IMAGE_FILTER_EDF:
             edfFile = EdfFile(filename, access="w+")
             edfFile.WriteImage({}, data, Append=0)
+            return True
 
         elif nameFilter == self.IMAGE_FILTER_TIFF:
             tiffFile = TiffIO(filename, mode='w')
             tiffFile.writeImage(data, software='silx')
+            return True
 
         elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
