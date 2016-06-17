@@ -165,9 +165,9 @@ double fastexp(double x)
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pvoigt: Array of gaussian parameters:
+        - pvoigt: Array of gaussian parameters:
           (height1, centroid1, fwhm1, height2, centroid2, fwhm2,...)
         - len_pgauss: Number of elements in the pgauss array. Must be
           a multiple of 3.
@@ -219,9 +219,9 @@ int sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pgauss: Array of gaussian parameters:
+        - pgauss: Array of gaussian parameters:
           (area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)
         - len_pgauss: Number of elements in the pgauss array. Must be
           a multiple of 3.
@@ -278,9 +278,9 @@ int sum_agauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y)
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pgauss: Array of gaussian parameters:
+        - pgauss: Array of gaussian parameters:
           (area1, centroid1, fwhm1, area2, centroid2, fwhm2,...)
         - len_pgauss: Number of elements in the pgauss array. Must be
           a multiple of 3.
@@ -355,9 +355,9 @@ int sum_fastagauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pgauss: Array of gaussian parameters:
+        - pgauss: Array of gaussian parameters:
           (height1, centroid1, fwhm11, fwhm21, height2, centroid2, fwhm12, fwhm22,...)
         - len_pgauss: Number of elements in the pgauss array. Must be
           a multiple of 4.
@@ -425,9 +425,9 @@ int sum_splitgauss(double* x, int len_x, double* pgauss, int len_pgauss, double*
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pvoigt: Array of Voigt function parameters:
+        - pvoigt: Array of Voigt function parameters:
           (area1, centroid1, fwhm1, eta1, area2, centroid2, fwhm2, eta2,...)
         - len_voigt: Number of elements in the pvoigt array. Must be
           a multiple of 4.
@@ -494,9 +494,9 @@ int sum_apvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pvoigt: Array of Voigt function parameters:
+        - pvoigt: Array of Voigt function parameters:
           (height1, centroid1, fwhm1, eta1, height2, centroid2, fwhm2, eta2,...)
         - len_voigt: Number of elements in the pvoigt array. Must be
           a multiple of 4.
@@ -562,9 +562,9 @@ int sum_pvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double* y)
     Parameters:
     -----------
 
-        - x: Independant variable where the gaussians are calculated.
+        - x: Independant variable where the gaussians are calculated.
         - len_x: Number of elements in the x array.
-        - pvoigt: Array of Voigt function parameters:
+        - pvoigt: Array of Voigt function parameters:
           (height1, centroid1, fwhm11, fwhm21, eta1, ...)
         - len_voigt: Number of elements in the pvoigt array. Must be
           a multiple of 5.
@@ -643,9 +643,9 @@ int sum_splitpvoigt(double* x, int len_x, double* pvoigt, int len_pvoigt, double
     Parameters:
     -----------
 
-        - x: Independant variable where the Lorentzians are calculated.
+        - x: Independant variable where the Lorentzians are calculated.
         - len_x: Number of elements in the x array.
-        - plorentz: Array of lorentz function parameters:
+        - plorentz: Array of lorentz function parameters:
           (height1, centroid1, fwhm1, ...)
         - len_lorentz: Number of elements in the plorentz array. Must be
           a multiple of 3.
@@ -693,9 +693,9 @@ int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double
     Parameters:
     -----------
 
-        - x: Independant variable where the Lorentzians are calculated.
+        - x: Independant variable where the Lorentzians are calculated.
         - len_x: Number of elements in the x array.
-        - plorentz: Array of lorentz function parameters:
+        - plorentz: Array of lorentz function parameters:
           (area1, centroid1, fwhm1, ...)
         - len_lorentz: Number of elements in the plorentz array. Must be
           a multiple of 3.
@@ -744,9 +744,9 @@ int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, doubl
     Parameters:
     -----------
 
-        - x: Independant variable where the Lorentzians are calculated.
+        - x: Independant variable where the Lorentzians are calculated.
         - len_x: Number of elements in the x array.
-        - plorentz: Array of lorentz function parameters:
+        - plorentz: Array of lorentz function parameters:
           (height1, centroid1, fwhm11, fwhm21 ...)
         - len_lorentz: Number of elements in the plorentz array. Must be
           a multiple of 4.
@@ -800,9 +800,9 @@ int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, d
     Parameters:
     -----------
 
-        - x: Independant variable where the downstep functions are calculated.
+        - x: Independant variable where the downstep functions are calculated.
         - len_x: Number of elements in the x array.
-        - pdstep: Array of downstpe function parameters:
+        - pdstep: Array of downstpe function parameters:
           (height1, centroid1, fwhm1, ...)
         - len_pdstep: Number of elements in the pdstep array. Must be
           a multiple of 3.
@@ -851,9 +851,9 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
     Parameters:
     -----------
 
-        - x: Independant variable where the upstep functions are calculated.
+        - x: Independant variable where the upstep functions are calculated.
         - len_x: Number of elements in the x array.
-        - pustep: Array of downstep function parameters:
+        - pustep: Array of downstep function parameters:
           (height1, centroid1, fwhm1, ...)
         - len_pustep: Number of elements in the pustep array. Must be
           a multiple of 3.
@@ -904,9 +904,9 @@ int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
     Parameters:
     -----------
 
-        - x: Independant variable where the slit functions are calculated.
+        - x: Independant variable where the slit functions are calculated.
         - len_x: Number of elements in the x array.
-        - pslit: Array of slit function parameters:
+        - pslit: Array of slit function parameters:
           (height1, centroid1, fwhm1, beamfwhm1 ...)
         - len_pslit: Number of elements in the pslit array. Must be
           a multiple of 3.
@@ -955,12 +955,27 @@ int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y)
     Sum of hypermet functions, defined by
     (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r).
 
+    - *area* is the area underneath the gaussian peak
+    - *position* is the center of the various peaks and the position of
+      the step down
+    - *fwhm* is the full-width at half maximum of the terms
+    - *st_area_r* is factor between the gaussian area and the area of the
+      short tail term
+    - *st_slope_r* is a parameter related to the slope of the short tail
+      in the low ``x`` values (the lower, the steeper)
+    - *lt_area_r* is factor between the gaussian area and the area of the
+      long tail term
+    - *lt_slope_r* is a parameter related to the slope of the long tail
+      in the low ``x`` values  (the lower, the steeper)
+    - *step_height_r* is the factor between the height of the step down
+      and the gaussian height
+
     Parameters:
     -----------
 
-        - x: Independant variable where the functions are calculated.
+        - x: Independant variable where the functions are calculated.
         - len_x: Number of elements in the x array.
-        - phypermet: Array of hypermet function parameters:
+        - phypermet: Array of hypermet function parameters:
           *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
           lt_slope_r1, step_height_r1, ...)*
         - len_phypermet: Number of elements in the phypermet array. Must be
@@ -1036,48 +1051,61 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
 
             /* st term */
             if (st_term_flag) {
-                if ((abs(st_area_r) > epsilon) && (abs(st_slope_r) > epsilon)) {
+                if (fabs(st_slope_r) > epsilon) {
                     c1 = st_area_r * 0.5 * \
                          myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
                     y[j] += ((area * c1) / st_slope_r) * \
-                            exp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
+                            exp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) + \
                                 (x_minus_position / st_slope_r));
                 }
             }
 
             /* lt term */
             if (lt_term_flag) {
-                if ((abs(lt_area_r) > epsilon) && (abs(lt_slope_r) > epsilon)) {
+                if (fabs(lt_slope_r) > epsilon) {
                     c1 = lt_area_r * \
                          0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
                     y[j] += ((area * c1) / lt_slope_r) * \
-                            exp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
+                            exp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) + \
                                 (x_minus_position / lt_slope_r));
                 }
             }
 
             /* step term flag */
             if (step_term_flag) {
-                if (abs(step_height_r) > epsilon) {
-                    y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
-                            0.5 * myerfc(x_minus_position / sigma_sqrt2);
-                }
+                y[j] += step_height_r * (area / (sigma * sqrt2PI)) * \
+                        0.5 * myerfc(x_minus_position / sigma_sqrt2);
             }
         }
     }
     return(0);
 }
 
-/*  sum_fasthypermet
+/*  sum_fastahypermet
     Sum of hypermet functions, defined by
     (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r).
+
+    - *area* is the area underneath the gaussian peak
+    - *position* is the center of the various peaks and the position of
+      the step down
+    - *fwhm* is the full-width at half maximum of the terms
+    - *st_area_r* is factor between the gaussian area and the area of the
+      short tail term
+    - *st_slope_r* is a parameter related to the slope of the short tail
+      in the low ``x`` values (the lower, the steeper)
+    - *lt_area_r* is factor between the gaussian area and the area of the
+      long tail term
+    - *lt_slope_r* is a parameter related to the slope of the long tail
+      in the low ``x`` values  (the lower, the steeper)
+    - *step_height_r* is the factor between the height of the step down
+      and the gaussian height
 
     Parameters:
     -----------
 
-        - x: Independant variable where the functions are calculated.
+        - x: Independant variable where the functions are calculated.
         - len_x: Number of elements in the x array.
-        - phypermet: Array of hypermet function parameters:
+        - phypermet: Array of hypermet function parameters:
           *(area1, position1, fwhm1, st_area_r1, st_slope_r1, lt_area_r1,
           lt_slope_r1, step_height_r1, ...)*
         - len_phypermet: Number of elements in the phypermet array. Must be
@@ -1095,7 +1123,7 @@ int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, do
           E.g., to activate all termsof the hypermet, use ``tail_flags = 1 + 2 + 4 + 8 = 15``
 
 */
-int sum_fasthypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
+int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags)
 {
     int i, j;
     int g_term_flag, st_term_flag, lt_term_flag, step_term_flag;
@@ -1147,40 +1175,37 @@ int sum_fasthypermet(double* x, int len_x, double* phypermet, int len_phypermet,
             x_minus_position = x[j] - position;
             c2 = (0.5 * x_minus_position * x_minus_position) / (sigma * sigma);
             /* gaussian term */
-            if (g_term_flag) {
+            if (g_term_flag && c2 < 100) {
                 y[j] += fastexp(-c2) * height;
             }
 
             /* st term */
-            if (st_term_flag) {
-                if ((abs(st_area_r) > epsilon) && (abs(st_slope_r) > epsilon)) {
-                    c1 = st_area_r * 0.5 * \
-                         myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
-                    y[j] += ((area * c1) / st_slope_r) * \
-                            fastexp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
-                                    (x_minus_position / st_slope_r));
-                }
+            if (st_term_flag && (fabs(st_slope_r) > epsilon) && (x_minus_position / st_slope_r) <= 612) {
+                c1 = st_area_r * 0.5 * \
+                     myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / st_slope_r);
+                y[j] += ((area * c1) / st_slope_r) * \
+                        fastexp(0.5 * (sigma / st_slope_r) * (sigma / st_slope_r) +\
+                                (x_minus_position / st_slope_r));
             }
 
             /* lt term */
-            if (lt_term_flag) {
-                if ((abs(lt_area_r) > epsilon) && (abs(lt_slope_r) > epsilon)) {
-                    c1 = lt_area_r * \
-                         0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
-                    y[j] += ((area * c1) / lt_slope_r) * \
-                            fastexp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
-                                    (x_minus_position / lt_slope_r));
-                }
+            if (lt_term_flag && (fabs(lt_slope_r) > epsilon) && (x_minus_position / lt_slope_r) <= 612) {
+                c1 = lt_area_r * \
+                     0.5 * myerfc((x_minus_position/sigma_sqrt2) + 0.5 * sigma_sqrt2 / lt_slope_r);
+                y[j] += ((area * c1) / lt_slope_r) * \
+                        fastexp(0.5 * (sigma / lt_slope_r) * (sigma / lt_slope_r) +\
+                                (x_minus_position / lt_slope_r));
+
             }
 
             /* step term flag */
             if (step_term_flag) {
-                if (abs(step_height_r) > epsilon) {
-                    y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
-                            0.5 * myerfc(x_minus_position / sigma_sqrt2);
-                }
+                y[j] += step_height_r * (area / (sigma * sqrt2PI)) *\
+                        0.5 * myerfc(x_minus_position / sigma_sqrt2);
             }
         }
     }
     return(0);
 }
+
+

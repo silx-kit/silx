@@ -141,10 +141,10 @@ cdef extern from "fitfunctions.h":
                       double* y,
                       int tail_flags)
 
-    int sum_fasthypermet(double* x,
-                         int len_x,
-                         double* phypermet,
-                         int len_phypermet,
-                         double* y,
-                         int tail_flags)
+    int sum_fastahypermet(double* x,
+                          int len_x,
+                          double* phypermet,
+                          int len_phypermet,
+                          double* y,
+                          int tail_flags)
 

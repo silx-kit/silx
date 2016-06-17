@@ -58,6 +58,6 @@ int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y);
 int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y);
 
 int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);
-int sum_fasthypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);
+int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);
 
 #endif /* #define FITFUNCTIONS_H */

@@ -55,7 +55,7 @@ from fitfunctions cimport sum_downstep as _sum_downstep
 from fitfunctions cimport sum_upstep as _sum_upstep
 from fitfunctions cimport sum_slit as _sum_slit
 from fitfunctions cimport sum_ahypermet as _sum_ahypermet
-from fitfunctions cimport sum_fasthypermet as _sum_fasthypermet
+from fitfunctions cimport sum_fastahypermet as _sum_fastahypermet
 
 def erf(x):
     """erf(x) -> numpy.ndarray
@@ -838,17 +838,17 @@ def sum_ahypermet(x, *params,
         - *st_area_r* is factor between the gaussian area and the area of the
           short tail term
         - *st_slope_r* is a parameter related to the slope of the short tail
-          (the larger, the steeper)
+          in the low ``x`` values (the lower, the steeper)
         - *lt_area_r* is factor between the gaussian area and the area of the
           long tail term
         - *lt_slope_r* is a parameter related to the slope of the long tail
-          (the larger, the steeper)
+          in the low ``x`` values  (the lower, the steeper)
         - *step_height_r* is the factor between the height of the step down
           and the gaussian height
 
     A hypermet function is a sum of four functions (terms):
 
-        - a gaussian terms
+        - a gaussian term
         - a long tail term
         - a short tail term
         - a step down term
@@ -863,8 +863,7 @@ def sum_ahypermet(x, *params,
     :param st_term: If ``True``, enable gaussian term. Default ``True``
     :param lt_term: If ``True``, enable gaussian term. Default ``True``
     :param step_term: If ``True``, enable gaussian term. Default ``True``
-    :return: Array of sum of hypermet functions at each ``x``
-        coordinate
+    :return: Array of sum of hypermet functions at each ``x`` coordinate
     """
     cdef:
         double[::1] x_c
@@ -904,13 +903,12 @@ def sum_ahypermet(x, *params,
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def sum_fasthypermet(x, *params,
+def sum_fastahypermet(x, *params,
                   gaussian_term=True, st_term=True, lt_term=True, step_term=True):
     """sum_fasthypermet(x, *params) -> numpy.ndarray
 
-    Return a sum of fasthypermet functions.
-    defined by *(area, position, fwhm, st_area_r, st_slope_r, lt_area_r,
-    lt_slope_r, step_height_r)*.
+    Return a sum of hypermet functions defined by *(area, position, fwhm,
+    st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)*.
 
         - *area* is the area underneath the gaussian peak
         - *position* is the center of the various peaks and the position of
@@ -919,20 +917,25 @@ def sum_fasthypermet(x, *params,
         - *st_area_r* is factor between the gaussian area and the area of the
           short tail term
         - *st_slope_r* is a parameter related to the slope of the short tail
-          (the larger, the steeper)
+          in the low ``x`` values (the lower, the steeper)
         - *lt_area_r* is factor between the gaussian area and the area of the
           long tail term
         - *lt_slope_r* is a parameter related to the slope of the long tail
-          (the larger, the steeper)
+          in the low ``x`` values  (the lower, the steeper)
         - *step_height_r* is the factor between the height of the step down
           and the gaussian height
 
     A hypermet function is a sum of four functions (terms):
 
-        - a gaussian terms
+        - a gaussian term
         - a long tail term
         - a short tail term
         - a step down term
+
+    This function differs from :func:`sum_ahypermet` by the use of a lookup
+    table for calculating exponentials. This offers better performance when
+    calculating many functions for large ``x`` arrays.
+
     :param x: Independant variable where the hypermets are calculated
     :type x: numpy.ndarray
     :param params: Array of hypermet parameters (length must be a multiple
@@ -943,8 +946,7 @@ def sum_fasthypermet(x, *params,
     :param st_term: If ``True``, enable gaussian term. Default ``True``
     :param lt_term: If ``True``, enable gaussian term. Default ``True``
     :param step_term: If ``True``, enable gaussian term. Default ``True``
-    :return: Array of sum of hypermet functions at each ``x``
-        coordinate
+    :return: Array of sum of hypermet functions at each ``x`` coordinate
     """
     cdef:
         double[::1] x_c
@@ -971,7 +973,7 @@ def sum_fasthypermet(x, *params,
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_fasthypermet(&x_c[0],
+    status = _sum_fastahypermet(&x_c[0],
                                x.size,
                                &params_c[0],
                                params_c.size,
