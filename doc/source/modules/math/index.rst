@@ -10,4 +10,5 @@
    fit.rst
    histogramnd.rst
    specfit.rst
+   fitfunctions.rst
 

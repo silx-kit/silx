@@ -69,6 +69,22 @@ def configuration(parent_package='', top_path=None):
     # =====================================
     # =====================================
 
+    # =====================================
+    # fit functions
+    # =====================================
+    fit_dir = 'fitfunctions'
+    fit_src = [os.path.join(fit_dir, "src", srcf)
+               for srcf in ["functions.c", "seek.c", "smoothnd.c", "snip1d.c",
+                            "snip2d.c", "snip3d.c", "strip.c"]]
+    fit_src.append(os.path.join(fit_dir, "fitfunctions.pyx"))
+    fit_inc = [os.path.join(fit_dir, 'include'), numpy.get_include()]
+
+    config.add_extension('fitfunctions',
+                         sources=fit_src,
+                         include_dirs=fit_inc,
+                         language='c')
+    # =====================================
+    # =====================================
     return config
 
 
