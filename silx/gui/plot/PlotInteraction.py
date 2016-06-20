@@ -70,7 +70,7 @@ class _PlotInteraction(object):
         assert plot is not None
         return plot
 
-    def setSelectionArea(self, points, fill, color, name=''):
+    def setSelectionArea(self, points, fill, color, name='', shape='polygon'):
         """Set a polygon selection area overlaid on the plot.
         Multiple simultaneous areas are supported through the name parameter.
 
@@ -80,7 +80,10 @@ class _PlotInteraction(object):
         :param color: RGBA color to use or None to disable display
         :type color: list or tuple of 4 float in the range [0, 1]
         :param name: The key associated with this selection area
+        :param str shape: Shape of the area in 'polygon', 'polylines'
         """
+        assert shape in ('polygon', 'polylines')
+
         if color is None:
             return
 
@@ -93,7 +96,7 @@ class _PlotInteraction(object):
 
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
-                          shape='polygon', color=color, fill=fill,
+                          shape=shape, color=color, fill=fill,
                           overlay=True)
         self._selectionAreas.add(legend)
 
@@ -731,6 +734,69 @@ class SelectVLine(Select1Point):
         self.resetSelectionArea()
 
 
+class SelectFreeLine(ClickOrDrag, _PlotInteraction):
+    """Base class for drawing free lines with tools such as pencil."""
+
+    def __init__(self, plot, parameters):
+        """Init a state machine.
+
+        :param plot: The plot to apply changes to.
+        :param dict parameters: A dict of parameters such as color.
+        """
+        # self.DRAG_THRESHOLD_SQUARE_DIST = 1  # Disable first move threshold
+        self._points = []
+        ClickOrDrag.__init__(self)
+        _PlotInteraction.__init__(self, plot)
+        self.parameters = parameters
+
+    def onWheel(self, x, y, angle):
+        scaleF = 1.1 if angle > 0 else 1./1.1
+        applyZoomToPlot(self.plot, scaleF, (x, y))
+
+    @property
+    def color(self):
+        return self.parameters.get('color', None)
+
+    def click(self, x, y, btn):
+        if btn == LEFT_BTN:
+            self._processEvent(x, y, isLast=True)
+
+    def beginDrag(self, x, y):
+        self._processEvent(x, y, isLast=False)
+
+    def drag(self, x, y):
+        self._processEvent(x, y, isLast=False)
+
+    def endDrag(self, startPos, endPos):
+        x, y = endPos
+        self._processEvent(x, y, isLast=True)
+
+    def cancel(self):
+        self.resetSelectionArea()
+        self._points = []
+
+    def _processEvent(self, x, y, isLast):
+        dataPos = self.plot.pixelToData(x, y, check=False)
+        isNewPoint = not self._points or dataPos != self._points[-1]
+
+        if isNewPoint:
+            self._points.append(dataPos)
+
+        if isNewPoint or isLast:
+            eventDict = prepareDrawingSignal(
+                'drawingFinished' if isLast else 'drawingProgress',
+                'polylines',
+                self._points,
+                self.parameters)
+            self.plot.notify(**eventDict)
+
+        if not isLast:
+            self.setSelectionArea(self._points, fill=None, color=self.color,
+                                  shape='polylines')
+        else:
+            self.cancel()
+
+
 # ItemInteraction #############################################################
 
 class ItemsInteraction(ClickOrDrag, _PlotInteraction):
@@ -1064,6 +1130,7 @@ class PlotInteraction(object):
         'line': SelectLine,
         'vline': SelectVLine,
         'hline': SelectHLine,
+        'polylines': SelectFreeLine,
     }
 
     def __init__(self, plot):
@@ -1109,7 +1176,8 @@ class PlotInteraction(object):
         :type color: Color description: The name as a str or
                      a tuple of 4 floats or None.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                          'polylines'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode.
         """

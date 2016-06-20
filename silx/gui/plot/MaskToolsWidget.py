@@ -848,7 +848,7 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='line')
+            self.plot.setInteractiveMode('draw', shape='polylines')
         self.pencilSetting.setVisible(checked)
 
     # Handle plot drawing events

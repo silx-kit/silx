@@ -773,10 +773,11 @@ class Plot(object):
         :param numpy.ndarray xdata: The X coords of the points of the shape
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
-        :param info: User-defined information associated to the image
+        :param info: User-defined information associated to the item
         :param bool replace: True (default) to delete already existing images
         :param str shape: Type of item to be drawn in
-                          hline, polygon (the default), rectangle, vline
+                          hline, polygon (the default), rectangle, vline,
+                          polylines
         :param str color: Color of the item, e.g., 'blue', 'b', '#FF0000'
                           (Default: 'black')
         :param bool fill: True (the default) to fill the shape
@@ -2543,7 +2544,8 @@ class Plot(object):
         :type color: Color description: The name as a str or
                      a tuple of 4 floats.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                          'freeline'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode, sent in drawing events.
         :param bool zoomOnWheel: Toggle zoom on wheel support
