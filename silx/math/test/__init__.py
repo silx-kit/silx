@@ -32,6 +32,7 @@ from .test_histogramnd_nominal import suite as test_histo_nominal
 from .test_histogramnd_error import suite as test_histo_error
 from .test_histogramnd_vs_np import suite as test_histo_vs_np
 from .test_fit import suite as test_curve_fit
+from .test_fitfunctions import suite as test_fitfuns
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -39,4 +40,5 @@ def suite():
     test_suite.addTest(test_histo_error())
     test_suite.addTest(test_histo_vs_np())
     test_suite.addTest(test_curve_fit())
+    test_suite.addTest(test_fitfuns())
     return test_suite
