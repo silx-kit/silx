@@ -37,7 +37,12 @@ void snip1d(double *data, int size, int width);
 void snip2d(double *data, int nrows, int ncolumns, int width);
 void snip3d(double *data, int nx, int ny, int nz, int width);
 
+int strip(double* input, long len_input, double c, long niter, int deltai,
+          long* anchors, long len_anchors, double* output);
 
+/* Smoothing functions */
+
+int SavitskyGolay(double* input, long len_input, int npoints, double* output);
 
 /* Fit functions */
 int sum_gauss(double* x, int len_x, double* pgauss, int len_pgauss, double* y);

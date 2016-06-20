@@ -35,7 +35,7 @@ _logger = logging.getLogger(__name__)
 
 cimport cython
 
-# fitfunctions.pxd
+# Rename C functions to reuse the same names for their python wrappers
 from fitfunctions cimport erf_array as _erf
 from fitfunctions cimport erfc_array as _erfc
 from fitfunctions cimport snip1d as _snip1d
@@ -57,6 +57,11 @@ from fitfunctions cimport sum_slit as _sum_slit
 from fitfunctions cimport sum_ahypermet as _sum_ahypermet
 from fitfunctions cimport sum_fastahypermet as _sum_fastahypermet
 from fitfunctions cimport seek
+from fitfunctions cimport strip as _strip
+from fitfunctions cimport snip1d as _snip1d
+from fitfunctions cimport snip2d as _snip2d
+from fitfunctions cimport snip3d as _snip3d
+
 
 def erf(x):
     """erf(x) -> numpy.ndarray
@@ -905,7 +910,8 @@ def sum_ahypermet(x, *params,
 
 
 def sum_fastahypermet(x, *params,
-                  gaussian_term=True, st_term=True, lt_term=True, step_term=True):
+                      gaussian_term=True, st_term=True,
+                      lt_term=True, step_term=True):
     """sum_fasthypermet(x, *params) -> numpy.ndarray
 
     Return a sum of hypermet functions defined by *(area, position, fwhm,
@@ -963,6 +969,13 @@ def sum_fastahypermet(x, *params,
     if step_term:
         tail_flags += 8
 
+    # TODO (maybe):
+    # Set flags according to params, to move conditional
+    # branches out of the C code.
+    # E.g., set st_term = False if any of the st_slope_r params
+    # (params[8*i + 4]) is 0, to prevent division by 0. Same thing for
+    # lt_slope_r (params[8*i + 6]) and lt_term.
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -987,27 +1000,32 @@ def sum_fastahypermet(x, *params,
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=100,
+def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
                 begin_index=None, end_index=None,
                 debug=False, relevance_info=False):
-    """
+    """Find peaks in the data.
+
     :param y: Data array
     :type y: numpy.ndarray
     :param fwhm: Estimated full width at half maximum of the peaks we are
         interested in
+    :param sensitivity: Threshold factor used for peak search
+    :param max_number_of_peaks: Maximum number of peaks in the data.
+        This parameter is used to allocate memory for the output array.
+        If it is too small, this function wiff fail.
     :param begin_index: Index of the first sample of the region of interest
          in the ``y`` array
     :param end_index: Index of the last sample of the region of interest in
         the ``y`` array
-    :param sensitivity: Threshold factor used for peak search
     :param debug: If ``True``, print debug messages. Default: ``False``
     :param relevance_info: If ``True``, add a second dimension with relevance
         information to the output array. Default: ``False``
-
     :return: 1D sequence with indexes of peaks in the data
         if ``relevance_info`` is ``False``.
         Else, sequence of  ``(peak_index, peak_relevance)`` tuples (one tuple
         per peak).
+    :raise: ``IndexError`` if the number of peaks is too large to fit in the
+        output array.
     """
     cdef:
         double[::1] y_c
@@ -1015,7 +1033,7 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=100,
         double[::1] relevances
 
     y_c = numpy.array(y,
-                      copy=False,
+                      copy=True,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
 
@@ -1035,7 +1053,6 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=100,
     if end_index is None:
         end_index = y_c.size - 1
 
-
     n_peaks = seek(begin_index, end_index, y_c.size,
                    fwhm, sensitivity, debug, max_number_of_peaks,
                    &y_c[0], &peaks[0], &relevances[0])
@@ -1048,3 +1065,233 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=100,
     else:
         # FIXME: maybe don't zip, return tuple (peaks, relevances)?
         return zip(numpy.asarray(peaks), numpy.asarray(relevances))[0:n_peaks]
+
+def strip(data, factor, niterations, deltai, anchors=None):
+    """
+    :param data: Data array
+    :type data: numpy.ndarray
+    :param fwhm: Estimated full width at half maximum of the peaks we are
+        interested in
+    :param begin_index: Index of the first sample of the region of interest
+         in the ``y`` array
+    :param end_index: Index of the last sample of the region of interest in
+        the ``y`` array
+    :param sensitivity: Threshold factor used for peak search
+    :param debug: If ``True``, print debug messages. Default: ``False``
+    :param relevance_info: If ``True``, add a second dimension with relevance
+        information to the output array. Default: ``False``
+
+    :return: 1D sequence with indexes of peaks in the data
+        if ``relevance_info`` is ``False``.
+        Else, sequence of  ``(peak_index, peak_relevance)`` tuples (one tuple
+        per peak).
+    """
+    cdef:
+        double[::1] input_c
+        double[::1] output
+        long[::1] anchors_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__"):
+            raise TypeError("data must be a sequence (list, tuple) " +
+                            "or a numpy array")
+        data_shape = (len(data), )
+    else:
+        data_shape = data.shape
+
+    input_c = numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    output = numpy.empty(shape=(input_c.size,),
+                         dtype=numpy.float64)
+
+    if anchors is not None:
+        # numpy.int_ is the same as C long (http://docs.scipy.org/doc/numpy/user/basics.types.html)
+        anchors_c = numpy.array(anchors,
+                                copy=False,
+                                dtype=numpy.int_,
+                                order='C')
+        len_anchors = anchors_c.size
+    else:
+        # Make a dummy lenght-1 array, because if I use shape=(0,) I get the error
+        # IndexError: Out of bounds on buffer access (axis 0)
+        anchors_c = numpy.empty(shape=(1,),
+                                dtype=numpy.int_)
+        len_anchors = 0
+
+
+    status = _strip(&input_c[0], input_c.size, factor, niterations, deltai,
+                    &anchors_c[0], len_anchors, &output[0])
+
+    if status != 0:
+        raise Exception("strip failed")
+
+    return numpy.asarray(output).reshape(data_shape)
+
+
+def snip1d(data, snip_width):
+    """
+    Implementation of the background extraction algorithm SNIP described in
+    *Miroslav Morhac et al. Nucl. Instruments and Methods in
+    Physics Research A401 (1997) 113-132*.
+
+    The original idea for 1D and the low-statistics-digital-filter (lsdf) come
+    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research
+    B34 (1988) 396-402*.
+
+
+    :param data: Data array
+    :type data: numpy.ndarray
+    :param snip_width: Width of snip operator, in number of samples.
+        A sample will be iteratively compared to it's neighbors up to a
+        distance of ``snip_width`` samples. This parameters has a direct
+        influence on the speed of the algorithm.
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__"):
+            raise TypeError("data must be a sequence (list, tuple) " +
+                            "or a numpy array")
+        data_shape = (len(data), )
+    else:
+        data_shape = data.shape
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    _snip1d(&data_c[0], data_c.size, snip_width)
+
+    return numpy.asarray(data_c).reshape(data_shape)
+
+def snip2d(data, snip_width):
+    """
+    Implementation of the background extraction algorithm SNIP described in
+    *Miroslav Morhac et al. Nucl. Instruments and Methods in
+    Physics Research A401 (1997) 113-132*.
+
+    The original idea for 1D and the low-statistics-digital-filter (lsdf) come
+    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research
+    B34 (1988) 396-402*.
+
+
+    :param data: Data array
+    :type data: numpy.ndarray
+    :param snip_width: Width of snip operator, in number of samples.
+        A sample will be iteratively compared to it's neighbors up to a
+        distance of ``snip_width`` samples. This parameters has a direct
+        influence on the speed of the algorithm.
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__"):
+            raise TypeError("data must be a 2D sequence (list, tuple) " +
+                            "or a 2D numpy array")
+        if not hasattr(data[0], "__len__"):
+            raise TypeError("data must be a 2D sequence (list, tuple) " +
+                            "or a 2D numpy array")
+        nrows = len(data)
+        ncolumns = len(data[0])
+        data_shape = (len(data), len(data[0]))
+
+    else:
+        data_shape = data.shape
+        nrows =  data_shape[0]
+        if len(data_shape) == 2:
+            ncolumns = data_shape[1]
+        else:
+            raise TypeError("data array must be 2-dimensional")
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    _snip2d(&data_c[0], nrows, ncolumns, snip_width)
+
+    return numpy.asarray(data_c).reshape(data_shape)
+
+def snip3d(data, snip_width):
+    """
+    Implementation of the background extraction algorithm SNIP described in
+    *Miroslav Morhac et al. Nucl. Instruments and Methods in
+    Physics Research A401 (1997) 113-132*.
+
+    The original idea for 1D and the low-statistics-digital-filter (lsdf) come
+    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research
+    B34 (1988) 396-402*.
+
+
+    :param data: Data array
+    :type data: numpy.ndarray
+    :param snip_width: Width of snip operator, in number of samples.
+        A sample will be iteratively compared to it's neighbors up to a
+        distance of ``snip_width`` samples. This parameters has a direct
+        influence on the speed of the algorithm.
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__") or not hasattr(data[0], "__len__") or\
+                not hasattr(data[0][0], "__len__"):
+            raise TypeError("data must be a 3D sequence (list, tuple) " +
+                            "or a 3D numpy array")
+        nx = len(data)
+        ny = len(data[0])
+        nz = len(data[0][0])
+        data_shape = (len(data), len(data[0]),  len(data[0][0]))
+    else:
+        data_shape = data.shape
+        nrows =  data_shape[0]
+        if len(data_shape) == 3:
+            nx =  data_shape[0]
+            ny = data_shape[1]
+            nz = data_shape[2]
+        else:
+            raise TypeError("data array must be 3-dimensional")
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    _snip3d(&data_c[0], nx, ny, nz, snip_width)
+
+
+    return numpy.asarray(data_c).reshape(data_shape)
+
+
+def savitsky_golay(data, npoints=5):
+    """Smooth a curve using a Savitsky-Golay filter.
+
+    :param data: Input data
+    :type data: 1D numpy array
+    :param npoints: Size of the smoothing operator in number of samples
+    :return: Smoothed data
+    """
+    cdef:
+        double[::1] data_c
+        double[::1] output
+
+    data_c =  numpy.array(data,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    output = numpy.empty(shape=(data_c.size,),
+                         dtype=numpy.float64)
+
+    status = SavitskyGolay(&data_c[0], data_c.size, npoints, &output[0])
+
+    if status:
+        _logger.error("Smoothing failed. Check that npoints is greater " +
+                      "than 3 and smaller than the number of data samples.")
+
+    return numpy.asarray(output).reshape(data.shape)

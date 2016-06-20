@@ -52,6 +52,15 @@ cdef extern from "fitfunctions.h":
                 int nz,
                 int width)
 
+    int strip(double* input,
+              long len_input,
+              double c,
+              long niter,
+              int deltai,
+              long* anchors,
+              long len_anchors,
+              double* output)
+
     int  sum_gauss(double* x,
                    int len_x,
                    double* pgauss,
@@ -155,3 +164,7 @@ cdef extern from "fitfunctions.h":
               double *peaks,
               double *relevances)
 
+    int SavitskyGolay(double* input,
+                      long len_input,
+                      int npoints,
+                      double* output)
