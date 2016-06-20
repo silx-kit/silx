@@ -345,6 +345,8 @@ class MaskToolsWidget(qt.QWidget):
         self._drawingMode = None  # Store current drawing mode
         self._lastPencilPos = None
 
+        self._multipleMasks = 'single'
+
         super(MaskToolsWidget, self).__init__(parent)
         self._initWidgets()
 
@@ -360,6 +362,29 @@ class MaskToolsWidget(qt.QWidget):
         :rtype: 2D numpy.ndarray of uint8
         """
         return self._mask.getMask(copy=copy)
+
+    def multipleMasks(self):
+        """Return the current mode of multiple masks support.
+
+        See :meth:`setMultipleMasks`
+        """
+        return self._multipleMasks
+
+    def setMultipleMasks(self, mode):
+        """Set the mode of multiplt masks support.
+
+        Available modes:
+
+        - 'single': Edit a single level of mask
+        - 'exclusive': Supports to 256 levels of non overlapping masks
+
+        :param str mode: The mode to use
+        """
+        assert mode in ('exclusive', 'single')
+        if mode != self._multipleMasks:
+            self._multipleMasks = mode
+            self.levelSpinBox.setVisible(self._multipleMasks == 'single')
+            self.clearAllBtn.setVisible(self._multipleMasks == 'single')
 
     @property
     def maskFileDir(self):
