@@ -147,7 +147,8 @@ int SavitskyGolay(double* input, long len_input, int npoints, double* output)
 
     if (!(npoints % 2)) npoints +=1;
 
-    if((npoints < MIN_SAVITSKY_GOLAY_WIDTH) || (len_input < npoints))
+    if((npoints < MIN_SAVITSKY_GOLAY_WIDTH) || (len_input < npoints) || \
+       (npoints > MAX_SAVITSKY_GOLAY_WIDTH))
     {
         /* do not smooth data */
         return 1;
