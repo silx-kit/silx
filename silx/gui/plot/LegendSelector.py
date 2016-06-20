@@ -978,7 +978,7 @@ class LegendsDockWidget(qt.QDockWidget):
 
     def _legendSignalHandler(self, ddict):
         """Handles events from the LegendListView signal"""
-        _logger.debug("Legend signal ddict = ", ddict)
+        _logger.debug("Legend signal ddict = %s", str(ddict))
 
         if ddict['event'] == "legendClicked":
             if ddict['button'] == "left":

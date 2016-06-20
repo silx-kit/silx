@@ -682,7 +682,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 # create again the ICR
                 ddict = {"event": "AddROI"}
                 return self._roiSignal(ddict)
-                currentroi = None
+
             self.roiWidget.fillFromROIDict(roilist=roiList,
                                            roidict=roiDict,
                                            currentroi=currentroi)
