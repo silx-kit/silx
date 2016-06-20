@@ -627,7 +627,7 @@ def sum_splitpvoigt(x, *params):
         - *centroid* is the peak x-coordinate for both functions
         - *fwhm1* is the full-width at half maximum of both functions
           when ``x < centroid``
-        - *fwhm1* is the full-width at half maximum of both functions
+        - *fwhm2* is the full-width at half maximum of both functions
           when ``x > centroid``
         - *eta* is the Lorentz factor: PV(x) = eta * L(x) + (1 - eta) * G(x)
 
@@ -1322,6 +1322,7 @@ def savitsky_golay(data, npoints=5):
     :param data: Input data
     :type data: 1D numpy array
     :param npoints: Size of the smoothing operator in number of samples
+        Must be between 3 and 100.
     :return: Smoothed data
     """
     cdef:
@@ -1339,6 +1340,6 @@ def savitsky_golay(data, npoints=5):
 
     if status:
         _logger.error("Smoothing failed. Check that npoints is greater " +
-                      "than 3 and smaller than the number of data samples.")
+                      "than 3 and smaller than 100.")
 
     return numpy.asarray(output).reshape(data.shape)
