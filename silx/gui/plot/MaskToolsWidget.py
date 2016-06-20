@@ -95,6 +95,19 @@ class Mask(qt.QObject):
         """
         return numpy.array(self._mask, copy=copy)
 
+    def setMask(self, mask, copy=True):
+        """Set the mask to a new array.
+
+        :param numpy.ndarray mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+                    Array of other types are converted.
+        :param bool copy: True (the default) to copy the array,
+                          False to use it as is if possible.
+        """
+        assert len(mask.shape) == 2
+        self._mask = numpy.array(mask, copy=copy, order='C', dtype=numpy.uint8)
+        self._notify()
+
     def save(self, filename, kind):
         """Save current mask in a file
 
@@ -449,8 +462,13 @@ class MaskToolsWidget(qt.QWidget):
 
         undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
 
-        saveBtn = qt.QPushButton('Save...')
+        loadBtn = qt.QPushButton('Load')
+        loadBtn.clicked.connect(self._loadMask)
+
+        saveBtn = qt.QPushButton('Save')
         saveBtn.clicked.connect(self._saveMask)
+
+        loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(levelWidget)
@@ -459,7 +477,7 @@ class MaskToolsWidget(qt.QWidget):
         layout.addWidget(clearBtn)
         layout.addWidget(clearAllBtn)
         layout.addWidget(undoRedoWidget)
-        layout.addWidget(saveBtn)
+        layout.addWidget(loadSaveWidget)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
@@ -647,6 +665,78 @@ class MaskToolsWidget(qt.QWidget):
                 self._updatePlotMask()
 
     # Handle whole mask operations
+
+    def load(self, filename):
+        """Load a mask from an image file.
+
+        :param str filename: File name from which to load the mask
+        :return: False on failure, True on success or a resized message
+                 when loading succeeded but shape of the image and the mask
+                 are different.
+        :rtype: bool or str
+        """
+        try:
+            mask = numpy.load(filename)
+        except IOError:
+            _logger.debug('Not a numpy file: %s', filename)
+            try:
+                mask = EdfFile(filename, access='r').GetData(0)
+            except:
+                _logger.error('Error while opening image file\n'
+                              '%s', (sys.exc_info()[1]))
+                return False
+
+        if len(mask.shape) != 2:
+            _logger.error('Not an image, shape: %d', len(mask.shape))
+            return False
+
+        if mask.shape == self._data.shape:
+            self._mask.setMask(mask, copy=False)
+            result = True
+        else:
+            _logger.warning('Mask has not the same size as current image.'
+                            ' Mask will be cropped or padded to fit image'
+                            ' dimensions. %s != %s' % (str(mask.shape),
+                                                       str(self._data.shape)))
+            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
+            height = min(self._data.shape[0], mask.shape[0])
+            width = min(self._data.shape[1], mask.shape[1])
+            resizedMask[:height, :width] = mask[:height, :width]
+            self._mask.setMask(resizedMask, copy=False)
+            result = 'Mask was resized from %s to %s' % (
+                str(mask.shape), str(resizedMask.shape))
+
+        self._mask.commit()
+        return result
+
+    def _loadMask(self):
+        """Open load mask dialog"""
+        dialog = qt.QFileDialog(self)
+        dialog.setWindowTitle("Load Mask")
+        dialog.setModal(1)
+        dialog.setNameFilters(
+            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        dialog.setFileMode(qt.QFileDialog.ExistingFile)
+        dialog.setDirectory(self.maskFileDir)
+        if not dialog.exec_():
+            dialog.close()
+            return
+
+        filename = dialog.selectedFiles()[0]
+        dialog.close()
+
+        self.maskFileDir = os.path.dirname(filename)
+        loaded = self.load(filename)
+        if not loaded:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot load mask from file.")
+            msg.exec_()
+        elif loaded is not True:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Warning)
+            msg.setText(loaded)
+            msg.exec_()
 
     def _saveMask(self):
         """Open Save mask dialog"""
