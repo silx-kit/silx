@@ -95,6 +95,31 @@ class Mask(qt.QObject):
         """
         return numpy.array(self._mask, copy=copy)
 
+    def save(self, filename, kind):
+        """Save current mask in a file
+
+        :param str filename: The file where to save to mask
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
+        :return: True if save succeeded, False otherwise
+        """
+        if kind == 'edf':
+            edfFile = EdfFile(filename, access="w+")
+            edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
+            return True
+
+        elif kind == 'tif':
+            tiffFile = TiffIO(filename, mode='w')
+            tiffFile.writeImage(self.getMask(copy=False), software='silx')
+            return True
+
+        elif kind == 'npy':
+            try:
+                numpy.save(filename, self.getMask(copy=False))
+            except IOError:
+                return False
+            return True
+        return False
+
     # History control
 
     def resetHistory(self):
@@ -333,31 +358,6 @@ class MaskToolsWidget(qt.QWidget):
     @maskFileDir.setter
     def maskFileDir(self, maskFileDir):
         self._maskFileDir = str(maskFileDir)
-
-    def save(self, filename, kind):
-        """Save current mask in a file
-
-        :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :return: True if save succeeded, False otherwise
-        """
-        if kind == 'edf':
-            edfFile = EdfFile(filename, access="w+")
-            edfFile.WriteImage({}, self.getMask(), Append=0)
-            return True
-
-        elif kind == 'tif':
-            tiffFile = TiffIO(filename, mode='w')
-            tiffFile.writeImage(self.getMask(), software='silx')
-            return True
-
-        elif kind == 'npy':
-            try:
-                numpy.save(filename, self.getMask())
-            except IOError:
-                return False
-            return True
-        return False
 
     @property
     def plot(self):
@@ -681,7 +681,7 @@ class MaskToolsWidget(qt.QWidget):
                 return
 
         self.maskFileDir = os.path.dirname(filename)
-        if not self.save(filename, extension[1:]):
+        if not self._mask.save(filename, extension[1:]):
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot save file %s\n" % filename)
