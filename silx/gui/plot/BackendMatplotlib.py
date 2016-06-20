@@ -396,15 +396,15 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             self.ax.add_patch(item)
 
-        elif shape == 'polygon':
+        elif shape in ('polygon', 'polylines'):
             xView.shape = 1, -1
             yView.shape = 1, -1
             item = Polygon(numpy.vstack((xView, yView)).T,
-                           closed=True,
+                           closed=(shape == 'polygon'),
                            fill=False,
                            label=legend,
                            color=color)
-            if fill:
+            if fill and shape == 'polygon':
                 item.set_hatch('/')
 
             self.ax.add_patch(item)
