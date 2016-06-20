@@ -345,7 +345,7 @@ class MaskToolsWidget(qt.QWidget):
         self._drawingMode = None  # Store current drawing mode
         self._lastPencilPos = None
 
-        self._multipleMasks = 'single'
+        self._multipleMasks = 'exclusive'
 
         super(MaskToolsWidget, self).__init__(parent)
         self._initWidgets()
@@ -383,8 +383,8 @@ class MaskToolsWidget(qt.QWidget):
         assert mode in ('exclusive', 'single')
         if mode != self._multipleMasks:
             self._multipleMasks = mode
-            self.levelSpinBox.setVisible(self._multipleMasks == 'single')
-            self.clearAllBtn.setVisible(self._multipleMasks == 'single')
+            self.levelWidget.setVisible(self._multipleMasks != 'single')
+            self.clearAllBtn.setVisible(self._multipleMasks != 'single')
 
     @property
     def maskFileDir(self):
@@ -446,8 +446,8 @@ class MaskToolsWidget(qt.QWidget):
             'Choose which mask level is edited.\n'
             'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
-        levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
-                                       self.levelSpinBox)
+        self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
+                                            self.levelSpinBox)
 
         self.transparencyComboBox = qt.QComboBox()
         self.transparencyComboBox.addItem('Transparent')
@@ -503,7 +503,7 @@ class MaskToolsWidget(qt.QWidget):
         loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
 
         layout = qt.QVBoxLayout()
-        layout.addWidget(levelWidget)
+        layout.addWidget(self.levelWidget)
         layout.addWidget(transparencyWidget)
         layout.addWidget(invertClearWidget)
         layout.addWidget(undoRedoWidget)
