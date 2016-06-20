@@ -424,27 +424,30 @@ class MaskToolsWidget(qt.QWidget):
         levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                        self.levelSpinBox)
 
-        self.transparencyCheckBox = qt.QCheckBox('Transparent display')
-        self.transparencyCheckBox.setToolTip(
-            'Toggle between transparent and opaque masks display')
-        self.transparencyCheckBox.setChecked(True)
-        self.transparencyCheckBox.toggled[bool].connect(self._updateColors)
+        self.transparencyComboBox = qt.QComboBox()
+        self.transparencyComboBox.addItem('Transparent')
+        self.transparencyComboBox.addItem('Solid')
+        self.transparencyComboBox.setToolTip(
+            'Choose between transparent and solid mask display')
+        self.transparencyComboBox.currentIndexChanged[str].connect(
+            self._updateColors)
+        transparencyWidget = self._hboxWidget(qt.QLabel('Display:'),
+                                              self.transparencyComboBox)
 
-        invertBtn = qt.QPushButton('Invert Level')
+        invertBtn = qt.QPushButton('Invert')
         invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
-        invertBtn.setToolTip('Invert current mask level <b>%s</b>' %
+        invertBtn.setToolTip('Invert current mask <b>%s</b>' %
                              invertBtn.shortcut().toString())
         invertBtn.clicked.connect(self._handleInvertMask)
 
-        clearBtn = qt.QPushButton('Clear Level')
+        clearBtn = qt.QPushButton('Clear')
         clearBtn.setShortcut(qt.QKeySequence.Delete)
-        clearBtn.setToolTip('Clear current mask level <b>%s</b>' %
+        clearBtn.setToolTip('Clear current mask <b>%s</b>' %
                             clearBtn.shortcut().toString())
         clearBtn.clicked.connect(self._handleClearMask)
 
-        clearAllBtn = qt.QPushButton('Clear All')
-        clearAllBtn.setToolTip('Clear all mask levels')
-        clearAllBtn.clicked.connect(self.resetMask)
+        invertClearWidget = self._hboxWidget(
+            invertBtn, clearBtn, stretch=False)
 
         undoBtn = qt.QPushButton('Undo')
         undoBtn.setShortcut(qt.QKeySequence.Undo)
@@ -462,21 +465,24 @@ class MaskToolsWidget(qt.QWidget):
 
         undoRedoWidget = self._hboxWidget(undoBtn, redoBtn, stretch=False)
 
-        loadBtn = qt.QPushButton('Load')
+        self.clearAllBtn = qt.QPushButton('Clear all')
+        self.clearAllBtn.setToolTip('Clear all mask levels')
+        self.clearAllBtn.clicked.connect(self.resetMask)
+
+        loadBtn = qt.QPushButton('Load...')
         loadBtn.clicked.connect(self._loadMask)
 
-        saveBtn = qt.QPushButton('Save')
+        saveBtn = qt.QPushButton('Save...')
         saveBtn.clicked.connect(self._saveMask)
 
         loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(levelWidget)
-        layout.addWidget(self.transparencyCheckBox)
-        layout.addWidget(invertBtn)
-        layout.addWidget(clearBtn)
-        layout.addWidget(clearAllBtn)
+        layout.addWidget(transparencyWidget)
+        layout.addWidget(invertClearWidget)
         layout.addWidget(undoRedoWidget)
+        layout.addWidget(self.clearAllBtn)
         layout.addWidget(loadSaveWidget)
         layout.addStretch(1)
 
@@ -487,23 +493,6 @@ class MaskToolsWidget(qt.QWidget):
     def _initDrawGroupBox(self):
         """Init drawing tools widgets"""
         layout = qt.QVBoxLayout()
-
-        # Mask/Unmask radio buttons
-        maskRadioBtn = qt.QRadioButton('Mask')
-        maskRadioBtn.setToolTip(
-            'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
-        maskRadioBtn.setChecked(True)
-
-        unmaskRadioBtn = qt.QRadioButton('Unmask')
-        unmaskRadioBtn.setToolTip(
-            'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
-
-        self.maskStateGroup = qt.QButtonGroup()
-        self.maskStateGroup.addButton(maskRadioBtn, 1)
-        self.maskStateGroup.addButton(unmaskRadioBtn, 0)
-
-        container = self._hboxWidget(maskRadioBtn, unmaskRadioBtn)
-        layout.addWidget(container)
 
         # Draw tools
         self.browseAction = qt.QAction(
@@ -556,14 +545,38 @@ class MaskToolsWidget(qt.QWidget):
         container = self._hboxWidget(*drawButtons)
         layout.addWidget(container)
 
-        self.brushSpinBox = qt.QSpinBox()
-        self.brushSpinBox.setRange(1, 1024)
-        self.brushSpinBox.setToolTip(
+        # Mask/Unmask radio buttons
+        maskRadioBtn = qt.QRadioButton('Mask')
+        maskRadioBtn.setToolTip(
+            'Drawing masks with current level. Press <b>Ctrl</b> to unmask')
+        maskRadioBtn.setChecked(True)
+
+        unmaskRadioBtn = qt.QRadioButton('Unmask')
+        unmaskRadioBtn.setToolTip(
+            'Drawing unmasks with current level. Press <b>Ctrl</b> to mask')
+
+        self.maskStateGroup = qt.QButtonGroup()
+        self.maskStateGroup.addButton(maskRadioBtn, 1)
+        self.maskStateGroup.addButton(unmaskRadioBtn, 0)
+
+        self.maskStateWidget = self._hboxWidget(maskRadioBtn, unmaskRadioBtn)
+        layout.addWidget(self.maskStateWidget)
+
+        # Connect mask state widget visibility with browse action
+        self.maskStateWidget.setHidden(self.browseAction.isChecked())
+        self.browseAction.toggled[bool].connect(
+            self.maskStateWidget.setHidden)
+
+        # Pencil settings
+
+        self.pencilSpinBox = qt.QSpinBox()
+        self.pencilSpinBox.setRange(1, 1024)
+        self.pencilSpinBox.setToolTip(
             """Set pencil drawing tool size in pixels of the image
             on which to make the mask.""")
 
         self.pencilSetting = self._hboxWidget(
-            qt.QLabel('Pencil Size:'), self.brushSpinBox)
+            qt.QLabel('Pencil Size:'), self.pencilSpinBox)
         self.pencilSetting.setVisible(False)
         layout.addWidget(self.pencilSetting)
 
@@ -801,7 +814,7 @@ class MaskToolsWidget(qt.QWidget):
     def _updateColors(self, *args):
         """Rebuild mask colormap when selected level or transparency change"""
         self._setMaskColors(self.levelSpinBox.value(),
-                            self.transparencyCheckBox.isChecked())
+                            self.transparencyComboBox.currentIndex() == 0)
         self._updatePlotMask()
 
     def _handleClearMask(self):
@@ -848,7 +861,7 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='polylines')
+            self.plot.setInteractiveMode('draw', shape='polylines', color=None)
         self.pencilSetting.setVisible(checked)
 
     # Handle plot drawing events
@@ -894,7 +907,7 @@ class MaskToolsWidget(qt.QWidget):
             # convert from plot to array coords
             col, row = event['points'][-1] / self._scale - self._origin
             row, col = int(row), int(col)
-            brushSize = self.brushSpinBox.value()
+            brushSize = self.pencilSpinBox.value()
 
             # Draw point
             self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
