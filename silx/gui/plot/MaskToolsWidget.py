@@ -609,7 +609,7 @@ class MaskToolsWidget(qt.QWidget):
         self.pencilSetting.setVisible(False)
         layout.addWidget(self.pencilSetting)
 
-        layout.addStretch()
+        layout.addStretch(1)
 
         drawGroup = qt.QGroupBox('Draw tools')
         drawGroup.setLayout(layout)
@@ -617,33 +617,92 @@ class MaskToolsWidget(qt.QWidget):
 
     def _initThresholdGroupBox(self):
         """Init thresholding widgets"""
-        layout = qt.QFormLayout()
+        layout = qt.QVBoxLayout()
+
+        # Thresholing
+
+        self.belowThresholdAction = qt.QAction(
+            icons.getQIcon('plot-roi-below'), 'Mask below threshold', None)
+        self.belowThresholdAction.setToolTip(
+            'Mask image where values are below given threshold')
+        self.belowThresholdAction.setCheckable(True)
+        self.belowThresholdAction.triggered[bool].connect(
+            self._belowThresholdActionTriggered)
+
+        self.betweenThresholdAction = qt.QAction(
+            icons.getQIcon('plot-roi-between'), 'Mask within range', None)
+        self.betweenThresholdAction.setToolTip(
+            'Mask image where values are within given range')
+        self.betweenThresholdAction.setCheckable(True)
+        self.betweenThresholdAction.triggered[bool].connect(
+            self._betweenThresholdActionTriggered)
+
+        self.aboveThresholdAction = qt.QAction(
+            icons.getQIcon('plot-roi-above'), 'Mask above threshold', None)
+        self.aboveThresholdAction.setToolTip(
+            'Mask image where values are above given threshold')
+        self.aboveThresholdAction.setCheckable(True)
+        self.aboveThresholdAction.triggered[bool].connect(
+            self._aboveThresholdActionTriggered)
+
+        self.thresholdActionGroup = qt.QActionGroup(self)
+        self.thresholdActionGroup.setExclusive(False)
+        self.thresholdActionGroup.addAction(self.belowThresholdAction)
+        self.thresholdActionGroup.addAction(self.betweenThresholdAction)
+        self.thresholdActionGroup.addAction(self.aboveThresholdAction)
+        self.thresholdActionGroup.triggered.connect(
+            self._thresholdActionGroupTriggered)
+
+        self.loadColormapRangeAction = qt.QAction(
+            icons.getQIcon('view-refresh'), 'Set min-max from colormap', None)
+        self.loadColormapRangeAction.setToolTip(
+            'Set min and max values from current colormap range')
+        self.loadColormapRangeAction.setCheckable(False)
+        self.loadColormapRangeAction.triggered.connect(
+            self._loadRangeFromColormapTriggered)
+
+        widgets = []
+        for action in self.thresholdActionGroup.actions():
+            btn = qt.QToolButton()
+            btn.setDefaultAction(action)
+            widgets.append(btn)
+
+        spacer = qt.QWidget()
+        spacer.setSizePolicy(qt.QSizePolicy.Expanding,
+                            qt.QSizePolicy.Preferred)
+        widgets.append(spacer)
+
+        loadColormapRangeBtn = qt.QToolButton()
+        loadColormapRangeBtn.setDefaultAction(self.loadColormapRangeAction)
+        widgets.append(loadColormapRangeBtn)
+
+        container = self._hboxWidget(*widgets, stretch=False)
+        layout.addWidget(container)
+
+        form = qt.QFormLayout()
 
         self.minLineEdit = qt.QLineEdit()
         self.minLineEdit.setText('0')
         self.minLineEdit.setValidator(qt.QDoubleValidator())
-        layout.addRow('Min:', self.minLineEdit)
+        self.minLineEdit.setEnabled(False)
+        form.addRow('Min:', self.minLineEdit)
 
         self.maxLineEdit = qt.QLineEdit()
         self.maxLineEdit.setText('0')
         self.maxLineEdit.setValidator(qt.QDoubleValidator())
-        layout.addRow('Max:', self.maxLineEdit)
+        self.maxLineEdit.setEnabled(False)
+        form.addRow('Max:', self.maxLineEdit)
 
-        loadFromCMapBtn = qt.QPushButton('Load colormap [Min, Max]')
-        loadFromCMapBtn.clicked.connect(self._loadRangeFromColormap)
-        layout.addRow(loadFromCMapBtn)
+        maskBtn = qt.QPushButton('Apply mask')
+        maskBtn.clicked.connect(self._maskBtnClicked)
+        form.addRow(maskBtn)
 
-        aboveBtn = qt.QPushButton('Mask values > Max')
-        aboveBtn.clicked.connect(self._aboveBtnClicked)
-        layout.addRow(aboveBtn)
+        self.thresholdWidget = qt.QWidget()
+        self.thresholdWidget.setLayout(form)
+        self.thresholdWidget.setEnabled(False)
+        layout.addWidget(self.thresholdWidget)
 
-        betweenBtn = qt.QPushButton('Mask values in [Min, Max]')
-        betweenBtn.clicked.connect(self._betweenBtnClicked)
-        layout.addRow(betweenBtn)
-
-        belowBtn = qt.QPushButton('Mask values < Min')
-        belowBtn.clicked.connect(self._belowBtnClicked)
-        layout.addRow(belowBtn)
+        layout.addStretch(1)
 
         thresholdGroup = qt.QGroupBox('Threshold')
         thresholdGroup.setLayout(layout)
@@ -982,7 +1041,57 @@ class MaskToolsWidget(qt.QWidget):
 
     # Handle threshold UI events
 
-    def _loadRangeFromColormap(self):
+    def _belowThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(True)
+            self.maxLineEdit.setEnabled(False)
+
+    def _betweenThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(True)
+            self.maxLineEdit.setEnabled(True)
+
+    def _aboveThresholdActionTriggered(self, triggered):
+        if triggered:
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(True)
+
+    def _thresholdActionGroupTriggered(self, triggeredAction):
+        """Threshold action group listener."""
+        if triggeredAction.isChecked():
+            # Uncheck other actions
+            for action in self.thresholdActionGroup.actions():
+                if action is not triggeredAction and action.isChecked():
+                    action.setChecked(False)
+
+        self.thresholdWidget.setEnabled(triggeredAction.isChecked())
+
+    def _maskBtnClicked(self):
+        if self.belowThresholdAction.isChecked():
+            if len(self._data) and self.minLineEdit.text():
+                min_ = float(self.minLineEdit.text())
+                self._mask.updateStencil(self.levelSpinBox.value(),
+                                         self._data < min_)
+                self._mask.commit()
+
+        elif self.betweenThresholdAction.isChecked():
+            if (len(self._data) and
+                    self.minLineEdit.text() and self.maxLineEdit.text()):
+                min_ = float(self.minLineEdit.text())
+                max_ = float(self.maxLineEdit.text())
+                self._mask.updateStencil(self.levelSpinBox.value(),
+                                         numpy.logical_and(min_ <= self._data,
+                                                           self._data <= max_))
+                self._mask.commit()
+
+        elif self.aboveThresholdAction.isChecked():
+            if len(self._data) and self.maxLineEdit.text():
+                max_ = float(self.maxLineEdit.text())
+                self._mask.updateStencil(self.levelSpinBox.value(),
+                                         self._data > max_)
+                self._mask.commit()
+
+    def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
         activeImage = self.plot.getActiveImage()
         if activeImage is not None and activeImage[1] != self._maskName:
@@ -995,33 +1104,6 @@ class MaskToolsWidget(qt.QWidget):
                 min_, max_ = colormap['vmin'], colormap['vmax']
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
-
-    def _aboveBtnClicked(self):
-        """Handle select above button"""
-        if len(self._data) and self.maxLineEdit.text():
-            max_ = float(self.maxLineEdit.text())
-            self._mask.updateStencil(self.levelSpinBox.value(),
-                                     self._data > max_)
-            self._mask.commit()
-
-    def _betweenBtnClicked(self):
-        """Handle select between button"""
-        if (len(self._data) and
-                self.minLineEdit.text() and self.maxLineEdit.text()):
-            min_ = float(self.minLineEdit.text())
-            max_ = float(self.maxLineEdit.text())
-            self._mask.updateStencil(self.levelSpinBox.value(),
-                                     numpy.logical_and(min_ <= self._data,
-                                                       self._data <= max_))
-            self._mask.commit()
-
-    def _belowBtnClicked(self):
-        """Handle select below button"""
-        if len(self._data) and self.minLineEdit.text():
-            min_ = float(self.minLineEdit.text())
-            self._mask.updateStencil(self.levelSpinBox.value(),
-                                     self._data < min_)
-            self._mask.commit()
 
 
 class MaskToolsDockWidget(qt.QDockWidget):
