@@ -629,6 +629,10 @@ class MaskToolsWidget(qt.QWidget):
         self.maxLineEdit.setValidator(qt.QDoubleValidator())
         layout.addRow('Max:', self.maxLineEdit)
 
+        loadFromCMapBtn = qt.QPushButton('Load colormap [Min, Max]')
+        loadFromCMapBtn.clicked.connect(self._loadRangeFromColormap)
+        layout.addRow(loadFromCMapBtn)
+
         aboveBtn = qt.QPushButton('Mask values > Max')
         aboveBtn.clicked.connect(self._aboveBtnClicked)
         layout.addRow(aboveBtn)
@@ -685,16 +689,7 @@ class MaskToolsWidget(qt.QWidget):
         else:  # There is an active image
             self.setEnabled(True)
 
-            # Update thresholds according to colormap
             colormap = activeImage[4]['colormap']
-            if colormap['autoscale']:
-                min_ = numpy.nanmin(activeImage[0])
-                max_ = numpy.nanmax(activeImage[0])
-            else:
-                min_, max_ = colormap['vmin'], colormap['vmax']
-            self.minLineEdit.setText(str(min_))
-            self.maxLineEdit.setText(str(max_))
-
             self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencyComboBox.currentIndex() == 0)
@@ -986,6 +981,20 @@ class MaskToolsWidget(qt.QWidget):
                 self._lastPencilPos = row, col
 
     # Handle threshold UI events
+
+    def _loadRangeFromColormap(self):
+        """Set range from active image colormap range"""
+        activeImage = self.plot.getActiveImage()
+        if activeImage is not None and activeImage[1] != self._maskName:
+            # Update thresholds according to colormap
+            colormap = activeImage[4]['colormap']
+            if colormap['autoscale']:
+                min_ = numpy.nanmin(activeImage[0])
+                max_ = numpy.nanmax(activeImage[0])
+            else:
+                min_, max_ = colormap['vmin'], colormap['vmax']
+            self.minLineEdit.setText(str(min_))
+            self.maxLineEdit.setText(str(max_))
 
     def _aboveBtnClicked(self):
         """Handle select above button"""
