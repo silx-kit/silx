@@ -25,6 +25,10 @@
 """Widget providing a set of tools to draw masks on a PlotWidget.
 
 This widget is meant to work with :class:`PlotWidget`.
+
+- :class:`Mask`: Handle mask bitmap update and history
+- :class:`MaskToolsWidget`: GUI for :class:`Mask`
+- :class:`MaskToolsDockWidget`: DockWidget to integrate in :class:`PlotWindow`
 """
 
 from __future__ import division
@@ -49,14 +53,12 @@ from silx.third_party.TiffIO import TiffIO
 _logger = logging.getLogger(__name__)
 
 
-# TODO: choose mask color depending on image colormap
-# TODO get browse action from PlotWindow? anyway sync with other tools
-
-
 class Mask(qt.QObject):
     """A mask field with update operations.
 
     Coords follows (row, column) convention and are in mask array coords.
+
+    This is meant for internal use by :class:`MaskToolsWidget`.
     """
 
     sigChanged = qt.Signal()
@@ -669,7 +671,7 @@ class MaskToolsWidget(qt.QWidget):
 
         spacer = qt.QWidget()
         spacer.setSizePolicy(qt.QSizePolicy.Expanding,
-                            qt.QSizePolicy.Preferred)
+                             qt.QSizePolicy.Preferred)
         widgets.append(spacer)
 
         loadColormapRangeBtn = qt.QToolButton()
