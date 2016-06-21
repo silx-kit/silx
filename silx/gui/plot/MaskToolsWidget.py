@@ -48,8 +48,6 @@ _logger = logging.getLogger(__name__)
 
 
 # TODO: choose mask color depending on image colormap
-# TODO: change pencil interaction to drag
-# TODO use a flow layout? or change orientation depending on dock area
 # TODO get browse action from PlotWindow? anyway sync with other tools
 
 

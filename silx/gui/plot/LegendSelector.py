@@ -892,7 +892,7 @@ class LegendListContextMenu(qt.QMenu):
 class RenameCurveDialog(qt.QDialog):
     """Dialog box to input the name of a curve."""
 
-    def __init__(self, parent=None, current="", curves=[]):
+    def __init__(self, parent=None, current="", curves=()):
         super(RenameCurveDialog, self).__init__(parent)
         self.setWindowTitle("Rename Curve %s" % current)
         self.curves = curves
@@ -949,7 +949,7 @@ class LegendsDockWidget(qt.QDockWidget):
         self._plotRef = weakref.ref(plot)
         self._isConnected = False  # True if widget connected to plot signals
 
-        super(LegendsDockWidget, self).__init__("Legends", self.plot)
+        super(LegendsDockWidget, self).__init__("Legends", parent)
 
         self._legendWidget = LegendListView()
 
