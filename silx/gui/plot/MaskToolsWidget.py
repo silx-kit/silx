@@ -840,6 +840,15 @@ class MaskToolsWidget(qt.QWidget):
             msg.setText(loaded)
             msg.exec_()
 
+    def save(self, filename, kind):
+        """Save current mask in a file
+
+        :param str filename: The file where to save to mask
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
+        :return: True if save succeeded, False otherwise
+        """
+        return self._mask.save(filename, kind)
+
     def _saveMask(self):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
@@ -873,7 +882,7 @@ class MaskToolsWidget(qt.QWidget):
                 return
 
         self.maskFileDir = os.path.dirname(filename)
-        if not self._mask.save(filename, extension[1:]):
+        if not self.save(filename, extension[1:]):
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Cannot save file %s\n" % filename)
