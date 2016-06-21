@@ -350,6 +350,9 @@ class MaskToolsWidget(qt.QWidget):
 
         self._maskFileDir = qt.QDir.home().absolutePath()
 
+        self.plot.sigInteractiveModeChanged.connect(
+            self._interactiveModeChanged)
+
     def getMask(self, copy=True):
         """Get the current mask as a 2D array.
 
@@ -525,7 +528,7 @@ class MaskToolsWidget(qt.QWidget):
             'Disables drawing tools, enables zooming interaction mode'
             ' <b>B</b>')
         self.browseAction.setCheckable(True)
-        self.browseAction.toggled[bool].connect(self._browseActionToggled)
+        self.browseAction.triggered[bool].connect(self._browseActionTriggered)
 
         self.rectAction = qt.QAction(
             icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
@@ -857,34 +860,55 @@ class MaskToolsWidget(qt.QWidget):
 
     # Handle drawing tools UI events
 
-    def _browseActionToggled(self, checked):
-        """Handle browse action mode triggering"""
+    def _interactiveModeChanged(self, source):
+        """Handle plot interactive mode changed:
+
+        If changed from elsewhere, disable drawing tool
+        """
+        if source is not self:
+            self.browseAction.setChecked(True)
+
+    def _browseActionTriggered(self, checked):
+        """Handle browse action mode triggered by user.
+
+        Set plot interactive mode only when
+        the user is triggering the browse action.
+        """
         if checked:
-            if self._drawingMode:
-                self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
-                self._drawingMode = None
-            self.plot.setInteractiveMode('zoom')
+            self.plot.setInteractiveMode('zoom', source=self)
 
     def _rectActionToggled(self, checked):
         """Handle rect action mode triggering"""
         if checked:
             self._drawingMode = 'rectangle'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='rectangle')
+            self.plot.setInteractiveMode(
+                'draw', shape='rectangle', source=self)
+        else:
+            self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
+            self._drawingMode = None
 
     def _polygonActionToggled(self, checked):
         """Handle polygon action mode triggering"""
         if checked:
             self._drawingMode = 'polygon'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='polygon')
+            self.plot.setInteractiveMode('draw', shape='polygon', source=self)
+        else:
+            self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
+            self._drawingMode = None
 
     def _pencilActionToggled(self, checked):
         """Handle pencil action mode triggering"""
         if checked:
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='polylines', color=None)
+            self.plot.setInteractiveMode(
+                'draw', shape='polylines', color=None, source=self)
+        else:
+            self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
+            self._drawingMode = None
+
         self.pencilSetting.setVisible(checked)
 
     # Handle plot drawing events
