@@ -90,3 +90,22 @@ def rgba(color, colorDict=None):
     b = int(color[5:7], 16) / 255.
     a = int(color[7:9], 16) / 255. if len(color) == 9 else 1.
     return r, g, b, a
+
+
+_COLORMAP_CURSOR_COLORS = {
+    'gray': 'pink',
+    'reversed gray': 'pink',
+    'temperature': 'black',
+    'red': 'white',
+    'green': 'white',
+    'blue': 'white'}
+
+
+def cursorColorForColormap(colormapName):
+    """Get a color suitable for overlay over a colormap.
+
+    :param str colormapName: The name of the colormap.
+    :return: Name of the color.
+    :rtype: str
+    """
+    return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')

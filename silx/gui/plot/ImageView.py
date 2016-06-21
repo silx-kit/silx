@@ -59,30 +59,11 @@ import numpy
 from .. import qt
 
 from . import PlotWindow, PlotWidget
+from .Colors import cursorColorForColormap
 from .PlotTools import ProfileToolBar, LimitsToolBar
 
 
 _logger = logging.getLogger(__name__)
-
-# utils #######################################################################
-
-_COLORMAP_CURSOR_COLORS = {
-    'gray': 'pink',
-    'reversed gray': 'pink',
-    'temperature': 'black',
-    'red': 'gray',
-    'green': 'gray',
-    'blue': 'gray'}
-
-
-def _cursorColorForColormap(colormapName):
-    """Get a color suitable for overlay over a colormap.
-
-    :param str colormapName: The name of the colormap.
-    :return: Name of the color.
-    :rtype: str
-    """
-    return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
 
 
 # RadarView ###################################################################
@@ -707,7 +688,7 @@ class ImageView(PlotWindow):
             if colors is not None:
                 cmapDict['colors'] = colors
 
-        cursorColor = _cursorColorForColormap(cmapDict['name'])
+        cursorColor = cursorColorForColormap(cmapDict['name'])
         self.setInteractiveMode('zoom', color=cursorColor)
 
         self.setDefaultColormap(cmapDict)
@@ -829,7 +810,7 @@ class ImageViewMainWindow(ImageView):
         else:
             colormap = activeImage[4]['colormap']
 
-        self.profileToolBar.overlayColor = _cursorColorForColormap(
+        self.profileToolBar.overlayColor = cursorColorForColormap(
             colormap['name'])
 
     def _statusBarSlot(self, row, column, value):

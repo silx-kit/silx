@@ -40,7 +40,9 @@ import numpy
 import logging
 
 from silx.image import shapes
+from .Colors import cursorColorForColormap, rgba
 from .. import icons, qt
+
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
@@ -330,6 +332,7 @@ class MaskToolsWidget(qt.QWidget):
             'autoscale': False,
             'vmin': 0, 'vmax': 255,
             'colors': None}
+        self._overlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, True)
 
         self._origin = (0., 0.)  # Mask origin in plot
@@ -692,6 +695,10 @@ class MaskToolsWidget(qt.QWidget):
             self.minLineEdit.setText(str(min_))
             self.maxLineEdit.setText(str(max_))
 
+            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._setMaskColors(self.levelSpinBox.value(),
+                                self.transparencyComboBox.currentIndex() == 0)
+
             self._origin = activeImage[4]['origin']
             self._scale = activeImage[4]['scale']
             self._z = activeImage[4]['z'] + 1
@@ -824,13 +831,17 @@ class MaskToolsWidget(qt.QWidget):
                                  False for opaque
         """
         assert level > 0 and level < 256
-        colors = numpy.ones((256, 4), dtype=numpy.float32)
+
+        colors = numpy.empty((256, 4), dtype=numpy.float32)
+
+        # Set color
+        colors[:, :3] = self._overlayColor[:3]
 
         # Set alpha
-        colors[:, -1] = 0.5
+        colors[:, -1] = 0.4
 
         # Set highlighted level color
-        colors[level] = (0., 0., 0., 0.5 if transparent else 1.)
+        colors[level, 3] = 0.7 if transparent else 1.
 
         # Set no mask level
         colors[0] = (0., 0., 0., 0.)
