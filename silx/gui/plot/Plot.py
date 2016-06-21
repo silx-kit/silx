@@ -188,6 +188,9 @@ It provides the following keys:
               active. It is the same as 'legend' if 'updated' == True
 - 'updated': (bool) True if active item name did not changed,
              but active item data or style was updated.
+
+'interactiveModeChanged' event with a 'source' key identifying the object
+setting the interactive mode.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -2534,7 +2537,7 @@ class Plot(object):
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
-                           zoomOnWheel=True):
+                           zoomOnWheel=True, source=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2549,9 +2552,16 @@ class Plot(object):
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode, sent in drawing events.
         :param bool zoomOnWheel: Toggle zoom on wheel support
+        :param source: A user-defined object (typically the caller object)
+                       that will be send in the interactiveModeChanged event,
+                       to identify which object required a mode change.
+                       Default: None
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
         self._eventHandler.zoomOnWheel = zoomOnWheel
+
+        self.notify(
+            'interactiveModeChanged', source=source)
 
     # Deprecated #
 
