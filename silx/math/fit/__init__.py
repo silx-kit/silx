@@ -22,10 +22,12 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet", "V.A. Sole"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/05/2016"
+__date__ = "22/06/2016"
 
-from .histogram import histogramnd
-from .histogram import HistogramndLut
 
+from .leastsq import leastsq, chisq_alpha_beta
+from .leastsq import \
+    CFREE, CPOSITIVE, CQUOTED, CFIXED, \
+    CFACTOR, CDELTA, CSUM ,CIGNORED
