@@ -27,13 +27,11 @@
 This module provides a function and a class to compute multidimensional
 histograms.
 
-Function
-========
-- :func:`histogramnd`
 
-Class
-=====
+Classes
+=======
 
+- :class:`Histogramnd` : multi dimensional histogram.
 - :class:`HistogramndLut` : optimized to compute several histograms from data sharing the same coordinates.
 
 Examples
@@ -49,15 +47,33 @@ Given some 3D data:
 >>> sample = np.random.random(shape) * 500
 >>> weights = np.random.random((shape[0],))
 
-Computing the histogram with histogramnd :
+Computing the histogram with Histogramnd :
 
->>> from silx.math import histogramnd
+>>> from silx.math import Histogramnd
 >>> n_bins = 35
 >>> ranges = [[40., 150.], [-130., 250.], [0., 505]]
->>> histo, w_histo, edges = histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> histo, w_histo, edges = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
 
-Accumulating histograms
------------------------
+Histogramnd can accumulate sets of data that don't have the same
+coordinates :
+
+>>> from silx.math import Histogramnd
+>>> histo_obj = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> sample_2 = np.random.random(shape) * 200
+>>> weights_2 = np.random.random((shape[0],))
+>>> histo_obj.accumulate(sample_2, weights=weights_2)
+
+And then access the results:
+
+>>> histo = histo_obj.histo
+>>> weighted_histo = histo_obj.weighted_histo
+
+or even:
+
+>>> histo, w_histo, edges = histo_obj
+
+Accumulating histograms (LUT)
+-----------------------------
 In some situations we need to compute the weighted histogram of several
 sets of data (weights) that have the same coordinates (sample).
 
@@ -111,57 +127,259 @@ __license__ = "MIT"
 __date__ = "15/05/2016"
 
 import numpy as np
-from .chistogramnd import chistogramnd as histogramnd  # noqa
+from .chistogramnd import chistogramnd as _chistogramnd  # noqa
 from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
 from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
+           
+class Histogramnd(object):
+    """
+    Computes the multidimensional histogram of some data.
+    """  # noqa
+
+    def __init__(self,
+                 sample,
+                 bins_rng,
+                 n_bins,
+                 weights=None,
+                 weight_min=None,
+                 weight_max=None,
+                 last_bin_closed=False,
+                 wh_dtype=None):
+        """
+        :param sample:
+            The data to be histogrammed.
+            Its shape must be either
+            (N,) if it contains one dimensional coordinates,
+            or an (N,D) array where the rows are the
+            coordinates of points in a D dimensional space.
+            The following dtypes are supported : :class:`numpy.float64`,
+            :class:`numpy.float32`, :class:`numpy.int32`.
+
+            .. warning:: if sample is not a C_CONTIGUOUS ndarray (e.g : a non
+                contiguous slice) then histogramnd will have to do make an internal
+                copy.
+        :type sample: :class:`numpy.array`
+
+        :param bins_rng:
+            A (N, 2) array containing the lower and upper
+            bin edges along each dimension.
+        :type bins_rng: array_like
+
+        :param n_bins:
+            The number of bins :
+                * a scalar (same number of bins for all dimensions)
+                * a D elements array (number of bins for each dimensions)
+        :type n_bins: scalar or array_like
+
+        :param weights:
+            A N elements numpy array of values associated with
+            each sample.
+            The values of the *weighted_histo* array
+            returned by the function are equal to the sum of
+            the weights associated with the samples falling
+            into each bin.
+            The following dtypes are supported : :class:`numpy.float64`,
+            :class:`numpy.float32`, :class:`numpy.int32`.
+
+            .. note:: If None, the weighted histogram returned will be None.
+        :type weights: *optional*, :class:`numpy.array`
+
+        :param weight_min:
+            Use this parameter to filter out all samples whose
+            weights are lower than this value.
+
+            .. note:: This value will be cast to the same type
+                as *weights*.
+        :type weight_min: *optional*, scalar
+
+        :param weight_max:
+            Use this parameter to filter out all samples whose
+            weights are higher than this value.
+
+            .. note:: This value will be cast to the same type
+                as *weights*.
+
+        :type weight_max: *optional*, scalar
+
+        :param last_bin_closed:
+            By default the last bin is half
+            open (i.e.: [x,y) ; x included, y
+            excluded), like all the other bins.
+            Set this parameter to true if you want
+            the LAST bin to be closed.
+        :type last_bin_closed: *optional*, :class:`python.boolean`
+        
+        :param wh_dtype: type of the weighted histogram array. If not provided, the
+            weighted histogram array will contain values of the same type as
+            *weights*. Allowed values are : `numpy.double` and `numpy.float32`
+        :type wh_dtype: *optional*, numpy data type
+        """
+
+        self.__bins_rng = bins_rng
+        self.__n_bins = n_bins
+        self.__last_bin_closed = last_bin_closed
+        self.__wh_dtype = wh_dtype
+
+        if sample is None:
+            self.__data = [None, None, None]
+        else:
+            self.__data = _chistogramnd(sample,
+                                        self.__bins_rng,
+                                        self.__n_bins,
+                                        weights=weights,
+                                        weight_min=weight_min,
+                                        weight_max=weight_max,
+                                        last_bin_closed=self.__last_bin_closed,
+                                        wh_dtype=self.__wh_dtype)
+
+    def __getitem__(self, key):
+        """
+        If necessary, results can be unpacked from an instance of Histogramnd :
+        *histogram*, *weighted histogram*, *bins edge*.
+
+        Example :
+
+        .. code-block:: python
+
+            histo, w_histo, edges = Histogramnd(sample, bins_rng, n_bins, weights)
+
+        """
+        return self.__data[key]
+
+    def accumulate(self,
+                   sample,
+                   weights=None,
+                   weight_min=None,
+                   weight_max=None):
+        """
+        Computes the multidimensional histogram of some data and accumulates it
+        into the histogram held by this instance of Histogramnd.
+
+        :param sample:
+            The data to be histogrammed.
+            Its shape must be either
+            (N,) if it contains one dimensional coordinates,
+            or an (N,D) array where the rows are the
+            coordinates of points in a D dimensional space.
+            The following dtypes are supported : :class:`numpy.float64`,
+            :class:`numpy.float32`, :class:`numpy.int32`.
+
+            .. warning:: if sample is not a C_CONTIGUOUS ndarray (e.g : a non
+                contiguous slice) then histogramnd will have to do make an internal
+                copy.
+        :type sample: :class:`numpy.array`
+        
+        :param weights:
+            A N elements numpy array of values associated with
+            each sample.
+            The values of the *weighted_histo* array
+            returned by the function are equal to the sum of
+            the weights associated with the samples falling
+            into each bin.
+            The following dtypes are supported : :class:`numpy.float64`,
+            :class:`numpy.float32`, :class:`numpy.int32`.
+
+            .. note:: If None, the weighted histogram returned will be None.
+        :type weights: *optional*, :class:`numpy.array`
+
+        :param weight_min:
+            Use this parameter to filter out all samples whose
+            weights are lower than this value.
+
+            .. note:: This value will be cast to the same type
+                as *weights*.
+        :type weight_min: *optional*, scalar
+
+        :param weight_max:
+            Use this parameter to filter out all samples whose
+            weights are higher than this value.
+
+            .. note:: This value will be cast to the same type
+                as *weights*.
+        :type weight_max: *optional*, scalar
+        """
+        result = _chistogramnd(sample,
+                               self.__bins_rng,
+                               self.__n_bins,
+                               weights=weights,
+                               weight_min=weight_min,
+                               weight_max=weight_max,
+                               last_bin_closed=self.__last_bin_closed,
+                               histo=self.__data[0],
+                               weighted_histo=self.__data[1],
+                               wh_dtype=self.__wh_dtype)
+        if self.__data[0] is None:
+            self.__data = result
+        elif self.__data[1] is None and result[1] is not None:
+            self.__data = result
+
+    histo = property(lambda self:self[0])
+    """ Histogram array, or None if this instance was initialized without
+        <sample> and accumulate has not been called yet.
+
+        .. note:: this is a **reference** to the array store in this
+             Histogramnd instance, use with caution.
+    """
+    weighted_histo = property(lambda self:self[1])
+    """ Weighted Histogram, or None if this instance was initialized without
+        <sample>, or no weights have been passed to __init__ nor accumulate.
+
+        .. note:: this is a **reference** to the array store in this
+            Histogramnd instance, use with caution.
+    """
+    edges = property(lambda self:self[2])
+    """ Bins edges, or None if this instance was initialized without
+        <sample> and accumulate has not been called yet.
+    """
 
 
 class HistogramndLut(object):
     """
-    ``HistogramndLut(sample, bins_rng, n_bins, last_bin_closed=True)``
     The HistogramndLut class allows you to bin data onto a regular grid.
     The use of HistogramndLut is interesting when several sets of data that
     share the same coordinates (*sample*) have to be mapped onto the same grid.
-
-    :param sample:
-        The coordinates of the data to be histogrammed.
-        Its shape must be either (N,) if it contains one dimensional
-        coordinates, or an (N, D) array where the rows are the
-        coordinates of points in a D dimensional space.
-        The following dtypes are supported : :class:`numpy.float64`,
-        :class:`numpy.float32`, :class:`numpy.int32`.
-    :type sample: :class:`numpy.array`
-
-    :param bins_rng:
-        A (N, 2) array containing the lower and upper
-        bin edges along each dimension.
-    :type bins_rng: array_like
-
-    :param n_bins:
-        The number of bins :
-            * a scalar (same number of bins for all dimensions)
-            * a D elements array (number of bins for each dimensions)
-    :type n_bins: scalar or array_like
-
-    :param dtype: data type of the weighted histogram. If None, the data type
-        will be the same as the first weights array provided (on first call of
-        the instance).
-    :type dtype: `numpy.dtype`
-
-    :param last_bin_closed:
-        By default the last bin is half
-        open (i.e.: [x,y) ; x included, y
-        excluded), like all the other bins.
-        Set this parameter to true if you want
-        the LAST bin to be closed.
-    :type last_bin_closed: *optional*, :class:`python.boolean`
     """
+
     def __init__(self,
                  sample,
                  bins_rng,
                  n_bins,
                  last_bin_closed=False,
                  dtype=None):
+        """
+        :param sample:
+            The coordinates of the data to be histogrammed.
+            Its shape must be either (N,) if it contains one dimensional
+            coordinates, or an (N, D) array where the rows are the
+            coordinates of points in a D dimensional space.
+            The following dtypes are supported : :class:`numpy.float64`,
+            :class:`numpy.float32`, :class:`numpy.int32`.
+        :type sample: :class:`numpy.array`
+
+        :param bins_rng:
+            A (N, 2) array containing the lower and upper
+            bin edges along each dimension.
+        :type bins_rng: array_like
+
+        :param n_bins:
+            The number of bins :
+                * a scalar (same number of bins for all dimensions)
+                * a D elements array (number of bins for each dimensions)
+        :type n_bins: scalar or array_like
+
+        :param dtype: data type of the weighted histogram. If None, the data type
+            will be the same as the first weights array provided (on first call of
+            the instance).
+        :type dtype: `numpy.dtype`
+
+        :param last_bin_closed:
+            By default the last bin is half
+            open (i.e.: [x,y) ; x included, y
+            excluded), like all the other bins.
+            Set this parameter to true if you want
+            the LAST bin to be closed.
+        :type last_bin_closed: *optional*, :class:`python.boolean`
+        """
         lut, histo, edges = _histo_get_lut(sample,
                                            bins_rng,
                                            n_bins,
@@ -192,52 +410,26 @@ class HistogramndLut(object):
         """
         return self.__lut.copy()
 
-    @property
-    def histo(self):
+    def histo(self, copy=True):
         """
-        Histogram (actualy a *copy* of the one stored in this instance),
-        or None if `~accumulate` has not been called yet (or clear was just
-        called).
+        Histogram (a copy of it), or None if `~accumulate` has not been called yet
+        (or clear was just called).
+        If *copy* is set to False then the actual reference to the array is
+        returned *(use with caution)*.
         """
-        histo = self.histo_ref
-        if histo is not None:
-            return histo.copy()
-        return histo
+        if copy and self.__histo is not None:
+            return self.__histo.copy()
+        return self.__histo
 
-    @property
-    def histo_ref(self):
+    def weighted_histo(self, copy=True):
         """
-        Same as `~histo`, but returns a reference (i.e : not a copy) to the
-        histogram stored by this HistogramndLut instance *(use with caution)*.
+        Weighted histogram (a copy of it), or None if `~accumulate` has not been called yet
+        (or clear was just called). If *copy* is set to False then the actual
+        reference to the array is returned *(use with caution)*.
         """
-        if self.__histo is not None:
-            return self.__histo
-        else:
-            return None
-
-    @property
-    def weighted_histo(self):
-        """
-        Weighted histogram (actualy a *copy* of the one stored in this
-        instance), or None if `~accumulate` has not been called yet (or clear
-        was just called).
-        """
-        w_histo = self.weighted_histo_ref
-        if w_histo is not None:
-            return w_histo.copy()
-        return w_histo
-
-    @property
-    def weighted_histo_ref(self):
-        """
-        Same as `~weighted_histo`, but returns a reference (i.e : not a copy)
-        to the weighted histogram stored by this HistogramndLut instance
-        *(use with caution)*.
-        """
-        if self.__weighted_histo is not None:
-            return self.__weighted_histo
-        else:
-            return None
+        if copy and self.__weighted_histo is not None:
+            return self.__weighted_histo.copy()
+        return self.__weighted_histo
 
     @property
     def bins_rng(self):
