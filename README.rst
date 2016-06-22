@@ -80,5 +80,5 @@ See the `copyright file <https://github.com/silx-kit/silx/blob/master/copyright>
 
 .. |Travis Status| image:: https://travis-ci.org/silx-kit/silx.svg?branch=master
    :target: https://travis-ci.org/silx-kit/silx
-.. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/mc7r6xwsgpbcdvgr/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/kif/silx
+.. |Appveyor Status| image:: https://ci.appveyor.com/api/projects/status/qgox9ei0wxwfagrb/branch/master?svg=true
+   :target: https://ci.appveyor.com/project/ESRF/silx

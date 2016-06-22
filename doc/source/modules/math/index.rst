@@ -7,7 +7,7 @@
 .. toctree::
    :maxdepth: 1
 
-   fit.rst
+   fit/leastsq.rst
    histogramnd.rst
    specfit.rst
    fitfunctions.rst

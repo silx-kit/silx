@@ -29,10 +29,7 @@ __date__ = "26/05/2016"
 from .histogram import histogramnd
 from .histogram import HistogramndLut
 
-from .fit import leastsq
-
-import logging
-
+import logging as _logging
 # Init logging once for the whole module
-logging.basicConfig()
+_logging.basicConfig()
 

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
+# /*##########################################################################
+# Copyright (C) 2016 European Synchrotron Radiation Facility
 #
-#    Project: silx
-#             https://github.com/silx-kit/silx
-#
-#    Copyright (C) 2012-2016  European Synchrotron Radiation Facility, Grenoble, France
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
@@ -21,19 +19,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+#
+# ############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/05/2016"
-
-import unittest
-from . import test_bilinear
-from . import test_shapes
+__date__ = "22/06/2016"
 
 
-def suite():
-    """Test suite for module silx.image.test"""
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_bilinear.suite())
-    test_suite.addTest(test_shapes.suite())
-    return test_suite
+from .leastsq import leastsq, chisq_alpha_beta
+from .leastsq import \
+    CFREE, CPOSITIVE, CQUOTED, CFIXED, \
+    CFACTOR, CDELTA, CSUM
