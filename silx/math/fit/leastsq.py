@@ -190,7 +190,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 The chi square ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )`` divided
                 by the number of degrees of freedom ``(M - number_of_free_parameters)``
     """
-    function_call_counter  = 0
+    function_call_counter = 0
     if numpy.isscalar(p0):
         p0 = [p0]
     parameters = numpy.array(p0, dtype=numpy.float64, copy=False)
@@ -225,7 +225,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
             # We can only hope that the sequence is properly arranged
             if xdata.size == ydata.size:
                 if len(xdata.shape) != 1:
-                    msg =  "Need to reshape input xdata."
+                    msg = "Need to reshape input xdata."
                     _logger.warning(msg)
                 xdata.shape = -1
             else:
@@ -251,16 +251,16 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 msg = "Checking if function can deal with non-finite data"
                 _logger.debug(msg)
                 evaluation = model(xdata, *parameters)
-                function_call_counter  += 1
+                function_call_counter += 1
                 if evaluation.shape != ydata.shape:
                     if evaluation.size == ydata.size:
                         msg = "Supplied function does not return a proper array of floats."
                         msg += "\nFunction should be rewritten to return a 1D array of floats."
-                        msg +=  "\nTrying to reshape output."
+                        msg += "\nTrying to reshape output."
                         _logger.warning(msg)
                         evaluation.shape = ydata.shape
                 if False in numpy.isfinite(evaluation):
-                    msg =  "Supplied function unable to handle non-finite x data"
+                    msg = "Supplied function unable to handle non-finite x data"
                     msg += "\nAttempting to filter out those x data values." 
                     _logger.warning(msg)
                     filter_xdata = True
@@ -295,29 +295,28 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     # check if constraints have been passed as text
     constrained_fit = False
     if constraints is not None:
-        string_type = type("string")
         for i in range(nparameters):
             if hasattr(constraints[i][0], "upper"):
                 txt = constraints[i][0].upper()
                 if txt == "FREE":
-                     constraints[i][0] = CFREE
+                    constraints[i][0] = CFREE
                 elif txt == "POSITIVE":
-                     constraints[i][0] = CPOSITIVE
+                    constraints[i][0] = CPOSITIVE
                 elif txt == "QUOTED":
-                     constraints[i][0] = CQUOTED
+                    constraints[i][0] = CQUOTED
                 elif txt == "FIXED":
-                     constraints[i][0] = CFIXED
+                    constraints[i][0] = CFIXED
                 elif txt == "FACTOR":
-                     constraints[i][0] = CFACTOR
-                     constraints[i][1] = int(constraints[i][1])
+                    constraints[i][0] = CFACTOR
+                    constraints[i][1] = int(constraints[i][1])
                 elif txt == "DELTA":
-                     constraints[i][0] = CDELTA
-                     constraints[i][1] = int(constraints[i][1])
+                    constraints[i][0] = CDELTA
+                    constraints[i][1] = int(constraints[i][1])
                 elif txt == "SUM":
-                     constraints[i][0] = CSUM
-                     constraints[i][1] = int(constraints[i][1])
+                    constraints[i][0] = CSUM
+                    constraints[i][1] = int(constraints[i][1])
                 elif txt in ["IGNORED", "IGNORE"]:
-                     constraints[i][0] = CIGNORED
+                    constraints[i][0] = CIGNORED
                 else:
                     #I should raise an exception
                     raise ValueError("Unknown constraint %s" % constraints[i][0])
@@ -330,10 +329,10 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     fittedpar = parameters.__copy__()
     flambda = 0.001
     iiter = max_iter
-    niter = 0
+    #niter = 0
     last_evaluation=None
-    x=xdata
-    y=ydata
+    x = xdata
+    y = ydata
     chisq0 = -1
     iteration_counter = 0
     while (iiter > 0):
@@ -352,7 +351,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         iteration_counter += 1
         chisq0, alpha0, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x,y, weight, constraints=constraints,
+                                                 x, y, weight, constraints=constraints,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
@@ -368,9 +367,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         #raise
         nr, nc = alpha0.shape
         flag = 0
-        lastdeltachi = chisq0
+        #lastdeltachi = chisq0
         while flag == 0:
-            alpha = alpha0 * ( 1.0 + flambda * numpy.identity(nr))
+            alpha = alpha0 * (1.0 + flambda * numpy.identity(nr))
             deltapar = numpy.dot(beta, inv(alpha))
             if constraints is None:
                 newpar = fitparam + deltapar [0]
@@ -382,7 +381,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                         pwork [0] [i] = fitparam [i] + deltapar [0] [i]
                     elif constraints [free_index[i]][0] == CFREE:
                         pwork [0] [i] = fitparam [i] + deltapar [0] [i]
-                    elif constraints [free_index[i]][0]== CPOSITIVE:
+                    elif constraints [free_index[i]][0] == CPOSITIVE:
                         #abs method
                         pwork [0] [i] = fitparam [i] + deltapar [0] [i]
                         #square method
@@ -395,7 +394,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                                    constraints[free_index[i]][2])
                         A = 0.5 * (pmax + pmin)
                         B = 0.5 * (pmax - pmin)
-                        if (B != 0):
+                        if B != 0:
                             pwork [0] [i] = A + \
                                         B * numpy.sin(numpy.arcsin((fitparam[i] - A)/B)+ \
                                         deltapar [0] [i])
@@ -405,28 +404,28 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                             txt += "A = %g B = %g"  % (A, B)
                             raise ValueError("Invalid parameter limits")
                     newpar[free_index[i]] = pwork [0] [i]
-                newpar=numpy.array(_get_parameters(newpar,constraints))
+                newpar = numpy.array(_get_parameters(newpar,constraints))
             workpar = numpy.take(newpar, noigno)
             yfit = model(x, *workpar)
             if last_evaluation is None:
                 if len(yfit.shape) > 1:
                     msg = "Supplied function does not return a 1D array of floats."
                     msg += "\nFunction should be rewritten."
-                    msg +=  "\nTrying to reshape output."
+                    msg += "\nTrying to reshape output."
                     _logger.warning(msg)
             yfit.shape = -1
             function_call_counter += 1
             chisq = (weight * pow(y-yfit, 2)).sum()
             absdeltachi = chisq0 - chisq
             if absdeltachi < 0:
-                flambda = flambda * 10.0
+                flambda *= 10.0
                 if flambda > 1000:
                     flag = 1
                     iiter = 0
             else:
                 flag = 1
                 fittedpar = newpar.__copy__()
-                lastdeltachi = 100 * (absdeltachi / (chisq + (chisq==0)))
+                lastdeltachi = 100 * (absdeltachi / (chisq + (chisq == 0)))
                 if iteration_counter < 2:
                   # ignore any limit, the fit *has* to be improved
                   pass
@@ -434,7 +433,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
                     iiter = 0
-                    _logger.warning("Iteration finished due to too small absolute chi decrement")
+                    _logger.info("Iteration finished due to too small absolute chi decrement")
                 chisq0 = chisq
                 flambda = flambda / 10.0
                 last_evaluation = yfit
@@ -496,10 +495,10 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
 
     :param y: An M-length sequence
         The dependent data --- nominally f(xdata, ...)
-        
+
     :param weight: M-length sequence
-        Weights to be applied in the calculation of chi suare
-        As a reminder `` chisq = np.sum(weigth * (model(x, *parameters) - y)**2)``
+        Weights to be applied in the calculation of chi square
+        As a reminder ``chisq = np.sum(weigth * (model(x, *parameters) - y)**2)``
 
     :param constraints:
         If provided, it is a 2D sequence of dimension (n_parameters, 3) where,
@@ -585,8 +584,8 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         fitparam = parameters * 1
     else:
         n_free = 0
-        fitparam=[]
-        free_index=[]
+        fitparam = []
+        free_index = []
         noigno = []
         derivfactor = []
         for i in range(n_param):
@@ -605,8 +604,8 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                 free_index.append(i)
                 n_free += 1
             elif constraints[i][0] == CQUOTED:
-                pmax=max(constraints[i][1],constraints[i][2])
-                pmin=min(constraints[i][1],constraints[i][2])
+                pmax = max(constraints[i][1], constraints[i][2])
+                pmin  =min(constraints[i][1], constraints[i][2])
                 if ((pmax-pmin) > 0) & \
                    (parameters[i] <= pmax) & \
                    (parameters[i] >= pmin):
@@ -623,9 +622,9 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                     print("Parameter will be kept at its starting value")
     fitparam = numpy.array(fitparam, numpy.float)
     alpha = numpy.zeros((n_free, n_free),numpy.float)
-    beta = numpy.zeros((1,n_free),numpy.float)
+    beta = numpy.zeros((1, n_free), numpy.float)
     #delta = (fitparam + numpy.equal(fitparam,0.0)) * 0.00001
-    delta = (fitparam + numpy.equal(fitparam,0.0)) * numpy.sqrt(epsfcn)
+    delta = (fitparam + numpy.equal(fitparam, 0.0)) * numpy.sqrt(epsfcn)
     nr  = y.size
     ##############
     # Prior to each call to the function one has to re-calculate the
@@ -633,8 +632,6 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     pwork = parameters.__copy__()
     for i in range(n_free):
         pwork [free_index[i]] = fitparam [i]
-    newpar = _get_parameters(pwork.tolist(), constraints)
-    newpar = numpy.take(newpar,noigno)
     if n_free == 0:
         raise ValueError("No free parameters to fit")
     function_calls = 0
@@ -650,34 +647,34 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             #pwork = parameters.__copy__()
             pwork[free_index[i]] = fitparam [i] + delta [i]
             newpar = _get_parameters(pwork.tolist(), constraints)
-            newpar=numpy.take(newpar,noigno)
+            newpar = numpy.take(newpar,noigno)
             f1 = model(x, *newpar)
             f1.shape = -1
             function_calls += 1
             if left_derivative:
                 pwork[free_index[i]] = fitparam [i] - delta [i]
-                newpar = _get_parameters(pwork.tolist(),constraints)
+                newpar = _get_parameters(pwork.tolist(), constraints)
                 newpar=numpy.take(newpar,noigno)
                 f2 = model(x, *newpar)
                 function_calls += 1
-                help0 = (f1-f2) / (2.0 * delta[i])
+                help0 = (f1 - f2) / (2.0 * delta[i])
             else:
-                help0 = (f1-f2) / (delta[i])
+                help0 = (f1 - f2) / (delta[i])
             help0 = help0 * derivfactor[i]
             pwork[free_index[i]] = fitparam [i]
             #removed I resize outside the loop:
             #help0 = numpy.resize(help0,(1,nr))
         else:
-            help0=model_deriv(x, pwork,free_index[i])
+            help0 = model_deriv(x, pwork,free_index[i])
             help0 = help0 * derivfactor[i]
 
-        if i == 0 :
+        if i == 0:
             deriv = help0
         else:
-            deriv = numpy.concatenate((deriv,help0), 0)
+            deriv = numpy.concatenate((deriv, help0), 0)
 
     #line added to resize outside the loop
-    deriv=numpy.resize(deriv,(n_free,nr))
+    deriv = numpy.resize(deriv,(n_free,nr))
     if last_evaluation is None:
         if constraints is None:
             yfit = model(x, *fitparam)
@@ -693,8 +690,8 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     deltay = y - yfit
     help0 = weight * deltay
     for i in range(n_free):
-        derivi = numpy.resize(deriv[i,:], (1,nr))
-        help1 = numpy.resize(numpy.sum((help0 * derivi),1),(1,1))
+        derivi = numpy.resize(deriv[i,:], (1, nr))
+        help1 = numpy.resize(numpy.sum((help0 * derivi), 1), (1, 1))
         if i == 0:
             beta = help1
         else:
@@ -730,7 +727,7 @@ def _get_parameters(parameters, constraints):
     # 3 = Fixed      4 = Factor       5 = Delta
     if constraints is None:
         return parameters * 1
-    newparam=[]
+    newparam = []
     #first I make the free parameters
     #because the quoted ones put troubles
     for i in range(len(constraints)):
@@ -747,9 +744,9 @@ def _get_parameters(parameters, constraints):
             newparam.append(parameters[i])
     for i in range(len(constraints)):
         if constraints[i][0] == CFACTOR:
-            newparam[i] = constraints[i][2]*newparam[int(constraints[i][1])]
+            newparam[i] = constraints[i][2] * newparam[int(constraints[i][1])]
         elif constraints[i][0] == CDELTA:
-            newparam[i] = constraints[i][2]+newparam[int(constraints[i][1])]
+            newparam[i] = constraints[i][2] + newparam[int(constraints[i][1])]
         elif constraints[i][0] == CIGNORED:
             # The whole ignored stuff should not be documented because setting
             # a parameter to 0 is not the same as being ignored.
@@ -779,7 +776,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
     if constraints is None:
         return sigma0
     n_free = 0
-    sigma_par = numpy.zeros(parameters.shape,numpy.float)
+    sigma_par = numpy.zeros(parameters.shape, numpy.float)
     for i in range(len(constraints [0])):
         if constraints[i][0] == CFREE:
             sigma_par [i] = sigma0[n_free]
@@ -809,11 +806,12 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
             sigma_par [i] = sigma_par[int(constraints[i][1])]
     return sigma_par
 
-def main(arv=None):
+
+def main(argv=None):
     if argv is None:
         npoints = 10000
-    elif hasattr(arv, "__len__"):
-        if len(arv) > 1:
+    elif hasattr(argv, "__len__"):
+        if len(argv) > 1:
             npoints = int(argv[1])
         else:
             print("Usage:")
@@ -823,21 +821,22 @@ def main(arv=None):
         npoints = argv
 
     def gauss(t0, *param0):
-        param=numpy.array(param0)
-        t=numpy.array(t0)
-        dummy=2.3548200450309493*(t-param[3])/param[4]
+        param = numpy.array(param0)
+        t = numpy.array(t0)
+        dummy = 2.3548200450309493 * (t - param[3]) / param[4]
         return param[0] + param[1] * t + param[2] * myexp(-0.5 * dummy * dummy)
 
 
     def myexp(x):
         # put a (bad) filter to avoid over/underflows
         # with no python looping
-        return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
+        return numpy.exp(x * numpy.less(abs(x), 250)) -\
+               1.0 * numpy.greater_equal(abs(x), 250)
 
     xx = numpy.arange(npoints, dtype=numpy.float)
-    yy = gauss(xx, *[10.5,2,1000.0,20.,15])
+    yy = gauss(xx, *[10.5, 2, 1000.0, 20., 15])
     sy = numpy.sqrt(abs(yy))
-    parameters = [0.0,1.0,900.0, 25., 10]
+    parameters = [0.0, 1.0, 900.0, 25., 10]
     stime = time.time()
 
     fittedpar, cov, ddict = leastsq(gauss, xx, yy, parameters,
@@ -872,4 +871,4 @@ def main(arv=None):
         print("Sigma = ", numpy.sqrt(numpy.diag(scipy_cov)))
 
 if __name__ == "__main__":
-  main()
+    main()
