@@ -433,7 +433,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
                     iiter = 0
-                    _logger.warning("Iteration finished due to too small absolute chi decrement")
+                    _logger.info("Iteration finished due to too small absolute chi decrement")
                 chisq0 = chisq
                 flambda = flambda / 10.0
                 last_evaluation = yfit
