@@ -225,11 +225,12 @@ class Test_functions(unittest.TestCase):
              1.74546546]
         )
 
-        # result of `7 * scipy.signal.gaussian(11, 3)`
+        # result of:
+        # numpy.concatenate((7 * scipy.signal.gaussian(11, 3)[0:5],
+        #                    7 * scipy.signal.gaussian(11, 2.1)[5:11]))
         self.scipy_asym_gaussian = numpy.array(
             [1.74546546, 2.87778603, 4.24571462, 5.60516182, 6.62171628,
-             7., 6.62171628, 5.60516182, 4.24571462, 2.87778603,
-             1.74546546]
+             7., 6.24968751, 4.44773692, 2.52313452, 1.14093853, 0.41124877]
         )
 
     def tearDown(self):
@@ -255,7 +256,7 @@ class Test_functions(unittest.TestCase):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
 
     def testFastAGauss(self):
-        """Compare sum_agauss with scipy.signals.gaussian
+        """Compare sum_fastagauss with scipy.signals.gaussian
         Limit precision to 3 decimal places."""
         y = functions.sum_fastagauss(self.x,
                                      self.g_params["area1"],
@@ -266,15 +267,54 @@ class Test_functions(unittest.TestCase):
 
 
     def testSplitGauss(self):
-        """Compare sum_agauss with scipy.signals.gaussian"""
+        """Compare sum_splitgauss with scipy.signals.gaussian"""
         y = functions.sum_splitgauss(self.x,
                                      self.g_params["height"],
                                      self.g_params["center"],
                                      self.g_params["fwhm1"],
                                      self.g_params["fwhm2"])
         for i in range(11):
-            self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
+            self.assertAlmostEqual(y[i], self.scipy_asym_gaussian[i])
 
+    def testErf(self):
+        """Compare erf with math.erf"""
+        # scalars
+        self.assertAlmostEqual(functions.erf(0.14), math.erf(0.14))
+        self.assertAlmostEqual(functions.erf(0), math.erf(0))
+        self.assertAlmostEqual(functions.erf(-0.74), math.erf(-0.74))
+
+        # lists
+        x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]
+        erfx = functions.erf(x)
+        for i in range(len(x)):
+            self.assertAlmostEqual(erfx[i], math.erf(x[i]))
+
+        # ndarray
+        x = numpy.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
+        erfx = functions.erf(x)
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                self.assertAlmostEqual(erfx[i, j], math.erf(x[i, j]))
+
+    def testErfc(self):
+        """Compare erf with math.erf"""
+        # scalars
+        self.assertAlmostEqual(functions.erfc(0.14), math.erfc(0.14))
+        self.assertAlmostEqual(functions.erfc(0), math.erfc(0))
+        self.assertAlmostEqual(functions.erfc(-0.74), math.erfc(-0.74))
+
+        # lists
+        x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]
+        erfcx = functions.erfc(x)
+        for i in range(len(x)):
+            self.assertAlmostEqual(erfcx[i], math.erfc(x[i]))
+
+        # ndarray
+        x = numpy.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
+        erfcx = functions.erfc(x)
+        for i in range(x.shape[0]):
+            for j in range(x.shape[1]):
+                self.assertAlmostEqual(erfcx[i, j], math.erfc(x[i, j]))
 
 test_cases = (Test_peak_search, Test_smooth, Test_functions)
 

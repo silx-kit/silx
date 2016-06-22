@@ -111,16 +111,27 @@ from functions cimport snip3d as _snip3d
 
 
 def erf(x):
-    """erf(x) -> numpy.ndarray
+    """erf(x)
     Return the gaussian error function
 
     :param x: Independant variable where the gaussian error function is
         calculated
+    :type x: numpy.ndarray or scalar
     :return: Gaussian error function ``y=erf(x)``
+    :raise: IndexError if ``x`` is an empty array
     """
     cdef:
         double[::1] x_c
         double[::1] y_c
+
+
+    # force list into numpy array
+    if not hasattr(x, "shape"):
+        x = numpy.asarray(x)
+
+    for len_dim in x.shape:
+        if len_dim == 0:
+            raise IndexError("Cannot compute erf for an empty array")
 
     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
@@ -136,13 +147,22 @@ def erfc(x):
 
     :param x: Independant variable where the gaussian complementary error
         function is calculated
-    :type x: numpy.ndarray
+    :type x: numpy.ndarray or scalar
     :return: Gaussian complementary error function ``y=erfc(x)``
     :type rtype: numpy.ndarray
+    :raise: IndexError if ``x`` is an empty array
     """
     cdef:
         double[::1] x_c
         double[::1] y_c
+
+    # force list into numpy array
+    if not hasattr(x, "shape"):
+        x = numpy.asarray(x)
+
+    for len_dim in x.shape:
+        if len_dim == 0:
+            raise IndexError("Cannot compute erfc for an empty array")
 
     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
