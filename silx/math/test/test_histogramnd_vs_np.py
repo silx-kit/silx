@@ -31,7 +31,7 @@ import operator
 
 import numpy as np
 
-from silx.math import histogramnd
+from silx.math.chistogramnd import chistogramnd as histogramnd
 
 # ==============================================================
 # ==============================================================

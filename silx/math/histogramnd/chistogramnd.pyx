@@ -41,7 +41,8 @@ def chistogramnd(sample,
                  weight_max=None,
                  last_bin_closed=False,
                  histo=None,
-                 weighted_histo=None):
+                 weighted_histo=None,
+                 wh_dtype=None):
     """
     histogramnd(sample, bins_rng, n_bins, weights=None, weight_min=None, weight_max=None, last_bin_closed=False, histo=None, weighted_histo=None)
 
@@ -139,6 +140,12 @@ def chistogramnd(sample,
             non contiguous slice) then histogramnd will have to do make an
             internal copy.
     :type weighted_histo: *optional*, :class:`numpy.array`
+    
+    :param wh_dtype: type of the weighted histogram array. This parameter is
+        ignored if *weighted_histo* is provided. If not provided, the
+        weighted histogram array will contain values of the same type as
+        *weights*. Allowed values are : `numpu.double` and `numpy.float32`.
+    :type wh_dtype: *optional*, numpy data type
 
     :return: Histogram (bin counts, always returned), weighted histogram of
         the sample (or *None* if weights is *None*) and bin edges for each
@@ -146,10 +153,14 @@ def chistogramnd(sample,
     :rtype: *tuple* (:class:`numpy.array`, :class:`numpy.array`, `tuple`) or
         (:class:`numpy.array`, None, `tuple`)
     """  # noqa
+    
+    if wh_dtype is None:
+        wh_dtype = np.double
+    elif wh_dtype not in (np.double, np.float32):
+        raise ValueError('<wh_dtype> type not supported : {0}.'.format(wh_dtype))
 
-    # see silx.math.histogramnd for the doc
-
-    if weighted_histo is not None and weighted_histo.flags['C_CONTIGUOUS'] is False:
+    if (weighted_histo is not None and
+        weighted_histo.flags['C_CONTIGUOUS'] is False):
         raise ValueError('<weighted_histo> must be a C_CONTIGUOUS numpy array.')
 
     if histo is not None and histo.flags['C_CONTIGUOUS'] is False:
@@ -235,18 +246,23 @@ def chistogramnd(sample,
     if weights_type is None:
         weighted_histo = None
     elif weighted_histo is None:
-        weighted_histo = np.zeros(output_shape, dtype=np.double)
+        if wh_dtype is None:
+            wh_dtype = weights_type
+        weighted_histo = np.zeros(output_shape, dtype=wh_dtype)
     else:
         if weighted_histo.shape != output_shape:
             raise ValueError('Provided <weighted_histo> array doesn\'t have '
                              'a shape compatible with <n_bins> '
                              ': should be {0} instead of {1}.'
                              ''.format(output_shape, weighted_histo.shape))
-        if weighted_histo.dtype != np.float64 and weighted_histo.dtype != np.float32:
+        if (weighted_histo.dtype != np.float64 and
+            weighted_histo.dtype != np.float32):
             raise ValueError('Provided <weighted_histo> array doesn\'t have '
                              'the expected type '
                              ': should be {0} or {1} instead of {2}.'
-                             ''.format(np.double, np.float32, weighted_histo.dtype))
+                             ''.format(np.double,
+                                       np.float32,
+                                       weighted_histo.dtype))
 
     option_flags = 0
 
@@ -289,10 +305,10 @@ def chistogramnd(sample,
     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
                                     dtype=np.int32)
 
-    histo_c = histo.reshape((histo.size,)) #np.ascontiguousarray(histo.reshape((histo.size,)))
+    histo_c = histo.reshape((histo.size,))
 
     if weighted_histo is not None:
-        cumul_c = weighted_histo.reshape((weighted_histo.size,))  # np.ascontiguousarray(weighted_histo.reshape((weighted_histo.size,)))  # noqa
+        cumul_c = weighted_histo.reshape((weighted_histo.size,))
     else:
         cumul_c = None
 

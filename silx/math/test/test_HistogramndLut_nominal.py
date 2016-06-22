@@ -215,10 +215,10 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
-        histo_ref = instance.histo_ref
-        w_histo_ref = instance.weighted_histo_ref
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
+        histo_ref = instance.histo(copy=False)
+        w_histo_ref = instance.weighted_histo(copy=False)
 
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
@@ -233,8 +233,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertFalse(np.array_equal(histo_ref, expected_h))
         self.assertFalse(np.array_equal(w_histo_ref, expected_c))
 
-        histo_2 = instance.histo
-        w_histo_2 = instance.weighted_histo
+        histo_2 = instance.histo()
+        w_histo_2 = instance.weighted_histo()
 
         self.assertFalse(np.array_equal(histo_2, expected_h))
         self.assertFalse(np.array_equal(w_histo_2, expected_c))
@@ -259,15 +259,15 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.float64)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
+        self.assertTrue(np.array_equal(instance.histo(), expected_h))
+        self.assertTrue(np.array_equal(instance.weighted_histo(),
                                        expected_c))
 
     def test_nominal_accumulate_twice(self):
@@ -294,15 +294,15 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.float64)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
+        self.assertTrue(np.array_equal(instance.histo(), expected_h))
+        self.assertTrue(np.array_equal(instance.weighted_histo(),
                                        expected_c))
 
     def test_nominal_apply_lut_once(self):
@@ -327,10 +327,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertEqual(instance.histo, None)
-        self.assertEqual(instance.weighted_histo, None)
-        self.assertEqual(instance.histo_ref, None)
-        self.assertEqual(instance.weighted_histo_ref, None)
+        self.assertEqual(instance.histo(), None)
+        self.assertEqual(instance.weighted_histo(), None)
 
     def test_nominal_apply_lut_twice(self):
         """
@@ -363,10 +361,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertEqual(instance.histo, None)
-        self.assertEqual(instance.weighted_histo, None)
-        self.assertEqual(instance.histo_ref, None)
-        self.assertEqual(instance.weighted_histo_ref, None)
+        self.assertEqual(instance.histo(), None)
+        self.assertEqual(instance.weighted_histo(), None)
 
     def test_nominal_accumulate_last_bin_closed(self):
         """
@@ -387,16 +383,13 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.float64)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
     def test_nominal_accumulate_weight_min_max(self):
         """
@@ -421,16 +414,13 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
                             weight_min=weight_min,
                             weight_max=weight_max)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.float64)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
     def test_nominal_accumulate_forced_int32(self):
         """
@@ -452,16 +442,13 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.int32)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
     def test_nominal_accumulate_forced_float32(self):
         """
@@ -483,16 +470,13 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights.astype(np.int32))
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.float32)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
     def test_nominal_accumulate_int32(self):
         """
@@ -513,16 +497,13 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         instance.accumulate(self.weights.astype(np.int32))
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         self.assertEqual(w_histo.dtype, np.int32)
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
     def test_nominal_accumulate_int32_double(self):
         """
@@ -544,8 +525,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         instance.accumulate(self.weights.astype(np.int32))
         instance.accumulate(self.weights)
 
-        histo = instance.histo
-        w_histo = instance.weighted_histo
+        histo = instance.histo()
+        w_histo = instance.weighted_histo()
 
         expected_h *= 2
         expected_c *= 2
@@ -554,9 +535,6 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertEqual(histo.dtype, np.uint32)
         self.assertTrue(np.array_equal(histo, expected_h))
         self.assertTrue(np.array_equal(w_histo, expected_c))
-        self.assertTrue(np.array_equal(instance.histo_ref, expected_h))
-        self.assertTrue(np.array_equal(instance.weighted_histo_ref,
-                                       expected_c))
 
 
 class TestHistogramndLut_nominal_1d(_TestHistogramndLut_nominal):

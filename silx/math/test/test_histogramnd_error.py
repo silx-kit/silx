@@ -35,7 +35,8 @@ import unittest
 
 import numpy as np
 
-from silx.math import histogramnd
+from silx.math.chistogramnd import chistogramnd as histogramnd
+from silx.math import Histogramnd
 
 
 # ==============================================================
@@ -43,9 +44,9 @@ from silx.math import histogramnd
 # ==============================================================
 
 
-class _TestHistogramnd_errors(unittest.TestCase):
+class _Test_chistogramnd_errors(unittest.TestCase):
     """
-    Unit tests of the histogramnd error cases.
+    Unit tests of the chistogramnd error cases.
     """
     def setUp(self):
         raise NotImplementedError('')
@@ -275,6 +276,30 @@ class _TestHistogramnd_errors(unittest.TestCase):
 
             self.assertIsNotNone(ex_str, msg=test_msg)
             self.assertEqual(ex_str, expected_txt, msg=test_msg)
+            
+    def test_wh_histo_dtype(self):
+        """
+        """
+        # using the same values as histo
+        for err_h_dtype in self.err_histo_dtypes:
+            test_msg = ('Testing invalid wh_dtype dtype : {0}'
+                        ''.format(err_h_dtype))
+
+            expected_txt = ('<wh_dtype> type not supported : {0}.'
+                            ''.format(err_h_dtype))
+
+            ex_str = None
+            try:
+                histo, cumul = histogramnd(self.sample,
+                                           self.bins_rng,
+                                           self.n_bins,
+                                           weights=self.weights,
+                                           wh_dtype=err_h_dtype)[0:2]
+            except ValueError as ex:
+                ex_str = str(ex)
+
+            self.assertIsNotNone(ex_str, msg=test_msg)
+            self.assertEqual(ex_str, expected_txt, msg=test_msg)
 
     def test_unmanaged_dtypes(self):
         """
@@ -352,7 +377,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
         self.assertEqual(ex_str, expected_txt)
 
 
-class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
+class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 1D histogramnd error cases.
     """
@@ -402,7 +427,7 @@ class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
                                      (np.uint16, np.uint16))
 
 
-class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
+class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 3D histogramnd error cases.
     """
@@ -471,8 +496,8 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
 # ==============================================================
 
 
-test_cases = (TestHistogramnd_1D_errors,
-              TestHistogramnd_ND_errors,)
+test_cases = (Test_chistogramnd_1D_errors,
+              Test_chistogramnd_ND_errors,)
 
 
 def suite():
