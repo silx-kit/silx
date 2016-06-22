@@ -30,4 +30,4 @@ __date__ = "22/06/2016"
 from .leastsq import leastsq, chisq_alpha_beta
 from .leastsq import \
     CFREE, CPOSITIVE, CQUOTED, CFIXED, \
-    CFACTOR, CDELTA, CSUM ,CIGNORED
+    CFACTOR, CDELTA, CSUM
