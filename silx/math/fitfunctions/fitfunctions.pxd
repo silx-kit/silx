@@ -153,16 +153,16 @@ cdef extern from "fitfunctions.h":
                           double* y,
                           int tail_flags)
 
-    long seek(long BeginChannel,
-              long EndChannel,
-              long nchannels,
-              double FWHM,
-              double Sensitivity,
+    long seek(long begin_index,
+              long end_index,
+              long nsamples,
+              double  fwhm,
+              double sensitivity,
               double debug_info,
               long max_npeaks,
-              double *yspec,
-              double *peaks,
-              double *relevances)
+              double * data,
+              double * peaks,
+              double * relevances)
 
     int SavitskyGolay(double* input,
                       long len_input,

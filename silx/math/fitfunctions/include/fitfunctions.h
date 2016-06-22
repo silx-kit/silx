@@ -65,7 +65,7 @@ int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y);
 int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);
 int sum_fastahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);
 
-long seek(long BeginChannel, long EndChannel, long nchannels, double FWHM, double Sensitivity,
-          double debug_info, long max_npeaks, double *yspec, double *peaks, double *relevances);
+long seek(long begin_index, long end_index, long nsamples, double fwhm, double sensitivity,
+          double debug_info, long max_npeaks, double *data, double *peaks, double *relevances);
 
 #endif /* #define FITFUNCTIONS_H */

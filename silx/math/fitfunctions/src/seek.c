@@ -29,15 +29,36 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
-/* Peak search function, adapted from PyMca SpecFitFuns */
-long seek(long BeginChannel,
-           long EndChannel,
-           long nchannels,
-           double FWHM,
-           double Sensitivity,
+/* Peak search function, adapted from PyMca SpecFitFuns
+
+   This uses a convolution with the second-derivative of a gaussian curve, to
+   smooth the data.
+
+   Arguments:
+
+      - begin_index: First index of the region of interest in the input data
+         array
+      - end_index: Last index of the region of interest in the input data
+         array
+      - nsamples: Number of samples in the input array
+      - fwhm: Full width at half maximum for the gaussian used for smoothing.
+      - sensitivity:
+      - debug_info: If different from 0, print debugging messages
+      - max_npeaks: maximum nubmber of peaks. If the algorithm finds more
+         peaks than this parameter allows for, it will fail due to insufficient
+         memory being allocated to the output arrays.
+      - data: input array of 1D data
+      - peaks: output array of peak indices
+      - relevances: output array of peak relevances
+*/
+long seek(long begin_index,
+           long end_index,
+           long nsamples,
+           double fwhm,
+           double sensitivity,
            double debug_info,
            long max_npeaks,
-           double *yspec,
+           double *data,
            double *peaks,
            double *relevances)
 {
@@ -48,7 +69,7 @@ long seek(long BeginChannel,
     long    nr_factor;
     double  sum_factors;
     double  lowthreshold;
-    double  yspec2[2];
+    double  data2[2];
     double  nom;
     double  den2;
     long    begincalc, endcalc;
@@ -69,17 +90,17 @@ long seek(long BeginChannel,
 
     /* prepare the calculation of the Gaussian scaling factors */
 
-    sigma = FWHM / 2.35482;
+    sigma = fwhm / 2.35482;
     sigma2 = sigma * sigma;
     sigma4 = sigma2 * sigma2;
     lowthreshold = 0.01 / sigma2;
     sum_factors = 0.0;
 
     /* calculate the factors until lower threshold reached */
-    j = MIN(max_gfactor, ((EndChannel - BeginChannel -2)/2)-1);
-    for (cfac=1;cfac<j+1;cfac++) {
+    j = MIN(max_gfactor, ((end_index - begin_index -2)/2)-1);
+    for (cfac=1; cfac < j+1; cfac++) {
         cfac2 = cfac * cfac;
-        gfactor[cfac-1] = (sigma2 - cfac2) * exp (-cfac2/(sigma2*2.0)) / sigma4;
+        gfactor[cfac-1] = (sigma2 - cfac2) * exp(-cfac2/(sigma2*2.0)) / sigma4;
         sum_factors += gfactor[cfac-1];
 
         if ((gfactor[cfac-1] < lowthreshold)
@@ -92,15 +113,15 @@ long seek(long BeginChannel,
 
     /* What comes now is specific to MCA spectra ... */
     lld = 0;
-    while (yspec [lld] == 0) {
+    while (data[lld] == 0) {
         lld++;
     }
-    lld = lld + (int) (0.5 * FWHM);
+    lld = lld + (int) (0.5 * fwhm);
 
-    channel1 = BeginChannel - nr_factor - 1;
+    channel1 = begin_index - nr_factor - 1;
     channel1 = MAX (channel1, lld);
     begincalc = channel1+nr_factor+1;
-    endcalc = MIN (EndChannel+nr_factor+1, nchannels-nr_factor-1);
+    endcalc = MIN (end_index+nr_factor+1, nsamples-nr_factor-1);
     cch = begincalc;
     if(debug_info){
         printf("nrfactor  = %ld\n", nr_factor);
@@ -108,60 +129,60 @@ long seek(long BeginChannel,
         printf("endcalc   = %ld\n", endcalc);
     }
     /* calculates smoothed value and variance at begincalc */
-    cch = MAX(BeginChannel,0);
-    nom = yspec[cch] / sigma2;
-    den2 = yspec[cch] / sigma4;
+    cch = MAX(begin_index,0);
+    nom = data[cch] / sigma2;
+    den2 = data[cch] / sigma4;
     for (cfac = 1; cfac < nr_factor; cfac++){
         ihelp1 = cch-cfac;
         if (ihelp1 < 0){
             ihelp1 = 0;
         }
         ihelp2 = cch+cfac;
-        if (ihelp2 >= nchannels){
-            ihelp2 = nchannels-1;
+        if (ihelp2 >= nsamples){
+            ihelp2 = nsamples-1;
         }
-        nom += gfactor[cfac-1] * (yspec[ihelp2] + yspec [ihelp1]);
+        nom += gfactor[cfac-1] * (data[ihelp2] + data[ihelp1]);
         den2 += gfactor[cfac-1] * gfactor[cfac-1] *
-                 (yspec[ihelp2] + yspec [ihelp1]);
+                 (data[ihelp2] + data[ihelp1]);
     }
 
     /* now normalize the smoothed value to the standard deviation */
     if (den2 <= 0.0) {
-        yspec2[1] = 0.0;
+        data2[1] = 0.0;
     }else{
-        yspec2[1] = nom / sqrt(den2);
+        data2[1] = nom / sqrt(den2);
     }
-    yspec[0] = yspec[1];
+    data[0] = data[1];
 
-    while (cch <= MIN(EndChannel,nchannels-2)){
+    while (cch <= MIN(end_index,nsamples-2)){
         /* calculate gaussian smoothed values */
-        yspec2[0] = yspec2[1];
+        data2[0] = data2[1];
         cch++;
-        nom = yspec[cch]/sigma2;
-        den2 = yspec[cch] / sigma4;
+        nom = data[cch]/sigma2;
+        den2 = data[cch] / sigma4;
         for (cfac = 1; cfac < nr_factor; cfac++){
             ihelp1 = cch-cfac;
             if (ihelp1 < 0){
                 ihelp1 = 0;
             }
             ihelp2 = cch+cfac;
-            if (ihelp2 >= nchannels){
-                ihelp2 = nchannels-1;
+            if (ihelp2 >= nsamples){
+                ihelp2 = nsamples-1;
             }
-            nom += gfactor[cfac-1] * (yspec[ihelp2] + yspec [ihelp1]);
+            nom += gfactor[cfac-1] * (data[ihelp2] + data[ihelp1]);
             den2 += gfactor[cfac-1] * gfactor[cfac-1] *
-                     (yspec[ihelp2] + yspec [ihelp1]);
+                     (data[ihelp2] + data[ihelp1]);
         }
         /* now normalize the smoothed value to the standard deviation */
         if (den2 <= 0) {
-            yspec2[1] = 0;
+            data2[1] = 0;
         }else{
-            yspec2[1] = nom / sqrt(den2);
+            data2[1] = nom / sqrt(den2);
         }
         /* look if the current point falls in a peak */
-        if (yspec2[1] > Sensitivity) {
+        if (data2[1] > sensitivity) {
             if(peakstarted == 0){
-                if (yspec2[1] > yspec2[0]){
+                if (data2[1] > data2[0]){
                     /* this second test is to prevent a peak from outside
                     the region from being detected at the beginning of the search */
                    peakstarted=1;
@@ -169,21 +190,21 @@ long seek(long BeginChannel,
             }
             /* there is a peak */
             if (debug_info){
-                printf("At cch = %ld y[cch] = %g\n",cch,yspec[cch]);
-                printf("yspec2[0] = %g\n",yspec2[0]);
-                printf("yspec2[1] = %g\n",yspec2[1]);
-                printf("Sensitivity = %g\n",Sensitivity);
+                printf("At cch = %ld y[cch] = %g\n",cch,data[cch]);
+                printf("data2[0] = %g\n",data2[0]);
+                printf("data2[1] = %g\n",data2[1]);
+                printf("sensitivity = %g\n",sensitivity);
             }
             if(peakstarted == 1){
                 /* look for the top of the peak */
-                if (yspec2[1] < yspec2 [0]) {
+                if (data2[1] < data2[0]) {
                     /* we are close to the top of the peak */
                     if (debug_info){
                         printf("we are close to the top of the peak\n");
                     }
                     if (n_peaks < max_npeaks) {
                         peaks[n_peaks] = cch-1;
-                        relevances[n_peaks] = yspec2[0];
+                        relevances[n_peaks] = data2[0];
                         n_peaks++;
                         peakstarted=2;
                     }else{
@@ -194,8 +215,8 @@ long seek(long BeginChannel,
             }
             /* Doublet case */
             if(peakstarted == 2){
-                if ((cch-peaks[n_peaks-1]) > 0.6 * FWHM) {
-                    if (yspec2[1] > yspec2 [0]){
+                if ((cch-peaks[n_peaks-1]) > 0.6 * fwhm) {
+                    if (data2[1] > data2[0]){
                         if(debug_info){
                             printf("We may have a doublet\n");
                         }
@@ -216,7 +237,7 @@ long seek(long BeginChannel,
     if(debug_info){
       for (i=0;i< n_peaks;i++){
         printf("Peak %ld found at ",i+1);
-        printf("index %g with y = %g\n",peaks[i],yspec[(long ) peaks[i]]);
+        printf("index %g with y = %g\n",peaks[i],data[(long ) peaks[i]]);
       }
     }
     return (n_peaks);

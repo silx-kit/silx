@@ -27,17 +27,15 @@ Tests for fitfunctions module
 
 import unittest
 import numpy
+import math
 
 from silx.math import fitfunctions
 
 # TODO:
-#     - savitsky_golay
 #     - snip1d
 #     - snip2d
 #     - snip3d
 #     - strip
-#     - sum_downstep
-#     - sum_upstep
 
 class Test_peak_search(unittest.TestCase):
     """
@@ -67,7 +65,7 @@ class Test_peak_search(unittest.TestCase):
                               40, 3000, 99, 110,
                               23, 4980, 80, 80,)
         # (height1, center1, fwhm11, fwhm21, eta1 ...)
-        self.h_c_fwhm_fwhm_eta = (50, 500, 100,  85, 0.4,
+        self.h_c_fwhm_fwhm_eta = (50, 500, 100, 85, 0.4,
                                   50, 600, 80, 110, 0.5,
                                   20, 2000, 100, 100, 0.6,
                                   50, 2250, 110, 99, 0.7,
@@ -108,7 +106,6 @@ class Test_peak_search(unittest.TestCase):
         """
         y = function(self.x, *params)
         return fitfunctions.peak_search(y=y, fwhm=100, relevance_info=True)
-
 
     def testPeakSearch_various_functions(self):
         f_p = ((fitfunctions.sum_gauss, self.h_c_fwhm ),
@@ -190,18 +187,63 @@ class Test_smooth(unittest.TestCase):
         for y in [self.y1, self.y2, self.y3]:
             smoothed_y = fitfunctions.savitsky_golay(y, npoints=npts)
 
-            print(abs(sum(smoothed_y) - sum(y)) / sum(y))
             # we added +-5% of random noise. The difference must be much lower
             # than 5%.
-            self.assertLess(abs(sum(smoothed_y) - sum(y)) / sum(y),
-                            0.05,
-                            "Difference between data and smoothed data is > 5%")
+            diff = abs(sum(smoothed_y) - sum(y)) / sum(y)
+            self.assertLess(diff, 0.05,
+                            "Difference between data with 5%% noise and " +
+                            "smoothed data is > 5%% (%f %%)" % (diff * 100))
             # Try various smoothing levels
             npts += 25
 
 
+class Test_functions(unittest.TestCase):
+    """
+    Unit tests of peak_search on various types of multi-peak functions.
+    """
+    def setUp(self):
+        self.x = numpy.arange(11)
 
-test_cases = (Test_peak_search, Test_smooth)
+        # height, center, sigma
+        (h, c, s) = (7., 5., 3.)
+        self.g_params = {
+            "height": h,
+            "center": c,
+            "sigma": s,
+            "fwhm": 2 * math.sqrt(2 * math.log(2)) * s,
+            "area": h * s * math.sqrt(2 * math.pi)
+        }
+        # result of `7 * scipy.signal.gaussian(11, 3)`
+        self.scipy_gaussian = numpy.array(
+            [1.74546546, 2.87778603, 4.24571462, 5.60516182, 6.62171628,
+             7., 6.62171628, 5.60516182, 4.24571462, 2.87778603,
+             1.74546546]
+        )
+
+    def tearDown(self):
+        pass
+
+    def testGauss(self):
+        """Compare sum_gauss with scipy.signals.gaussian"""
+        y = fitfunctions.sum_gauss(self.x,
+                                   self.g_params["height"],
+                                   self.g_params["center"],
+                                   self.g_params["fwhm"])
+
+        for i in range(11):
+            self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
+
+    def testAGauss(self):
+        """Compare sum_agauss with scipy.signals.gaussian"""
+        y = fitfunctions.sum_agauss(self.x,
+                                    self.g_params["area"],
+                                    self.g_params["center"],
+                                    self.g_params["fwhm"])
+        for i in range(11):
+            self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
+
+
+test_cases = (Test_peak_search, Test_smooth, Test_functions)
 
 def suite():
     loader = unittest.defaultTestLoader
