@@ -31,3 +31,4 @@ from .leastsq import leastsq, chisq_alpha_beta
 from .leastsq import \
     CFREE, CPOSITIVE, CQUOTED, CFIXED, \
     CFACTOR, CDELTA, CSUM
+from functions import *

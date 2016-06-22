@@ -22,19 +22,40 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "22/06/2016"
 
-import unittest
+import os.path
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
+import numpy
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    return test_suite
+from numpy.distutils.misc_util import Configuration
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration('fit', parent_package, top_path)
+    config.add_subpackage('test')
+
+    # =====================================
+    # fit functions
+    # =====================================
+    fit_dir = 'functions'
+    fit_src = [os.path.join(fit_dir, "src", srcf)
+               for srcf in ["funs.c", "seek.c", "smoothnd.c", "snip1d.c",
+                            "snip2d.c", "snip3d.c", "strip.c"]]
+    fit_src.append(os.path.join(fit_dir, "functions.pyx"))
+    fit_inc = [os.path.join(fit_dir, 'include'), numpy.get_include()]
+
+    config.add_extension('functions',
+                         sources=fit_src,
+                         include_dirs=fit_inc,
+                         language='c')
+    # =====================================
+    # =====================================
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+
+    setup(configuration=configuration)
