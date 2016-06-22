@@ -22,14 +22,14 @@
 #
 # ############################################################################*/
 """
-Tests for fitfunctions module
+Tests for functions module
 """
 
 import unittest
 import numpy
 import math
 
-from silx.math import fitfunctions
+from silx.math import functions
 
 # TODO:
 #     - snip1d
@@ -86,12 +86,12 @@ class Test_peak_search(unittest.TestCase):
                              400, 3000, 99, 0.8,
                              230, 4980, 80, 0.3,)
         # (area, position, fwhm, st_area_r, st_slope_r, lt_area_r, lt_slope_r, step_height_r)
-        self.hypermet_params = (1000, 500, 200, 1.2, 100, 0.3, 100, 0.05,
-                                1000, 1000, 200, 1.2, 100, 0.3, 100, 0.05,
-                                1000, 2000, 200, 1.2, 100, 0.3, 100, 0.05,
-                                1000, 2350, 200, 1.2, 100, 0.3, 100, 0.05,
-                                1000, 3000, 200, 1.2, 100, 0.3, 100, 0.05,
-                                1000, 4900, 200, 1.2, 100, 0.3, 100, 0.05,)
+        self.hypermet_params = (1000, 500, 200, 0.2, 100, 0.3, 100, 0.05,
+                                1000, 1000, 200, 0.2, 100, 0.3, 100, 0.05,
+                                1000, 2000, 200, 0.2, 100, 0.3, 100, 0.05,
+                                1000, 2350, 200, 0.2, 100, 0.3, 100, 0.05,
+                                1000, 3000, 200, 0.2, 100, 0.3, 100, 0.05,
+                                1000, 4900, 200, 0.2, 100, 0.3, 100, 0.05,)
 
 
     def tearDown(self):
@@ -105,22 +105,26 @@ class Test_peak_search(unittest.TestCase):
         :return: list of (peak, relevance) tuples
         """
         y = function(self.x, *params)
-        return fitfunctions.peak_search(y=y, fwhm=100, relevance_info=True)
+        return functions.peak_search(y=y, fwhm=100, relevance_info=True)
 
     def testPeakSearch_various_functions(self):
-        f_p = ((fitfunctions.sum_gauss, self.h_c_fwhm ),
-               (fitfunctions.sum_lorentz, self.h_c_fwhm),
-               (fitfunctions.sum_pvoigt, self.h_c_fwhm_eta),
-               (fitfunctions.sum_splitgauss, self.h_c_fwhm_fwhm),
-               (fitfunctions.sum_splitlorentz, self.h_c_fwhm_fwhm),
-               (fitfunctions.sum_splitpvoigt, self.h_c_fwhm_fwhm_eta),
-               (fitfunctions.sum_agauss, self.a_c_fwhm),
-               (fitfunctions.sum_fastagauss, self.a_c_fwhm),
-               (fitfunctions.sum_alorentz, self.a_c_fwhm),
-               (fitfunctions.sum_apvoigt, self.a_c_fwhm_eta),
-               (fitfunctions.sum_ahypermet, self.hypermet_params),
-               (fitfunctions.sum_fastahypermet, self.hypermet_params),
-              )
+        """Run peak search on a variety of synthetic functions, and
+        check that result falls within +-25 samples of the actual peak
+        (reasonable delta considering a fwhm of ~100 samples) and effects
+        of overlapping peaks)."""
+        f_p = ((functions.sum_gauss, self.h_c_fwhm ),
+               (functions.sum_lorentz, self.h_c_fwhm),
+               (functions.sum_pvoigt, self.h_c_fwhm_eta),
+               (functions.sum_splitgauss, self.h_c_fwhm_fwhm),
+               (functions.sum_splitlorentz, self.h_c_fwhm_fwhm),
+               (functions.sum_splitpvoigt, self.h_c_fwhm_fwhm_eta),
+               (functions.sum_agauss, self.a_c_fwhm),
+               (functions.sum_fastagauss, self.a_c_fwhm),
+               (functions.sum_alorentz, self.a_c_fwhm),
+               (functions.sum_apvoigt, self.a_c_fwhm_eta),
+               (functions.sum_ahypermet, self.hypermet_params),
+               (functions.sum_fastahypermet, self.hypermet_params),)
+
         for function, params in f_p:
             peaks = self.get_peaks(function, params)
 
@@ -151,7 +155,7 @@ class Test_smooth(unittest.TestCase):
                         40, 3000, 50, 10,
                         23, 4980, 250, 20)
 
-        self.y1 = fitfunctions.sum_slit(x, *slit_params)
+        self.y1 = functions.sum_slit(x, *slit_params)
         # 5% noise
         noise1 = 2 * numpy.random.random(5000) - 1
         noise1 *= 0.05
@@ -166,13 +170,13 @@ class Test_smooth(unittest.TestCase):
                        40, 3000, 50,
                        23, 4980, 250,)
 
-        self.y2 = fitfunctions.sum_upstep(x, *step_params)
+        self.y2 = functions.sum_upstep(x, *step_params)
         # 5% noise
         noise2 = 2 * numpy.random.random(5000) - 1
         noise2 *= 0.05
         self.y2 *= (1 + noise2)
 
-        self.y3 = fitfunctions.sum_downstep(x, *step_params)
+        self.y3 = functions.sum_downstep(x, *step_params)
         # 5% noise
         noise3 = 2 * numpy.random.random(5000) - 1
         noise3 *= 0.05
@@ -185,7 +189,7 @@ class Test_smooth(unittest.TestCase):
     def testSavitskyGolay(self):
         npts = 25
         for y in [self.y1, self.y2, self.y3]:
-            smoothed_y = fitfunctions.savitsky_golay(y, npoints=npts)
+            smoothed_y = functions.savitsky_golay(y, npoints=npts)
 
             # we added +-5% of random noise. The difference must be much lower
             # than 5%.
@@ -204,17 +208,25 @@ class Test_functions(unittest.TestCase):
     def setUp(self):
         self.x = numpy.arange(11)
 
-        # height, center, sigma
-        (h, c, s) = (7., 5., 3.)
+        # height, center, sigma1, sigma2
+        (h, c, s1, s2) = (7., 5., 3., 2.1)
         self.g_params = {
             "height": h,
             "center": c,
-            "sigma": s,
-            "fwhm": 2 * math.sqrt(2 * math.log(2)) * s,
-            "area": h * s * math.sqrt(2 * math.pi)
+            #"sigma": s,
+            "fwhm1": 2 * math.sqrt(2 * math.log(2)) * s1,
+            "fwhm2": 2 * math.sqrt(2 * math.log(2)) * s2,
+            "area1": h * s1 * math.sqrt(2 * math.pi)
         }
         # result of `7 * scipy.signal.gaussian(11, 3)`
         self.scipy_gaussian = numpy.array(
+            [1.74546546, 2.87778603, 4.24571462, 5.60516182, 6.62171628,
+             7., 6.62171628, 5.60516182, 4.24571462, 2.87778603,
+             1.74546546]
+        )
+
+        # result of `7 * scipy.signal.gaussian(11, 3)`
+        self.scipy_asym_gaussian = numpy.array(
             [1.74546546, 2.87778603, 4.24571462, 5.60516182, 6.62171628,
              7., 6.62171628, 5.60516182, 4.24571462, 2.87778603,
              1.74546546]
@@ -225,20 +237,41 @@ class Test_functions(unittest.TestCase):
 
     def testGauss(self):
         """Compare sum_gauss with scipy.signals.gaussian"""
-        y = fitfunctions.sum_gauss(self.x,
-                                   self.g_params["height"],
-                                   self.g_params["center"],
-                                   self.g_params["fwhm"])
+        y = functions.sum_gauss(self.x,
+                                self.g_params["height"],
+                                self.g_params["center"],
+                                self.g_params["fwhm1"])
 
         for i in range(11):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
 
     def testAGauss(self):
         """Compare sum_agauss with scipy.signals.gaussian"""
-        y = fitfunctions.sum_agauss(self.x,
-                                    self.g_params["area"],
-                                    self.g_params["center"],
-                                    self.g_params["fwhm"])
+        y = functions.sum_agauss(self.x,
+                                 self.g_params["area1"],
+                                 self.g_params["center"],
+                                 self.g_params["fwhm1"])
+        for i in range(11):
+            self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
+
+    def testFastAGauss(self):
+        """Compare sum_agauss with scipy.signals.gaussian
+        Limit precision to 3 decimal places."""
+        y = functions.sum_fastagauss(self.x,
+                                     self.g_params["area1"],
+                                     self.g_params["center"],
+                                     self.g_params["fwhm1"])
+        for i in range(11):
+            self.assertAlmostEqual(y[i], self.scipy_gaussian[i], 3)
+
+
+    def testSplitGauss(self):
+        """Compare sum_agauss with scipy.signals.gaussian"""
+        y = functions.sum_splitgauss(self.x,
+                                     self.g_params["height"],
+                                     self.g_params["center"],
+                                     self.g_params["fwhm1"],
+                                     self.g_params["fwhm2"])
         for i in range(11):
             self.assertAlmostEqual(y[i], self.scipy_gaussian[i])
 
