@@ -78,7 +78,7 @@ class TestMaskToolsWidget(TestCaseQt):
         self.maskWidget.setMultipleMasks('exclusive')
         self.qapp.processEvents()
 
-    def _drag(self, modifier=None):
+    def _drag(self):
         """Drag from plot center to offset position"""
         plot = self.plot.centralWidget()
         xCenter, yCenter = plot.width() // 2, plot.height() // 2
@@ -88,13 +88,14 @@ class TestMaskToolsWidget(TestCaseQt):
         pos1 = xCenter + offset, yCenter + offset
 
         self.mouseMove(plot, pos=pos0)
-        self.mousePress(plot, qt.Qt.LeftButton, modifier=modifier, pos=pos0)
+        self.mousePress(plot, qt.Qt.LeftButton, pos=pos0)
         self.mouseMove(plot, pos=pos1)
         self.qWait(100)  # Needed for interaction to work
-        self.mouseRelease(plot, qt.Qt.LeftButton, modifier=modifier, pos=pos1)
+        self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos1)
+
         self.qapp.processEvents()
 
-    def _drawPolygon(self, modifier=None):
+    def _drawPolygon(self):
         """Draw a star polygon in the plot"""
         plot = self.plot.centralWidget()
         x, y = plot.width() // 2, plot.height() // 2
@@ -109,10 +110,10 @@ class TestMaskToolsWidget(TestCaseQt):
         for pos in star:
             self.mouseMove(plot, pos=pos)
             btn = qt.Qt.LeftButton if pos != star[-1] else qt.Qt.RightButton
-            self.mouseClick(plot, btn, modifier=modifier, pos=pos)
+            self.mouseClick(plot, btn, pos=pos)
         self.qapp.processEvents()
 
-    def _drawPencil(self, modifier=None):
+    def _drawPencil(self):
         """Draw a star polygon in the plot"""
         plot = self.plot.centralWidget()
         x, y = plot.width() // 2, plot.height() // 2
@@ -125,12 +126,12 @@ class TestMaskToolsWidget(TestCaseQt):
                 (x + offset, y - offset)]
 
         self.mouseMove(plot, pos=star[0])
-        self.mousePress(plot, qt.Qt.LeftButton, modifier=modifier, pos=star[0])
+        self.mousePress(plot, qt.Qt.LeftButton, pos=star[0])
         for pos in star:
             self.mouseMove(plot, pos=pos)
             self.qWait(100)  # Needed for interaction to work
         self.mouseRelease(
-            plot, qt.Qt.LeftButton, modifier=modifier, pos=star[-1])
+            plot, qt.Qt.LeftButton, pos=star[-1])
         self.qapp.processEvents()
 
     def testWithAnImage(self):
@@ -154,11 +155,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.mouseClick(toolButton, qt.Qt.LeftButton)
 
         # mask
+        self.maskWidget.maskStateGroup.button(1).click()
+        self.qapp.processEvents()
         self._drag()
         self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # unmask same region
-        self._drag(modifier=qt.Qt.ControlModifier)
+        self.maskWidget.maskStateGroup.button(0).click()
+        self.qapp.processEvents()
+        self._drag()
         self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # Test draw polygon #
@@ -167,11 +172,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.mouseClick(toolButton, qt.Qt.LeftButton)
 
         # mask
+        self.maskWidget.maskStateGroup.button(1).click()
+        self.qapp.processEvents()
         self._drawPolygon()
         self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # unmask same region
-        self._drawPolygon(modifier=qt.Qt.ControlModifier)
+        self.maskWidget.maskStateGroup.button(0).click()
+        self.qapp.processEvents()
+        self._drawPolygon()
         self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # Test draw pencil #
@@ -183,11 +192,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.qapp.processEvents()
 
         # mask
+        self.maskWidget.maskStateGroup.button(1).click()
+        self.qapp.processEvents()
         self._drawPencil()
         self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # unmask same region
-        self._drawPencil(modifier=qt.Qt.ControlModifier)
+        self.maskWidget.maskStateGroup.button(0).click()
+        self.qapp.processEvents()
+        self._drawPencil()
         self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
 
         # Test no draw tool #
