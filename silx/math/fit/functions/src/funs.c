@@ -21,7 +21,7 @@
 #
 #############################################################################*/
 /*
-    This file provides fit functions and peak detection functions.
+    This file provides fit functions.
 
     It is adapted from PyMca source file "SpecFitFuns.c". The main difference
     with the original code is that this code does not handle the python

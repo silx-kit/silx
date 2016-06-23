@@ -32,6 +32,6 @@ from .leastsq import \
     CFREE, CPOSITIVE, CQUOTED, CFIXED, \
     CFACTOR, CDELTA, CSUM
 
-from functions import *
-from filters import *
-from peaks import peak_search
+from .functions import *
+from .filters import *
+from .peaks import peak_search
