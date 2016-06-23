@@ -61,7 +61,8 @@ from filters cimport strip as _strip
 
 
 def strip(data, w, niterations, factor=1.0, anchors=None):
-    """Extract background from data using the strip algorithm, as explained at
+    """strip(data, w, niterations, factor=1.0, anchors=None)
+    Extract background from data using the strip algorithm, as explained at
     http://pymca.sourceforge.net/stripbackground.html.
 
     In its simplest implementation it is just as an iterative procedure
@@ -298,7 +299,8 @@ def snip3d(data, snip_width):
 
 
 def savitsky_golay(data, npoints=5):
-    """Smooth a curve using a Savitsky-Golay filter.
+    """savitsky_golay(data, npoints=5)
+    Smooth a curve using a Savitsky-Golay filter.
 
     :param data: Input data
     :type data: 1D numpy array
