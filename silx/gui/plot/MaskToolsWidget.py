@@ -335,7 +335,7 @@ class MaskToolsWidget(qt.QWidget):
             'vmin': 0, 'vmax': 255,
             'colors': None}
         self._overlayColor = rgba('gray')  # Color of the mask
-        self._setMaskColors(1, True)
+        self._setMaskColors(1, 0.5)
 
         self._doMask = None  # Store mask/unmask state while interacting
         self._origin = (0., 0.)  # Mask origin in plot
@@ -456,15 +456,20 @@ class MaskToolsWidget(qt.QWidget):
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
 
-        self.transparencyComboBox = qt.QComboBox()
-        self.transparencyComboBox.addItem('Transparent')
-        self.transparencyComboBox.addItem('Solid')
-        self.transparencyComboBox.setToolTip(
-            'Choose between transparent and solid mask display')
-        self.transparencyComboBox.currentIndexChanged[str].connect(
-            self._updateColors)
-        transparencyWidget = self._hboxWidget(qt.QLabel('Display:'),
-                                              self.transparencyComboBox)
+        grid = qt.QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal)
+        self.transparencySlider.setRange(3, 10)
+        self.transparencySlider.setValue(5)
+        self.transparencySlider.setToolTip(
+            'Set the transparency of the mask display')
+        self.transparencySlider.valueChanged.connect(self._updateColors)
+        grid.addWidget(qt.QLabel('Display:'), 0, 0)
+        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
+        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>'), 1, 1)
+        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>'), 1, 3)
+        transparencyWidget = qt.QWidget()
+        transparencyWidget.setLayout(grid)
 
         invertBtn = qt.QPushButton('Invert')
         invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
@@ -548,7 +553,9 @@ class MaskToolsWidget(qt.QWidget):
             icons.getQIcon('shape-polygon'), 'Polygon selection', None)
         self.polygonAction.setShortcut(qt.QKeySequence(qt.Qt.Key_S))
         self.polygonAction.setToolTip(
-            'Polygon selection tool: (Un)Mask a polygonal region <b>S</b>')
+            'Polygon selection tool: (Un)Mask a polygonal region <b>S</b><br>'
+            'Left-click to place polygon corners<br>'
+            'Right-click to place the last corner')
         self.polygonAction.setCheckable(True)
         self.polygonAction.toggled[bool].connect(self._polygonActionToggled)
 
@@ -734,8 +741,6 @@ class MaskToolsWidget(qt.QWidget):
 
     def hideEvent(self, event):
         self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
-        if self.plot.getImage(self._maskName):
-            self.plot.remove(self._maskName, kind='image')
 
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
@@ -754,7 +759,8 @@ class MaskToolsWidget(qt.QWidget):
             colormap = activeImage[4]['colormap']
             self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
-                                self.transparencyComboBox.currentIndex() == 0)
+                                self.transparencySlider.value() /
+                                self.transparencySlider.maximum())
 
             self._origin = activeImage[4]['origin']
             self._scale = activeImage[4]['scale']
@@ -889,12 +895,11 @@ class MaskToolsWidget(qt.QWidget):
             msg.setText("Cannot save file %s\n" % filename)
             msg.exec_()
 
-    def _setMaskColors(self, level, transparent):
+    def _setMaskColors(self, level, alpha):
         """Set-up the mask colormap to highlight current mask level.
 
         :param int level: The mask level to highlight
-        :param bool transparent: True to make highlighted color transparent,
-                                 False for opaque
+        :param float alpha: Alpha level of mask in [0., 1.]
         """
         assert level > 0 and level < 256
 
@@ -904,10 +909,10 @@ class MaskToolsWidget(qt.QWidget):
         colors[:, :3] = self._overlayColor[:3]
 
         # Set alpha
-        colors[:, -1] = 0.4
+        colors[:, -1] = alpha / 2.
 
         # Set highlighted level color
-        colors[level, 3] = 0.7 if transparent else 1.
+        colors[level, 3] = alpha
 
         # Set no mask level
         colors[0] = (0., 0., 0., 0.)
@@ -917,7 +922,8 @@ class MaskToolsWidget(qt.QWidget):
     def _updateColors(self, *args):
         """Rebuild mask colormap when selected level or transparency change"""
         self._setMaskColors(self.levelSpinBox.value(),
-                            self.transparencyComboBox.currentIndex() == 0)
+                            self.transparencySlider.value() /
+                            self.transparencySlider.maximum())
         self._updatePlotMask()
 
     def _handleClearMask(self):
