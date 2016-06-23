@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 #
 # ##########################################################################*/
-"""Fitting functions manager
+"""Multi-peak fitting
+
+
 
 """
 from collections import OrderedDict
@@ -31,9 +33,11 @@ import numpy
 import os
 import sys
 
+from .filters import strip
+from .peaks import peak_search
+
 # TODO:  remove dependency on pymca
 import PyMca5
-from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from PyMca5.PyMcaMath.fitting.Gefit import LeastSquaresFit
 
 
@@ -47,7 +51,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                            constrains=constraints,
                            model_deriv=model_deriv,
                            )
-#from .fit import leastsq
+#from . import leastsq
 from PyMca5.PyMcaCore import EventHandler
 
 
@@ -72,7 +76,7 @@ class Specfit():
        These attributes may be modified at a latter stage by filters.
     """
 
-    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=0, fwhm_points=8,
+    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=False, fwhm_points=8,
                  auto_scaling=False, yscaling=1.0, sensitivity=2.5,
                  residuals_flag=0, mca_mode=0, event_handler=None):
         """
@@ -87,7 +91,8 @@ class Specfit():
             If ``None``, the uncertainties are assumed to be 1.
         :type sigmay: Sequence or numpy array or None
 
-        :param auto_fwhm:
+        :param auto_fwhm: Flag to enable or disable automatic estimation of
+            the peaks' full width at half maximum.
         :param fwhm_points:
         :param auto_scaling: Enable on disable auto-scaling based on y data.
             If ``True``, init argument ``yscaling`` is ignored and
@@ -102,9 +107,24 @@ class Specfit():
         self.fitconfig = {}
         """Dictionary of fit configuration parameters.
 
-        Keys are: 'fittheory', 'fitbkg', 'AutoFwhm', 'FwhmPoints',
-        'AutoScaling', 'Yscaling', 'Sensitivity', 'ResidualsFlag',
-        'McaMode'"""
+        Keys are:
+
+            - 'fittheory': name of the function used for fitting peaks
+            - 'fitbkg': name of the function used for fitting a low frequency
+              background signal
+            - 'AutoFwhm': Flag to enable or disable automatic estimation of
+              the peaks' full width at half maximum.
+            - 'FwhmPoints': default full width at half maximum value for the
+              peaks'. Ignored if ``AutoFwhm==True``.
+            - 'AutoScaling': Flag to enable or disable automatic estimation of
+              'Yscaling' (using an inverse chi-square value)
+            - 'Yscaling': Scaling factor for the data
+            - 'Sensitivity': Sensitivity parameter for the peak detection
+              algorithm (:func:`silx.math.fit.peak_search`)
+
+            - 'ResidualsFlag': ?
+        """
+        # TODO: ResidualsFlag
 
         self.fitconfig['AutoFwhm'] = auto_fwhm
         self.fitconfig['FwhmPoints'] = fwhm_points
@@ -460,10 +480,10 @@ class Specfit():
             yscaling = self.guess_yscaling(y=ywork)
         elif self.fitconfig['Yscaling'] is not None:
             yscaling = self.fitconfig['Yscaling']
-        else:
-            # FIXME: This might be useless, unless the user explicitly sets
-            # yscaling = None at init or something sets self.fitconfig['Yscaling']=None later
-            yscaling = 1.0
+        # else:
+        #     # FIXME: This might be useless, unless the user explicitly sets
+        #     # yscaling = None at init or something sets self.fitconfig['Yscaling']=None later
+        #     yscaling = 1.0
 
         # estimate the function
         esti_fun = self.estimate_fun(xwork, ywork, zz, yscaling=yscaling)
@@ -571,7 +591,7 @@ class Specfit():
 
         :param x: Sequence of x data
         :param y: sequence of y data
-        :param z: *undocumented*
+        :param z: *undocumented* (possibly the bg estimated with :func:`strip`)
         :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
         :param yscaling: Scaling factor for ``y`` data. Default ``None``,
             meaning use value from configuration dictionary
@@ -826,11 +846,11 @@ class Specfit():
         nrx = numpy.shape(x)[0]
         nry = numpy.shape(yy)[0]
         if nrx == nry:
-            self.bkg_internal_oldbkg = SpecfitFuns.subac(yy, pars[0], pars[1])
+            self.bkg_internal_oldbkg = strip(yy, pars[0], pars[1])
             return self.bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
 
         else:
-            self.bkg_internal_oldbkg = SpecfitFuns.subac(numpy.take(yy, numpy.arange(0, nry, 2)),
+            self.bkg_internal_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
                                                          pars[0], pars[1])
             return self.bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
 
@@ -860,9 +880,9 @@ class Specfit():
         """Compute the initial parameters for the background function before
         starting the iterative fit.
 
-        The algorithm used depends on the selected theory:
+        The return values depends on the selected theory:
 
-            - ``'Constant'``: [min(zz)], constraint FREE
+            - ``'Constant'``: [min(background)], constraint FREE
             - ``'Internal'``: [1.000, 10000, 0.0], constraint FIXED
             - ``'No Background'``: empty array []
             - ``'Square Filter'``:
@@ -870,23 +890,22 @@ class Specfit():
 
         :param x: Array of values for the independant variable
         :param y: Array of data values for the dependant data
-        :return: Tuple ``(fitted_param, constraints, zz)`` where:
+        :return: Tuple ``(fitted_param, constraints, background)`` where:
 
             - ``fitted_param`` is a list of the estimated background
-              parameters
+              parameters. The length of the list depends on the theory used
             - ``constraints`` is a numpy array of shape
               *(3, len(fitted_param) containing constraint information for
               each parameter *code, cons1, cons2* (see documentation of
               :attr:`fit_results`)
-            - ``zz`` is ??
+            - ``background`` is the background signal extracted from the data
+              using a :func:`strip` filter
         """
-        # TODO: understand and document zz
-        self.zz = SpecfitFuns.subac(y, 1.0001, 1000)
-        zz = self.zz
-        npoints = len(zz)
+        background = strip(y, 1, 1000, 1.0001)
+        npoints = len(background)
         if self.fitconfig['fitbkg'] == 'Constant':
             # Constant background
-            Sy = min(zz)
+            Sy = min(background)
             fittedpar = [Sy]
             # code = 0: FREE
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
@@ -918,10 +937,10 @@ class Specfit():
             cons[0][1] = 3
         else:  # Linear
             S = float(npoints)
-            Sy = numpy.sum(zz)
+            Sy = numpy.sum(background)
             Sx = float(numpy.sum(x))
             Sxx = float(numpy.sum(x * x))
-            Sxy = float(numpy.sum(x * zz))
+            Sxy = float(numpy.sum(x * background))
 
             deno = S * Sxx - (Sx * Sx)
             if (deno != 0):
@@ -933,7 +952,7 @@ class Specfit():
             fittedpar = [bg / 1.0, slop / 1.0]
             # code = 0: FREE
             cons = numpy.zeros((3, len(fittedpar)), numpy.float)
-        return fittedpar, cons, zz
+        return fittedpar, cons, background
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
@@ -1067,9 +1086,7 @@ class Specfit():
         # Detect peaks
         peaks = []
         if npoints > (1.5) * fwhm_points:
-            peaksidx = SpecfitFuns.seek(ysearch, 0, npoints,
-                                        fwhm_points,
-                                        sensitivity)
+            peaksidx = peak_search(ysearch, fwhm_points, sensitivity)
             for idx in peaksidx:
                 peaks.append(self.xdata[int(idx)])
             _logger.debug("MCA Found peaks = " + str(peaks))
@@ -1233,21 +1250,26 @@ class Specfit():
         return result
 
     def guess_yscaling(self, y=None):
+        """Return the inverse chi-squared value"""
         if y is None:
             y = self.ydata
 
-        zz = SpecfitFuns.subac(y, 1.0, 10)
+        # Apply basic smoothing
+        # (the convolution adds one extra sample to each side of the array)
+        yfit = numpy.convolve(y, [1., 1., 1.])[1:-1] / 3.0
 
-        zz = numpy.convolve(y, [1., 1., 1.]) / 3.0
-        yy = y[1:-1]
-        yfit = zz
-        idx = numpy.nonzero(numpy.fabs(yy) > 0.0)[0]
-        yy = numpy.take(yy, idx)
+        # Find indices of non-zero samples
+        # (numpy.nonzero returns one array per dimension.
+        # We are dealing with 1D data, hence the [0])
+        idx = numpy.nonzero(y)[0]
+
+        # Reject zero values
+        y = numpy.take(y, idx)
         yfit = numpy.take(yfit, idx)
 
+        chisq = numpy.sum(((y - yfit) * (y - yfit)) /
+                          (numpy.fabs(y) * len(y)))
         try:
-            chisq = numpy.sum(((yy - yfit) * (yy - yfit)) /
-                              (numpy.fabs(yy) * len(yy)))
             scaling = 1. / chisq
         except ZeroDivisionError:
             scaling = 1.0
@@ -1261,8 +1283,8 @@ class Specfit():
         # set at least a default value for the fwhm
         fwhm = 4
 
-        zz = SpecfitFuns.subac(y, 1.000, 1000)
-        yfit = y - zz
+        background = strip(y, 1, 1000)
+        yfit = y - background
 
         # now I should do some sort of peak search ...
         maximum = max(yfit)
@@ -1500,18 +1522,17 @@ class Specfit():
 
 
 def test():
-    from PyMca5.PyMcaMath.fitting import SpecfitFunctions
-    a = SpecfitFunctions.SpecfitFunctions()
+    from .functions import sum_gauss
+    #from PyMca5.PyMcaMath.fitting import SpecfitFunctions
+    #a = SpecfitFunctions.SpecfitFunctions()
     x = numpy.arange(1000).astype(numpy.float)
     constant_background = 3.14
-    p1 = numpy.array([1500, 100., 50])
-    p2 = numpy.array([1000, 700., 30.5])
-    p3 = numpy.array([314, 800.5, 15])
-    y = constant_background + a.gauss(p1, x) + a.gauss(p2, x) + a.gauss(p3, x)
+    p = [1500, 100., 50,
+         1000, 700., 30.5,
+         314, 800.5, 15]
+    y = constant_background + sum_gauss(x, *p)
     fit = Specfit()
     fit.setdata(x=x, y=y)
-    #fit.importfun(os.path.join(os.path.dirname(
-    #    __file__), "SpecfitFunctions.py"))
     fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)  # FIXME
     fit.settheory('Gaussians')
     fit.setbackground('Constant')
@@ -1529,10 +1550,8 @@ def test():
     print("chisq = ", fit.chisq)
 
     constant_background = dummy_list[0]
-    p1 = numpy.array(dummy_list[1:4])
-    p2 = numpy.array(dummy_list[4:7])
-    p3 = numpy.array(dummy_list[7:10])
-    y2 = constant_background + a.gauss(p1, x) + a.gauss(p2, x) + a.gauss(p3, x)
+    p1 = dummy_list[1:]
+    y2 = constant_background + sum_gauss(x, *p1)
 
     from silx.gui import qt
     from silx.gui.plot.PlotWindow import PlotWindow
