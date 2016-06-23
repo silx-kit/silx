@@ -22,7 +22,6 @@
 #
 #############################################################################*/
 """This module provides a peak search function.
-
 """
 
 __authors__ = ["P. Knobel"]
@@ -42,10 +41,10 @@ from libc.stdlib cimport free
 #from peaks cimport seek
 
 
-def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
+def peak_search(y, fwhm, sensitivity=3.5,
                 begin_index=None, end_index=None,
                 debug=False, relevance_info=False):
-    """peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500)
+    """peak_search(y, fwhm, sensitivity=3.5, begin_index=None, end_index=None, debug=False, relevance_info=False)
 
     Find peaks in the data.
 

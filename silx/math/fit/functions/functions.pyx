@@ -21,10 +21,9 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides multi-peak fit functions, background extraction
-functions, smoothing functions and peak search functions.
+"""This module provides fit functions.
 
-Index of fit functions:
+List of fit functions:
 -----------------------
 
     - :func:`sum_gauss`
