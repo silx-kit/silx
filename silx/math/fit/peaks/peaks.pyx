@@ -105,4 +105,4 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
         return numpy.asarray(peaks)[0:n_peaks]
     else:
         # FIXME: maybe don't zip, return tuple (peaks, relevances)?
-        return zip(numpy.asarray(peaks), numpy.asarray(relevances))[0:n_peaks]
+        return list(zip(numpy.asarray(peaks), numpy.asarray(relevances)))[0:n_peaks]
