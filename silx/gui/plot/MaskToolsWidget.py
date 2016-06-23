@@ -790,7 +790,7 @@ class MaskToolsWidget(qt.QWidget):
             _logger.debug('Not a numpy file: %s', filename)
             try:
                 mask = EdfFile(filename, access='r').GetData(0)
-            except:
+            except Exception:
                 _logger.error('Error while opening image file\n'
                               '%s', (sys.exc_info()[1]))
                 return False
@@ -805,8 +805,8 @@ class MaskToolsWidget(qt.QWidget):
         else:
             _logger.warning('Mask has not the same size as current image.'
                             ' Mask will be cropped or padded to fit image'
-                            ' dimensions. %s != %s' % (str(mask.shape),
-                                                       str(self._data.shape)))
+                            ' dimensions. %s != %s',
+                            str(mask.shape), str(self._data.shape))
             resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
             height = min(self._data.shape[0], mask.shape[0])
             width = min(self._data.shape[1], mask.shape[1])
