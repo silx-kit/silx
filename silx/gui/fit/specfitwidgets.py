@@ -25,7 +25,7 @@
 from collections import OrderedDict
 
 from silx.gui import qt
-from .parameters import Parameters
+from silx.gui.parameters import Parameters
 
 QTVERSION = qt.qVersion()
 
