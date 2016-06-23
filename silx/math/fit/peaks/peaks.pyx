@@ -36,6 +36,7 @@ logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport cython
+from libc.stdlib cimport free
 
 # Rename C functions to reuse the same names for their python wrappers
 #from peaks cimport seek
@@ -44,24 +45,25 @@ cimport cython
 def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
                 begin_index=None, end_index=None,
                 debug=False, relevance_info=False):
-    """Find peaks in the data.
+    """peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500)
+
+    Find peaks in the data.
 
     :param y: Data array
     :type y: numpy.ndarray
-    :param fwhm: Estimated full width at half maximum of the peaks we are
-        interested in
-    :param sensitivity: Threshold factor used for peak search
-    :param max_number_of_peaks: Maximum number of peaks in the data.
-        This parameter is used to allocate memory for the output array.
-        If it is too small, this function wiff fail.
+    :param fwhm: Estimated full width at half maximum of the typical peaks we
+        are interested in (expressed in number of samples)
+    :param sensitivity: Threshold factor used for peak detection. Only peaks
+        with amplitudes higher than ``σ * sensitivity`` - where ``σ`` is the
+        standard deviation of the noise - qualify as peaks.
     :param begin_index: Index of the first sample of the region of interest
-         in the ``y`` array
+         in the ``y`` array. If ``None``, start from the first sample.
     :param end_index: Index of the last sample of the region of interest in
-        the ``y`` array
+        the ``y`` array. If ``None``, process until the last sample.
     :param debug: If ``True``, print debug messages. Default: ``False``
     :param relevance_info: If ``True``, add a second dimension with relevance
         information to the output array. Default: ``False``
-    :return: 1D sequence with indexes of peaks in the data
+    :return: 1D sequence with indices of peaks in the data
         if ``relevance_info`` is ``False``.
         Else, sequence of  ``(peak_index, peak_relevance)`` tuples (one tuple
         per peak).
@@ -69,21 +71,15 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
         output array.
     """
     cdef:
+        int i
         double[::1] y_c
-        double[::1] peaks
-        double[::1] relevances
+        double* peaks_c
+        double* relevances_c
 
     y_c = numpy.array(y,
                       copy=True,
                       dtype=numpy.float64,
                       order='C').reshape(-1)
-
-    peaks = numpy.empty(shape=(max_number_of_peaks,),
-                        dtype=numpy.float64)
-
-    relevances = numpy.empty(shape=(max_number_of_peaks,),
-                             dtype=numpy.float64)
-
     if debug:
         debug = 1
     else:
@@ -95,14 +91,44 @@ def peak_search(y, fwhm, sensitivity=3.5, max_number_of_peaks=500,
         end_index = y_c.size - 1
 
     n_peaks = seek(begin_index, end_index, y_c.size,
-                   fwhm, sensitivity, debug, max_number_of_peaks,
-                   &y_c[0], &peaks[0], &relevances[0])
+                   fwhm, sensitivity, debug,
+                   &y_c[0], &peaks_c, &relevances_c)
 
-    if n_peaks < 0:
-        raise IndexError("Too many peaks found for size of output array")
+
+    # A negative return value means that peaks were found but not enough
+    # memory could be allocated for all
+    if n_peaks < 0 and n_peaks != -123456:
+        msg = "Before memory allocation error happened, "
+        msg += "we found %d peaks.\n" % abs(n_peaks)
+        _logger.debug(msg)
+        msg = ""
+        for i in range(abs(n_peaks)):
+            msg += "peak index %f, " % peaks_c[i]
+            msg += "relevance %f\n" % relevances_c[i]
+        _logger.debug(msg)
+        free(peaks_c)
+        free(relevances_c)
+        raise MemoryError("Failed to reallocate memory for output arrays")
+    # Special value -123456 is returned if the initial memory allocation
+    # fails, before any search could be performed
+    elif n_peaks == -123456:
+        raise MemoryError("Failed to allocate initial memory for " +
+                          "output arrays")
+
+    peaks = numpy.empty(shape=(n_peaks,),
+                        dtype=numpy.float64)
+    relevances = numpy.empty(shape=(n_peaks,),
+                             dtype=numpy.float64)
+
+    for i in range(n_peaks):
+        peaks[i] = peaks_c[i]
+        relevances[i] = relevances_c[i]
+
+    free(peaks_c)
+    free(relevances_c)
 
     if not relevance_info:
-        return numpy.asarray(peaks)[0:n_peaks]
+        return peaks
     else:
         # FIXME: maybe don't zip, return tuple (peaks, relevances)?
-        return list(zip(numpy.asarray(peaks), numpy.asarray(relevances)))[0:n_peaks]
+        return list(zip(peaks, relevances))

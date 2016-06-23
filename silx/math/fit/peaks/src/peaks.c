@@ -44,12 +44,9 @@
       - fwhm: Full width at half maximum for the gaussian used for smoothing.
       - sensitivity:
       - debug_info: If different from 0, print debugging messages
-      - max_npeaks: maximum nubmber of peaks. If the algorithm finds more
-         peaks than this parameter allows for, it will fail due to insufficient
-         memory being allocated to the output arrays.
       - data: input array of 1D data
-      - peaks: output array of peak indices
-      - relevances: output array of peak relevances
+      - peaks: pointer to output array of peak indices
+      - relevances: pointer to output array of peak relevances
 */
 long seek(long begin_index,
            long end_index,
@@ -57,36 +54,45 @@ long seek(long begin_index,
            double fwhm,
            double sensitivity,
            double debug_info,
-           long max_npeaks,
            double *data,
-           double *peaks,
-           double *relevances)
+           double **peaks,
+           double **relevances)
 {
     /* local variables */
+    double *peaks0, *relevances0;
+    double *realloc_peaks, *realloc_relevances;
     double  sigma, sigma2, sigma4;
     long    max_gfactor = 100;
     double  gfactor[100];
     long    nr_factor;
-    double  sum_factors;
     double  lowthreshold;
     double  data2[2];
     double  nom;
     double  den2;
-    long    begincalc, endcalc;
     long    channel1;
     long    lld;
     long    cch;
-    long    cfac, cfac2;
+    long    cfac, cfac2, max_cfac;
     long    ihelp1, ihelp2;
-    long    i, j;
+    long    i;
+    long    max_npeaks = 100;
     long    n_peaks = 0;
     double  peakstarted = 0;
 
-    /* Make sure the peaks matrix is filled with zeros */
-    for (i=0;i<max_npeaks;i++){
-        peaks[i]      = 0.0;
-        relevances[i] = 0.0;
+    peaks0 = malloc(100 * sizeof(double));
+    relevances0 = malloc(100 * sizeof(double));
+    if (peaks0 == NULL || relevances0 == NULL) {
+        printf("Error: failed to allocate memory for peaks array.");
+        return(-123456);
     }
+    /* Make sure the peaks matrix is filled with zeros */
+    for (i=0;i<100;i++){
+        peaks0[i]      = 0.0;
+        relevances0[i] = 0.0;
+    }
+    /* Output pointers */
+    *peaks = peaks0;
+    *relevances = relevances0;
 
     /* prepare the calculation of the Gaussian scaling factors */
 
@@ -94,22 +100,20 @@ long seek(long begin_index,
     sigma2 = sigma * sigma;
     sigma4 = sigma2 * sigma2;
     lowthreshold = 0.01 / sigma2;
-    sum_factors = 0.0;
 
     /* calculate the factors until lower threshold reached */
-    j = MIN(max_gfactor, ((end_index - begin_index -2)/2)-1);
-    for (cfac=1; cfac < j+1; cfac++) {
+    nr_factor = 0;
+    max_cfac = MIN(max_gfactor, ((end_index - begin_index - 2) / 2) - 1);
+    for (cfac=0; cfac < max_cfac; cfac++) {
+        nr_factor++;
         cfac2 = cfac * cfac;
-        gfactor[cfac-1] = (sigma2 - cfac2) * exp(-cfac2/(sigma2*2.0)) / sigma4;
-        sum_factors += gfactor[cfac-1];
+        gfactor[cfac] = (sigma2 - cfac2) * exp(-cfac2/(sigma2*2.0)) / sigma4;
 
-        if ((gfactor[cfac-1] < lowthreshold)
-           && (gfactor[cfac-1] > (-lowthreshold))){
+        if ((gfactor[cfac] < lowthreshold)
+           && (gfactor[cfac] > (-lowthreshold))){
             break;
         }
     }
-
-    nr_factor = cfac;
 
     /* What comes now is specific to MCA spectra ... */
     lld = 0;
@@ -120,19 +124,14 @@ long seek(long begin_index,
 
     channel1 = begin_index - nr_factor - 1;
     channel1 = MAX (channel1, lld);
-    begincalc = channel1+nr_factor+1;
-    endcalc = MIN (end_index+nr_factor+1, nsamples-nr_factor-1);
-    cch = begincalc;
     if(debug_info){
         printf("nrfactor  = %ld\n", nr_factor);
-        printf("begincalc = %ld\n", begincalc);
-        printf("endcalc   = %ld\n", endcalc);
     }
     /* calculates smoothed value and variance at begincalc */
-    cch = MAX(begin_index,0);
+    cch = MAX(begin_index, 0);
     nom = data[cch] / sigma2;
     den2 = data[cch] / sigma4;
-    for (cfac = 1; cfac < nr_factor; cfac++){
+    for (cfac = 0; cfac < nr_factor; cfac++){
         ihelp1 = cch-cfac;
         if (ihelp1 < 0){
             ihelp1 = 0;
@@ -141,8 +140,8 @@ long seek(long begin_index,
         if (ihelp2 >= nsamples){
             ihelp2 = nsamples-1;
         }
-        nom += gfactor[cfac-1] * (data[ihelp2] + data[ihelp1]);
-        den2 += gfactor[cfac-1] * gfactor[cfac-1] *
+        nom += gfactor[cfac] * (data[ihelp2] + data[ihelp1]);
+        den2 += gfactor[cfac] * gfactor[cfac] *
                  (data[ihelp2] + data[ihelp1]);
     }
 
@@ -190,10 +189,10 @@ long seek(long begin_index,
             }
             /* there is a peak */
             if (debug_info){
-                printf("At cch = %ld y[cch] = %g\n",cch,data[cch]);
-                printf("data2[0] = %g\n",data2[0]);
-                printf("data2[1] = %g\n",data2[1]);
-                printf("sensitivity = %g\n",sensitivity);
+                printf("At cch = %ld y[cch] = %g\n", cch, data[cch]);
+                printf("data2[0] = %g\n", data2[0]);
+                printf("data2[1] = %g\n", data2[1]);
+                printf("sensitivity = %g\n", sensitivity);
             }
             if(peakstarted == 1){
                 /* look for the top of the peak */
@@ -202,20 +201,30 @@ long seek(long begin_index,
                     if (debug_info){
                         printf("we are close to the top of the peak\n");
                     }
-                    if (n_peaks < max_npeaks) {
-                        peaks[n_peaks] = cch-1;
-                        relevances[n_peaks] = data2[0];
-                        n_peaks++;
-                        peakstarted=2;
-                    }else{
-                        printf("Found too many peaks\n");
-                        return (-2);
+                    if (n_peaks == max_npeaks) {
+                        max_npeaks = max_npeaks + 100;
+                        realloc_peaks = realloc(peaks0, max_npeaks * sizeof(double));
+                        realloc_relevances = realloc(relevances0, max_npeaks * sizeof(double));
+                        if (realloc_peaks == NULL || realloc_relevances == NULL) {
+                            printf("Error: failed to extend memory for peaks array.");
+                            *peaks = peaks0;
+                            *relevances = relevances0;
+                            return(-n_peaks);
+                        }
+                        else {
+                            peaks0 = realloc_peaks;
+                            relevances0 = realloc_relevances;
+                        }
                     }
+                    peaks0[n_peaks] = cch-1;
+                    relevances0[n_peaks] = data2[0];
+                    n_peaks++;
+                    peakstarted=2;
                 }
             }
             /* Doublet case */
             if(peakstarted == 2){
-                if ((cch-peaks[n_peaks-1]) > 0.6 * fwhm) {
+                if ((cch-peaks0[n_peaks-1]) > 0.6 * fwhm) {
                     if (data2[1] > data2[0]){
                         if(debug_info){
                             printf("We may have a doublet\n");
@@ -237,8 +246,10 @@ long seek(long begin_index,
     if(debug_info){
       for (i=0;i< n_peaks;i++){
         printf("Peak %ld found at ",i+1);
-        printf("index %g with y = %g\n",peaks[i],data[(long ) peaks[i]]);
+        printf("index %g with y = %g\n", peaks0[i],data[(long ) peaks0[i]]);
       }
     }
+    *peaks = peaks0;
+    *relevances = relevances0;
     return (n_peaks);
 }

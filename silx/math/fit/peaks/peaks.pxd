@@ -35,8 +35,7 @@ cdef extern from "peaks.h":
               double  fwhm,
               double sensitivity,
               double debug_info,
-              long max_npeaks,
               double * data,
-              double * peaks,
-              double * relevances)
+              double ** peaks,
+              double ** relevances)
 

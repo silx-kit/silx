@@ -27,6 +27,6 @@
 /* Smoothing functions */
 
 long seek(long begin_index, long end_index, long nsamples, double fwhm, double sensitivity,
-          double debug_info, long max_npeaks, double *data, double *peaks, double *relevances);
+          double debug_info, double *data, double **peaks, double **relevances);
 
 #endif /* #define PEAKS_H */
