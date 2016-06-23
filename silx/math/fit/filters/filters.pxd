@@ -1,5 +1,5 @@
 # coding: utf-8
-# /*##########################################################################
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,23 +20,40 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+#############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "22/06/2016"
 
-import unittest
+cimport cython
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from ..fit.test import suite as test_fit_suite
+cdef extern from "filters.h":
+    void snip1d(double *data,
+                int size,
+                int width)
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    return test_suite
+    void snip2d(double *data,
+                int nrows,
+                int ncolumns,
+                int width)
+
+    void snip3d(double *data,
+                int nx,
+                int ny,
+                int nz,
+                int width)
+
+    int strip(double* input,
+              long len_input,
+              double c,
+              long niter,
+              int deltai,
+              long* anchors,
+              long len_anchors,
+              double* output)
+
+    int SavitskyGolay(double* input,
+                      long len_input,
+                      int npoints,
+                      double* output)

@@ -1,5 +1,4 @@
-# coding: utf-8
-# /*##########################################################################
+/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,21 +21,12 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
-__license__ = "MIT"
-__date__ = "01/02/2016"
+#ifndef PEAKS_H
+#define PEAKS_H
 
-import unittest
+/* Smoothing functions */
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from ..fit.test import suite as test_fit_suite
+long seek(long begin_index, long end_index, long nsamples, double fwhm, double sensitivity,
+          double debug_info, long max_npeaks, double *data, double *peaks, double *relevances);
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    return test_suite
+#endif /* #define PEAKS_H */

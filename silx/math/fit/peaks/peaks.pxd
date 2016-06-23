@@ -1,5 +1,5 @@
 # coding: utf-8
-# /*##########################################################################
+#/*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,23 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+#############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "22/06/2016"
 
-import unittest
+cimport cython
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from ..fit.test import suite as test_fit_suite
+cdef extern from "peaks.h":
+    long seek(long begin_index,
+              long end_index,
+              long nsamples,
+              double  fwhm,
+              double sensitivity,
+              double debug_info,
+              long max_npeaks,
+              double * data,
+              double * peaks,
+              double * relevances)
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    return test_suite

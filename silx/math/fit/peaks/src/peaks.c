@@ -23,7 +23,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "functions.h"
+#include "peaks.h"
 
 
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
