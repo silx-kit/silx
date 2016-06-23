@@ -23,9 +23,9 @@
 """Widgets used to build :class:`specfitgui.SpecfitGui`"""
 
 from collections import OrderedDict
-from .parameters import Parameters
 
 from silx.gui import qt
+from .parameters import Parameters
 
 QTVERSION = qt.qVersion()
 
@@ -641,7 +641,7 @@ class ParametersTab(qt.QTabWidget):
 def test():
     import os
     import PyMca5
-    from ..math import specfit
+    from silx.math.fit import specfit
     from PyMca5 import PyMcaDataDir
     import numpy
     a = qt.QApplication([])

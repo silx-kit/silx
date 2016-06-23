@@ -12,6 +12,7 @@
    peaksearch.rst
    functions.rst
    filters.rst
+   specfit.rst
 
 
 

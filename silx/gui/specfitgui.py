@@ -30,10 +30,10 @@ import traceback
 import PyMca5
 from PyMca5.PyMcaCore import EventHandler
 
+from silx.math.fit import specfit
+from . import qt
 from .specfitwidgets import (FitActionsButtons, FitStatusLines,
                              FitConfigWidget, ParametersTab)
-from . import qt
-from ..math import specfit
 
 QTVERSION = qt.qVersion()
 from PyMca5.PyMcaGui.math.fitting import QScriptOption

@@ -9,5 +9,4 @@
 
    fit/index.rst
    histogramnd.rst
-   specfit.rst
 

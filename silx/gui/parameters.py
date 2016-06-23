@@ -25,8 +25,10 @@ __license__ = "MIT"
 __date__ = "09/06/2016"
 
 import sys
-from silx.gui import qt
 from collections import OrderedDict
+
+from silx.gui import qt
+
 
 def float_else_zero(sstring):
     """Return converted string to float. If conversion fail, return zero.
@@ -813,7 +815,7 @@ class Parameters(qt.QTableWidget):
 def main(args):
     import PyMca5    # FIXME
     from PyMca5 import PyMcaDataDir    # FIXME
-    from ..math import specfit
+    from silx.math.fit import specfit
     import numpy
     import os
     app = qt.QApplication(args)
