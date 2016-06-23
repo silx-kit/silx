@@ -4,6 +4,8 @@
 Fit functions
 -------------
 
+.. automodule:: silx.math.fit.functions
+
 .. autofunction:: silx.math.fit.sum_agauss
 .. autofunction:: silx.math.fit.sum_ahypermet
 .. autofunction:: silx.math.fit.sum_alorentz
