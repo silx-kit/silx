@@ -1,5 +1,5 @@
 
-.. py:module:: math
+.. py:module:: silx.math
 
 :mod:`silx.math`:
 ==================

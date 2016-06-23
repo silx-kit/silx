@@ -35,7 +35,8 @@ import unittest
 
 import numpy as np
 
-from silx.math import histogramnd
+from silx.math.chistogramnd import chistogramnd as histogramnd
+from silx.math import Histogramnd
 
 
 # ==============================================================
@@ -43,9 +44,9 @@ from silx.math import histogramnd
 # ==============================================================
 
 
-class _TestHistogramnd_errors(unittest.TestCase):
+class _Test_chistogramnd_errors(unittest.TestCase):
     """
-    Unit tests of the histogramnd error cases.
+    Unit tests of the chistogramnd error cases.
     """
     def setUp(self):
         raise NotImplementedError('')
@@ -68,7 +69,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            self.n_bins,
-                                           weights=err_weights)
+                                           weights=err_weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -99,7 +100,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            err_bins_rng,
                                            self.n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -124,7 +125,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            err_n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -145,7 +146,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 histo, cumul = histogramnd(self.sample,
                                            self.bins_rng,
                                            err_n_bins,
-                                           weights=self.weights)
+                                           weights=self.weights)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -179,7 +180,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           histo=histo)
+                                           histo=histo)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -206,14 +207,14 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           histo=histo)
+                                           histo=histo)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
             self.assertIsNotNone(ex_str, msg=test_msg)
             self.assertEqual(ex_str, expected_txt, msg=test_msg)
 
-    def test_cumul_shape(self):
+    def test_weighted_histo_shape(self):
         """
         """
         # using the same values as histo
@@ -225,10 +226,10 @@ class _TestHistogramnd_errors(unittest.TestCase):
                 if version <= (2, 7):
                     err_h_shape = tuple([long(val) for val in err_h_shape])
 
-            test_msg = ('Testing invalid cumul shape : {0}'
+            test_msg = ('Testing invalid weighted_histo shape : {0}'
                         ''.format(err_h_shape))
 
-            expected_txt = ('Provided <cumul> array doesn\'t have '
+            expected_txt = ('Provided <weighted_histo> array doesn\'t have '
                             'a shape compatible with <n_bins> '
                             ': should be {0} instead of {1}.'
                             ''.format(self.h_shape, err_h_shape))
@@ -241,7 +242,7 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           cumul=cumul)
+                                           weighted_histo=cumul)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -253,12 +254,12 @@ class _TestHistogramnd_errors(unittest.TestCase):
         """
         # using the same values as histo
         for err_h_dtype in self.err_histo_dtypes:
-            test_msg = ('Testing invalid cumul dtype : {0}'
+            test_msg = ('Testing invalid weighted_histo dtype : {0}'
                         ''.format(err_h_dtype))
 
             cumul = np.zeros(shape=self.h_shape, dtype=err_h_dtype)
 
-            expected_txt = ('Provided <cumul> array doesn\'t have '
+            expected_txt = ('Provided <weighted_histo> array doesn\'t have '
                             'the expected type '
                             ': should be {0} or {1} instead of {2}.'
                             ''.format(np.float64, np.float32, cumul.dtype))
@@ -269,7 +270,31 @@ class _TestHistogramnd_errors(unittest.TestCase):
                                            self.bins_rng,
                                            self.n_bins,
                                            weights=self.weights,
-                                           cumul=cumul)
+                                           weighted_histo=cumul)[0:2]
+            except ValueError as ex:
+                ex_str = str(ex)
+
+            self.assertIsNotNone(ex_str, msg=test_msg)
+            self.assertEqual(ex_str, expected_txt, msg=test_msg)
+            
+    def test_wh_histo_dtype(self):
+        """
+        """
+        # using the same values as histo
+        for err_h_dtype in self.err_histo_dtypes:
+            test_msg = ('Testing invalid wh_dtype dtype : {0}'
+                        ''.format(err_h_dtype))
+
+            expected_txt = ('<wh_dtype> type not supported : {0}.'
+                            ''.format(err_h_dtype))
+
+            ex_str = None
+            try:
+                histo, cumul = histogramnd(self.sample,
+                                           self.bins_rng,
+                                           self.n_bins,
+                                           weights=self.weights,
+                                           wh_dtype=err_h_dtype)[0:2]
             except ValueError as ex:
                 ex_str = str(ex)
 
@@ -303,8 +328,56 @@ class _TestHistogramnd_errors(unittest.TestCase):
             self.assertIsNotNone(ex_str, msg=test_msg)
             self.assertEqual(ex_str, expected_txt, msg=test_msg)
 
+    def test_uncontiguous_histo(self):
+        """
+        """
+        # non contiguous array
+        shape = np.array(self.n_bins, ndmin=1)
+        shape[0] *= 2
+        histo_tmp = np.zeros(shape)
+        histo = histo_tmp[::2, ...]
 
-class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
+        expected_txt = ('<histo> must be a C_CONTIGUOUS numpy array.')
+
+        ex_str = None
+        try:
+            histogramnd(self.sample,
+                        self.bins_rng,
+                        self.n_bins,
+                        weights=self.weights,
+                        histo=histo)
+        except ValueError as ex:
+            ex_str = str(ex)
+
+        self.assertIsNotNone(ex_str)
+        self.assertEqual(ex_str, expected_txt)
+
+    def test_uncontiguous_weighted_histo(self):
+        """
+        """
+        # non contiguous array
+        shape = np.array(self.n_bins, ndmin=1)
+        shape[0] *= 2
+        cumul_tmp = np.zeros(shape)
+        cumul = cumul_tmp[::2, ...]
+
+        expected_txt = ('<weighted_histo> must be a C_CONTIGUOUS numpy array.')
+
+        ex_str = None
+        try:
+            histogramnd(self.sample,
+                        self.bins_rng,
+                        self.n_bins,
+                        weights=self.weights,
+                        weighted_histo=cumul)
+        except ValueError as ex:
+            ex_str = str(ex)
+
+        self.assertIsNotNone(ex_str)
+        self.assertEqual(ex_str, expected_txt)
+
+
+class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 1D histogramnd error cases.
     """
@@ -345,7 +418,7 @@ class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
                                  (self.n_bins-1,),
                                  (self.n_bins, self.n_bins))
         # these are used for testing the histo parameter as well
-        #   as the cumul parameter.
+        #   as the weighted_histo parameter.
         self.err_histo_dtypes = (np.uint16,
                                  np.float16)
 
@@ -354,7 +427,7 @@ class TestHistogramnd_1D_errors(_TestHistogramnd_errors):
                                      (np.uint16, np.uint16))
 
 
-class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
+class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
     """
     Unit tests of the 3D histogramnd error cases.
     """
@@ -411,7 +484,7 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
                                   10)
                                  )
         # these are used for testing the histo parameter as well
-        #   as the cumul parameter.
+        #   as the weighted_histo parameter.
         self.err_histo_dtypes = (np.uint16,
                                  np.float16)
 
@@ -423,8 +496,8 @@ class TestHistogramnd_ND_errors(_TestHistogramnd_errors):
 # ==============================================================
 
 
-test_cases = (TestHistogramnd_1D_errors,
-              TestHistogramnd_ND_errors,)
+test_cases = (Test_chistogramnd_1D_errors,
+              Test_chistogramnd_ND_errors,)
 
 
 def suite():
