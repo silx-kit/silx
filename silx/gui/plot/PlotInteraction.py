@@ -415,6 +415,9 @@ class Select(StateMachine, _PlotInteraction):
 
 class SelectPolygon(Select):
     """Drawing selection polygon area state machine."""
+
+    DRAG_THRESHOLD_DIST = 4
+
     class Idle(State):
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
@@ -425,9 +428,28 @@ class SelectPolygon(Select):
         def enter(self, x, y):
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
+            self._firstPos = dataPos
             self.points = [dataPos, dataPos]
 
+            self.updateFirstPoint()
+
+        def updateFirstPoint(self):
+            """Update drawing first point, using self._firstPos"""
+            x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
+
+            offset = self.machine.DRAG_THRESHOLD_DIST
+            points = [(x - offset, y - offset),
+                      (x - offset, y + offset),
+                      (x + offset, y + offset),
+                      (x + offset, y - offset)]
+            points = [self.machine.plot.pixelToData(x, y, check=False)
+                      for x, y in points]
+            self.machine.setSelectionArea(points, fill=None,
+                                          color=self.machine.color,
+                                          name='first_point')
+
         def updateSelectionArea(self):
+            """Update drawing selection area using self.points"""
             self.machine.setSelectionArea(self.points,
                                           fill='hatch',
                                           color=self.machine.color)
@@ -437,6 +459,10 @@ class SelectPolygon(Select):
                                              self.machine.parameters)
             self.machine.plot.notify(**eventDict)
 
+        def onWheel(self, x, y, angle):
+            self.machine.onWheel(x, y, angle)
+            self.updateFirstPoint()
+
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
                 dataPos = self.machine.plot.pixelToData(x, y)
@@ -445,16 +471,47 @@ class SelectPolygon(Select):
                 self.updateSelectionArea()
                 if self.points[-2] != self.points[-1]:
                     self.points.append(dataPos)
+
                 return True
 
         def onMove(self, x, y):
+            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                     check=False)
+            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+            if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                    dy < self.machine.DRAG_THRESHOLD_DIST):
+                x, y = firstPos  # Snap to first point
+
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
             self.points[-1] = dataPos
             self.updateSelectionArea()
 
         def onPress(self, x, y, btn):
-            if btn == RIGHT_BTN:
+            if btn == LEFT_BTN:
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+                if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                    self.machine.resetSelectionArea()
+
+                    dataPos = self.machine.plot.pixelToData(x, y)
+                    assert dataPos is not None
+                    self.points[-1] = dataPos
+                    if self.points[-2] == self.points[-1]:
+                        self.points.pop()
+
+                    self.points.append(self.points[0])
+
+                    eventDict = prepareDrawingSignal('drawingFinished',
+                                                     'polygon',
+                                                     self.points,
+                                                     self.machine.parameters)
+                    self.machine.plot.notify(**eventDict)
+                    self.goto('idle')
+
+            elif btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
 
                 dataPos = self.machine.plot.pixelToData(x, y)
