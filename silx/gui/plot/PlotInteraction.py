@@ -505,6 +505,12 @@ class SelectPolygon(Select):
             self._firstPos = dataPos
             self.points = [dataPos, dataPos]
 
+            self.updateFirstPoint()
+
+        def updateFirstPoint(self):
+            """Update drawing first point, using self._firstPos"""
+            x, y = self.machine.plot.dataToPixel(*self._firstPos, check=False)
+
             offset = self.machine.DRAG_THRESHOLD_DIST
             points = [(x - offset, y - offset),
                       (x - offset, y + offset),
@@ -517,6 +523,7 @@ class SelectPolygon(Select):
                                           name='first_point')
 
         def updateSelectionArea(self):
+            """Update drawing selection area using self.points"""
             self.machine.setSelectionArea(self.points,
                                           fill='hatch',
                                           color=self.machine.color)
@@ -525,6 +532,10 @@ class SelectPolygon(Select):
                                              self.points,
                                              self.machine.parameters)
             self.machine.plot.notify(**eventDict)
+
+        def onWheel(self, x, y, angle):
+            self.machine.onWheel(x, y, angle)
+            self.updateFirstPoint()
 
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
@@ -538,7 +549,8 @@ class SelectPolygon(Select):
                 return True
 
         def onMove(self, x, y):
-            firstPos = self.machine.plot.dataToPixel(*self._firstPos)
+            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                     check=False)
             dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
             if (dx < self.machine.DRAG_THRESHOLD_DIST and
                     dy < self.machine.DRAG_THRESHOLD_DIST):
@@ -551,7 +563,8 @@ class SelectPolygon(Select):
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                firstPos = self.machine.plot.dataToPixel(*self._firstPos)
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
                 if (dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
