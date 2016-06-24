@@ -502,7 +502,7 @@ class SelectPolygon(Select):
         def enter(self, x, y):
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
-            self._firstPos = x, y
+            self._firstPos = dataPos
             self.points = [dataPos, dataPos]
 
             offset = self.machine.DRAG_THRESHOLD_DIST
@@ -538,11 +538,11 @@ class SelectPolygon(Select):
                 return True
 
         def onMove(self, x, y):
-            dx = abs(self._firstPos[0] - x)
-            dy = abs(self._firstPos[1] - y)
+            firstPos = self.machine.plot.dataToPixel(*self._firstPos)
+            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
             if (dx < self.machine.DRAG_THRESHOLD_DIST and
                     dy < self.machine.DRAG_THRESHOLD_DIST):
-                x, y = self._firstPos  # Snap to first point
+                x, y = firstPos  # Snap to first point
 
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
@@ -551,8 +551,8 @@ class SelectPolygon(Select):
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
-                dx = abs(self._firstPos[0] - x)
-                dy = abs(self._firstPos[1] - y)
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
                 if (dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
                     self.machine.resetSelectionArea()
