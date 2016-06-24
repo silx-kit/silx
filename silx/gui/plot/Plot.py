@@ -2262,7 +2262,7 @@ class Plot(object):
 
     # Coord conversion
 
-    def dataToPixel(self, x=None, y=None, axis="left"):
+    def dataToPixel(self, x=None, y=None, axis="left", check=True):
         """Convert a position in data coordinates to a position in pixels.
 
         :param float x: The X coordinate in data space. If None (default)
@@ -2271,8 +2271,11 @@ class Plot(object):
                         the middle position of the displayed data is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
+        :param bool check: True to return None if outside displayed area,
+                           False to convert to pixels anyway
         :returns: The corresponding position in pixels or
-                  None if the data position is not in the displayed area.
+                  None if the data position is not in the displayed area and
+                  check is True.
         :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
         """
         assert axis in ("left", "right")
@@ -2285,11 +2288,12 @@ class Plot(object):
         if y is None:
             y = 0.5 * (ymax - ymin)
 
-        if x > xmax or x < xmin:
-            return None
+        if check:
+            if x > xmax or x < xmin:
+                return None
 
-        if y > ymax or y < ymin:
-            return None
+            if y > ymax or y < ymin:
+                return None
 
         return self._backend.dataToPixel(x, y, axis=axis)
 
