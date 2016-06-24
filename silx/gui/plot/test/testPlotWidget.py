@@ -33,6 +33,7 @@ import unittest
 
 import numpy
 
+from silx.testutils import ParametricTestCase
 from silx.gui.testutils import TestCaseQt
 
 from silx.gui import qt
@@ -420,20 +421,19 @@ class TestPlotEmptyLog(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
-class TestPlotCurveLog(_PlotWidgetTest):
+class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
     """Basic tests for addCurve with log scale axes"""
 
     # Test data
     xData = numpy.arange(1000) + 1
     yData = xData ** 2
 
-    def setUp(self):
-        super(TestPlotCurveLog, self).setUp()
-
+    def _setLabels(self):
         self.plot.setGraphXLabel('X')
         self.plot.setGraphYLabel('X * X')
 
     def testPlotCurveLogX(self):
+        self._setLabels()
         self.plot.setXAxisLogarithmic(True)
         self.plot.setGraphTitle('Curve X: Log Y: Linear')
 
@@ -441,9 +441,9 @@ class TestPlotCurveLog(_PlotWidgetTest):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.plot.resetZoom()
 
     def testPlotCurveLogY(self):
+        self._setLabels()
         self.plot.setYAxisLogarithmic(True)
 
         self.plot.setGraphTitle('Curve X: Linear Y: Log')
@@ -452,9 +452,9 @@ class TestPlotCurveLog(_PlotWidgetTest):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.plot.resetZoom()
 
     def testPlotCurveLogXY(self):
+        self._setLabels()
         self.plot.setXAxisLogarithmic(True)
         self.plot.setYAxisLogarithmic(True)
 
@@ -464,7 +464,90 @@ class TestPlotCurveLog(_PlotWidgetTest):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.plot.resetZoom()
+
+    def testPlotCurveToggleLog(self):
+        """Add a curve with negative data and toggle log axis"""
+        arange = numpy.arange(1000) + 1
+        tests = [  # name, xData, yData
+            ('x>0, some negative y', arange, arange - 500),
+            ('x>0, y<0', arange, -arange),
+            ('some negative x, y>0', arange - 500, arange),
+            ('x<0, y>0', -arange, arange),
+            ('some negative x and y', arange - 500, arange - 500),
+            ('x<0, y<0', -arange, -arange),
+            ]
+
+        for name, xData, yData in tests:
+            with self.subTest(name):
+                self.plot.addCurve(xData, yData, resetzoom=True)
+                self.qapp.processEvents()
+
+                # no log axis
+                xLim = self.plot.getGraphXLimits()
+                self.assertEqual(xLim, (min(xData), max(xData)))
+                yLim = self.plot.getGraphYLimits()
+                self.assertEqual(yLim, (min(yData), max(yData)))
+
+                # x axis log
+                self.plot.setXAxisLogarithmic(True)
+                self.qapp.processEvents()
+
+                xLim = self.plot.getGraphXLimits()
+                yLim = self.plot.getGraphYLimits()
+                positives = xData > 0
+                if numpy.any(positives):
+                    self.assertTrue(numpy.allclose(
+                        xLim, (min(xData[positives]), max(xData[positives]))))
+                    self.assertEqual(
+                        yLim, (min(yData[positives]), max(yData[positives])))
+                else:  # No positive x in the curve
+                    self.assertEqual(xLim, (1., 100.))
+                    self.assertEqual(yLim, (1., 100.))
+
+                # x axis and y axis log
+                self.plot.setYAxisLogarithmic(True)
+                self.qapp.processEvents()
+
+                xLim = self.plot.getGraphXLimits()
+                yLim = self.plot.getGraphYLimits()
+                positives = numpy.logical_and(xData > 0, yData > 0)
+                if numpy.any(positives):
+                    self.assertTrue(numpy.allclose(
+                        xLim, (min(xData[positives]), max(xData[positives]))))
+                    self.assertTrue(numpy.allclose(
+                        yLim, (min(yData[positives]), max(yData[positives]))))
+                else:  # No positive x and y in the curve
+                    self.assertEqual(xLim, (1., 100.))
+                    self.assertEqual(yLim, (1., 100.))
+
+                # y axis log
+                self.plot.setXAxisLogarithmic(False)
+                self.qapp.processEvents()
+
+                xLim = self.plot.getGraphXLimits()
+                yLim = self.plot.getGraphYLimits()
+                positives = yData > 0
+                if numpy.any(positives):
+                    self.assertEqual(
+                        xLim, (min(xData[positives]), max(xData[positives])))
+                    self.assertTrue(numpy.allclose(
+                        yLim, (min(yData[positives]), max(yData[positives]))))
+                else:  # No positive y in the curve
+                    self.assertEqual(xLim, (1., 100.))
+                    self.assertEqual(yLim, (1., 100.))
+
+                # no log axis
+                self.plot.setYAxisLogarithmic(False)
+                self.qapp.processEvents()
+
+                xLim = self.plot.getGraphXLimits()
+                self.assertEqual(xLim, (min(xData), max(xData)))
+                yLim = self.plot.getGraphYLimits()
+                self.assertEqual(yLim, (min(yData), max(yData)))
+
+                self.plot.clear()
+                self.plot.resetZoom()
+                self.qapp.processEvents()
 
 
 class TestPlotImageLog(_PlotWidgetTest):

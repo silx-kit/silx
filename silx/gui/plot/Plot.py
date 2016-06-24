@@ -536,12 +536,12 @@ class Plot(object):
                     self._setDirtyPlot()
 
         # Filter-out values <= 0
-        x, y, color, xerror, yerror = self._logFilterData(
+        xFiltered, yFiltered, color, xerror, yerror = self._logFilterData(
             x, y, params['color'], params['xerror'], params['yerror'],
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
-        if len(x) and not self.isCurveHidden(legend):
-            handle = self._backend.addCurve(x, y, legend,
+        if len(xFiltered) and not self.isCurveHidden(legend):
+            handle = self._backend.addCurve(xFiltered, yFiltered, legend,
                                             color=color,
                                             symbol=params['symbol'],
                                             linestyle=params['linestyle'],
