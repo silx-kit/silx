@@ -235,9 +235,9 @@ class ClickOrDrag(StateMachine):
             self.initPos = x, y
 
         def onMove(self, x, y):
-            dx = (x - self.initPos[0]) ** 2
-            dy = (y - self.initPos[1]) ** 2
-            if (dx ** 2 + dy ** 2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
+            dx2 = (x - self.initPos[0]) ** 2
+            dy2 = (y - self.initPos[1]) ** 2
+            if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
                 self.goto('drag', self.initPos, (x, y))
 
         def onRelease(self, x, y, btn):
