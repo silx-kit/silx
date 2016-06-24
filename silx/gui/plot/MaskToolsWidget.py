@@ -735,12 +735,63 @@ class MaskToolsWidget(qt.QWidget):
 
     # track widget visibility and plot active image changes
 
+    def changeEvent(self, event):
+        """Reset drawing action when disabling widget"""
+        if (event.type() == qt.QEvent.EnabledChange and
+                not self.isEnabled() and
+                not self.browseAction.isChecked()):
+            self.browseAction.trigger()  # Disable drawing tool
+
     def showEvent(self, event):
+        try:
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChangedAfterCare)
+        except RuntimeError:
+            pass
         self._activeImageChanged()  # Init mask + enable/disable widget
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
 
     def hideEvent(self, event):
         self.plot.sigActiveImageChanged.disconnect(self._activeImageChanged)
+        if not self.browseAction.isChecked():
+            self.browseAction.trigger()  # Disable drawing tool
+
+        if len(self.getMask(copy=False)):
+            self.plot.sigActiveImageChanged.connect(
+                self._activeImageChangedAfterCare)
+
+    def _activeImageChangedAfterCare(self, *args):
+        """Check synchro of active image and mask when mask widget is hidden.
+
+        If active image has no more the same size as the mask, the mask is
+        removed, otherwise it is adjusted to origin, scale and z.
+        """
+        activeImage = self.plot.getActiveImage()
+        if activeImage is None or activeImage[1] == self._maskName:
+            # No active image or active image is the mask...
+            self.plot.sigActiveImageChanged.disconnect(
+                self._activeImageChangedAfterCare)
+        else:
+            colormap = activeImage[4]['colormap']
+            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._setMaskColors(self.levelSpinBox.value(),
+                                self.transparencySlider.value() /
+                                self.transparencySlider.maximum())
+
+            self._origin = activeImage[4]['origin']
+            self._scale = activeImage[4]['scale']
+            self._z = activeImage[4]['z'] + 1
+            self._data = activeImage[0]
+            if self._data.shape != self.getMask(copy=False).shape:
+                # Image has not the same size, remove mask and stop listening
+                if self.plot.getImage(self._maskName):
+                    self.plot.remove(self._maskName, kind='image')
+
+                self.plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChangedAfterCare)
+            else:
+                # Refresh in case origin, scale, z changed
+                self._updatePlotMask()
 
     def _activeImageChanged(self, *args):
         """Update widget and mask according to active image changes"""
