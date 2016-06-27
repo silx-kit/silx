@@ -168,15 +168,16 @@ class PlotWindow(PlotWidget):
         self.printAction.setVisible(print_)
 
         if control or position:
-            toolBar = qt.QToolBar(self)
-            self.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+            hbox = qt.QHBoxLayout()
+            hbox.setSpacing(0)
+            hbox.setContentsMargins(0, 0, 0, 0)
 
             if control:
                 self.controlButton = qt.QPushButton("Options")
                 self.controlButton.setAutoDefault(False)
                 self.controlButton.clicked.connect(self._controlButtonClicked)
 
-                toolBar.addWidget(self.controlButton)
+                hbox.addWidget(self.controlButton)
 
             if position:  # Add PositionInfo widget to the bottom of the plot
                 if isinstance(position, collections.Iterable):
@@ -187,7 +188,21 @@ class PlotWindow(PlotWidget):
                 self.positionWidget = PositionInfo(self, converters=converters)
                 self.positionWidget.autoSnapToActiveCurve = True
 
-                toolBar.addWidget(self.positionWidget)
+                hbox.addWidget(self.positionWidget)
+
+            hbox.addStretch(1)
+            bottomBar = qt.QWidget()
+            bottomBar.setLayout(hbox)
+
+            layout = qt.QVBoxLayout()
+            layout.setSpacing(0)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.getWidgetHandle())
+            layout.addWidget(bottomBar)
+
+            centralWidget = qt.QWidget()
+            centralWidget.setLayout(layout)
+            self.setCentralWidget(centralWidget)
 
         self.addToolBar(self.toolBar())
 
