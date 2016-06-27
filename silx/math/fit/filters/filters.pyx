@@ -60,17 +60,17 @@ from filters cimport snip3d as _snip3d
 from filters cimport strip as _strip
 
 
-def strip(data, w, niterations, factor=1.0, anchors=None):
+def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     """strip(data, w, niterations, factor=1.0, anchors=None)
     Extract background from data using the strip algorithm, as explained at
     http://pymca.sourceforge.net/stripbackground.html.
 
     In its simplest implementation it is just as an iterative procedure
     depending on two parameters. These parameters are the strip background
-    width `` w``, and the number of iterations. At each iteration, if the
+    width ``w``, and the number of iterations. At each iteration, if the
     contents of channel ``i``, ``y(i)``, is above the average of the contents
-    of the channels at `` w`` channels of distance, ``y(i-w)`` and
-    ``y(i+w)``,  ``y(i)`` is replaced by the average.
+    of the channels at ``w`` channels of distance, ``y(i-w)`` and
+    ``y(i+w)``, ``y(i)`` is replaced by the average.
     At the end of the process we are left with something that resembles a spectrum
     in which the peaks have been stripped.
 

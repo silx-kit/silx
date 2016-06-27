@@ -710,14 +710,14 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_GetAttrStr(PyObject* obj, PyObject
 
 static PyObject *__Pyx_GetBuiltinName(PyObject *name);
 
-static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
-    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
-
 static void __Pyx_RaiseDoubleKeywordsError(const char* func_name, PyObject* kw_name);
 
 static int __Pyx_ParseOptionalKeywords(PyObject *kwds, PyObject **argnames[], \
     PyObject *kwds2, PyObject *values[], Py_ssize_t num_pos_args, \
     const char* function_name);
+
+static void __Pyx_RaiseArgtupleInvalid(const char* func_name, int exact,
+    Py_ssize_t num_min, Py_ssize_t num_max, Py_ssize_t num_found);
 
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name);
 
@@ -1338,6 +1338,7 @@ static PyObject *__pyx_float_1_0;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_5;
+static PyObject *__pyx_int_1000;
 static PyObject *__pyx_int_neg_1;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
@@ -1369,14 +1370,14 @@ static PyObject *__pyx_codeobj__21;
 /* "filters.pyx":63
  * 
  * 
- * def strip(data, w, niterations, factor=1.0, anchors=None):             # <<<<<<<<<<<<<<
+ * def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):             # <<<<<<<<<<<<<<
  *     """strip(data, w, niterations, factor=1.0, anchors=None)
  *     Extract background from data using the strip algorithm, as explained at
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_7filters_strip[] = "strip(data, w, niterations, factor=1.0, anchors=None)\n    Extract background from data using the strip algorithm, as explained at\n    http://pymca.sourceforge.net/stripbackground.html.\n\n    In its simplest implementation it is just as an iterative procedure\n    depending on two parameters. These parameters are the strip background\n    width `` w``, and the number of iterations. At each iteration, if the\n    contents of channel ``i``, ``y(i)``, is above the average of the contents\n    of the channels at `` w`` channels of distance, ``y(i-w)`` and\n    ``y(i+w)``,  ``y(i)`` is replaced by the average.\n    At the end of the process we are left with something that resembles a spectrum\n    in which the peaks have been stripped.\n\n    :param data: Data array\n    :type data: numpy.ndarray\n    :param w: Strip width\n    :param niterations: number of iterations\n    :param factor: scaling factor applied to the average of ``y(i-w)`` and\n        ``y(i+w)`` before comparing to ``y(i)``\n    :param anchors: Array of anchors, indices of points that will not be\n          modified during the stripping procedure.\n    :return: Data with peaks stripped away\n    ";
+static char __pyx_doc_7filters_strip[] = "strip(data, w, niterations, factor=1.0, anchors=None)\n    Extract background from data using the strip algorithm, as explained at\n    http://pymca.sourceforge.net/stripbackground.html.\n\n    In its simplest implementation it is just as an iterative procedure\n    depending on two parameters. These parameters are the strip background\n    width ``w``, and the number of iterations. At each iteration, if the\n    contents of channel ``i``, ``y(i)``, is above the average of the contents\n    of the channels at ``w`` channels of distance, ``y(i-w)`` and\n    ``y(i+w)``, ``y(i)`` is replaced by the average.\n    At the end of the process we are left with something that resembles a spectrum\n    in which the peaks have been stripped.\n\n    :param data: Data array\n    :type data: numpy.ndarray\n    :param w: Strip width\n    :param niterations: number of iterations\n    :param factor: scaling factor applied to the average of ``y(i-w)`` and\n        ``y(i+w)`` before comparing to ``y(i)``\n    :param anchors: Array of anchors, indices of points that will not be\n          modified during the stripping procedure.\n    :return: Data with peaks stripped away\n    ";
 static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
   PyObject *__pyx_v_w = 0;
@@ -1392,6 +1393,8 @@ static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_data,&__pyx_n_s_w,&__pyx_n_s_niterations,&__pyx_n_s_factor,&__pyx_n_s_anchors,0};
     PyObject* values[5] = {0,0,0,0,0};
+    values[1] = ((PyObject *)__pyx_int_1);
+    values[2] = ((PyObject *)__pyx_int_1000);
     values[3] = ((PyObject *)__pyx_float_1_0);
     values[4] = ((PyObject *)Py_None);
     if (unlikely(__pyx_kwds)) {
@@ -1412,14 +1415,14 @@ static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_
         if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_data)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         case  1:
-        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_w)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("strip", 0, 3, 5, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_w);
+          if (value) { values[1] = value; kw_args--; }
         }
         case  2:
-        if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_niterations)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("strip", 0, 3, 5, 2); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_niterations);
+          if (value) { values[2] = value; kw_args--; }
         }
         case  3:
         if (kw_args > 0) {
@@ -1440,8 +1443,8 @@ static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_
         case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-        values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
         break;
         default: goto __pyx_L5_argtuple_error;
       }
@@ -1454,7 +1457,7 @@ static PyObject *__pyx_pw_7filters_1strip(PyObject *__pyx_self, PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("strip", 0, 3, 5, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("strip", 0, 1, 5, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 63; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("filters.strip", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2020,7 +2023,7 @@ static PyObject *__pyx_pf_7filters_strip(CYTHON_UNUSED PyObject *__pyx_self, PyO
   /* "filters.pyx":63
  * 
  * 
- * def strip(data, w, niterations, factor=1.0, anchors=None):             # <<<<<<<<<<<<<<
+ * def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):             # <<<<<<<<<<<<<<
  *     """strip(data, w, niterations, factor=1.0, anchors=None)
  *     Extract background from data using the strip algorithm, as explained at
  */
@@ -15666,6 +15669,7 @@ static int __Pyx_InitGlobals(void) {
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_5 = PyInt_FromLong(5); if (unlikely(!__pyx_int_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_int_1000 = PyInt_FromLong(1000); if (unlikely(!__pyx_int_1000)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   return 0;
   __pyx_L1_error:;
@@ -16120,31 +16124,6 @@ static PyObject *__Pyx_GetBuiltinName(PyObject *name) {
     return result;
 }
 
-static void __Pyx_RaiseArgtupleInvalid(
-    const char* func_name,
-    int exact,
-    Py_ssize_t num_min,
-    Py_ssize_t num_max,
-    Py_ssize_t num_found)
-{
-    Py_ssize_t num_expected;
-    const char *more_or_less;
-    if (num_found < num_min) {
-        num_expected = num_min;
-        more_or_less = "at least";
-    } else {
-        num_expected = num_max;
-        more_or_less = "at most";
-    }
-    if (exact) {
-        more_or_less = "exactly";
-    }
-    PyErr_Format(PyExc_TypeError,
-                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
-                 func_name, more_or_less, num_expected,
-                 (num_expected == 1) ? "" : "s", num_found);
-}
-
 static void __Pyx_RaiseDoubleKeywordsError(
     const char* func_name,
     PyObject* kw_name)
@@ -16257,6 +16236,31 @@ invalid_keyword:
     #endif
 bad:
     return -1;
+}
+
+static void __Pyx_RaiseArgtupleInvalid(
+    const char* func_name,
+    int exact,
+    Py_ssize_t num_min,
+    Py_ssize_t num_max,
+    Py_ssize_t num_found)
+{
+    Py_ssize_t num_expected;
+    const char *more_or_less;
+    if (num_found < num_min) {
+        num_expected = num_min;
+        more_or_less = "at least";
+    } else {
+        num_expected = num_max;
+        more_or_less = "at most";
+    }
+    if (exact) {
+        more_or_less = "exactly";
+    }
+    PyErr_Format(PyExc_TypeError,
+                 "%.200s() takes %.8s %" CYTHON_FORMAT_SSIZE_T "d positional argument%.1s (%" CYTHON_FORMAT_SSIZE_T "d given)",
+                 func_name, more_or_less, num_expected,
+                 (num_expected == 1) ? "" : "s", num_found);
 }
 
 static CYTHON_INLINE PyObject *__Pyx_GetModuleGlobalName(PyObject *name) {
