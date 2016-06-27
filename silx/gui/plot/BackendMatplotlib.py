@@ -73,6 +73,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from . import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
+from . import MPLColormap
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -933,6 +934,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if name in self._colormaps:
             return self._colormaps[name]
+        elif hasattr(MPLColormap, name):  # viridis and sister colormaps
+            return getattr(MPLColormap, name)
         else:
             # matplotlib built-in
             return cm.get_cmap(name)
