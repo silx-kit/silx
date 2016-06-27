@@ -764,7 +764,7 @@ class Plot(object):
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
-                overlay=False, **kw):
+                overlay=False, z=None, **kw):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
@@ -787,6 +787,7 @@ class Plot(object):
         :param bool overlay: True if item is an overlay (Default: False).
                              This allows for rendering optimization if this
                              item is changed often.
+        :param int z: Layer on which to draw the item (default: 2)
         :returns: The key string identify this item
         """
         # expected to receive the same parameters as the signal
@@ -796,6 +797,8 @@ class Plot(object):
 
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
+        z = int(z) if z is not None else 2
+
         if replace:
             self.remove(kind='item')
         else:
@@ -803,7 +806,7 @@ class Plot(object):
 
         handle = self._backend.addItem(xdata, ydata, legend=legend,
                                        shape=shape, color=color,
-                                       fill=fill, overlay=overlay)
+                                       fill=fill, overlay=overlay, z=z)
         self._setDirtyPlot(overlayOnly=overlay)
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}

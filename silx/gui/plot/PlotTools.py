@@ -329,7 +329,6 @@ class ProfileToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
-    # TODO when available, listen to active image change to refresh profile
     # TODO Make it a QActionGroup instead of a QToolBar
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
@@ -427,6 +426,17 @@ class ProfileToolBar(qt.QToolBar):
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
+
+        # Enable toolbar only if there is an active image
+        self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
+        self.plot.sigActiveImageChanged.connect(
+            self._activeImageChanged)
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        self.setEnabled(legend is not None)
+        if legend is not None:
+            self.updateProfile()
 
     def _lineWidthSpinBoxValueChangedSlot(self, value):
         """Listen to ROI width widget to refresh ROI and profile"""
@@ -546,10 +556,12 @@ class ProfileToolBar(qt.QToolBar):
             profile = numpy.zeros((width,), dtype=numpy.float32)
 
         # Compute effective ROI in plot coords
-        profileBounds = numpy.array((0, width, width, 0),
-                                    dtype=numpy.float32) * scale[0] + origin[0]
-        roiBounds = numpy.array((start, start, end, end),
-                                dtype=numpy.float32) * scale[1] + origin[1]
+        profileBounds = numpy.array(
+            (0, width, width, 0),
+            dtype=numpy.float32) * scale[axis] + origin[axis]
+        roiBounds = numpy.array(
+            (start, start, end, end),
+            dtype=numpy.float32) * scale[1 - axis] + origin[1 - axis]
 
         if axis == 0:  # Horizontal profile
             area = profileBounds, roiBounds
@@ -627,6 +639,7 @@ class ProfileToolBar(qt.QToolBar):
 
         data, params = imageData[0], imageData[4]
         origin, scale = params['origin'], params['scale']
+        zActiveImage = params['z']
 
         roiWidth = max(1, self.lineWidthSpinBox.value())
         roiStart, roiEnd, lineProjectionMode = self._roiInfo
@@ -732,12 +745,12 @@ class ProfileToolBar(qt.QToolBar):
                                  startPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] - 0.5 * roiWidth * dCol),
-                                dtype=numpy.float32) * scale[1] + origin[1],
+                                dtype=numpy.float32) * scale[0] + origin[0],
                     numpy.array((startPt[0] - 0.5 * roiWidth * dRow,
                                  startPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] - 0.5 * roiWidth * dRow),
-                                dtype=numpy.float32) * scale[0] + origin[0])
+                                dtype=numpy.float32) * scale[1] + origin[1])
 
             y0, x0 = startPt
             y1, x1 = endPt
@@ -762,7 +775,7 @@ class ProfileToolBar(qt.QToolBar):
                           legend=self._POLYGON_LEGEND,
                           color=self.overlayColor,
                           shape='polygon', fill=True,
-                          replace=False)
+                          replace=False, z=zActiveImage+1)
 
         if self._ownProfileWindow and not self.profileWindow.isVisible():
             # If profile window was created in this widget,

@@ -361,7 +361,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return image
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
@@ -411,6 +411,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
+
+        item.set_zorder(z)
 
         if overlay:
             item.set_animated(True)
