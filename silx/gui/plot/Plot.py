@@ -42,6 +42,10 @@ This dictionary has the following keys:
                data, False to use [vmin, vmax]
 - 'vmin': float, min value, ignored if autoscale is True
 - 'vmax': float, max value, ignored if autoscale is True
+- 'colors': optional, custom colormap.
+            Nx3 or Nx4 numpy array of RGB(A) colors,
+            either uint8 or float in [0, 1].
+            If 'name' is None, then this array is used as the colormap.
 
 
 Plot Events
@@ -184,6 +188,9 @@ It provides the following keys:
               active. It is the same as 'legend' if 'updated' == True
 - 'updated': (bool) True if active item name did not changed,
              but active item data or style was updated.
+
+'interactiveModeChanged' event with a 'source' key identifying the object
+setting the interactive mode.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -763,16 +770,17 @@ class Plot(object):
         Items are uniquely identified by their legend.
         To add multiple items, call :meth:`addItem` multiple times with
         different legend argument.
-        To replace/update an existing item, call :meth:`addImage` with the
+        To replace/update an existing item, call :meth:`addItem` with the
         existing item legend.
 
         :param numpy.ndarray xdata: The X coords of the points of the shape
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
-        :param info: User-defined information associated to the image
+        :param info: User-defined information associated to the item
         :param bool replace: True (default) to delete already existing images
         :param str shape: Type of item to be drawn in
-                          hline, polygon (the default), rectangle, vline
+                          hline, polygon (the default), rectangle, vline,
+                          polylines
         :param str color: Color of the item, e.g., 'blue', 'b', '#FF0000'
                           (Default: 'black')
         :param bool fill: True (the default) to fill the shape
@@ -1986,8 +1994,7 @@ class Plot(object):
         """
         if colormap is None:
             colormap = {'name': 'gray', 'normalization': 'linear',
-                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                        'colors': 256}
+                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
 
     def getSupportedColormaps(self):
@@ -2284,9 +2291,9 @@ class Plot(object):
         ymin, ymax = self.getGraphYLimits(axis=axis)
 
         if x is None:
-            x = 0.5 * (xmax - xmin)
+            x = 0.5 * (xmax + xmin)
         if y is None:
-            y = 0.5 * (ymax - ymin)
+            y = 0.5 * (ymax + ymin)
 
         if check:
             if x > xmax or x < xmin:
@@ -2534,7 +2541,7 @@ class Plot(object):
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
-                           zoomOnWheel=True):
+                           zoomOnWheel=True, source=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2544,13 +2551,21 @@ class Plot(object):
         :type color: Color description: The name as a str or
                      a tuple of 4 floats.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                          'freeline'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode, sent in drawing events.
         :param bool zoomOnWheel: Toggle zoom on wheel support
+        :param source: A user-defined object (typically the caller object)
+                       that will be send in the interactiveModeChanged event,
+                       to identify which object required a mode change.
+                       Default: None
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
         self._eventHandler.zoomOnWheel = zoomOnWheel
+
+        self.notify(
+            'interactiveModeChanged', source=source)
 
     # Deprecated #
 

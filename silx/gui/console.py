@@ -103,7 +103,8 @@ else:
 
 if qtconsole is not None:
     try:
-        from qtconsole.rich_ipython_widget import RichJupyterWidget as RichIPythonWidget
+        from qtconsole.rich_ipython_widget import RichJupyterWidget as \
+            RichIPythonWidget
     except ImportError:
         try:
             from qtconsole.rich_ipython_widget import RichIPythonWidget
@@ -115,11 +116,13 @@ if qtconsole is not None:
 else:
     # Import the console machinery from ipython
 
-    # The `has_binding` test of IPython does not find the Qt bindings in case silx is
-    # used in a frozen binary
+    # The `has_binding` test of IPython does not find the Qt bindings
+    # in case silx is used in a frozen binary
     import IPython.external.qt_loaders
+
     def has_binding(*var, **kw):
         return True
+
     IPython.external.qt_loaders.has_binding = has_binding
 
     from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
@@ -135,7 +138,7 @@ class IPythonWidget(RichIPythonWidget):
 
     def __init__(self, custom_banner=None, *args, **kwargs):
         super(IPythonWidget, self).__init__(*args, **kwargs)
-        if custom_banner != None:
+        if custom_banner is not None:
             self.banner = custom_banner
         self.setWindowTitle(self.banner)
         self.kernel_manager = kernel_manager = QtInProcessKernelManager()

@@ -60,6 +60,7 @@ class _PlotWidgetTest(TestCaseQt):
         self.qWaitForWindowExposed(self.plot)
 
     def tearDown(self):
+        self.qapp.processEvents()
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
         self.plot.close()
         del self.plot
@@ -80,7 +81,7 @@ class TestPlotWidget(_PlotWidgetTest):
         self.plot.setGraphTitle(title)
         self.plot.setGraphXLabel(xlabel)
         self.plot.setGraphYLabel(ylabel)
-        self.qWait()
+        self.qapp.processEvents()
 
         self.assertEqual(self.plot.getGraphTitle(), title)
         self.assertEqual(self.plot.getGraphXLabel(), xlabel)
@@ -132,38 +133,23 @@ class TestPlotImage(_PlotWidgetTest):
         self.plot.setGraphTitle('Temp. Linear')
 
         colormap = {'name': 'temperature', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(0., 0.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
-        self.plot.resetZoom()
-        self.qWait()
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapGray(self):
         self.plot.setKeepDataAspectRatio(False)
         self.plot.setGraphTitle('Gray Linear')
 
         colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(0., 0.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
-        self.plot.resetZoom()
-        self.qWait()
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotColormapTemperatureLog(self):
         self.plot.setGraphTitle('Temp. Log')
 
         colormap = {'name': 'temperature', 'normalization': 'log',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
-        self.plot.addImage(DATA_2D, legend="image 1",
-                           origin=(0., 0.), scale=(1., 1.),
-                           replace=False, resetzoom=False, colormap=colormap)
-        self.plot.resetZoom()
-        self.qWait()
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap)
 
     def testPlotRgbRgba(self):
         self.plot.setKeepDataAspectRatio(False)
@@ -188,7 +174,28 @@ class TestPlotImage(_PlotWidgetTest):
                            replace=False, resetzoom=False)
 
         self.plot.resetZoom()
-        self.qWait()
+
+    def testPlotColormapCustom(self):
+        self.plot.setKeepDataAspectRatio(False)
+        self.plot.setGraphTitle('Custom colormap')
+
+        colormap = {'name': None, 'normalization': 'linear',
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
+                    'colors': ((0., 0., 0.), (1., 0., 0.),
+                               (0., 1., 0.), (0., 0., 1.))}
+        self.plot.addImage(DATA_2D, legend="image 1", colormap=colormap,
+                           replace=False, resetzoom=False)
+
+        colormap = {'name': None, 'normalization': 'linear',
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
+                    'colors': numpy.array(
+                        ((0, 0, 0, 0), (0, 0, 0, 128),
+                         (128, 128, 128, 128), (255, 255, 255, 255)),
+                        dtype=numpy.uint8)}
+        self.plot.addImage(DATA_2D, legend="image 2", colormap=colormap,
+                           origin=(DATA_2D.shape[0], 0),
+                           replace=False, resetzoom=False)
+        self.plot.resetZoom()
 
 
 class TestPlotCurve(_PlotWidgetTest):
@@ -222,7 +229,6 @@ class TestPlotCurve(_PlotWidgetTest):
                            replace=False, resetzoom=False,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotCurveColorByte(self):
         color = numpy.array(255 * numpy.random.random(3 * 1000),
@@ -238,7 +244,6 @@ class TestPlotCurve(_PlotWidgetTest):
                            replace=False, resetzoom=False,
                            color='green', linestyle="-", symbol='o')
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotCurveColors(self):
         color = numpy.array(numpy.random.random(3 * 1000),
@@ -249,7 +254,6 @@ class TestPlotCurve(_PlotWidgetTest):
                            replace=False, resetzoom=False,
                            color=color, linestyle="-", symbol='o')
         self.plot.resetZoom()
-        self.qWait()
 
 
 class TestPlotMarker(_PlotWidgetTest):
@@ -284,7 +288,6 @@ class TestPlotMarker(_PlotWidgetTest):
                 name += " drag"
             self.plot.addXMarker(x, name, name, color, select, drag)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotMarkerY(self):
         self.plot.setGraphTitle('Markers Y')
@@ -305,7 +308,6 @@ class TestPlotMarker(_PlotWidgetTest):
                 name += " drag"
             self.plot.addYMarker(y, name, name, color, select, drag)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotMarkerPt(self):
         self.plot.setGraphTitle('Markers Pt')
@@ -326,7 +328,6 @@ class TestPlotMarker(_PlotWidgetTest):
             self.plot.addMarker(x, y, name, name, color, select, drag)
 
         self.plot.resetZoom()
-        self.qWait()
 
 
 # TestPlotItem ################################################################
@@ -376,7 +377,6 @@ class TestPlotItem(_PlotWidgetTest):
                               replace=False,
                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemPolygonNoFill(self):
         self.plot.setGraphTitle('Item No Fill')
@@ -386,7 +386,6 @@ class TestPlotItem(_PlotWidgetTest):
                               replace=False,
                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemRectangleFill(self):
         self.plot.setGraphTitle('Rectangle Fill')
@@ -396,7 +395,6 @@ class TestPlotItem(_PlotWidgetTest):
                               replace=False,
                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemRectangleNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill')
@@ -406,7 +404,6 @@ class TestPlotItem(_PlotWidgetTest):
                               replace=False,
                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
 
 ##############################################################################
@@ -422,7 +419,6 @@ class TestPlotEmptyLog(_PlotWidgetTest):
         self.plot.setXAxisLogarithmic(True)
         self.plot.setYAxisLogarithmic(True)
         self.plot.resetZoom()
-        self.qWait()
 
 
 class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
@@ -445,7 +441,6 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.qapp.processEvents()
 
     def testPlotCurveLogY(self):
         self._setLabels()
@@ -457,7 +452,6 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.qapp.processEvents()
 
     def testPlotCurveLogXY(self):
         self._setLabels()
@@ -470,7 +464,6 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                            legend="curve",
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
-        self.qapp.processEvents()
 
     def testPlotCurveToggleLog(self):
         """Add a curve with negative data and toggle log axis"""
@@ -571,26 +564,22 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.setGraphTitle('CMap X: Log Y: Linear')
 
         colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotColormapGrayLogY(self):
         self.plot.setYAxisLogarithmic(True)
         self.plot.setGraphTitle('CMap X: Linear Y: Log')
 
         colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotColormapGrayLogXY(self):
         self.plot.setXAxisLogarithmic(True)
@@ -598,13 +587,11 @@ class TestPlotImageLog(_PlotWidgetTest):
         self.plot.setGraphTitle('CMap X: Log Y: Log')
 
         colormap = {'name': 'gray', 'normalization': 'linear',
-                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                    'colors': 256}
+                    'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self.plot.addImage(DATA_2D, legend="image 1",
                            origin=(1., 1.), scale=(1., 1.),
                            replace=False, resetzoom=False, colormap=colormap)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotRgbRgbaLogXY(self):
         self.plot.setXAxisLogarithmic(True)
@@ -629,7 +616,6 @@ class TestPlotImageLog(_PlotWidgetTest):
                            origin=(5., 5.), scale=(10., 10.),
                            replace=False, resetzoom=False)
         self.plot.resetZoom()
-        self.qWait()
 
 
 class TestPlotMarkerLog(_PlotWidgetTest):
@@ -667,7 +653,6 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " drag"
             self.plot.addXMarker(x, name, name, color, select, drag)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotMarkerYLog(self):
         self.plot.setGraphTitle('Markers Y, Log axes')
@@ -680,7 +665,6 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " drag"
             self.plot.addYMarker(y, name, name, color, select, drag)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotMarkerPtLog(self):
         self.plot.setGraphTitle('Markers Pt, Log axes')
@@ -693,7 +677,6 @@ class TestPlotMarkerLog(_PlotWidgetTest):
                 name += " drag"
             self.plot.addMarker(x, y, name, name, color, select, drag)
         self.plot.resetZoom()
-        self.qWait()
 
 
 class TestPlotItemLog(_PlotWidgetTest):
@@ -743,7 +726,6 @@ class TestPlotItemLog(_PlotWidgetTest):
                               replace=False,
                               shape="polygon", fill=True, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemPolygonLogNoFill(self):
         self.plot.setGraphTitle('Item No Fill Log')
@@ -753,7 +735,6 @@ class TestPlotItemLog(_PlotWidgetTest):
                               replace=False,
                               shape="polygon", fill=False, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemRectangleLogFill(self):
         self.plot.setGraphTitle('Rectangle Fill Log')
@@ -763,7 +744,6 @@ class TestPlotItemLog(_PlotWidgetTest):
                               replace=False,
                               shape="rectangle", fill=True, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
     def testPlotItemRectangleLogNoFill(self):
         self.plot.setGraphTitle('Rectangle No Fill Log')
@@ -773,7 +753,6 @@ class TestPlotItemLog(_PlotWidgetTest):
                               replace=False,
                               shape="rectangle", fill=False, color=color)
         self.plot.resetZoom()
-        self.qWait()
 
 
 def suite():

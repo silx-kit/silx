@@ -38,7 +38,6 @@ import sys
 
 import numpy
 
-from silx.io.configdict import ConfigDict
 from silx.io import dictdump
 from .. import icons, qt
 
@@ -209,7 +208,7 @@ class CurvesROIWidget(qt.QWidget):
         """Load button clicked handler"""
         dialog = qt.QFileDialog(self)
         dialog.setNameFilters(
-             ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
+            ['INI File  *.ini', 'JSON File *.json', 'All *.*'])
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.roiFileDir)
         if not dialog.exec_():
@@ -258,7 +257,7 @@ class CurvesROIWidget(qt.QWidget):
         if not dialog.exec_():
             dialog.close()
             return
-        # pyflakes bug http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=666494
+
         outputFile = dialog.selectedFiles()[0]
         extension = '.' + dialog.selectedNameFilter().split('.')[-1]
         dialog.close()
@@ -683,7 +682,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                 # create again the ICR
                 ddict = {"event": "AddROI"}
                 return self._roiSignal(ddict)
-                currentroi = None
+
             self.roiWidget.fillFromROIDict(roilist=roiList,
                                            roidict=roiDict,
                                            currentroi=currentroi)

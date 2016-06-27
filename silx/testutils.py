@@ -24,21 +24,27 @@
 # ###########################################################################*/
 """Utilities for writting tests.
 
-To test the number of logging messages of different levels, you can use either
-the :class:`TestLogging` with context or the :func:`test_logging` decorator.
+- :class:`ParametricTestCase` provides a :meth:`TestCase.subTest` replacement
+  for Python < 3.4
+- :class:`TestLogging` with context or the :func:`test_logging` decorator
+  enables testing the number of logging messages of different levels.
+- :func:`temp_dir` provides a with context to create/delete a temporary
+  directory.
 
 This module is NOT a test suite.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/05/2016"
+__date__ = "21/06/2016"
 
 
 import contextlib
 import functools
 import logging
+import shutil
 import sys
+import tempfile
 import unittest
 
 
@@ -202,3 +208,20 @@ def test_logging(logger=None, critical=None, error=None,
             return result
         return wrapper
     return decorator
+
+
+# Temporary directory context #################################################
+
+@contextlib.contextmanager
+def temp_dir():
+    """with context providing a temporary directory.
+
+    >>> import os.path
+    >>> with temp_dir() as tmp:
+    ...     print(os.path.isdir(tmp))  # Use tmp directory
+    """
+    tmp_dir = tempfile.mkdtemp()
+    try:
+        yield tmp_dir
+    finally:
+        shutil.rmtree(tmp_dir)

@@ -156,7 +156,7 @@ class BackendBase(object):
         :param numpy.ndarray y: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
         :param str shape: Type of item to be drawn in
-                          hline, polygon, rectangle, vline
+                          hline, polygon, rectangle, vline, polylines
         :param bool fill: True to fill the shape
         :param bool overlay: True if item is an overlay, False otherwise
         :returns: The handle used by the backend to univocally access the item

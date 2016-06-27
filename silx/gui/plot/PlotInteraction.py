@@ -44,15 +44,8 @@ from .PlotEvents import (prepareCurveSignal, prepareDrawingSignal,
 from .BackendBase import (CURSOR_POINTING, CURSOR_SIZE_HOR,
                           CURSOR_SIZE_VER, CURSOR_SIZE_ALL)
 
-
-# Float 32 info ###############################################################
-# Using min/max value below limits of float32
-# so operation with such value (e.g., max - min) do not overflow
-
-FLOAT32_SAFE_MIN = -1e37
-FLOAT32_MINPOS = numpy.finfo(numpy.float32).tiny
-FLOAT32_SAFE_MAX = 1e37
-# TODO double support
+from ._utils import (FLOAT32_SAFE_MIN, FLOAT32_MINPOS, FLOAT32_SAFE_MAX,
+                     applyZoomToPlot)
 
 
 # Base class ##################################################################
@@ -77,7 +70,7 @@ class _PlotInteraction(object):
         assert plot is not None
         return plot
 
-    def setSelectionArea(self, points, fill, color, name=''):
+    def setSelectionArea(self, points, fill, color, name='', shape='polygon'):
         """Set a polygon selection area overlaid on the plot.
         Multiple simultaneous areas are supported through the name parameter.
 
@@ -87,7 +80,10 @@ class _PlotInteraction(object):
         :param color: RGBA color to use or None to disable display
         :type color: list or tuple of 4 float in the range [0, 1]
         :param name: The key associated with this selection area
+        :param str shape: Shape of the area in 'polygon', 'polylines'
         """
+        assert shape in ('polygon', 'polylines')
+
         if color is None:
             return
 
@@ -100,7 +96,7 @@ class _PlotInteraction(object):
 
         self.plot.addItem(points[:, 0], points[:, 1], legend=legend,
                           replace=False,
-                          shape='polygon', color=color, fill=fill,
+                          shape=shape, color=color, fill=fill,
                           overlay=True)
         self._selectionAreas.add(legend)
 
@@ -113,76 +109,6 @@ class _PlotInteraction(object):
 
 # Zoom/Pan ####################################################################
 
-def _scale1DRange(min_, max_, center, scale, isLog):
-    """Scale a 1D range given a scale factor and an center point.
-
-    Keeps the values in a smaller range than float32.
-
-    :param float min_: The current min value of the range.
-    :param float max_: The current max value of the range.
-    :param float center: The center of the zoom (i.e., invariant point).
-    :param float scale: The scale to use for zoom
-    :param bool isLog: Whether using log scale or not.
-    :return: The zoomed range.
-    :rtype: tuple of 2 floats: (min, max)
-    """
-    if isLog:
-        # Min and center can be < 0 when
-        # autoscale is off and switch to log scale
-        # max_ < 0 should not happen
-        min_ = numpy.log10(min_) if min_ > 0. else FLOAT32_MINPOS
-        center = numpy.log10(center) if center > 0. else FLOAT32_MINPOS
-        max_ = numpy.log10(max_) if max_ > 0. else FLOAT32_MINPOS
-
-    if min_ == max_:
-        return min_, max_
-
-    offset = (center - min_) / (max_ - min_)
-    range_ = (max_ - min_) / scale
-    newMin = center - offset * range_
-    newMax = center + (1. - offset) * range_
-
-    if isLog:
-        # No overflow as exponent is log10 of a float32
-        newMin = pow(10., newMin)
-        newMax = pow(10., newMax)
-        newMin = numpy.clip(newMin, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
-    else:
-        newMin = numpy.clip(newMin, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
-        newMax = numpy.clip(newMax, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
-    return newMin, newMax
-
-
-def _applyZoomToPlot(plot, cx, cy, scaleF):
-    """Zoom in/out plot given a scale and a center point.
-
-    :param plot: The plot on which to apply zoom.
-    :param float cx: X coord in data coordinates of the zoom center.
-    :param float cy: Y coord in data coordinates of the zoom center.
-    :param float scaleF: Scale factor of zoom.
-    """
-    dataCenterPos = plot.pixelToData(cx, cy)
-    assert dataCenterPos is not None
-
-    xMin, xMax = plot.getGraphXLimits()
-    xMin, xMax = _scale1DRange(xMin, xMax, dataCenterPos[0], scaleF,
-                               plot.isXAxisLogarithmic())
-
-    yMin, yMax = plot.getGraphYLimits()
-    yMin, yMax = _scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
-                               plot.isYAxisLogarithmic())
-
-    dataPos = plot.pixelToData(cx, cy, axis="right")
-    assert dataPos is not None
-    y2Center = dataPos[1]
-    y2Min, y2Max = plot.getGraphYLimits(axis="right")
-    y2Min, y2Max = _scale1DRange(y2Min, y2Max, y2Center, scaleF,
-                                 plot.isYAxisLogarithmic())
-
-    plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
-
-
 class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     """:class:`ClickOrDrag` state machine with zooming on mouse wheel.
 
@@ -191,7 +117,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1./1.1
-            _applyZoomToPlot(self.machine.plot, x, y, scaleF)
+            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def __init__(self, plot):
         """Init.
@@ -480,7 +406,7 @@ class Select(StateMachine, _PlotInteraction):
 
     def onWheel(self, x, y, angle):
         scaleF = 1.1 if angle > 0 else 1./1.1
-        _applyZoomToPlot(self.plot, x, y, scaleF)
+        applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
     def color(self):
@@ -865,6 +791,69 @@ class SelectVLine(Select1Point):
         self.resetSelectionArea()
 
 
+class SelectFreeLine(ClickOrDrag, _PlotInteraction):
+    """Base class for drawing free lines with tools such as pencil."""
+
+    def __init__(self, plot, parameters):
+        """Init a state machine.
+
+        :param plot: The plot to apply changes to.
+        :param dict parameters: A dict of parameters such as color.
+        """
+        # self.DRAG_THRESHOLD_SQUARE_DIST = 1  # Disable first move threshold
+        self._points = []
+        ClickOrDrag.__init__(self)
+        _PlotInteraction.__init__(self, plot)
+        self.parameters = parameters
+
+    def onWheel(self, x, y, angle):
+        scaleF = 1.1 if angle > 0 else 1./1.1
+        applyZoomToPlot(self.plot, scaleF, (x, y))
+
+    @property
+    def color(self):
+        return self.parameters.get('color', None)
+
+    def click(self, x, y, btn):
+        if btn == LEFT_BTN:
+            self._processEvent(x, y, isLast=True)
+
+    def beginDrag(self, x, y):
+        self._processEvent(x, y, isLast=False)
+
+    def drag(self, x, y):
+        self._processEvent(x, y, isLast=False)
+
+    def endDrag(self, startPos, endPos):
+        x, y = endPos
+        self._processEvent(x, y, isLast=True)
+
+    def cancel(self):
+        self.resetSelectionArea()
+        self._points = []
+
+    def _processEvent(self, x, y, isLast):
+        dataPos = self.plot.pixelToData(x, y, check=False)
+        isNewPoint = not self._points or dataPos != self._points[-1]
+
+        if isNewPoint:
+            self._points.append(dataPos)
+
+        if isNewPoint or isLast:
+            eventDict = prepareDrawingSignal(
+                'drawingFinished' if isLast else 'drawingProgress',
+                'polylines',
+                self._points,
+                self.parameters)
+            self.plot.notify(**eventDict)
+
+        if not isLast:
+            self.setSelectionArea(self._points, fill=None, color=self.color,
+                                  shape='polylines')
+        else:
+            self.cancel()
+
+
 # ItemInteraction #############################################################
 
 class ItemsInteraction(ClickOrDrag, _PlotInteraction):
@@ -875,7 +864,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1./1.1
-            _applyZoomToPlot(self.machine.plot, x, y, scaleF)
+            applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
@@ -1198,6 +1187,7 @@ class PlotInteraction(object):
         'line': SelectLine,
         'vline': SelectVLine,
         'hline': SelectHLine,
+        'polylines': SelectFreeLine,
     }
 
     def __init__(self, plot):
@@ -1243,7 +1233,8 @@ class PlotInteraction(object):
         :type color: Color description: The name as a str or
                      a tuple of 4 floats or None.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                          'polylines'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode.
         """

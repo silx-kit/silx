@@ -34,6 +34,16 @@ import math
 import numpy
 
 
+# Float 32 info ###############################################################
+# Using min/max value below limits of float32
+# so operation with such value (e.g., max - min) do not overflow
+
+FLOAT32_SAFE_MIN = -1e37
+FLOAT32_MINPOS = numpy.finfo(numpy.float32).tiny
+FLOAT32_SAFE_MAX = 1e37
+# TODO double support
+
+
 def addMarginsToLimits(margins, isXLog, isYLog,
                        xMin, xMax, yMin, yMax, y2Min=None, y2Max=None):
     """Returns updated limits by extending them with margins.
@@ -89,6 +99,83 @@ def addMarginsToLimits(margins, isXLog, isYLog,
         return xMin, xMax, yMin, yMax
     else:
         return xMin, xMax, yMin, yMax, y2Min, y2Max
+
+
+def scale1DRange(min_, max_, center, scale, isLog):
+    """Scale a 1D range given a scale factor and an center point.
+
+    Keeps the values in a smaller range than float32.
+
+    :param float min_: The current min value of the range.
+    :param float max_: The current max value of the range.
+    :param float center: The center of the zoom (i.e., invariant point).
+    :param float scale: The scale to use for zoom
+    :param bool isLog: Whether using log scale or not.
+    :return: The zoomed range.
+    :rtype: tuple of 2 floats: (min, max)
+    """
+    if isLog:
+        # Min and center can be < 0 when
+        # autoscale is off and switch to log scale
+        # max_ < 0 should not happen
+        min_ = numpy.log10(min_) if min_ > 0. else FLOAT32_MINPOS
+        center = numpy.log10(center) if center > 0. else FLOAT32_MINPOS
+        max_ = numpy.log10(max_) if max_ > 0. else FLOAT32_MINPOS
+
+    if min_ == max_:
+        return min_, max_
+
+    offset = (center - min_) / (max_ - min_)
+    range_ = (max_ - min_) / scale
+    newMin = center - offset * range_
+    newMax = center + (1. - offset) * range_
+
+    if isLog:
+        # No overflow as exponent is log10 of a float32
+        newMin = pow(10., newMin)
+        newMax = pow(10., newMax)
+        newMin = numpy.clip(newMin, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
+        newMax = numpy.clip(newMax, FLOAT32_MINPOS, FLOAT32_SAFE_MAX)
+    else:
+        newMin = numpy.clip(newMin, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
+        newMax = numpy.clip(newMax, FLOAT32_SAFE_MIN, FLOAT32_SAFE_MAX)
+    return newMin, newMax
+
+
+def applyZoomToPlot(plot, scaleF, center=None):
+    """Zoom in/out plot given a scale and a center point.
+
+    :param plot: The plot on which to apply zoom.
+    :param float scaleF: Scale factor of zoom.
+    :param center: (x, y) coords in data coordinates of the zoom center.
+    :type center: 2-tuple of float
+    """
+    xMin, xMax = plot.getGraphXLimits()
+    yMin, yMax = plot.getGraphYLimits()
+
+    if center is None:
+        left, top, width, height = plot.getPlotBoundsInPixels()
+        cx, cy = left + width // 2, top + height // 2
+    else:
+        cx, cy = center
+
+    dataCenterPos = plot.pixelToData(cx, cy)
+    assert dataCenterPos is not None
+
+    xMin, xMax = scale1DRange(xMin, xMax, dataCenterPos[0], scaleF,
+                              plot.isXAxisLogarithmic())
+
+    yMin, yMax = scale1DRange(yMin, yMax, dataCenterPos[1], scaleF,
+                              plot.isYAxisLogarithmic())
+
+    dataPos = plot.pixelToData(cx, cy, axis="right")
+    assert dataPos is not None
+    y2Center = dataPos[1]
+    y2Min, y2Max = plot.getGraphYLimits(axis="right")
+    y2Min, y2Max = scale1DRange(y2Min, y2Max, y2Center, scaleF,
+                                plot.isYAxisLogarithmic())
+
+    plot.setLimits(xMin, xMax, yMin, yMax, y2Min, y2Max)
 
 
 def applyPan(min_, max_, panFactor, isLog10):

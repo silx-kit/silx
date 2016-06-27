@@ -290,7 +290,7 @@ class ClickOrDrag(StateMachine):
         """
         pass
 
-    def endDrag(self, x, y):
+    def endDrag(self, startPoint, endPoint):
         """Called at the end of a drag gesture when the left button is
         released.
 
