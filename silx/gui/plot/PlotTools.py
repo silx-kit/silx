@@ -329,7 +329,6 @@ class ProfileToolBar(qt.QToolBar):
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
-    # TODO when available, listen to active image change to refresh profile
     # TODO Make it a QActionGroup instead of a QToolBar
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
@@ -427,6 +426,17 @@ class ProfileToolBar(qt.QToolBar):
 
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
+
+        # Enable toolbar only if there is an active image
+        self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
+        self.plot.sigActiveImageChanged.connect(
+            self._activeImageChanged)
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        self.setEnabled(legend is not None)
+        if legend is not None:
+            self.updateProfile()
 
     def _lineWidthSpinBoxValueChangedSlot(self, value):
         """Listen to ROI width widget to refresh ROI and profile"""
