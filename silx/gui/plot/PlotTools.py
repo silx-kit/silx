@@ -556,10 +556,12 @@ class ProfileToolBar(qt.QToolBar):
             profile = numpy.zeros((width,), dtype=numpy.float32)
 
         # Compute effective ROI in plot coords
-        profileBounds = numpy.array((0, width, width, 0),
-                                    dtype=numpy.float32) * scale[0] + origin[0]
-        roiBounds = numpy.array((start, start, end, end),
-                                dtype=numpy.float32) * scale[1] + origin[1]
+        profileBounds = numpy.array(
+            (0, width, width, 0),
+            dtype=numpy.float32) * scale[axis] + origin[axis]
+        roiBounds = numpy.array(
+            (start, start, end, end),
+            dtype=numpy.float32) * scale[1 - axis] + origin[1 - axis]
 
         if axis == 0:  # Horizontal profile
             area = profileBounds, roiBounds
@@ -742,12 +744,12 @@ class ProfileToolBar(qt.QToolBar):
                                  startPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] - 0.5 * roiWidth * dCol),
-                                dtype=numpy.float32) * scale[1] + origin[1],
+                                dtype=numpy.float32) * scale[0] + origin[0],
                     numpy.array((startPt[0] - 0.5 * roiWidth * dRow,
                                  startPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] - 0.5 * roiWidth * dRow),
-                                dtype=numpy.float32) * scale[0] + origin[0])
+                                dtype=numpy.float32) * scale[1] + origin[1])
 
             y0, x0 = startPt
             y1, x1 = endPt
