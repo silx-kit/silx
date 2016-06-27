@@ -639,6 +639,7 @@ class ProfileToolBar(qt.QToolBar):
 
         data, params = imageData[0], imageData[4]
         origin, scale = params['origin'], params['scale']
+        zActiveImage = params['z']
 
         roiWidth = max(1, self.lineWidthSpinBox.value())
         roiStart, roiEnd, lineProjectionMode = self._roiInfo
@@ -774,7 +775,7 @@ class ProfileToolBar(qt.QToolBar):
                           legend=self._POLYGON_LEGEND,
                           color=self.overlayColor,
                           shape='polygon', fill=True,
-                          replace=False)
+                          replace=False, z=zActiveImage+1)
 
         if self._ownProfileWindow and not self.profileWindow.isVisible():
             # If profile window was created in this widget,
