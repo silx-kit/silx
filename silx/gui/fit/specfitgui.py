@@ -27,16 +27,14 @@ import logging
 import sys
 import traceback
 
-import PyMca5
-from PyMca5.PyMcaCore import EventHandler
-
+from silx.math.fit import SpecfitFunctions
 from silx.math.fit import specfit
 from silx.gui import qt
 from .specfitwidgets import (FitActionsButtons, FitStatusLines,
                              FitConfigWidget, ParametersTab)
 
 QTVERSION = qt.qVersion()
-from PyMca5.PyMcaGui.math.fitting import QScriptOption
+from PyMca5.PyMcaGui.math.fitting import QScriptOption   # FIXME
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -51,29 +49,22 @@ class SpecfitGui(qt.QWidget):
 
     def __init__(self, parent=None, name=None, fl=0,
                  specfit_instance=None,
-                 config=0, status=0, buttons=0,
-                 event_handler=None):
+                 config=0, status=0, buttons=0):
         if name is None:
             name = "SpecfitGui"
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
         layout = qt.QVBoxLayout(self)
-        # layout.setAutoAdd(1)
-        if event_handler is None:
-            self.eh = EventHandler.EventHandler()
-        else:
-            self.eh = event_handler
+
         if specfit_instance is None:
-            self.specfit = specfit.Specfit(event_handler=self.eh)
+            self.specfit = specfit.Specfit()
         else:
             self.specfit = specfit_instance
 
         # initialize the default fitting functions in case
-        #none is present
-        # FIXME
+        # none is present
         if not len(self.specfit.theorydict):
-            self.specfit.importfun(
-                PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)
+            self.specfit.importfun(SpecfitFunctions.__file__)
 
         # copy specfit configure method for direct access
         self.configure = self.specfit.configure
@@ -143,7 +134,6 @@ class SpecfitGui(qt.QWidget):
 
         if status:
             self.guistatus = FitStatusLines(self)
-            self.eh.register('FitStatusChanged', self.fitstatus)
             layout.addWidget(self.guistatus)
         if buttons:
             self.guibuttons = FitActionsButtons(self)
@@ -287,7 +277,7 @@ class SpecfitGui(qt.QWidget):
         else:
             try:
                 if self.specfit.theorydict[self.specfit.fitconfig['fittheory']][2] is not None:
-                    self.specfit.estimate()
+                    self.specfit.estimate(callback=self.fitstatus)
                 else:
                     msg = qt.QMessageBox(self)
                     msg.setIcon(qt.QMessageBox.Information)
@@ -303,7 +293,7 @@ class SpecfitGui(qt.QWidget):
                     raise
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("Error on estimate: %s" % sys.exc_info()[1])
+                msg.setText("Error on estimate: %s" % traceback.format_exc())
                 msg.exec_()
                 return
             self.guiparameters.fillfromfit(
@@ -345,9 +335,9 @@ class SpecfitGui(qt.QWidget):
                 for param in self.specfit.fit_results:
                     print(param['name'], param['group'], param['estimation'])
                 print("TESTING")
-                self.specfit.startfit()
+                self.specfit.startfit(callback=self.fitstatus)
             try:
-                self.specfit.startfit()
+                self.specfit.startfit(callback=self.fitstatus)
             except:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Critical)
@@ -527,12 +517,8 @@ class SpecfitGui(qt.QWidget):
         return
 
 
-# FIXME
-
-
 if __name__ == "__main__":
     import numpy
-    from PyMca5 import SpecfitFunctions
     a = SpecfitFunctions.SpecfitFunctions()
     x = numpy.arange(2000).astype(numpy.float)
     p1 = numpy.array([1500, 100., 30.0])
@@ -545,11 +531,11 @@ if __name__ == "__main__":
     p8 = numpy.array([1500, 1500., 30.0])
     p9 = numpy.array([1500, 1700., 30.0])
     p10 = numpy.array([1500, 1900., 30.0])
-    y = a.gauss(p1, x) + 1
-    y = y + a.gauss(p2, x)
-    y = y + a.gauss(p3, x)
-    y = y + a.gauss(p4, x)
-    y = y + a.gauss(p5, x)
+    y = a.gauss(x, p1) + 1
+    y = y + a.gauss(x, p2)
+    y = y + a.gauss(x, p3)
+    y = y + a.gauss(x, p4)
+    y = y + a.gauss(x, p5)
     #y = y + a.gauss(p6,x)
     #y = y + a.gauss(p7,x)
     #y = y + a.gauss(p8,x)

@@ -640,9 +640,9 @@ class ParametersTab(qt.QTabWidget):
 
 def test():
     import os
-    import PyMca5
+    from silx.math.fit import SpecfitFunctions
     from silx.math.fit import specfit
-    from PyMca5 import PyMcaDataDir
+    from PyMca5 import PyMcaDataDir      # FIXME
     import numpy
     a = qt.QApplication([])
     a.lastWindowClosed.connect(a.quit)
@@ -655,7 +655,8 @@ def test():
     x = numpy.arange(len(y)) * 0.0502883 - 0.492773
     fit = specfit.Specfit()
     fit.setdata(x=x, y=y)
-    fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)
+
+    fit.importfun(SpecfitFunctions.__file__)
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,
                   WeightFlag=1,
@@ -665,8 +666,6 @@ def test():
                   PositionFlag=1,
                   HypermetTails=1)
     fit.setbackground('Linear')
-    # mcaresult = fit.mcafit(x=x, xmin=x[300], xmax=x[1000])
-    # w.fillfrommca(mcaresult)
     fit.estimate()
     fit.startfit()
     w.fillfromfit(fit.fit_results, current='Fit')
