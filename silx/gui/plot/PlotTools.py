@@ -346,7 +346,7 @@ class ProfileToolBar(qt.QToolBar):
 
         if profileWindow is None:
             # Import here to avoid cyclic import
-            from .PlotWindow import PlotWindow
+            from .PlotWindow import PlotWindow  # noqa
             self.profileWindow = PlotWindow(parent=None, backend=None,
                                             resetzoom=True, autoScale=True,
                                             logScale=True, grid=True,
