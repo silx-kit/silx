@@ -123,9 +123,9 @@ class ColormapDialog(qt.QDialog):
         self._minMaxWasEdited = False
 
         self._colormapList = (
-            'gray', 'reversed gray', 'viridis',
-            'temperature', 'red', 'green', 'blue',
-            'magma', 'inferno', 'plasma')
+            'gray', 'reversed gray',
+            'temperature', 'red', 'green', 'blue', 'jet',
+            'viridis', 'magma', 'inferno', 'plasma')
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
