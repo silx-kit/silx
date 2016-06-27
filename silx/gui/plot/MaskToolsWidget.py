@@ -746,7 +746,7 @@ class MaskToolsWidget(qt.QWidget):
         try:
             self.plot.sigActiveImageChanged.disconnect(
                 self._activeImageChangedAfterCare)
-        except RuntimeError:
+        except (RuntimeError, TypeError):
             pass
         self._activeImageChanged()  # Init mask + enable/disable widget
         self.plot.sigActiveImageChanged.connect(self._activeImageChanged)
