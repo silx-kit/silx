@@ -640,7 +640,7 @@ class ParametersTab(qt.QTabWidget):
 
 def test():
     import os
-    from silx.math.fit import SpecfitFunctions
+    from silx.math.fit import specfitfunctions
     from silx.math.fit import specfit
     from PyMca5 import PyMcaDataDir      # FIXME
     import numpy
@@ -656,7 +656,7 @@ def test():
     fit = specfit.Specfit()
     fit.setdata(x=x, y=y)
 
-    fit.importfun(SpecfitFunctions.__file__)
+    fit.importfun(specfitfunctions.__file__)
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,
                   WeightFlag=1,

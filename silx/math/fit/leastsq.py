@@ -665,7 +665,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             #removed I resize outside the loop:
             #help0 = numpy.resize(help0,(1,nr))
         else:
-            help0 = model_deriv(x, pwork,free_index[i])
+            help0 = model_deriv(x, pwork, free_index[i])
             help0 = help0 * derivfactor[i]
 
         if i == 0:

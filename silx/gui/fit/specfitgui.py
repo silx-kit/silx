@@ -27,7 +27,7 @@ import logging
 import sys
 import traceback
 
-from silx.math.fit import SpecfitFunctions
+from silx.math.fit import specfitfunctions
 from silx.math.fit import specfit
 from silx.gui import qt
 from .specfitwidgets import (FitActionsButtons, FitStatusLines,
@@ -64,7 +64,7 @@ class SpecfitGui(qt.QWidget):
         # initialize the default fitting functions in case
         # none is present
         if not len(self.specfit.theorydict):
-            self.specfit.importfun(SpecfitFunctions.__file__)
+            self.specfit.importfun(specfitfunctions.__file__)
 
         # copy specfit configure method for direct access
         self.configure = self.specfit.configure
@@ -519,7 +519,7 @@ class SpecfitGui(qt.QWidget):
 
 if __name__ == "__main__":
     import numpy
-    a = SpecfitFunctions.SpecfitFunctions()
+    a = specfitfunctions.SpecfitFunctions()
     x = numpy.arange(2000).astype(numpy.float)
     p1 = numpy.array([1500, 100., 30.0])
     p2 = numpy.array([1500, 300., 30.0])
