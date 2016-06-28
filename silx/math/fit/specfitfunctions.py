@@ -21,6 +21,105 @@
 # THE SOFTWARE.
 #
 ########################################################################### */
+"""This modules provides a set of multi-peak fit functions and associated
+estimation functions in a format that can be imported into a
+:class:`silx.math.fit.specfit.Specfit` instance.
+
+The functions to be imported by :meth:`Specfit.importfun` are defined by
+following lists of equal length:
+
+    - :const:`THEORY`: list of function names
+    - :const:`FUNCTION`: list of actual functions.
+      Each function must conform to the following signature:
+      ``f(x, *params) -> y``
+
+         - ``x`` is a sequence of values for the independent variable
+           where the function is calculated.
+         - ``params`` is a list of parameters needed by the function. There
+           is a minimal number ``n`` of required parameters for each function,
+           but the length of the list can be longer, as long as it is a multiple
+           of ``n``. In that case, the function will calculate and sum the base
+           function using the parameters for each series of ``n`` consecutive
+           parameters.
+
+           For example, a gaussian function may require 3 parameters (*height,
+           center* and *fwhm*). Provided wit a list of 9 parameters, the
+           gaussian function  will return the sum of 3 gaussians with various
+           heights, center positions and widths.
+
+           This makes it easy to fit data multiple peaks as a sum of individual
+           peak functions.
+         - ``y`` is the output sequence of the function calculated for
+           each ``x`` value
+
+    - :const:`PARAMETERS`: list of lists of parameter names for the base function
+      (e.g. ``["height", "center", "fwhm"]`` for a gaussian)
+    - :const:`ESTIMATE`: estimation function. Provided with data, this function
+      is responsible for determining how many parameters are needed (usually
+      by finding the number of peaks), and returning reasonable estimations
+      for each parameters, as well as constraints for each parameter. These
+      return values can be used to serve as initial parameters for a recursive
+      fitting algorithm (such as :func:`silx.math.fit.leastsq`)
+
+      The signature of the estimation function must conform to:
+      ``f(x, y, zzz, xscaling=1.0, yscaling=None) -> (parameters, constraints)``
+
+          - ``x``: sequence of values for the independent variable
+            where the function is calculated.
+          - ``y``: data to be fitted
+          - ``z``: ?? (maybe a custom background to be subtracted from the
+            data before fitting)
+          - ``xscaling``: scaling parameter for ``x`` values (default *1.0*)
+          - ``yscaling``: scaling parameter for ``y`` values. If ``None``,
+            use ``"Yscaling"`` field in :attr:`config` dictionary.
+
+          - ``parameters``: list of estimated value for each parameter
+          - ``constraints``:
+            2D sequence of dimension ``(n_parameters, 3)`` where,
+            for each parameter denoted by the index i, the meaning is
+
+                     - ``constraints[i][0]`` -- constraint code defining the
+                       meaning of ``constraints[i][1]`` and ``constraints[i][2]``
+
+                        - 0 - Free (CFREE)
+                        - 1 - Positive (CPOSITIVE)
+                        - 2 - Quoted (CQUOTED)
+                        - 3 - Fixed (CFIXED)
+                        - 4 - Factor (CFACTOR)
+                        - 5 - Delta (CDELTA)
+                        - 6 - Sum (CSUM)
+
+
+                     - ``constraints[i][1]``
+
+                        - Ignored if ``constraints[i][0]`` is 0, 1 or 3
+                        - Min value of the parameter if ``constraints[i][0]`` is CQUOTED
+                        - Index of fitted parameter to which it is related
+
+                     - ``constraints[i][2]``
+
+                        - Ignored if ``constraints[i][0]`` is 0, 1 or 3
+                        - Max value of the parameter if constraints[i][0] is CQUOTED
+                        - Factor to apply to related parameter with index ``constraints[i][1]``
+                        - Difference with parameter with index ``constraints[i][1]``
+                        - Sum obtained when adding parameter with index ``constraints[i][1]``
+
+
+    - :const:`CONFIGURE`: list of configuration functions. A configuration
+      function can update configuration variables that influence the behavior
+      of fit functions or estimation functions.
+
+By following this structure, you can define your own fit functions to be used
+with :class:`silx.math.fit.specfit.Specfit`.
+
+Module members:
+---------------
+"""
+# TODO: explain estimate sinature ``zz``
+# TODO: assess if CONFIGURE is really necessary. It could be cleaner to use
+#       optional arguments for fit functions and estimation functions.
+# TODO: replace lists with one big dictionary (Specfit to be modified)
+
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
@@ -28,9 +127,8 @@ import os
 import numpy
 arctan = numpy.arctan
 
-#from PyMca5.PyMcaMath.fitting import SpecfitFuns
 from silx.math.fit import functions, filters
-from silx.math.fit.peaks import peak_search
+from silx.math.fit.peaks import peak_search, guess_fwhm
 from silx.math.fit.leastsq import leastsq
 
 DEBUG = 0
@@ -94,6 +192,13 @@ SPECFITFUNCTIONS_DEFAULTS = {'FileAction': 0,
                              'DeltaPositionFwhmUnits': 0.5,
                              'SameSlopeRatioFlag': 1,
                              'SameAreaRatioFlag': 1}
+"""This dictionary defines default configuration parameters that have effects
+on fit functions and estimation functions.
+This dictionary  is replicated as attribute :attr:`SpecfitFunctions.config`,
+which can be modified by configuration functions defined in
+:const:`CONFIGURE`.
+"""
+
 CFREE = 0
 CPOSITIVE = 1
 CQUOTED = 2
@@ -105,28 +210,28 @@ CIGNORED = 7
 
 
 class SpecfitFunctions(object):
-
+    """Class wrapping functions from :class:`silx.math.fit.functions`
+    and providing estimate functions for all of these fit functions."""
     def __init__(self, config=None):
         if config is None:
             self.config = SPECFITFUNCTIONS_DEFAULTS
         else:
             self.config = config
 
-    def gauss(self, x, *pars):
+    def ahypermet(self, x, *pars):
         """
-        A fit function.
-        """
-        return functions.sum_gauss(x, *pars)
+        Wrapping of :func:`silx.math.fit.functions.sum_ahypermet`.
 
-    def agauss(self, x, *pars):
-        """
-        A fit function.
-        """
-        return functions.sum_agauss(x, *pars)
+        Depending on the value of `self.config['HypermetTails']`, one can
+        activate or deactivate the various terms of the hypermet function.
 
-    def hypermet(self, x, *pars):
-        """
-        A fit function.
+        `self.config['HypermetTails']` must be an integer between 0 and 15.
+        It is a set of 4 binary flags, one for activating each one of the
+        hypermet terms: *gaussian function, short tail, long tail, step*.
+
+        For example, 15 can be expressed as ``1111`` in base 2, so a value of
+        15 corresponds to all terms being active.
+
         """
         g_term = self.config['HypermetTails'] & 1
         st_term = (self.config['HypermetTails'] >> 1) & 1
@@ -135,66 +240,6 @@ class SpecfitFunctions(object):
         return functions.sum_ahypermet(x, *pars,
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
-
-    def lorentz(self, x, *pars):
-        """
-        Fit function.
-        """
-        return functions.sum_lorentz(x, *pars)
-
-    def alorentz(self, x, *pars):
-        """
-        Fit function.
-        """
-        return functions.sum_alorentz(x, *pars)
-
-    def pvoigt(self, x, *pars):
-        """
-        Fit function.
-        """
-        return functions.sum_pvoigt(x, *pars)
-
-    def apvoigt(self, x, *pars):
-        """
-        Fit function.
-        """
-        return functions.sum_apvoigt(x, *pars)
-
-    def splitgauss(self, x, *pars):
-        """
-        Asymmetric gaussian.
-        """
-        return functions.sum_splitgauss(x, *pars)
-
-    def splitlorentz(self, x, *pars):
-        """
-        Asymmetric lorentz.
-        """
-        return functions.sum_splitlorentz(x, *pars)
-
-    def splitpvoigt(self, x, *pars):
-        """
-        Asymmetric pseudovoigt.
-        """
-        return functions.sum_splitpvoigt(x, *pars)
-
-    def stepdown(self, x, *pars):
-        """
-        A fit function.
-        """
-        return 0.5 * functions.sum_downstep(x, *pars)
-
-    def stepup(self, x, *pars):
-        """
-        A fit function.
-        """
-        return 0.5 * functions.sum_upstep(x, *pars)
-
-    def slit(self, x, *pars):
-        """
-        A fit function.
-        """
-        return 0.5 * functions.sum_slit(x, *pars)
 
     def atan(self, x, *pars):
         return pars[0] * (0.5 + (arctan((1.0 * x - pars[1]) / pars[2]) / numpy.pi))
@@ -211,191 +256,64 @@ class SpecfitFunctions(object):
             newpars[:, 2] = pars[4]
         return functions.sum_gauss(x, newpars)
 
-    def gauss2(self, t0, *param0):
-        param = numpy.array(param0)
-        t = numpy.array(t0)
-        dummy = 2.3548200450309493 * (t - param[1]) / param[2]
-        return param[0] * self.myexp(-0.5 * dummy * dummy)
-
-    def myexp(self, x):
-        # put a (bad) filter to avoid over/underflows
-        # with no python looping
-        return numpy.exp(x * numpy.less(abs(x), 250)) - 1.0 * numpy.greater_equal(abs(x), 250)
-
     def indexx(x):
         # adapted from runningReport (Mike Fletcher, Python newsgroup)
         set = map(None, x, range(len(x)))
         set.sort()  # sorts by values and then by index
         return map(lambda x: x[1], set)
 
-    def bkg_constant(self, x, *pars):
-        """
-        Constant background
-        """
-        return pars[0]
+    def user_estimate(self, x, y, z, xscaling=1.0, yscaling=1.0):
+        """Interactive estimation function for gaussian parameters.
+        The user is prompted for his estimation of *Height, Position, FWHM*
+        for each gaussian peak in the data.
 
-    def bkg_linear(self, x, *pars):
+        :return: Tuple of estimated parameters and constraints. Parameters are
+            provided by the user. Fit constraints are set to 0 / FREE for all
+            parameters.
         """
-        Linear background
-        """
-        return pars[0] + pars[1] * x
-
-    def bkg_internal(self, x, *pars):
-        """
-        Internal Background
-        """
-        yy = filters.strip(self.ydata * 1.0,
-                           pars[0], pars[1])
-        nrx = shape(x)[0]
-        nry = shape(yy)[0]
-        if nrx == nry:
-            return filters.strip(yy, factor=pars[0], niterations=pars[1])
-        else:
-            return filters.strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-                                 factor=pars[0], niterations=pars[1])
-
-    def bkg_none(self, x, *pars):
-        """
-        Internal Background
-        """
-        return numpy.zeros(x.shape, numpy.float)
-
-    def fun(self, param, t):
-        gterm = param[
-            2] * numpy.exp(-0.5 * ((t - param[3]) * (t - param[3])) / param[4])
-        #gterm = gterm + param[3] * numpy.exp(-0.5 * ((t - param[4]) * (t - param[4]))/param[5])
-        bterm = param[1] * t + param[0]
-        return gterm + bterm
-
-    def estimate(self, x, y, z, xscaling=1.0, yscaling=1.0):
         ngauss = input(' Number of Gaussians : ')
         ngauss = int(ngauss)
         if ngauss < 1:
             ngauss = 1
         newpar = []
         for i in range(ngauss):
-            print("Defining Gaussian numer %d " % (i + 1))
+            print("Defining Gaussian number %d " % (i + 1))
             newpar.append(input('Height   = '))
             newpar.append(input('Position = '))
             newpar.append(input('FWHM     = '))
             # newpar.append(in)
         return newpar, numpy.zeros((len(newpar), 3), numpy.float)
 
-    def seek(self, y, x=None, yscaling=None,
-             fwhm=None,
-             sensitivity=None,
-             mca=None):
-        """
-        SpecfitFunctions.seek(self,y,
-                                x=None,
-                                yscaling=None,fwhm=None,sensitivity=None,
-                                mca=None)
-        It searches for peaks in the y array. If x it is given, it gives back
-        the closest x(s) to the position of the peak(s). Otherways it gives back
-        the index of the closest point to the peak.
+    def estimate_height_position_fwhm(self, x, y, zzz,
+                                      xscaling=1.0, yscaling=None):
+        """Estimation of *Height, Position, FWHM* of peaks, for gaussian-like
+        curves.
+
+        This functions finds how many parameters are needed, based on the
+        number of peaks detected. Then it estimates the fit parameters
+        with a few iterations of fitting gaussian functions.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Height, Position, FWHM*.
+            Fit constraints depend on :attr:`config`.
         """
         if yscaling is None:
-            yscaling = self.config['Yscaling']
-
-        if fwhm is None:
-            if self.config['AutoFwhm']:
-                fwhm = self.guess_fwhm(x=x, y=y)
-            else:
-                fwhm = self.config['FwhmPoints']
-        if sensitivity is None:
-            sensitivity = self.config['Sensitivity']
-        if mca is None:
-            mca = self.config['McaMode']
-
-        search_fwhm = int(max(fwhm, 3))
-        search_sensitivity = max(1.0, sensitivity)
-        mca = 1.0
-        if mca:
-            ysearch = numpy.array(y) * yscaling
-        else:
-            ysearch = numpy.ones([len(y) + 2 * search_fwhm, ], numpy.float)
-            if y[0]:
-                ysearch[0:(search_fwhm + 1)
-                        ] = ysearch[0:(search_fwhm + 1)] * y[0] * yscaling
-            else:
-                ysearch[0:(search_fwhm + 1)] = ysearch[0:(search_fwhm + 1)
-                                                       ] * yscaling * sum(y[0:3]) / 3.0
-            ysearch[-1:-(search_fwhm + 1):-1] = ysearch[-1:-
-                                                        (search_fwhm + 1):-1] * y[len(y) - 1] * yscaling
-            ysearch[search_fwhm:(search_fwhm + len(y))] = y * yscaling
-        npoints = len(ysearch)
-        if npoints > (1.5) * search_fwhm:
-            peaks = peak_search(ysearch,
-                                fwhm=search_fwhm,
-                                sensitivity=search_sensitivity)
-        else:
-            peaks = []
-
-        if len(peaks) > 0:
-            if mca == 0:
-                for i in range(len(peaks)):
-                    peaks[i] = int(peaks[i] - search_fwhm)
-            for i in peaks:
-                if (i < 1) | (i > (npoints - 1)):
-                    peaks.remove(i)
-            if x is not None:
-                if len(x) == len(y):
-                    for i in range(len(peaks)):
-                        peaks[i] = x[int(max(peaks[i], 0))]
-        # print "peaks found = ",peaks,"mca =",mca,"fwhm=",search_fwhm,\
-        #        "sensi=",search_sensitivity,"scaling=",yscaling
-        return peaks
-
-    def guess_fwhm(self, **kw):
-        if 'y' in kw:
-            y = kw['y']
-        else:
-            return self.config['FwhmPoints']
-        if 'x' in kw:
-            x = kw['x']
-        else:
-            x = numpy.arange(len(y)) * 1.0
-
-        # set at least a default value for the fwhm
-        fwhm = 4
-
-        zz = filters.strip(y, factor=1.000, niterations=1000)
-        yfit = y - zz
-
-        # now I should do some sort of peak search ...
-        maximum = max(yfit)
-        idx = numpy.nonzero(yfit == maximum)[0]
-        pos = numpy.take(x, idx)[-1]
-        posindex = idx[-1]
-        height = yfit[posindex]
-        imin = posindex
-        while ((yfit[imin] > 0.5 * height) & (imin > 0)):
-            imin -= 1
-        imax = posindex
-        while ((yfit[imax] > 0.5 * height) & (imax < (len(yfit) - 1))):
-            imax += 1
-        fwhm = max(imax - imin - 1, fwhm)
-
-        return fwhm
-
-    def estimate_gauss(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        if yscaling == None:
             try:
                 yscaling = self.config['Yscaling']
             except:
                 yscaling = 1.0
         if yscaling == 0:
             yscaling = 1.0
-        fittedpar = []
-        zz = filters.strip(yy, factor=1.000, niterations=10000)
 
-        npoints = len(zz)
+        fittedpar = []
+        background = filters.strip(y, factor=1.000, niterations=10000)
+
         if self.config['AutoFwhm']:
-            search_fwhm = self.guess_fwhm(x=xx, y=yy)
+            search_fwhm = guess_fwhm(y)
         else:
             search_fwhm = int(float(self.config['FwhmPoints']))
         search_sens = float(self.config['Sensitivity'])
-        search_mca = int(float(self.config['McaMode']))
 
         if search_fwhm < 3:
             search_fwhm = 3
@@ -405,46 +323,56 @@ class SpecfitFunctions(object):
             search_sens = 1
             self.config['Sensitivity'] = 1
 
+        npoints = len(background)
+
+        # Find indices of peaks in data array
         if npoints > 1.5 * search_fwhm:
-            peaks = self.seek(yy, fwhm=search_fwhm,
-                              sensitivity=search_sens,
-                              yscaling=yscaling,
-                              mca=search_mca)
+            peaks = peak_search(yscaling * y,
+                                fwhm=search_fwhm,
+                                sensitivity=search_sens)
         else:
             peaks = []
+
         if not len(peaks):
             mca = int(float(self.config.get('McaMode', 0)))
             forcePeak = int(float(self.config.get('ForcePeakPresence', 0)))
             if (not mca) and forcePeak:
-                delta = yy - zz
+                delta = y - background
                 peaks = [int(numpy.nonzero(delta == delta.max())[0])]
 
-        largest_index = 0
+        # Find index of largest peak in peaks array
+        index_largest_peak = 0
         if len(peaks) > 0:
-            sig = 5 * abs(xx[npoints - 1] - xx[0]) / npoints
-            peakpos = xx[peaks[0]]
+            # estimate fwhm as 5 * sampling interval
+            sig = 5 * abs(x[npoints - 1] - x[0]) / npoints
+            peakpos = x[int(peaks[0])]
             if abs(peakpos) < 1.0e-16:
                 peakpos = 0.0
             param = numpy.array(
-                [yy[int(peaks[0])] - zz[int(peaks[0])], peakpos, sig])
-            largest = param
-            j = 1
+                [y[int(peaks[0])] - background[int(peaks[0])], peakpos, sig])
+            height_largest_peak = param[0]
+            peak_index = 1
             for i in peaks[1:]:
                 param2 = numpy.array(
-                    [yy[int(i)] - zz[int(i)], xx[int(i)], sig])
+                    [y[int(i)] - background[int(i)], x[int(i)], sig])
                 param = numpy.concatenate((param, param2))
-                if (param2[0] > largest[0]):
-                    largest = param2
-                    largest_index = j
-                j += 1
+                if param2[0] > height_largest_peak:
+                    height_largest_peak = param2[0]
+                    index_largest_peak = peak_index
+                peak_index += 1
 
-            xw = numpy.resize(xx, (npoints, 1))
-            yw = numpy.resize(yy - zz, (npoints, 1))
+            # Make arrays 2D
+            xw = numpy.resize(x, (npoints, 1))
+            yw = numpy.resize(y - background, (npoints, 1))
+
             cons = numpy.zeros((len(param), 3), numpy.float)
+
+            # peak height must be positive
             cons[0:len(param):3, 0] = CPOSITIVE
             # force peaks to stay around their position
-
             cons[1:len(param):3, 0] = CQUOTED
+
+            # set possible peak range to estimated peak +- guessed fwhm
             if len(xw) > search_fwhm:
                 print(cons.shape, param.shape)
                 fwhmx = numpy.fabs(xw[int(search_fwhm)] - xw[0])
@@ -458,55 +386,70 @@ class SpecfitFunctions(object):
                 cons[1:len(param):3, 2] = numpy.ones(
                     shape(param[1:len(param):3]), numpy.float) * max(xw)
 
+            # ensure fwhm is positive
             cons[2:len(param):3, 0] = CPOSITIVE
-            fittedpar, _ = leastsq(functions.sum_gauss, xw, yw, param,
-                                                 max_iter=4, constraints=cons.tolist())
 
+            # run a quick iterative fit (4 iterations) to improve
+            # estimations
+            fittedpar, _ = leastsq(functions.sum_gauss, xw, yw, param,
+                                   max_iter=4, constraints=cons.tolist())
+
+        # set final constraints based on config parameters
         cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-        j = 0
+        peak_index = 0
         for i in range(len(peaks)):
                 # Setup height area constrains
             if self.config['NoConstrainsFlag'] == 0:
                 if self.config['HeightAreaFlag']:
                         #POSITIVE = 1
-                    cons[j, 0] = 1
-                    cons[j, 1] = 0
-                    cons[j, 2] = 0
-            j += 1
+                    cons[peak_index, 0] = 1
+                    cons[peak_index, 1] = 0
+                    cons[peak_index, 2] = 0
+            peak_index += 1
 
             # Setup position constrains
             if self.config['NoConstrainsFlag'] == 0:
                 if self.config['PositionFlag']:
                     #QUOTED = 2
-                    cons[j, 0] = 2
-                    cons[j, 1] = min(xx)
-                    cons[j, 2] = max(xx)
-            j += 1
+                    cons[peak_index, 0] = 2
+                    cons[peak_index, 1] = min(x)
+                    cons[peak_index, 2] = max(x)
+            peak_index += 1
 
             # Setup positive FWHM constrains
             if self.config['NoConstrainsFlag'] == 0:
                 if self.config['PosFwhmFlag']:
                     # POSITIVE=1
-                    cons[j, 0] = 1
-                    cons[j, 1] = 0
-                    cons[j, 2] = 0
+                    cons[peak_index, 0] = 1
+                    cons[peak_index, 1] = 0
+                    cons[peak_index, 2] = 0
                 if self.config['SameFwhmFlag']:
-                    if (i != largest_index):
+                    if (i != index_largest_peak):
                         # FACTOR=4
-                        cons[j, 0] = 4
-                        cons[j, 1] = 3 * largest_index + 2
-                        cons[j, 2] = 1.0
-            j += 1
-        return fittedpar, cons
-
-    def estimate_lorentz(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+                        cons[peak_index, 0] = 4
+                        cons[peak_index, 1] = 3 * index_largest_peak + 2
+                        cons[peak_index, 2] = 1.0
+            peak_index += 1
         return fittedpar, cons
 
     def estimate_agauss(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        """Estimation of *Area, Position, FWHM* of peaks, for gaussian-like
+        curves.
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        converts the height parameters to area under the curve with the
+        formula ``area = sqrt(2*pi) * height * fwhm / (2 * sqrt(2 * log(2))``
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Area, Position, FWHM*.
+            Fit constraints depend on :attr:`config`.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz,
+                                                             xscaling, yscaling)
         # get the number of found peaks
         npeaks = len(cons) // 3
+        # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
             fwhm = fittedpar[3 * i + 2]
@@ -515,9 +458,23 @@ class SpecfitFunctions(object):
         return fittedpar, cons
 
     def estimate_alorentz(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        """Estimation of *Area, Position, FWHM* of peaks, for Lorentzian
+        curves.
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        converts the height parameters to area under the curve with the
+        formula ``area = height * fwhm * 0.5 * pi``
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Area, Position, FWHM*.
+            Fit constraints depend on :attr:`config`.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz,
+                                                             xscaling, yscaling)
         # get the number of found peaks
         npeaks = len(cons) // 3
+        # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
             fwhm = fittedpar[3 * i + 2]
@@ -525,7 +482,20 @@ class SpecfitFunctions(object):
         return fittedpar, cons
 
     def estimate_splitgauss(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        """Estimation of *Height, Position, FWHM1, FWHM2* of peaks, for
+        asymmetric gaussian-like curves.
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        adds a second (identical) estimation of FWHM to the fit parameters
+        for each peak, and the corresponding constraint.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Area, Position, FWHM1, FWHM2*.
+            Fit constraints depend on :attr:`config`.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz,
+                                                             xscaling, yscaling)
         # get the number of found peaks
         npeaks = len(cons) // 3
         estimated_parameters = []
@@ -554,38 +524,27 @@ class SpecfitFunctions(object):
                     int(cons[3 * i + 2, 1] / 3) * 4 + 3
         return estimated_parameters, estimated_constraints
 
-    def estimate_splitlorentz(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
-        # get the number of found peaks
-        npeaks = int(len(cons[0]) / 3)
-        estimated_parameters = []
-        estimated_constraints = numpy.zeros((4 * npeaks, 3), numpy.float)
-        for i in range(npeaks):
-            for j in range(3):
-                estimated_parameters.append(fittedpar[3 * i + j])
-            estimated_parameters.append(fittedpar[3 * i + 2])
-            estimated_constraints[4 * i, 0] = cons[3 * i, 0]
-            estimated_constraints[4 * i + 1, 0] = cons[3 * i + 1, 0]
-            estimated_constraints[4 * i + 2, 0] = cons[3 * i + 2, 0]
-            estimated_constraints[4 * i + 3, 0] = cons[3 * i + 2, 0]
-            estimated_constraints[4 * i, 1] = cons[3 * i, 1]
-            estimated_constraints[4 * i + 1, 1] = cons[3 * i + 1, 1]
-            estimated_constraints[4 * i + 2, 1] = cons[3 * i + 2, 1]
-            estimated_constraints[4 * i + 3, 1] = cons[3 * i + 2, 1]
-            estimated_constraints[4 * i, 2] = cons[3 * i, 2]
-            estimated_constraints[4 * i + 1, 2] = cons[3 * i + 1, 2]
-            estimated_constraints[4 * i + 2, 2] = cons[3 * i + 2, 2]
-            estimated_constraints[4 * i + 3, 2] = cons[3 * i + 2, 2]
-            if cons[3 * i + 2, 0] == 4:
-                # same FWHM case
-                estimated_constraints[
-                    4 * i + 2, 1] = int(cons[3 * i + 2, 1] / 3) * 4 + 2
-                estimated_constraints[
-                    4 * i + 3, 1] = int(cons[3 * i + 2, 1] / 3) * 4 + 3
-        return estimated_parameters, estimated_constraints
-
     def estimate_pvoigt(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        """Estimation of *Height, Position, FWHM, eta* of peaks, for
+        pseudo-Voigt curves.
+
+        Pseudo-Voigt are a sum of a gaussian curve *G(x)* and a lorentzian
+        curve *L(x)* with the same height, center, fwhm parameters:
+        ``y(x) = eta * G(x) + (1-eta) * L(x)``
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        adds a constant estimation of *eta* (0.5) to the fit parameters
+        for each peak, and the corresponding constraint.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Height, Position, FWHM, eta*.
+            Constraint for the eta parameter can be set to QUOTED (0.--1.)
+            by setting :attr:`config`['EtaFlag'] to ``True``.
+            If this is not the case, the constraint code is set to FREE.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz,
+                                                             xscaling, yscaling)
         npeaks = int(len(cons[0]) / 3)
         newpar = []
         newcons = numpy.zeros((4 * npeaks, 3), numpy.float)
@@ -618,16 +577,32 @@ class SpecfitFunctions(object):
             newcons[4 * i + 3, 0] = 0
             newcons[4 * i + 3, 1] = 0
             newcons[4 * i + 3, 2] = 0
-            if self.config['NoConstrainsFlag'] == 0:
-                if self.config['EtaFlag']:
-                    # QUOTED=2
-                    newcons[4 * i + 3, 0] = 2
-                    newcons[4 * i + 3, 1] = 0.0
-                    newcons[4 * i + 3, 2] = 1.0
+            if self.config['EtaFlag']:
+                # QUOTED=2
+                newcons[4 * i + 3, 0] = 2
+                newcons[4 * i + 3, 1] = 0.0
+                newcons[4 * i + 3, 2] = 1.0
         return newpar, newcons
 
     def estimate_splitpvoigt(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        """Estimation of *Height, Position, FWHM1, FWHM2, eta* of peaks, for
+        asymmetric pseudo-Voigt curves.
+
+        This functions uses :meth:`estimate_height_position_fwhm`, then
+        adds an identical FWHM2 parameter and a constant estimation of
+        *eta* (0.5) to the fit parameters for each peak, and the corresponding
+        constraints.
+
+        Constraint for the eta parameter can be set to QUOTED (0.--1.)
+        by setting :attr:`config`['EtaFlag'] to ``True``.
+        If this is not the case, the constraint code is set to FREE.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Height, Position, FWHM1, FWHM2, eta*.
+        """
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz,
+                                                             xscaling, yscaling)
         npeaks = int(len(cons[0]) / 3)
         newpar = []
         newcons = numpy.zeros((5 * npeaks, 3), numpy.float)
@@ -671,17 +646,28 @@ class SpecfitFunctions(object):
             newcons[5 * i + 4, 0] = 0
             newcons[5 * i + 4, 1] = 0
             newcons[5 * i + 4, 2] = 0
-            if self.config['NoConstrainsFlag'] == 0:
-                if self.config['EtaFlag']:
-                    # QUOTED=2
-                    newcons[5 * i + 4, 0] = 2
-                    newcons[5 * i + 4, 1] = 0.0
-                    newcons[5 * i + 4, 2] = 1.0
+            if self.config['EtaFlag']:
+                # QUOTED=2
+                newcons[5 * i + 4, 0] = 2
+                newcons[5 * i + 4, 1] = 0.0
+                newcons[5 * i + 4, 2] = 1.0
         return newpar, newcons
 
     def estimate_apvoigt(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
+        """Estimation of *Area, Position, FWHM1, eta* of peaks, for
+        pseudo-Voigt curves.
+
+        This functions uses :meth:`estimate_pvoigt`, then converts the height
+        parameter to area.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *Area, Position, FWHM, eta*.
+        """
         fittedpar, cons = self.estimate_pvoigt(xx, yy, zzz, xscaling, yscaling)
         npeaks = int(len(cons[0]) / 4)
+        # Assume 50% of the area is determined by the gaussian and 50% by
+        # the Lorentzian.
         for i in range(npeaks):
             height = fittedpar[4 * i]
             fwhm = fittedpar[4 * i + 2]
@@ -690,17 +676,16 @@ class SpecfitFunctions(object):
                        ) * numpy.sqrt(2 * numpy.pi)
         return fittedpar, cons
 
-    def estimate_hypermet(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
+    def estimate_ahypermet(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
+        """Estimation of *area, position, fwhm, st_area_r, st_slope_r,
+        lt_area_r, lt_slope_r, step_height_r* of peaks, for hypermet curves.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each peak are:
+            *area, position, fwhm, st_area_r, st_slope_r,
+            lt_area_r, lt_slope_r, step_height_r* .
         """
-        if yscaling == None:
-             try:
-                 yscaling=self.config['Yscaling']
-             except:
-                 yscaling=1.0
-        if yscaling == 0:
-             yscaling=1.0
-        """
-        fittedpar, cons = self.estimate_gauss(xx, yy, zzz, xscaling, yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(xx, yy, zzz, xscaling, yscaling)
         npeaks = int(len(cons[0]) / 3)
         newpar = []
         newcons = numpy.zeros((8 * npeaks, 3), numpy.float)
@@ -848,10 +833,20 @@ class SpecfitFunctions(object):
                         newcons[8 * i + 5, 2] = 1.0
         return newpar, newcons
 
-    def estimate_stepdown(self, xxx, yyy, zzz, xscaling=1.0, yscaling=1.0):
+    def estimate_downstep(self, xxx, yyy, zzz, xscaling=1.0, yscaling=1.0):
+        """Estimation of parameters for downstep curves.
+
+        The functions estimates gaussian parameters for the derivative of
+        the data, and returns estimated parameters for the largest gaussian
+        peak.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each downstep are:
+            *height, centroid, fwhm* .
+        """
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
         cutoff = 2
-        yy = numpy.convolve(yyy, crappyfilter, mode=1)[2:-2]
+        yy = numpy.convolve(yyy, crappyfilter, mode=1)[cutoff:-cutoff]
         if max(yy) > 0:
             yy = yy * max(yyy) / max(yy)
         xx = xxx[2:-2]
@@ -861,7 +856,6 @@ class SpecfitFunctions(object):
         largest = [fittedpar[3 * largest_index],
                    fittedpar[3 * largest_index + 1],
                    fittedpar[3 * largest_index + 2]]
-        newcons = numpy.zeros((3, 3), numpy.float)
         for i in range(npeaks):
             if fittedpar[3 * i] > largest[0]:
                 largest_index = i
@@ -895,12 +889,22 @@ class SpecfitFunctions(object):
         return largest, cons
 
     def estimate_slit(self, xxx, yyy, zzz, xscaling=1.0, yscaling=1.0):
-        largestup, cons = self.estimate_stepup(
+        """Estimation of parameters for slit curves.
+
+        The functions estimates upstep and downstep parameters for the largest
+        steps, and uses them for calculating the center (middle between upstep
+        and downstep), the height (maximum amplitude in data), the fwhm
+        (distance between the up- and down-step centers) and the beamfwhm
+        (average of FWHM for up- and down-step).
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each slit are:
+            *height, position, fwhm, beamfwhm* .
+        """
+        largestup, cons = self.estimate_upstep(
             xxx, yyy, zzz, xscaling, yscaling)
-        largestdown, cons = self.estimate_stepdown(
+        largestdown, cons = self.estimate_downstep(
             xxx, yyy, zzz, xscaling, yscaling)
-        height = 0.5 * (largestup[0] + largestdown[0])
-        position = 0.5 * (largestup[1] + largestdown[1])
         fwhm = numpy.fabs(largestdown[1] - largestup[1])
         beamfwhm = 0.5 * (largestup[2] + largestdown[1])
         beamfwhm = min(beamfwhm, fwhm / 10.0)
@@ -945,13 +949,23 @@ class SpecfitFunctions(object):
                 cons[3, 2] = 0
         return largest, cons
 
-    def estimate_stepup(self, xxx, yyy, zzz, xscaling=1.0, yscaling=1.0):
+    def estimate_upstep(self, xxx, yyy, zzz, xscaling=1.0, yscaling=1.0):
+        """Estimation of parameters for upstep curves.
+
+        The functions estimates gaussian parameters for the derivative of
+        the data, and returns estimated parameters for the largest gaussian
+        peak.
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+            Parameters to be estimated for each upstep are:
+            *height, centroid, fwhm* .
+        """
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
         cutoff = 2
-        yy = numpy.convolve(yyy, crappyfilter, mode=1)[2:-2]
+        yy = numpy.convolve(yyy, crappyfilter, mode=1)[cutoff:-cutoff]
         if max(yy) > 0:
             yy = yy * max(yyy) / max(yy)
-        xx = xxx[2:-2]
+        xx = xxx[cutoff:-cutoff]
         fittedpar, cons = self.estimate_agauss(xx, yy, zzz, xscaling, yscaling)
         npeaks = int(len(cons[0]) / 4)
         largest_index = 0
@@ -991,47 +1005,56 @@ class SpecfitFunctions(object):
 
         return largest, cons
 
-    def estimate_atan(self, *var, **kw):
-        return self.estimate_stepup(*var, **kw)
-
     def estimate_periodic_gauss(self, xx, yy, zzz, xscaling=1.0, yscaling=None):
-        if yscaling == None:
+        """Estimation of parameters for periodic gaussian curves:
+        *number of peaks, distance between peaks, height, position of the
+        first peak, fwhm*
+
+        The functions detects all peaks, then computes the parameters the
+        following way:
+
+            - *distance*: average of distances between detected peaks
+            - *height*: average height of detected peaks
+            - *fwhm*: fwhm of the highest peak (in number of samples) if
+                :attr:`config`['AutoFwhm'] is ``True``, else take the default
+                value :attr:`config`['FwhmPoints']
+
+        :return: Tuple of estimated fit parameters and fit constraints.
+        """
+        if yscaling is None:
             try:
                 yscaling = self.config['Yscaling']
             except:
                 yscaling = 1.0
         if yscaling == 0:
             yscaling = 1.0
-        fittedpar = []
-        zz = filters.strip(yy, factor=1.000, niterations=10000)
 
-        npoints = len(zz)
+        # remove background
+        background = filters.strip(yy, factor=1.000,
+                                   niterations=10000)
+
+        npoints = len(background)
         if self.config['AutoFwhm']:
-            search_fwhm = self.guess_fwhm(x=xx, y=yy)
+            search_fwhm = guess_fwhm(yy)
         else:
             search_fwhm = int(float(self.config['FwhmPoints']))
         search_sens = float(self.config['Sensitivity'])
-        search_mca = int(float(self.config['McaMode']))
 
         if search_fwhm < 3:
             search_fwhm = 3
-            self.config['FwhmPoints'] = 3
 
         if search_sens < 1:
             search_sens = 1
-            self.config['Sensitivity'] = 1
 
         if npoints > 1.5 * search_fwhm:
-            peaks = self.seek(yy, fwhm=search_fwhm,
-                              sensitivity=search_sens,
-                              yscaling=yscaling,
-                              mca=search_mca)
+            peaks = peak_search(yscaling*yy, fwhm=search_fwhm,
+                                sensitivity=search_sens)
         else:
             peaks = []
         npeaks = len(peaks)
         if not npeaks:
             fittedpar = []
-            cons = numpy.zeros((len(fittedpar, 3)), numpy.float)
+            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
             return fittedpar, cons
 
         fittedpar = [0.0, 0.0, 0.0, 0.0, 0.0]
@@ -1043,7 +1066,7 @@ class SpecfitFunctions(object):
         delta = 0.0
         height = 0.0
         for i in range(npeaks):
-            height += yy[int(peaks[i])] - zz[int(peaks[i])]
+            height += yy[int(peaks[i])] - background[int(peaks[i])]
             if i != ((npeaks) - 1):
                 delta += (xx[int(peaks[i + 1])] - xx[int(peaks[i])])
 
@@ -1097,7 +1120,15 @@ class SpecfitFunctions(object):
         return fittedpar, cons
 
     def configure(self, *vars, **kw):
-        if kw.keys() == []:
+        """Add new / unknown keyword arguments to :attr:`config`,
+        update entries in :attr:`config` if the parameter name is a existing
+        key.
+
+        :param vars: List of all positional arguments (ignored)
+        :param kw: Dictionary of keyword arguments.
+        :return: Configuration dictionary :attr:`config`
+        """
+        if not kw.keys():
             return self.config
         for key in kw.keys():
             notdone = 1
@@ -1112,21 +1143,40 @@ class SpecfitFunctions(object):
 
 fitfuns = SpecfitFunctions()
 
-FUNCTION = [fitfuns.gauss,
-            fitfuns.lorentz,
-            fitfuns.agauss,
-            fitfuns.alorentz,
-            fitfuns.pvoigt,
-            fitfuns.apvoigt,
-            fitfuns.splitgauss,
-            fitfuns.splitlorentz,
-            fitfuns.splitpvoigt,
-            fitfuns.stepdown,
-            fitfuns.stepup,
-            fitfuns.slit,
+THEORY = ['Gaussians',
+          'Lorentz',
+          'Area Gaussians',
+          'Area Lorentz',
+          'Pseudo-Voigt Line',
+          'Area Pseudo-Voigt',
+          'Split Gaussian',
+          'Split Lorentz',
+          'Split Pseudo-Voigt',
+          'Step Down',
+          'Step Up',
+          'Slit',
+          'Atan',
+          'Hypermet',
+          'Periodic Gaussians']
+"""Fit function names"""
+
+FUNCTION = [functions.sum_gauss,
+            functions.sum_lorentz,
+            functions.sum_agauss,
+            functions.sum_alorentz,
+            functions.sum_pvoigt,
+            functions.sum_apvoigt,
+            functions.sum_splitgauss,
+            functions.sum_splitlorentz,
+            functions.sum_splitpvoigt,
+            functions.sum_downstep,
+            functions.sum_upstep,
+            functions.sum_slit,
             fitfuns.atan,
-            fitfuns.hypermet,
+            functions.sum_ahypermet,
             fitfuns.periodic_gauss]
+"""Fit functions"""
+
 
 PARAMETERS = [['Height', 'Position', 'FWHM'],
               ['Height', 'Position', 'Fwhm'],
@@ -1144,38 +1194,24 @@ PARAMETERS = [['Height', 'Position', 'FWHM'],
               ['G_Area', 'Position', 'FWHM',
                'ST_Area', 'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'],
               ['N', 'Delta', 'Height', 'Position', 'FWHM']]
+"""Lists of minimal parameters required by each fit function"""
 
-THEORY = ['Gaussians',
-          'Lorentz',
-          'Area Gaussians',
-          'Area Lorentz',
-          'Pseudo-Voigt Line',
-          'Area Pseudo-Voigt',
-          'Split Gaussian',
-          'Split Lorentz',
-          'Split Pseudo-Voigt',
-          'Step Down',
-          'Step Up',
-          'Slit',
-          'Atan',
-          'Hypermet',
-          'Periodic Gaussians']
-
-ESTIMATE = [fitfuns.estimate_gauss,
-            fitfuns.estimate_lorentz,
+ESTIMATE = [fitfuns.estimate_height_position_fwhm,  # for gauss
+            fitfuns.estimate_height_position_fwhm,  # for lorentz
             fitfuns.estimate_agauss,
             fitfuns.estimate_alorentz,
             fitfuns.estimate_pvoigt,
             fitfuns.estimate_apvoigt,
             fitfuns.estimate_splitgauss,
-            fitfuns.estimate_splitlorentz,
+            fitfuns.estimate_splitgauss,
             fitfuns.estimate_splitpvoigt,
-            fitfuns.estimate_stepdown,
-            fitfuns.estimate_stepup,
+            fitfuns.estimate_downstep,
+            fitfuns.estimate_upstep,
             fitfuns.estimate_slit,
-            fitfuns.estimate_atan,
-            fitfuns.estimate_hypermet,
+            fitfuns.estimate_upstep,                # for atan
+            fitfuns.estimate_ahypermet,
             fitfuns.estimate_periodic_gauss]
+"""Parameter estimation functions"""
 
 CONFIGURE = [fitfuns.configure,
              fitfuns.configure,
@@ -1192,33 +1228,34 @@ CONFIGURE = [fitfuns.configure,
              fitfuns.configure,
              fitfuns.configure,
              fitfuns.configure]
+"""Configuration functions"""
 
 
 def test(a):
-    from PyMca5.PyMcaGui import PyMcaQt as qt
-    from PyMca5.PyMcaMath.fitting import Specfit
-    from PyMca5.PyMcaGui.pymca import ScanWindow
-    # print dir(a)
+    from silx.gui import qt
+    from silx.gui.plot import plot1D
+    from silx.math.fit import specfit
     x = numpy.arange(1000).astype(numpy.float)
-    p1 = numpy.array([1500, 100., 50.0])
-    p2 = numpy.array([1500, 700., 50.0])
-    y = a.gauss(p1, x) + 1
-    y = y + a.gauss(p2, x)
-    app = qt.QApplication([])
-    fit = Specfit.Specfit(x, y)
-    fit.addtheory('Gaussians', a.gauss, ['Height', 'Position', 'FWHM'],
-                  a.estimate_gauss)
+    p = numpy.array([1500, 100., 50.0,
+                     1500, 700., 50.0])
+    y_synthetic = functions.sum_gauss(x, *p) + 1
+
+    fit = specfit.Specfit(x, y_synthetic)
+    fit.addtheory('Gaussians', functions.sum_gauss, ['Height', 'Position', 'FWHM'],
+                  a.estimate_height_position_fwhm)
     fit.settheory('Gaussians')
     fit.setbackground('Linear')
 
     fit.estimate()
     fit.startfit()
-    yfit = fit.gendata(x=x, parameters=fit.paramlist)
-    print("I set an offset of 1 to see the difference in log scale :-)")
-    w = ScanWindow.ScanWindow()
-    w.addCurve(x, y + 1, "Data + 1")
-    w.addCurve(x, yfit, "Fit")
-    w.show()
+
+    y_fit = fit.gendata()
+
+    app = qt.QApplication([])
+
+    # Offset of 1 to see the difference in log scale
+    plot1D(x, (y_synthetic + 1, y_fit), "Input data + 1, Fit")
+
     app.exec_()
 
 
