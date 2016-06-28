@@ -51,5 +51,7 @@ __date__ = "22/02/2016"
 
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D, plot1D, plot2D  # noqa
+from .ImageView import ImageView  # noqa
 
-__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'plot1D', 'plot2D']
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
+           'plot1D', 'plot2D']
