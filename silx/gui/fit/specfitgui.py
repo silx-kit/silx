@@ -28,7 +28,7 @@ import sys
 import traceback
 
 from silx.math.fit import specfitfunctions
-from silx.math.fit import specfit
+from silx.math.fit import specfit, functions
 from silx.gui import qt
 from .specfitwidgets import (FitActionsButtons, FitStatusLines,
                              FitConfigWidget, ParametersTab)
@@ -519,29 +519,23 @@ class SpecfitGui(qt.QWidget):
 
 if __name__ == "__main__":
     import numpy
-    a = specfitfunctions.SpecfitFunctions()
+
     x = numpy.arange(2000).astype(numpy.float)
-    p1 = numpy.array([1500, 100., 30.0])
-    p2 = numpy.array([1500, 300., 30.0])
-    p3 = numpy.array([1500, 500., 30.0])
-    p4 = numpy.array([1500, 700., 30.0])
-    p5 = numpy.array([1500, 900., 30.0])
-    p6 = numpy.array([1500, 1100., 30.0])
-    p7 = numpy.array([1500, 1300., 30.0])
-    p8 = numpy.array([1500, 1500., 30.0])
-    p9 = numpy.array([1500, 1700., 30.0])
-    p10 = numpy.array([1500, 1900., 30.0])
-    y = a.gauss(x, p1) + 1
-    y = y + a.gauss(x, p2)
-    y = y + a.gauss(x, p3)
-    y = y + a.gauss(x, p4)
-    y = y + a.gauss(x, p5)
-    #y = y + a.gauss(p6,x)
-    #y = y + a.gauss(p7,x)
-    #y = y + a.gauss(p8,x)
-    #y = y + a.gauss(p9,x)
-    #y = y + a.gauss(p10,x)
-    y = y / 1000.0
+
+    p = numpy.array([1500, 100., 30.0,
+                     1500, 300., 30.0,
+                     1500, 500., 30.0,
+                     1500, 700., 30.0,
+                     1500, 900., 30.0,
+                     1500, 1100., 30.0,
+                     1500, 1300., 30.0,
+                     1500, 1500., 30.0,
+                     1500, 1700., 30.0,
+                     1500, 1900., 30.0])
+    y = functions.sum_gauss(x, *p) + 1
+
+    y /= 1000.0
+
     a = qt.QApplication(sys.argv)
     a.lastWindowClosed.connect(a.quit)
     w = SpecfitGui(config=1, status=1, buttons=1)
