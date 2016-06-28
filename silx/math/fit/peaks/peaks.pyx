@@ -21,7 +21,8 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides a peak search function.
+"""This module provides a peak search function and tools related to peak
+analysis.
 """
 
 __authors__ = ["P. Knobel"]
@@ -30,6 +31,8 @@ __date__ = "17/06/2016"
 
 import logging
 import numpy
+
+from . import filters
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -131,3 +134,45 @@ def peak_search(y, fwhm, sensitivity=3.5,
     else:
         # FIXME: maybe don't zip, return tuple (peaks, relevances)?
         return list(zip(peaks, relevances))
+
+
+def guess_fwhm(y):
+    """Return the full-width at half maximum for the largest peak in
+    the data array.
+
+    The algorithm removes the background, then finds a global maximum
+    and its corresponding FWHM.
+
+    This value can be used as an initial fit parameter, used as input for
+    an iterative fit function.
+
+    :param y: Data to be used for guessing the fwhm.
+    :return: Estimation of full-width at half maximum, based on fwhm of
+        the global maximum.
+    """
+    # set at a minimum value for the fwhm
+    fwhm_min = 4
+
+    # remove data background (computed with a strip filter)
+    background = filters.strip(y, w=1, niterations=1000)
+    yfit = y - background
+
+    # basic peak search: find the global maximum
+    maximum = max(yfit)
+    # find indices of all values == maximum
+    idx = numpy.nonzero(yfit == maximum)[0]
+    # take the last one
+    posindex = idx[-1]
+    height = yfit[posindex]
+
+    # now find the width of the peak at half maximum
+    imin = posindex
+    while yfit[imin] > 0.5 * height and imin > 0:
+        imin -= 1
+    imax = posindex
+    while yfit[imax] > 0.5 * height and imax < len(yfit) - 1:
+        imax += 1
+
+    fwhm = max(imax - imin - 1, fwhm_min)
+
+    return fwhm
