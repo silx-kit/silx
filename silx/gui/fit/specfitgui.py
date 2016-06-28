@@ -74,7 +74,7 @@ class SpecfitGui(qt.QWidget):
         self.guiconfig = None
         if config:
             self.guiconfig = FitConfigWidget(self)
-            self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
+            # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
             self.guiconfig.WeightCheckBox.stateChanged[
                 int].connect(self.weightevent)
             self.guiconfig.AutoFWHMCheckBox.stateChanged[
@@ -115,10 +115,10 @@ class SpecfitGui(qt.QWidget):
                 self.funevent(list(self.specfit.theorydict.keys())[0])
                 self.bkgevent(list(self.specfit.bkgdict.keys())[0])
             configuration.update(self.configure())
-            if configuration['McaMode']:
-                self.guiconfig.MCACheckBox.setChecked(1)
-            else:
-                self.guiconfig.MCACheckBox.setChecked(0)
+            # if configuration['McaMode']:
+            #     self.guiconfig.MCACheckBox.setChecked(1)
+            # else:
+            #     self.guiconfig.MCACheckBox.setChecked(0)
             if configuration['WeightFlag']:
                 self.guiconfig.WeightCheckBox.setChecked(1)
             else:
@@ -186,10 +186,10 @@ class SpecfitGui(qt.QWidget):
                       self.specfit.fitconfig['fitbkg'])
                 self.bkgevent(list(self.specfit.bkgdict.keys())[0])
             # and all the rest
-            if configuration['McaMode']:
-                self.guiconfig.MCACheckBox.setChecked(1)
-            else:
-                self.guiconfig.MCACheckBox.setChecked(0)
+            # if configuration['McaMode']:
+            #     self.guiconfig.MCACheckBox.setChecked(1)
+            # else:
+            #     self.guiconfig.MCACheckBox.setChecked(0)
             if configuration['WeightFlag']:
                 self.guiconfig.WeightCheckBox.setChecked(1)
             else:
@@ -252,57 +252,57 @@ class SpecfitGui(qt.QWidget):
         return newconfiguration
 
     def estimate(self):
-        if self.specfit.fitconfig['McaMode']:
-            try:
-                mcaresult = self.specfit.mcafit()
-            except:
+        # if self.specfit.fitconfig['McaMode']:
+        #     try:
+        #         mcaresult = self.specfit.mcafit()
+        #     except:
+        #         msg = qt.QMessageBox(self)
+        #         msg.setIcon(qt.QMessageBox.Critical)
+        #         msg.setWindowTitle("Error on mcafit")
+        #         msg.setInformativeText(str(sys.exc_info()[1]))
+        #         msg.setDetailedText(traceback.format_exc())
+        #         msg.exec_()
+        #         ddict = {}
+        #         ddict['event'] = 'FitError'
+        #         self._emitSignal(ddict)
+        #         if DEBUG:
+        #             raise
+        #         return
+        #     self.guiparameters.fillfrommca(mcaresult)
+        #     ddict = {}
+        #     ddict['event'] = 'McaFitFinished'
+        #     ddict['data'] = mcaresult
+        #     self._emitSignal(ddict)
+        #     #self.guiparameters.removeallviews(keep='Region 1')
+        # else:
+        try:
+            if self.specfit.theorydict[self.specfit.fitconfig['fittheory']][2] is not None:
+                self.specfit.estimate(callback=self.fitstatus)
+            else:
                 msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setWindowTitle("Error on mcafit")
-                msg.setInformativeText(str(sys.exc_info()[1]))
-                msg.setDetailedText(traceback.format_exc())
-                msg.exec_()
-                ddict = {}
-                ddict['event'] = 'FitError'
-                self._emitSignal(ddict)
-                if DEBUG:
-                    raise
-                return
-            self.guiparameters.fillfrommca(mcaresult)
-            ddict = {}
-            ddict['event'] = 'McaFitFinished'
-            ddict['data'] = mcaresult
-            self._emitSignal(ddict)
-            #self.guiparameters.removeallviews(keep='Region 1')
-        else:
-            try:
-                if self.specfit.theorydict[self.specfit.fitconfig['fittheory']][2] is not None:
-                    self.specfit.estimate(callback=self.fitstatus)
-                else:
-                    msg = qt.QMessageBox(self)
-                    msg.setIcon(qt.QMessageBox.Information)
-                    text = "Function does not define a way to estimate\n"
-                    text += "the initial parameters. Please, fill them\n"
-                    text += "yourself in the table and press Start Fit\n"
-                    msg.setText(text)
-                    msg.setWindowTitle('SpecfitGui Message')
-                    msg.exec_()
-                    return
-            except:
-                if DEBUG:
-                    raise
-                msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("Error on estimate: %s" % traceback.format_exc())
+                msg.setIcon(qt.QMessageBox.Information)
+                text = "Function does not define a way to estimate\n"
+                text += "the initial parameters. Please, fill them\n"
+                text += "yourself in the table and press Start Fit\n"
+                msg.setText(text)
+                msg.setWindowTitle('SpecfitGui Message')
                 msg.exec_()
                 return
-            self.guiparameters.fillfromfit(
-                self.specfit.fit_results, current='Fit')
-            self.guiparameters.removeallviews(keep='Fit')
-            ddict = {}
-            ddict['event'] = 'EstimateFinished'
-            ddict['data'] = self.specfit.fit_results
-            self._emitSignal(ddict)
+        except:
+            if DEBUG:
+                raise
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Error on estimate: %s" % traceback.format_exc())
+            msg.exec_()
+            return
+        self.guiparameters.fillfromfit(
+            self.specfit.fit_results, current='Fit')
+        self.guiparameters.removeallviews(keep='Fit')
+        ddict = {}
+        ddict['event'] = 'EstimateFinished'
+        ddict['data'] = self.specfit.fit_results
+        self._emitSignal(ddict)
 
         return
 
@@ -310,49 +310,47 @@ class SpecfitGui(qt.QWidget):
         self._emitSignal(ddict)
 
     def startfit(self):
-        if self.specfit.fitconfig['McaMode']:
-            try:
-                mcaresult = self.specfit.mcafit()
-            except:
-                msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("Error on mcafit: %s" % sys.exc_info()[1])
-                msg.exec_()
-                if DEBUG:
-                    raise
-                return
-            self.guiparameters.fillfrommca(mcaresult)
-            ddict = {}
-            ddict['event'] = 'McaFitFinished'
-            ddict['data'] = mcaresult
-            self._emitSignal(ddict)
-            # self.guiparameters.removeview(view='Fit')
-        else:
-            # for param in self.specfit.fit_results:
-            #    print param['name'],param['group'],param['estimation']
-            self.specfit.fit_results = self.guiparameters.fillfitfromtable()
+        # if self.specfit.fitconfig['McaMode']:
+        #     try:
+        #         mcaresult = self.specfit.mcafit()
+        #     except:
+        #         msg = qt.QMessageBox(self)
+        #         msg.setIcon(qt.QMessageBox.Critical)
+        #         msg.setText("Error on mcafit: %s" % sys.exc_info()[1])
+        #         msg.exec_()
+        #         if DEBUG:
+        #             raise
+        #         return
+        #     self.guiparameters.fillfrommca(mcaresult)
+        #     ddict = {}
+        #     ddict['event'] = 'McaFitFinished'
+        #     ddict['data'] = mcaresult
+        #     self._emitSignal(ddict)
+        #     # self.guiparameters.removeview(view='Fit')
+        # else:
+        self.specfit.fit_results = self.guiparameters.fillfitfromtable()
+        if DEBUG:
+            for param in self.specfit.fit_results:
+                print(param['name'], param['group'], param['estimation'])
+            print("TESTING")
+            self.specfit.startfit(callback=self.fitstatus)
+        try:
+            self.specfit.startfit(callback=self.fitstatus)
+        except:
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Error on Fit")
+            msg.exec_()
             if DEBUG:
-                for param in self.specfit.fit_results:
-                    print(param['name'], param['group'], param['estimation'])
-                print("TESTING")
-                self.specfit.startfit(callback=self.fitstatus)
-            try:
-                self.specfit.startfit(callback=self.fitstatus)
-            except:
-                msg = qt.QMessageBox(self)
-                msg.setIcon(qt.QMessageBox.Critical)
-                msg.setText("Error on Fit")
-                msg.exec_()
-                if DEBUG:
-                    raise
-                return
-            self.guiparameters.fillfromfit(
-                self.specfit.fit_results, current='Fit')
-            self.guiparameters.removeallviews(keep='Fit')
-            ddict = {}
-            ddict['event'] = 'FitFinished'
-            ddict['data'] = self.specfit.fit_results
-            self._emitSignal(ddict)
+                raise
+            return
+        self.guiparameters.fillfromfit(
+            self.specfit.fit_results, current='Fit')
+        self.guiparameters.removeallviews(keep='Fit')
+        ddict = {}
+        ddict['event'] = 'FitFinished'
+        ddict['data'] = self.specfit.fit_results
+        self._emitSignal(ddict)
         return
 
     def printps(self, **kw):
@@ -372,19 +370,19 @@ class SpecfitGui(qt.QWidget):
         msg.setText("Sorry, Qt4 printing not implemented yet")
         msg.exec_()
 
-    def mcaevent(self, item):
-        if int(item):
-            self.configure(McaMode=1)
-            mode = 1
-        else:
-            self.configure(McaMode=0)
-            mode = 0
-        self.__initialparameters()
-        ddict = {}
-        ddict['event'] = 'McaModeChanged'
-        ddict['data'] = mode
-        self._emitSignal(ddict)
-        return
+    # def mcaevent(self, item):
+    #     if int(item):
+    #         self.configure(McaMode=1)
+    #         mode = 1
+    #     else:
+    #         self.configure(McaMode=0)
+    #         mode = 0
+    #     self.__initialparameters()
+    #     ddict = {}
+    #     ddict['event'] = 'McaModeChanged'
+    #     ddict['data'] = mode
+    #     self._emitSignal(ddict)
+    #     return
 
     def weightevent(self, item):
         if int(item):
@@ -489,15 +487,14 @@ class SpecfitGui(qt.QWidget):
                                                'sigma': 0.0,
                                                'xmin': None,
                                                'xmax': None})
-        if self.specfit.fitconfig['McaMode']:
-            self.guiparameters.fillfromfit(
-                self.specfit.fit_results, current='Region 1')
-            self.guiparameters.removeallviews(keep='Region 1')
-        else:
-            self.guiparameters.fillfromfit(
-                self.specfit.fit_results, current='Fit')
-            self.guiparameters.removeallviews(keep='Fit')
-        return
+        # if self.specfit.fitconfig['McaMode']:
+        #     self.guiparameters.fillfromfit(
+        #         self.specfit.fit_results, current='Region 1')
+        #     self.guiparameters.removeallviews(keep='Region 1')
+        # else:
+        self.guiparameters.fillfromfit(
+            self.specfit.fit_results, current='Fit')
+        self.guiparameters.removeallviews(keep='Fit')
 
     def fitstatus(self, data):
         if 'chisq' in data:

@@ -142,7 +142,7 @@ class FitConfigWidget(qt.QWidget):
         - ``BkgComBox``
         - ``FunComBox``
         - ``WeightCheckBox``
-        - ``MCACheckBox``
+        #- ``MCACheckBox``
         - ``AutoFWHMCheckBox``
         - ``AutoScalingCheckBox``
         - ``PrintPushButton``
@@ -200,10 +200,10 @@ class FitConfigWidget(qt.QWidget):
 
         layout6.addWidget(self.WeightCheckBox, 0, 0)
 
-        self.MCACheckBox = qt.QCheckBox(self)
-        self.MCACheckBox.setText("MCA Mode")
+        # self.MCACheckBox = qt.QCheckBox(self)
+        # self.MCACheckBox.setText("MCA Mode")
 
-        layout6.addWidget(self.MCACheckBox, 1, 0)
+        # layout6.addWidget(self.MCACheckBox, 1, 0)
         layout9.addLayout(layout6)
 
         layout6_2 = qt.QGridLayout(None)
@@ -493,26 +493,26 @@ class ParametersTab(qt.QTabWidget):
             if view != keep:
                 self.removeview(view)
 
-    def fillfrommca(self, mcaresult):
-        self.removeallviews()
-        region = 0
-
-        for result in mcaresult:
-            region = region + 1
-            self.fillfromfit(result['paramlist'],
-                             current='Region %d' % region)
-        name = 'MCA'
-        if name in self.tables:
-            table = self.tables[name]
-        else:
-            self.tables[name] = McaTable(self)
-            table = self.tables[name]
-            self.views[name] = table
-            self.addTab(table, str(name))
-            table.sigMcaTableSignal.connect(self.__forward)
-        table.fillfrommca(mcaresult)
-        self.setview(name=name)
-        return
+    # def fillfrommca(self, mcaresult):
+    #     self.removeallviews()
+    #     region = 0
+    #
+    #     for result in mcaresult:
+    #         region = region + 1
+    #         self.fillfromfit(result['paramlist'],
+    #                          current='Region %d' % region)
+    #     name = 'MCA'
+    #     if name in self.tables:
+    #         table = self.tables[name]
+    #     else:
+    #         self.tables[name] = McaTable(self)
+    #         table = self.tables[name]
+    #         self.views[name] = table
+    #         self.addTab(table, str(name))
+    #         table.sigMcaTableSignal.connect(self.__forward)
+    #     table.fillfrommca(mcaresult)
+    #     self.setview(name=name)
+    #     return
 
     def __forward(self, ddict):
         self.sigMultiParametersSignal.emit(ddict)
