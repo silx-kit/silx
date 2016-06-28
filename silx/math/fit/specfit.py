@@ -34,7 +34,7 @@ import os
 import sys
 
 from .filters import strip
-from .peaks import peak_search, guess_fwhm
+# from .peaks import peak_search, guess_fwhm  # used by mcafit()
 from .leastsq import leastsq
 
 
@@ -60,8 +60,7 @@ class Specfit():
     """
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=False, fwhm_points=8,
-                 auto_scaling=False, yscaling=1.0, sensitivity=2.5,
-                 residuals_flag=0, mca_mode=0):
+                 auto_scaling=False, yscaling=1.0, sensitivity=2.5):
         """
         :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
             ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
@@ -86,9 +85,6 @@ class Specfit():
             algorithm. To be detected, a peak must have an amplitude greater
             than ``σn * sensitivity`` (where ``σn`` is an estimated value of
             the standard deviation of the noise).
-        :param residuals_flag:
-        :param mca_mode:
-        :param event_handler:
         """
         self.fitconfig = {}
         """Dictionary of fit configuration parameters.
@@ -107,18 +103,15 @@ class Specfit():
             - 'Yscaling': Scaling factor for the data
             - 'Sensitivity': Sensitivity parameter for the peak detection
               algorithm (:func:`silx.math.fit.peak_search`)
-
-            - 'ResidualsFlag': ?
         """
-        # TODO: ResidualsFlag
 
         self.fitconfig['AutoFwhm'] = auto_fwhm
         self.fitconfig['FwhmPoints'] = fwhm_points
         self.fitconfig['AutoScaling'] = auto_scaling
         self.fitconfig['Yscaling'] = yscaling
         self.fitconfig['Sensitivity'] = sensitivity
-        self.fitconfig['ResidualsFlag'] = residuals_flag
-        self.fitconfig['McaMode'] = mca_mode
+        # self.fitconfig['ResidualsFlag'] = residuals_flag  # specific to MCA
+        # self.fitconfig['McaMode'] = mca_mode
         self.fitconfig['fitbkg'] = 'No Background'
         self.fitconfig['fittheory'] = None
 
@@ -170,8 +163,18 @@ class Specfit():
 
         ``estimate`` is a function to compute initial values for parameters.
         It should have the following signature:
-        ``f(xx, yy, zzz, xscaling=1.0, yscaling=None)``
-        """  # FIXME estimate signature, meaning of zz
+        ``f(x, y, bg_data, xscaling=1.0, yscaling=None)``
+
+            - ``x`` is the independant variable, i.e. all the points where
+              the function is calculated
+            - ``y`` is the data from which we want to extract the bg
+            - ``bg_data`` is the background data, usually extracted from ``y``
+              using a strip filter.
+            - ``xscaling`` is an optional scaling factor applied to the ``x``
+              array
+            - ``yscaling`` is an optional scaling factor applied to the ``y``
+              array
+        """
 
         # TODO:  document following attributes
         self.bkg_internal_oldx = numpy.array([])
@@ -233,15 +236,27 @@ class Specfit():
                   'code' is SUM
 
             - 'fitresult': Fitted value.
-            - 'sigma': ???
+            - 'sigma': Standard for each parameter
             - 'xmin': ???
             - 'xmax': ???
-        """
+        """# TODO: xmin, xmax
 
         self.modelderiv = None
-        """"""
+        """None (default) or function providing the derivatives of the fitting
+        function respect to the fitted parameters.
+        It will be called as ``model_deriv(xdata, parameters, index)`` where
+        ``parameters`` is a sequence with the current values of the fitting
+        parameters, ``index`` is the fitting parameter index for which the
+        derivative has to be calculated in the supplied array of ``xdata``
+        points."""
+
         self.theoryfun = None
-        """"""
+        """The model function, currently selected ``f(x, ...)``.
+        It must take the independent variable as the first argument and the
+        parameters to fit as separate remaining arguments.
+
+        The function can be chosen from :attr:`theorydict` using
+        :meth:`settheory`"""
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data attributes:
@@ -411,13 +426,16 @@ class Specfit():
         else:
             return result
 
-    def estimate(self, mcafit=False, callback=None):
+    def estimate(self, callback=None):
         """
         Fill :attr:`fit_results` with an estimation made on the given data.
 
-        This method registers and sends a ``'FitStatusChanged'`` event, before
-        starting the estimation and after completing. This event sends a
-        *status* (``Estimate in progress"`` or ``"Ready to Fit"``).
+        :param callback: Callback function, conforming to the signature
+            ``callback(data)`` with ``data`` being a dictionary.
+            This callback function is called before and after the estimation
+            process, and is given a dictionary containing the values of
+            :attr:`state` and :attr:`chisq`.
+
         """
         # TODO: explain estimation process
         self.state = 'Estimate in progress'
@@ -438,20 +456,14 @@ class Specfit():
 
         # Update data (actual data or just range) using user defined method
         if self.dataupdate is not None:
-            if not mcafit:
-                self.dataupdate()
+            self.dataupdate()
 
         xwork = self.xdata
         ywork = self.ydata
 
         # estimate the background
-        esti_bkg = self.estimate_bkg(xwork, ywork)
-        bkg_esti_parameters = esti_bkg[0]
-        bkg_esti_constraints = esti_bkg[1]
-        try:
-            zz = numpy.array(esti_bkg[2])
-        except IndexError:
-            zz = numpy.zeros(numpy.shape(ywork), numpy.float)
+        bg_params, bg_constraints, bg_data = self.estimate_bkg(xwork, ywork)
+
 
         # scaling
         if self.fitconfig['AutoScaling']:
@@ -460,7 +472,7 @@ class Specfit():
             yscaling = self.fitconfig['Yscaling']
 
         # estimate the function
-        esti_fun = self.estimate_fun(xwork, ywork, zz, yscaling=yscaling)
+        esti_fun = self.estimate_fun(xwork, ywork, bg_data, yscaling=yscaling)
 
         fun_esti_parameters = esti_fun[0]
         fun_esti_constraints = esti_fun[1]
@@ -485,14 +497,14 @@ class Specfit():
         group_number = 0 #k
         xmin = min(xwork)
         xmax = max(xwork)
-        nb_bg_params = len(bkg_esti_parameters)
+        nb_bg_params = len(bg_params)
         for (pindex, pname) in enumerate(self.parameter_names):
             # First come background parameters
             if pindex < nb_bg_params:
-                estimation_value = bkg_esti_parameters[pindex]
-                constraint_code = CONS[int(bkg_esti_constraints[pindex][0])]
-                cons1 = bkg_esti_constraints[pindex][1]
-                cons2 = bkg_esti_constraints[pindex][2]
+                estimation_value = bg_params[pindex]
+                constraint_code = CONS[int(bg_constraints[pindex][0])]
+                cons1 = bg_constraints[pindex][1]
+                cons2 = bg_constraints[pindex][2]
             # then come peak function parameters
             else:
                 fun_param_index = pindex - nb_bg_params
@@ -534,9 +546,14 @@ class Specfit():
         """Estimate background parameters using the function defined in
         the current fit configuration.
 
+        To change the selected background model, :attr:`fitconfig`['fitbkg']
+        must be changed. The actual background function to be used is
+        referenced in :attr:`bkgdict`
+
         :param x: Sequence of x data
         :param y: sequence of y data
-        :return: Tuple of two sequences ``(estimated_param, constraints)``:
+        :return: Tuple of two sequences and one data array
+            ``(estimated_param, constraints, bg_data)``:
 
             - ``estimated_param`` is a list of estimated values for each
               background parameter.
@@ -552,13 +569,16 @@ class Specfit():
                 - ``constraints[i][2]``
                   See explanation about 'cons2' in :attr:`fit_results`
                   documentation.
+            - ``bg_data`` is the background data extracted from the signal
+              using a strip filter (:func:`silx.math.fit.filters.strip`). This
+              data is used to compute ``estimated_param``.
         """
         fitbkg = self.fitconfig['fitbkg']
         background_estimate_function = self.bkgdict[fitbkg][2]
         if background_estimate_function is not None:
             return background_estimate_function(x, y)
         else:
-            return [], []
+            return [], [], numpy.array([], dtype=numpy.float)
 
     def estimate_fun(self, x, y, z, xscaling=1.0, yscaling=None):
         """Estimate fit parameters using the function defined in
@@ -639,7 +659,7 @@ class Specfit():
             self.addtheory(
                 theory, function, parameters, estimate, configure, derivative)
 
-    def startfit(self, mcafit=0, callback=None):
+    def startfit(self, callback=None):
         """Run the actual fitting and fill :attr:`fit_results` with fit results.
 
         Before running this method, :attr:`fit_results` must already be
@@ -651,8 +671,7 @@ class Specfit():
         *status* (`"Fit in progress"` or "Ready") and a *chisq* value.
         """
         if self.dataupdate is not None:
-            if not mcafit:
-                self.dataupdate()
+            self.dataupdate()
 
         self.state = 'Fit in progress'
         self.chisq = None
@@ -678,81 +697,26 @@ class Specfit():
         # constraints = None if param['code'] in ['FREE', 0, 0.0] else \
         #     param_constraints
 
-        found = leastsq(self.fitfunction, self.xdata, ywork, param_val,
-                        constraints=param_constraints,
-                        model_deriv=self.modelderiv, full_output=True)
+        params, covariance_matrix, infodict = leastsq(
+                                                self.fitfunction,
+                                                self.xdata, ywork,
+                                                param_val,
+                                                constraints=param_constraints,
+                                                model_deriv=self.modelderiv,
+                                                full_output=True)
+        sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
 
         for i, param in enumerate(self.fit_results):
             if param['code'] != 'IGNORE':
-                param['fitresult'] = found[0][i]
-                #param['sigma'] = found[1][i]
-                param['sigma'] = found[2]["chisq"]   # FIXME: where can old sigma be found, after switching leastsq()?
+                param['fitresult'] = params[i]
+                param['sigma'] = sigmas[i]
 
-        self.chisq = found[2]["chisq"]
+        self.chisq = infodict["chisq"]
         self.state = 'Ready'
 
         if callback is not None:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
-
-    # leastsq() already provides a default derivative
-    #
-    # def myderiv(self, param0, index, x):
-    #     """Apply derivative function to compute partial derivative of
-    #     :meth:`fitfunction` with respect to fit parameter indexed by ``index``
-    #     at value ``param0[index]``
-    #
-    #     If no derivative function is provided for the chosen theory, use a
-    #     default symmetric derivative :meth:`num_deriv`
-    #
-    #     :param param0: List of all fit parameter values (estimated)
-    #     :param index: Index of fit parameter which varies for this partial
-    #         derivative.
-    #     :param x: Independent variable where :meth:`fitfunction` is computed.
-    #     :return: Numpy array of the same shape as ``x`` containing the result
-    #        of the partial derivative.
-    #
-    #     """
-    #     fitbkg = self.fitconfig['fitbkg']
-    #     fittheory = self.fitconfig['fittheory']
-    #     nb_bg_params = len(self.bkgdict[fitbkg][1])
-    #
-    #     # for custom derivative function, it seems the parameter numbering
-    #     # must ignore background parameters
-    #     if index >= nb_bg_params:
-    #         if len(self.theorydict[fittheory]) > 5:
-    #             derivative = self.theorydict[fittheory][5]
-    #             if derivative is not None:
-    #                 return derivative(param0, index - nb_bg_params, x)
-    #
-    #     # if no derivative function is provided, or we are dealing with a
-    #     # background parameter, use the default one
-    #     return self.num_deriv(param0, index, x)
-    #
-    # def num_deriv(self, param0, index, x):
-    #     """Symmetric partial derivative of :meth:`fitfunction` with respect
-    #     to fit parameter indexed by ``index`` at value ``param0[index]``
-    #
-    #     :param param0: List of all fit parameter values (estimated)
-    #     :param index: Index of fit parameter which varies for this partial
-    #         derivative.
-    #     :param x: Independent variable where :meth:`fitfunction` is computed.
-    #     :return: Numpy array of the same shape as ``x`` containing the result
-    #         of the partial derivative::
-    #
-    #             param1 = [param0[i] * 1.00001 if i==index else param0[i]]
-    #             param2 = [param0[i] * 0.99999 if i==index else param0[i]]
-    #             return (f(param1, x) - f(param2, x)) / (2 * 0.00001)
-    #     """
-    #     # numerical derivative
-    #     x = numpy.array(x)
-    #     delta = (param0[index] + numpy.equal(param0[index], 0.0)) * 0.00001
-    #     newpar = param0.__copy__()
-    #     newpar[index] = param0[index] + delta
-    #     f1 = self.fitfunction(x, *newpar)
-    #     newpar[index] = param0[index] - delta
-    #     f2 = self.fitfunction(x, *newpar)
-    #     return (f1 - f2) / (2.0 * delta)
 
     def gendata(self, x=None, paramlist=None):
         """Return a data array using the currently selected fit function
@@ -980,253 +944,253 @@ class Specfit():
         result.update(self.fitconfig)
         return result
 
-    def mcafit(self, x=None, y=None, sigmay=None, yscaling=None,
-               sensitivity=None, fwhm_points=None, **kw):
-        """Run a multi-peak fitting in several steps:
+    # def mcafit(self, x=None, y=None, sigmay=None, yscaling=None,
+    #            sensitivity=None, fwhm_points=None, **kw):
+    #     """Run a multi-peak fitting in several steps:
+    #
+    #         - detect peaks
+    #         - for each detected peak:
+    #
+    #             - run a fit on a limited subset of the
+    #               data around the peak
+    #             - if the fit is not good enough (large chi-squared value),
+    #               try to iteratively fit more peaks in the range until
+    #               the fit is good enough
+    #         - return a list of parameters for all fitted peaks
+    #
+    #     :param x: Independent variable where the data is measured
+    #     :param y: Measured data
+    #     :param sigmay: The uncertainties in the ``y`` array. These are
+    #         used as weights in the least-squares problem.
+    #     :param yscaling: Scaling factor for ``y`` data. If ``None``, defaults
+    #         to value defined in ``"Yscaling"`` field of dictionary
+    #         :attr:`fitconfig`, unless  ``"AutoScaling"`` is ``True`` in
+    #         :attr:`fitconfig`, in which case the value returned by
+    #         :meth:`guess_yscaling` is used.
+    #     :param sensitivity: Sensitivity value used for by peak detection
+    #         algorithm. To be detected, a peak must have an amplitude greater
+    #         than ``σn * sensitivity`` (where ``σn`` is an estimated value of
+    #         the standard deviation of the noise).
+    #     :param fwhm_points: Full-width at half-maximum of the peak function,
+    #         expressed in number of data points. If ``None`` and
+    #         ``"AutoFwhm"``is ``True`` in :attr:`fitconfig`, use value estimated
+    #         by :func:`guess_fwhm`.
+    #
+    #     :return: MCA fit result for each peak, as a list of dictionaries with the
+    #         following fields:
+    #
+    #             - ``xbegin``: minimum of :attr:`xdata` on which the fit was
+    #               performed
+    #             - ``xend``: maximum of :attr:`xdata` on which fit was
+    #               performed
+    #             - ``fitstate``: *Estimate in progress*, *Ready to fit*,
+    #               *Fit in progress*, *Ready* or *Unknown*
+    #             - ``fitconfig``: :attr:`fitconfig`
+    #             - ``config``: Return value of :meth:`configure` (dictionary of
+    #               configuration parameters)
+    #             - ``paramlist``: :attr:`fit_results`
+    #             - ``chisq``: :attr:`chisq`
+    #             - ``mca_areas``: :attr:`chisq`
+    #     """
+    #     if y is None:
+    #         y = self.ydata0
+    #
+    #     if x is None:
+    #         x = numpy.arange(len(y)).astype(numpy.float)
+    #
+    #     self.setdata(x, y, sigmay)
+    #
+    #     if yscaling is None:
+    #         if self.fitconfig['AutoScaling']:
+    #             yscaling = self.guess_yscaling()
+    #         else:
+    #             yscaling = self.fitconfig['Yscaling']
+    #
+    #     if sensitivity is None:
+    #         sensitivity = self.fitconfig['Sensitivity']
+    #
+    #     if fwhm_points is None:
+    #         if self.fitconfig['AutoFwhm']:
+    #             fwhm_points = guess_fwhm(y)
+    #         else:
+    #             fwhm_points = self.fitconfig['FwhmPoints']
+    #
+    #     fwhm_points = int(fwhm_points)
+    #
+    #     # needed to make sure same peaks are found
+    #     self.configure(Yscaling=yscaling,
+    #                    autoscaling=False,
+    #                    FwhmPoints=fwhm_points,
+    #                    Sensitivity=sensitivity)
+    #     ysearch = self.ydata * yscaling
+    #     npoints = len(ysearch)
+    #
+    #     # Detect peaks
+    #     peaks = []
+    #     if npoints > (1.5) * fwhm_points:
+    #         peaksidx = peak_search(ysearch, fwhm_points, sensitivity)
+    #         for idx in peaksidx:
+    #             peaks.append(self.xdata[int(idx)])
+    #         _logger.debug("MCA Found peaks = " + str(peaks))
+    #
+    #     # Define regions of interest around each peak
+    #     if len(peaks):
+    #         regions = self.mcaregions(peaks, self.xdata[fwhm_points] - self.xdata[0])
+    #     else:
+    #         regions = []
+    #     _logger.debug(" regions = " + str(regions))
+    #
+    #     # Run fit on each individual ROI around the peak
+    #     mcaresult = []
+    #     xmin0 = self.xdata[0]
+    #     xmax0 = self.xdata[-1]
+    #     for region in regions:
+    #         # Limit data range to +- 3*fwhm around the peak
+    #         self.setdata(self.xdata0, self.ydata0, self.sigmay0,
+    #                      xmin=region[0], xmax=region[1])
+    #
+    #         # Estimate and fit
+    #         self.estimate(mcafit=1)
+    #         if self.state == 'Ready to Fit':
+    #             self.startfit(mcafit=1)
+    #             # If fit is not good enough, try fitting more peaks in the ROI
+    #             if self.chisq is not None and self.fitconfig['ResidualsFlag']:
+    #                 while(self.chisq > 2.5):
+    #                     newpar, newcons = self.mcaresidualssearch()
+    #                     # If a new peak was fitted, add a group of parameters
+    #                     if newpar != []:
+    #                         newg = 1
+    #                         for param in self.fit_results:
+    #                             newg = max(
+    #                                 newg, int(float(param['group']) + 1))
+    #                             param['estimation'] = param['fitresult']
+    #                         i = -1
+    #                         for pname in self.theorydict[self.fitconfig['fittheory']][1]:
+    #                             i += 1
+    #                             name = pname + "%d" % newg
+    #                             self.fit_results.append({'name': name,
+    #                                                      'estimation': newpar[i],
+    #                                                      'group': newg,
+    #                                                      'code': newcons[0][i],
+    #                                                      'cons1': newcons[1][i],
+    #                                                      'cons2': newcons[2][i],
+    #                                                      'fitresult': 0.0,
+    #                                                      'sigma': 0.0})
+    #                         self.startfit()
+    #                     else:
+    #                         break
+    #         mcaresult.append(self.mcagetresult())  # FIXME: does this store pointers to the same attributes that are overwritten for each region?
+    #
+    #         # Restore ydata and xdata to full length
+    #         self.setdata(self.xdata0, self.ydata0, xmin=xmin0, xmax=xmax0)
+    #     return mcaresult
 
-            - detect peaks
-            - for each detected peak:
-
-                - run a fit on a limited subset of the
-                  data around the peak
-                - if the fit is not good enough (large chi-squared value),
-                  try to iteratively fit more peaks in the range until
-                  the fit is good enough
-            - return a list of parameters for all fitted peaks
-
-        :param x: Independent variable where the data is measured
-        :param y: Measured data
-        :param sigmay: The uncertainties in the ``y`` array. These are
-            used as weights in the least-squares problem.
-        :param yscaling: Scaling factor for ``y`` data. If ``None``, defaults
-            to value defined in ``"Yscaling"`` field of dictionary
-            :attr:`fitconfig`, unless  ``"AutoScaling"`` is ``True`` in
-            :attr:`fitconfig`, in which case the value returned by
-            :meth:`guess_yscaling` is used.
-        :param sensitivity: Sensitivity value used for by peak detection
-            algorithm. To be detected, a peak must have an amplitude greater
-            than ``σn * sensitivity`` (where ``σn`` is an estimated value of
-            the standard deviation of the noise).
-        :param fwhm_points: Full-width at half-maximum of the peak function,
-            expressed in number of data points. If ``None`` and
-            ``"AutoFwhm"``is ``True`` in :attr:`fitconfig`, use value estimated
-            by :func:`guess_fwhm`.
-
-        :return: MCA fit result for each peak, as a list of dictionaries with the
-            following fields:
-
-                - ``xbegin``: minimum of :attr:`xdata` on which the fit was
-                  performed
-                - ``xend``: maximum of :attr:`xdata` on which fit was
-                  performed
-                - ``fitstate``: *Estimate in progress*, *Ready to fit*,
-                  *Fit in progress*, *Ready* or *Unknown*
-                - ``fitconfig``: :attr:`fitconfig`
-                - ``config``: Return value of :meth:`configure` (dictionary of
-                  configuration parameters)
-                - ``paramlist``: :attr:`fit_results`
-                - ``chisq``: :attr:`chisq`
-                - ``mca_areas``: :attr:`chisq`
-        """
-        if y is None:
-            y = self.ydata0
-
-        if x is None:
-            x = numpy.arange(len(y)).astype(numpy.float)
-
-        self.setdata(x, y, sigmay)
-
-        if yscaling is None:
-            if self.fitconfig['AutoScaling']:
-                yscaling = self.guess_yscaling()
-            else:
-                yscaling = self.fitconfig['Yscaling']
-
-        if sensitivity is None:
-            sensitivity = self.fitconfig['Sensitivity']
-
-        if fwhm_points is None:
-            if self.fitconfig['AutoFwhm']:
-                fwhm_points = guess_fwhm(y)
-            else:
-                fwhm_points = self.fitconfig['FwhmPoints']
-
-        fwhm_points = int(fwhm_points)
-
-        # needed to make sure same peaks are found
-        self.configure(Yscaling=yscaling,
-                       autoscaling=False,
-                       FwhmPoints=fwhm_points,
-                       Sensitivity=sensitivity)
-        ysearch = self.ydata * yscaling
-        npoints = len(ysearch)
-
-        # Detect peaks
-        peaks = []
-        if npoints > (1.5) * fwhm_points:
-            peaksidx = peak_search(ysearch, fwhm_points, sensitivity)
-            for idx in peaksidx:
-                peaks.append(self.xdata[int(idx)])
-            _logger.debug("MCA Found peaks = " + str(peaks))
-
-        # Define regions of interest around each peak
-        if len(peaks):
-            regions = self.mcaregions(peaks, self.xdata[fwhm_points] - self.xdata[0])
-        else:
-            regions = []
-        _logger.debug(" regions = " + str(regions))
-
-        # Run fit on each individual ROI around the peak
-        mcaresult = []
-        xmin0 = self.xdata[0]
-        xmax0 = self.xdata[-1]
-        for region in regions:
-            # Limit data range to +- 3*fwhm around the peak
-            self.setdata(self.xdata0, self.ydata0, self.sigmay0,
-                         xmin=region[0], xmax=region[1])
-
-            # Estimate and fit
-            self.estimate(mcafit=1)
-            if self.state == 'Ready to Fit':
-                self.startfit(mcafit=1)
-                # If fit is not good enough, try fitting more peaks in the ROI
-                if self.chisq is not None and self.fitconfig['ResidualsFlag']:
-                    while(self.chisq > 2.5):
-                        newpar, newcons = self.mcaresidualssearch()
-                        # If a new peak was fitted, add a group of parameters
-                        if newpar != []:
-                            newg = 1
-                            for param in self.fit_results:
-                                newg = max(
-                                    newg, int(float(param['group']) + 1))
-                                param['estimation'] = param['fitresult']
-                            i = -1
-                            for pname in self.theorydict[self.fitconfig['fittheory']][1]:
-                                i += 1
-                                name = pname + "%d" % newg
-                                self.fit_results.append({'name': name,
-                                                         'estimation': newpar[i],
-                                                         'group': newg,
-                                                         'code': newcons[0][i],
-                                                         'cons1': newcons[1][i],
-                                                         'cons2': newcons[2][i],
-                                                         'fitresult': 0.0,
-                                                         'sigma': 0.0})
-                            self.startfit()
-                        else:
-                            break
-            mcaresult.append(self.mcagetresult())  # FIXME: does this store pointers to the same attributes that are overwritten for each region?
-
-            # Restore ydata and xdata to full length
-            self.setdata(self.xdata0, self.ydata0, xmin=xmin0, xmax=xmax0)
-        return mcaresult
-
-    def mcaregions(self, peaks, fwhm):
-        """Return list of ``x`` regions around peaks (plus and minus 3 times
-        ``fwhm``).
-
-        :param peaks: List of ``x`` coordinates of peaks
-        :param fwhm: Full width at half maximum, in the same unit as ``x``.
-        :return: List of ``x`` ranges, as length-2 lists ``[x0, x1]``
-        """
-        mindelta = 3.0 * fwhm
-        plusdelta = 3.0 * fwhm
-        regions = []
-        min_x = min(self.xdata[0], self.xdata[-1])
-        max_x = max(self.xdata[0], self.xdata[-1])
-        for peak in peaks:
-            x0 = max(peak - mindelta, min_x)
-            x1 = min(peak + plusdelta, max_x)
-            if regions == []:
-                regions.append([x0, x1])
-            else:
-                if x0 < regions[-1][0]:
-                    regions[-1][0] = x0
-                elif x0 < (regions[-1][1]):
-                    regions[-1][1] = x1
-                else:
-                    regions.append([x0, x1])
-        return regions
-
-    def mcagetresult(self):
-        """Return result of MCA fit as a dictionary with the following fields:
-
-            - ``xbegin``: minimum of :attr:`xdata` on which fit was performed
-            - ``xend``: maximum of :attr:`xdata` on which fit was performed
-            - ``fitstate``: *Estimate in progress*, *Ready to fit*,
-              *Fit in progress*, *Ready* or *Unknown*
-            - ``fitconfig``: :attr:`fitconfig`
-            - ``config``: Return value of :meth:`configure` (dictionary of
-              configuration parameters)
-            - ``paramlist``: :attr:`fit_results`
-            - ``chisq``: :attr:`chisq`
-            - ``mca_areas``: :attr:`chisq`
-
-        :return: Dictionary of fit results and fit configuration parameters
-        """
-        # FIXME: the returned dict contains pointers to attributes, instead of copies. Is this good?
-        result = {}
-        result['xbegin'] = min(self.xdata[0], self.xdata[-1])
-        result['xend'] = max(self.xdata[0], self.xdata[-1])
-        try:
-            result['fitstate'] = self.state
-        except AttributeError:
-            result['fitstate'] = 'Unknown'
-        result['fitconfig'] = self.fitconfig
-        result['config'] = self.configure()
-        result['paramlist'] = self.fit_results
-        result['chisq'] = self.chisq
-        result['mca_areas'] = self.mcagetareas()
-
-        return result
-
-    def mcagetareas(self, x=None, y=None, sigmay=None, paramlist=None):
-        # TODO document
-        if x is None:
-            x = self.xdata
-        if y is None:
-            y = self.ydata
-        if sigmay is None:
-            sigmay = self.sigmay
-        if paramlist is None:
-            paramlist = self.fit_results
-        groups = []
-        for param in paramlist:
-            if param['code'] != 'IGNORE':
-                if int(float(param['group'])) != 0:
-                    if param['group'] not in groups:
-                        groups.append(param['group'])
-
-        result = []
-        for group in groups:
-            noigno = []
-            pos = 0
-            fwhm = 0
-            for param in paramlist:
-                if param['group'] != group:
-                    if param['code'] != 'IGNORE':
-                        noigno.append(param['fitresult'])
-                else:
-                    if 'Position' in param['name']:
-                        pos = param['fitresult']
-                    if 'Fwhm' in param['name']:
-                        fwhm = param['fitresult']
-            # now I add everything around +/- 4 sigma
-            # around the peak position
-            sigma = fwhm / 2.354
-            xmin = max(pos - 3.99 * sigma, min(x))
-            xmax = min(pos + 3.99 * sigma, max(x))
-            idx = numpy.nonzero((x >= xmin) & (x <= xmax))[0]
-            x_around = numpy.take(x, idx)
-            y_around = numpy.take(y, idx)
-            ybkg_around = numpy.take(self.fitfunction(x, *noigno), idx)
-            neto = y_around - ybkg_around
-            deltax = x_around[1:] - x_around[0:-1]
-            area = numpy.sum(neto[0:-1] * deltax)
-            sigma_area = (numpy.sqrt(numpy.sum(y_around)))
-            result.append([pos, area, sigma_area, fwhm])
-
-        return result
+    # def mcaregions(self, peaks, fwhm):
+    #     """Return list of ``x`` regions around peaks (plus and minus 3 times
+    #     ``fwhm``).
+    #
+    #     :param peaks: List of ``x`` coordinates of peaks
+    #     :param fwhm: Full width at half maximum, in the same unit as ``x``.
+    #     :return: List of ``x`` ranges, as length-2 lists ``[x0, x1]``
+    #     """
+    #     mindelta = 3.0 * fwhm
+    #     plusdelta = 3.0 * fwhm
+    #     regions = []
+    #     min_x = min(self.xdata[0], self.xdata[-1])
+    #     max_x = max(self.xdata[0], self.xdata[-1])
+    #     for peak in peaks:
+    #         x0 = max(peak - mindelta, min_x)
+    #         x1 = min(peak + plusdelta, max_x)
+    #         if regions == []:
+    #             regions.append([x0, x1])
+    #         else:
+    #             if x0 < regions[-1][0]:
+    #                 regions[-1][0] = x0
+    #             elif x0 < (regions[-1][1]):
+    #                 regions[-1][1] = x1
+    #             else:
+    #                 regions.append([x0, x1])
+    #     return regions
+    #
+    # def mcagetresult(self):
+    #     """Return result of MCA fit as a dictionary with the following fields:
+    #
+    #         - ``xbegin``: minimum of :attr:`xdata` on which fit was performed
+    #         - ``xend``: maximum of :attr:`xdata` on which fit was performed
+    #         - ``fitstate``: *Estimate in progress*, *Ready to fit*,
+    #           *Fit in progress*, *Ready* or *Unknown*
+    #         - ``fitconfig``: :attr:`fitconfig`
+    #         - ``config``: Return value of :meth:`configure` (dictionary of
+    #           configuration parameters)
+    #         - ``paramlist``: :attr:`fit_results`
+    #         - ``chisq``: :attr:`chisq`
+    #         - ``mca_areas``: :attr:`chisq`
+    #
+    #     :return: Dictionary of fit results and fit configuration parameters
+    #     """
+    #     # FIXME: the returned dict contains pointers to attributes, instead of copies. Is this good?
+    #     result = {}
+    #     result['xbegin'] = min(self.xdata[0], self.xdata[-1])
+    #     result['xend'] = max(self.xdata[0], self.xdata[-1])
+    #     try:
+    #         result['fitstate'] = self.state
+    #     except AttributeError:
+    #         result['fitstate'] = 'Unknown'
+    #     result['fitconfig'] = self.fitconfig
+    #     result['config'] = self.configure()
+    #     result['paramlist'] = self.fit_results
+    #     result['chisq'] = self.chisq
+    #     result['mca_areas'] = self.mcagetareas()
+    #
+    #     return result
+    #
+    # def mcagetareas(self, x=None, y=None, sigmay=None, paramlist=None):
+    #     # TODO document
+    #     if x is None:
+    #         x = self.xdata
+    #     if y is None:
+    #         y = self.ydata
+    #     if sigmay is None:
+    #         sigmay = self.sigmay
+    #     if paramlist is None:
+    #         paramlist = self.fit_results
+    #     groups = []
+    #     for param in paramlist:
+    #         if param['code'] != 'IGNORE':
+    #             if int(float(param['group'])) != 0:
+    #                 if param['group'] not in groups:
+    #                     groups.append(param['group'])
+    #
+    #     result = []
+    #     for group in groups:
+    #         noigno = []
+    #         pos = 0
+    #         fwhm = 0
+    #         for param in paramlist:
+    #             if param['group'] != group:
+    #                 if param['code'] != 'IGNORE':
+    #                     noigno.append(param['fitresult'])
+    #             else:
+    #                 if 'Position' in param['name']:
+    #                     pos = param['fitresult']
+    #                 if 'Fwhm' in param['name']:
+    #                     fwhm = param['fitresult']
+    #         # now I add everything around +/- 4 sigma
+    #         # around the peak position
+    #         sigma = fwhm / 2.354
+    #         xmin = max(pos - 3.99 * sigma, min(x))
+    #         xmax = min(pos + 3.99 * sigma, max(x))
+    #         idx = numpy.nonzero((x >= xmin) & (x <= xmax))[0]
+    #         x_around = numpy.take(x, idx)
+    #         y_around = numpy.take(y, idx)
+    #         ybkg_around = numpy.take(self.fitfunction(x, *noigno), idx)
+    #         neto = y_around - ybkg_around
+    #         deltax = x_around[1:] - x_around[0:-1]
+    #         area = numpy.sum(neto[0:-1] * deltax)
+    #         sigma_area = (numpy.sqrt(numpy.sum(y_around)))
+    #         result.append([pos, area, sigma_area, fwhm])
+    #
+    #     return result
 
     def guess_yscaling(self, y=None):
         """Return the inverse chi-squared value"""
@@ -1254,108 +1218,108 @@ class Specfit():
             scaling = 1.0
         return scaling
 
-    def mcaresidualssearch(self, x=None, y=None, sigmay=None, paramlist=None):
-        # Todo: document or remove
-        if x is None:
-            x = self.xdata
-        if y is None:
-            y = self.ydata
-        if sigmay is None:
-            sigmay = self.sigmay
-        if paramlist is None:
-            paramlist = self.fit_results
-
-        groups = []
-        for param in paramlist:
-            if param['code'] != 'IGNORE':
-                if int(float(param['group'])) != 0:
-                    if param['group'] not in groups:
-                        groups.append(param['group'])
-
-        newpar = []
-        newcodes = []
-        if self.fitconfig['fitbkg'] == 'Square Filter':
-            return newpar, newcodes
-        areanotdone = 1
-
-        # estimate the fwhm
-        fwhm = 10
-        fwhmcode = 'POSITIVE'
-        fwhmcons1 = 0
-        fwhmcons2 = 0
-        i = -1
-        peaks = []
-        for param in paramlist:
-            i += 1
-            pname = param['name']
-            if 'Fwhm' in param['name']:
-                fwhm = param['fitresult']
-                if param['code'] in ['FREE', 'FIXED', 'QUOTED', 'POSITIVE',
-                                     0, 1, 2, 3]:
-                    fwhmcode = 'FACTOR'
-                    fwhmcons1 = i
-                    fwhmcons2 = 1.0
-            if pname.find('Position') != -1:
-                peaks.append(param['fitresult'])
-
-        # calculate the residuals
-        yfit = self.gendata(x=x, paramlist=paramlist)
-
-        residuals = (y - yfit) / (sigmay + numpy.equal(sigmay, 0.0))
-
-        # set to zero all the residuals around peaks
-        for peak in peaks:
-            idx = numpy.less(x, peak - 0.8 * fwhm) + \
-                numpy.greater(x, peak + 0.8 * fwhm)
-            yfit *= idx
-            y *= idx
-            residuals *= idx
-
-        # estimate the position
-        maxres = max(residuals)
-        idx = numpy.nonzero(residuals == maxres)[0]
-        pos = numpy.take(x, idx)[-1]
-
-        # estimate the height!
-        height = numpy.take(y - yfit, idx)[-1]
-        if (height <= 0):
-            return newpar, newcodes
-
-        for pname in self.theorydict[self.fitconfig['fittheory']][1]:
-            if pname.find('Position') != -1:
-                estimation = pos
-                code = 'QUOTED'
-                cons1 = pos - 0.5 * fwhm
-                cons2 = pos + 0.5 * fwhm
-            elif pname.find('Area') != -1:
-                if areanotdone:
-                    areanotdone = 0
-                    area = (height * fwhm / (2.0 * numpy.sqrt(2 * numpy.log(2)))) * \
-                        numpy.sqrt(2 * numpy.pi)
-                    if area <= 0:
-                        return [], [[], [], []]
-                    estimation = area
-                    code = 'POSITIVE'
-                    cons1 = 0.0
-                    cons2 = 0.0
-                else:
-                    estimation = 0.0
-                    code = 'FIXED'
-                    cons1 = 0.0
-                    cons2 = 0.0
-            elif 'Fwhm' in pname:
-                estimation = fwhm
-                code = fwhmcode
-                cons1 = fwhmcons1
-                cons2 = fwhmcons2
-            else:
-                estimation = 0.0
-                code = 'FIXED'
-                cons1 = 0.0
-                cons2 = 0.0
-            newpar.append(estimation)
-            newcodes.append([code, cons1, cons2])
-        return newpar, newcodes
+    # def mcaresidualssearch(self, x=None, y=None, sigmay=None, paramlist=None):
+    #     # Todo: document or remove
+    #     if x is None:
+    #         x = self.xdata
+    #     if y is None:
+    #         y = self.ydata
+    #     if sigmay is None:
+    #         sigmay = self.sigmay
+    #     if paramlist is None:
+    #         paramlist = self.fit_results
+    #
+    #     groups = []
+    #     for param in paramlist:
+    #         if param['code'] != 'IGNORE':
+    #             if int(float(param['group'])) != 0:
+    #                 if param['group'] not in groups:
+    #                     groups.append(param['group'])
+    #
+    #     newpar = []
+    #     newcodes = []
+    #     if self.fitconfig['fitbkg'] == 'Square Filter':
+    #         return newpar, newcodes
+    #     areanotdone = 1
+    #
+    #     # estimate the fwhm
+    #     fwhm = 10
+    #     fwhmcode = 'POSITIVE'
+    #     fwhmcons1 = 0
+    #     fwhmcons2 = 0
+    #     i = -1
+    #     peaks = []
+    #     for param in paramlist:
+    #         i += 1
+    #         pname = param['name']
+    #         if 'Fwhm' in param['name']:
+    #             fwhm = param['fitresult']
+    #             if param['code'] in ['FREE', 'FIXED', 'QUOTED', 'POSITIVE',
+    #                                  0, 1, 2, 3]:
+    #                 fwhmcode = 'FACTOR'
+    #                 fwhmcons1 = i
+    #                 fwhmcons2 = 1.0
+    #         if pname.find('Position') != -1:
+    #             peaks.append(param['fitresult'])
+    #
+    #     # calculate the residuals
+    #     yfit = self.gendata(x=x, paramlist=paramlist)
+    #
+    #     residuals = (y - yfit) / (sigmay + numpy.equal(sigmay, 0.0))
+    #
+    #     # set to zero all the residuals around peaks
+    #     for peak in peaks:
+    #         idx = numpy.less(x, peak - 0.8 * fwhm) + \
+    #             numpy.greater(x, peak + 0.8 * fwhm)
+    #         yfit *= idx
+    #         y *= idx
+    #         residuals *= idx
+    #
+    #     # estimate the position
+    #     maxres = max(residuals)
+    #     idx = numpy.nonzero(residuals == maxres)[0]
+    #     pos = numpy.take(x, idx)[-1]
+    #
+    #     # estimate the height!
+    #     height = numpy.take(y - yfit, idx)[-1]
+    #     if (height <= 0):
+    #         return newpar, newcodes
+    #
+    #     for pname in self.theorydict[self.fitconfig['fittheory']][1]:
+    #         if pname.find('Position') != -1:
+    #             estimation = pos
+    #             code = 'QUOTED'
+    #             cons1 = pos - 0.5 * fwhm
+    #             cons2 = pos + 0.5 * fwhm
+    #         elif pname.find('Area') != -1:
+    #             if areanotdone:
+    #                 areanotdone = 0
+    #                 area = (height * fwhm / (2.0 * numpy.sqrt(2 * numpy.log(2)))) * \
+    #                     numpy.sqrt(2 * numpy.pi)
+    #                 if area <= 0:
+    #                     return [], [[], [], []]
+    #                 estimation = area
+    #                 code = 'POSITIVE'
+    #                 cons1 = 0.0
+    #                 cons2 = 0.0
+    #             else:
+    #                 estimation = 0.0
+    #                 code = 'FIXED'
+    #                 cons1 = 0.0
+    #                 cons2 = 0.0
+    #         elif 'Fwhm' in pname:
+    #             estimation = fwhm
+    #             code = fwhmcode
+    #             cons1 = fwhmcons1
+    #             cons2 = fwhmcons2
+    #         else:
+    #             estimation = 0.0
+    #             code = 'FIXED'
+    #             cons1 = 0.0
+    #             cons2 = 0.0
+    #         newpar.append(estimation)
+    #         newcodes.append([code, cons1, cons2])
+    #     return newpar, newcodes
 
     def squarefilter(self, y, width):
         """
