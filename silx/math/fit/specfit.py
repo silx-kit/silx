@@ -34,7 +34,7 @@ import os
 import sys
 
 from .filters import strip
-from .peaks import peak_search
+from .peaks import peak_search, guess_fwhm
 from .leastsq import leastsq
 
 
@@ -606,7 +606,7 @@ class Specfit():
             of fit functions.
 
         An example of such a file can be found at
-        `https://github.com/vasole/pymca/blob/master/PyMca5/PyMcaMath/fitting/SpecfitFunctions.py`_
+        `https://github.com/vasole/pymca/blob/master/PyMca5/PyMcaMath/fitting/specfitfunctions.py`_
 
         Imported functions are saved in :attr:`theorydict`.
         """
@@ -755,28 +755,32 @@ class Specfit():
     #     return (f1 - f2) / (2.0 * delta)
 
     def gendata(self, x=None, paramlist=None):
-        """Calculate :meth:`fitfunction` on `x` data using fit parameters from
-        a list of parameter dictionaries, if field ``code`` is not set
-        to ``"IGNORE"``.
+        """Return a data array using the currently selected fit function
+        and the fitted parameters.
 
         :param x: Independent variable where the function is calculated.
+            If ``None``, use :attr:`xdata`.
         :param paramlist: List of dictionaries, each dictionary item being a
             fit parameter. The dictionary's format is documented in
             :attr:`fit_results`.
-            If ``None``, use parameters from :attr:`fit_results`.
+            If ``None`` (default), use parameters from :attr:`fit_results`.
         :return: :meth:`fitfunction` calculated for parameters whose code is
-            not ``"IGNORE"``.
+            not set to ``"IGNORE"``.
+
+        This calculates :meth:`fitfunction` on `x` data using fit parameters
+        from a list of parameter dictionaries, if field ``code`` is not set
+        to ``"IGNORE"``.
         """
         if x is None:
             x = self.xdata
         if paramlist is None:
             paramlist = self.fit_results
-        noigno = []
+        active_params = []
         for param in paramlist:
             if param['code'] != 'IGNORE':
-                noigno.append(param['fitresult'])
+                active_params.append(param['fitresult'])
 
-        newdata = self.fitfunction(numpy.array(x), *noigno)
+        newdata = self.fitfunction(numpy.array(x), *active_params)
         return newdata
 
     def bkg_constant(self, x, *pars):
@@ -1005,10 +1009,10 @@ class Specfit():
             the standard deviation of the noise).
         :param fwhm_points: Full-width at half-maximum of the peak function,
             expressed in number of data points. If ``None`` and
-            ``"AutoFwhm"``is ``True`` in :attr:`fitconfig`, use value returned
-            by :meth:`guess_fwhm`.
+            ``"AutoFwhm"``is ``True`` in :attr:`fitconfig`, use value estimated
+            by :func:`guess_fwhm`.
 
-        :return: MCA fit result for each peak, as a list of dictionaries with the
+        :return: MCA fit result for each peak, as a list of dictionaries with the
             following fields:
 
                 - ``xbegin``: minimum of :attr:`xdata` on which the fit was
@@ -1043,7 +1047,7 @@ class Specfit():
 
         if fwhm_points is None:
             if self.fitconfig['AutoFwhm']:
-                fwhm_points = self.guess_fwhm(y=y)
+                fwhm_points = guess_fwhm(y)
             else:
                 fwhm_points = self.fitconfig['FwhmPoints']
 
@@ -1177,7 +1181,7 @@ class Specfit():
         return result
 
     def mcagetareas(self, x=None, y=None, sigmay=None, paramlist=None):
-        # TODO document
+        # TODO document
         if x is None:
             x = self.xdata
         if y is None:
@@ -1249,47 +1253,6 @@ class Specfit():
         except ZeroDivisionError:
             scaling = 1.0
         return scaling
-
-    def guess_fwhm(self, y=None):
-        """Return a best guess of the full-width at half maximum,
-        in number of samples.
-
-        The algorithm removes the background, then finds a global maximum
-        and its corresponding full width at half maximum.
-
-        :param y: Data to be used for guessing the fwhm. If ``None``,
-            use :attr:`self.ydata`.
-        :return: Estimation of full-width at half maximum, based on fwhm of
-            the global maximum.
-        """
-        if y is None:
-            y = self.ydata
-        # set at least a default value for the fwhm
-        fwhm = 4
-
-        # remove data background (computed with a strip filter)
-        background = strip(y, w=1, niterations=1000)
-        yfit = y - background
-
-        # basic peak search: find the global maximum
-        maximum = max(yfit)
-        # find indices of all values == maximum
-        idx = numpy.nonzero(yfit == maximum)[0]
-        # take the last one
-        posindex = idx[-1]
-        height = yfit[posindex]
-
-        # now find the width of the peak at half maximum
-        imin = posindex
-        while yfit[imin] > 0.5 * height and imin > 0:
-            imin -= 1
-        imax = posindex
-        while yfit[imax] > 0.5 * height and imax < len(yfit) - 1:
-            imax += 1
-
-        fwhm = max(imax - imin - 1, fwhm)
-
-        return fwhm
 
     def mcaresidualssearch(self, x=None, y=None, sigmay=None, paramlist=None):
         # Todo: document or remove
@@ -1431,7 +1394,7 @@ class Specfit():
 
 def test():
     from .functions import sum_gauss
-    from . import SpecfitFunctions
+    from . import specfitfunctions
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
@@ -1444,7 +1407,7 @@ def test():
     # Fitting
     fit = Specfit()
     fit.setdata(x=x, y=y)
-    fit.importfun(SpecfitFunctions.__file__)
+    fit.importfun(specfitfunctions.__file__)
     fit.settheory('Gaussians')
     fit.setbackground('Constant')
     fit.estimate()
