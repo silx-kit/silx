@@ -22,24 +22,12 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
-
-import unittest
-
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from .test_fit import suite as test_curve_fit
+__date__ = "22/06/2016"
 
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_curve_fit())
-    return test_suite
+from .leastsq import leastsq, chisq_alpha_beta
+from .leastsq import \
+    CFREE, CPOSITIVE, CQUOTED, CFIXED, \
+    CFACTOR, CDELTA, CSUM

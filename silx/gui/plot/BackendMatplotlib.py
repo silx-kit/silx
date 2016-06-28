@@ -64,7 +64,8 @@ from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
-from matplotlib.colors import LinearSegmentedColormap, LogNorm, Normalize
+from matplotlib.colors import (LinearSegmentedColormap, ListedColormap,
+                               LogNorm, Normalize)
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
@@ -72,6 +73,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from . import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
+from . import MPLColormap
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -276,7 +278,21 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         else:
             assert colormap is not None
-            cmap = self.__getColormap(colormap['name'])
+
+            if colormap['name'] is not None:
+                cmap = self.__getColormap(colormap['name'])
+            else:  # No name, use custom colors
+                if 'colors' not in colormap:
+                    raise ValueError(
+                        'addImage: colormap no name nor list of colors.')
+                colors = numpy.array(colormap['colors'], copy=True)
+                assert len(colors.shape) == 2
+                assert colors.shape[-1] in (3, 4)
+                if colors.dtype == numpy.uint8:
+                    # Convert to float in [0., 1.]
+                    colors = colors.astype(numpy.float32) / 255.
+                cmap = ListedColormap(colors)
+
             if colormap['normalization'].startswith('log'):
                 vmin, vmax = None, None
                 if not colormap['autoscale']:
@@ -346,7 +362,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return image
 
-    def addItem(self, x, y, legend, shape, color, fill, overlay):
+    def addItem(self, x, y, legend, shape, color, fill, overlay, z):
         xView = numpy.array(x, copy=False)
         yView = numpy.array(y, copy=False)
 
@@ -381,21 +397,23 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             self.ax.add_patch(item)
 
-        elif shape == 'polygon':
+        elif shape in ('polygon', 'polylines'):
             xView.shape = 1, -1
             yView.shape = 1, -1
             item = Polygon(numpy.vstack((xView, yView)).T,
-                           closed=True,
+                           closed=(shape == 'polygon'),
                            fill=False,
                            label=legend,
                            color=color)
-            if fill:
+            if fill and shape == 'polygon':
                 item.set_hatch('/')
 
             self.ax.add_patch(item)
 
         else:
             raise NotImplementedError("Unsupported item shape %s" % shape)
+
+        item.set_zorder(z)
 
         if overlay:
             item.set_animated(True)
@@ -916,6 +934,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if name in self._colormaps:
             return self._colormaps[name]
+        elif hasattr(MPLColormap, name):  # viridis and sister colormaps
+            return getattr(MPLColormap, name)
         else:
             # matplotlib built-in
             return cm.get_cmap(name)

@@ -1,5 +1,5 @@
 
-.. py:module:: math
+.. py:module:: silx.math
 
 :mod:`silx.math`:
 ==================
@@ -7,5 +7,5 @@
 .. toctree::
    :maxdepth: 1
    
-   fit.rst
+   fit/leastsq.rst
    histogramnd.rst

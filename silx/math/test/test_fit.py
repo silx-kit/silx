@@ -22,13 +22,14 @@
 #
 # ############################################################################*/
 """
-Nominal tests of the histogramnd function.
+Nominal tests of the leastsq function.
 """
 
 import unittest
 
 import numpy
 import sys
+
 
 class Test_leastsq(unittest.TestCase):
     """
@@ -39,7 +40,7 @@ class Test_leastsq(unittest.TestCase):
 
     def setUp(self):
         try:
-            from silx.math import leastsq
+            from silx.math.fit import leastsq
             self.instance = leastsq
         except ImportError:
             self.instance = None
@@ -47,16 +48,17 @@ class Test_leastsq(unittest.TestCase):
         def myexp(x):
             # put a (bad) filter to avoid over/underflows
             # with no python looping
-            return numpy.exp(x*numpy.less(abs(x),250))-1.0 * numpy.greater_equal(abs(x),250)
+            return numpy.exp(x*numpy.less(abs(x), 250)) - \
+                   1.0 * numpy.greater_equal(abs(x), 250)
 
         self.my_exp = myexp
 
         def gauss(x, *params):
-            params=numpy.array(params, copy=False, dtype=numpy.float)
-            result =  params[0] + params[1] * x
+            params = numpy.array(params, copy=False, dtype=numpy.float)
+            result = params[0] + params[1] * x
             for i in range(2, len(params), 3):
                 p = params[i:(i+3)]
-                dummy=2.3548200450309493*(x - p[1])/p[2]
+                dummy = 2.3548200450309493*(x - p[1])/p[2]
                 result += p[0] * self.my_exp(-0.5 * dummy * dummy)
             return result
 
@@ -94,13 +96,13 @@ class Test_leastsq(unittest.TestCase):
 
     def testImport(self):
         self.assertTrue(self.instance is not None,
-                        "Cannot import leastsq from silx.math")
+                        "Cannot import leastsq from silx.math.fit")
 
     def testUnconstrainedFitNoWeight(self):
-        parameters_actual = [10.5,2,1000.0,20.,15]
+        parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10]
         model_function = self.gauss
 
         fittedpar, cov = self.instance(model_function, x, y, parameters_estimate)
@@ -117,7 +119,7 @@ class Test_leastsq(unittest.TestCase):
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
         sigma = numpy.sqrt(y)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10]
         model_function = self.gauss
 
         fittedpar, cov = self.instance(model_function, x, y,
@@ -132,7 +134,7 @@ class Test_leastsq(unittest.TestCase):
             self.assertTrue(test_condition, msg)
 
     def testDerivativeFunction(self):
-        parameters_actual = [10.5,2,10000.0,20.,150, 5000, 900., 300]
+        parameters_actual = [10.5, 2, 10000.0, 20., 150, 5000, 900., 300]
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
         delta = numpy.sqrt(numpy.finfo(numpy.float).eps)
@@ -155,7 +157,7 @@ class Test_leastsq(unittest.TestCase):
             derivative = self.gauss_derivative(x, p, i)
             diff = numerical_derivative - derivative
             test_condition = numpy.allclose(numerical_derivative,
-                                           derivative, atol=5.0e-6)
+                                            derivative, atol=5.0e-6)
             if not test_condition:
                 msg = "Error calculating derivative of parameter %d." % i
                 msg += "\n diff min = %g diff max = %g" % (diff.min(), diff.max())
@@ -169,14 +171,14 @@ class Test_leastsq(unittest.TestCase):
         CFACTOR     = 4
         CDELTA      = 5
         CSUM        = 6
-        parameters_actual = [10.5,2,10000.0, 20.,150, 5000, 900., 300]
+        parameters_actual = [10.5, 2, 10000.0, 20., 150, 5000, 900., 300]
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10, 400, 850, 200]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10, 400, 850, 200]
         model_function = self.gauss
         model_deriv = self.gauss_derivative
-        constraints_all_free = [[0,0,0]] * len(parameters_actual)
-        constraints_all_positive = [[1,0,0]] * len(parameters_actual)
+        constraints_all_free = [[0, 0, 0]] * len(parameters_actual)
+        constraints_all_positive = [[1, 0, 0]] * len(parameters_actual)
         constraints_delta_position = [[0, 0, 0]] * len(parameters_actual)
         constraints_delta_position[6] = [CDELTA, 3, 880]
         constraints_sum_position = constraints_all_positive * 1 
@@ -192,10 +194,10 @@ class Test_leastsq(unittest.TestCase):
             for model_deriv in [None, self.gauss_derivative]:
                 for sigma in [None, numpy.sqrt(y)]:
                     fittedpar, cov = self.instance(model_function, x, y,
-                                       parameters_estimate,
-                                       sigma=sigma,
-                                       constraints=constraints,
-                                       model_deriv=model_deriv)
+                                                   parameters_estimate,
+                                                   sigma=sigma,
+                                                   constraints=constraints,
+                                                   model_deriv=model_deriv)
 
         test_condition = numpy.allclose(parameters_actual, fittedpar)
         if not test_condition:
@@ -206,11 +208,11 @@ class Test_leastsq(unittest.TestCase):
             self.assertTrue(test_condition, msg)
 
     def testUnconstrainedFitAnalyticalDerivative(self):
-        parameters_actual = [10.5,2,1000.0,20.,15]
+        parameters_actual = [10.5, 2, 1000.0, 20., 15]
         x = numpy.arange(10000.)
         y = self.gauss(x, *parameters_actual)
         sigma = numpy.sqrt(y)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10]
         model_function = self.gauss
         model_deriv = self.gauss_derivative
 
@@ -227,11 +229,11 @@ class Test_leastsq(unittest.TestCase):
             self.assertTrue(test_condition, msg)
 
     def testBadlyShapedData(self):
-        parameters_actual = [10.5,2,1000.0,20.,15]
-        x = numpy.arange(10000.).reshape(1000,10)
+        parameters_actual = [10.5, 2, 1000.0, 20., 15]
+        x = numpy.arange(10000.).reshape(1000, 10)
         y = self.gauss(x, *parameters_actual)
         sigma = numpy.sqrt(y)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10]
         model_function = self.gauss
 
         for check_finite in [True, False]:
@@ -248,18 +250,18 @@ class Test_leastsq(unittest.TestCase):
                 self.assertTrue(test_condition, msg)
 
     def testDataWithNaN(self):
-        parameters_actual = [10.5,2,1000.0,20.,15]
-        x = numpy.arange(10000.).reshape(1000,10)
+        parameters_actual = [10.5, 2, 1000.0, 20., 15]
+        x = numpy.arange(10000.).reshape(1000, 10)
         y = self.gauss(x, *parameters_actual)
         sigma = numpy.sqrt(y)
-        parameters_estimate = [0.0,1.0,900.0, 25., 10]
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10]
         model_function = self.gauss
         x[500] = numpy.inf
         # check default behavior
         try:
             self.instance(model_function, x, y,
-                                           parameters_estimate,
-                                           sigma=sigma)
+                          parameters_estimate,
+                          sigma=sigma)
         except ValueError:
             info = "%s" % sys.exc_info()[1]
             self.assertTrue("array must not contain inf" in info)
@@ -267,9 +269,9 @@ class Test_leastsq(unittest.TestCase):
         # check requested behavior
         try:
             self.instance(model_function, x, y,
-                                           parameters_estimate,
-                                           sigma=sigma,
-                                           check_finite=True)
+                          parameters_estimate,
+                          sigma=sigma,
+                          check_finite=True)
         except ValueError:
             info = "%s" % sys.exc_info()[1]
             self.assertTrue("array must not contain inf" in info)
@@ -287,7 +289,7 @@ class Test_leastsq(unittest.TestCase):
             self.assertTrue(test_condition, msg)
 
         # testing now with ydata containing NaN
-        x = numpy.arange(10000.).reshape(1000,10)
+        x = numpy.arange(10000.).reshape(1000, 10)
         y[500] = numpy.nan
         fittedpar, cov = self.instance(model_function, x, y,
                                        parameters_estimate,
@@ -305,9 +307,9 @@ class Test_leastsq(unittest.TestCase):
         # testing now with sigma containing NaN
         sigma[300] = numpy.nan
         fittedpar, cov = self.instance(model_function, x, y,
-                                   parameters_estimate,
-                                   sigma=sigma,
-                                   check_finite=False)
+                                       parameters_estimate,
+                                       sigma=sigma,
+                                       check_finite=False)
         test_condition = numpy.allclose(parameters_actual, fittedpar)
         if not test_condition:
             msg = "Unsuccessfull fit\n"
@@ -326,6 +328,7 @@ def suite():
         tests = loader.loadTestsFromTestCase(test_class)
         test_suite.addTests(tests)
     return test_suite
+
 
 if __name__ == '__main__':
     unittest.main(defaultTest="suite")

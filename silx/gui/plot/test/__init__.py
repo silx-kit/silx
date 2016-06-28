@@ -33,6 +33,7 @@ from .testColormapDialog import suite as testColormapDialogSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
+from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlotWindow import suite as testPlotWindowSuite
@@ -46,9 +47,9 @@ def suite():
          testCurvesROIWidgetSuite(),
          testInteractionSuite(),
          testLegendSelectorSuite(),
+         testMaskToolsWidgetSuite(),
          testPlotSuite(),
          testPlotToolsSuite(),
          testPlotWidgetSuite(),
-         testPlotWindowSuite(),
-        ])
+         testPlotWindowSuite()])
     return test_suite

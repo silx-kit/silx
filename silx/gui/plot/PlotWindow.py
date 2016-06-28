@@ -34,15 +34,15 @@ __date__ = "07/03/2016"
 
 import collections
 import logging
-import sys
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
 from .PlotTools import PositionInfo
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
+from .MaskToolsWidget import MaskToolsDockWidget
 try:
-    from ..console import IPythonDockWidget, IPythonWidget
+    from ..console import IPythonDockWidget
 except ImportError:
     IPythonDockWidget = None
 
@@ -105,7 +105,7 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 control=False, position=False, roi=True):
+                 control=False, position=False, roi=True, mask=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
 
         self._dockWidgets = []
@@ -116,6 +116,12 @@ class PlotWindow(PlotWidget):
 
         self.resetZoomAction = self.group.addAction(ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
+
+        self.zoomInAction = ZoomInAction(self)
+        self.addAction(self.zoomInAction)
+
+        self.zoomOutAction = ZoomOutAction(self)
+        self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
             XAxisAutoScaleAction(self))
@@ -154,6 +160,9 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self.roiAction)
         self.roiAction.setVisible(roi)
 
+        self.group.addAction(self.maskAction)
+        self.maskAction.setVisible(mask)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -168,15 +177,16 @@ class PlotWindow(PlotWidget):
         self.printAction.setVisible(print_)
 
         if control or position:
-            toolBar = qt.QToolBar(self)
-            self.addToolBar(qt.Qt.BottomToolBarArea, toolBar)
+            hbox = qt.QHBoxLayout()
+            hbox.setSpacing(0)
+            hbox.setContentsMargins(0, 0, 0, 0)
 
             if control:
                 self.controlButton = qt.QPushButton("Options")
                 self.controlButton.setAutoDefault(False)
                 self.controlButton.clicked.connect(self._controlButtonClicked)
 
-                toolBar.addWidget(self.controlButton)
+                hbox.addWidget(self.controlButton)
 
             if position:  # Add PositionInfo widget to the bottom of the plot
                 if isinstance(position, collections.Iterable):
@@ -187,7 +197,21 @@ class PlotWindow(PlotWidget):
                 self.positionWidget = PositionInfo(self, converters=converters)
                 self.positionWidget.autoSnapToActiveCurve = True
 
-                toolBar.addWidget(self.positionWidget)
+                hbox.addWidget(self.positionWidget)
+
+            hbox.addStretch(1)
+            bottomBar = qt.QWidget()
+            bottomBar.setLayout(hbox)
+
+            layout = qt.QVBoxLayout()
+            layout.setSpacing(0)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.getWidgetHandle())
+            layout.addWidget(bottomBar)
+
+            centralWidget = qt.QWidget()
+            centralWidget.setLayout(layout)
+            self.setCentralWidget(centralWidget)
 
         self.addToolBar(self.toolBar())
 
@@ -204,8 +228,8 @@ class PlotWindow(PlotWidget):
     def curvesROIDockWidget(self):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
         if not hasattr(self, '_curvesROIDockWidget'):
-            self._curvesROIDockWidget = CurvesROIDockWidget(self,
-                name='Regions Of Interest')
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
             self._introduceNewDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget
@@ -214,6 +238,20 @@ class PlotWindow(PlotWidget):
     def roiAction(self):
         """QAction toggling curve ROI dock widget"""
         return self.curvesROIDockWidget.toggleViewAction()
+
+    @property
+    def maskToolsDockWidget(self):
+        """DockWidget with image mask panel (lazy-loaded)."""
+        if not hasattr(self, '_maskToolsDockWidget'):
+            self._maskToolsDockWidget = MaskToolsDockWidget(self, name='Mask')
+            self._maskToolsDockWidget.hide()
+            self._introduceNewDockWidget(self._maskToolsDockWidget)
+        return self._maskToolsDockWidget
+
+    @property
+    def maskAction(self):
+        """QAction toggling image mask dock widget"""
+        return self.maskToolsDockWidget.toggleViewAction()
 
     @property
     def consoleDockWidget(self):
@@ -274,7 +312,8 @@ class PlotWindow(PlotWidget):
         """Display Options button sub-menu."""
         controlMenu = qt.QMenu()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.curvesROIDockWidget.toggleViewAction())
+        controlMenu.addAction(self.roiAction)
+        controlMenu.addAction(self.maskAction)
         if self.consoleDockWidget is not None:
             controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
         else:
@@ -323,7 +362,9 @@ class Plot1D(PlotWindow):
                                      curveStyle=True, colormap=False,
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
-                                     control=True, position=True)
+                                     control=True, position=True,
+                                     roi=True, mask=False)
+
 
 class Plot2D(PlotWindow):
     """PlotWindow with a toolbar specific for images.
@@ -338,7 +379,8 @@ class Plot2D(PlotWindow):
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=True)
+                                     control=False, position=True,
+                                     roi=False, mask=True)
 
 
 def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):

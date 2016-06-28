@@ -59,30 +59,11 @@ import numpy
 from .. import qt
 
 from . import PlotWindow, PlotWidget
+from .Colors import cursorColorForColormap
 from .PlotTools import ProfileToolBar, LimitsToolBar
 
 
 _logger = logging.getLogger(__name__)
-
-# utils #######################################################################
-
-_COLORMAP_CURSOR_COLORS = {
-    'gray': 'pink',
-    'reversed gray': 'pink',
-    'temperature': 'black',
-    'red': 'gray',
-    'green': 'gray',
-    'blue': 'gray'}
-
-
-def _cursorColorForColormap(colormapName):
-    """Get a color suitable for overlay over a colormap.
-
-    :param str colormapName: The name of the colormap.
-    :return: Name of the color.
-    :rtype: str
-    """
-    return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
 
 
 # RadarView ###################################################################
@@ -308,7 +289,7 @@ class ImageView(PlotWindow):
                                         aspectRatio=True, yInverted=True,
                                         copy=True, save=True, print_=True,
                                         control=False, position=False,
-                                        roi=False)
+                                        roi=False, mask=True)
 
         self._initWidgets(backend)
 
@@ -647,7 +628,7 @@ class ImageView(PlotWindow):
         return self.getDefaultColormap()
 
     def setColormap(self, colormap=None, normalization=None,
-                    autoscale=None, vmin=None, vmax=None, colors=256):
+                    autoscale=None, vmin=None, vmax=None, colors=None):
         """Set the default colormap and update active image.
 
         Parameters that are not provided are taken from the current colormap.
@@ -664,6 +645,8 @@ class ImageView(PlotWindow):
           is False.
         - *vmax*: float. The maximum value of the range to use if 'autoscale'
           is False.
+        - *colors*: optional. Nx3 or Nx4 array of float in [0, 1] or uint8.
+                    List of RGB or RGBA colors to use (only if name is None)
 
         :param colormap: Name of the colormap in
             'gray', 'reversed gray', 'temperature', 'red', 'green', 'blue'.
@@ -676,6 +659,8 @@ class ImageView(PlotWindow):
                            'autoscale' is False.
         :param float vmax: The maximum value of the range to use if
                            'autoscale' is False.
+        :param numpy.ndarray colors: Only used if name is None.
+            Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
         cmapDict = self.getDefaultColormap()
 
@@ -685,7 +670,7 @@ class ImageView(PlotWindow):
             assert autoscale is None
             assert vmin is None
             assert vmax is None
-            assert colors == 256
+            assert colors is None
             for key, value in colormap.items():
                 cmapDict[key] = value
 
@@ -700,11 +685,10 @@ class ImageView(PlotWindow):
                 cmapDict['vmin'] = vmin
             if vmax is not None:
                 cmapDict['vmax'] = vmax
+            if colors is not None:
+                cmapDict['colors'] = colors
 
-        if 'colors' not in cmapDict:
-            cmapDict['colors'] = 256
-
-        cursorColor = _cursorColorForColormap(cmapDict['name'])
+        cursorColor = cursorColorForColormap(cmapDict['name'])
         self.setInteractiveMode('zoom', color=cursorColor)
 
         self.setDefaultColormap(cmapDict)
@@ -826,7 +810,7 @@ class ImageViewMainWindow(ImageView):
         else:
             colormap = activeImage[4]['colormap']
 
-        self.profileToolBar.overlayColor = _cursorColorForColormap(
+        self.profileToolBar.overlayColor = cursorColorForColormap(
             colormap['name'])
 
     def _statusBarSlot(self, row, column, value):

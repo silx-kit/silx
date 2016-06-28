@@ -39,6 +39,8 @@ The following QAction are available:
 - :class:`YAxisInvertedAction`
 - :class:`YAxisLogarithmicAction`
 - :class:`YAxisAutoScaleAction`
+- :class:`ZoomInAction`
+- :class:`ZoomOutAction`
 """
 
 from __future__ import division
@@ -66,6 +68,7 @@ import numpy
 from .. import icons
 from .. import qt
 from .ColormapDialog import ColormapDialog
+from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
@@ -129,6 +132,44 @@ class ResetZoomAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.resetZoom()
+
+
+class ZoomInAction(_PlotAction):
+    """QAction performing a zoom-in on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ZoomInAction, self).__init__(
+            plot,  icon='zoom-in', text='Zoom In',
+            tooltip='Zoom in the plot',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self.setShortcut(qt.QKeySequence.ZoomIn)
+
+    def _actionTriggered(self, checked=False):
+        _applyZoomToPlot(self.plot, 1.1)
+
+
+class ZoomOutAction(_PlotAction):
+    """QAction performing a zoom-out on a :class:`.PlotWidget`.
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        super(ZoomOutAction, self).__init__(
+            plot,  icon='zoom-out', text='Zoom Out',
+            tooltip='Zoom out the plot',
+            triggered=self._actionTriggered,
+            checkable=False, parent=parent)
+        self.setShortcut(qt.QKeySequence.ZoomOut)
+
+    def _actionTriggered(self, checked=False):
+        _applyZoomToPlot(self.plot, 1./1.1)
 
 
 class XAxisAutoScaleAction(_PlotAction):
@@ -604,10 +645,12 @@ class SaveAction(_PlotAction):
         if nameFilter == self.IMAGE_FILTER_EDF:
             edfFile = EdfFile(filename, access="w+")
             edfFile.WriteImage({}, data, Append=0)
+            return True
 
         elif nameFilter == self.IMAGE_FILTER_TIFF:
             tiffFile = TiffIO(filename, mode='w')
             tiffFile.writeImage(data, software='silx')
+            return True
 
         elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
