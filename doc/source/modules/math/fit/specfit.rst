@@ -1,5 +1,5 @@
 
-.. currentmodule:: silx.math
+.. currentmodule:: silx.math.fit
 
 :mod:`specfit`: Fit function manager
 ------------------------------------
