@@ -2056,13 +2056,13 @@ static PyObject *__pyx_pf_7filters_strip(CYTHON_UNUSED PyObject *__pyx_self, PyO
  * 
  * 
  * def snip1d(data, snip_width):             # <<<<<<<<<<<<<<
- *     """snip1d(data, width) -> numpy.ndarray
+ *     """snip1d(data, snip_width) -> numpy.ndarray
  *     Estimate the baseline (background) of a 1D data vector by clipping peaks.
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_7filters_3snip1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_7filters_2snip1d[] = "snip1d(data, width) -> numpy.ndarray\n    Estimate the baseline (background) of a 1D data vector by clipping peaks.\n\n    Implementation of the algorithm SNIP in 1D is described in *Miroslav\n    Morhac et al. Nucl. Instruments and Methods in Physics Research A401\n    (1997) 113-132*.\n\n    The original idea for 1D and the low-statistics-digital-filter (lsdf) come\n    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research\n    B34 (1988) 396-402*.\n\n    :param data: Data array, preferably 1D and of type *numpy.float64*.\n        Else, the data array will be flattened and converted to\n        *dtype=numpy.float64* prior to applying the snip filter.\n    :type data: numpy.ndarray\n    :param width: Width of the snip operator, in number of samples.\n        A sample will be iteratively compared to it's neighbors up to a\n        distance of ``snip_width`` samples. This parameters has a direct\n        influence on the speed of the algorithm.\n    :type width: int\n    :return: Baseline of the input array, as an array of the same shape.\n    :rtype: numpy.ndarray\n    ";
+static char __pyx_doc_7filters_2snip1d[] = "snip1d(data, snip_width) -> numpy.ndarray\n    Estimate the baseline (background) of a 1D data vector by clipping peaks.\n\n    Implementation of the algorithm SNIP in 1D is described in *Miroslav\n    Morhac et al. Nucl. Instruments and Methods in Physics Research A401\n    (1997) 113-132*.\n\n    The original idea for 1D and the low-statistics-digital-filter (lsdf) come\n    from *C.G. Ryan et al. Nucl. Instruments and Methods in Physics Research\n    B34 (1988) 396-402*.\n\n    :param data: Data array, preferably 1D and of type *numpy.float64*.\n        Else, the data array will be flattened and converted to\n        *dtype=numpy.float64* prior to applying the snip filter.\n    :type data: numpy.ndarray\n    :param snip_width: Width of the snip operator, in number of samples.\n        A sample will be iteratively compared to it's neighbors up to a\n        distance of ``snip_width`` samples. This parameters has a direct\n        influence on the speed of the algorithm.\n    :type width: int\n    :return: Baseline of the input array, as an array of the same shape.\n    :rtype: numpy.ndarray\n    ";
 static PyObject *__pyx_pw_7filters_3snip1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
   PyObject *__pyx_v_snip_width = 0;
@@ -2411,7 +2411,7 @@ static PyObject *__pyx_pf_7filters_2snip1d(CYTHON_UNUSED PyObject *__pyx_self, P
  * 
  * 
  * def snip1d(data, snip_width):             # <<<<<<<<<<<<<<
- *     """snip1d(data, width) -> numpy.ndarray
+ *     """snip1d(data, snip_width) -> numpy.ndarray
  *     Estimate the baseline (background) of a 1D data vector by clipping peaks.
  */
 

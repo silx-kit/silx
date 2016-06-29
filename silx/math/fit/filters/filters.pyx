@@ -127,7 +127,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
 
 
 def snip1d(data, snip_width):
-    """snip1d(data, width) -> numpy.ndarray
+    """snip1d(data, snip_width) -> numpy.ndarray
     Estimate the baseline (background) of a 1D data vector by clipping peaks.
 
     Implementation of the algorithm SNIP in 1D is described in *Miroslav
@@ -142,7 +142,7 @@ def snip1d(data, snip_width):
         Else, the data array will be flattened and converted to
         *dtype=numpy.float64* prior to applying the snip filter.
     :type data: numpy.ndarray
-    :param width: Width of the snip operator, in number of samples.
+    :param snip_width: Width of the snip operator, in number of samples.
         A sample will be iteratively compared to it's neighbors up to a
         distance of ``snip_width`` samples. This parameters has a direct
         influence on the speed of the algorithm.
