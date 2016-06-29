@@ -1,34 +1,39 @@
-.. silx documentation master file, created by
-   sphinx-quickstart on Fri Nov 27 14:20:46 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+silx |version|
+==============
 
-Welcome to silx's documentation!
-================================
+The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
+It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
 
-Contents
---------
+The current version provides reading `SPEC <https://certif.com/spec.html>`_ file format, histogramming, fitting, curves and image plot widget with a set of associated tools.
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
-   modules/gui/index.rst
-   modules/io/index.rst
-   modules/image/index.rst
-   modules/math/index.rst
-      
-Install
--------
-
-.. toctree::
-   :maxdepth: 2
-
+   project.rst
    install.rst
+   cookbooks.rst
+   modules/index.rst
+   changelog.rst
 
-Indices and tables
-==================
+:doc:`project`
+    Releases, repository, issue tracker, mailing list, ...
 
-* :ref:`genindex`
+:doc:`install`
+    How to install *silx* on Linux, Windows and MacOS X
+
+:doc:`cookbooks`
+    Short tutorials
+
+
+:doc:`modules/index`
+    Documentation of the packages included in *silx*
+
+:doc:`changelog`
+    List of changes between releases
+
+Indices
+=======
+
 * :ref:`modindex`
 * :ref:`search`
-
+* :ref:`genindex`
