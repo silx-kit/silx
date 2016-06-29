@@ -75,8 +75,8 @@ class SpecfitGui(qt.QWidget):
         if config:
             self.guiconfig = FitConfigWidget(self)
             # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
-            self.guiconfig.WeightCheckBox.stateChanged[
-                int].connect(self.weightevent)
+            # self.guiconfig.WeightCheckBox.stateChanged[
+            #     int].connect(self.weightevent)
             self.guiconfig.AutoFWHMCheckBox.stateChanged[
                 int].connect(self.autofwhmevent)
             self.guiconfig.AutoScalingCheckBox.stateChanged[
@@ -119,10 +119,10 @@ class SpecfitGui(qt.QWidget):
             #     self.guiconfig.MCACheckBox.setChecked(1)
             # else:
             #     self.guiconfig.MCACheckBox.setChecked(0)
-            if configuration['WeightFlag']:
-                self.guiconfig.WeightCheckBox.setChecked(1)
-            else:
-                self.guiconfig.WeightCheckBox.setChecked(0)
+            # if configuration['WeightFlag']:
+            #     self.guiconfig.WeightCheckBox.setChecked(1)
+            # else:
+            #     self.guiconfig.WeightCheckBox.setChecked(0)
             if configuration['AutoFwhm']:
                 self.guiconfig.AutoFWHMCheckBox.setChecked(1)
             else:
@@ -189,11 +189,11 @@ class SpecfitGui(qt.QWidget):
             # if configuration['McaMode']:
             #     self.guiconfig.MCACheckBox.setChecked(1)
             # else:
-            #     self.guiconfig.MCACheckBox.setChecked(0)
-            if configuration['WeightFlag']:
-                self.guiconfig.WeightCheckBox.setChecked(1)
-            else:
-                self.guiconfig.WeightCheckBox.setChecked(0)
+            # #     self.guiconfig.MCACheckBox.setChecked(0)
+            # if configuration['WeightFlag']:
+            #     self.guiconfig.WeightCheckBox.setChecked(1)
+            # else:
+            #     self.guiconfig.WeightCheckBox.setChecked(0)
             if configuration['AutoFwhm']:
                 self.guiconfig.AutoFWHMCheckBox.setChecked(1)
             else:
@@ -217,38 +217,39 @@ class SpecfitGui(qt.QWidget):
             newconfiguration['AutoScaling'] = 1
 
         # example script options like
-        if (1):
-            sheet1 = {'notetitle': 'Restrains',
-                      'fields': (["CheckField", 'HeightAreaFlag', 'Force positive Height/Area'],
-                                 ["CheckField", 'PositionFlag',
-                                  'Force position in interval'],
-                                 ["CheckField", 'PosFwhmFlag',
-                                     'Force positive FWHM'],
-                                 ["CheckField", 'SameFwhmFlag', 'Force same FWHM'],
-                                 ["CheckField", 'EtaFlag',
-                                     'Force Eta between 0 and 1'],
-                                 ["CheckField", 'NoConstrainsFlag', 'Ignore Restrains'])}
+        sheet1 = {'notetitle': 'Restrains',
+                  'fields': (["CheckField", 'PositiveHeightAreaFlag',
+                              'Force positive Height/Area'],
+                             ["CheckField", 'QuotedPositionFlag',
+                              'Force position in interval'],
+                             ["CheckField", 'PositiveFwhmFlag',
+                                 'Force positive FWHM'],
+                             ["CheckField", 'SameFwhmFlag', 'Force same FWHM'],
+                             ["CheckField", 'QuotedEtaFlag',
+                                 'Force Eta between 0 and 1'],
+                             ["CheckField", 'NoConstraintsFlag', 'Ignore Restrains'])}
 
-            sheet2 = {'notetitle': 'Search',
-                      'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: '],
-                                 ["EntryField", 'Sensitivity', 'Sensitivity: '],
-                                 ["EntryField", 'Yscaling',   'Y Factor   : '],
-                                 ["CheckField", 'ForcePeakPresence',   'Force peak presence '])}
-            w = QScriptOption.QScriptOption(self, name='Fit Configuration',
-                                            sheets=(sheet1, sheet2),
-                                            default=oldconfiguration)
+        sheet2 = {'notetitle': 'Search',
+                  'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: '],
+                             ["EntryField", 'Sensitivity', 'Sensitivity: '],
+                             ["EntryField", 'Yscaling',   'Y Factor   : '],
+                             ["CheckField", 'ForcePeakPresence',   'Force peak presence '])}
+        w = QScriptOption.QScriptOption(self, name='Fit Configuration',
+                                        sheets=(sheet1, sheet2),
+                                        default=oldconfiguration)
 
-            w.show()
-            w.exec_()
-            if w.result():
-                newconfiguration.update(w.output)
-            # we do not need the dialog any longer
-            del w
-            newconfiguration['FwhmPoints'] = int(
-                float(newconfiguration['FwhmPoints']))
-            newconfiguration['Sensitivity'] = float(
-                newconfiguration['Sensitivity'])
-            newconfiguration['Yscaling'] = float(newconfiguration['Yscaling'])
+        w.show()
+        w.exec_()
+        if w.result():
+            newconfiguration.update(w.output)
+        # we do not need the dialog any longer
+        del w
+        newconfiguration['FwhmPoints'] = int(
+            float(newconfiguration['FwhmPoints']))
+        newconfiguration['Sensitivity'] = float(
+            newconfiguration['Sensitivity'])
+        newconfiguration['Yscaling'] = float(newconfiguration['Yscaling'])
+
         return newconfiguration
 
     def estimate(self):
@@ -384,12 +385,12 @@ class SpecfitGui(qt.QWidget):
     #     self._emitSignal(ddict)
     #     return
 
-    def weightevent(self, item):
-        if int(item):
-            self.configure(WeightFlag=1)
-        else:
-            self.configure(WeightFlag=0)
-        return
+    # def weightevent(self, item):
+    #     if int(item):
+    #         self.configure(WeightFlag=1)
+    #     else:
+    #         self.configure(WeightFlag=0)
+    #     return
 
     def autofwhmevent(self, item):
         if int(item):

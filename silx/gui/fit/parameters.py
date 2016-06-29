@@ -839,11 +839,11 @@ def main(args):
 
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,
-                  WeightFlag=1,
-                  PosFwhmFlag=1,
-                  HeightAreaFlag=1,
+                  # WeightFlag=True,   # FIXME: no effect (?)
+                  PositiveFwhmFlag=True,
+                  PositiveHeightAreaFlag=True,
                   FwhmPoints=16,
-                  PositionFlag=1,
+                  QuotedPositionFlag=1,
                   HypermetTails=1)
     fit.setbackground('Linear')
     fit.estimate()

@@ -191,20 +191,20 @@ class FitConfigWidget(qt.QWidget):
                                 qt.QSizePolicy.Minimum)
         layout9.addItem(spacer)
 
-        layout6 = qt.QGridLayout(None)
-        layout6.setContentsMargins(0, 0, 0, 0)
-        layout6.setSpacing(6)
+        # layout6 = qt.QGridLayout(None)
+        # layout6.setContentsMargins(0, 0, 0, 0)
+        # layout6.setSpacing(6)
 
-        self.WeightCheckBox = qt.QCheckBox(self)
-        self.WeightCheckBox.setText("Weight")
+        # self.WeightCheckBox = qt.QCheckBox(self)
+        # self.WeightCheckBox.setText("Weight")
 
-        layout6.addWidget(self.WeightCheckBox, 0, 0)
+        # layout6.addWidget(self.WeightCheckBox, 0, 0)
 
         # self.MCACheckBox = qt.QCheckBox(self)
         # self.MCACheckBox.setText("MCA Mode")
 
         # layout6.addWidget(self.MCACheckBox, 1, 0)
-        layout9.addLayout(layout6)
+        # layout9.addLayout(layout6)
 
         layout6_2 = qt.QGridLayout(None)
         layout6_2.setContentsMargins(0, 0, 0, 0)
@@ -659,11 +659,11 @@ def test():
     fit.importfun(specfitfunctions.__file__)
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,
-                  WeightFlag=1,
-                  PosFwhmFlag=1,
-                  HeightAreaFlag=1,
+                  # WeightFlag=True,   # FIXME: unused ?
+                  PositiveFwhmFlag=True,
+                  PositiveHeightAreaFlag=True,
                   FwhmPoints=16,
-                  PositionFlag=1,
+                  QuotedPositionFlag=True,
                   HypermetTails=1)
     fit.setbackground('Linear')
     fit.estimate()
