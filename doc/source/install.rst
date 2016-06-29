@@ -226,8 +226,8 @@ Installing from source
 
 Building *silx* from the source requires some `Build dependencies`_.
 
-Building the source
-+++++++++++++++++++
+Building from source
+++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
 Alternatively, you can get the latest source code from the repository: https://github.com/silx-kit/silx
@@ -243,8 +243,8 @@ You can now build and install *silx* from its sources::
     pip install . [--user]
 
 
-Advanced building options
-+++++++++++++++++++++++++
+Advanced build options
+++++++++++++++++++++++
 
 In case you want more control over the build procedure, the build command is::
 
@@ -264,3 +264,12 @@ There are few advanced options to ``setup.py build``:
 To build the documentation (this requires `Sphinx <http://www.sphinx-doc.org/>`_), run::
 
     python setup.py build build_doc
+
+
+Testing
++++++++
+
+To run the tests of an installed version of *silx*, from the python interpreter, run:
+
+>>> import silx.test
+>>> silx.test.run_tests()
