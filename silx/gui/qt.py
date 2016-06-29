@@ -66,22 +66,22 @@ elif 'PyQt4' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt4  # noqa
+        import PyQt5  # noqa
     except ImportError:
         try:
-            import PySide  # noqa
+            import PyQt4  # noqa
         except ImportError:
             try:
-                import PyQt5  # noqa
+                import PySide  # noqa
             except ImportError:
                 raise ImportError(
                     'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
             else:
-                BINDING = 'PyQt5'
+                BINDING = 'PySide'
         else:
-            BINDING = 'PySide'
+            BINDING = 'PyQt4'
     else:
-        BINDING = 'PyQt4'
+        BINDING = 'PyQt5'
 
 
 if BINDING == 'PyQt4':
