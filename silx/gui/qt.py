@@ -27,7 +27,7 @@
 This module provides a flattened namespace over Qt bindings.
 
 If a Qt bindings is already loaded, it will be used, otherwise the different
-bindings are tried in this order: PyQt4, PySide, PyQt5.
+bindings are tried in this order: PyQt5, PyQt4, PySide.
 
 The name of the loaded Qt bindings is stored in the BINDING variable.
 

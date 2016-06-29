@@ -24,7 +24,6 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 :doc:`cookbooks`
     Short tutorials
 
-
 :doc:`modules/index`
     Documentation of the packages included in *silx*
 
