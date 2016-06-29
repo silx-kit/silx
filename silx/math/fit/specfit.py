@@ -24,6 +24,20 @@
 # ##########################################################################*/
 """Multi-peak fitting
 
+This module provides a tool to perform advanced fitting. The actual fit relies
+on :func:`silx.math.fit.leastsq`.
+
+This module deals with:
+
+    - handling of the model functions (using a set of default functions or
+      loading custom user functions)
+    - handling of estimation function, that are used to determine the number
+      of parameters to be fitted for functions with unknown number of
+      parameters (such as the sum of a variable number of gaussian curves)
+    - handling of custom  derivative functions that can be passed as a
+      parameter to  :func:`silx.math.fit.leastsq`
+    - removal of constant and linear background signal prior to performing the
+      actual fit
 
 
 """
@@ -40,7 +54,7 @@ from .leastsq import leastsq
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/06/2016"
+__date__ = "29/06/2016"
 
 _logger = logging.getLogger(__name__)
 
@@ -120,7 +134,7 @@ class Specfit():
 
         Keys are descriptive theory names (e.g "Gaussians" or "Step up").
         Values are lists:
-        ``[function, parameters, estimate, configure, ????, derivative]``
+        ``[function, parameters, estimate, configure, derivative]``
 
             - ``function`` is the fit function for an individual peak
             - ``parameters`` is a sequence of parameter names
@@ -163,7 +177,9 @@ class Specfit():
 
         ``estimate`` is a function to compute initial values for parameters.
         It should have the following signature:
-        ``f(x, y, bg_data, xscaling=1.0, yscaling=None)``
+        ``f(x, y, bg_data, xscaling=1.0, yscaling=None) -> (estimated_param, constraints, bg_data)``
+
+            Parameters:
 
             - ``x`` is the independant variable, i.e. all the points where
               the function is calculated
@@ -174,6 +190,17 @@ class Specfit():
               array
             - ``yscaling`` is an optional scaling factor applied to the ``y``
               array
+
+            Return values:
+
+            - ``estimated_param`` is a list of estimated values for each
+              background parameter.
+            - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
+
+              See explanation about 'constraints' in :attr:`fit_results`
+              documentation.
+            - ``bg_data`` is the background data extracted from the signal
+              by the estimation function.
         """
 
         # TODO:  document following attributes
@@ -236,10 +263,12 @@ class Specfit():
                   'code' is SUM
 
             - 'fitresult': Fitted value.
-            - 'sigma': Standard for each parameter
-            - 'xmin': ???
-            - 'xmax': ???
-        """# TODO: xmin, xmax
+            - 'sigma': Standard deviation for the parameter estimate
+            - 'xmin': Lower limit of the ``x`` data range on which the fit
+              was performed
+            - 'xmax': Upeer limit of the ``x`` data range on which the fit
+              was performed
+        """
 
         self.modelderiv = None
         """None (default) or function providing the derivatives of the fitting
@@ -356,7 +385,9 @@ class Specfit():
         :param theory: Name of the theory to be used.
         :raise: KeyError if ``theory`` is not a key of :attr:`theorydict`.
         """
-        if theory in self.theorydict:
+        if theory is None:
+            self.fitconfig['fittheory'] = None
+        elif theory in self.theorydict:
             self.fitconfig['fittheory'] = theory
             self.theoryfun = self.theorydict[theory][0]
             self.modelderiv = None
@@ -386,9 +417,9 @@ class Specfit():
             raise KeyError(msg)
 
     def fitfunction(self, x, *pars):
-        """Fit function.
+        """Function to be fitted.
 
-        This is the sum of the background function plus
+        This is the sum of the selected background function plus
         a number of peak functions.
 
         :param x: Independent variable where the function is calculated.
@@ -419,7 +450,7 @@ class Specfit():
 
         if nb_bg_pars > 0:
             result += self.bkgfun(x, *pars[0:nb_bg_pars])
-        # TODO: understand and document this Square Filter business
+        # TODO: understand and document this Square Filter
         if self.fitconfig['fitbkg'] == "Square Filter":
             result = result - pars[1]
             return pars[1] + self.squarefilter(result, pars[0])
@@ -428,16 +459,26 @@ class Specfit():
 
     def estimate(self, callback=None):
         """
-        Fill :attr:`fit_results` with an estimation made on the given data.
+        Fill :attr:`fit_results` with an estimation of the fit parameters.
 
-        :param callback: Callback function, conforming to the signature
-            ``callback(data)`` with ``data`` being a dictionary.
+        At first, the background parameters are estimated, if a background
+        model has been specified.
+        Then, a custom estimation function related to the model function is
+        called.
+
+        This process determines the number of needed fit parameters and
+        provides an initial estimation for them, to serve as an input for the
+        actual iterative fitting performed in :meth:`startfit`.
+
+        :param callback: Optional callback function, conforming to the
+            signature ``callback(data)`` with ``data`` being a dictionary.
             This callback function is called before and after the estimation
             process, and is given a dictionary containing the values of
-            :attr:`state` and :attr:`chisq`.
-
+            :attr:`state` (``'Estimate in progress'`` or ``'Ready to Fit'``)
+            and :attr:`chisq`.
+            This is used for instance in :mod:`silx.gui.fit.specfitgui` to
+            update a widget displaying a status message.
         """
-        # TODO: explain estimation process
         self.state = 'Estimate in progress'
         self.chisq = None
 
@@ -454,7 +495,7 @@ class Specfit():
                 'SUM',
                 'IGNORE']
 
-        # Update data (actual data or just range) using user defined method
+        # Update data using user defined method
         if self.dataupdate is not None:
             self.dataupdate()
 
@@ -463,7 +504,6 @@ class Specfit():
 
         # estimate the background
         bg_params, bg_constraints, bg_data = self.estimate_bkg(xwork, ywork)
-
 
         # scaling
         if self.fitconfig['AutoScaling']:
@@ -569,24 +609,22 @@ class Specfit():
                 - ``constraints[i][2]``
                   See explanation about 'cons2' in :attr:`fit_results`
                   documentation.
-            - ``bg_data`` is the background data extracted from the signal
-              using a strip filter (:func:`silx.math.fit.filters.strip`). This
-              data is used to compute ``estimated_param``.
+            - ``bg_data`` is the background data computed by the function.
         """
         fitbkg = self.fitconfig['fitbkg']
         background_estimate_function = self.bkgdict[fitbkg][2]
         if background_estimate_function is not None:
             return background_estimate_function(x, y)
         else:
-            return [], [], numpy.array([], dtype=numpy.float)
+            return [], [], numpy.zeros_like(y)
 
-    def estimate_fun(self, x, y, z, xscaling=1.0, yscaling=None):
+    def estimate_fun(self, x, y, bg, xscaling=1.0, yscaling=None):
         """Estimate fit parameters using the function defined in
         the current fit configuration.
 
         :param x: Sequence of x data
         :param y: sequence of y data
-        :param z: *undocumented* (possibly the bg estimated with :func:`strip`)
+        :param bg: Background signal, to be subtracted from ``y`` before fitting.
         :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
         :param yscaling: Scaling factor for ``y`` data. Default ``None``,
             meaning use value from configuration dictionary
@@ -609,11 +647,10 @@ class Specfit():
                   documentation.
 
         """
-        # Fixme document z
         fittheory = self.fitconfig['fittheory']
         estimatefunction = self.theorydict[fittheory][2]
         if estimatefunction is not None:
-            return estimatefunction(x, y, z,
+            return estimatefunction(x, y, bg,
                                     xscaling=xscaling, yscaling=yscaling)
         else:
             return [], []
@@ -679,7 +716,6 @@ class Specfit():
         if callback is not None:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
-
 
         param_val = []
         param_constraints = []
@@ -823,13 +859,13 @@ class Specfit():
         """Compute the initial parameters for the background function before
         starting the iterative fit.
 
-        The return values depends on the selected theory:
+        The return parameters and constraints depends on the selected theory:
 
             - ``'Constant'``: [min(background)], constraint FREE
             - ``'Internal'``: [1.000, 10000, 0.0], constraint FIXED
             - ``'No Background'``: empty array []
             - ``'Square Filter'``:
-            - ``'Linear'``
+            - ``'Linear'``: [constant, slope], constraint FREE
 
         :param x: Array of values for the independant variable
         :param y: Array of data values for the dependant data
@@ -844,7 +880,8 @@ class Specfit():
             - ``background`` is the background signal extracted from the data
               using a :func:`strip` filter
         """
-        background = strip(y, 1, 1000, 1.0001)
+        # TODO: document square filter
+        background = strip(y, 1, 10000, 1.0001)
         npoints = len(background)
         if self.fitconfig['fitbkg'] == 'Constant':
             # Constant background
@@ -877,42 +914,45 @@ class Specfit():
             # code = 3: FIXED
             cons[0][0] = 3
             cons[1][0] = 3
-        else:  # Linear
-            S = float(npoints)
+        else:  # Linear regression
+            n = float(npoints)
             Sy = numpy.sum(background)
             Sx = float(numpy.sum(x))
             Sxx = float(numpy.sum(x * x))
             Sxy = float(numpy.sum(x * background))
 
-            deno = S * Sxx - (Sx * Sx)
+            deno = n * Sxx - (Sx * Sx)
             if (deno != 0):
                 bg = (Sxx * Sy - Sx * Sxy) / deno
-                slop = (S * Sxy - Sx * Sy) / deno
+                slop = (n * Sxy - Sx * Sy) / deno
             else:
                 bg = 0.0
                 slop = 0.0
             fittedpar = [bg / 1.0, slop / 1.0]
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
+        # Fixme: should we return a bg computed using our estimated params, instead of stripped bg?
         return fittedpar, cons, background
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
-        :attr:`fitconfig` dictionary. Return config dictionary modified by
-        custom configuration function defined in :attr:`theorydict`.
+        :attr:`fitconfig` dictionary.
+        Call the custom configuration function defined in :attr:`theorydict`
+        (this way the user can modify the behavior of the custom fit function
+        or the custom estimate function).
+
+        Return config dictionary modified returned by the custom configuration
+        function.
 
         This methods accepts only named parameters. All ``**kw`` parameters
         are expected to be fields of :attr:`fitconfig` to be updated, unless
         they have a special meaning for the custom configuration function
         defined in ``fitconfig['fittheory']``.
-
         """
-        # FIXME: - why overwrite result from custom config() with **kw?
-        #
-        # # inspect **kw to find known keys, update them in self.fitconfig
-        # for key in self.fitconfig.keys():
-        #     if key in kw:
-        #         self.fitconfig[key] = kw[key]
+        # inspect **kw to find known keys, update them in self.fitconfig
+        for key in self.fitconfig.keys():
+            if key in kw:
+                self.fitconfig[key] = kw[key]
 
         # initialize dict with existing config dict
         result = {}
@@ -920,26 +960,22 @@ class Specfit():
 
         # Apply custom configuration function defined in self.theorydict[][3]
         theory_name = self.fitconfig['fittheory']
-        if theory_name is not None:
-            if theory_name in self.theorydict.keys():
-                custom_config_fun = self.theorydict[theory_name][3]
-                if custom_config_fun is not None:
-                    result.update(custom_config_fun(**kw))
+        if theory_name in self.theorydict.keys():
+            custom_config_fun = self.theorydict[theory_name][3]
+            if custom_config_fun is not None:
+                result.update(custom_config_fun(**kw))
 
-                    # Update self.fitconfig with custom config
-                    for key in self.fitconfig.keys():
-                        if key in result:
-                            self.fitconfig[key] = result[key]
+                # Update self.fitconfig with custom config
+                for key in self.fitconfig.keys():
+                    if key in result:
+                        self.fitconfig[key] = result[key]
 
         # overwrite existing keys with values from **kw in fitconfig
-        for key in self.fitconfig.keys():
-            if key in kw:
-                self.fitconfig[key] = kw[key]
-            if key == "fitbkg":
-                self.setbackground(self.fitconfig[key])
-            if key == "fittheory":
-                if theory_name is not None:
-                    self.settheory(self.fitconfig[key])
+        if "fitbkg" in self.fitconfig:
+            self.setbackground(self.fitconfig["fitbkg"])
+        if "fittheory" in self.fitconfig["fittheory"]:
+            if self.fitconfig["fittheory"] is not None:
+                self.settheory(self.fitconfig["fittheory"])
 
         result.update(self.fitconfig)
         return result
@@ -1362,22 +1398,22 @@ def test():
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
-    constant_background = 3.14
-    p = [1500, 100., 50,
-         1000, 700., 30.5,
-         314, 800.5, 15]
-    y = constant_background + sum_gauss(x, *p)
+
+    p = [1000, 100., 250,
+         255, 700., 45,
+         1500, 800.5, 95]
+    y = sum_gauss(x, *p)
 
     # Fitting
     fit = Specfit()
     fit.setdata(x=x, y=y)
     fit.importfun(specfitfunctions.__file__)
     fit.settheory('Gaussians')
-    fit.setbackground('Constant')
+    #fit.setbackground('Constant')
     fit.estimate()
     fit.startfit()
 
-    print("Searched parameters = ", [3.14, 1500, 100., 50.0, 1000, 700., 30.5, 314, 800.5, 15])
+    print("Searched parameters = ", p)
     print("Obtained parameters : ")
     dummy_list = []
     for param in fit.fit_results:
@@ -1386,9 +1422,8 @@ def test():
     print("chisq = ", fit.chisq)
 
     # Plot
-    constant_background = dummy_list[0]
-    p1 = dummy_list[1:]
-    y2 = constant_background + sum_gauss(x, *p1)
+    p1 = dummy_list[0:]
+    y2 = sum_gauss(x, *p1)
 
     from silx.gui import qt
     from silx.gui.plot.PlotWindow import PlotWindow
