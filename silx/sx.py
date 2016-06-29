@@ -24,9 +24,12 @@
 # ###########################################################################*/
 """Convenient module to use main features of silx from the console.
 
-Usage from python or ipython console and ipython/jupyter notebook:
+Usage from (I)Python console or notebook:
 
->>> from silx.pylab import *
+>>> from silx import sx
+
+With IPython/jupyter, this also runs %pylab.
+From the console, it sets-up Qt in order to allow using GUI widgets.
 """
 
 __authors__ = ["T. Vincent"]
@@ -37,58 +40,43 @@ __date__ = "27/06/2016"
 import sys as _sys
 
 
-# Probe module loaded from console
-_IS_CONSOLE = hasattr(_sys, 'ps1')
-
 # Probe ipython
 try:
-    __IPYTHON__
+    from IPython import get_ipython as _get_ipython
 except NameError:
-    __IPYTHON__ = False
+    _get_ipython = None
 
 # Probe ipython/jupyter notebook
-if __IPYTHON__:
-    from IPython import get_ipython
+if _get_ipython is not None:
 
     # Notebook detection probably fragile
-    _IS_NOTEBOOK = ('parent_appname' in get_ipython().config['IPKernelApp'] or
-                    hasattr(get_ipython(), 'kernel'))
+    _IS_NOTEBOOK = ('parent_appname' in _get_ipython().config['IPKernelApp'] or
+                    hasattr(_get_ipython(), 'kernel'))
 else:
     _IS_NOTEBOOK = False
 
 
-if not _IS_NOTEBOOK:
-    # Load Qt and widgets only if running from console
+if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
     from silx.gui import qt
 
-    if _IS_CONSOLE:
-        _qapp = qt.QApplication.instance() or qt.QApplication([])
+    if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
+        qapp = qt.QApplication.instance() or qt.QApplication([])
 
-    # Makes sure we set-up matplotlib first
-    import silx.gui.plot.BackendMatplotlib as _BackendMatplotlib  # noqa
-
-    from silx.gui.plot import *  # noqa
-
-if __IPYTHON__:
-    # %pylab
-    if _IS_NOTEBOOK:
-        get_ipython().enable_pylab(gui='inline', import_all=False)
-    else:
-        get_ipython().enable_pylab(gui='qt', import_all=False)
-
-else:  # pylab equivalent
-    import numpy
-    import matplotlib  # noqa
-    from matplotlib import pylab, mlab, pyplot  # noqa
-    np = numpy
-    plt = pyplot
-
-    # import_all=True equivalent
-    # from pylab import *
-    # from numpy import *
+    from silx.gui import plot  # noqa
+    from silx.gui.plot import ImageView, plot1D, plot2D  # noqa
 
 
-# Load modules
-from silx.image import *  # noqa
-from silx.io import *  # noqa
-from silx.math import *  # noqa
+# %pylab
+if _get_ipython is not None:
+    _get_ipython().enable_pylab(gui='inline' if _IS_NOTEBOOK else 'qt')
+
+
+# Clean-up
+del _sys
+del _get_ipython
+del _IS_NOTEBOOK
+
+
+# Load some silx stuff in namespace
+from silx.io.utils import save1D  # noqa
+from silx.math import Histogramnd, HistogramndLut, leastsq  # noqa
