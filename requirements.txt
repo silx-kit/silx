@@ -8,6 +8,7 @@
 numpy
 h5py                      # For silx.io
 ipython                   # For silx.gui.console
+qt_console                # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 # PyQt4, PyQt5 or PySide  # For silx.gui
 
@@ -15,8 +16,6 @@ matplotlib >= 1.2.0       # For silx.gui.plot
 # Try to install a Qt binding from a wheel
 # This is no available for all configurations
 
-PyQt5; python_version == '3.5'
-
-# Extra wheels available for Windows
+# Require PyQt5 except on Windows with Python2.7
+PyQt5; sys_platform != 'win32' and python_version != '2.7'
 PyQt4; sys_platform == 'win32' and python_version == '2.7'  # From silx.org
-PySide; sys_platform == 'win32' and python_version != '3.5' and python_version != '2.7'
