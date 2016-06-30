@@ -8,4 +8,5 @@ API Reference
    io/index.rst
    image/index.rst
    math/index.rst
+   resources.rst
    testutils.rst

@@ -4,5 +4,4 @@
 =====================================================
 
 .. automodule:: silx.testutils
-   :members: ParametricTestCase, TestLogging, test_logging, temp_dir
-
+   :members:
