@@ -413,7 +413,7 @@ class ParametersTab(qt.QTabWidget):
         self.tables = {}
         self.mcatable = None
         self.setContentsMargins(10, 10, 10, 10)
-        self.setview(name="Region 1")
+        # self.setview(name="Region 1")
 
     def setview(self, name=None, fitparameterslist=None):
         if name is None:
@@ -639,38 +639,79 @@ class ParametersTab(qt.QTabWidget):
 
 
 def test():
-    import os
     from silx.math.fit import specfitfunctions
     from silx.math.fit import specfit
-    from PyMca5 import PyMcaDataDir      # FIXME
+    from silx.math.fit import functions
+    from silx.gui import qt
+    from silx.gui.plot.PlotWindow import PlotWindow
     import numpy
     a = qt.QApplication([])
     a.lastWindowClosed.connect(a.quit)
     w = ParametersTab()
     w.show()
 
-    y = numpy.loadtxt(os.path.join(PyMcaDataDir.PYMCA_DATA_DIR,
-                            "XRFSpectrum.mca"))
+    # Create synthetic data
+    x = numpy.arange(1000)
+    y1 = functions.sum_gauss(x,
+                             100, 400, 100,
+                             10, 600, 50,
+                             80, 850, 10)
+    y1 += 2.5 + 0.001 * x                # add linear bg
 
-    x = numpy.arange(len(y)) * 0.0502883 - 0.492773
     fit = specfit.Specfit()
-    fit.setdata(x=x, y=y)
+    fit.setdata(x=x, y=y1)
 
-    fit.importfun(specfitfunctions.__file__)
-    fit.settheory('Hypermet')
-    fit.configure(Yscaling=1.,
-                  # WeightFlag=True,   # FIXME: unused ?
-                  PositiveFwhmFlag=True,
+    # Define new theory
+    fitfuns = specfitfunctions.SpecfitFunctions()
+    fit.addtheory(theory="Gaussian",
+                  function=functions.sum_gauss,
+                  parameters=("height", "peak center", "fwhm"),
+                  estimate=fitfuns.estimate_height_position_fwhm)
+    fit.settheory('Gaussian')
+    fit.configure(PositiveFwhmFlag=True,
                   PositiveHeightAreaFlag=True,
-                  FwhmPoints=16,
-                  QuotedPositionFlag=True,
-                  HypermetTails=1)
+                  AutoFwhm=True,)
+
+    # Fit
     fit.setbackground('Linear')
     fit.estimate()
     fit.startfit()
-    w.fillfromfit(fit.fit_results, current='Fit')
-    w.removeview(view='Region 1')
+
+    w = ParametersTab()
+    w.show()
+    w.fillfromfit(fit.fit_results, current='Gaussians')
+
+    # Create synthetic data
+    y2 = functions.sum_splitgauss(x,
+                                  100, 400, 100, 40,
+                                  10, 600, 50, 500,
+                                  80, 850, 10, 50)
+    y2 += 2.5 + 0.001 * x
+    fit.setdata(x=x, y=y2)
+
+    # Define new theory
+    fit.addtheory(theory="Asymetric gaussian",
+                  function=functions.sum_splitgauss,
+                  parameters=("height", "peak center", "left fwhm", "right fwhm"),
+                  estimate=fitfuns.estimate_splitgauss)
+    fit.settheory('Asymetric gaussian')
+
+    # Fit
+    fit.estimate()
+    fit.startfit()
+
+    w.fillfromfit(fit.fit_results, current='Asymetric gaussians')
+
+    # Plot
+    pw = PlotWindow(control=True)
+    pw.addCurve(x, y1, "Gaussians")
+    pw.addCurve(x, y2, "Asymetric gaussians")
+    pw.show()
+
     a.exec_()
+
+
+
 
 if __name__ == "__main__":
     test()
