@@ -34,7 +34,7 @@ from .specfitwidgets import (FitActionsButtons, FitStatusLines,
                              FitConfigWidget, ParametersTab)
 
 QTVERSION = qt.qVersion()
-from PyMca5.PyMcaGui.math.fitting import QScriptOption   # FIXME
+from .qscriptoption import QScriptOption
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -234,7 +234,7 @@ class SpecfitGui(qt.QWidget):
                              ["EntryField", 'Sensitivity', 'Sensitivity: '],
                              ["EntryField", 'Yscaling',   'Y Factor   : '],
                              ["CheckField", 'ForcePeakPresence',   'Force peak presence '])}
-        w = QScriptOption.QScriptOption(self, name='Fit Configuration',
+        w = QScriptOption(self, name='Fit Configuration',
                                         sheets=(sheet1, sheet2),
                                         default=oldconfiguration)
 
