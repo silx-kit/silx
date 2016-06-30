@@ -36,6 +36,8 @@ os.environ["PYTHONPATH"] = source_dir + os.pathsep + os.environ.get("PYTHONPATH"
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.mathjax', 'sphinx.ext.viewcode']
 
+autodoc_member_order = 'bysource'
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
