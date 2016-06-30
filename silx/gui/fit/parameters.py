@@ -813,10 +813,10 @@ class Parameters(qt.QTableWidget):
 
 
 def main(args):
-    #import PyMca5    # FIXME
     from silx.math.fit import specfitfunctions
-    from PyMca5 import PyMcaDataDir    # FIXME
     from silx.math.fit import specfit
+    from silx.gui import qt
+    from PyMca5 import PyMcaDataDir    # FIXME
     import numpy
     import os
     app = qt.QApplication(args)
@@ -830,16 +830,16 @@ def main(args):
 
     y = numpy.loadtxt(os.path.join(PyMcaDataDir.PYMCA_DATA_DIR,
                       "XRFSpectrum.mca"))    # FIXME
+
     x = numpy.arange(len(y)) * 0.0502883 - 0.492773
     fit = specfit.Specfit()
-    fit.setdata(x=x, y=y)
+    fit.setdata(x=x, y=y, xmin=20, xmax=150)
 
     fit.importfun(specfitfunctions.__file__)
     #fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)    # FIXME
 
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,
-                  # WeightFlag=True,   # FIXME: no effect (?)
                   PositiveFwhmFlag=True,
                   PositiveHeightAreaFlag=True,
                   FwhmPoints=16,
@@ -850,7 +850,6 @@ def main(args):
     fit.startfit()
     tab.fillfromfit(fit.fit_results)
     tab.show()
-    app.lastWindowClosed.connect(app.quit)
     app.exec_()
 
 if __name__ == "__main__":
