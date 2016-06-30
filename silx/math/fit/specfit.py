@@ -651,7 +651,7 @@ class Specfit():
         estimatefunction = self.theorydict[fittheory][2]
         if estimatefunction is not None:
             return estimatefunction(x, y, bg,
-                                    xscaling=xscaling, yscaling=yscaling)
+                                    yscaling=yscaling)
         else:
             return [], []
 
@@ -881,7 +881,7 @@ class Specfit():
               using a :func:`strip` filter
         """
         # TODO: document square filter
-        background = strip(y, 1, 10000, 1.0001)
+        background = strip(y, w=1, niterations=10000, factor=1.0)
         npoints = len(background)
         if self.fitconfig['fitbkg'] == 'Constant':
             # Constant background
