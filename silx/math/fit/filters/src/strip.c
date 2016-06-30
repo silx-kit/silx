@@ -107,8 +107,9 @@ int strip(double* input, long len_input,
         for (iter_index = 0; iter_index < niter; iter_index++) {
             for (array_index=deltai; array_index < len_input - deltai; array_index++) {
                 t_mean = 0.5 * (input[array_index-deltai] + input[array_index+deltai]);
-                    output[array_index] = t_mean;
 
+                if (input[array_index] > (t_mean * c))
+                    output[array_index] = t_mean;
             }
             memcpy(input, output, len_input * sizeof(double));
         }
