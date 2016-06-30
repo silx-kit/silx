@@ -752,13 +752,13 @@ def sum_ahypermet(x, *params,
         - *fwhm* is the full-width at half maximum of the terms
         - *st_area_r* is factor between the gaussian area and the area of the
           short tail term
-        - *st_slope_r* is a parameter related to the slope of the short tail
+        - *st_slope_r* is a ratio related to the slope of the short tail
           in the low ``x`` values (the lower, the steeper)
-        - *lt_area_r* is factor between the gaussian area and the area of the
+        - *lt_area_r* is ratio between the gaussian area and the area of the
           long tail term
-        - *lt_slope_r* is a parameter related to the slope of the long tail
+        - *lt_slope_r* is a ratio related to the slope of the long tail
           in the low ``x`` values  (the lower, the steeper)
-        - *step_height_r* is the factor between the height of the step down
+        - *step_height_r* is the ratio between the height of the step down
           and the gaussian height
 
     A hypermet function is a sum of four functions (terms):

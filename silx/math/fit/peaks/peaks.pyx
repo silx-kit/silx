@@ -161,7 +161,9 @@ def guess_fwhm(y):
     maximum = max(yfit)
     # find indices of all values == maximum
     idx = numpy.nonzero(yfit == maximum)[0]
-    # take the last one
+    # take the last one (if any)
+    if not len(idx):
+        return 0
     posindex = idx[-1]
     height = yfit[posindex]
 
