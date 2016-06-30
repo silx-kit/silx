@@ -9,6 +9,7 @@ Source code, pre-built binaries (aka Python wheels) for Windows and Mac OS X and
 - `Wheels and source code on PyPi <https://pypi.python.org/pypi/silx>`_
 - `Debian 8 packages <http://www.silx.org/pub/debian/>`_
 - `Documentation on PythonHosted <http://pythonhosted.org/silx/>`_
+- :doc:`changelog`
 
 Nightly builds
 --------------
