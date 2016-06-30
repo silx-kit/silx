@@ -324,7 +324,8 @@ class SpecfitFunctions(object):
 
         # Find indices of peaks in data array
         if npoints > 1.5 * search_fwhm:
-            peaks = peak_search(yscaling * y,
+            # use absolute value of y, to find negative peaks
+            peaks = peak_search(yscaling * numpy.fabs(y),
                                 fwhm=search_fwhm,
                                 sensitivity=search_sens)
         else:
@@ -441,7 +442,7 @@ class SpecfitFunctions(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz,
                                                              xscaling, yscaling)
         # get the number of found peaks
-        npeaks = len(cons) // 3
+        npeaks = len(fittedpar) // 3
         # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
@@ -466,7 +467,7 @@ class SpecfitFunctions(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz,
                                                              xscaling, yscaling)
         # get the number of found peaks
-        npeaks = len(cons) // 3
+        npeaks = len(fittedpar) // 3
         # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
@@ -490,7 +491,7 @@ class SpecfitFunctions(object):
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz,
                                                              xscaling, yscaling)
         # get the number of found peaks
-        npeaks = len(cons) // 3
+        npeaks = len(fittedpar) // 3
         estimated_parameters = []
         estimated_constraints = numpy.zeros((4 * npeaks, 3), numpy.float)
         for i in range(npeaks):
@@ -538,7 +539,7 @@ class SpecfitFunctions(object):
         """
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz,
                                                              xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 3)
+        npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((4 * npeaks, 3), numpy.float)
         # find out related parameters proper index
@@ -596,7 +597,7 @@ class SpecfitFunctions(object):
         """
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz,
                                                              xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 3)
+        npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((5 * npeaks, 3), numpy.float)
         # find out related parameters proper index
@@ -658,7 +659,7 @@ class SpecfitFunctions(object):
             *Area, Position, FWHM, eta*.
         """
         fittedpar, cons = self.estimate_pvoigt(x, y, zzz, xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 4)
+        npeaks = len(fittedpar) // 4
         # Assume 50% of the area is determined by the gaussian and 50% by
         # the Lorentzian.
         for i in range(npeaks):
@@ -679,7 +680,7 @@ class SpecfitFunctions(object):
             lt_area_r, lt_slope_r, step_height_r* .
         """
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, zzz, xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 3)
+        npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((8 * npeaks, 3), numpy.float)
         main_peak = 0
@@ -840,7 +841,7 @@ class SpecfitFunctions(object):
             yy = yy * max(y) / max(yy)
         xx = x[cutoff:-cutoff]
         fittedpar, cons = self.estimate_agauss(xx, yy, zzz, xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 4)
+        npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
                    fittedpar[3 * largest_index + 1],
@@ -956,7 +957,7 @@ class SpecfitFunctions(object):
             yy = yy * max(y) / max(yy)
         xx = x[cutoff:-cutoff]
         fittedpar, cons = self.estimate_agauss(xx, yy, zzz, xscaling, yscaling)
-        npeaks = int(len(cons[0]) / 4)
+        npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
                    fittedpar[3 * largest_index + 1],
