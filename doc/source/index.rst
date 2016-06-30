@@ -14,6 +14,7 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
    tutorials.rst
    modules/index.rst
    changelog.rst
+   license.rst
 
 :doc:`overview`
     Releases, repository, issue tracker, mailing list, ...
@@ -29,6 +30,9 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 
 :doc:`changelog`
     List of changes between releases
+
+:doc:`license`
+    License and copyright information
 
 Indices
 =======
