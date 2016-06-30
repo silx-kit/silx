@@ -1,5 +1,5 @@
-Project resources
-=================
+Overview
+========
 
 Releases
 --------

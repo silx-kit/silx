@@ -9,20 +9,20 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 .. toctree::
    :hidden:
 
-   project.rst
+   overview.rst
    install.rst
-   cookbooks.rst
+   tutorials.rst
    modules/index.rst
    changelog.rst
 
-:doc:`project`
+:doc:`overview`
     Releases, repository, issue tracker, mailing list, ...
 
 :doc:`install`
     How to install *silx* on Linux, Windows and MacOS X
 
-:doc:`cookbooks`
-    Short tutorials
+:doc:`tutorials`
+    Tutorials and sample code
 
 :doc:`modules/index`
     Documentation of the packages included in *silx*
