@@ -22,10 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Helper class to write Qt widget unittests.
-
-This module is NOT a test suite.
-"""
+"""Helper class to write Qt widget unittests."""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
@@ -102,9 +99,6 @@ class TestCaseQt(unittest.TestCase):
     allow to view the tested widgets.
     """
 
-    QTest = QTest
-    """The Qt QTest class from the used Qt binding."""
-
     def setUp(self):
         """Get the list of existing widgets."""
         self.allowedLeakingWidgets = 0
@@ -148,6 +142,9 @@ class TestCaseQt(unittest.TestCase):
 
     Click = QTest.Click
     """Key click action code"""
+
+    QTest = property(lambda self: QTest,
+                     doc="""The Qt QTest class from the used Qt binding.""")
 
     @staticmethod
     def keyClick(widget, key, modifier=qt.Qt.NoModifier, delay=-1):
