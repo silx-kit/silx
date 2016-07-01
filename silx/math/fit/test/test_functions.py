@@ -237,7 +237,6 @@ class Test_functions(unittest.TestCase):
                         1)
 
 
-
 def _numerical_derivative(f, x, params=[], delta_factor=0.0001):
     """Compute the numerical derivative of ``f`` for all values of ``x``.
 

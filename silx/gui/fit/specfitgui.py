@@ -66,7 +66,7 @@ class SpecfitGui(qt.QWidget):
         if not len(self.specfit.theorydict):
             self.specfit.importfun(fitestimatefunctions.__file__)
 
-        # copy specfit configure method for direct access
+        # copy specfit.configure method for direct access
         self.configure = self.specfit.configure
         self.fitconfig = self.specfit.fitconfig
 
@@ -370,27 +370,6 @@ class SpecfitGui(qt.QWidget):
         msg.setIcon(qt.QMessageBox.Critical)
         msg.setText("Sorry, Qt4 printing not implemented yet")
         msg.exec_()
-
-    # def mcaevent(self, item):
-    #     if int(item):
-    #         self.configure(McaMode=1)
-    #         mode = 1
-    #     else:
-    #         self.configure(McaMode=0)
-    #         mode = 0
-    #     self.__initialparameters()
-    #     ddict = {}
-    #     ddict['event'] = 'McaModeChanged'
-    #     ddict['data'] = mode
-    #     self._emitSignal(ddict)
-    #     return
-
-    # def weightevent(self, item):
-    #     if int(item):
-    #         self.configure(WeightFlag=1)
-    #     else:
-    #         self.configure(WeightFlag=0)
-    #     return
 
     def autofwhmevent(self, item):
         if int(item):
