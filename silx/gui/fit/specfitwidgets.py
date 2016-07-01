@@ -639,7 +639,7 @@ class ParametersTab(qt.QTabWidget):
 
 
 def test():
-    from silx.math.fit import specfitfunctions
+    from silx.math.fit import fitestimatefunctions
     from silx.math.fit import specfit
     from silx.math.fit import functions
     from silx.gui import qt
@@ -662,7 +662,7 @@ def test():
     fit.setdata(x=x, y=y1)
 
     # Define new theory
-    fitfuns = specfitfunctions.SpecfitFunctions()
+    fitfuns = fitestimatefunctions._FitEstimateFunctions()
     fit.addtheory(theory="Gaussian",
                   function=functions.sum_gauss,
                   parameters=("height", "peak center", "fwhm"),

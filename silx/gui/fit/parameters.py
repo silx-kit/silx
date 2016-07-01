@@ -813,7 +813,7 @@ class Parameters(qt.QTableWidget):
 
 
 def main(args):
-    from silx.math.fit import specfitfunctions
+    from silx.math.fit import fitestimatefunctions
     from silx.math.fit import specfit
     from silx.gui import qt
     from PyMca5 import PyMcaDataDir    # FIXME
@@ -835,8 +835,8 @@ def main(args):
     fit = specfit.Specfit()
     fit.setdata(x=x, y=y, xmin=20, xmax=150)
 
-    fit.importfun(specfitfunctions.__file__)
-    #fit.importfun(PyMca5.PyMcaMath.fitting.SpecfitFunctions.__file__)    # FIXME
+    fit.importfun(fitestimatefunctions.__file__)
+    #fit.importfun(PyMca5.PyMcaMath.fitting._FitEstimateFunctions.__file__)    # FIXME
 
     fit.settheory('Hypermet')
     fit.configure(Yscaling=1.,

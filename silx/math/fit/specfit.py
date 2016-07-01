@@ -1,5 +1,5 @@
 # coding: utf-8
-#  /*#########################################################################
+# /*#########################################################################
 #
 # Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
@@ -1106,7 +1106,7 @@ class Specfit():
 
 def test():
     from .functions import sum_gauss
-    from . import specfitfunctions
+    from . import fitestimatefunctions
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
@@ -1119,7 +1119,7 @@ def test():
     # Fitting
     fit = Specfit()
     fit.setdata(x=x, y=y)
-    fit.importfun(specfitfunctions.__file__)
+    fit.importfun(fitestimatefunctions.__file__)
     fit.settheory('gauss')
     fit.setbackground('Linear')
     fit.estimate()

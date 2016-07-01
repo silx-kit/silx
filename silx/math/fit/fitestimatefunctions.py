@@ -1,3 +1,4 @@
+# coding: utf-8
 #/*##########################################################################
 #
 # Copyright (c) 2004-2016 European Synchrotron Radiation Facility
@@ -21,158 +22,123 @@
 # THE SOFTWARE.
 #
 ########################################################################### */
-"""This modules provides a set of multi-peak fit functions and associated
+"""This modules provides a set of fit functions and associated
 estimation functions in a format that can be imported into a
 :class:`silx.math.fit.specfit.Specfit` instance.
 
 The functions to be imported by :meth:`Specfit.importfun` are defined by
-following lists of equal length:
+a dictionary :const:`THEORY`: with the following structure::
 
-    - :const:`THEORY`: list of function names
-    - :const:`FUNCTION`: list of actual functions.
-      Each function must conform to the following signature:
-      ``f(x, *params) -> y``
+    THEORY = {
+        'theory_name_1': {
+            'description': 'Description of theory 1',
+            'function': fitfunction1,
+            'parameters': ('param name 1', 'param name 2', …),
+            'estimate': estimation_function1,
+            'configure': configuration_function1,
+            'derivative': derivative_function1
+        },
+        'theory_name_2': {
+           …
+        },
 
-         - ``x`` is a sequence of values for the independent variable
-           where the function is calculated.
-         - ``params`` is a list of parameters needed by the function. There
-           is a minimal number ``n`` of required parameters for each function,
-           but the length of the list can be longer, as long as it is a multiple
-           of ``n``. In that case, the function will calculate and sum the base
-           function using the parameters for each series of ``n`` consecutive
-           parameters.
+Theory names can be customized (e.g. ``gauss, lorentz, splitgauss``…).
 
-           For example, a gaussian function may require 3 parameters (*height,
-           center* and *fwhm*). Provided wit a list of 9 parameters, the
-           gaussian function  will return the sum of 3 gaussians with various
-           heights, center positions and widths.
+Fit functions must have the signature ``f(x, *params)``, where ``x``
+is an array of values for the independent variable, and ``params`` are
+the parameters to be fitted. The number of parameters must be the same
+as in the ``parameters`` field of ``THEORY``, or a multiple of this
+number if the function handles summing a variable number of base
+functions.
 
-           This makes it easy to fit data multiple peaks as a sum of individual
-           peak functions.
-         - ``y`` is the output sequence of the function calculated for
-           each ``x`` value
+The estimation function must have the following signature::
 
-    - :const:`PARAMETERS`: list of lists of parameter names for the base function
-      (e.g. ``["height", "center", "fwhm"]`` for a gaussian)
-    - :const:`ESTIMATE`: estimation function. Provided with data, this function
-      is responsible for determining how many parameters are needed (usually
-      by finding the number of peaks), and returning reasonable estimations
-      for each parameters, as well as constraints for each parameter. These
-      return values can be used to serve as initial parameters for a recursive
-      fitting algorithm (such as :func:`silx.math.fit.leastsq`)
+    ``f(x, y, bg, yscaling)``
 
-      The signature of the estimation function must conform to:
-      ``f(x, y, bg, yscaling=None) -> (parameters, constraints)``
+Where ``x`` is an array of values for the independent variable, ``y``
+is an array of the same length as ``x`` containing the data to be
+fitted, ``bg`` is an array of background signal to be subtracted from
+``y`` before running the fit and ``yscaling`` is a scaling factor that
+the function may multiply ``y`` values with for certain operations
+(such as searching peaks in the data).
 
-          - ``x``: sequence of values for the independent variable
-            where the function is calculated.
-          - ``y``: data to be fitted
-          - ``bg``: background to be subtracted from the data before fitting
-          - ``yscaling``: scaling parameter for ``y`` values. If ``None``,
-            use ``"Yscaling"`` field in :attr:`config` dictionary.
+The optional configuration function must conform to the signature
+``f(**kw)`` (i.e it must accept any named argument).
+It can be used to modify configuration parameters to alter the
+behavior of the fit function and the estimation function.
 
-          - ``parameters``: list of estimated value for each parameter
-          - ``constraints``:
-            2D sequence of dimension ``(n_parameters, 3)`` where,
-            for each parameter denoted by the index i, the meaning is
+The optional derivative function must conform to the signature
+``model_deriv(xdata, parameters, index)``. No custom derivative function
+is actually defined in this module, which is not a problem if the fit
+algorithm has a default derivative function, as is the case for
+:func:`silx.math.fit.leastsq`.
 
-                     - ``constraints[i][0]`` -- constraint code defining the
-                       meaning of ``constraints[i][1]`` and ``constraints[i][2]``
-
-                        - 0 - Free (CFREE)
-                        - 1 - Positive (CPOSITIVE)
-                        - 2 - Quoted (CQUOTED)
-                        - 3 - Fixed (CFIXED)
-                        - 4 - Factor (CFACTOR)
-                        - 5 - Delta (CDELTA)
-                        - 6 - Sum (CSUM)
-
-
-                     - ``constraints[i][1]``
-
-                        - Ignored if ``constraints[i][0]`` is 0, 1 or 3
-                        - Min value of the parameter if ``constraints[i][0]`` is CQUOTED
-                        - Index of fitted parameter to which it is related
-
-                     - ``constraints[i][2]``
-
-                        - Ignored if ``constraints[i][0]`` is 0, 1 or 3
-                        - Max value of the parameter if constraints[i][0] is CQUOTED
-                        - Factor to apply to related parameter with index ``constraints[i][1]``
-                        - Difference with parameter with index ``constraints[i][1]``
-                        - Sum obtained when adding parameter with index ``constraints[i][1]``
-
-
-    - :const:`CONFIGURE`: list of configuration functions. A configuration
-      function can update configuration variables that influence the behavior
-      of fit functions or estimation functions.
-
-By following this structure, you can define your own fit functions to be used
-with :class:`silx.math.fit.specfit.Specfit`.
+If you plan to use the source code of this module as a template to define
+your own fit functions, you might be interested in learning that you can
+also define an ``INIT`` function that will be executed by
+:meth:`Specfit.importfun`.
 
 Module members:
 ---------------
 """
-# TODO: replace lists with one big dictionary (Specfit to be modified)
-__authors__ = ["V.A. Sole", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "30/06/2016"
-
 import numpy
-arctan = numpy.arctan
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
 from silx.math.fit.leastsq import leastsq
 
+__authors__ = ["V.A. Sole", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "01/07/2016"
 
-SPECFITFUNCTIONS_DEFAULTS = {'NoConstraintsFlag': False,
-                             'PositiveFwhmFlag': True,
-                             'PositiveHeightAreaFlag': True,
-                             'SameFwhmFlag': False,
-                             'QuotedPositionFlag': False,   # peak not outside data range
-                             'QuotedEtaFlag': False,        # force 0 < eta < 1
-                             'Yscaling': 1.0,
-                             'Xscaling': 1.0,
-                             'FwhmPoints': 8,
-                             'AutoFwhm': False,
-                             'Sensitivity': 2.5,
-                             'ForcePeakPresence': False,
-                             # Hypermet
-                             'HypermetTails': 15,
-                             'QuotedFwhmFlag': 0,
-                             'MaxFwhm2InputRatio': 1.5,
-                             'MinFwhm2InputRatio': 0.4,
-                             # short tail parameters
-                             'MinGaussArea4ShortTail': 50000.,
-                             'InitialShortTailAreaRatio': 0.050,
-                             'MaxShortTailAreaRatio': 0.100,
-                             'MinShortTailAreaRatio': 0.0010,
-                             'InitialShortTailSlopeRatio': 0.70,
-                             'MaxShortTailSlopeRatio': 2.00,
-                             'MinShortTailSlopeRatio': 0.50,
-                             # long tail parameters
-                             'MinGaussArea4LongTail': 1000.0,
-                             'InitialLongTailAreaRatio': 0.050,
-                             'MaxLongTailAreaRatio': 0.300,
-                             'MinLongTailAreaRatio': 0.010,
-                             'InitialLongTailSlopeRatio': 20.0,
-                             'MaxLongTailSlopeRatio': 50.0,
-                             'MinLongTailSlopeRatio': 5.0,
-                             # step tail
-                             'MinGaussHeight4StepTail': 5000.,
-                             'InitialStepTailHeightRatio': 0.002,
-                             'MaxStepTailHeightRatio': 0.0100,
-                             'MinStepTailHeightRatio': 0.0001,
-                             # Hypermet constraints
-                             #   position in range [estimated position +- estimated fwhm/2]
-                             'HypermetQuotedPositionFlag': True,
-                             'DeltaPositionFwhmUnits': 0.5,
-                             'SameSlopeRatioFlag': 1,
-                             'SameAreaRatioFlag': 1}
+
+DEFAULT_CONFIG = {'NoConstraintsFlag': False,
+                  'PositiveFwhmFlag': True,
+                  'PositiveHeightAreaFlag': True,
+                  'SameFwhmFlag': False,
+                  'QuotedPositionFlag': False,  # peak not outside data range
+                  'QuotedEtaFlag': False,  # force 0 < eta < 1
+                  'Yscaling': 1.0,
+                  'Xscaling': 1.0,
+                  'FwhmPoints': 8,
+                  'AutoFwhm': False,
+                  'Sensitivity': 2.5,
+                  'ForcePeakPresence': False,
+                  # Hypermet
+                  'HypermetTails': 15,
+                  'QuotedFwhmFlag': 0,
+                  'MaxFwhm2InputRatio': 1.5,
+                  'MinFwhm2InputRatio': 0.4,
+                  # short tail parameters
+                  'MinGaussArea4ShortTail': 50000.,
+                  'InitialShortTailAreaRatio': 0.050,
+                  'MaxShortTailAreaRatio': 0.100,
+                  'MinShortTailAreaRatio': 0.0010,
+                  'InitialShortTailSlopeRatio': 0.70,
+                  'MaxShortTailSlopeRatio': 2.00,
+                  'MinShortTailSlopeRatio': 0.50,
+                  # long tail parameters
+                  'MinGaussArea4LongTail': 1000.0,
+                  'InitialLongTailAreaRatio': 0.050,
+                  'MaxLongTailAreaRatio': 0.300,
+                  'MinLongTailAreaRatio': 0.010,
+                  'InitialLongTailSlopeRatio': 20.0,
+                  'MaxLongTailSlopeRatio': 50.0,
+                  'MinLongTailSlopeRatio': 5.0,
+                  # step tail
+                  'MinGaussHeight4StepTail': 5000.,
+                  'InitialStepTailHeightRatio': 0.002,
+                  'MaxStepTailHeightRatio': 0.0100,
+                  'MinStepTailHeightRatio': 0.0001,
+                  # Hypermet constraints
+                  #   position in range [estimated position +- estimated fwhm/2]
+                  'HypermetQuotedPositionFlag': True,
+                  'DeltaPositionFwhmUnits': 0.5,
+                  'SameSlopeRatioFlag': 1,
+                  'SameAreaRatioFlag': 1}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
-This dictionary  is replicated as attribute :attr:`SpecfitFunctions.config`,
+This dictionary  is replicated as attribute :attr:`_FitEstimateFunctions.config`,
 which can be modified by configuration functions defined in
 :const:`CONFIGURE`.
 """
@@ -187,12 +153,12 @@ CSUM = 6
 CIGNORED = 7
 
 
-class SpecfitFunctions(object):
+class _FitEstimateFunctions(object):
     """Class wrapping functions from :class:`silx.math.fit.functions`
     and providing estimate functions for all of these fit functions."""
     def __init__(self, config=None):
         if config is None:
-            self.config = SPECFITFUNCTIONS_DEFAULTS
+            self.config = DEFAULT_CONFIG
         else:
             self.config = config
 
@@ -243,7 +209,6 @@ class SpecfitFunctions(object):
             newpar.append(input('Height   = '))
             newpar.append(input('Position = '))
             newpar.append(input('FWHM     = '))
-            # newpar.append(in)
         return newpar, numpy.zeros((len(newpar), 3), numpy.float)
 
     def estimate_height_position_fwhm(self, x, y, bg=None,
@@ -267,10 +232,7 @@ class SpecfitFunctions(object):
             Fit constraints depend on :attr:`config`.
         """
         if yscaling is None:
-            try:
-                yscaling = self.config['Yscaling']
-            except:
-                yscaling = 1.0
+            yscaling = self.config.get('Yscaling', 1.0)
         if yscaling == 0:
             yscaling = 1.0
 
@@ -304,10 +266,8 @@ class SpecfitFunctions(object):
             peaks = []
 
         if not len(peaks):
-            #mca = int(float(self.config.get('McaMode', 0)))
-            forcePeak = int(float(self.config.get('ForcePeakPresence', 0)))
-            #if not mca and forcePeak:
-            if forcePeak:
+            forcepeak = int(float(self.config.get('ForcePeakPresence', 0)))
+            if forcepeak:
                 delta = y - bg
                 peaks = [int(numpy.nonzero(delta == delta.max())[0])]
 
@@ -391,7 +351,7 @@ class SpecfitFunctions(object):
                     cons[peak_index, 1] = 0
                     cons[peak_index, 2] = 0
                 if self.config['SameFwhmFlag']:
-                    if (i != index_largest_peak):
+                    if i != index_largest_peak:
                         cons[peak_index, 0] = CFACTOR
                         cons[peak_index, 1] = 3 * index_largest_peak + 2
                         cons[peak_index, 2] = 1.0
@@ -880,21 +840,18 @@ class SpecfitFunctions(object):
         if not self.config['NoConstraintsFlag']:
                 # Setup height constrains
             if self.config['PositiveHeightAreaFlag']:
-                            #POSITIVE = 1
                 newcons[0, 0] = CPOSITIVE
                 newcons[0, 1] = 0
                 newcons[0, 2] = 0
 
             # Setup position constrains
             if self.config['QuotedPositionFlag']:
-                #QUOTED = 2
                 newcons[1, 0] = CQUOTED
                 newcons[1, 1] = min(x)
                 newcons[1, 2] = max(x)
 
             # Setup positive FWHM constrains
             if self.config['PositiveFwhmFlag']:
-                # POSITIVE=1
                 newcons[2, 0] = CPOSITIVE
                 newcons[2, 1] = 0
                 newcons[2, 2] = 0
@@ -941,28 +898,24 @@ class SpecfitFunctions(object):
         if not self.config['NoConstraintsFlag']:
             # Setup height constrains
             if self.config['PositiveHeightAreaFlag']:
-                #POSITIVE = 1
                 cons[0, 0] = CPOSITIVE
                 cons[0, 1] = 0
                 cons[0, 2] = 0
 
             # Setup position constrains
             if self.config['QuotedPositionFlag']:
-                #QUOTED = 2
                 cons[1, 0] = CQUOTED
                 cons[1, 1] = min(x)
                 cons[1, 2] = max(x)
 
             # Setup positive FWHM constrains
             if self.config['PositiveFwhmFlag']:
-                # POSITIVE=1
                 cons[2, 0] = CPOSITIVE
                 cons[2, 1] = 0
                 cons[2, 2] = 0
 
             # Setup positive FWHM constrains
             if self.config['PositiveFwhmFlag']:
-                # POSITIVE=1
                 cons[3, 0] = CPOSITIVE
                 cons[3, 1] = 0
                 cons[3, 2] = 0
@@ -1010,21 +963,18 @@ class SpecfitFunctions(object):
         if not self.config['NoConstraintsFlag']:
                 # Setup height constraints
             if self.config['PositiveHeightAreaFlag']:
-                #POSITIVE = 1
                 newcons[0, 0] = CPOSITIVE
                 newcons[0, 1] = 0
                 newcons[0, 2] = 0
 
             # Setup position constraints
             if self.config['QuotedPositionFlag']:
-                #QUOTED = 2
                 newcons[1, 0] = CQUOTED
                 newcons[1, 1] = min(x)
                 newcons[1, 2] = max(x)
 
             # Setup positive FWHM constraints
             if self.config['PositiveFwhmFlag']:
-                # POSITIVE=1
                 newcons[2, 0] = CPOSITIVE
                 newcons[2, 1] = 0
                 newcons[2, 2] = 0
@@ -1056,7 +1006,7 @@ class SpecfitFunctions(object):
         if yscaling is None:
             try:
                 yscaling = self.config['Yscaling']
-            except:
+            except KeyError:
                 yscaling = 1.0
         if yscaling == 0:
             yscaling = 1.0
@@ -1097,7 +1047,7 @@ class SpecfitFunctions(object):
         height = 0.0
         for i in range(npeaks):
             height += y[int(peaks[i])] - bg[int(peaks[i])]
-            if i != ((npeaks) - 1):
+            if i != npeaks - 1:
                 delta += (x[int(peaks[i + 1])] - x[int(peaks[i])])
 
         # delta between peaks
@@ -1124,7 +1074,7 @@ class SpecfitFunctions(object):
         # Setup height area constrains
         if not self.config['NoConstraintsFlag']:
             if self.config['PositiveHeightAreaFlag']:
-                #POSITIVE = 1
+                # POSITIVE = 1
                 cons[j, 0] = CPOSITIVE
                 cons[j, 1] = 0
                 cons[j, 2] = 0
@@ -1133,7 +1083,7 @@ class SpecfitFunctions(object):
         # Setup position constrains
         if not self.config['NoConstraintsFlag']:
             if self.config['QuotedPositionFlag']:
-                #QUOTED = 2
+                # QUOTED = 2
                 cons[j, 0] = CQUOTED
                 cons[j, 1] = min(x)
                 cons[j, 2] = max(x)
@@ -1149,12 +1099,11 @@ class SpecfitFunctions(object):
         j += 1
         return fittedpar, cons
 
-    def configure(self, *vars, **kw):
+    def configure(self, **kw):
         """Add new / unknown keyword arguments to :attr:`config`,
         update entries in :attr:`config` if the parameter name is a existing
         key.
 
-        :param vars: List of all positional arguments (ignored)
         :param kw: Dictionary of keyword arguments.
         :return: Configuration dictionary :attr:`config`
         """
@@ -1171,7 +1120,7 @@ class SpecfitFunctions(object):
                 self.config[key] = kw[key]
         return self.config
 
-fitfuns = SpecfitFunctions()
+fitfuns = _FitEstimateFunctions()
 
 THEORY = {
     'gauss': {
@@ -1267,7 +1216,7 @@ THEORY = {
     },
     'ahypermet': {
         'description': 'Hypermet functions',
-        'function': functions.sum_ahypermet,
+        'function': fitfuns.ahypermet,     # customized version of functions.sum_ahypermet
         'parameters': ('G_Area', 'Position', 'FWHM', 'ST_Area',
                        'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
         'estimate': fitfuns.estimate_ahypermet,
@@ -1301,7 +1250,6 @@ parameters list, configuration function and description.
 #           'Atan',
 #           'Hypermet',
 #           'Periodic Gaussians']
-# """Fit function names"""
 
 
 def test(a):
@@ -1334,4 +1282,3 @@ def test(a):
 
 if __name__ == "__main__":
     test(fitfuns)
-
