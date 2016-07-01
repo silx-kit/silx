@@ -1,9 +1,10 @@
 Tutorials
 =========
 
-Cookbooks are short tutorials: 1 page, 5 minutes to read.
+Tutorials and cookbooks:
 
 .. toctree::
    :maxdepth: 1
 
+   modules/gui/plot/getting_started.rst
    modules/gui/designer.rst

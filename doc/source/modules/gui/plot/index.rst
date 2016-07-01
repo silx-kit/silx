@@ -4,6 +4,13 @@
 :mod:`plot`: 1D and 2D Plot widgets
 -----------------------------------
 
+.. toctree::
+   :hidden:
+
+   getting_started.rst
+
+For an introduction to the widgets of this module, see :doc:`getting_started`.
+
 .. currentmodule:: silx.gui.plot
 
 .. automodule:: silx.gui.plot
@@ -33,6 +40,7 @@ Public modules:
    plot.rst
    plotwidget.rst
    plotwindow.rst
+   imageview.rst
 
 Internals:
 

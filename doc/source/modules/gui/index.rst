@@ -6,7 +6,9 @@
 
 The ``silx.gui`` package provides a set of PyQt widgets.
 
-It provides the following modules:
+Currently, its main feature is the :doc:`plot/index`.
+
+Available modules:
 
 .. toctree::
    :maxdepth: 1
