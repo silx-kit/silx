@@ -66,13 +66,13 @@ class Test_smooth(unittest.TestCase):
                        40, 3000, 50,
                        23, 4980, 250,)
 
-        self.y2 = functions.sum_upstep(x, *step_params)
+        self.y2 = functions.sum_stepup(x, *step_params)
         # 5% noise
         noise2 = 2 * numpy.random.random(5000) - 1
         noise2 *= 0.05
         self.y2 *= (1 + noise2)
 
-        self.y3 = functions.sum_downstep(x, *step_params)
+        self.y3 = functions.sum_stepdown(x, *step_params)
         # 5% noise
         noise3 = 2 * numpy.random.random(5000) - 1
         noise3 *= 0.05

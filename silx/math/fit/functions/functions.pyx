@@ -39,8 +39,8 @@ List of fit functions:
     - :func:`sum_alorentz`
     - :func:`sum_splitlorentz`
 
-    - :func:`sum_downstep`
-    - :func:`sum_upstep`
+    - :func:`sum_stepdown`
+    - :func:`sum_stepup`
     - :func:`sum_slit`
 
     - :func:`sum_ahypermet`
@@ -76,8 +76,8 @@ from functions cimport sum_splitpvoigt as _sum_splitpvoigt
 from functions cimport sum_lorentz as _sum_lorentz
 from functions cimport sum_alorentz as _sum_alorentz
 from functions cimport sum_splitlorentz as _sum_splitlorentz
-from functions cimport sum_downstep as _sum_downstep
-from functions cimport sum_upstep as _sum_upstep
+from functions cimport sum_stepdown as _sum_stepdown
+from functions cimport sum_stepup as _sum_stepup
 from functions cimport sum_slit as _sum_slit
 from functions cimport sum_ahypermet as _sum_ahypermet
 from functions cimport sum_fastahypermet as _sum_fastahypermet
@@ -595,10 +595,10 @@ def sum_splitlorentz(x, *params):
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def sum_downstep(x, *params):
-    """sum_downstep(x, *params) -> numpy.ndarray
+def sum_stepdown(x, *params):
+    """sum_stepdown(x, *params) -> numpy.ndarray
 
-    Return a sum of downstep functions.
+    Return a sum of stepdown functions.
     defined by *(height, centroid, fwhm)*.
 
         - *height* is the step's amplitude
@@ -608,10 +608,10 @@ def sum_downstep(x, *params):
 
     :param x: Independant variable where the gaussians are calculated
     :type x: numpy.ndarray
-    :param params: Array of downstep parameters (length must be a multiple
+    :param params: Array of stepdown parameters (length must be a multiple
         of 3):
         *(height1, centroid1, fwhm1,...)*
-    :return: Array of sum of downstep functions at each ``x``
+    :return: Array of sum of stepdown functions at each ``x``
         coordinate
     """
     cdef:
@@ -630,7 +630,7 @@ def sum_downstep(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_downstep(&x_c[0],
+    status = _sum_stepdown(&x_c[0],
                            x.size,
                            &params_c[0],
                            params_c.size,
@@ -642,10 +642,10 @@ def sum_downstep(x, *params):
     return numpy.asarray(y_c).reshape(x.shape)
 
 
-def sum_upstep(x, *params):
-    """sum_upstep(x, *params) -> numpy.ndarray
+def sum_stepup(x, *params):
+    """sum_stepup(x, *params) -> numpy.ndarray
 
-    Return a sum of upstep functions.
+    Return a sum of stepup functions.
     defined by *(height, centroid, fwhm)*.
 
         - *height* is the step's amplitude
@@ -655,10 +655,10 @@ def sum_upstep(x, *params):
 
     :param x: Independant variable where the gaussians are calculated
     :type x: numpy.ndarray
-    :param params: Array of upstep parameters (length must be a multiple
+    :param params: Array of stepup parameters (length must be a multiple
         of 3):
         *(height1, centroid1, fwhm1,...)*
-    :return: Array of sum of upstep functions at each ``x``
+    :return: Array of sum of stepup functions at each ``x``
         coordinate
     """
     cdef:
@@ -677,7 +677,7 @@ def sum_upstep(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_upstep(&x_c[0],
+    status = _sum_stepup(&x_c[0],
                          x.size,
                          &params_c[0],
                          params_c.size,
@@ -908,3 +908,44 @@ def sum_fastahypermet(x, *params,
 
     return numpy.asarray(y_c).reshape(x.shape)
 
+
+def atan_stepup(x, a, b, c):
+    """
+    Step up function using an inverse tangent.
+
+    :param x: Independant variable where the function is calculated
+    :type x: numpy array
+    :param a: Height of the step up
+    :param b: Center of the step up
+    :param c: Parameter related to the slope of the step. A lower ``c``
+        value yields a sharper step.
+    :return: ``a * (0.5 + (arctan((x - b) / c) / pi))``
+    :rtype: numpy array
+    """
+    if not hasattr(x, "shape"):
+        x = numpy.array(x)
+    return a * (0.5 + (numpy.arctan((1.0 * x - b) / c) / numpy.pi))
+
+
+def periodic_gauss(x, *pars):
+    """
+    Return a sum of gaussian functions defined by
+    *(npeaks, delta, height, centroid, fwhm)*,
+    where:
+
+    - *npeaks* is the number of gaussians peaks
+    - *delta* is the constant distance between 2 peaks
+    - *height* is the peak amplitude of all the gaussians
+    - *centroid* is the peak x-coordinate of the first gaussian
+    - *fwhm* is the full-width at half maximum for all the gaussians
+
+    :param x: Independant variable where the function is calculated
+    :param pars: *(npeaks, delta, height, centroid, fwhm)*
+    :return: Sum of ``npeaks`` gaussians
+    """
+    newpars = numpy.zeros((pars[0], 3), numpy.float)
+    for i in range(int(pars[0])):
+        newpars[i, 0] = pars[2]
+        newpars[i, 1] = pars[3] + i * pars[1]
+        newpars[:, 2] = pars[4]
+    return sum_gauss(x, newpars)

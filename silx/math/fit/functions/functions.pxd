@@ -121,13 +121,13 @@ cdef extern from "functions.h":
                          int len_plorentz,
                          double* y)
 
-    int sum_downstep(double* x,
+    int sum_stepdown(double* x,
                      int len_x,
                      double* pdstep,
                      int len_pdstep,
                      double* y)
 
-    int sum_upstep(double* x,
+    int sum_stepup(double* x,
                    int len_x,
                    double* pustep,
                    int len_pustep,

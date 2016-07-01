@@ -58,8 +58,8 @@ int sum_lorentz(double* x, int len_x, double* plorentz, int len_plorentz, double
 int sum_alorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y);
 int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, double* y);
 
-int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y);
-int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y);
+int sum_stepdown(double* x, int len_x, double* pdstep, int len_pdstep, double* y);
+int sum_stepup(double* x, int len_x, double* pustep, int len_pustep, double* y);
 int sum_slit(double* x, int len_x, double* pslit, int len_pslit, double* y);
 
 int sum_ahypermet(double* x, int len_x, double* phypermet, int len_phypermet, double* y, int tail_flags);

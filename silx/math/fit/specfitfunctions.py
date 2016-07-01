@@ -117,7 +117,7 @@ Module members:
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "30/06/2016"
-import os
+
 import numpy
 arctan = numpy.arctan
 
@@ -125,14 +125,7 @@ from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
 from silx.math.fit.leastsq import leastsq
 
-try:
-    HOME = os.getenv('HOME')
-except:
-    HOME = None
-if HOME is not None:
-    os.environ['HOME'] = HOME
-else:
-    os.environ['HOME'] = "."
+
 SPECFITFUNCTIONS_DEFAULTS = {'NoConstraintsFlag': False,
                              'PositiveFwhmFlag': True,
                              'PositiveHeightAreaFlag': True,
@@ -178,7 +171,7 @@ SPECFITFUNCTIONS_DEFAULTS = {'NoConstraintsFlag': False,
                              'SameSlopeRatioFlag': 1,
                              'SameAreaRatioFlag': 1}
 """This dictionary defines default configuration parameters that have effects
-on fit functions and estimation functions.
+on fit functions and estimation functions, mainly on fit constraints.
 This dictionary  is replicated as attribute :attr:`SpecfitFunctions.config`,
 which can be modified by configuration functions defined in
 :const:`CONFIGURE`.
@@ -205,7 +198,8 @@ class SpecfitFunctions(object):
 
     def ahypermet(self, x, *pars):
         """
-        Wrapping of :func:`silx.math.fit.functions.sum_ahypermet`.
+        Wrapping of :func:`silx.math.fit.functions.sum_ahypermet` without
+        the tail flags in the function signature.
 
         Depending on the value of `self.config['HypermetTails']`, one can
         activate or deactivate the various terms of the hypermet function.
@@ -225,32 +219,6 @@ class SpecfitFunctions(object):
         return functions.sum_ahypermet(x, *pars,
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
-
-    def atan(self, x, *pars):
-        return pars[0] * (0.5 + (arctan((1.0 * x - pars[1]) / pars[2]) / numpy.pi))
-
-    def periodic_gauss(self, x, *pars):
-        """
-        Return a sum of gaussian functions defined by
-        *(npeaks, delta, height, centroid, fwhm)*,
-        where:
-
-        - *npeaks* is the number of gaussians peaks
-        - *delta* is the distance between 2 peaks
-        - *height* is the peak amplitude of all the gaussians
-        - *centroid* is the peak x-coordinate of the first gaussian
-        - *fwhm* is the full-width at half maximum for all the gaussians
-
-        :param x: Independant variable where the function is calculated
-        :param pars: *(npeaks, delta, height, centroid, fwhm)*
-        :return: Sum of ``npeaks`` gaussians
-        """
-        newpars = numpy.zeros((pars[0], 3), numpy.float)
-        for i in range(int(pars[0])):
-            newpars[i, 0] = pars[2]
-            newpars[i, 1] = pars[3] + i * pars[1]
-            newpars[:, 2] = pars[4]
-        return functions.sum_gauss(x, newpars)
 
     def user_estimate(self, x, y, z, yscaling=1.0):
         """Interactive estimation function for gaussian parameters.
@@ -870,12 +838,13 @@ class SpecfitFunctions(object):
                         newcons[8 * i + 5, 2] = 1.0
         return newpar, newcons
 
-    def estimate_downstep(self, x, y, bg, yscaling=1.0):
-        """Estimation of parameters for downstep curves.
+    def estimate_stepdown(self, x, y, bg, yscaling=1.0):
+        """Estimation of parameters for stepdown curves.
 
         The functions estimates gaussian parameters for the derivative of
-        the data, and returns estimated parameters for the largest gaussian
-        peak.
+        the data, takes the largest gaussian peak and uses its estimated
+        parameters to define the center of the step and its fwhm. The
+        estimated amplitude returned is simply ``max(y) - min(y)``.
 
         :param x: Array of abscissa values
         :param y: Array of ordinate values (``y = f(x)``)
@@ -883,8 +852,8 @@ class SpecfitFunctions(object):
             ``y`` before fitting gaussian functions to peaks.
         :param yscaling: Scaling factor applied to ``y`` data when searching
             for peaks
-        :return: Tuple of estimated fit parameters and fit constraints.
-            Parameters to be estimated for each downstep are:
+        :return: Tuple of estimated fit parameters and fit newconstraints.
+            Parameters to be estimated for each stepdown are:
             *height, centroid, fwhm* .
         """
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
@@ -893,7 +862,7 @@ class SpecfitFunctions(object):
         if max(yy) > 0:
             yy = yy * max(y) / max(yy)
         xx = x[cutoff:-cutoff]
-        fittedpar, cons = self.estimate_agauss(xx, yy, bg, yscaling)
+        fittedpar, newcons = self.estimate_agauss(xx, yy, bg, yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -907,36 +876,37 @@ class SpecfitFunctions(object):
                            fittedpar[3 * largest_index + 2]]
         largest[0] = max(y) - min(y)
         # Setup constrains
+        newcons = numpy.zeros((3, 3), numpy.float)
         if not self.config['NoConstraintsFlag']:
                 # Setup height constrains
             if self.config['PositiveHeightAreaFlag']:
                             #POSITIVE = 1
-                cons[0, 0] = CPOSITIVE
-                cons[0, 1] = 0
-                cons[0, 2] = 0
+                newcons[0, 0] = CPOSITIVE
+                newcons[0, 1] = 0
+                newcons[0, 2] = 0
 
             # Setup position constrains
             if self.config['QuotedPositionFlag']:
                 #QUOTED = 2
-                cons[1, 0] = CQUOTED
-                cons[1, 1] = min(x)
-                cons[1, 2] = max(x)
+                newcons[1, 0] = CQUOTED
+                newcons[1, 1] = min(x)
+                newcons[1, 2] = max(x)
 
             # Setup positive FWHM constrains
             if self.config['PositiveFwhmFlag']:
                 # POSITIVE=1
-                cons[2, 0] = CPOSITIVE
-                cons[2, 1] = 0
-                cons[2, 2] = 0
+                newcons[2, 0] = CPOSITIVE
+                newcons[2, 1] = 0
+                newcons[2, 2] = 0
 
-        return largest, cons
+        return largest, newcons
 
     def estimate_slit(self, x, y, bg, yscaling=1.0):
         """Estimation of parameters for slit curves.
 
-        The functions estimates upstep and downstep parameters for the largest
-        steps, and uses them for calculating the center (middle between upstep
-        and downstep), the height (maximum amplitude in data), the fwhm
+        The functions estimates stepup and stepdown parameters for the largest
+        steps, and uses them for calculating the center (middle between stepup
+        and stepdown), the height (maximum amplitude in data), the fwhm
         (distance between the up- and down-step centers) and the beamfwhm
         (average of FWHM for up- and down-step).
 
@@ -950,9 +920,9 @@ class SpecfitFunctions(object):
             Parameters to be estimated for each slit are:
             *height, position, fwhm, beamfwhm* .
         """
-        largestup, cons = self.estimate_upstep(
+        largestup, cons = self.estimate_stepup(
             x, y, bg, yscaling)
-        largestdown, cons = self.estimate_downstep(
+        largestdown, cons = self.estimate_stepdown(
             x, y, bg, yscaling)
         fwhm = numpy.fabs(largestdown[1] - largestup[1])
         beamfwhm = 0.5 * (largestup[2] + largestdown[1])
@@ -998,12 +968,13 @@ class SpecfitFunctions(object):
                 cons[3, 2] = 0
         return largest, cons
 
-    def estimate_upstep(self, x, y, bg, yscaling=1.0):
-        """Estimation of parameters for upstep curves.
+    def estimate_stepup(self, x, y, bg, yscaling=1.0):
+        """Estimation of parameters for a single step up curve.
 
         The functions estimates gaussian parameters for the derivative of
-        the data, and returns estimated parameters for the largest gaussian
-        peak.
+        the data, takes the largest gaussian peak and uses its estimated
+        parameters to define the center of the step and its fwhm. The
+        estimated amplitude returned is simply ``max(y) - min(y)``.
 
         :param x: Array of abscissa values
         :param y: Array of ordinate values (``y = f(x)``)
@@ -1012,7 +983,7 @@ class SpecfitFunctions(object):
         :param yscaling: Scaling factor applied to ``y`` data when searching
             for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
-            Parameters to be estimated for each upstep are:
+            Parameters to be estimated for each stepup are:
             *height, centroid, fwhm* .
         """
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
@@ -1037,28 +1008,28 @@ class SpecfitFunctions(object):
         largest[0] = max(y) - min(y)
         # Setup constrains
         if not self.config['NoConstraintsFlag']:
-                # Setup height constrains
+                # Setup height constraints
             if self.config['PositiveHeightAreaFlag']:
                 #POSITIVE = 1
-                cons[0, 0] = CPOSITIVE
-                cons[0, 1] = 0
-                cons[0, 2] = 0
+                newcons[0, 0] = CPOSITIVE
+                newcons[0, 1] = 0
+                newcons[0, 2] = 0
 
-            # Setup position constrains
+            # Setup position constraints
             if self.config['QuotedPositionFlag']:
                 #QUOTED = 2
-                cons[1, 0] = CQUOTED
-                cons[1, 1] = min(x)
-                cons[1, 2] = max(x)
+                newcons[1, 0] = CQUOTED
+                newcons[1, 1] = min(x)
+                newcons[1, 2] = max(x)
 
-            # Setup positive FWHM constrains
+            # Setup positive FWHM constraints
             if self.config['PositiveFwhmFlag']:
                 # POSITIVE=1
-                cons[2, 0] = CPOSITIVE
-                cons[2, 1] = 0
-                cons[2, 2] = 0
+                newcons[2, 0] = CPOSITIVE
+                newcons[2, 1] = 0
+                newcons[2, 2] = 0
 
-        return largest, cons
+        return largest, newcons
 
     def estimate_periodic_gauss(self, x, y, bg=None, yscaling=None):
         """Estimation of parameters for periodic gaussian curves:
@@ -1071,8 +1042,8 @@ class SpecfitFunctions(object):
             - *distance*: average of distances between detected peaks
             - *height*: average height of detected peaks
             - *fwhm*: fwhm of the highest peak (in number of samples) if
-                :attr:`config`['AutoFwhm'] is ``True``, else take the default
-                value :attr:`config`['FwhmPoints']
+                field ``'AutoFwhm'`` in :attr:`config` is ``True``, else take
+                the default value (field ``'FwhmPoints'`` in :attr:`config`)
 
         :param x: Array of abscissa values
         :param y: Array of ordinate values (``y = f(x)``)
@@ -1202,92 +1173,135 @@ class SpecfitFunctions(object):
 
 fitfuns = SpecfitFunctions()
 
-THEORY = ['Gaussians',
-          'Lorentz',
-          'Area Gaussians',
-          'Area Lorentz',
-          'Pseudo-Voigt Line',
-          'Area Pseudo-Voigt',
-          'Split Gaussian',
-          'Split Lorentz',
-          'Split Pseudo-Voigt',
-          'Step Down',
-          'Step Up',
-          'Slit',
-          'Atan',
-          'Hypermet',
-          'Periodic Gaussians']
-"""Fit function names"""
+THEORY = {
+    'gauss': {
+        'description': 'Gaussian functions',
+        'function': functions.sum_gauss,
+        'parameters': ('Height', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_height_position_fwhm,
+        'configure': fitfuns.configure
+    },
+    'lorentz': {
+        'description': 'Lorentzian functions',
+        'function': functions.sum_lorentz,
+        'parameters': ('Height', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_height_position_fwhm,
+        'configure': fitfuns.configure
+    },
+    'agauss': {
+        'description': 'Gaussian functions (area)',
+        'function': functions.sum_agauss,
+        'parameters': ('Area', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_agauss,
+        'configure': fitfuns.configure
+    },
+    'alorentz': {
+        'description': 'Lorentzian functions (area)',
+        'function': functions.sum_alorentz,
+        'parameters': ('Area', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_alorentz,
+        'configure': fitfuns.configure
+    },
+    'pvoigt': {
+        'description': 'Pseudo-Voigt functions',
+        'function': functions.sum_pvoigt,
+        'parameters': ('Height', 'Position', 'FWHM', 'Eta'),
+        'estimate': fitfuns.estimate_pvoigt,
+        'configure': fitfuns.configure
+    },
+    'apvoigt': {
+        'description': 'Pseudo-Voigt functions (area)',
+        'function': functions.sum_apvoigt,
+        'parameters': ('Area', 'Position', 'FWHM', 'Eta'),
+        'estimate': fitfuns.estimate_apvoigt,
+        'configure': fitfuns.configure
+    },
+    'splitgauss': {
+        'description': 'Split gaussian functions',
+        'function': functions.sum_splitgauss,
+        'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM'),
+        'estimate': fitfuns.estimate_splitgauss,
+        'configure': fitfuns.configure
+    },
+    'splitlorentz': {
+        'description': 'Split lorentzian functions',
+        'function': functions.sum_splitlorentz,
+        'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM'),
+        'estimate': fitfuns.estimate_splitgauss,
+        'configure': fitfuns.configure
+    },
+    'splitpvoigt': {
+        'description': 'Split pseudo-Voigt functions',
+        'function': functions.sum_splitpvoigt,
+        'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM', 'Eta'),
+        'estimate': fitfuns.estimate_splitpvoigt,
+        'configure': fitfuns.configure
+    },
+    'stepdown': {
+        'description': 'Step down function',
+        'function': functions.sum_stepdown,
+        'parameters': ('Height', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_stepdown,
+        'configure': fitfuns.configure
+    },
+    'stepup': {
+        'description': 'Step up function',
+        'function': functions.sum_stepup,
+        'parameters': ('Height', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_stepup,
+        'configure': fitfuns.configure
+    },
+    'slit': {
+        'description': 'Slit function',
+        'function': functions.sum_slit,
+        'parameters': ('Height', 'Position', 'FWHM', 'BeamFWHM'),
+        'estimate': fitfuns.estimate_slit,
+        'configure': fitfuns.configure
+    },
+    'atan_stepup': {
+        'description': 'Arctan step up function',
+        'function': functions.atan_stepup,
+        'parameters': ('Height', 'Position', 'Width'),
+        'estimate': fitfuns.estimate_stepup,
+        'configure': fitfuns.configure
+    },
+    'ahypermet': {
+        'description': 'Hypermet functions',
+        'function': functions.sum_ahypermet,
+        'parameters': ('G_Area', 'Position', 'FWHM', 'ST_Area',
+                       'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
+        'estimate': fitfuns.estimate_ahypermet,
+        'configure': fitfuns.configure
+    },
+    'periodic_gauss': {
+        'description': 'Periodic gaussian functions',
+        'function': functions.periodic_gauss,
+        'parameters': ('N', 'Delta', 'Height', 'Position', 'FWHM'),
+        'estimate': fitfuns.estimate_periodic_gauss,
+        'configure': fitfuns.configure
+    },
+}
+"""Dictionary of fit functions and their associated estimation function,
+parameters list, configuration function and description.
+"""
 
-FUNCTION = [functions.sum_gauss,
-            functions.sum_lorentz,
-            functions.sum_agauss,
-            functions.sum_alorentz,
-            functions.sum_pvoigt,
-            functions.sum_apvoigt,
-            functions.sum_splitgauss,
-            functions.sum_splitlorentz,
-            functions.sum_splitpvoigt,
-            functions.sum_downstep,
-            functions.sum_upstep,
-            functions.sum_slit,
-            fitfuns.atan,
-            functions.sum_ahypermet,
-            fitfuns.periodic_gauss]
-"""Fit functions"""
-
-
-PARAMETERS = [['Height', 'Position', 'FWHM'],
-              ['Height', 'Position', 'Fwhm'],
-              ['Area', 'Position', 'Fwhm'],
-              ['Area', 'Position', 'Fwhm'],
-              ['Height', 'Position', 'Fwhm', 'Eta'],
-              ['Area', 'Position', 'Fwhm', 'Eta'],
-              ['Height', 'Position', 'LowFWHM', 'HighFWHM'],
-              ['Height', 'Position', 'LowFWHM', 'HighFWHM'],
-              ['Height', 'Position', 'LowFWHM', 'HighFWHM', 'Eta'],
-              ['Height', 'Position', 'FWHM'],
-              ['Height', 'Position', 'FWHM'],
-              ['Height', 'Position', 'FWHM', 'BeamFWHM'],
-              ['Height', 'Position', 'Width'],
-              ['G_Area', 'Position', 'FWHM',
-               'ST_Area', 'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'],
-              ['N', 'Delta', 'Height', 'Position', 'FWHM']]
-"""Lists of minimal parameters required by each fit function"""
-
-ESTIMATE = [fitfuns.estimate_height_position_fwhm,  # for gauss
-            fitfuns.estimate_height_position_fwhm,  # for lorentz
-            fitfuns.estimate_agauss,
-            fitfuns.estimate_alorentz,
-            fitfuns.estimate_pvoigt,
-            fitfuns.estimate_apvoigt,
-            fitfuns.estimate_splitgauss,
-            fitfuns.estimate_splitgauss,
-            fitfuns.estimate_splitpvoigt,
-            fitfuns.estimate_downstep,
-            fitfuns.estimate_upstep,
-            fitfuns.estimate_slit,
-            fitfuns.estimate_upstep,                # for atan
-            fitfuns.estimate_ahypermet,
-            fitfuns.estimate_periodic_gauss]
-"""Parameter estimation functions"""
-
-CONFIGURE = [fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure,
-             fitfuns.configure]
-"""Configuration functions"""
+# Old names
+# THEORY = ['Gaussians',
+#           'Lorentz',
+#           'Area Gaussians',
+#           'Area Lorentz',
+#           'Pseudo-Voigt Line',
+#           'Area Pseudo-Voigt',
+#           'Split Gaussian',
+#           'Split Lorentz',
+#           'Split Pseudo-Voigt',
+#           'Step Down',
+#           'Step Up',
+#           'Slit',
+#           'Atan',
+#           'Hypermet',
+#           'Periodic Gaussians']
+# """Fit function names"""
 
 
 def test(a):

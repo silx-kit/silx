@@ -810,8 +810,8 @@ int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, d
     return(0);
 }
 
-/*  sum_downstep
-    Sum of downstep functions, defined by (height, centroid, fwhm).
+/*  sum_stepdown
+    Sum of stepdown functions, defined by (height, centroid, fwhm).
 
     *height* is the step amplitude
     *centroid* is the step's x-coordinate
@@ -820,7 +820,7 @@ int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, d
     Parameters:
     -----------
 
-        - x: Independant variable where the downstep functions are calculated.
+        - x: Independant variable where the stepdown functions are calculated.
         - len_x: Number of elements in the x array.
         - pdstep: Array of downstpe function parameters:
           (height1, centroid1, fwhm1, ...)
@@ -831,13 +831,13 @@ int sum_splitlorentz(double* x, int len_x, double* plorentz, int len_plorentz, d
 
     Adapted from PyMca module SpecFitFuns
 */
-int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y)
+int sum_stepdown(double* x, int len_x, double* pdstep, int len_pdstep, double* y)
 {
     int i, j;
     double dhelp, sqrt2_inv_2_sqrt_two_log2 ;
     double height, centroid, fwhm;
 
-    if (test_params(len_pdstep, 3, "sum_downstep", "height, centroid, fwhm")) {
+    if (test_params(len_pdstep, 3, "sum_stepdown", "height, centroid, fwhm")) {
         return(1);
     }
 
@@ -862,8 +862,8 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
     return(0);
 }
 
-/*  sum_upstep
-    Sum of upstep functions, defined by (height, centroid, fwhm).
+/*  sum_stepup
+    Sum of stepup functions, defined by (height, centroid, fwhm).
 
     *height* is the step amplitude
     *centroid* is the step's x-coordinate
@@ -872,9 +872,9 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
     Parameters:
     -----------
 
-        - x: Independant variable where the upstep functions are calculated.
+        - x: Independant variable where the stepup functions are calculated.
         - len_x: Number of elements in the x array.
-        - pustep: Array of downstep function parameters:
+        - pustep: Array of stepdown function parameters:
           (height1, centroid1, fwhm1, ...)
         - len_pustep: Number of elements in the pustep array. Must be
           a multiple of 3.
@@ -883,13 +883,13 @@ int sum_downstep(double* x, int len_x, double* pdstep, int len_pdstep, double* y
 
     Adapted from PyMca module SpecFitFuns
 */
-int sum_upstep(double* x, int len_x, double* pustep, int len_pustep, double* y)
+int sum_stepup(double* x, int len_x, double* pustep, int len_pustep, double* y)
 {
     int i, j;
     double dhelp, sqrt2_inv_2_sqrt_two_log2 ;
     double height, centroid, fwhm;
 
-    if (test_params(len_pustep, 3, "sum_upstep", "height, centroid, fwhm")) {
+    if (test_params(len_pustep, 3, "sum_stepup", "height, centroid, fwhm")) {
         return(1);
     }
 
