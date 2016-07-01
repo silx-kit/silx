@@ -147,6 +147,111 @@ class Test_functions(unittest.TestCase):
             for j in range(x.shape[1]):
                 self.assertAlmostEqual(erfcx[i, j], math.erfc(x[i, j]))
 
+    def testAtanStepUp(self):
+        """Compare atan_stepup with math.atan
+
+        atan_stepup(x, a, b, c) = a * (0.5 + (arctan((x - b) / c) / pi))"""
+        x0 = numpy.arange(100) / 6.33
+        y0 = functions.atan_stepup(x0, 11.1, 22.2, 3.33)
+
+        for x, y in zip(x0, y0):
+            self.assertAlmostEqual(
+                11.1 * (0.5 + math.atan((x - 22.2) / 3.33) / math.pi),
+                y
+            )
+
+    def testStepUp(self):
+        """sanity check for step up:
+
+           - derivative must be largest around the step center
+           - max value must be close to height parameter
+
+        """
+        x0 = numpy.arange(1000)
+        center = 444
+        height = 1234
+        fwhm = 210
+        y0 = functions.sum_stepup(x0, height, center, fwhm)
+
+        self.assertLess(max(y0), height)
+        self.assertAlmostEqual(max(y0), height, places=1)
+        self.assertAlmostEqual(min(y0), 0, places=1)
+
+        deriv0 = _numerical_derivative(functions.sum_stepup, x0, [height, center, fwhm])
+
+        # Test center position within +- 1 sample of max derivative
+        index_max_deriv = numpy.argmax(deriv0)
+        self.assertLess(abs(index_max_deriv - center),
+                        1)
+
+    def testStepDown(self):
+        """sanity check for step down:
+
+           - absolute value of derivative must be largest around the step center
+           - max value must be close to height parameter
+
+        """
+        x0 = numpy.arange(1000)
+        center = 444
+        height = 1234
+        fwhm = 210
+        y0 = functions.sum_stepdown(x0, height, center, fwhm)
+
+        self.assertLess(max(y0), height)
+        self.assertAlmostEqual(max(y0), height, places=1)
+        self.assertAlmostEqual(min(y0), 0, places=1)
+
+        deriv0 = _numerical_derivative(functions.sum_stepdown, x0, [height, center, fwhm])
+
+        # Test center position within +- 1 sample of max derivative
+        index_min_deriv = numpy.argmax(-deriv0)
+        self.assertLess(abs(index_min_deriv - center),
+                        1)
+
+    def testSlit(self):
+        """sanity check for slit:
+
+           - absolute value of derivative must be largest around the step center
+           - max value must be close to height parameter
+
+        """
+        x0 = numpy.arange(1000)
+        center = 444
+        height = 1234
+        fwhm = 210
+        beamfwhm = 30
+        y0 = functions.sum_slit(x0, height, center, fwhm, beamfwhm)
+
+        self.assertAlmostEqual(max(y0), height, places=1)
+        self.assertAlmostEqual(min(y0), 0, places=1)
+
+        deriv0 = _numerical_derivative(functions.sum_slit, x0, [height, center, fwhm, beamfwhm])
+
+        # Test step up center  position (center - fwhm/2) within +- 1 sample of max derivative
+        index_max_deriv = numpy.argmax(deriv0)
+        self.assertLess(abs(index_max_deriv - (center - fwhm/2)),
+                        1)
+        # Test step down center position (center + fwhm/2) within +- 1 sample of min derivative
+        index_min_deriv = numpy.argmin(deriv0)
+        self.assertLess(abs(index_min_deriv - (center + fwhm/2)),
+                        1)
+
+
+
+def _numerical_derivative(f, x, params=[], delta_factor=0.0001):
+    """Compute the numerical derivative of ``f`` for all values of ``x``.
+
+    :param f: function
+    :param x: Array of evenly spaced abscissa values
+    :param params: list of additional parameters
+    :return: Array of derivative values
+    """
+    deltax = (x[1] - x[0]) * delta_factor
+    y_plus = f(x + deltax, *params)
+    y_minus = f(x - deltax, *params)
+
+    return (y_plus - y_minus) / (2 * deltax)
+
 test_cases = (Test_functions,)
 
 def suite():
