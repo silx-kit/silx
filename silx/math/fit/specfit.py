@@ -58,7 +58,7 @@ __date__ = "29/06/2016"
 _logger = logging.getLogger(__name__)
 
 
-class Specfit():
+class Specfit:
     """
     Multi-peak fitting functions manager
 
@@ -510,14 +510,14 @@ class Specfit():
             callback(data={'chisq': self.chisq,
                            'status': self.state})
 
-        CONS = ['FREE',
-                'POSITIVE',
-                'QUOTED',
-                'FIXED',
-                'FACTOR',
-                'DELTA',
-                'SUM',
-                'IGNORE']
+        CONS = {0: 'FREE',
+                1: 'POSITIVE',
+                2: 'QUOTED',
+                3: 'FIXED',
+                4: 'FACTOR',
+                5: 'DELTA',
+                6: 'SUM',
+                7: 'IGNORE'}
 
         # Update data using user defined method
         if self.dataupdate is not None:
@@ -793,9 +793,6 @@ class Specfit():
             ywork = self.squarefilter(
                 self.ydata, self.fit_results[0]['estimation'])
 
-        # constraints = None if param['code'] in ['FREE', 0, 0.0] else \
-        #     param_constraints
-
         params, covariance_matrix, infodict = leastsq(
                                                 self.fitfunction,
                                                 self.xdata, ywork,
@@ -803,7 +800,12 @@ class Specfit():
                                                 constraints=param_constraints,
                                                 model_deriv=self.selectedderivative,
                                                 full_output=True)
-        sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
+        if covariance_matrix is not None:
+            sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
+        else:
+            # sometimes leastsq returns None and logs:
+            # "Error calculating covariance matrix after successful fit"
+            sigmas = numpy.zeros(shape=(len(params),))
 
         for i, param in enumerate(self.fit_results):
             if param['code'] != 'IGNORE':
@@ -840,7 +842,7 @@ class Specfit():
             paramlist = self.fit_results
         active_params = []
         for param in paramlist:
-            if param['code'] != 'IGNORE':
+            if param['code'] not in ['IGNORE', 0, 0.]:
                 active_params.append(param['fitresult'])
 
         newdata = self.fitfunction(numpy.array(x), *active_params)
