@@ -13,7 +13,7 @@
    functions.rst
    filters.rst
    specfit.rst
-   specfitfunctions.rst
+   fitestimatefunctions.rst
 
 
 
