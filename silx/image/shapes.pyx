@@ -22,15 +22,14 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
-"""This module provides functions related to polygon filling.
+"""This module provides functions making masks on an image.
 
-The :class:`Polygon` class provides checking if a point is inside a polygon
-and a way to generate a mask of the polygon.
+- :func:`circle_fill` function generates coordinates of a circle in an image.
+- :func:`draw_line` function generates coordinates of a line in an image.
+- :func:`polygon_fill_mask` function generates a mask from a set of points
+  defining a polygon.
 
-The :func:`polygon_fill` function generates a mask from a set of points
-defining a polygon.
-
-The :func:`draw_line` function generates coordinates of a line in an image.
+The :class:`Polygon` class provides checking if a point is inside a polygon.
 
 The whole module uses the (row, col) (i.e., (y, x))) convention
 for 2D coordinates.
