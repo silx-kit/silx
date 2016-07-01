@@ -14,7 +14,6 @@ For an introduction to the widgets of this module, see :doc:`getting_started`.
 .. currentmodule:: silx.gui.plot
 
 .. automodule:: silx.gui.plot
-   :members:
 
 Snapshot of the widgets:
 
