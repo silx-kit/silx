@@ -71,7 +71,7 @@ Plot functions
 - :func:`plot1D`, and
 - :func:`plot2D`.
 
-For more features, use widgets directly (see Plotting_).
+For more features, use widgets directly (see `Plot curves in a widget`_ and `Plot images in a widget`_).
 
 
 Curve: :func:`plot1D`
