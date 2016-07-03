@@ -8,3 +8,4 @@
    :maxdepth: 1
    
    bilinear.rst
+   shapes.rst

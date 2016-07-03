@@ -1,0 +1,21 @@
+# List all dependencies of silx
+# Requires pip >= 8.0
+
+--trusted-host www.silx.org
+--find-links http://www.silx.org/pub/wheelhouse/
+--only-binary h5py,PyQt4,PyQt5,PySide
+
+numpy
+h5py                      # For silx.io
+ipython                   # For silx.gui.console
+qtconsole                 # For silx.gui.console
+matplotlib >= 1.2.0       # For silx.gui.plot
+# PyQt4, PyQt5 or PySide  # For silx.gui
+
+
+# Try to install a Qt binding from a wheel
+# This is no available for all configurations
+
+# Require PyQt5 except on Windows with Python2.7
+PyQt5; sys_platform != 'win32' and python_version != '2.7'
+PyQt4; sys_platform == 'win32' and python_version == '2.7'  # From silx.org

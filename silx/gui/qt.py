@@ -27,7 +27,7 @@
 This module provides a flattened namespace over Qt bindings.
 
 If a Qt bindings is already loaded, it will be used, otherwise the different
-bindings are tried in this order: PyQt4, PySide, PyQt5.
+bindings are tried in this order: PyQt5, PyQt4, PySide.
 
 The name of the loaded Qt bindings is stored in the BINDING variable.
 
@@ -66,22 +66,22 @@ elif 'PyQt4' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt4  # noqa
+        import PyQt5  # noqa
     except ImportError:
         try:
-            import PySide  # noqa
+            import PyQt4  # noqa
         except ImportError:
             try:
-                import PyQt5  # noqa
+                import PySide  # noqa
             except ImportError:
                 raise ImportError(
                     'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
             else:
-                BINDING = 'PyQt5'
+                BINDING = 'PySide'
         else:
-            BINDING = 'PySide'
+            BINDING = 'PyQt4'
     else:
-        BINDING = 'PyQt4'
+        BINDING = 'PyQt5'
 
 
 if BINDING == 'PyQt4':
