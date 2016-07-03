@@ -30,8 +30,6 @@
   enables testing the number of logging messages of different levels.
 - :func:`temp_dir` provides a with context to create/delete a temporary
   directory.
-
-This module is NOT a test suite.
 """
 
 __authors__ = ["T. Vincent"]

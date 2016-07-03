@@ -32,8 +32,8 @@ these widgets to allow your users to add curves, save data to files… by using
 the widgets' methods from the console.
 
 This module has a dependency on
-*`IPython <https://pypi.python.org/pypi/ipython>`_* and
-*`qtconsole <https://pypi.python.org/pypi/qtconsole>`_* (or *ipython.qt* for
+`IPython <https://pypi.python.org/pypi/ipython>`_ and
+`qtconsole <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
 older versions of *IPython*). An ``ImportError`` will be raised if it is
 imported while the dependencies are not satisfied.
 
