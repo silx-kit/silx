@@ -119,8 +119,8 @@ Second call with weights_2
 
 >>> histo, w_histo = histo_lut.apply_lut(weights_2, histo=histo, weighted_histo=w_histo)
 
-Bins coordinates
-----------------
+Bin edges
+---------
 When computing an histogram the caller is asked to provide the histogram
 range along each coordinates (parameter *histo_range*). This parameter must
 be given a [N, 2] array where N is the number of dimensions of the histogram.
@@ -130,7 +130,7 @@ the left edge of the first (*leftmost*) bin, and the right edge of the
 last (*rightmost*) bin.
 
 E.g. : for a 1D sample, for a histo_range equal to [0, 10] and n_bins=4, the
-bins range will be :
+bins ranges will be :
 
 * [0, 2.5[, [2.5, 5[, [5, 7.5[, [7.5, 10 **[** if last_bin_closed = **False**
 * [0, 2.5[, [2.5, 5[, [5, 7.5[, [7.5, 10 **]** if last_bin_closed = **True**
