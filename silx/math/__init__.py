@@ -26,10 +26,5 @@ __authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/05/2016"
 
-from .histogram import histogramnd
-from .histogram import HistogramndLut
-
-import logging as _logging
-# Init logging once for the whole module
-_logging.basicConfig()
-
+from .histogram import Histogramnd  # noqa
+from .histogram import HistogramndLut  # noqa

@@ -235,8 +235,8 @@ def is_group(name):
     For example:
 
         - ``is_group("/123.456/instrument/")`` returns ``True``.
-        - ``is_group("spam")`` returns ``False`` because ``"spam"`` is not
-          at all a valid group name.
+        - ``is_group("spam")`` returns ``False`` because :literal:`\"spam\"`
+          is not at all a valid group name.
         - ``is_group("/1.2/instrument/positioners/xyz")`` returns ``False``
           because this key would point to a motor position, which is a
           dataset and not a group.
@@ -264,8 +264,8 @@ def is_dataset(name):
           positions for motor ``xyz`` in scan ``1.2``.
         - ``is_dataset("/123.456/instrument/")`` returns ``False`` because
           this name points to a group.
-        - ``is_dataset("spam")`` returns ``False`` because ``"spam"`` is not
-          at all a valid dataset name.
+        - ``is_dataset("spam")`` returns ``False`` because :literal:`\"spam\"`
+          is not at all a valid dataset name.
     """
     # /1.1/measurement/mca_0 could be interpreted as a data column
     # with label "mca_0"

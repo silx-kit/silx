@@ -1,5 +1,5 @@
 
-.. py:module:: math
+.. py:module:: silx.math
 
 :mod:`silx.math`:
 ==================
@@ -8,5 +8,4 @@
    :maxdepth: 1
 
    fit/index.rst
-   histogramnd.rst
-
+   histogram.rst

@@ -113,12 +113,17 @@ try:
 except ImportError:
     #MarCCD
     MARCCD_SUPPORT = False
-try:
-    from PyMca5.PyMcaIO import TiffIO
-    TIFF_SUPPORT = True
-except ImportError:
-    #MarCCD
-    TIFF_SUPPORT = False
+
+# Using local TiffIO
+from . import TiffIO
+TIFF_SUPPORT = True
+# try:
+#     from PyMca5.PyMcaIO import TiffIO
+#     TIFF_SUPPORT = True
+# except ImportError:
+#     #MarCCD
+#     TIFF_SUPPORT = False
+
 try:
     from PyMca5.PyMcaIO import PilatusCBF
     PILATUS_CBF_SUPPORT = True

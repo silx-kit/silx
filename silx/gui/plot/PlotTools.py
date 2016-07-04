@@ -307,7 +307,7 @@ class ProfileToolBar(qt.QToolBar):
 
     Attributes:
 
-    - plotWindow: Associated :class:`PlotWindow`.
+    - plot: Associated :class:`PlotWindow`.
     - profileWindow: Associated :class:`PlotWindow` displaying the profile.
     - actionGroup: :class:`QActionGroup` of available actions.
 
@@ -323,22 +323,21 @@ class ProfileToolBar(qt.QToolBar):
     >>> plot.addToolBar(toolBar)  # Add it to plot
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
-    :param plotWindow: :class:`PlotWindow` instance on which to operate.
+    :param plot: :class:`PlotWindow` instance on which to operate.
     :param profileWindow: :class:`ProfileScanWidget` instance where to
                           display the profile curve or None to create one.
     :param str title: See :class:`QToolBar`.
     :param parent: See :class:`QToolBar`.
     """
-    # TODO when available, listen to active image change to refresh profile
     # TODO Make it a QActionGroup instead of a QToolBar
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
-    def __init__(self, plotWindow, profileWindow=None,
+    def __init__(self, plot, profileWindow=None,
                  title='Profile Selection', parent=None):
         super(ProfileToolBar, self).__init__(title, parent)
-        assert plotWindow is not None
-        self.plotWindow = plotWindow
+        assert plot is not None
+        self.plot = plot
 
         self._overlayColor = 'red'
 
@@ -346,7 +345,7 @@ class ProfileToolBar(qt.QToolBar):
 
         if profileWindow is None:
             # Import here to avoid cyclic import
-            from .PlotWindow import PlotWindow
+            from .PlotWindow import PlotWindow  # noqa
             self.profileWindow = PlotWindow(parent=None, backend=None,
                                             resetzoom=True, autoScale=True,
                                             logScale=True, grid=True,
@@ -366,7 +365,7 @@ class ProfileToolBar(qt.QToolBar):
         self.browseAction.setToolTip(
             'Enables zooming interaction mode')
         self.browseAction.setCheckable(True)
-        self.browseAction.toggled[bool].connect(self._browseActionToggled)
+        self.browseAction.triggered[bool].connect(self._browseActionTriggered)
 
         self.hLineAction = qt.QAction(
             icons.getQIcon('shape-horizontal'),
@@ -425,46 +424,63 @@ class ProfileToolBar(qt.QToolBar):
             self._lineWidthSpinBoxValueChangedSlot)
         self.addWidget(self.lineWidthSpinBox)
 
+        self.plot.sigInteractiveModeChanged.connect(
+            self._interactiveModeChanged)
+
+        # Enable toolbar only if there is an active image
+        self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
+        self.plot.sigActiveImageChanged.connect(
+            self._activeImageChanged)
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        self.setEnabled(legend is not None)
+        if legend is not None:
+            self.updateProfile()
+
     def _lineWidthSpinBoxValueChangedSlot(self, value):
         """Listen to ROI width widget to refresh ROI and profile"""
         self.updateProfile()
 
+    def _interactiveModeChanged(self, source):
+        """Handle plot interactive mode changed:
+
+        If changed from elsewhere, disable drawing tool
+        """
+        if source is not self:
+            self.browseAction.setChecked(True)
+
     def _hLineActionToggled(self, checked):
         """Handle horizontal line profile action toggle"""
         if checked:
-            self.plotWindow.setInteractiveMode('draw', shape='hline',
-                                               color=None)
-            self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
+            self.plot.setInteractiveMode('draw', shape='hline',
+                                         color=None, source=self)
+            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
         else:
-            self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
-            # self.plotWindow.setInteractiveMode('zoom')
+            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
 
     def _vLineActionToggled(self, checked):
         """Handle vertical line profile action toggle"""
         if checked:
-            self.plotWindow.setInteractiveMode('draw', shape='vline',
-                                               color=None)
-            self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
+            self.plot.setInteractiveMode('draw', shape='vline',
+                                         color=None, source=self)
+            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
         else:
-            self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
-            # self.plotWindow.setInteractiveMode('zoom')
+            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
 
     def _lineActionToggled(self, checked):
         """Handle line profile action toggle"""
         if checked:
-            self.plotWindow.setInteractiveMode('draw', shape='line',
-                                               color=None)
-            self.plotWindow.sigPlotSignal.connect(self._plotWindowSlot)
+            self.plot.setInteractiveMode('draw', shape='line',
+                                         color=None, source=self)
+            self.plot.sigPlotSignal.connect(self._plotWindowSlot)
         else:
-            self.plotWindow.sigPlotSignal.disconnect(self._plotWindowSlot)
-            # self.plotWindow.setInteractiveMode('zoom')
+            self.plot.sigPlotSignal.disconnect(self._plotWindowSlot)
 
-    def _browseActionToggled(self, checked):
-        """Handle browse action mode triggering"""
+    def _browseActionTriggered(self, checked):
+        """Handle browse action mode triggered by user."""
         if checked:
-            self.plotWindow.setInteractiveMode('zoom')
-        # else:
-        #    self.plotWindow.setInteractiveMode('select')
+            self.plot.setInteractiveMode('zoom', source=self)
 
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.
@@ -540,10 +556,12 @@ class ProfileToolBar(qt.QToolBar):
             profile = numpy.zeros((width,), dtype=numpy.float32)
 
         # Compute effective ROI in plot coords
-        profileBounds = numpy.array((0, width, width, 0),
-                                    dtype=numpy.float32) * scale[0] + origin[0]
-        roiBounds = numpy.array((start, start, end, end),
-                                dtype=numpy.float32) * scale[1] + origin[1]
+        profileBounds = numpy.array(
+            (0, width, width, 0),
+            dtype=numpy.float32) * scale[axis] + origin[axis]
+        roiBounds = numpy.array(
+            (start, start, end, end),
+            dtype=numpy.float32) * scale[1 - axis] + origin[1 - axis]
 
         if axis == 0:  # Horizontal profile
             area = profileBounds, roiBounds
@@ -606,7 +624,7 @@ class ProfileToolBar(qt.QToolBar):
         """
 
         # Clean previous profile area, and previous curve
-        self.plotWindow.remove(self._POLYGON_LEGEND, kind='item')
+        self.plot.remove(self._POLYGON_LEGEND, kind='item')
         self.profileWindow.clear()
         self.profileWindow.setGraphTitle('')
         self.profileWindow.setGraphXLabel('X')
@@ -615,12 +633,13 @@ class ProfileToolBar(qt.QToolBar):
         if self._roiInfo is None:
             return
 
-        imageData = self.plotWindow.getActiveImage()
+        imageData = self.plot.getActiveImage()
         if imageData is None:
             return
 
         data, params = imageData[0], imageData[4]
         origin, scale = params['origin'], params['scale']
+        zActiveImage = params['z']
 
         roiWidth = max(1, self.lineWidthSpinBox.value())
         roiStart, roiEnd, lineProjectionMode = self._roiInfo
@@ -726,12 +745,12 @@ class ProfileToolBar(qt.QToolBar):
                                  startPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] + 0.5 * roiWidth * dCol,
                                  endPt[1] - 0.5 * roiWidth * dCol),
-                                dtype=numpy.float32) * scale[1] + origin[1],
+                                dtype=numpy.float32) * scale[0] + origin[0],
                     numpy.array((startPt[0] - 0.5 * roiWidth * dRow,
                                  startPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] + 0.5 * roiWidth * dRow,
                                  endPt[0] - 0.5 * roiWidth * dRow),
-                                dtype=numpy.float32) * scale[0] + origin[0])
+                                dtype=numpy.float32) * scale[1] + origin[1])
 
             y0, x0 = startPt
             y1, x1 = endPt
@@ -752,11 +771,11 @@ class ProfileToolBar(qt.QToolBar):
                                     xlabel=xLabel,
                                     color=self.overlayColor)
 
-        self.plotWindow.addItem(area[0], area[1],
-                                legend=self._POLYGON_LEGEND,
-                                color=self.overlayColor,
-                                shape='polygon', fill=True,
-                                replace=False)
+        self.plot.addItem(area[0], area[1],
+                          legend=self._POLYGON_LEGEND,
+                          color=self.overlayColor,
+                          shape='polygon', fill=True,
+                          replace=False, z=zActiveImage+1)
 
         if self._ownProfileWindow and not self.profileWindow.isVisible():
             # If profile window was created in this widget,

@@ -32,14 +32,14 @@ __date__ = "30/05/2016"
 import doctest
 import unittest
 
-from silx.gui.testutils import (QTest, TestCaseQt, getQToolButtonFromAction,
-                                qWaitForWindowExposed)
+from silx.gui.testutils import TestCaseQt, getQToolButtonFromAction
+# from silx.gui.testutils import qWaitForWindowExposed
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 
 
-##### Test of the docstrings #####
+# Test of the docstrings #
 
 # Makes sure a QApplication exists
 _qapp = qt.QApplication.instance() or qt.QApplication([])

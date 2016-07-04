@@ -42,6 +42,10 @@ This dictionary has the following keys:
                data, False to use [vmin, vmax]
 - 'vmin': float, min value, ignored if autoscale is True
 - 'vmax': float, max value, ignored if autoscale is True
+- 'colors': optional, custom colormap.
+            Nx3 or Nx4 numpy array of RGB(A) colors,
+            either uint8 or float in [0, 1].
+            If 'name' is None, then this array is used as the colormap.
 
 
 Plot Events
@@ -184,6 +188,9 @@ It provides the following keys:
               active. It is the same as 'legend' if 'updated' == True
 - 'updated': (bool) True if active item name did not changed,
              but active item data or style was updated.
+
+'interactiveModeChanged' event with a 'source' key identifying the object
+setting the interactive mode.
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
@@ -196,6 +203,8 @@ import logging
 
 import numpy
 
+# Import matplotlib backend here to init matplotlib our way
+from .BackendMatplotlib import BackendMatplotlibQt
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -261,8 +270,7 @@ class Plot(object):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
-                from .BackendMatplotlib import BackendMatplotlibQt as \
-                    backendClass
+                backendClass = BackendMatplotlibQt
             elif lowerCaseString == 'none':
                 from .BackendBase import BackendBase as backendClass
             else:
@@ -529,12 +537,12 @@ class Plot(object):
                     self._setDirtyPlot()
 
         # Filter-out values <= 0
-        x, y, color, xerror, yerror = self._logFilterData(
+        xFiltered, yFiltered, color, xerror, yerror = self._logFilterData(
             x, y, params['color'], params['xerror'], params['yerror'],
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
-        if len(x) and not self.isCurveHidden(legend):
-            handle = self._backend.addCurve(x, y, legend,
+        if len(xFiltered) and not self.isCurveHidden(legend):
+            handle = self._backend.addCurve(xFiltered, yFiltered, legend,
                                             color=color,
                                             symbol=params['symbol'],
                                             linestyle=params['linestyle'],
@@ -757,28 +765,30 @@ class Plot(object):
     def addItem(self, xdata, ydata, legend=None, info=None,
                 replace=False,
                 shape="polygon", color='black', fill=True,
-                overlay=False, **kw):
+                overlay=False, z=None, **kw):
         """Add an item (i.e. a shape) to the plot.
 
         Items are uniquely identified by their legend.
         To add multiple items, call :meth:`addItem` multiple times with
         different legend argument.
-        To replace/update an existing item, call :meth:`addImage` with the
+        To replace/update an existing item, call :meth:`addItem` with the
         existing item legend.
 
         :param numpy.ndarray xdata: The X coords of the points of the shape
         :param numpy.ndarray ydata: The Y coords of the points of the shape
         :param str legend: The legend to be associated to the item
-        :param info: User-defined information associated to the image
+        :param info: User-defined information associated to the item
         :param bool replace: True (default) to delete already existing images
         :param str shape: Type of item to be drawn in
-                          hline, polygon (the default), rectangle, vline
+                          hline, polygon (the default), rectangle, vline,
+                          polylines
         :param str color: Color of the item, e.g., 'blue', 'b', '#FF0000'
                           (Default: 'black')
         :param bool fill: True (the default) to fill the shape
         :param bool overlay: True if item is an overlay (Default: False).
                              This allows for rendering optimization if this
                              item is changed often.
+        :param int z: Layer on which to draw the item (default: 2)
         :returns: The key string identify this item
         """
         # expected to receive the same parameters as the signal
@@ -788,6 +798,8 @@ class Plot(object):
 
         legend = "Unnamed Item 1.1" if legend is None else str(legend)
 
+        z = int(z) if z is not None else 2
+
         if replace:
             self.remove(kind='item')
         else:
@@ -795,7 +807,7 @@ class Plot(object):
 
         handle = self._backend.addItem(xdata, ydata, legend=legend,
                                        shape=shape, color=color,
-                                       fill=fill, overlay=overlay)
+                                       fill=fill, overlay=overlay, z=z)
         self._setDirtyPlot(overlayOnly=overlay)
 
         self._items[legend] = {'handle': handle, 'overlay': overlay}
@@ -1986,8 +1998,7 @@ class Plot(object):
         """
         if colormap is None:
             colormap = {'name': 'gray', 'normalization': 'linear',
-                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0,
-                        'colors': 256}
+                        'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
 
     def getSupportedColormaps(self):
@@ -2262,7 +2273,7 @@ class Plot(object):
 
     # Coord conversion
 
-    def dataToPixel(self, x=None, y=None, axis="left"):
+    def dataToPixel(self, x=None, y=None, axis="left", check=True):
         """Convert a position in data coordinates to a position in pixels.
 
         :param float x: The X coordinate in data space. If None (default)
@@ -2271,8 +2282,11 @@ class Plot(object):
                         the middle position of the displayed data is used.
         :param str axis: The Y axis to use for the conversion
                          ('left' or 'right').
+        :param bool check: True to return None if outside displayed area,
+                           False to convert to pixels anyway
         :returns: The corresponding position in pixels or
-                  None if the data position is not in the displayed area.
+                  None if the data position is not in the displayed area and
+                  check is True.
         :rtype: A tuple of 2 floats: (xPixel, yPixel) or None.
         """
         assert axis in ("left", "right")
@@ -2281,15 +2295,16 @@ class Plot(object):
         ymin, ymax = self.getGraphYLimits(axis=axis)
 
         if x is None:
-            x = 0.5 * (xmax - xmin)
+            x = 0.5 * (xmax + xmin)
         if y is None:
-            y = 0.5 * (ymax - ymin)
+            y = 0.5 * (ymax + ymin)
 
-        if x > xmax or x < xmin:
-            return None
+        if check:
+            if x > xmax or x < xmin:
+                return None
 
-        if y > ymax or y < ymin:
-            return None
+            if y > ymax or y < ymin:
+                return None
 
         return self._backend.dataToPixel(x, y, axis=axis)
 
@@ -2530,7 +2545,7 @@ class Plot(object):
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
-                           zoomOnWheel=True):
+                           zoomOnWheel=True, source=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2540,13 +2555,21 @@ class Plot(object):
         :type color: Color description: The name as a str or
                      a tuple of 4 floats.
         :param str shape: Only for 'draw' mode. The kind of shape to draw.
-                          In 'polygon', 'rectangle', 'line', 'vline', 'hline'.
+                          In 'polygon', 'rectangle', 'line', 'vline', 'hline',
+                          'freeline'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode, sent in drawing events.
         :param bool zoomOnWheel: Toggle zoom on wheel support
+        :param source: A user-defined object (typically the caller object)
+                       that will be send in the interactiveModeChanged event,
+                       to identify which object required a mode change.
+                       Default: None
         """
         self._eventHandler.setInteractiveMode(mode, color, shape, label)
         self._eventHandler.zoomOnWheel = zoomOnWheel
+
+        self.notify(
+            'interactiveModeChanged', source=source)
 
     # Deprecated #
 

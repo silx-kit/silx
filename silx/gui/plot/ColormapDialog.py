@@ -122,8 +122,10 @@ class ColormapDialog(qt.QDialog):
         self._dataRange = None
         self._minMaxWasEdited = False
 
-        self._colormapList = ('gray', 'reversed gray', 'temperature',
-                              'red', 'green', 'blue')
+        self._colormapList = (
+            'gray', 'reversed gray',
+            'temperature', 'red', 'green', 'blue', 'jet',
+            'viridis', 'magma', 'inferno', 'plasma')
 
         # Make the GUI
         vLayout = qt.QVBoxLayout(self)
@@ -400,8 +402,7 @@ class ColormapDialog(qt.QDialog):
             'normalization': 'linear' if isNormLinear else 'log',
             'autoscale': self._rangeAutoscaleButton.isChecked(),
             'vmin': self._minValue.value(),
-            'vmax': self._maxValue.value(),
-            'colors': 256}
+            'vmax': self._maxValue.value()}
         return colormap
 
     def setColormap(self, name=None, normalization=None,

@@ -29,37 +29,20 @@ __license__ = "MIT"
 __date__ = "24/05/2016"
 
 
-import contextlib
 import logging
 import os.path
-import shutil
-import tempfile
 import unittest
 
 import numpy
 
 from silx.gui import qt
+from silx.testutils import temp_dir
 from silx.gui.testutils import TestCaseQt
 from silx.gui.plot import PlotWindow, CurvesROIWidget
 
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
-
-
-@contextlib.contextmanager
-def temp_dir():
-    """with context providing a temporary directory.
-
-    >>> import os.path
-    >>> with temp_dir() as tmp:
-    ...     print(os.path.isdir(tmp))  # Use tmp directory
-    """
-    tmp_dir = tempfile.mkdtemp()
-    try:
-        yield tmp_dir
-    finally:
-        shutil.rmtree(tmp_dir)
 
 
 class TestCurvesROIWidget(TestCaseQt):

@@ -135,7 +135,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         profileWindow = PlotWindow()
         self.plot = PlotWindow()
         self.toolBar = PlotTools.ProfileToolBar(
-            plotWindow=self.plot, profileWindow=profileWindow)
+            plot=self.plot, profileWindow=profileWindow)
         self.plot.addToolBar(self.toolBar)
 
         self.plot.show()

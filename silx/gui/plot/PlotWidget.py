@@ -118,6 +118,12 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     - legend: The legend of the new active image or None if no image is active
     """
 
+    sigInteractiveModeChanged = qt.Signal(object)
+    """Signal emitted when the interactive mode has changed
+
+    It provides the source as passed to :meth:`setInteractiveMode`.
+    """
+
     def __init__(self, parent=None, backend=None,
                  legends=False, callback=None, **kw):
 
@@ -175,6 +181,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         elif event == 'activeImageChanged':
             self.sigActiveImageChanged.emit(
                 kwargs['previous'], kwargs['legend'])
+        elif event == 'interactiveModeChanged':
+            self.sigInteractiveModeChanged.emit(kwargs['source'])
         Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys

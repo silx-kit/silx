@@ -34,21 +34,24 @@ of this modules to ensure access accross different distribution schemes:
 - Frozen fat binary application using silx (forzen with cx_Freeze or py2app).
   This needs special care for the resource files in the setup:
 
-  - With cx_Freeze, add silx/resources to include_files::
+  - With cx_Freeze, add silx/resources to include_files:
 
-    import silx.resources
-    silx_include_files = (os.path.dirname(silx.resources.__file__),
-                          os.path.join('silx', 'resources'))
-    setup(...
-          options={'build_exe': {'include_files': [silx_include_files]}}
-          )
+    .. code-block:: python
 
+       import silx.resources
+       silx_include_files = (os.path.dirname(silx.resources.__file__),
+                             os.path.join('silx', 'resources'))
+       setup(...
+             options={'build_exe': {'include_files': [silx_include_files]}}
+             )
 
-  - With py2app, add silx in the packages list of the py2app options::
+  - With py2app, add silx in the packages list of the py2app options:
 
-    setup(...
-          options={'py2app': {'packages': ['silx']}}
-          )
+    .. code-block:: python
+
+       setup(...
+             options={'py2app': {'packages': ['silx']}}
+             )
 """
 
 __authors__ = ["V.A. Sole", "Thomas Vincent"]

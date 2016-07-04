@@ -24,6 +24,8 @@
 # ###########################################################################*/
 """Basic tests for IPython console widget"""
 
+from __future__ import print_function
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "19/05/2016"
@@ -35,16 +37,17 @@ from silx.gui.testutils import TestCaseQt
 
 from silx.gui import qt
 try:
-    import silx.gui.console
+    from silx.gui.console import IPythonDockWidget
 except ImportError:
     console_missing = True
 else:
-    from silx.gui.console import IPythonWidget, IPythonDockWidget
     console_missing = False
 
 
 # dummy objects to test pushing variables to the interactive namespace
 _a = 1
+
+
 def _f():
     print("Hello World!")
 
@@ -56,8 +59,8 @@ class TestConsole(TestCaseQt):
     def setUp(self):
         super(TestConsole, self).setUp()
         self.console = IPythonDockWidget(
-                available_vars={"a": _a, "f": _f},
-                custom_banner="Welcome!\n")
+            available_vars={"a": _a, "f": _f},
+            custom_banner="Welcome!\n")
         self.console.show()
         self.qWaitForWindowExposed(self.console)
 
