@@ -61,16 +61,8 @@ else:
     qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
-# Makes sure a QApplication exists and do it once for all
-_qapp = qt.QApplication.instance() or qt.QApplication([])
-
-# Create a QWidget and delete it to make sure init of, e.g., QDesktopWidget
-_dummyWidget = qt.QWidget()
-_dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
-_dummyWidget.show()
-_dummyWidget.close()
-del _dummyWidget
-qt.QApplication.instance().processEvents()
+# Placeholder for QApplication
+_qapp = None
 
 
 class TestCaseQt(unittest.TestCase):
@@ -98,6 +90,21 @@ class TestCaseQt(unittest.TestCase):
     Intended purpose is for debugging, to add extra time to waits in order to
     allow to view the tested widgets.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        """Makes sure Qt is inited"""
+        global _qapp
+        if _qapp is None:
+            # Makes sure a QApplication exists and do it once for all
+            _qapp = qt.QApplication.instance() or qt.QApplication([])
+
+            # Create/delate a QWidget to make sure init of QDesktopWidget
+            _dummyWidget = qt.QWidget()
+            _dummyWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
+            _dummyWidget.show()
+            _dummyWidget.close()
+            _qapp.processEvents()
 
     def setUp(self):
         """Get the list of existing widgets."""
