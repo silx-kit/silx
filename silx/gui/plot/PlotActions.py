@@ -531,7 +531,12 @@ class SaveAction(_PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+        if hasattr(qt.QPixmap, "grabWidget"):
+            # Qt 4
+            pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+        else:
+            # Qt 5
+            pixmap = self.plot.centralWidget().grab()
         if not pixmap.save(filename):
             self._errorMessage()
             return False
