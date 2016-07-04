@@ -52,13 +52,13 @@ Computing the histogram with Histogramnd :
 >>> from silx.math import Histogramnd
 >>> n_bins = 35
 >>> ranges = [[40., 150.], [-130., 250.], [0., 505]]
->>> histo, w_histo, edges = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> histo, w_histo, edges = Histogramnd(sample, n_bins=n_bins, histo_range=ranges, weights=weights)
 
 Histogramnd can accumulate sets of data that don't have the same
 coordinates :
 
 >>> from silx.math import Histogramnd
->>> histo_obj = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> histo_obj = Histogramnd(sample, n_bins=n_bins, histo_range=ranges, weights=weights)
 >>> sample_2 = np.random.random(shape) * 200
 >>> weights_2 = np.random.random((shape[0],))
 >>> histo_obj.accumulate(sample_2, weights=weights_2)
@@ -138,7 +138,7 @@ class Histogramnd(object):
 
     def __init__(self,
                  sample,
-                 bins_rng,
+                 histo_range,
                  n_bins,
                  weights=None,
                  weight_min=None,
@@ -160,10 +160,10 @@ class Histogramnd(object):
                 copy.
         :type sample: :class:`numpy.array`
 
-        :param bins_rng:
-            A (N, 2) array containing the lower and upper
-            bin edges along each dimension.
-        :type bins_rng: array_like
+        :param histo_range:
+            A (N, 2) array containing the histogram range along each dimension,
+            where N is the sample's number of dimensions.
+        :type histo_range: array_like
 
         :param n_bins:
             The number of bins :
@@ -215,7 +215,7 @@ class Histogramnd(object):
         :type wh_dtype: *optional*, numpy data type
         """
 
-        self.__bins_rng = bins_rng
+        self.__histo_range = histo_range
         self.__n_bins = n_bins
         self.__last_bin_closed = last_bin_closed
         self.__wh_dtype = wh_dtype
@@ -224,7 +224,7 @@ class Histogramnd(object):
             self.__data = [None, None, None]
         else:
             self.__data = _chistogramnd(sample,
-                                        self.__bins_rng,
+                                        self.__histo_range,
                                         self.__n_bins,
                                         weights=weights,
                                         weight_min=weight_min,
@@ -241,7 +241,7 @@ class Histogramnd(object):
 
         .. code-block:: python
 
-            histo, w_histo, edges = Histogramnd(sample, bins_rng, n_bins, weights)
+            histo, w_histo, edges = Histogramnd(sample, histo_range, n_bins, weights)
 
         """
         return self.__data[key]
@@ -299,7 +299,7 @@ class Histogramnd(object):
         :type weight_max: *optional*, scalar
         """
         result = _chistogramnd(sample,
-                               self.__bins_rng,
+                               self.__histo_range,
                                self.__n_bins,
                                weights=weights,
                                weight_min=weight_min,
@@ -342,7 +342,7 @@ class HistogramndLut(object):
 
     def __init__(self,
                  sample,
-                 bins_rng,
+                 histo_range,
                  n_bins,
                  last_bin_closed=False,
                  dtype=None):
@@ -356,10 +356,10 @@ class HistogramndLut(object):
             :class:`numpy.float32`, :class:`numpy.int32`.
         :type sample: :class:`numpy.array`
 
-        :param bins_rng:
-            A (N, 2) array containing the lower and upper
-            bin edges along each dimension.
-        :type bins_rng: array_like
+        :param histo_range:
+            A (N, 2) array containing the histogram range along each dimension,
+            where N is the sample's number of dimensions.
+        :type histo_range: array_like
 
         :param n_bins:
             The number of bins :
@@ -381,12 +381,12 @@ class HistogramndLut(object):
         :type last_bin_closed: *optional*, :class:`python.boolean`
         """
         lut, histo, edges = _histo_get_lut(sample,
-                                           bins_rng,
+                                           histo_range,
                                            n_bins,
                                            last_bin_closed=last_bin_closed)
 
         self.__n_bins = np.array(histo.shape)
-        self.__bins_rng = bins_rng
+        self.__histo_range = histo_range
         self.__lut = lut
         self.__histo = None
         self.__weighted_histo = None
@@ -432,11 +432,11 @@ class HistogramndLut(object):
         return self.__weighted_histo
 
     @property
-    def bins_rng(self):
+    def histo_range(self):
         """
         Bins ranges.
         """
-        return self.__bins_rng.copy()
+        return self.__histo_range.copy()
 
     @property
     def n_bins(self):
@@ -474,7 +474,7 @@ class HistogramndLut(object):
             A numpy array of values associated with each sample. The number of
             elements in the array must be the same as the number of samples
             provided at instantiation time.
-        :type bins_rng: array_like
+        :type histo_range: array_like
 
         :param weight_min:
             Use this parameter to filter out all samples whose
@@ -526,7 +526,7 @@ class HistogramndLut(object):
             A numpy array of values associated with each sample. The number of
             elements in the array must be the same as the number of samples
             provided at instantiation time.
-        :type bins_rng: array_like
+        :type histo_range: array_like
 
         :param histo:
             Use this parameter if you want to pass your
