@@ -430,8 +430,20 @@ class Scan(object):
 
     @property
     def data(self):
-        """Scan data as a numpy.ndarray with the usual attributes
+        """Scan data as a 2D numpy.ndarray with the usual attributes
         (e.g. data.shape).
+        
+        The first index corresponds to the line number and the second
+        index to the columns. Each column corresponds to a detector or
+        a motor. 
+        To retrieve the n-th data column as a 1D array, you can transpose
+        the data before accessing the index:
+        
+            >>> data_col_n = myscan.data.T[n-1]
+            
+        Alternatively, you can use slicing:
+        
+            >>> data_col_n = myscan.data[:, n-1]
         """
         if self._data is None:
             self._data = self._specfile.data(self._index)
