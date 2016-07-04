@@ -424,6 +424,18 @@ class Scan(object):
     def labels(self):
         """
         List of data column headers from ``#L`` scan header
+
+        The first index corresponds to the line number and the second
+        index to the columns. Each column corresponds to a detector or
+        a motor. 
+        To retrieve the n-th data column as a 1D array, you can transpose
+        the data before accessing the index:
+        
+            >>> data_col_n = myscan.data.T[n-1]
+            
+        Alternatively, you can use slicing:
+        
+            >>> data_col_n = myscan.data[:, n-1]
         """
         return self._labels
 
