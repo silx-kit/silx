@@ -8,4 +8,4 @@
    :maxdepth: 1
    
    fit/leastsq.rst
-   histogramnd.rst
+   histogram.rst

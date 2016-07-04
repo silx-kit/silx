@@ -203,6 +203,8 @@ import logging
 
 import numpy
 
+# Import matplotlib backend here to init matplotlib our way
+from .BackendMatplotlib import BackendMatplotlibQt
 from . import Colors
 from . import PlotInteraction
 from . import PlotEvents
@@ -268,8 +270,7 @@ class Plot(object):
         elif hasattr(backend, "lower"):
             lowerCaseString = backend.lower()
             if lowerCaseString in ("matplotlib", "mpl"):
-                from .BackendMatplotlib import BackendMatplotlibQt as \
-                    backendClass
+                backendClass = BackendMatplotlibQt
             elif lowerCaseString == 'none':
                 from .BackendBase import BackendBase as backendClass
             else:

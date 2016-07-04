@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: silx
-Source: https://github.com/silx-project
+Source: https://github.com/silx-kit/silx
 
 Files: *
 Copyright: 2015-2016 European Synchrotron Radiation Facility
@@ -17,7 +17,7 @@ License: BSD-3
 
 Files: silx/gui/plot/MPLColormap.py
 Copyright: Nathaniel J. Smith, Stefan van der Walt, Eric Firing
-License CC0
+License: CC0
 
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
