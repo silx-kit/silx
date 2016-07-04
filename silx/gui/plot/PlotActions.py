@@ -533,10 +533,10 @@ class SaveAction(_PlotAction):
         """
         if hasattr(qt.QPixmap, "grabWidget"):
             # Qt 4
-            pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+            pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
         else:
             # Qt 5
-            pixmap = self.plot.centralWidget().grab()
+            pixmap = self.plot.getWidgetHandle().grab()
         if not pixmap.save(filename):
             self._errorMessage()
             return False
