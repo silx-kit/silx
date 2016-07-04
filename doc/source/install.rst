@@ -230,11 +230,12 @@ Building from source
 ++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
-Alternatively, you can get the latest source code from the repository: https://github.com/silx-kit/silx
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
     tar xzvf silx-x.y.z.tar.gz
+    
+Alternatively, you can get the latest source code from the master branch of the `git repository <https://github.com/silx-kit/silx>`_:  https://github.com/silx-kit/silx/archive/master.zip
 
 You can now build and install *silx* from its sources::
 
