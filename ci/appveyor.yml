@@ -1,11 +1,25 @@
+version: 0.2.0.{build}
+
+# fetch repository as zip archive
+shallow_clone: true
+
+build:
+  verbosity: minimal
+
+notifications:
+- provider: Email
+  to:
+  - silx-ci@edna-site.org
+  subject: '[CI] appveyor'
+  on_build_success: false
+  on_build_failure: false
+  on_build_status_changed: true
+
 os:
     - Visual Studio 2015 - GCE
 
 cache:
     - '%LOCALAPPDATA%\pip\Cache'
-
-# fetch repository as zip archive
-shallow_clone: true
 
 environment:
     global:
@@ -92,3 +106,4 @@ test_script:
 artifacts:
     # Archive the generated wheel package in the ci.appveyor.com build report.
     - path: dist\*
+
