@@ -126,7 +126,7 @@ class ResetZoomAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
             plot,  icon='zoom-original', text='Reset Zoom',
-            tooltip='Auto-Scale the Graph',
+            tooltip='Auto-scale the graph',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
 
@@ -182,7 +182,7 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip='Enable X Axis Autoscale when checked',
+            tooltip='Enable x-axis auto-scale when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -202,7 +202,7 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip='Enable Y Axis Autoscale when checked',
+            tooltip='Enable y-axis auto-scale when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -222,7 +222,7 @@ class XAxisLogarithmicAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisLogarithmicAction, self).__init__(
             plot, icon='plot-xlog', text='X Log. scale',
-            tooltip='Logarithmic X Axis when checked',
+            tooltip='Logarithmic x-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisLogarithmic())
@@ -242,7 +242,7 @@ class YAxisLogarithmicAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisLogarithmicAction, self).__init__(
             plot, icon='plot-ylog', text='Y Log. scale',
-            tooltip='Logarithmic Y Axis when checked',
+            tooltip='Logarithmic y-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isYAxisLogarithmic())
@@ -267,7 +267,7 @@ class GridAction(_PlotAction):
 
         super(GridAction, self).__init__(
             plot, icon='plot-grid', text='Grid',
-            tooltip='Toggle grid (On/Off)',
+            tooltip='Toggle grid (on/off)',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.getGraphGrid() is not None)
@@ -509,7 +509,7 @@ class SaveAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
             plot, icon='document-save', text='Save as...',
-            tooltip='Save Curve/Image/Plot Snapshot Dialog',
+            tooltip='Save curve/image/plot snapshot dialog',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Save)
@@ -748,7 +748,7 @@ class PrintAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
             plot, icon='document-print', text='Print...',
-            tooltip='Open Print Dialog',
+            tooltip='Open print dialog',
             triggered=self.printPlot,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Print)
