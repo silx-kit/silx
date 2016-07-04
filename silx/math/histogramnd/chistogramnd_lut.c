@@ -2345,7 +2345,7 @@ static PyObject *__pyx_codeobj__48;
 
 /* Python wrapper */
 static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_16chistogramnd_lut_histogramnd_get_lut[] = "\n    histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)\n\n    TBD\n\n    :param sample:\n        The data to be histogrammed.\n        Its shape must be either (N,) if it contains one dimensional\n        coordinates, or an (N, D) array where the rows are the\n        coordinates of points in a D dimensional space.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n    :type sample: :class:`numpy.array`\n\n    :param histo_range:\n        A (N, 2) array containing the lower and upper\n        bin edges along each dimension.\n    :type histo_range: array_like\n\n    :param n_bins:\n        The number of bins :\n            * a scalar (same number of bins for all dimensions)\n            * a D elements array (number of bins for each dimensions)\n    :type n_bins: scalar or array_like\n\n    :param last_bin_closed:\n        By default the last bin is half\n        open (i.e.: [x,y) ; x included, y\n        excluded), like all the other bins.\n        Set this parameter to true if you want\n        the LAST bin to be closed.\n    :type last_bin_closed: *optional*, :class:`python.boolean`\n\n    :return: The indices for each sample and the histogram (bin counts).\n    :rtype: tuple : (:class:`numpy.array`, :class:`numpy.array`)\n    ";
+static char __pyx_doc_16chistogramnd_lut_histogramnd_get_lut[] = "\n    histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)\n\n    TBD\n\n    :param sample:\n        The data to be histogrammed.\n        Its shape must be either (N,) if it contains one dimensional\n        coordinates, or an (N, D) array where the rows are the\n        coordinates of points in a D dimensional space.\n        The following dtypes are supported : :class:`numpy.float64`,\n        :class:`numpy.float32`, :class:`numpy.int32`.\n    :type sample: :class:`numpy.array`\n\n    :param histo_range:\n        A (N, 2) array containing the histogram range along each dimension,\n        where N is the sample's number of dimensions.\n    :type histo_range: array_like\n\n    :param n_bins:\n        The number of bins :\n            * a scalar (same number of bins for all dimensions)\n            * a D elements array (number of bins for each dimensions)\n    :type n_bins: scalar or array_like\n\n    :param last_bin_closed:\n        By default the last bin is half\n        open (i.e.: [x,y) ; x included, y\n        excluded), like all the other bins.\n        Set this parameter to true if you want\n        the LAST bin to be closed.\n    :type last_bin_closed: *optional*, :class:`python.boolean`\n\n    :return: The indices for each sample and the histogram (bin counts).\n    :rtype: tuple : (:class:`numpy.array`, :class:`numpy.array`)\n    ";
 static PyMethodDef __pyx_mdef_16chistogramnd_lut_1histogramnd_get_lut = {"histogramnd_get_lut", (PyCFunction)__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16chistogramnd_lut_histogramnd_get_lut};
 static PyObject *__pyx_pw_16chistogramnd_lut_1histogramnd_get_lut(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_sample = 0;
@@ -5893,8 +5893,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
   int __pyx_v____pyx_int16_t_is_signed;
-  int __pyx_v____pyx_int32_t_is_signed;
   int __pyx_v____pyx_int64_t_is_signed;
+  int __pyx_v____pyx_int32_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -6005,8 +6005,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_4_histogramnd_from_lut_fused(CYTHON
   }
   __pyx_v_itemsize = -1;
   __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
-  __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
   __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
+  __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 326; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -21803,8 +21803,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
   int __pyx_v____pyx_int32_t_is_signed;
-  int __pyx_v____pyx_int64_t_is_signed;
   int __pyx_v____pyx_int16_t_is_signed;
+  int __pyx_v____pyx_int64_t_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -21912,8 +21912,8 @@ static PyObject *__pyx_pf_16chistogramnd_lut_6_histogramnd_get_lut_fused(CYTHON_
   }
   __pyx_v_itemsize = -1;
   __pyx_v____pyx_int32_t_is_signed = (((__pyx_t_5numpy_int32_t)-1) < 0);
-  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   __pyx_v____pyx_int16_t_is_signed = (((__pyx_t_5numpy_int16_t)-1) < 0);
+  __pyx_v____pyx_int64_t_is_signed = (((__pyx_t_5numpy_int64_t)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
