@@ -1,5 +1,8 @@
-version: 1.0.{build}
+version: 0.2.0.{build}
+
+# fetch repository as zip archive
 shallow_clone: true
+
 build:
   verbosity: minimal
 
@@ -11,15 +14,12 @@ notifications:
   on_build_success: false
   on_build_failure: false
   on_build_status_changed: true
-  
+
 os:
     - Visual Studio 2015 - GCE
 
 cache:
     - '%LOCALAPPDATA%\pip\Cache'
-
-# fetch repository as zip archive
-shallow_clone: true
 
 environment:
     global:
