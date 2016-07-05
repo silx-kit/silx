@@ -654,14 +654,6 @@ cdef class SpecFile(object):
         """
         return SfScanNo(self.handle)
 
-    def scanno(self):
-        """Return the number of scans in the SpecFile
-
-        This is an alias for :meth:`__len__`, for compatibility with the old
-        specfile wrapper API.
-        """
-        return len(self)
-
     def __iter__(self):
         """Return the next :class:`Scan` in a SpecFile each time this method
         is called.
@@ -714,16 +706,6 @@ cdef class SpecFile(object):
             raise IndexError(msg)
 
         return Scan(self, scan_index)
-
-    def select(self, key):
-        """Alias for :meth:`__getitem__`, for compatibility with the old
-        specfile wrapper API.
-
-        In the original API, :meth:`__getitem__` handled keys as
-        0-based scan indices, and :meth:`select` handled ``"n.m"`` keys
-        (scan number, scan order). In this implementation, both methods can
-        handle both key types."""
-        return self.__getitem__[key]
 
     def keys(self):
         """Returns list of scan keys (eg ``['1.1', '2.1',...]``).
@@ -1150,14 +1132,6 @@ cdef class SpecFile(object):
         freeArrNZ(<void***>&all_motors, nmotors)
         return motors_list
 
-    def allmotors(self, scan_index=0):
-        """motor_names(scan_index=0)
-
-        This is an alias for :meth:`motor_names`, for compatibility with
-        the old specfile wrapper API.
-        """
-        return self.motor_names(scan_index)
-         
     def motor_positions(self, scan_index):
         """motor_positions(scan_index)
 
