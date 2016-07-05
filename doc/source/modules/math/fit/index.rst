@@ -1,6 +1,6 @@
 
 .. currentmodule:: silx.math
-.. py:module:: fit
+.. py:module:: silx.math.fit
 
 :mod:`silx.math.fit`: Fitting tools
 ===================================
