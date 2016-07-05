@@ -243,6 +243,18 @@ You can now build and install *silx* from its sources::
     pip uninstall -y silx
     pip install . [--user]
 
+Known issues
+............
+
+There are specific issues related to MacOSX. If thou get this error::
+
+  UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 1335: ordinal not in range(128)
+
+This is related to the two environment variable LC_ALL and LANG not defined (or wrongly defined to UTF-8).
+To set the environment variable, type on the command line::
+
+  export LC_ALL=en_US.UTF-8
+  export LANG=en_US.UTF-8
 
 Advanced build options
 ++++++++++++++++++++++
