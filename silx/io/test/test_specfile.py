@@ -245,14 +245,15 @@ class TestSpecFile(unittest.TestCase):
     def test_data(self):
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
-        self.assertEqual(self.scan1.data.shape, (4, 3))
+        self.assertEqual(self.scan1.data.shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
     def test_data_column_by_name(self):
         self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1],
                                1.2)
+        # Scan.data is transposed after readinq, so column is the first index
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
-                               numpy.sum(self.scan25.data[:, 2]))
+                               numpy.sum(self.scan25.data[2, :]))
         with self.assertRaises(KeyError):
             self.scan25.data_column_by_name("ygfxgfyxg")
 

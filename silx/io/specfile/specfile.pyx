@@ -445,9 +445,9 @@ class Scan(object):
         (e.g. data.shape).
         """
         if self._data is None:
-            self._data = self._specfile.data(self._index)
+            self._data = numpy.transpose(self._specfile.data(self._index))
 
-        return numpy.transpose(self._data)
+        return self._data
 
     @property
     def mca(self):
@@ -490,7 +490,7 @@ class Scan(object):
         :return: True or False
         :rtype: boolean
         """
-        for line in self.header:
+        for line in self._header:
             if line.startswith("#" + record):
                 return True
         return False
