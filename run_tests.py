@@ -245,13 +245,11 @@ parser.add_argument("test_name", nargs='*',
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
-# test_verbosity could be set to 0 by default
-# (print only total number of tests and the global result)
+
 test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
-    test_verbosity = 1
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
