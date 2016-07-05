@@ -107,6 +107,8 @@ class PlotWindow(PlotWidget):
                  copy=True, save=True, print_=True,
                  control=False, position=False, roi=True, mask=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
+        if parent is None:
+            self.setWindowTitle('PlotWindow')
 
         self._dockWidgets = []
 
@@ -364,6 +366,8 @@ class Plot1D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
                                      roi=True, mask=False)
+        if parent is None:
+            self.setWindowTitle('Plot1D')
         self.setGraphXLabel('X')
         self.setGraphYLabel('Y')
 
@@ -389,6 +393,8 @@ class Plot2D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=False, position=posInfo,
                                      roi=False, mask=True)
+        if parent is None:
+            self.setWindowTitle('Plot2D')
         self.setGraphXLabel('Columns')
         self.setGraphYLabel('Rows')
 
