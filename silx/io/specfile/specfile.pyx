@@ -447,7 +447,7 @@ class Scan(object):
         if self._data is None:
             self._data = self._specfile.data(self._index)
 
-        return self._data      # FIXME: transpose
+        return numpy.transpose(self._data)
 
     @property
     def mca(self):
@@ -499,6 +499,13 @@ class Scan(object):
         """data_line(line_index)
 
         Returns data for a given line of this scan.
+
+        .. note::
+
+            A data line returned by this method, corresponds to a data line
+            in the original specfile (a series of data points, one per
+            detector). In the :attr:`data` array, this line index corresponds
+            to the index in the second dimension (~ column) of the array.
         
         :param line_index: Index of data line to retrieve (starting with 0)
         :type line_index: int
@@ -506,8 +513,9 @@ class Scan(object):
         :return: Line data as a 1D array of doubles
         :rtype: numpy.ndarray 
         """
-        #return self._specfile.data_line(self._index, line_index)
-        return self.data[line_index, :]
+        # attribute data corresponds to a transposed version of the original
+        # specfile data (where detectors correspond to columns)
+        return self.data[:, line_index]
 
     def data_column_by_name(self, label):
         """data_column_by_name(label)
@@ -537,68 +545,6 @@ class Scan(object):
         """
         return self._specfile.motor_position_by_name(self._index, name)
 
-    # from here on, all methods are implemented for backwards compatibility
-    # with the old API
-    def allmotorpos(self):
-        """Return a list of all motor positions (identical to
-        attr:`motor_positions`).
-
-        This method serves to maintain compatibility with the old specfile
-        wrapper API.
-        """
-        return self.motor_positions
-
-    def alllabels(self):
-        """
-        Return a list of all labels (:attr:`labels`).
-
-        This method serves to maintain compatibility with the old specfile
-        wrapper API.
-        """
-        return self.labels
-
-    def cols(self):
-        """Return the number of data columns (number of detectors)"""
-        return self.data.shape[1]
-
-    def lines(self):
-        """Return the number of data lines (number of data points per
-        detector)"""
-        return self.data.shape[0]
-
-    def command(self):
-        """Return the command called for this scan (``#S`` header line)"""
-        return self._specfile.command(self._index)
-
-    def datacol(self, col):
-        """Return a data column"""
-        return self.data[:, col]     # FIXME: transpose?
-
-    def dataline(self, line):
-        """Return a data column"""
-        return self.data[line, :]     # FIXME: transpose?
-
-    def date(self):
-        """Return the date from the scan header line ``#D``"""
-        return self._specfile.command(self._index)
-
-    def fileheader(self):
-        """Return a list of file header lines"""
-        return self.file_header
-
-    # def header(self,key):
-    #     """Return a list of scan header lines"""
-    #     return self.scan_header
-
-    def nbmca(self):
-        """Return number of MCAs in this scan"""
-        return len(self.mca)
-
-    # FIXME:
-        # - mca is a method in the old implementation, not an attribute
-        # - the old API uses 1-based numbering rather than 0-based for mca(), datacol() and dataline()
-        # - data transposition?
-        # - header is an attribute containing all headers in the new implementation
 
 def _string_to_char_star(string_):
     """_string_to_char_star(string_)
