@@ -258,7 +258,7 @@ class Plot(object):
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None):
-        self._autoreplot = True
+        self._autoreplot = False
         self._dirty = False
 
         if backend is None:
@@ -327,6 +327,11 @@ class Plot(object):
         self._pressedButtons = []  # Currently pressed mouse buttons
 
         self._defaultDataMargins = (0., 0., 0., 0.)
+
+        # Only activate autoreplot at the end
+        # This avoids errors when loaded in Qt designer
+        self._dirty = False
+        self._autoreplot = True
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.

@@ -66,9 +66,6 @@ class IPythonWidgetPlugin(QtDesigner.QPyDesignerCustomWidgetPlugin):
     def group(self):
         return "silx"
 
-    def icon(self):
-        return icons.getQIcon('silx')
-
     def toolTip(self):
         return ""
 
