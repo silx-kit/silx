@@ -320,7 +320,12 @@ else:
         unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
 
-if runner.run(test_suite).wasSuccessful():
+result = runner.run(test_suite)
+for test, reason in result.skipped:
+    logger.warning('Skipped %s (%s): %s',
+                   test.id(), test.shortDescription() or '', reason)
+
+if result.wasSuccessful():
     logger.info("Test suite succeeded")
     exit_status = 0
 else:
