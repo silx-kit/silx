@@ -381,13 +381,13 @@ class Scan(object):
         This includes the file header, the scan header and possibly a MCA
         header.
         """
-        return self._header\
+        return self._header
 
     @property
     def scan_header(self):
         """List of raw scan header lines (as a list of strings).
         """
-        return self._scan_header_lines\
+        return self._scan_header_lines
 
     @property
     def file_header(self):
@@ -439,7 +439,6 @@ class Scan(object):
         """
         return self._labels
 
-
     @property
     def data(self):
         """Scan data as a numpy.ndarray with the usual attributes
@@ -448,7 +447,7 @@ class Scan(object):
         if self._data is None:
             self._data = self._specfile.data(self._index)
 
-        return self._data
+        return self._data      # FIXME: transpose
 
     @property
     def mca(self):
@@ -478,7 +477,7 @@ class Scan(object):
     def record_exists_in_hdr(self, record):
         """record_exists_in_hdr(record)
 
-        Check whether a scan header line  exists.
+        Check whether a scan header line exists.
         
         This should be used before attempting to retrieve header information 
         using a C function that may crash with a *segmentation fault* if the
@@ -538,6 +537,68 @@ class Scan(object):
         """
         return self._specfile.motor_position_by_name(self._index, name)
 
+    # from here on, all methods are implemented for backwards compatibility
+    # with the old API
+    def allmotorpos(self):
+        """Return a list of all motor positions (identical to
+        attr:`motor_positions`).
+
+        This method serves to maintain compatibility with the old specfile
+        wrapper API.
+        """
+        return self.motor_positions
+
+    def alllabels(self):
+        """
+        Return a list of all labels (:attr:`labels`).
+
+        This method serves to maintain compatibility with the old specfile
+        wrapper API.
+        """
+        return self.labels
+
+    def cols(self):
+        """Return the number of data columns (number of detectors)"""
+        return self.data.shape[1]
+
+    def lines(self):
+        """Return the number of data lines (number of data points per
+        detector)"""
+        return self.data.shape[0]
+
+    def command(self):
+        """Return the command called for this scan (``#S`` header line)"""
+        return self._specfile.command(self._index)
+
+    def datacol(self, col):
+        """Return a data column"""
+        return self.data[:, col]     # FIXME: transpose?
+
+    def dataline(self, line):
+        """Return a data column"""
+        return self.data[line, :]     # FIXME: transpose?
+
+    def date(self):
+        """Return the date from the scan header line ``#D``"""
+        return self._specfile.command(self._index)
+
+    def fileheader(self):
+        """Return a list of file header lines"""
+        return self.file_header
+
+    # def header(self,key):
+    #     """Return a list of scan header lines"""
+    #     return self.scan_header
+
+    def nbmca(self):
+        """Return number of MCAs in this scan"""
+        return len(self.mca)
+
+    # FIXME:
+        # - mca is a method in the old implementation, not an attribute
+        # - the old API uses 1-based numbering rather than 0-based for mca(), datacol() and dataline()
+        # - data transposition?
+        # - header is an attribute containing all headers in the new implementation
 
 def _string_to_char_star(string_):
     """_string_to_char_star(string_)
@@ -593,6 +654,14 @@ cdef class SpecFile(object):
         """
         return SfScanNo(self.handle)
 
+    def scanno(self):
+        """Return the number of scans in the SpecFile
+
+        This is an alias for :meth:`__len__`, for compatibility with the old
+        specfile wrapper API.
+        """
+        return len(self)
+
     def __iter__(self):
         """Return the next :class:`Scan` in a SpecFile each time this method
         is called.
@@ -645,6 +714,16 @@ cdef class SpecFile(object):
             raise IndexError(msg)
 
         return Scan(self, scan_index)
+
+    def select(self, key):
+        """Alias for :meth:`__getitem__`, for compatibility with the old
+        specfile wrapper API.
+
+        In the original API, :meth:`__getitem__` handled keys as
+        0-based scan indices, and :meth:`select` handled ``"n.m"`` keys
+        (scan number, scan order). In this implementation, both methods can
+        handle both key types."""
+        return self.__getitem__[key]
 
     def keys(self):
         """Returns list of scan keys (eg ``['1.1', '2.1',...]``).
@@ -1038,13 +1117,17 @@ cdef class SpecFile(object):
         freeArrNZ(<void***>&all_labels, nlabels)
         return labels_list
      
-    def motor_names(self, scan_index):
-        """motor_names(scan_index)
+    def motor_names(self, scan_index=0):
+        """motor_names(scan_index=0)
 
         Return all motor names from ``#O`` lines
           
         :param scan_index: Unique scan index between ``0`` and
-            ``len(self)-1``.
+            ``len(self)-1``.If not specified, defaults to 0 (meaning the
+            function returns motors names associated with the first scan).
+            This parameter makes a difference only if there are more than
+            on file header in the file, in which case the file header applies
+            to all following scans until a new file header appears.
         :type scan_index: int
 
         :return: All motor names
@@ -1066,6 +1149,14 @@ cdef class SpecFile(object):
         
         freeArrNZ(<void***>&all_motors, nmotors)
         return motors_list
+
+    def allmotors(self, scan_index=0):
+        """motor_names(scan_index=0)
+
+        This is an alias for :meth:`motor_names`, for compatibility with
+        the old specfile wrapper API.
+        """
+        return self.motor_names(scan_index)
          
     def motor_positions(self, scan_index):
         """motor_positions(scan_index)
