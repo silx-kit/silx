@@ -67,7 +67,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=err_weights)[0:2]
             except ValueError as ex:
@@ -78,27 +78,27 @@ class _Test_chistogramnd_errors(unittest.TestCase):
                              '<weights> must be an array whose length '
                              'is equal to the number of samples.')
 
-    def test_bins_rng_shape(self):
+    def test_histo_range_shape(self):
         """
         """
         n_dims = 1 if len(self.s_shape) == 1 else self.s_shape[1]
-        expected_txt_tpl = ('<bins_rng> error : expected {n_dims} sets '
+        expected_txt_tpl = ('<histo_range> error : expected {n_dims} sets '
                             'of lower and upper bin edges, '
-                            'got the following instead : {bins_rng}. '
+                            'got the following instead : {histo_range}. '
                             '(provided <sample> contains '
                             '{n_dims}D values)')
 
-        for err_bins_rng in self.err_bins_rng_shapes:
-            test_msg = ('Testing invalid bins_rng shape : {0}'
-                        ''.format(err_bins_rng))
+        for err_histo_range in self.err_histo_range_shapes:
+            test_msg = ('Testing invalid histo_range shape : {0}'
+                        ''.format(err_histo_range))
 
-            expected_txt = expected_txt_tpl.format(bins_rng=err_bins_rng,
+            expected_txt = expected_txt_tpl.format(histo_range=err_histo_range,
                                                    n_dims=n_dims)
 
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           err_bins_rng,
+                                           err_histo_range,
                                            self.n_bins,
                                            weights=self.weights)[0:2]
             except ValueError as ex:
@@ -123,7 +123,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            err_n_bins,
                                            weights=self.weights)[0:2]
             except ValueError as ex:
@@ -144,7 +144,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            err_n_bins,
                                            weights=self.weights)[0:2]
             except ValueError as ex:
@@ -177,7 +177,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=self.weights,
                                            histo=histo)[0:2]
@@ -204,7 +204,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=self.weights,
                                            histo=histo)[0:2]
@@ -239,7 +239,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=self.weights,
                                            weighted_histo=cumul)[0:2]
@@ -267,7 +267,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=self.weights,
                                            weighted_histo=cumul)[0:2]
@@ -291,7 +291,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histo, cumul = histogramnd(self.sample,
-                                           self.bins_rng,
+                                           self.histo_range,
                                            self.n_bins,
                                            weights=self.weights,
                                            wh_dtype=err_h_dtype)[0:2]
@@ -319,7 +319,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             ex_str = None
             try:
                 histogramnd(sample,
-                            self.bins_rng,
+                            self.histo_range,
                             self.n_bins,
                             weights=weights)
             except TypeError as ex:
@@ -342,7 +342,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         ex_str = None
         try:
             histogramnd(self.sample,
-                        self.bins_rng,
+                        self.histo_range,
                         self.n_bins,
                         weights=self.weights,
                         histo=histo)
@@ -366,7 +366,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
         ex_str = None
         try:
             histogramnd(self.sample,
-                        self.bins_rng,
+                        self.histo_range,
                         self.n_bins,
                         weights=self.weights,
                         weighted_histo=cumul)
@@ -388,7 +388,7 @@ class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
         self.s_shape = (self.n_elements,)
         self.w_shape = (self.n_elements,)
 
-        self.bins_rng = [0., 100.]
+        self.histo_range = [0., 100.]
         self.n_bins = 10
 
         self.h_shape = (self.n_bins,)
@@ -406,7 +406,7 @@ class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
         self.err_weights_shapes = ((self.n_elements+1,),
                                    (self.n_elements-1,),
                                    (self.n_elements-1, 3))
-        self.err_bins_rng_shapes = ([0.],
+        self.err_histo_range_shapes = ([0.],
                                     [0., 1., 2.],
                                     [[0.], [1.]])
         self.err_n_bins_shapes = ([10, 2],
@@ -438,7 +438,7 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
         self.s_shape = (self.n_elements, 3)
         self.w_shape = (self.n_elements,)
 
-        self.bins_rng = [[0., 100.], [0., 100.], [0., 100.]]
+        self.histo_range = [[0., 100.], [0., 100.], [0., 100.]]
         self.n_bins = (10, 20, 30)
 
         self.h_shape = self.n_bins
@@ -456,7 +456,7 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
         self.err_weights_shapes = ((self.n_elements+1,),
                                    (self.n_elements-1,),
                                    (self.n_elements-1, 3))
-        self.err_bins_rng_shapes = ([0.],
+        self.err_histo_range_shapes = ([0.],
                                     [0., 1.],
                                     [[0., 10.], [0., 10.]],
                                     [0., 10., 0, 10., 0, 10.])

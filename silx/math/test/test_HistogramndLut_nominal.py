@@ -32,12 +32,12 @@ import numpy as np
 from silx.math import HistogramndLut
 
 
-def _get_bin_edges(bins_rng, n_bins, n_dims):
+def _get_bin_edges(histo_range, n_bins, n_dims):
     edges = []
     for i_dim in range(n_dims):
-        edges.append(bins_rng[i_dim, 0] +
+        edges.append(histo_range[i_dim, 0] +
                      np.arange(n_bins[i_dim] + 1) *
-                     (bins_rng[i_dim, 1] - bins_rng[i_dim, 0]) /
+                     (histo_range[i_dim, 1] - histo_range[i_dim, 0]) /
                      n_bins[i_dim])
     return tuple(edges)
 
@@ -95,8 +95,8 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         # bin [2, y] because of the bin ranges [-2, 2] and n_bins = 4
         # for the first dimension)
         self.other_axes_index = 2
-        self.bins_rng = np.repeat([[-2., 2.]], ndims, axis=0)
-        self.bins_rng[ndims-1] = [-4., 6.]
+        self.histo_range = np.repeat([[-2., 2.]], ndims, axis=0)
+        self.histo_range[ndims-1] = [-4., 6.]
 
         self.n_bins = np.array([4]*ndims)
         self.n_bins[ndims-1] = 5
@@ -121,12 +121,12 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
     def test_nominal_bin_edges(self):
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         bin_edges = instance.bins_edges
 
-        expected_edges = _get_bin_edges(self.bins_rng,
+        expected_edges = _get_bin_edges(self.histo_range,
                                         self.n_bins,
                                         self.ndims)
 
@@ -136,20 +136,20 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
                             msg='Testing bin_edges for dim {0}'
                                 ''.format(i_edges+1))
 
-    def test_nominal_bins_rng(self):
+    def test_nominal_histo_range(self):
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
-        bins_rng = instance.bins_rng
+        histo_range = instance.histo_range
 
-        self.assertTrue(np.array_equal(bins_rng, self.bins_rng))
+        self.assertTrue(np.array_equal(histo_range, self.histo_range))
 
     def test_nominal_last_bin_closed(self):
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         last_bin_closed = instance.last_bin_closed
@@ -157,7 +157,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertEqual(last_bin_closed, False)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins,
                                   last_bin_closed=True)
 
@@ -166,7 +166,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.assertEqual(last_bin_closed, True)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins,
                                   last_bin_closed=False)
 
@@ -178,7 +178,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
 
         test_n_bins = np.arange(self.ndims) + 10
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   test_n_bins)
 
         n_bins = instance.n_bins
@@ -190,7 +190,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         test_n_bins = 10
         expected_n_bins = np.array([test_n_bins] * self.ndims)
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   test_n_bins)
 
         n_bins = instance.n_bins
@@ -210,7 +210,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights)
@@ -254,7 +254,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights)
@@ -287,7 +287,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         expected_c *= 2
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights)
@@ -318,7 +318,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         histo, w_histo = instance.apply_lut(self.weights)
@@ -347,7 +347,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         expected_c *= 2
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         histo, w_histo = instance.apply_lut(self.weights)
@@ -377,7 +377,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins,
                                   last_bin_closed=True)
 
@@ -407,7 +407,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights,
@@ -436,7 +436,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins,
                                   dtype=np.int32)
 
@@ -464,7 +464,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins,
                                   dtype=np.float32)
 
@@ -492,7 +492,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights.astype(np.int32))
@@ -519,7 +519,7 @@ class _TestHistogramndLut_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         instance = HistogramndLut(self.sample,
-                                  self.bins_rng,
+                                  self.histo_range,
                                   self.n_bins)
 
         instance.accumulate(self.weights.astype(np.int32))
