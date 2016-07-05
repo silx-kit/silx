@@ -62,7 +62,12 @@ if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
     if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
         qapp = qt.QApplication.instance() or qt.QApplication([])
 
-    from silx.gui import plot  # noqa
+        # Change windows default icon
+        from silx.gui import icons as _icons
+        qapp.setWindowIcon(_icons.getQIcon('silx'))
+        del _icons  # clean-up namespace
+
+    from silx.gui import plot
     from silx.gui.plot import ImageView, plot1D, plot2D  # noqa
 
 
@@ -78,5 +83,6 @@ del _IS_NOTEBOOK
 
 
 # Load some silx stuff in namespace
+from silx import *  # noqa
 from silx.io.utils import save1D  # noqa
 from silx.math import Histogramnd, HistogramndLut, leastsq  # noqa
