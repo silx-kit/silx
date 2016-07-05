@@ -176,7 +176,7 @@ class myscandata(Scan):
         """Return the date from the scan header line ``#D``"""
         return self._specfile.command(self._index)
 
-    def fileheader(self, key=''):
+    def fileheader(self, key=''):  # noqa
         """Return a list of file header lines"""
         # key is there for compatibility
         return self.file_header
