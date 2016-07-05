@@ -37,7 +37,7 @@ import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
-from .PlotTools import PositionInfo
+from .PlotTools import PositionInfo, ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
@@ -364,6 +364,8 @@ class Plot1D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
                                      roi=True, mask=False)
+        self.setGraphXLabel('X')
+        self.setGraphYLabel('Y')
 
 
 class Plot2D(PlotWindow):
@@ -381,6 +383,16 @@ class Plot2D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=False, position=True,
                                      roi=False, mask=True)
+        self.setGraphXLabel('Columns')
+        self.setGraphYLabel('Rows')
+
+        self.profile = ProfileToolBar(self)
+        """"Profile tools attached to this plot.
+
+        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
+        """
+
+        self.addToolBar(self.profile)
 
 
 def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
