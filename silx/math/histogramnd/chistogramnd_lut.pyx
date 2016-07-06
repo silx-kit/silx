@@ -56,11 +56,11 @@ ctypedef fused lut_t:
 
 
 def histogramnd_get_lut(sample,
-                        bins_rng,
+                        histo_range,
                         n_bins,
                         last_bin_closed=False):
     """
-    histogramnd_get_lut(sample, bins_rng, n_bins, last_bin_closed=False)
+    histogramnd_get_lut(sample, histo_range, n_bins, last_bin_closed=False)
 
     TBD
 
@@ -73,10 +73,10 @@ def histogramnd_get_lut(sample,
         :class:`numpy.float32`, :class:`numpy.int32`.
     :type sample: :class:`numpy.array`
 
-    :param bins_rng:
-        A (N, 2) array containing the lower and upper
-        bin edges along each dimension.
-    :type bins_rng: array_like
+    :param histo_range:
+        A (N, 2) array containing the histogram range along each dimension,
+        where N is the sample's number of dimensions.
+    :type histo_range: array_like
 
     :param n_bins:
         The number of bins :
@@ -103,30 +103,30 @@ def histogramnd_get_lut(sample,
     # just in case those arent numpy arrays
     # (this allows the user to provide native python lists,
     #   => easier for testing)
-    i_bins_rng = bins_rng
-    bins_rng = np.array(bins_rng)
-    err_bins_rng = False
+    i_histo_range = histo_range
+    histo_range = np.array(histo_range)
+    err_histo_range = False
 
     if n_dims == 1:
-        if bins_rng.shape == (2,):
+        if histo_range.shape == (2,):
             pass
-        elif bins_rng.shape == (1, 2):
-            bins_rng.reshape(-1)
+        elif histo_range.shape == (1, 2):
+            histo_range.reshape(-1)
         else:
-            err_bins_rng = True
-    elif n_dims != 1 and bins_rng.shape != (n_dims, 2):
-        err_bins_rng = True
+            err_histo_range = True
+    elif n_dims != 1 and histo_range.shape != (n_dims, 2):
+        err_histo_range = True
 
-    if err_bins_rng:
-        raise ValueError('<bins_rng> error : expected {n_dims} sets of '
+    if err_histo_range:
+        raise ValueError('<histo_range> error : expected {n_dims} sets of '
                          'lower and upper bin edges, '
-                         'got the following instead : {bins_rng}. '
+                         'got the following instead : {histo_range}. '
                          '(provided <sample> contains '
                          '{n_dims}D values)'
-                         ''.format(bins_rng=i_bins_rng,
+                         ''.format(histo_range=i_histo_range,
                                    n_dims=n_dims))
 
-    bins_rng = np.double(bins_rng)
+    histo_range = np.double(histo_range)
 
     # checking n_bins size
     n_bins = np.array(n_bins, ndmin=1)
@@ -161,7 +161,7 @@ def histogramnd_get_lut(sample,
 
     sample_c = np.ascontiguousarray(sample.reshape((sample.size,)))
 
-    bins_rng_c = np.ascontiguousarray(bins_rng.reshape((bins_rng.size,)))
+    histo_range_c = np.ascontiguousarray(histo_range.reshape((histo_range.size,)))
 
     n_bins_c = np.ascontiguousarray(n_bins.reshape((n_bins.size,)),
                                     dtype=np.int32)
@@ -175,7 +175,7 @@ def histogramnd_get_lut(sample,
         rc = _histogramnd_get_lut_fused(sample_c,
                                         n_dims,
                                         n_elem,
-                                        bins_rng_c,
+                                        histo_range_c,
                                         n_bins_c,
                                         lut_c,
                                         histo_c,
@@ -189,11 +189,11 @@ def histogramnd_get_lut(sample,
                         ''.format(rc))
 
     edges = []
-    bins_rng = bins_rng.reshape(-1)
+    histo_range = histo_range.reshape(-1)
     for i_dim in range(n_dims):
         dim_edges = np.zeros(n_bins[i_dim] + 1)
-        rng_min = bins_rng[2 * i_dim]
-        rng_max = bins_rng[2 * i_dim + 1]
+        rng_min = histo_range[2 * i_dim]
+        rng_max = histo_range[2 * i_dim + 1]
         dim_edges[:-1] = (rng_min + np.arange(n_bins[i_dim]) *
                           ((rng_max - rng_min) / n_bins[i_dim]))
         dim_edges[-1] = rng_max
@@ -355,7 +355,7 @@ def _histogramnd_from_lut_fused(weights_t[:] i_weights,
 def _histogramnd_get_lut_fused(sample_t[:] i_sample,
                                int i_n_dims,
                                int i_n_elems,
-                               double[:] i_bins_rng,
+                               double[:] i_histo_range,
                                int[:] i_n_bins,
                                lut_t[:] o_lut,
                                np.uint32_t[:] o_histo,
@@ -377,8 +377,8 @@ def _histogramnd_get_lut_fused(sample_t[:] i_sample,
         double[50] bins_range
 
     for i in range(i_n_dims):
-        g_min[i] = i_bins_rng[2*i]
-        g_max[i] = i_bins_rng[2*i+1]
+        g_min[i] = i_histo_range[2*i]
+        g_max[i] = i_histo_range[2*i+1]
         bins_range[i] = g_max[i] - g_min[i]
 
     elem_idx = 0 - i_n_dims

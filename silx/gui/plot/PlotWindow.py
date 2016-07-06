@@ -37,7 +37,7 @@ import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
-from .PlotTools import PositionInfo
+from .PlotTools import PositionInfo, ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
@@ -364,6 +364,8 @@ class Plot1D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
                                      roi=True, mask=False)
+        self.setGraphXLabel('X')
+        self.setGraphYLabel('Y')
 
 
 class Plot2D(PlotWindow):
@@ -373,14 +375,50 @@ class Plot2D(PlotWindow):
     """
 
     def __init__(self, parent=None):
+        # List of information to display at the bottom of the plot
+        posInfo = [
+            ('X', lambda x, y: x),
+            ('Y', lambda x, y: y),
+            ('Data', self._getActiveImageValue)]
+
         super(Plot2D, self).__init__(parent=parent, backend=None,
                                      resetzoom=True, autoScale=False,
                                      logScale=False, grid=False,
                                      curveStyle=False, colormap=True,
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
-                                     control=False, position=True,
+                                     control=False, position=posInfo,
                                      roi=False, mask=True)
+        self.setGraphXLabel('Columns')
+        self.setGraphYLabel('Rows')
+
+        self.profile = ProfileToolBar(self)
+        """"Profile tools attached to this plot.
+
+        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
+        """
+
+        self.addToolBar(self.profile)
+
+    def _getActiveImageValue(self, x, y):
+        """Get value of active image at position (x, y)
+
+        :param float x: X position in plot coordinates
+        :param float y: Y position in plot coordinates
+        :return: The value at that point or '-'
+        """
+        image = self.getActiveImage()
+        if image is not None:
+            data, params = image[0], image[4]
+            ox, oy = params['origin']
+            sx, sy = params['scale']
+            if (y - oy) >= 0 and (x - ox) >= 0:
+                # Test positive before cast otherwisr issue with int(-0.5) = 0
+                row = int((y - oy) / sy)
+                col = int((x - ox) / sx)
+                if (row < data.shape[0] and col < data.shape[1]):
+                    return data[row, col]
+        return '-'
 
 
 def plot1D(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):

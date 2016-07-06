@@ -458,7 +458,7 @@ See :meth:`.PlotWidget.resetZoom`, :meth:`.PlotWidget.setLimits`, :meth:`.PlotWi
 Axes
 ++++
 
-Different methods allows to change the plot axes:
+Different methods allow plot axes modifications:
 
 .. code-block:: python
 

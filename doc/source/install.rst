@@ -230,11 +230,12 @@ Building from source
 ++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
-Alternatively, you can get the latest source code from the repository: https://github.com/silx-kit/silx
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
     tar xzvf silx-x.y.z.tar.gz
+    
+Alternatively, you can get the latest source code from the master branch of the `git repository <https://github.com/silx-kit/silx>`_:  https://github.com/silx-kit/silx/archive/master.zip
 
 You can now build and install *silx* from its sources::
 
@@ -242,6 +243,18 @@ You can now build and install *silx* from its sources::
     pip uninstall -y silx
     pip install . [--user]
 
+Known issues
+............
+
+There are specific issues related to MacOSX. If thou get this error::
+
+  UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 1335: ordinal not in range(128)
+
+This is related to the two environment variable LC_ALL and LANG not defined (or wrongly defined to UTF-8).
+To set the environment variable, type on the command line::
+
+  export LC_ALL=en_US.UTF-8
+  export LANG=en_US.UTF-8
 
 Advanced build options
 ++++++++++++++++++++++

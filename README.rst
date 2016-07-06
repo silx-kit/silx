@@ -63,7 +63,8 @@ To build the documentation from the source (requires `Sphinx <http://www.sphinx-
 Testing
 -------
 
-|Travis Status| |Appveyor Status|
+- Travis CI status: |Travis Status|
+- Appveyor CI status: |Appveyor Status|
 
 To run the tests from the python interpreter, run:
 
