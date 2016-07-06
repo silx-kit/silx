@@ -32,7 +32,7 @@ __date__ = "30/03/2016"
 import doctest
 import unittest
 
-from silx.gui.testutils import qWaitForWindowExposed
+from silx.gui.testutils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 
@@ -47,7 +47,7 @@ def _tearDownQt(docTest):
     Checks that dialog widget is displayed
     """
     dialogWidget = docTest.globs['dialog']
-    qWaitForWindowExposed(dialogWidget)
+    qWaitForWindowExposedAndActivate(dialogWidget)
     dialogWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
     dialogWidget.close()
     del dialogWidget

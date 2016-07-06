@@ -33,7 +33,7 @@ import doctest
 import unittest
 
 from silx.gui.testutils import TestCaseQt, getQToolButtonFromAction
-# from silx.gui.testutils import qWaitForWindowExposed
+# from silx.gui.testutils import qWaitForWindowExposedAndActivate
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -54,7 +54,7 @@ def _tearDownQt(docTest):
     for obj in docTest.globs.values():
         if isinstance(obj, PlotWindow):
             # Commented out as it takes too long
-            # qWaitForWindowExposed(obj)
+            # qWaitForWindowExposedAndActivate(obj)
             obj.setAttribute(qt.Qt.WA_DeleteOnClose)
             obj.close()
             del obj
