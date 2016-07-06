@@ -95,7 +95,7 @@ def benchmark(n_loops,
               sample_shape,
               sample_rng,
               weights_rng,
-              bins_rng,
+              histo_range,
               n_bins,
               weight_min,
               weight_max,
@@ -136,7 +136,7 @@ def benchmark(n_loops,
     for i in range(n_loops):
         t0s.append(time.time())
         result_c = histogramnd(sample,
-                               bins_rng,
+                               histo_range,
                                n_bins,
                                weights=weights,
                                weight_min=weight_min,
@@ -146,11 +146,11 @@ def benchmark(n_loops,
         if do_numpy:
             result_np = np.histogramdd(sample,
                                        bins=n_bins,
-                                       range=bins_rng)
+                                       range=histo_range)
             t2s.append(time.time())
             result_np_w = np.histogramdd(sample,
                                          bins=n_bins,
-                                         range=bins_rng,
+                                         range=histo_range,
                                          weights=weights)
             t3s.append(time.time())
         else:
@@ -192,14 +192,14 @@ def run_benchmark(dtype=np.double,
     print(' 1D [{0}]'.format(dtype))
     print('==========================')
     sample_shape = (10**7,)
-    bins_rng = [[0., 100.]]
+    histo_range = [[0., 100.]]
     n_bins = 30
 
     benchmark(n_loops,
               sample_shape,
               sample_rng,
               weights_rng,
-              bins_rng,
+              histo_range,
               n_bins,
               weight_min,
               weight_max,
@@ -218,14 +218,14 @@ def run_benchmark(dtype=np.double,
     print(' 2D [{0}]'.format(dtype))
     print('==========================')
     sample_shape = (10**7, 2)
-    bins_rng = [[0., 100.], [0., 100.]]
+    histo_range = [[0., 100.], [0., 100.]]
     n_bins = 30
 
     benchmark(n_loops,
               sample_shape,
               sample_rng,
               weights_rng,
-              bins_rng,
+              histo_range,
               n_bins,
               weight_min,
               weight_max,
@@ -244,14 +244,14 @@ def run_benchmark(dtype=np.double,
     print(' 3D [{0}]'.format(dtype))
     print('==========================')
     sample_shape = (10**7, 3)
-    bins_rng = np.array([[0., 100.], [0., 100.], [0., 100.]])
+    histo_range = np.array([[0., 100.], [0., 100.], [0., 100.]])
     n_bins = 30
 
     benchmark(n_loops,
               sample_shape,
               sample_rng,
               weights_rng,
-              bins_rng,
+              histo_range,
               n_bins,
               weight_min,
               weight_max,

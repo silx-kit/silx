@@ -235,7 +235,9 @@ parser.add_argument("-m", "--memprofile", dest="memprofile",
                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
-                    help="Increase verbosity")
+                    help="Increase verbosity. Option -v prints additional " +
+                         "INFO messages. Use -vv for full verbosity, " +
+                         "including debug messages and test help strings.")
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
                     default=(default_test_name,),
@@ -244,12 +246,14 @@ options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
 
+test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
+    test_verbosity = 2
 
 
 if options.coverage:
@@ -295,7 +299,7 @@ PROJECT_PATH = module.__path__[0]
 if options.memprofile:
     runner = ProfileTestRunner()
 else:
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=test_verbosity)
 
 logger.warning("Test %s %s from %s",
                PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
@@ -316,7 +320,12 @@ else:
         unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
 
-if runner.run(test_suite).wasSuccessful():
+result = runner.run(test_suite)
+for test, reason in result.skipped:
+    logger.warning('Skipped %s (%s): %s',
+                   test.id(), test.shortDescription() or '', reason)
+
+if result.wasSuccessful():
     logger.info("Test suite succeeded")
     exit_status = 0
 else:

@@ -416,7 +416,9 @@ class Plot(object):
             - None (the default) to use default line style
 
         :param str xlabel: Label to show on the X axis when the curve is active
+                           or None to keep default axis label.
         :param str ylabel: Label to show on the Y axis when the curve is active
+                           or None to keep default axis label.
         :param str yaxis: The Y axis this curve is attached to.
                           Either 'left' (the default) or 'right'
         :param xerror: Values with the uncertainties on the x values
@@ -510,7 +512,7 @@ class Plot(object):
                 'symbol': self._defaultPlotPoints,
                 'linewidth': 1,
                 'linestyle': default_linestyle,
-                'xlabel': 'X', 'ylabel': 'Y', 'yaxis': 'left',
+                'xlabel': None, 'ylabel': None, 'yaxis': 'left',
                 'xerror': None, 'yerror': None, 'z': 1,
                 'selectable': True, 'fill': False
             }
@@ -613,8 +615,10 @@ class Plot(object):
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
-        :param str xlabel: X axis label to show when this curve is active.
-        :param str ylabel: Y axis label to show when this curve is active.
+        :param str xlabel: X axis label to show when this curve is active,
+                           or None to keep default axis label.
+        :param str ylabel: Y axis label to show when this curve is active,
+                           or None to keep default axis label.
         :param origin: (origin X, origin Y) of the data.
                        Default: (0., 0.)
         :type origin: 2-tuple of float
@@ -689,12 +693,12 @@ class Plot(object):
         if previousImage is not None:
             defaults = previousImage['params']
 
-        else:  # If no existing curve use default values
+        else:  # If no existing image use default values
             defaults = {
                 'info': None, 'origin': (0., 0.), 'scale': (1., 1.), 'z': 0,
                 'selectable': False, 'draggable': False,
                 'colormap': self.getDefaultColormap(),
-                'xlabel': 'Column', 'ylabel': 'Row'
+                'xlabel': None, 'ylabel': None
             }
 
         # If a parameter is not given as argument, use its default value
@@ -1430,8 +1434,12 @@ class Plot(object):
                     self._backend.setActiveCurve(handle, True,
                                                  self.getActiveCurveColor())
 
-                xLabel = self._curves[self._activeCurve]['params']['xlabel']
-                yLabel = self._curves[self._activeCurve]['params']['ylabel']
+                curveParams = self._curves[self._activeCurve]['params']
+
+                if curveParams['xlabel'] is not None:
+                    xLabel = curveParams['xlabel']
+                if curveParams['ylabel'] is not None:
+                    yLabel = curveParams['ylabel']
                 # TODO y2 axis case
 
         # Store current labels and update plot
@@ -1490,6 +1498,9 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
+        xLabel = self._xLabel
+        yLabel = self._yLabel
+
         oldActiveImageLegend = self.getActiveImage(just_legend=True)
 
         if legend is None:
@@ -1502,6 +1513,19 @@ class Plot(object):
                 self._activeImage = None
             else:
                 self._activeImage = legend
+
+                imageParams = self._images[self._activeImage]['params']
+
+                if imageParams['xlabel'] is not None:
+                    xLabel = imageParams['xlabel']
+                if imageParams['ylabel'] is not None:
+                    yLabel = imageParams['ylabel']
+
+        # Store current labels and update plot
+        self._currentXLabel = xLabel
+        self._backend.setGraphXLabel(xLabel)
+        self._currentYLabel = yLabel
+        self._backend.setGraphYLabel(yLabel, axis='left')
 
         if oldActiveImageLegend is not None or self._activeImage is not None:
             self.notify('activeImageChanged',
