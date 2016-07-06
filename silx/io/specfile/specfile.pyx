@@ -84,7 +84,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "06/07/2016"
 
 import os.path
 import logging
@@ -538,7 +538,7 @@ def _string_to_char_star(string_):
     """_string_to_char_star(string_)
 
     Convert a string to ASCII encoded bytes when using python3"""
-    if sys.version.startswith("3"):
+    if sys.version.startswith("3") and not isinstance(string_, bytes):
         return bytes(string_, "ascii")
     return string_
 
@@ -547,7 +547,6 @@ cdef class SpecFile(object):
     """``SpecFile(filename)``
 
     :param filename: Path of the SpecFile to read
-    :type filename: string
 
     This class wraps the main data and header access functions of the C
     SpecFile library.
@@ -563,6 +562,7 @@ cdef class SpecFile(object):
         cdef int error = SF_ERR_NO_ERRORS
         self.__open_failed = 0
 
+
         if os.path.isfile(filename):
             filename = _string_to_char_star(filename)
             self.handle =  SfOpen(filename, &error)
@@ -574,7 +574,15 @@ cdef class SpecFile(object):
             self._handle_error(error)
        
     def __init__(self, filename):
-        self.filename = filename
+        if not isinstance(filename, str):
+            # encode unicode to str in python 2
+            if sys.version_info[0] < 3:
+                self.filename = filename.encode()
+            # decode bytes to str in python 3
+            elif sys.version_info[0] >= 3:
+                self.filename = filename.decode()
+        else:
+            self.filename = filename
         
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""

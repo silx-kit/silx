@@ -165,6 +165,27 @@ class TestSpecFile(unittest.TestCase):
         self.assertIsInstance(self.sf, SpecFile)
         with self.assertRaises(IOError):
             sf2 = SpecFile("doesnt_exist.dat")
+
+        # test filename types unicode and bytes
+        if sys.version_info[0] < 3:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python2 str")
+            try:
+                SpecFile(unicode(self.fname1))
+            except TypeError:
+                self.fail("failed to handle filename as python2 unicode")
+        else:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python3 str")
+            try:
+                SpecFile(bytes(self.fname1, 'utf-8'))
+            except TypeError:
+                self.fail("failed to handle filename as python3 bytes")
+
         
     def test_number_of_scans(self):
         self.assertEqual(3, len(self.sf))
