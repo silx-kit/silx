@@ -648,7 +648,7 @@ cdef class SpecFile(object):
         :rtype: list of strings
         """
         ret_list = []
-        list_of_numbers = self.list()
+        list_of_numbers = self._list()
         count = {}
         
         for number in list_of_numbers:
@@ -765,12 +765,8 @@ cdef class SpecFile(object):
             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
         return ordr
 
-    def list(self):  
-        """Returns list (1D numpy array) of scan numbers in SpecFile.
-         
-        :return: list of scan numbers (from `` #S``  lines) in the same order
-            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
-        :rtype: numpy array 
+    def _list(self):
+        """see documentation of :meth:`list`
         """
         cdef:
             long *scan_numbers
@@ -785,6 +781,17 @@ cdef class SpecFile(object):
 
         free(scan_numbers)
         return ret_list
+
+    def list(self):
+        """Returns list (1D numpy array) of scan numbers in SpecFile.
+
+        :return: list of scan numbers (from `` #S``  lines) in the same order
+            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
+        :rtype: numpy array
+        """
+        # this method is overloaded in specfilewrapper to output a string
+        # representation of the list
+        return self._list()
     
     def data(self, scan_index):
         """data(scan_index)
