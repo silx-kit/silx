@@ -406,6 +406,86 @@ class TestPlotItem(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
+class TestPlotActiveCurveImage(_PlotWidgetTest):
+    """Basic tests for active image handling"""
+
+    def testActiveCurveAndLabels(self):
+        # Active curve handling off, no label change
+        self.plot.setActiveCurveHandling(False)
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+        self.plot.addCurve((1, 2), (1, 2))
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.addCurve((1, 2), (2, 3), xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        # Active curve handling on, label changes
+        self.plot.setActiveCurveHandling(True)
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+
+        # labels changed as active curve
+        self.plot.addCurve((1, 2), (1, 2), legend='1',
+                           xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels not changed as not active curve
+        self.plot.addCurve((1, 2), (2, 3), legend='2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels changed
+        self.plot.setActiveCurve('2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.setActiveCurve('1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+    def testActiveImageAndLabels(self):
+        # Active image handling always on, no API for toggling it
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+
+        # labels changed as active curve
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+                           legend='1', xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels not changed as not active curve
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+                           legend='2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels changed
+        self.plot.setActiveImage('2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.setActiveImage('1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+
 ##############################################################################
 # Log
 ##############################################################################
