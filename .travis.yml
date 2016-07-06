@@ -43,6 +43,7 @@ install:
     # Print Python info
     - python ./ci/info_platform.py
     - pip freeze
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then dplg -l ; fi
 
     # Generate source package or wheel
     - python setup.py $BUILD_COMMAND
