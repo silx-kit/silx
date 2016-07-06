@@ -53,6 +53,39 @@ __date__ = "05/07/2016"
 import numpy
 from silx.io.specfile import SpecFile, Scan, MCA
 
+def _format_number_list(number_list):
+    """Return string representation of a list of integers,
+    using ``,`` as a separator and ``:`` as a range separator.
+    """
+    ret = ""
+    first_in_range = number_list[0]
+    last_in_range = number_list[0]
+    previous = number_list[0]
+    for number in number_list[1:]:
+        if number - previous != 1:
+            # reached end of range
+            if last_in_range > first_in_range:
+                ret += "%d:%d," % (first_in_range, last_in_range)
+            # passed isolated number
+            else:
+                ret += "%d," % previous
+            # reinitialize range
+            first_in_range = number
+            last_in_range = number
+        else:
+            # still inside a continuous range
+            last_in_range = number
+
+        previous = number
+
+    # last number
+    if last_in_range > first_in_range:
+        ret += "%d:%d" % (first_in_range, last_in_range)
+    else:
+        ret += "%d" % previous
+
+    return ret
+
 class Specfile(SpecFile):
     def __init__(self, filename):
         SpecFile.__init__(self, filename)
@@ -78,6 +111,22 @@ class Specfile(SpecFile):
             raise IndexError(msg)
 
         return myscandata(self, scan_index)
+
+    def list(self):
+        """Return a string representation of a list of scan numbers.
+
+        The scans numbers are listed in the order in which they appear
+        in the file. Continuous ranges of scan numbers are represented
+        as ``first:last``.
+
+        For instance, let's assume our specfile contains these scans:
+        *1, 2, 3, 4, 5, 684, 685, 687, 688, 689, 700, 688, 688*.
+        This method will then return::
+
+            "1:5,684:685,687:689,700,688,688"
+        """
+        number_list = SpecFile.list(self)
+        return _format_number_list(number_list)
 
     def select(self, key):
         """Get scan by ``n.m`` key
@@ -170,7 +219,7 @@ class myscandata(Scan):
         detector (assuming ``sc`` is your scan object):
 
             >>> scdata = sc.data()
-            >>> data_sample = scdata[2][17]"""
+            >>> data_sample = scdata[2, 17]"""
         return numpy.transpose(self._data)
 
     def datacol(self, col):

@@ -152,7 +152,7 @@ class TestSpecfile(unittest.TestCase):
 
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sf.list(),
-                         [1, 25, 1])
+                         '1,25,1')
         self.assertEqual(self.sf.keys(),
                          ["1.1", "25.1", "1.2"])
 
