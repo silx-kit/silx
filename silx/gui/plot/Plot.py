@@ -2014,6 +2014,11 @@ class Plot(object):
     def setDefaultColormap(self, colormap=None):
         """Set the default colormap used by :meth:`addImage`.
 
+        Setting the default colormap do not change any currently displayed
+        image.
+        It only affects future calls to :meth:`addImage` without the colormap
+        parameter.
+
         :param dict colormap: The description of the default colormap, or
                             None to set the colormap to a linear autoscale
                             gray colormap.
