@@ -21,14 +21,14 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides a to backward compatibility layer with previous
+"""This module provides a backward compatibility layer with previous
 specfile wrapper for :mod:`specfile`.
 
-If you are starting a new project, please consider using :mod:`specfile`
-directly.
+If you are starting a new project, please consider using :mod:`silx.io.specfile`
+instead of this module.
 
 If you want to use this module for an existing project that used the old
-wrapper, you can try replacing::
+wrapper through PyMca, you can try replacing::
 
     from PyMca5.PyMcaIO import specfilewrapper
 
@@ -36,11 +36,15 @@ with::
 
     from silx.io import specfilewrapper
 
-There are however differences between this module and the old
+There might still be differences between this module and the old
 wrapper, due to differences in the underlying implementation.
-
-Feel free to report any of these differences, if they are a problem for you, on
+Any of these differences that break your code should be reported on
 https://github.com/silx-kit/silx/issues
+
+The documentation mentions only the methods and attributes that are different
+from the ones in :class:`silx.io.specfile.SpecFile` and
+:class:`silx.io.specfile.Scan`. You should refer to the documentation of these
+base classes for more information.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -115,8 +119,7 @@ class Specfile(SpecFile):
         return len(self)
 
     def allmotors(self, scan_index=0):
-        """motor_names(scan_index=0)
-
+        """
         This is an alias for :meth:`motor_names`, for compatibility with
         the old specfile wrapper API.
         """
@@ -132,7 +135,7 @@ class myscandata(Scan):
 
     def allmotorpos(self):
         """Return a list of all motor positions (identical to
-        attr:`motor_positions`).
+        :attr:`motor_positions`).
 
         This method serves to maintain compatibility with the old specfile
         wrapper API.
@@ -157,7 +160,17 @@ class myscandata(Scan):
         return self._specfile.command(self._index)
 
     def data(self):
-        """Return a data column"""
+        """Return the data in this scan as a 2D numpy array.
+
+        The first index corresponds to the columns/detectors in the original
+        file, and the second index is the row index from the original file.
+        Indices are 0-based.
+
+        For instance, this is how you access the 18th data sample for the 3rd
+        detector (assuming ``sc`` is your scan object):
+
+            >>> scdata = sc.data()
+            >>> data_sample = scdata[2][17]"""
         return numpy.transpose(self._data)
 
     def datacol(self, col):
@@ -212,10 +225,3 @@ class myscandata(Scan):
     def nbmca(self):
         """Return number of MCAs in this scan"""
         return len(self.mca)
-
-
-        # FIXME:
-        # - mca is a method in the old implementation, not an attribute
-        # - the old API uses 1-based numbering rather than 0-based for mca(), datacol() and dataline()
-        # - data transposition?
-        # - header is an attribute containing all headers in the new implementation
