@@ -43,7 +43,11 @@ install:
     # Print Python info
     - python ./ci/info_platform.py
     - pip freeze
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then dpkg -l ; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; 
+      then 
+          dpkg -l
+          ldd $(python -c "import h5py;print(h5py.h5d.__file__)")
+      fi
 
     # Generate source package or wheel
     - python setup.py $BUILD_COMMAND
