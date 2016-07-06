@@ -38,7 +38,7 @@ Tools for reading and writing HDF5 files depend on the following package:
 Build dependencies
 ++++++++++++++++++
 
-In addition to run-time dependencies, building *silx* requires a C/C++ compiler, `numpy <httinp://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
+In addition to run-time dependencies, building *silx* requires a C/C++ compiler, `numpy <http://www.numpy.org/>`_ and `cython <http://cython.org>`_ (optional).
 
 On Windows it is recommended to use Python 3.5, because with previous versions of Python, it might be difficult to compile the extensions.
 
