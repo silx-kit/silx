@@ -28,10 +28,10 @@
 - `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
 - `PySide <http://www.pyside.org>`_.
 
-If a Qt bindings is already loaded, it will use it, otherwise the different
+If a Qt binding is already loaded, it will use it, otherwise the different
 Qt bindings are tried in this order: PyQt5, PyQt4, PySide.
 
-The name of the loaded Qt bindings is stored in the BINDING variable.
+The name of the loaded Qt binding is stored in the BINDING variable.
 
 This module provides a flat namespace over Qt bindings by importing
 all symbols from **QtCore** and **QtGui** packages and if available
