@@ -429,8 +429,10 @@ class Scan(object):
 
     @property
     def data(self):
-        """Scan data as a numpy.ndarray with the usual attributes
+        """Scan data as a 2D numpy.ndarray with the usual attributes
         (e.g. data.shape).
+
+        The first index is the detector, the second index is the sample index.
         """
         if self._data is None:
             self._data = numpy.transpose(self._specfile.data(self._index))
