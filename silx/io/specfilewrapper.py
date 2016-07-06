@@ -236,15 +236,26 @@ class myscandata(Scan):
 
     def date(self):
         """Return the date from the scan header line ``#D``"""
-        return self._specfile.command(self._index)
+        return self._specfile.date(self._index)
 
     def fileheader(self, key=''):  # noqa
         """Return a list of file header lines"""
         # key is there for compatibility
         return self.file_header
 
-    def header(self, key):
-        """Return a list of scan header lines"""
+    def header(self, key=""):
+        """Return a list of scan header lines if no key is specified.
+        If a valid key is specified, return a single header line.
+
+        :param key: Header key (e.g. ``S, N, L, @CALIB``…)
+            If ``key`` is an empty string, return complete list of scan header
+            lines.
+            If ``key`` does not match any header line, return empty list.
+        :return: Header line or list of scan header lines
+        :rtype: str or list[str]
+        """
+        if key.strip() == "":
+            return self.scan_header
         if self.record_exists_in_hdr(key):
             prefix = "#" + key + " "
             if key in self.mca_header_dict:
@@ -258,7 +269,7 @@ class myscandata(Scan):
             if key in self.mca_header_dict:
                 prefix = "#@" + key + " "
                 return prefix + self.mca_header_dict[key]
-        return ""
+        return []
 
     def lines(self):
         """Return the number of data lines (number of data points per

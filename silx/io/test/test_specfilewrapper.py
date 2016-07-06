@@ -178,6 +178,10 @@ class TestSpecfile(unittest.TestCase):
         self.assertEqual(self.scan1.data().shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data()), 113.631)
 
+    def test_date(self):
+        self.assertEqual(self.scan1.date(),
+                         "Thu Feb 11 09:55:20 2016")
+
     def test_motors(self):
         self.assertEqual(len(self.sf.allmotors()), 6)
         self.assertEqual(len(self.scan1.allmotorpos()), 6)
