@@ -123,15 +123,10 @@ class TestConvertSpecHDF5(unittest.TestCase):
 
     def testAppendToHDF5(self):
         write_spec_to_h5(self.sfh5, self.h5f,
-                         h5path="/foo/bar/spam",
-                         create_dataset_args={"compression": "gzip"})
+                         h5path="/foo/bar/spam")
         self.assertTrue(
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
-        )
-        self.assertEqual(
-            self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"].compression,
-            "gzip"
         )
 
     def testAttrs(self):
