@@ -233,12 +233,12 @@ void __Pyx_call_destructor(T* x) {
 #include <math.h>
 #define __PYX_HAVE__specfile
 #define __PYX_HAVE_API__specfile
-#include "SpecFileCython.h"
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
 #include "numpy/arrayobject.h"
 #include "numpy/ufuncobject.h"
+#include "SpecFileCython.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif /* _OPENMP */
@@ -697,14 +697,14 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 
-/* "specfile.pxd":35
+/* "specfile_wrapper.pxd":35
  *         pass
  * # Renaming struct because we have too many SpecFile items (files, classes)
  * ctypedef _SpecFile SpecFileHandle             # <<<<<<<<<<<<<<
  * 
  * cdef extern from "SpecFileCython.h":
  */
-typedef struct _SpecFile __pyx_t_8specfile_SpecFileHandle;
+typedef struct _SpecFile __pyx_t_16specfile_wrapper_SpecFileHandle;
 
 /* "specfile.pyx":548
  * 
@@ -715,7 +715,7 @@ typedef struct _SpecFile __pyx_t_8specfile_SpecFileHandle;
  */
 struct __pyx_obj_8specfile_SpecFile {
   PyObject_HEAD
-  __pyx_t_8specfile_SpecFileHandle *handle;
+  __pyx_t_16specfile_wrapper_SpecFileHandle *handle;
   PyObject *filename;
   int __pyx___open_failed;
 };
@@ -738,7 +738,7 @@ struct __pyx_obj_8specfile___pyx_scope_struct____iter__ {
 
 
 /* "specfile.pyx":601
- *         return SfScanNo(self.handle)
+ *         return specfile_wrapper.SfScanNo(self.handle)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         """Return the next :class:`Scan` in a SpecFile each time this method
@@ -1256,8 +1256,6 @@ static PyTypeObject *__Pyx_ImportType(const char *module_name, const char *class
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 
-/* Module declarations from 'cython' */
-
 /* Module declarations from 'cpython.buffer' */
 
 /* Module declarations from 'cpython.ref' */
@@ -1284,6 +1282,10 @@ static PyTypeObject *__pyx_ptype_5numpy_broadcast = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ndarray = 0;
 static PyTypeObject *__pyx_ptype_5numpy_ufunc = 0;
 static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *, char *, char *, int *); /*proto*/
+
+/* Module declarations from 'cython' */
+
+/* Module declarations from 'specfile_wrapper' */
 
 /* Module declarations from 'specfile' */
 static PyTypeObject *__pyx_ptype_8specfile_SpecFile = 0;
@@ -4197,7 +4199,7 @@ static PyObject *__pyx_pf_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx
  *                 # this shouldn't happen
  *                 _logger.warning("Unable to parse scan header line " + line)             # <<<<<<<<<<<<<<
  * 
- *         self._labels = None
+ *         self._labels = []
  */
       __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_logger); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 327; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
@@ -4249,15 +4251,18 @@ static PyObject *__pyx_pf_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx
   /* "specfile.pyx":329
  *                 _logger.warning("Unable to parse scan header line " + line)
  * 
- *         self._labels = None             # <<<<<<<<<<<<<<
+ *         self._labels = []             # <<<<<<<<<<<<<<
  *         if self.record_exists_in_hdr('L'):
  *             try:
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_labels, Py_None) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_5);
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_labels, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 329; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "specfile.pyx":330
  * 
- *         self._labels = None
+ *         self._labels = []
  *         if self.record_exists_in_hdr('L'):             # <<<<<<<<<<<<<<
  *             try:
  *                 self._labels = self._specfile.labels(self._index)
@@ -4272,7 +4277,7 @@ static PyObject *__pyx_pf_8specfile_4Scan___init__(CYTHON_UNUSED PyObject *__pyx
   if (__pyx_t_9) {
 
     /* "specfile.pyx":331
- *         self._labels = None
+ *         self._labels = []
  *         if self.record_exists_in_hdr('L'):
  *             try:             # <<<<<<<<<<<<<<
  *                 self._labels = self._specfile.labels(self._index)
@@ -6863,7 +6868,7 @@ static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_Spe
  * 
  *         if os.path.isfile(filename):             # <<<<<<<<<<<<<<
  *             filename = _string_to_char_star(filename)
- *             self.handle =  SfOpen(filename, &error)
+ *             self.handle =  specfile_wrapper.SfOpen(filename, &error)
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 568; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -6906,7 +6911,7 @@ static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_Spe
  * 
  *         if os.path.isfile(filename):
  *             filename = _string_to_char_star(filename)             # <<<<<<<<<<<<<<
- *             self.handle =  SfOpen(filename, &error)
+ *             self.handle =  specfile_wrapper.SfOpen(filename, &error)
  *         else:
  */
     __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_string_to_char_star); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 569; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -6942,7 +6947,7 @@ static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_Spe
     /* "specfile.pyx":570
  *         if os.path.isfile(filename):
  *             filename = _string_to_char_star(filename)
- *             self.handle =  SfOpen(filename, &error)             # <<<<<<<<<<<<<<
+ *             self.handle =  specfile_wrapper.SfOpen(filename, &error)             # <<<<<<<<<<<<<<
  *         else:
  *             self.__open_failed = 1
  */
@@ -6953,7 +6958,7 @@ static int __pyx_pf_8specfile_8SpecFile___cinit__(struct __pyx_obj_8specfile_Spe
   /*else*/ {
 
     /* "specfile.pyx":572
- *             self.handle =  SfOpen(filename, &error)
+ *             self.handle =  specfile_wrapper.SfOpen(filename, &error)
  *         else:
  *             self.__open_failed = 1             # <<<<<<<<<<<<<<
  *             self._handle_error(SF_ERR_FILE_OPEN)
@@ -7363,7 +7368,7 @@ static void __pyx_pf_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_8specfile
  *         """Destructor: Calls SfClose(self.handle)"""
  *         #SfClose makes a segmentation fault if file failed to open
  *         if not self.__open_failed:             # <<<<<<<<<<<<<<
- *             if SfClose(self.handle):
+ *             if specfile_wrapper.SfClose(self.handle):
  *                 _logger.warning("Error while closing SpecFile")
  */
   __pyx_t_1 = ((!(__pyx_v_self->__pyx___open_failed != 0)) != 0);
@@ -7372,7 +7377,7 @@ static void __pyx_pf_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_8specfile
     /* "specfile.pyx":593
  *         #SfClose makes a segmentation fault if file failed to open
  *         if not self.__open_failed:
- *             if SfClose(self.handle):             # <<<<<<<<<<<<<<
+ *             if specfile_wrapper.SfClose(self.handle):             # <<<<<<<<<<<<<<
  *                 _logger.warning("Error while closing SpecFile")
  * 
  */
@@ -7381,7 +7386,7 @@ static void __pyx_pf_8specfile_8SpecFile_4__dealloc__(struct __pyx_obj_8specfile
 
       /* "specfile.pyx":594
  *         if not self.__open_failed:
- *             if SfClose(self.handle):
+ *             if specfile_wrapper.SfClose(self.handle):
  *                 _logger.warning("Error while closing SpecFile")             # <<<<<<<<<<<<<<
  * 
  *     def __len__(self):
@@ -7453,7 +7458,7 @@ static Py_ssize_t __pyx_pf_8specfile_8SpecFile_6__len__(struct __pyx_obj_8specfi
   /* "specfile.pyx":599
  *         """Return the number of scans in the SpecFile
  *         """
- *         return SfScanNo(self.handle)             # <<<<<<<<<<<<<<
+ *         return specfile_wrapper.SfScanNo(self.handle)             # <<<<<<<<<<<<<<
  * 
  *     def __iter__(self):
  */
@@ -7476,7 +7481,7 @@ static Py_ssize_t __pyx_pf_8specfile_8SpecFile_6__len__(struct __pyx_obj_8specfi
 static PyObject *__pyx_gb_8specfile_8SpecFile_10generator1(__pyx_GeneratorObject *__pyx_generator, PyObject *__pyx_sent_value); /* proto */
 
 /* "specfile.pyx":601
- *         return SfScanNo(self.handle)
+ *         return specfile_wrapper.SfScanNo(self.handle)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         """Return the next :class:`Scan` in a SpecFile each time this method
@@ -7626,7 +7631,7 @@ static PyObject *__pyx_gb_8specfile_8SpecFile_10generator1(__pyx_GeneratorObject
   }
 
   /* "specfile.pyx":601
- *         return SfScanNo(self.handle)
+ *         return specfile_wrapper.SfScanNo(self.handle)
  * 
  *     def __iter__(self):             # <<<<<<<<<<<<<<
  *         """Return the next :class:`Scan` in a SpecFile each time this method
@@ -8612,7 +8617,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_17_get_error_string(CYTHON_UNUSED 
   /* "specfile.pyx":687
  *         :rtype: str
  *         """
- *         return (<bytes> SfError(error_code)).decode()             # <<<<<<<<<<<<<<
+ *         return (<bytes> specfile_wrapper.SfError(error_code)).decode()             # <<<<<<<<<<<<<<
  * 
  *     def _handle_error(self, error_code):
  */
@@ -8652,7 +8657,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_17_get_error_string(CYTHON_UNUSED 
 }
 
 /* "specfile.pyx":689
- *         return (<bytes> SfError(error_code)).decode()
+ *         return (<bytes> specfile_wrapper.SfError(error_code)).decode()
  * 
  *     def _handle_error(self, error_code):             # <<<<<<<<<<<<<<
  *         """Inspect error code, raise adequate error type if necessary.
@@ -9197,7 +9202,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_19_handle_error(struct __pyx_obj_8
   }
 
   /* "specfile.pyx":689
- *         return (<bytes> SfError(error_code)).decode()
+ *         return (<bytes> specfile_wrapper.SfError(error_code)).decode()
  * 
  *     def _handle_error(self, error_code):             # <<<<<<<<<<<<<<
  *         """Inspect error code, raise adequate error type if necessary.
@@ -9314,7 +9319,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_21index(struct __pyx_obj_8specfile
   /* "specfile.pyx":738
  *         number appers in a given file.
  *         """
- *         idx = SfIndex(self.handle, scan_number, scan_order)             # <<<<<<<<<<<<<<
+ *         idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)             # <<<<<<<<<<<<<<
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
@@ -9327,7 +9332,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_21index(struct __pyx_obj_8specfile
 
   /* "specfile.pyx":739
  *         """
- *         idx = SfIndex(self.handle, scan_number, scan_order)
+ *         idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)
  *         if idx == -1:             # <<<<<<<<<<<<<<
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return idx - 1
@@ -9338,7 +9343,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_21index(struct __pyx_obj_8specfile
   if (__pyx_t_4) {
 
     /* "specfile.pyx":740
- *         idx = SfIndex(self.handle, scan_number, scan_order)
+ *         idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return idx - 1
@@ -9458,7 +9463,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_23number(struct __pyx_obj_8specfil
   /* "specfile.pyx":755
  *         :rtype: int
  *         """
- *         idx = SfNumber(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
+ *         idx = specfile_wrapper.SfNumber(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
@@ -9470,7 +9475,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_23number(struct __pyx_obj_8specfil
 
   /* "specfile.pyx":756
  *         """
- *         idx = SfNumber(self.handle, scan_index + 1)
+ *         idx = specfile_wrapper.SfNumber(self.handle, scan_index + 1)
  *         if idx == -1:             # <<<<<<<<<<<<<<
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return idx
@@ -9479,7 +9484,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_23number(struct __pyx_obj_8specfil
   if (__pyx_t_3) {
 
     /* "specfile.pyx":757
- *         idx = SfNumber(self.handle, scan_index + 1)
+ *         idx = specfile_wrapper.SfNumber(self.handle, scan_index + 1)
  *         if idx == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return idx
@@ -9598,7 +9603,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_25order(struct __pyx_obj_8specfile
   /* "specfile.pyx":773
  *         :rtype: int
  *         """
- *         ordr = SfOrder(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
+ *         ordr = specfile_wrapper.SfOrder(self.handle, scan_index + 1)             # <<<<<<<<<<<<<<
  *         if ordr == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  */
@@ -9610,7 +9615,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_25order(struct __pyx_obj_8specfile
 
   /* "specfile.pyx":774
  *         """
- *         ordr = SfOrder(self.handle, scan_index + 1)
+ *         ordr = specfile_wrapper.SfOrder(self.handle, scan_index + 1)
  *         if ordr == -1:             # <<<<<<<<<<<<<<
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
  *         return ordr
@@ -9619,7 +9624,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_25order(struct __pyx_obj_8specfile
   if (__pyx_t_3) {
 
     /* "specfile.pyx":775
- *         ordr = SfOrder(self.handle, scan_index + 1)
+ *         ordr = specfile_wrapper.SfOrder(self.handle, scan_index + 1)
  *         if ordr == -1:
  *             self._handle_error(SF_ERR_SCAN_NOT_FOUND)             # <<<<<<<<<<<<<<
  *         return ordr
@@ -9745,7 +9750,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_27_list(struct __pyx_obj_8specfile
  *             long *scan_numbers
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         scan_numbers = SfList(self.handle, &error)
+ *         scan_numbers = specfile_wrapper.SfList(self.handle, &error)
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 783; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -9756,7 +9761,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_27_list(struct __pyx_obj_8specfile
   /* "specfile.pyx":785
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         scan_numbers = SfList(self.handle, &error)             # <<<<<<<<<<<<<<
+ *         scan_numbers = specfile_wrapper.SfList(self.handle, &error)             # <<<<<<<<<<<<<<
  *         self._handle_error(error)
  * 
  */
@@ -9764,7 +9769,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_27_list(struct __pyx_obj_8specfile
 
   /* "specfile.pyx":786
  * 
- *         scan_numbers = SfList(self.handle, &error)
+ *         scan_numbers = specfile_wrapper.SfList(self.handle, &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         ret_list = []
@@ -10033,10 +10038,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
 
   /* "specfile.pyx":826
  * 
- *         sfdata_error = SfData(self.handle,
- *                               scan_index + 1,             # <<<<<<<<<<<<<<
- *                               &mydata,
- *                               &data_info,
+ *         sfdata_error = specfile_wrapper.SfData(self.handle,
+ *                                                scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                &mydata,
+ *                                                &data_info,
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 826; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10046,15 +10051,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
   /* "specfile.pyx":825
  *             long nlines, ncolumns, regular
  * 
- *         sfdata_error = SfData(self.handle,             # <<<<<<<<<<<<<<
- *                               scan_index + 1,
- *                               &mydata,
+ *         sfdata_error = specfile_wrapper.SfData(self.handle,             # <<<<<<<<<<<<<<
+ *                                                scan_index + 1,
+ *                                                &mydata,
  */
   __pyx_v_sfdata_error = SfData(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_mydata), (&__pyx_v_data_info), (&__pyx_v_error));
 
   /* "specfile.pyx":830
- *                               &data_info,
- *                               &error)
+ *                                                &data_info,
+ *                                                &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         if <long>data_info != 0:
@@ -10250,7 +10255,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
  *             for j in range(ncolumns):
  *                 ret_array[i, j] = mydata[i][j]             # <<<<<<<<<<<<<<
  * 
- *         freeArrNZ(<void ***>&mydata, nlines)
+ *         specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)
  */
       __pyx_t_6 = PyFloat_FromDouble(((__pyx_v_mydata[__pyx_v_i])[__pyx_v_j])); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 845; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_6);
@@ -10275,7 +10280,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
   /* "specfile.pyx":847
  *                 ret_array[i, j] = mydata[i][j]
  * 
- *         freeArrNZ(<void ***>&mydata, nlines)             # <<<<<<<<<<<<<<
+ *         specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)             # <<<<<<<<<<<<<<
  *         free(data_info)
  *         return ret_array
  */
@@ -10283,7 +10288,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
 
   /* "specfile.pyx":848
  * 
- *         freeArrNZ(<void ***>&mydata, nlines)
+ *         specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)
  *         free(data_info)             # <<<<<<<<<<<<<<
  *         return ret_array
  * 
@@ -10291,7 +10296,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_31data(struct __pyx_obj_8specfile_
   free(__pyx_v_data_info);
 
   /* "specfile.pyx":849
- *         freeArrNZ(<void ***>&mydata, nlines)
+ *         specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)
  *         free(data_info)
  *         return ret_array             # <<<<<<<<<<<<<<
  * 
@@ -10437,7 +10442,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_33data_column_by_name(struct __pyx
  * 
  *         label = _string_to_char_star(label)             # <<<<<<<<<<<<<<
  * 
- *         nlines = SfDataColByName(self.handle,
+ *         nlines = specfile_wrapper.SfDataColByName(self.handle,
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_string_to_char_star); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 871; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -10471,10 +10476,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_33data_column_by_name(struct __pyx
 
   /* "specfile.pyx":874
  * 
- *         nlines = SfDataColByName(self.handle,
- *                                  scan_index + 1,             # <<<<<<<<<<<<<<
- *                                  label,
- *                                  &data_column,
+ *         nlines = specfile_wrapper.SfDataColByName(self.handle,
+ *                                                   scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                   label,
+ *                                                   &data_column,
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 874; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10482,26 +10487,26 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_33data_column_by_name(struct __pyx
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":875
- *         nlines = SfDataColByName(self.handle,
- *                                  scan_index + 1,
- *                                  label,             # <<<<<<<<<<<<<<
- *                                  &data_column,
- *                                  &error)
+ *         nlines = specfile_wrapper.SfDataColByName(self.handle,
+ *                                                   scan_index + 1,
+ *                                                   label,             # <<<<<<<<<<<<<<
+ *                                                   &data_column,
+ *                                                   &error)
  */
   __pyx_t_7 = __Pyx_PyObject_AsString(__pyx_v_label); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 875; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "specfile.pyx":873
  *         label = _string_to_char_star(label)
  * 
- *         nlines = SfDataColByName(self.handle,             # <<<<<<<<<<<<<<
- *                                  scan_index + 1,
- *                                  label,
+ *         nlines = specfile_wrapper.SfDataColByName(self.handle,             # <<<<<<<<<<<<<<
+ *                                                   scan_index + 1,
+ *                                                   label,
  */
   __pyx_v_nlines = SfDataColByName(__pyx_v_self->handle, __pyx_t_6, __pyx_t_7, (&__pyx_v_data_column), (&__pyx_v_error));
 
   /* "specfile.pyx":878
- *                                  &data_column,
- *                                  &error)
+ *                                                   &data_column,
+ *                                                   &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         cdef numpy.ndarray ret_array = numpy.empty((nlines,),
@@ -10717,7 +10722,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
  *             char** lines
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         nlines = SfHeader(self.handle,
+ *         nlines = specfile_wrapper.SfHeader(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 902; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10727,10 +10732,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
 
   /* "specfile.pyx":905
  * 
- *         nlines = SfHeader(self.handle,
- *                           scan_index + 1,             # <<<<<<<<<<<<<<
- *                           "",           # no pattern matching
- *                           &lines,
+ *         nlines = specfile_wrapper.SfHeader(self.handle,
+ *                                            scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                            "",           # no pattern matching
+ *                                            &lines,
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 905; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10740,14 +10745,14 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
   /* "specfile.pyx":904
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         nlines = SfHeader(self.handle,             # <<<<<<<<<<<<<<
- *                           scan_index + 1,
- *                           "",           # no pattern matching
+ *         nlines = specfile_wrapper.SfHeader(self.handle,             # <<<<<<<<<<<<<<
+ *                                            scan_index + 1,
+ *                                            "",           # no pattern matching
  */
   __pyx_v_nlines = SfHeader(__pyx_v_self->handle, __pyx_t_3, __pyx_k__24, (&__pyx_v_lines), (&__pyx_v_error));
 
   /* "specfile.pyx":910
- *                           &error)
+ *                                            &error)
  * 
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
@@ -10829,7 +10834,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
  *             line = <bytes>lines[i].decode()
  *             lines_list.append(line)             # <<<<<<<<<<<<<<
  * 
- *         freeArrNZ(<void***>&lines, nlines)
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
  */
     __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 915; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
@@ -10837,7 +10842,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
   /* "specfile.pyx":917
  *             lines_list.append(line)
  * 
- *         freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
  *         return lines_list
  * 
  */
@@ -10845,10 +10850,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
 
   /* "specfile.pyx":918
  * 
- *         freeArrNZ(<void***>&lines, nlines)
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
  *         return lines_list             # <<<<<<<<<<<<<<
  * 
- *     def file_header(self, scan_index):
+ *     def file_header(self, scan_index=0):
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_INCREF(__pyx_v_lines_list);
@@ -10883,19 +10888,63 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_35scan_header(struct __pyx_obj_8sp
 /* "specfile.pyx":920
  *         return lines_list
  * 
- *     def file_header(self, scan_index):             # <<<<<<<<<<<<<<
+ *     def file_header(self, scan_index=0):             # <<<<<<<<<<<<<<
  *         """file_header(scan_index)
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8specfile_8SpecFile_38file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static PyObject *__pyx_pw_8specfile_8SpecFile_38file_header(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static char __pyx_doc_8specfile_8SpecFile_37file_header[] = "file_header(scan_index)\n\n        Return list of file header lines.\n        \n        A file header contains all lines between a ``#F`` header line and\n        a ``#S`` header line (start of scan). We need to specify a scan\n        number because there can be more than one file header in a given file.\n        A file header applies to all subsequent scans, until a new file\n        header is defined.\n        \n        :param scan_index: Unique scan index between ``0`` and\n            ``len(self)-1``.\n        :type scan_index: int\n\n        :return: List of raw file header lines\n        :rtype: list of str\n        ";
-static PyObject *__pyx_pw_8specfile_8SpecFile_38file_header(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_38file_header(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_scan_index = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("file_header (wrapper)", 0);
-  __pyx_r = __pyx_pf_8specfile_8SpecFile_37file_header(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_scan_index,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)__pyx_int_0);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_scan_index);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "file_header") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 920; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_scan_index = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("file_header", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 920; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("specfile.SpecFile.file_header", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_37file_header(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), __pyx_v_scan_index);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
@@ -10931,7 +10980,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
  *             char** lines
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         nlines = SfFileHeader(self.handle,
+ *         nlines = specfile_wrapper.SfFileHeader(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 940; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10941,10 +10990,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
 
   /* "specfile.pyx":943
  * 
- *         nlines = SfFileHeader(self.handle,
- *                              scan_index + 1,             # <<<<<<<<<<<<<<
- *                              "",          # no pattern matching
- *                              &lines,
+ *         nlines = specfile_wrapper.SfFileHeader(self.handle,
+ *                                                scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                "",          # no pattern matching
+ *                                                &lines,
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 943; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -10954,15 +11003,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
   /* "specfile.pyx":942
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         nlines = SfFileHeader(self.handle,             # <<<<<<<<<<<<<<
- *                              scan_index + 1,
- *                              "",          # no pattern matching
+ *         nlines = specfile_wrapper.SfFileHeader(self.handle,             # <<<<<<<<<<<<<<
+ *                                                scan_index + 1,
+ *                                                "",          # no pattern matching
  */
   __pyx_v_nlines = SfFileHeader(__pyx_v_self->handle, __pyx_t_3, __pyx_k__24, (&__pyx_v_lines), (&__pyx_v_error));
 
   /* "specfile.pyx":947
- *                              &lines,
- *                              &error)
+ *                                                &lines,
+ *                                                &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         lines_list = []
@@ -11043,7 +11092,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
  *             line =  <bytes>lines[i].decode()
  *             lines_list.append(line)             # <<<<<<<<<<<<<<
  * 
- *         freeArrNZ(<void***>&lines, nlines)
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
  */
     __pyx_t_10 = __Pyx_PyList_Append(__pyx_v_lines_list, __pyx_v_line); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 952; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
@@ -11051,7 +11100,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
   /* "specfile.pyx":954
  *             lines_list.append(line)
  * 
- *         freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)             # <<<<<<<<<<<<<<
  *         return lines_list
  * 
  */
@@ -11059,7 +11108,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
 
   /* "specfile.pyx":955
  * 
- *         freeArrNZ(<void***>&lines, nlines)
+ *         specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
  *         return lines_list             # <<<<<<<<<<<<<<
  * 
  *     def columns(self, scan_index):
@@ -11072,7 +11121,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_37file_header(struct __pyx_obj_8sp
   /* "specfile.pyx":920
  *         return lines_list
  * 
- *     def file_header(self, scan_index):             # <<<<<<<<<<<<<<
+ *     def file_header(self, scan_index=0):             # <<<<<<<<<<<<<<
  *         """file_header(scan_index)
  * 
  */
@@ -11138,7 +11187,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_39columns(struct __pyx_obj_8specfi
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         ncolumns = SfNoColumns(self.handle,
+ *         ncolumns = specfile_wrapper.SfNoColumns(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 971; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11148,9 +11197,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_39columns(struct __pyx_obj_8specfi
 
   /* "specfile.pyx":974
  * 
- *         ncolumns = SfNoColumns(self.handle,
- *                                scan_index + 1,             # <<<<<<<<<<<<<<
- *                                &error)
+ *         ncolumns = specfile_wrapper.SfNoColumns(self.handle,
+ *                                                 scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                 &error)
  *         self._handle_error(error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 974; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11161,15 +11210,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_39columns(struct __pyx_obj_8specfi
   /* "specfile.pyx":973
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         ncolumns = SfNoColumns(self.handle,             # <<<<<<<<<<<<<<
- *                                scan_index + 1,
- *                                &error)
+ *         ncolumns = specfile_wrapper.SfNoColumns(self.handle,             # <<<<<<<<<<<<<<
+ *                                                 scan_index + 1,
+ *                                                 &error)
  */
   __pyx_v_ncolumns = SfNoColumns(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error));
 
   /* "specfile.pyx":976
- *                                scan_index + 1,
- *                                &error)
+ *                                                 scan_index + 1,
+ *                                                 &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return ncolumns
@@ -11287,7 +11336,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         s_record = <bytes> SfCommand(self.handle,
+ *         s_record = <bytes> specfile_wrapper.SfCommand(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 993; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11297,9 +11346,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
 
   /* "specfile.pyx":996
  * 
- *         s_record = <bytes> SfCommand(self.handle,
- *                                      scan_index + 1,             # <<<<<<<<<<<<<<
- *                                      &error)
+ *         s_record = <bytes> specfile_wrapper.SfCommand(self.handle,
+ *                                                       scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                       &error)
  *         self._handle_error(error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 996; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11310,9 +11359,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
   /* "specfile.pyx":995
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         s_record = <bytes> SfCommand(self.handle,             # <<<<<<<<<<<<<<
- *                                      scan_index + 1,
- *                                      &error)
+ *         s_record = <bytes> specfile_wrapper.SfCommand(self.handle,             # <<<<<<<<<<<<<<
+ *                                                       scan_index + 1,
+ *                                                       &error)
  */
   __pyx_t_1 = __Pyx_PyBytes_FromString(SfCommand(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 995; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11323,8 +11372,8 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
   __pyx_t_4 = 0;
 
   /* "specfile.pyx":998
- *                                      scan_index + 1,
- *                                      &error)
+ *                                                       scan_index + 1,
+ *                                                       &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return s_record.decode()
@@ -11366,7 +11415,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
  * 
  *         return s_record.decode()             # <<<<<<<<<<<<<<
  * 
- *     def date(self, scan_index):
+ *     def date(self, scan_index=0):
  */
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_s_record == Py_None)) {
@@ -11406,19 +11455,63 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_41command(struct __pyx_obj_8specfi
 /* "specfile.pyx":1002
  *         return s_record.decode()
  * 
- *     def date(self, scan_index):             # <<<<<<<<<<<<<<
+ *     def date(self, scan_index=0):             # <<<<<<<<<<<<<<
  *         """date(scan_index)
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_8specfile_8SpecFile_44date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index); /*proto*/
+static PyObject *__pyx_pw_8specfile_8SpecFile_44date(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
 static char __pyx_doc_8specfile_8SpecFile_43date[] = "date(scan_index)\n\n        Return date from ``#D`` line\n\n        :param scan_index: Unique scan index between ``0`` and\n            ``len(self)-1``.\n        :type scan_index: int\n\n        :return: Date from ``#D`` line\n        :rtype: str\n        ";
-static PyObject *__pyx_pw_8specfile_8SpecFile_44date(PyObject *__pyx_v_self, PyObject *__pyx_v_scan_index) {
+static PyObject *__pyx_pw_8specfile_8SpecFile_44date(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_scan_index = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("date (wrapper)", 0);
-  __pyx_r = __pyx_pf_8specfile_8SpecFile_43date(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), ((PyObject *)__pyx_v_scan_index));
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_scan_index,0};
+    PyObject* values[1] = {0};
+    values[0] = ((PyObject *)__pyx_int_0);
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (kw_args > 0) {
+          PyObject* value = PyDict_GetItem(__pyx_kwds, __pyx_n_s_scan_index);
+          if (value) { values[0] = value; kw_args--; }
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "date") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1002; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+      }
+    } else {
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+    }
+    __pyx_v_scan_index = values[0];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("date", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1002; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("specfile.SpecFile.date", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_8specfile_8SpecFile_43date(((struct __pyx_obj_8specfile_SpecFile *)__pyx_v_self), __pyx_v_scan_index);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
@@ -11447,7 +11540,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_43date(struct __pyx_obj_8specfile_
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         d_line = <bytes> SfDate(self.handle,
+ *         d_line = <bytes> specfile_wrapper.SfDate(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1015; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11457,9 +11550,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_43date(struct __pyx_obj_8specfile_
 
   /* "specfile.pyx":1018
  * 
- *         d_line = <bytes> SfDate(self.handle,
- *                                 scan_index + 1,             # <<<<<<<<<<<<<<
- *                                 &error)
+ *         d_line = <bytes> specfile_wrapper.SfDate(self.handle,
+ *                                                  scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                  &error)
  *         self._handle_error(error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1018; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11470,9 +11563,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_43date(struct __pyx_obj_8specfile_
   /* "specfile.pyx":1017
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         d_line = <bytes> SfDate(self.handle,             # <<<<<<<<<<<<<<
- *                                 scan_index + 1,
- *                                 &error)
+ *         d_line = <bytes> specfile_wrapper.SfDate(self.handle,             # <<<<<<<<<<<<<<
+ *                                                  scan_index + 1,
+ *                                                  &error)
  */
   __pyx_t_1 = __Pyx_PyBytes_FromString(SfDate(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1017; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11483,8 +11576,8 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_43date(struct __pyx_obj_8specfile_
   __pyx_t_4 = 0;
 
   /* "specfile.pyx":1020
- *                                 scan_index + 1,
- *                                 &error)
+ *                                                  scan_index + 1,
+ *                                                  &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return d_line.decode()
@@ -11542,7 +11635,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_43date(struct __pyx_obj_8specfile_
   /* "specfile.pyx":1002
  *         return s_record.decode()
  * 
- *     def date(self, scan_index):             # <<<<<<<<<<<<<<
+ *     def date(self, scan_index=0):             # <<<<<<<<<<<<<<
  *         """date(scan_index)
  * 
  */
@@ -11613,7 +11706,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
  *             char** all_labels
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         nlabels = SfAllLabels(self.handle,
+ *         nlabels = specfile_wrapper.SfAllLabels(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1038; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11623,10 +11716,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
 
   /* "specfile.pyx":1041
  * 
- *         nlabels = SfAllLabels(self.handle,
- *                               scan_index + 1,             # <<<<<<<<<<<<<<
- *                               &all_labels,
- *                               &error)
+ *         nlabels = specfile_wrapper.SfAllLabels(self.handle,
+ *                                                scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                &all_labels,
+ *                                                &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1041; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11636,15 +11729,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
   /* "specfile.pyx":1040
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         nlabels = SfAllLabels(self.handle,             # <<<<<<<<<<<<<<
- *                               scan_index + 1,
- *                               &all_labels,
+ *         nlabels = specfile_wrapper.SfAllLabels(self.handle,             # <<<<<<<<<<<<<<
+ *                                                scan_index + 1,
+ *                                                &all_labels,
  */
   __pyx_v_nlabels = SfAllLabels(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_all_labels), (&__pyx_v_error));
 
   /* "specfile.pyx":1044
- *                               &all_labels,
- *                               &error)
+ *                                                &all_labels,
+ *                                                &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         labels_list = []
@@ -11709,7 +11802,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
  *         for i in range(nlabels):
  *             labels_list.append(<bytes>all_labels[i].decode())             # <<<<<<<<<<<<<<
  * 
- *         freeArrNZ(<void***>&all_labels, nlabels)
+ *         specfile_wrapper.freeArrNZ(<void***>&all_labels, nlabels)
  */
     __pyx_t_9 = (__pyx_v_all_labels[__pyx_v_i]);
     __pyx_t_1 = __Pyx_decode_c_string(__pyx_t_9, 0, strlen(__pyx_t_9), NULL, NULL, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1048; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11721,7 +11814,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
   /* "specfile.pyx":1050
  *             labels_list.append(<bytes>all_labels[i].decode())
  * 
- *         freeArrNZ(<void***>&all_labels, nlabels)             # <<<<<<<<<<<<<<
+ *         specfile_wrapper.freeArrNZ(<void***>&all_labels, nlabels)             # <<<<<<<<<<<<<<
  *         return labels_list
  * 
  */
@@ -11729,7 +11822,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_45labels(struct __pyx_obj_8specfil
 
   /* "specfile.pyx":1051
  * 
- *         freeArrNZ(<void***>&all_labels, nlabels)
+ *         specfile_wrapper.freeArrNZ(<void***>&all_labels, nlabels)
  *         return labels_list             # <<<<<<<<<<<<<<
  * 
  *     def motor_names(self, scan_index=0):
@@ -11857,7 +11950,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
  *             char** all_motors
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         nmotors = SfAllMotors(self.handle,
+ *         nmotors = specfile_wrapper.SfAllMotors(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1071; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11867,10 +11960,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
 
   /* "specfile.pyx":1074
  * 
- *         nmotors = SfAllMotors(self.handle,
- *                               scan_index + 1,             # <<<<<<<<<<<<<<
- *                               &all_motors,
- *                               &error)
+ *         nmotors = specfile_wrapper.SfAllMotors(self.handle,
+ *                                                scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                &all_motors,
+ *                                                &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1074; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -11880,15 +11973,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
   /* "specfile.pyx":1073
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         nmotors = SfAllMotors(self.handle,             # <<<<<<<<<<<<<<
- *                               scan_index + 1,
- *                               &all_motors,
+ *         nmotors = specfile_wrapper.SfAllMotors(self.handle,             # <<<<<<<<<<<<<<
+ *                                                scan_index + 1,
+ *                                                &all_motors,
  */
   __pyx_v_nmotors = SfAllMotors(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_all_motors), (&__pyx_v_error));
 
   /* "specfile.pyx":1077
- *                               &all_motors,
- *                               &error)
+ *                                                &all_motors,
+ *                                                &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         motors_list = []
@@ -11953,7 +12046,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
  *         for i in range(nmotors):
  *             motors_list.append(<bytes>all_motors[i].decode())             # <<<<<<<<<<<<<<
  * 
- *         freeArrNZ(<void***>&all_motors, nmotors)
+ *         specfile_wrapper.freeArrNZ(<void***>&all_motors, nmotors)
  */
     __pyx_t_9 = (__pyx_v_all_motors[__pyx_v_i]);
     __pyx_t_1 = __Pyx_decode_c_string(__pyx_t_9, 0, strlen(__pyx_t_9), NULL, NULL, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1081; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11965,7 +12058,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
   /* "specfile.pyx":1083
  *             motors_list.append(<bytes>all_motors[i].decode())
  * 
- *         freeArrNZ(<void***>&all_motors, nmotors)             # <<<<<<<<<<<<<<
+ *         specfile_wrapper.freeArrNZ(<void***>&all_motors, nmotors)             # <<<<<<<<<<<<<<
  *         return motors_list
  * 
  */
@@ -11973,7 +12066,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_47motor_names(struct __pyx_obj_8sp
 
   /* "specfile.pyx":1084
  * 
- *         freeArrNZ(<void***>&all_motors, nmotors)
+ *         specfile_wrapper.freeArrNZ(<void***>&all_motors, nmotors)
  *         return motors_list             # <<<<<<<<<<<<<<
  * 
  *     def motor_positions(self, scan_index):
@@ -12056,7 +12149,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_49motor_positions(struct __pyx_obj
  *             double* motor_positions
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         nmotors = SfAllMotorPos(self.handle,
+ *         nmotors = specfile_wrapper.SfAllMotorPos(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1100; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12066,10 +12159,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_49motor_positions(struct __pyx_obj
 
   /* "specfile.pyx":1103
  * 
- *         nmotors = SfAllMotorPos(self.handle,
- *                                 scan_index + 1,             # <<<<<<<<<<<<<<
- *                                 &motor_positions,
- *                                 &error)
+ *         nmotors = specfile_wrapper.SfAllMotorPos(self.handle,
+ *                                                  scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                  &motor_positions,
+ *                                                  &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12079,15 +12172,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_49motor_positions(struct __pyx_obj
   /* "specfile.pyx":1102
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         nmotors = SfAllMotorPos(self.handle,             # <<<<<<<<<<<<<<
- *                                 scan_index + 1,
- *                                 &motor_positions,
+ *         nmotors = specfile_wrapper.SfAllMotorPos(self.handle,             # <<<<<<<<<<<<<<
+ *                                                  scan_index + 1,
+ *                                                  &motor_positions,
  */
   __pyx_v_nmotors = SfAllMotorPos(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_motor_positions), (&__pyx_v_error));
 
   /* "specfile.pyx":1106
- *                                 &motor_positions,
- *                                 &error)
+ *                                                  &motor_positions,
+ *                                                  &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         motor_positions_list = []
@@ -12312,7 +12405,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_51motor_position_by_name(struct __
  * 
  *         name = _string_to_char_star(name)             # <<<<<<<<<<<<<<
  * 
- *         motor_position = SfMotorPosByName(self.handle,
+ *         motor_position = specfile_wrapper.SfMotorPosByName(self.handle,
  */
   __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_string_to_char_star); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1130; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
@@ -12346,10 +12439,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_51motor_position_by_name(struct __
 
   /* "specfile.pyx":1133
  * 
- *         motor_position = SfMotorPosByName(self.handle,
- *                                           scan_index + 1,             # <<<<<<<<<<<<<<
- *                                           name,
- *                                           &error)
+ *         motor_position = specfile_wrapper.SfMotorPosByName(self.handle,
+ *                                                            scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                            name,
+ *                                                            &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1133; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12357,10 +12450,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_51motor_position_by_name(struct __
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":1134
- *         motor_position = SfMotorPosByName(self.handle,
- *                                           scan_index + 1,
- *                                           name,             # <<<<<<<<<<<<<<
- *                                           &error)
+ *         motor_position = specfile_wrapper.SfMotorPosByName(self.handle,
+ *                                                            scan_index + 1,
+ *                                                            name,             # <<<<<<<<<<<<<<
+ *                                                            &error)
  *         self._handle_error(error)
  */
   __pyx_t_7 = __Pyx_PyObject_AsString(__pyx_v_name); if (unlikely((!__pyx_t_7) && PyErr_Occurred())) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -12368,15 +12461,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_51motor_position_by_name(struct __
   /* "specfile.pyx":1132
  *         name = _string_to_char_star(name)
  * 
- *         motor_position = SfMotorPosByName(self.handle,             # <<<<<<<<<<<<<<
- *                                           scan_index + 1,
- *                                           name,
+ *         motor_position = specfile_wrapper.SfMotorPosByName(self.handle,             # <<<<<<<<<<<<<<
+ *                                                            scan_index + 1,
+ *                                                            name,
  */
   __pyx_v_motor_position = SfMotorPosByName(__pyx_v_self->handle, __pyx_t_6, __pyx_t_7, (&__pyx_v_error));
 
   /* "specfile.pyx":1136
- *                                           name,
- *                                           &error)
+ *                                                            name,
+ *                                                            &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  *         return motor_position
@@ -12496,7 +12589,7 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_53number_of_mca(struct __pyx_obj_8
  *         cdef:
  *             int error = SF_ERR_NO_ERRORS             # <<<<<<<<<<<<<<
  * 
- *         num_mca = SfNoMca(self.handle,
+ *         num_mca = specfile_wrapper.SfNoMca(self.handle,
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_SF_ERR_NO_ERRORS); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12506,9 +12599,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_53number_of_mca(struct __pyx_obj_8
 
   /* "specfile.pyx":1156
  * 
- *         num_mca = SfNoMca(self.handle,
- *                         scan_index + 1,             # <<<<<<<<<<<<<<
- *                         &error)
+ *         num_mca = specfile_wrapper.SfNoMca(self.handle,
+ *                                            scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                            &error)
  *         # error code updating isn't implemented in SfNoMCA
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -12519,14 +12612,14 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_53number_of_mca(struct __pyx_obj_8
   /* "specfile.pyx":1155
  *             int error = SF_ERR_NO_ERRORS
  * 
- *         num_mca = SfNoMca(self.handle,             # <<<<<<<<<<<<<<
- *                         scan_index + 1,
- *                         &error)
+ *         num_mca = specfile_wrapper.SfNoMca(self.handle,             # <<<<<<<<<<<<<<
+ *                                            scan_index + 1,
+ *                                            &error)
  */
   __pyx_v_num_mca = SfNoMca(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_error));
 
   /* "specfile.pyx":1159
- *                         &error)
+ *                                            &error)
  *         # error code updating isn't implemented in SfNoMCA
  *         if num_mca == -1:             # <<<<<<<<<<<<<<
  *             raise SfNoMcaError("Failed to retrieve number of MCA " +
@@ -12669,10 +12762,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_55mca_calibration(struct __pyx_obj
 
   /* "specfile.pyx":1183
  * 
- *         mca_calib_error = SfMcaCalib(self.handle,
- *                                      scan_index + 1,             # <<<<<<<<<<<<<<
- *                                      &mca_calib,
- *                                      &error)
+ *         mca_calib_error = specfile_wrapper.SfMcaCalib(self.handle,
+ *                                                       scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                                       &mca_calib,
+ *                                                       &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1183; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12682,9 +12775,9 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_55mca_calibration(struct __pyx_obj
   /* "specfile.pyx":1182
  *             double* mca_calib
  * 
- *         mca_calib_error = SfMcaCalib(self.handle,             # <<<<<<<<<<<<<<
- *                                      scan_index + 1,
- *                                      &mca_calib,
+ *         mca_calib_error = specfile_wrapper.SfMcaCalib(self.handle,             # <<<<<<<<<<<<<<
+ *                                                       scan_index + 1,
+ *                                                       &mca_calib,
  */
   __pyx_v_mca_calib_error = SfMcaCalib(__pyx_v_self->handle, __pyx_t_3, (&__pyx_v_mca_calib), (&__pyx_v_error));
 
@@ -12894,10 +12987,10 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_57get_mca(struct __pyx_obj_8specfi
 
   /* "specfile.pyx":1217
  * 
- *         len_mca = SfGetMca(self.handle,
- *                            scan_index + 1,             # <<<<<<<<<<<<<<
- *                            mca_index + 1,
- *                            &mca_data,
+ *         len_mca = specfile_wrapper.SfGetMca(self.handle,
+ *                                             scan_index + 1,             # <<<<<<<<<<<<<<
+ *                                             mca_index + 1,
+ *                                             &mca_data,
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_scan_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1217; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12905,11 +12998,11 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_57get_mca(struct __pyx_obj_8specfi
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "specfile.pyx":1218
- *         len_mca = SfGetMca(self.handle,
- *                            scan_index + 1,
- *                            mca_index + 1,             # <<<<<<<<<<<<<<
- *                            &mca_data,
- *                            &error)
+ *         len_mca = specfile_wrapper.SfGetMca(self.handle,
+ *                                             scan_index + 1,
+ *                                             mca_index + 1,             # <<<<<<<<<<<<<<
+ *                                             &mca_data,
+ *                                             &error)
  */
   __pyx_t_1 = PyNumber_Add(__pyx_v_mca_index, __pyx_int_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -12919,15 +13012,15 @@ static PyObject *__pyx_pf_8specfile_8SpecFile_57get_mca(struct __pyx_obj_8specfi
   /* "specfile.pyx":1216
  *             long  len_mca
  * 
- *         len_mca = SfGetMca(self.handle,             # <<<<<<<<<<<<<<
- *                            scan_index + 1,
- *                            mca_index + 1,
+ *         len_mca = specfile_wrapper.SfGetMca(self.handle,             # <<<<<<<<<<<<<<
+ *                                             scan_index + 1,
+ *                                             mca_index + 1,
  */
   __pyx_v_len_mca = SfGetMca(__pyx_v_self->handle, __pyx_t_3, __pyx_t_4, (&__pyx_v_mca_data), (&__pyx_v_error));
 
   /* "specfile.pyx":1221
- *                            &mca_data,
- *                            &error)
+ *                                             &mca_data,
+ *                                             &error)
  *         self._handle_error(error)             # <<<<<<<<<<<<<<
  * 
  * 
@@ -15144,10 +15237,10 @@ static PyMethodDef __pyx_methods_8specfile_SpecFile[] = {
   {"data", (PyCFunction)__pyx_pw_8specfile_8SpecFile_32data, METH_O, __pyx_doc_8specfile_8SpecFile_31data},
   {"data_column_by_name", (PyCFunction)__pyx_pw_8specfile_8SpecFile_34data_column_by_name, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_8SpecFile_33data_column_by_name},
   {"scan_header", (PyCFunction)__pyx_pw_8specfile_8SpecFile_36scan_header, METH_O, __pyx_doc_8specfile_8SpecFile_35scan_header},
-  {"file_header", (PyCFunction)__pyx_pw_8specfile_8SpecFile_38file_header, METH_O, __pyx_doc_8specfile_8SpecFile_37file_header},
+  {"file_header", (PyCFunction)__pyx_pw_8specfile_8SpecFile_38file_header, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_8SpecFile_37file_header},
   {"columns", (PyCFunction)__pyx_pw_8specfile_8SpecFile_40columns, METH_O, __pyx_doc_8specfile_8SpecFile_39columns},
   {"command", (PyCFunction)__pyx_pw_8specfile_8SpecFile_42command, METH_O, __pyx_doc_8specfile_8SpecFile_41command},
-  {"date", (PyCFunction)__pyx_pw_8specfile_8SpecFile_44date, METH_O, __pyx_doc_8specfile_8SpecFile_43date},
+  {"date", (PyCFunction)__pyx_pw_8specfile_8SpecFile_44date, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_8SpecFile_43date},
   {"labels", (PyCFunction)__pyx_pw_8specfile_8SpecFile_46labels, METH_O, __pyx_doc_8specfile_8SpecFile_45labels},
   {"motor_names", (PyCFunction)__pyx_pw_8specfile_8SpecFile_48motor_names, METH_VARARGS|METH_KEYWORDS, __pyx_doc_8specfile_8SpecFile_47motor_names},
   {"motor_positions", (PyCFunction)__pyx_pw_8specfile_8SpecFile_50motor_positions, METH_O, __pyx_doc_8specfile_8SpecFile_49motor_positions},
@@ -15782,7 +15875,7 @@ static int __Pyx_InitCachedConstants(void) {
 
   /* "specfile.pyx":330
  * 
- *         self._labels = None
+ *         self._labels = []
  *         if self.record_exists_in_hdr('L'):             # <<<<<<<<<<<<<<
  *             try:
  *                 self._labels = self._specfile.labels(self._index)
@@ -15851,7 +15944,7 @@ static int __Pyx_InitCachedConstants(void) {
 
   /* "specfile.pyx":594
  *         if not self.__open_failed:
- *             if SfClose(self.handle):
+ *             if specfile_wrapper.SfClose(self.handle):
  *                 _logger.warning("Error while closing SpecFile")             # <<<<<<<<<<<<<<
  * 
  *     def __len__(self):
