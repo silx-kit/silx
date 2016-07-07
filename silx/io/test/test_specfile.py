@@ -165,6 +165,27 @@ class TestSpecFile(unittest.TestCase):
         self.assertIsInstance(self.sf, SpecFile)
         with self.assertRaises(IOError):
             sf2 = SpecFile("doesnt_exist.dat")
+
+        # test filename types unicode and bytes
+        if sys.version_info[0] < 3:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python2 str")
+            try:
+                SpecFile(unicode(self.fname1))
+            except TypeError:
+                self.fail("failed to handle filename as python2 unicode")
+        else:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python3 str")
+            try:
+                SpecFile(bytes(self.fname1, 'utf-8'))
+            except TypeError:
+                self.fail("failed to handle filename as python3 bytes")
+
         
     def test_number_of_scans(self):
         self.assertEqual(3, len(self.sf))
@@ -243,16 +264,21 @@ class TestSpecFile(unittest.TestCase):
                          ['first column', 'second column', '3rd_col'])
 
     def test_data(self):
+        # data_line() and data_col() take 1-based indices as arg
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
-        self.assertEqual(self.scan1.data.shape, (4, 3))
+        # tests for data transposition between original file and .data attr
+        self.assertAlmostEqual(self.scan1.data[2, 0],
+                               8)
+        self.assertEqual(self.scan1.data.shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
     def test_data_column_by_name(self):
         self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1],
                                1.2)
+        # Scan.data is transposed after readinq, so column is the first index
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
-                               numpy.sum(self.scan25.data[:, 2]))
+                               numpy.sum(self.scan25.data[2, :]))
         with self.assertRaises(KeyError):
             self.scan25.data_column_by_name("ygfxgfyxg")
 
