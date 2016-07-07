@@ -295,6 +295,14 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
+        self.profile = ProfileToolBar(self)
+        """"Profile tools attached to this plot.
+
+        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
+        """
+
+        self.addToolBar(self.profile)
+
         # Sync PlotBackend and ImageView
         self._updateYAxisInverted()
 
