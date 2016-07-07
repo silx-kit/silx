@@ -21,8 +21,8 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides a backward compatibility layer with previous
-specfile wrapper for :mod:`specfile`.
+"""This module provides a backward compatibility layer with the legacy
+specfile wrapper.
 
 If you are starting a new project, please consider using :mod:`silx.io.specfile`
 instead of this module.
@@ -46,12 +46,12 @@ from the ones in :class:`silx.io.specfile.SpecFile` and
 :class:`silx.io.specfile.Scan`. You should refer to the documentation of these
 base classes for more information.
 """
+from silx.io.specfile import SpecFile, Scan
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "05/07/2016"
 
-import numpy
-from silx.io.specfile import SpecFile, Scan, MCA
 
 def _format_number_list(number_list):
     """Return string representation of a list of integers,
@@ -86,13 +86,14 @@ def _format_number_list(number_list):
 
     return ret
 
+
 class Specfile(SpecFile):
     """
     This class is a subclass of :class:`silx.io.specfile.SpecFile`.
 
     It redefines following methods:
 
-        - :meth:`__getitem__`: returns a :class:`myscandata` object instead of
+        - :meth:`__getitem__`: returns a :class:`scandata` object instead of
           a :class:`silx.io.specfile.Scan` object
         - :meth:`list`: returns a string representation of a list instead of a
           list of integers
@@ -115,7 +116,7 @@ class Specfile(SpecFile):
         :type key: int
 
         :return: Scan
-        :rtype: :class:`myscandata`
+        :rtype: :class:`scandata`
         """
         if not isinstance(key, int):
             raise TypeError("Scan index must be an integer")
@@ -123,13 +124,13 @@ class Specfile(SpecFile):
         scan_index = key
         # allow negative index, like lists
         if scan_index < 0:
-            scan_index = len(self) + scan_index
+            scan_index += len(self)
 
         if not 0 <= scan_index < len(self):
             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
             raise IndexError(msg)
 
-        return myscandata(self, scan_index)
+        return scandata(self, scan_index)
 
     def list(self):
         """Return a string representation of a list of scan numbers.
@@ -153,7 +154,7 @@ class Specfile(SpecFile):
         :param key: ``"s.o"`` (scan number, scan order)
         :type key: str
         :return: Scan
-        :rtype: :class:`myscandata`
+        :rtype: :class:`scandata`
         """
         msg = "Key must be a string 'N.M' with N being the scan"
         msg += " number and M the order (eg '2.3')."
@@ -177,7 +178,7 @@ class Specfile(SpecFile):
             msg = "Scan index must be in range 0-%d" % (len(self) - 1)
             raise IndexError(msg)
 
-        return myscandata(self, scan_index)
+        return scandata(self, scan_index)
 
     def scanno(self):
         """Return the number of scans in the SpecFile
@@ -229,7 +230,8 @@ class Specfile(SpecFile):
     #     raise NotImplementedError
 
 
-class myscandata(Scan):
+# PEP8 violation in class name is to respect old API
+class scandata(Scan):  # noqa
     """
     This class is a subclass of :class:`silx.io.specfile.Scan`.
 
@@ -260,9 +262,6 @@ class myscandata(Scan):
     def __init__(self, specfile, scan_index):
         Scan.__init__(self, specfile, scan_index)
 
-        self._data = self._specfile.data(self._index)
-        self._mca = MCA(self)
-
     def allmotors(self):
         """Return a list of all motor names (identical to
         :attr:`motor_names`).
@@ -283,7 +282,7 @@ class myscandata(Scan):
 
     def cols(self):
         """Return the number of data columns (number of detectors)"""
-        return super(myscandata, self).data.shape[1]
+        return super(scandata, self).data.shape[1]
 
     def command(self):
         """Return the command called for this scan (``#S`` header line)"""
@@ -301,19 +300,19 @@ class myscandata(Scan):
 
             >>> scdata = sc.data()
             >>> data_sample = scdata[2, 17]"""
-        return numpy.transpose(super(myscandata, self).data)
+        return super(scandata, self).data
 
     def datacol(self, col):
-        """Return a data column
+        """Return a data column (all data for one detector)
 
         :param col: column number (1-based index)"""
-        return super(myscandata, self).data[:, col - 1]
+        return super(scandata, self).data[col - 1, :]
 
     def dataline(self, line):
-        """Return a data column
+        """Return a data line (one sample for all detectors)
 
         :param line: line number (1-based index)"""
-        return super(myscandata, self).data[line - 1, :]
+        return super(scandata, self).data[:, line - 1]
 
     def date(self):
         """Return the date from the scan header line ``#D``"""
@@ -357,15 +356,15 @@ class myscandata(Scan):
     def lines(self):
         """Return the number of data lines (number of data points per
         detector)"""
-        return super(myscandata, self).data.shape[0]
+        return super(scandata, self).data.shape[0]
 
     def mca(self, number):
         """Return one MCA spectrum
 
         :param number: MCA number (1-based index)"""
         # in the base class, mca is an object that can be indexed (but 0-based)
-        return super(myscandata, self).mca[number - 1]
+        return super(scandata, self).mca[number - 1]
 
     def nbmca(self):
         """Return number of MCAs in this scan"""
-        return len(super(myscandata, self).mca)
+        return len(super(scandata, self).mca)

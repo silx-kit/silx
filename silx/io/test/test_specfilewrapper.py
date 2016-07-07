@@ -111,8 +111,7 @@ sftext = """#F /tmp/sf.dat
 """
 
 
-
-class TestSpecfile(unittest.TestCase):
+class TestSpecfilewrapper(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         fd, cls.fname1 = tempfile.mkstemp(text=False)
@@ -180,8 +179,8 @@ class TestSpecfile(unittest.TestCase):
                          ['first column', 'second column', '3rd_col'])
 
     def test_data(self):
-        self.assertAlmostEqual(self.scan1.dataline(2)[2],
-                               1.56)
+        self.assertAlmostEqual(self.scan1.dataline(3)[2],
+                               -3.14)
         self.assertEqual(self.scan1.data().shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data()), 113.631)
 
@@ -208,7 +207,7 @@ class TestSpecfile(unittest.TestCase):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecfile))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecfilewrapper))
     return test_suite
 
 
