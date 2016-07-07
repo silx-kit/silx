@@ -37,7 +37,7 @@ import logging
 
 from . import Plot
 
-from .. import qt
+from .. import icons, qt
 
 
 _logger = logging.getLogger(__name__)
@@ -141,6 +141,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
+        else:
+            self.setWindowTitle('PlotWidget')
 
         Plot.Plot.__init__(self, parent, backend=backend)
 

@@ -22,14 +22,28 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Common wrapper over Python Qt bindings: PyQt5, PyQt4, PySide.
+"""Common wrapper over Python Qt bindings:
 
-This module provides a flattened namespace over Qt bindings.
+- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
+- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
+- `PySide <http://www.pyside.org>`_.
 
-If a Qt bindings is already loaded, it will be used, otherwise the different
-bindings are tried in this order: PyQt5, PyQt4, PySide.
+If a Qt binding is already loaded, it will use it, otherwise the different
+Qt bindings are tried in this order: PyQt5, PyQt4, PySide.
 
-The name of the loaded Qt bindings is stored in the BINDING variable.
+The name of the loaded Qt binding is stored in the BINDING variable.
+
+This module provides a flat namespace over Qt bindings by importing
+all symbols from **QtCore** and **QtGui** packages and if available
+from **QtOpenGL** and **QtSvg** packages.
+For **PyQt5**, it also imports all symbols from **QtWidgets** and
+**QtPrintSupport** packages.
+
+Example of using :mod:`silx.gui.qt` module:
+
+>>> from silx.gui import qt
+>>> app = qt.QApplication([])
+>>> widget = qt.QWidget()
 
 For an alternative solution providing a structured namespace,
 see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
@@ -49,7 +63,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The Python Qt binding that is used (One of: 'PySide', 'PyQt5', 'PyQt4')."""
+"""The name of the Qt binding in use: 'PyQt5', 'PyQt4' or 'PySide'."""
+
+QtBinding = None
+"""The Qt binding module in use: PyQt5, PyQt4 or PySide."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -96,6 +113,8 @@ if BINDING == 'PyQt4':
         except:
             _logger.warning("Cannot set sip API")
 
+    import PyQt4 as QtBinding  # noqa
+
     from PyQt4.QtCore import *  # noqa
     from PyQt4.QtGui import *  # noqa
 
@@ -117,6 +136,8 @@ if BINDING == 'PyQt4':
 elif BINDING == 'PySide':
     _logger.debug('Using PySide bindings')
 
+    import PySide as QtBinding  # noqa
+
     from PySide.QtCore import *  # noqa
     from PySide.QtGui import *  # noqa
 
@@ -135,6 +156,8 @@ elif BINDING == 'PySide':
 
 elif BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')
+
+    import PyQt5 as QtBinding  # noqa
 
     from PyQt5.QtCore import *  # noqa
     from PyQt5.QtGui import *  # noqa
