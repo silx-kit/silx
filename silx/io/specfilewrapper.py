@@ -87,6 +87,24 @@ def _format_number_list(number_list):
     return ret
 
 class Specfile(SpecFile):
+    """
+    This class is a subclass of :class:`silx.io.specfile.SpecFile`.
+
+    It redefines following methods:
+
+        - :meth:`__getitem__`: returns a :class:`myscandata` object instead of
+          a :class:`silx.io.specfile.Scan` object
+        - :meth:`list`: returns a string representation of a list instead of a
+          list of integers
+
+    Following methods are added:
+
+        - :meth:`select`
+        - :meth:`scanno`
+        - :meth:`allmotors`
+        - :meth:`epoch`
+        - :meth:`title`
+    """
     def __init__(self, filename):
         SpecFile.__init__(self, filename)
 
@@ -97,6 +115,7 @@ class Specfile(SpecFile):
         :type key: int
 
         :return: Scan
+        :rtype: :class:`myscandata`
         """
         if not isinstance(key, int):
             raise TypeError("Scan index must be an integer")
@@ -119,7 +138,7 @@ class Specfile(SpecFile):
         in the file. Continuous ranges of scan numbers are represented
         as ``first:last``.
 
-        For instance, let's assume our specfile contains these scans:
+        For instance, let's assume our specfile contains following scans:
         *1, 2, 3, 4, 5, 684, 685, 687, 688, 689, 700, 688, 688*.
         This method will then return::
 
@@ -134,6 +153,7 @@ class Specfile(SpecFile):
         :param key: ``"s.o"`` (scan number, scan order)
         :type key: str
         :return: Scan
+        :rtype: :class:`myscandata`
         """
         msg = "Key must be a string 'N.M' with N being the scan"
         msg += " number and M the order (eg '2.3')."
@@ -178,7 +198,7 @@ class Specfile(SpecFile):
         """:return: Epoch, from last word on file header line *#E*
         :rtype: int
         :raise: ValueError if *#E* line not found in header or last
-            word on *#E* cannot be converted to int"""
+            word on *#E* cannot be converted to type *int*"""
         fh = self.file_header()
         for line in fh:
             if line.startswith("#E "):
@@ -194,7 +214,7 @@ class Specfile(SpecFile):
         for line in fh:
             if line.startswith("#C "):
                 line1 = line.lstrip("#C ")
-                return int(line1.split("  ")[0])
+                return line1.split("  ")[0]
         raise ValueError("No #C header found in specfile")
 
     # # these functions exist in the old API but don't seem to be
@@ -210,6 +230,33 @@ class Specfile(SpecFile):
 
 
 class myscandata(Scan):
+    """
+    This class is a subclass of :class:`silx.io.specfile.Scan`.
+
+    It redefines following methods/attributes:
+
+        - :meth:`data` becomes a method returning an array, instead of just
+          an array
+        - :meth:`mca`: becomes a method returning an array, instead of
+          a :class:`silx.io.specfile.Scan` object
+        - :meth:`header`: becomes a method returning a list of **scan**
+          header lines (or a list of a single header line, if a key is
+          specified), instead of just a list of all header lines
+
+    Following methods are added:
+
+        - :meth:`allmotors`
+        - :meth:`allmotorpos`
+        - :meth:`alllabels`
+        - :meth:`cols`
+        - :meth:`lines`
+        - :meth:`command`
+        - :meth:`date`
+        - :meth:`datacol`
+        - :meth:`dataline`
+        - :meth:`fileheader`
+        - :meth:`nbmca`
+    """
     def __init__(self, specfile, scan_index):
         Scan.__init__(self, specfile, scan_index)
 
@@ -279,30 +326,32 @@ class myscandata(Scan):
 
     def header(self, key=""):
         """Return a list of scan header lines if no key is specified.
-        If a valid key is specified, return a single header line.
+        If a valid key is specified, return a list of a single header line.
 
         :param key: Header key (e.g. ``S, N, L, @CALIB``…)
             If ``key`` is an empty string, return complete list of scan header
             lines.
             If ``key`` does not match any header line, return empty list.
-        :return: Header line or list of scan header lines
-        :rtype: str or list[str]
+        :return: List of scan header lines
+        :rtype: list[str]
         """
         if key.strip() == "":
             return self.scan_header
         if self.record_exists_in_hdr(key):
             prefix = "#" + key + " "
-            if key in self.mca_header_dict:
-                prefix = "#@" + key + " "
-                return prefix + self.mca_header_dict[key]
+            # there is no leading @ in self.mca_header_dict keys
+            key_mca_dict = key.lstrip("@") if key.startswith("@") else None
+            if key_mca_dict in self.mca_header_dict:
+                return [prefix + self.mca_header_dict[key_mca_dict]]
             elif key in self.scan_header_dict:
-                return prefix + self.scan_header_dict[key]
+                return [prefix + self.scan_header_dict[key]]
             elif key in self.file_header_dict:
-                return prefix + self.file_header_dict[key]
+                return [prefix + self.file_header_dict[key]]
         elif self.record_exists_in_hdr("@" + key):
+            # in case key is a mca header key without the @
             if key in self.mca_header_dict:
                 prefix = "#@" + key + " "
-                return prefix + self.mca_header_dict[key]
+                return [prefix + self.mca_header_dict[key]]
         return []
 
     def lines(self):

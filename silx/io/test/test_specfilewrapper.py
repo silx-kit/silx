@@ -158,15 +158,22 @@ class TestSpecfile(unittest.TestCase):
 
     def test_scan_headers(self):
         self.assertEqual(self.scan25.header('S'),
-                         "#S 25  ascan  c3th 1.33245 1.52245  40 0.15")
-        self.assertEqual(self.scan1.header("G0"), '#G0 0')
+                         ["#S 25  ascan  c3th 1.33245 1.52245  40 0.15"])
+        self.assertEqual(self.scan1.header("G0"), ['#G0 0'])
         # parsing headers with long keys
         # parsing empty headers
-        self.assertEqual(self.scan1.header('Q'), '#Q ')
+        self.assertEqual(self.scan1.header('Q'), ['#Q '])
 
     def test_file_headers(self):
         self.assertEqual(self.scan1.header("E"),
-                         '#E 1455180875')
+                         ['#E 1455180875'])
+        self.assertEqual(self.sf.title(),
+                         "imaging")
+        self.assertEqual(self.sf.epoch(),
+                         1455180875)
+        self.assertEqual(self.sf.allmotors(),
+                         ["Pslit HGap", "MRTSlit UP", "MRTSlit DOWN",
+                          "Sslit1 VOff", "Sslit1 HOff", "Sslit1 VGap"])
 
     def test_scan_labels(self):
         self.assertEqual(self.scan1.alllabels(),
@@ -195,7 +202,7 @@ class TestSpecfile(unittest.TestCase):
 
     def test_mca_header(self):
         self.assertEqual(self.scan1_2.header("CALIB"),
-                         "#@CALIB 1 2 3")
+                         ["#@CALIB 1 2 3"])
 
 
 def suite():
