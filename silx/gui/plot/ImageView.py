@@ -48,6 +48,9 @@ To get help:
 ``python -m silx.gui.plot.ImageView -h``
 """
 
+from __future__ import division
+
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "25/05/2016"
@@ -481,10 +484,19 @@ class ImageView(PlotWindow):
             if activeImage is not None:
                 data = activeImage[0]
                 height, width = data.shape
-                x, y = int(eventDict['x']), int(eventDict['y'])
-                if x >= 0 and x < width and y >= 0 and y < height:
-                    self.valueChanged.emit(float(x), float(y),
-                                           data[y][x])
+
+                # Get corresponding coordinate in image
+                origin = activeImage[4]['origin']
+                scale = activeImage[4]['scale']
+                if (eventDict['x'] >= origin[0] and
+                        eventDict['y'] >= origin[1]):
+                    x = int((eventDict['x'] - origin[0]) / scale[0])
+                    y = int((eventDict['y'] - origin[1]) / scale[1])
+
+                    if x >= 0 and x < width and y >= 0 and y < height:
+                        self.valueChanged.emit(float(x), float(y),
+                                               data[y][x])
+
         elif eventDict['event'] == 'limitsChanged':
             # Do not handle histograms limitsChanged while
             # updating their limits from here.
@@ -517,12 +529,16 @@ class ImageView(PlotWindow):
                     xOrigin, xScale = params['origin'][0], params['scale'][0]
 
                     minValue = xOrigin + xScale * self._cache['dataXMin']
-                    data = self._cache['histoH']
-                    width = data.shape[0]
-                    x = int(eventDict['x'])
-                    if x >= minValue and x < minValue + width:
-                        self.valueChanged.emit(float('nan'), float(x),
-                                               data[int(x - minValue)])
+
+                    if eventDict['x'] >= minValue:
+                        data = self._cache['histoH']
+                        column = int((eventDict['x'] - minValue) / xScale)
+                        if column >= 0 and column < data.shape[0]:
+                            self.valueChanged.emit(
+                                float('nan'),
+                                float(column + self._cache['dataXMin']),
+                                data[column])
+
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
                     eventDict['xdata'] != self.getGraphXLimits()):
@@ -539,12 +555,16 @@ class ImageView(PlotWindow):
                     yOrigin, yScale = params['origin'][1], params['scale'][1]
 
                     minValue = yOrigin + yScale * self._cache['dataYMin']
-                    data = self._cache['histoV']
-                    height = data.shape[0]
-                    y = int(eventDict['y'])
-                    if y >= minValue and y < minValue + height:
-                        self.valueChanged.emit(float(y), float('nan'),
-                                               data[int(y - minValue)])
+
+                    if eventDict['y'] >= minValue:
+                        data = self._cache['histoV']
+                        row = int((eventDict['y'] - minValue) / yScale)
+                        if row >= 0 and row < data.shape[0]:
+                            self.valueChanged.emit(
+                                float(row + self._cache['dataYMin']),
+                                float('nan'),
+                                data[row])
+
         elif eventDict['event'] == 'limitsChanged':
             if (not self._updatingLimits and
                     eventDict['ydata'] != self.getGraphYLimits()):
