@@ -181,6 +181,11 @@ class TestSpecfilewrapper(unittest.TestCase):
     def test_data(self):
         self.assertAlmostEqual(self.scan1.dataline(3)[2],
                                -3.14)
+        self.assertAlmostEqual(self.scan1.datacol(1)[2],
+                               3.14)
+        # tests for data transposition between original file and .data attr
+        self.assertAlmostEqual(self.scan1.data()[2, 0],
+                               8)
         self.assertEqual(self.scan1.data().shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data()), 113.631)
 

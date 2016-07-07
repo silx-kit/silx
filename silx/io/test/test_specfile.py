@@ -264,8 +264,12 @@ class TestSpecFile(unittest.TestCase):
                          ['first column', 'second column', '3rd_col'])
 
     def test_data(self):
+        # data_line() and data_col() take 1-based indices as arg
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
+        # tests for data transposition between original file and .data attr
+        self.assertAlmostEqual(self.scan1.data[2, 0],
+                               8)
         self.assertEqual(self.scan1.data.shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
