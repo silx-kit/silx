@@ -158,13 +158,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.maskWidget.maskStateGroup.button(1).click()
         self.qapp.processEvents()
         self._drag()
-        self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertFalse(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # unmask same region
         self.maskWidget.maskStateGroup.button(0).click()
         self.qapp.processEvents()
         self._drag()
-        self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertTrue(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # Test draw polygon #
         toolButton = getQToolButtonFromAction(self.maskWidget.polygonAction)
@@ -175,13 +177,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.maskWidget.maskStateGroup.button(1).click()
         self.qapp.processEvents()
         self._drawPolygon()
-        self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertFalse(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # unmask same region
         self.maskWidget.maskStateGroup.button(0).click()
         self.qapp.processEvents()
         self._drawPolygon()
-        self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertTrue(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # Test draw pencil #
         toolButton = getQToolButtonFromAction(self.maskWidget.pencilAction)
@@ -195,13 +199,15 @@ class TestMaskToolsWidget(TestCaseQt):
         self.maskWidget.maskStateGroup.button(1).click()
         self.qapp.processEvents()
         self._drawPencil()
-        self.assertFalse(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertFalse(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # unmask same region
         self.maskWidget.maskStateGroup.button(0).click()
         self.qapp.processEvents()
         self._drawPencil()
-        self.assertTrue(numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+        self.assertTrue(
+            numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
         # Test no draw tool #
         toolButton = getQToolButtonFromAction(self.maskWidget.browseAction)
@@ -220,22 +226,22 @@ class TestMaskToolsWidget(TestCaseQt):
         self.mouseClick(toolButton, qt.Qt.LeftButton)
         self._drawPolygon()
 
-        ref_mask = self.maskWidget.getMask()
+        ref_mask = self.maskWidget.getSelectionMask()
         self.assertFalse(numpy.all(numpy.equal(ref_mask, 0)))
 
         with temp_dir() as tmp:
-            success = self.maskWidget.save(os.path.join(tmp, 'mask.npy'),
-                                           'npy')
+            success = self.maskWidget.save(
+                os.path.join(tmp, 'mask.npy'), 'npy')
             self.assertTrue(success)
 
-            self.maskWidget.resetMask()
+            self.maskWidget.resetSelectionMask()
             self.assertTrue(
-                numpy.all(numpy.equal(self.maskWidget.getMask(), 0)))
+                numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
             result = self.maskWidget.load(os.path.join(tmp, 'mask.npy'))
             self.assertTrue(result)
-            self.assertTrue(
-                numpy.all(numpy.equal(self.maskWidget.getMask(), ref_mask)))
+            self.assertTrue(numpy.all(numpy.equal(
+                self.maskWidget.getSelectionMask(), ref_mask)))
 
 
 def suite():
