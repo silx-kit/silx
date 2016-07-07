@@ -412,7 +412,7 @@ class MaskToolsWidget(qt.QWidget):
         return self._multipleMasks
 
     def setMultipleMasks(self, mode):
-        """Set the mode of multiplt masks support.
+        """Set the mode of multiple masks support.
 
         Available modes:
 
