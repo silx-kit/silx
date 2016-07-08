@@ -359,7 +359,7 @@ class MaskToolsWidget(qt.QWidget):
         self.plot.sigInteractiveModeChanged.connect(
             self._interactiveModeChanged)
 
-    def getMask(self, copy=True):
+    def getSelectionMask(self, copy=True):
         """Get the current mask as a 2D array.
 
         :param bool copy: True (default) to get a copy of the mask.
@@ -370,6 +370,40 @@ class MaskToolsWidget(qt.QWidget):
         """
         return self._mask.getMask(copy=copy)
 
+    def setSelectionMask(self, mask, copy=True):
+        """Set the mask to a new array.
+
+        :param numpy.ndarray mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+                    Array of other types are converted.
+        :param bool copy: True (the default) to copy the array,
+                          False to use it as is if possible.
+        :return: None if failed, shape of mask as 2-tuple if successful.
+                 The mask can be cropped or padded to fit active image,
+                 the returned shape is that of the active image.
+        """
+        mask = numpy.array(mask, copy=False, dtype=numpy.uint8)
+        if len(mask.shape) != 2:
+            _logger.error('Not an image, shape: %d', len(mask.shape))
+            return None
+
+        if mask.shape == self._data.shape:
+            self._mask.setMask(mask, copy=copy)
+            self._mask.commit()
+            return mask.shape
+        else:
+            _logger.warning('Mask has not the same size as current image.'
+                            ' Mask will be cropped or padded to fit image'
+                            ' dimensions. %s != %s',
+                            str(mask.shape), str(self._data.shape))
+            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
+            height = min(self._data.shape[0], mask.shape[0])
+            width = min(self._data.shape[1], mask.shape[1])
+            resizedMask[:height, :width] = mask[:height, :width]
+            self._mask.setMask(resizedMask, copy=False)
+            self._mask.commit()
+            return resizedMask.shape
+
     def multipleMasks(self):
         """Return the current mode of multiple masks support.
 
@@ -378,7 +412,7 @@ class MaskToolsWidget(qt.QWidget):
         return self._multipleMasks
 
     def setMultipleMasks(self, mode):
-        """Set the mode of multiplt masks support.
+        """Set the mode of multiple masks support.
 
         Available modes:
 
@@ -504,7 +538,7 @@ class MaskToolsWidget(qt.QWidget):
 
         self.clearAllBtn = qt.QPushButton('Clear all')
         self.clearAllBtn.setToolTip('Clear all mask levels')
-        self.clearAllBtn.clicked.connect(self.resetMask)
+        self.clearAllBtn.clicked.connect(self.resetSelectionMask)
 
         loadBtn = qt.QPushButton('Load...')
         loadBtn.clicked.connect(self._loadMask)
@@ -722,7 +756,7 @@ class MaskToolsWidget(qt.QWidget):
 
     def _updatePlotMask(self):
         """Update mask image in plot"""
-        mask = self.getMask(copy=False)
+        mask = self.getSelectionMask(copy=False)
         if len(mask):
             self.plot.addImage(mask, legend=self._maskName,
                                colormap=self._colormap,
@@ -756,7 +790,7 @@ class MaskToolsWidget(qt.QWidget):
         if not self.browseAction.isChecked():
             self.browseAction.trigger()  # Disable drawing tool
 
-        if len(self.getMask(copy=False)):
+        if len(self.getSelectionMask(copy=False)):
             self.plot.sigActiveImageChanged.connect(
                 self._activeImageChangedAfterCare)
 
@@ -782,7 +816,7 @@ class MaskToolsWidget(qt.QWidget):
             self._scale = activeImage[4]['scale']
             self._z = activeImage[4]['z'] + 1
             self._data = activeImage[0]
-            if self._data.shape != self.getMask(copy=False).shape:
+            if self._data.shape != self.getSelectionMask(copy=False).shape:
                 # Image has not the same size, remove mask and stop listening
                 if self.plot.getImage(self._maskName):
                     self.plot.remove(self._maskName, kind='image')
@@ -817,7 +851,7 @@ class MaskToolsWidget(qt.QWidget):
             self._scale = activeImage[4]['scale']
             self._z = activeImage[4]['z'] + 1
             self._data = activeImage[0]
-            if self._data.shape != self.getMask(copy=False).shape:
+            if self._data.shape != self.getSelectionMask(copy=False).shape:
                 self._mask.reset(self._data.shape)
                 self._mask.commit()
             else:
@@ -846,28 +880,14 @@ class MaskToolsWidget(qt.QWidget):
                               '%s', (sys.exc_info()[1]))
                 return False
 
-        if len(mask.shape) != 2:
-            _logger.error('Not an image, shape: %d', len(mask.shape))
+        effectiveMaskShape = self.setSelectionMask(mask, copy=False)
+        if effectiveMaskShape is None:
             return False
-
-        if mask.shape == self._data.shape:
-            self._mask.setMask(mask, copy=False)
-            result = True
-        else:
-            _logger.warning('Mask has not the same size as current image.'
-                            ' Mask will be cropped or padded to fit image'
-                            ' dimensions. %s != %s',
-                            str(mask.shape), str(self._data.shape))
-            resizedMask = numpy.zeros(self._data.shape, dtype=numpy.uint8)
-            height = min(self._data.shape[0], mask.shape[0])
-            width = min(self._data.shape[1], mask.shape[1])
-            resizedMask[:height, :width] = mask[:height, :width]
-            self._mask.setMask(resizedMask, copy=False)
+        elif mask.shape != effectiveMaskShape:
             result = 'Mask was resized from %s to %s' % (
-                str(mask.shape), str(resizedMask.shape))
-
-        self._mask.commit()
-        return result
+                str(mask.shape), str(effectiveMaskShape))
+        else:
+            return True
 
     def _loadMask(self):
         """Open load mask dialog"""
@@ -982,7 +1002,7 @@ class MaskToolsWidget(qt.QWidget):
         self._mask.clear(self.levelSpinBox.value())
         self._mask.commit()
 
-    def resetMask(self):
+    def resetSelectionMask(self):
         """Reset the mask"""
         self._mask.reset(shape=self._data.shape)
         self._mask.commit()
@@ -1201,7 +1221,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
         self.dockLocationChanged.connect(self._dockLocationChanged)
         self.topLevelChanged.connect(self._topLevelChanged)
 
-    def getMask(self, copy=False):
+    def getSelectionMask(self, copy=True):
         """Get the current mask as a 2D array.
 
         :param bool copy: True (default) to get a copy of the mask.
@@ -1210,7 +1230,21 @@ class MaskToolsDockWidget(qt.QDockWidget):
                  If there is no active image, an empty array is returned.
         :rtype: 2D numpy.ndarray of uint8
         """
-        return self.widget().getMask(copy=copy)
+        return self.widget().getSelectionMask(copy=copy)
+
+    def setSelectionMask(self, mask, copy=True):
+        """Set the mask to a new array.
+
+        :param numpy.ndarray mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+                    Array of other types are converted.
+        :param bool copy: True (the default) to copy the array,
+                          False to use it as is if possible.
+        :return: None if failed, shape of mask as 2-tuple if successful.
+                 The mask can be cropped or padded to fit active image,
+                 the returned shape is that of the active image.
+        """
+        return self.widget().setSelectionMask(mask, copy=copy)
 
     def toggleViewAction(self):
         """Returns a checkable action that shows or closes this widget.
