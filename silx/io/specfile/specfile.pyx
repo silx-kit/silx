@@ -307,6 +307,8 @@ class Scan(object):
         self._scan_header_lines = self._specfile.scan_header(self._index)
         self._file_header_lines = self._specfile.file_header(self._index)
 
+        if self._file_header_lines == self._scan_header_lines:
+            self._file_header_lines = []
         self._header = self._file_header_lines + self._scan_header_lines
 
         self._scan_header_dict = {}

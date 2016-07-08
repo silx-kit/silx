@@ -23,7 +23,7 @@
 #############################################################################*/
 """Tests for specfile wrapper"""
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
 __date__ = "29/04/2016"
 
@@ -137,10 +137,19 @@ class TestSpecFile(unittest.TestCase):
             os.write(fd2, bytes(sftext[370:-97], 'ascii'))
         os.close(fd2)
 
+        fd3, cls.fname3 = tempfile.mkstemp(text=False)
+        txt = sftext[371:923]
+        if sys.version < '3.0':
+            os.write(fd3, txt)
+        else:
+            os.write(fd3, bytes(txt, 'ascii'))
+        os.close(fd3)
+
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname1)
         os.unlink(cls.fname2)
+        os.unlink(cls.fname3)
 
 
     def setUp(self):
@@ -152,6 +161,9 @@ class TestSpecFile(unittest.TestCase):
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
 
+        self.sf_no_fhdr_crash = SpecFile(self.fname3)
+        self.scan1_no_fhdr_crash = self.sf_no_fhdr_crash[0]
+
     def tearDown(self):
         del self.sf
         del self.sf_no_fhdr
@@ -159,6 +171,8 @@ class TestSpecFile(unittest.TestCase):
         del self.scan1_2
         del self.scan25
         del self.scan1_no_fhdr
+        del self.sf_no_fhdr_crash
+        del self.scan1_no_fhdr_crash
         gc.collect()
 
     def test_open(self):
@@ -295,11 +309,6 @@ class TestSpecFile(unittest.TestCase):
     def test_absence_of_file_header(self):
         """We expect Scan.file_header to be an empty list in the absence
         of a file header.
-
-        Important note: A #S line needs to be preceded  by an empty line,
-        so a SpecFile without a file header needs to start with an empty line.
-        Otherwise, this test fails because SfFileHeader() fills
-        Scan.file_header with 15 scan header lines.
         """
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
         # motor positions can still be read in the scan header
@@ -307,7 +316,20 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
         self.assertEqual(len(self.scan1_no_fhdr.header), 15)
+        self.assertEqual(len(self.scan1_no_fhdr.scan_header), 15)
         self.assertEqual(len(self.scan1_no_fhdr.file_header), 0)
+
+    def test_crash_absence_of_file_header(self):
+        """Test no crash in absence of file header and no leading newline
+        character
+        """
+        self.assertEqual(len(self.scan1_no_fhdr_crash.motor_names), 0)
+        # motor positions can still be read in the scan header
+        # even in the absence of motor names
+        self.assertAlmostEqual(sum(self.scan1_no_fhdr_crash.motor_positions),
+                               223.385912)
+        self.assertEqual(len(self.scan1_no_fhdr_crash.scan_header), 15)
+        self.assertEqual(len(self.scan1_no_fhdr_crash.file_header), 0)
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
