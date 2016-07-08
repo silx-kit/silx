@@ -75,12 +75,12 @@ class PositionInfo(qt.QWidget):
     The PositionInfo widget is created with a list of converters, here
     to display polar coordinates of the mouse position.
 
-    >>> import math
+    >>> import numpy
     >>> from silx.gui.plot.PlotTools import PositionInfo
 
     >>> position = PositionInfo(plot, converters=[
-    ...     ('Radius', lambda x, y: math.sqrt(x*x + y*y)),
-    ...     ('Angle', lambda x, y: math.degrees(math.atan2(y, x)))])
+    ...     ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
+    ...     ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
 
     >>> toolBar.addWidget(position)  # Add the widget to the toolbar
     <...>
