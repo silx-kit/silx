@@ -798,11 +798,8 @@ class ImageViewMainWindow(ImageView):
         self.setGraphXLabel('X')
         self.setGraphYLabel('Y')
         self.setGraphTitle('Image')
-        self.sigActiveImageChanged.connect(self._activeImageChanged)
 
         # Add toolbars and status bar
-        self.profileToolBar = ProfileToolBar(self)
-        self.addToolBar(self.profileToolBar)
         self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self))
 
         self.statusBar()
@@ -823,25 +820,14 @@ class ImageViewMainWindow(ImageView):
         menu.addAction(self.yAxisInvertedAction)
 
         menu = self.menuBar().addMenu('Profile')
-        menu.addAction(self.profileToolBar.browseAction)
-        menu.addAction(self.profileToolBar.hLineAction)
-        menu.addAction(self.profileToolBar.vLineAction)
-        menu.addAction(self.profileToolBar.lineAction)
-        menu.addAction(self.profileToolBar.clearAction)
+        menu.addAction(self.profile.browseAction)
+        menu.addAction(self.profile.hLineAction)
+        menu.addAction(self.profile.vLineAction)
+        menu.addAction(self.profile.lineAction)
+        menu.addAction(self.profile.clearAction)
 
         # Connect to ImageView's signal
         self.valueChanged.connect(self._statusBarSlot)
-
-    def _activeImageChanged(self, previous, legend):
-        """Sync ROI color with current colormap"""
-        activeImage = self.getActiveImage()
-        if activeImage is None:
-            colormap = self.getDefaultColormap()
-        else:
-            colormap = activeImage[4]['colormap']
-
-        self.profileToolBar.overlayColor = cursorColorForColormap(
-            colormap['name'])
 
     def _statusBarSlot(self, row, column, value):
         """Update status bar with coordinates/value from plots."""
@@ -873,7 +859,6 @@ class ImageViewMainWindow(ImageView):
 
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
-        self.profileToolBar.updateProfile()
         self.setStatusBar(None)
 
 
