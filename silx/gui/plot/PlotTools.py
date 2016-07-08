@@ -41,7 +41,8 @@ import numpy
 
 from .. import icons
 from .. import qt
-from ...image.bilinear import BilinearImage
+from silx.image.bilinear import BilinearImage
+from .Colors import cursorColorForColormap
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -339,20 +340,15 @@ class ProfileToolBar(qt.QToolBar):
         assert plot is not None
         self.plot = plot
 
-        self._overlayColor = 'red'
+        self._overlayColor = None
+        self._defaultOverlayColor = 'red'  # update when active image change
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
         if profileWindow is None:
             # Import here to avoid cyclic import
-            from .PlotWindow import PlotWindow  # noqa
-            self.profileWindow = PlotWindow(parent=None, backend=None,
-                                            resetzoom=True, autoScale=True,
-                                            logScale=True, grid=True,
-                                            curveStyle=True, colormap=False,
-                                            aspectRatio=False, yInverted=False,
-                                            copy=True, save=True, print_=True,
-                                            control=False, position=True)
+            from .PlotWindow import Plot1D  # noqa
+            self.profileWindow = Plot1D()
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -436,6 +432,12 @@ class ProfileToolBar(qt.QToolBar):
         """Handle active image change: toggle enabled toolbar, update curve"""
         self.setEnabled(legend is not None)
         if legend is not None:
+            # Update default profile color
+            activeImage = self.plot.getActiveImage()
+            if activeImage is not None:
+                self._defaultOverlayColor = cursorColorForColormap(
+                    activeImage[4]['colormap']['name'])
+
             self.updateProfile()
 
     def _lineWidthSpinBoxValueChangedSlot(self, value):
@@ -505,8 +507,12 @@ class ProfileToolBar(qt.QToolBar):
 
     @property
     def overlayColor(self):
-        """The color to use for the ROI."""
-        return self._overlayColor
+        """The color to use for the ROI.
+
+        If set to None (the default), the overlay color is adapted to the
+        active image colormap and changes if the active image colormap changes.
+        """
+        return self._overlayColor or self._defaultOverlayColor
 
     @overlayColor.setter
     def overlayColor(self, color):
