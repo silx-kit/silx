@@ -252,8 +252,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
         if matplotlib.__version__ < '1.2.0':
             if (len(data.shape) == 2 and colormap['name'] is None and
                     'colors' in colormap):
-                colors = colormap['colors']
-                if not numpy.all(numpy.equal(colors[3], 255)):
+                colors = numpy.array(colormap['colors'], copy=False)
+                if (colors.shape[-1] == 4 and
+                        not numpy.all(numpy.equal(colors[3], 255))):
                     # This is a transparent colormap
                     if (colors.shape == (256, 4) and
                             colormap['normalization'] == 'linear' and
