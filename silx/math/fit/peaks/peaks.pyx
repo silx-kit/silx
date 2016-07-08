@@ -40,8 +40,7 @@ _logger = logging.getLogger(__name__)
 cimport cython
 from libc.stdlib cimport free
 
-# Rename C functions to reuse the same names for their python wrappers
-#from peaks cimport seek
+cimport peaks_wrapper
 
 
 def peak_search(y, fwhm, sensitivity=3.5,
@@ -92,9 +91,9 @@ def peak_search(y, fwhm, sensitivity=3.5,
     if end_index is None:
         end_index = y_c.size - 1
 
-    n_peaks = seek(begin_index, end_index, y_c.size,
-                   fwhm, sensitivity, debug,
-                   &y_c[0], &peaks_c, &relevances_c)
+    n_peaks = peaks_wrapper.seek(begin_index, end_index, y_c.size,
+                                 fwhm, sensitivity, debug,
+                                 &y_c[0], &peaks_c, &relevances_c)
 
 
     # A negative return value means that peaks were found but not enough

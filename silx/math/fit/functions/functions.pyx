@@ -62,25 +62,7 @@ logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport cython
-
-# Rename C functions to reuse the same names for their python wrappers
-from functions cimport erf_array as _erf
-from functions cimport erfc_array as _erfc
-from functions cimport sum_gauss as _sum_gauss
-from functions cimport sum_agauss as _sum_agauss
-from functions cimport sum_fastagauss as _sum_fastagauss
-from functions cimport sum_splitgauss as _sum_splitgauss
-from functions cimport sum_apvoigt as _sum_apvoigt
-from functions cimport sum_pvoigt as _sum_pvoigt
-from functions cimport sum_splitpvoigt as _sum_splitpvoigt
-from functions cimport sum_lorentz as _sum_lorentz
-from functions cimport sum_alorentz as _sum_alorentz
-from functions cimport sum_splitlorentz as _sum_splitlorentz
-from functions cimport sum_stepdown as _sum_stepdown
-from functions cimport sum_stepup as _sum_stepup
-from functions cimport sum_slit as _sum_slit
-from functions cimport sum_ahypermet as _sum_ahypermet
-from functions cimport sum_fastahypermet as _sum_fastahypermet
+cimport functions_wrapper
 
 
 def erf(x):
@@ -109,7 +91,7 @@ def erf(x):
     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
 
-    status = _erf(&x_c[0], x_c.size, &y_c[0])
+    status = functions_wrapper.erf_array(&x_c[0], x_c.size, &y_c[0])
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -140,7 +122,7 @@ def erfc(x):
     x_c = numpy.array(x, copy=False, dtype=numpy.float64, order='C').reshape(-1)
     y_c = numpy.empty(shape=(x_c.size,), dtype=numpy.float64)
 
-    status = _erfc(&x_c[0], x_c.size, &y_c[0])
+    status = functions_wrapper.erfc_array(&x_c[0], x_c.size, &y_c[0])
 
     return numpy.asarray(y_c).reshape(x.shape)
 
@@ -179,7 +161,10 @@ def sum_gauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_gauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_gauss(
+                    &x_c[0], x.size,
+                    &params_c[0], params_c.size,
+                    &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -221,7 +206,10 @@ def sum_agauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_agauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_agauss(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -266,7 +254,10 @@ def sum_fastagauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_fastagauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_fastagauss(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -310,7 +301,10 @@ def sum_splitgauss(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_splitgauss(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_splitgauss(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -356,7 +350,10 @@ def sum_apvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_apvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_apvoigt(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -402,7 +399,10 @@ def sum_pvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_pvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_pvoigt(
+                      &x_c[0], x.size,
+                      &params_c[0], params_c.size,
+                      &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -452,7 +452,10 @@ def sum_splitpvoigt(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_splitpvoigt(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_splitpvoigt(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -494,7 +497,10 @@ def sum_lorentz(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_lorentz(&x_c[0], x.size, &params_c[0], params_c.size, &y_c[0])
+    status = functions_wrapper.sum_lorentz(
+                     &x_c[0], x.size,
+                     &params_c[0], params_c.size,
+                     &y_c[0])
 
     if status:
         raise IndexError("Wrong number of parameters for function")
@@ -536,10 +542,9 @@ def sum_alorentz(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_alorentz(&x_c[0],
-                           x.size,
-                           &params_c[0],
-                           params_c.size,
+    status = functions_wrapper.sum_alorentz(
+                           &x_c[0], x.size,
+                           &params_c[0], params_c.size,
                            &y_c[0])
 
     if status:
@@ -583,10 +588,9 @@ def sum_splitlorentz(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_splitlorentz(&x_c[0],
-                               x.size,
-                               &params_c[0],
-                               params_c.size,
+    status = functions_wrapper.sum_splitlorentz(
+                               &x_c[0], x.size,
+                               &params_c[0], params_c.size,
                                &y_c[0])
 
     if status:
@@ -630,7 +634,7 @@ def sum_stepdown(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_stepdown(&x_c[0],
+    status = functions_wrapper.sum_stepdown(&x_c[0],
                            x.size,
                            &params_c[0],
                            params_c.size,
@@ -677,7 +681,7 @@ def sum_stepup(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_stepup(&x_c[0],
+    status = functions_wrapper.sum_stepup(&x_c[0],
                          x.size,
                          &params_c[0],
                          params_c.size,
@@ -726,7 +730,7 @@ def sum_slit(x, *params):
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_slit(&x_c[0],
+    status = functions_wrapper.sum_slit(&x_c[0],
                        x.size,
                        &params_c[0],
                        params_c.size,
@@ -805,7 +809,7 @@ def sum_ahypermet(x, *params,
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_ahypermet(&x_c[0],
+    status = functions_wrapper.sum_ahypermet(&x_c[0],
                             x.size,
                             &params_c[0],
                             params_c.size,
@@ -896,7 +900,7 @@ def sum_fastahypermet(x, *params,
     y_c = numpy.empty(shape=(x.size,),
                       dtype=numpy.float64)
 
-    status = _sum_fastahypermet(&x_c[0],
+    status = functions_wrapper.sum_fastahypermet(&x_c[0],
                                x.size,
                                &params_c[0],
                                params_c.size,

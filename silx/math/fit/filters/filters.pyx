@@ -52,12 +52,7 @@ logging.basicConfig()
 _logger = logging.getLogger(__name__)
 
 cimport cython
-
-# Rename C functions to reuse the same names for their python wrappers
-from filters cimport snip1d as _snip1d
-from filters cimport snip2d as _snip2d
-from filters cimport snip3d as _snip3d
-from filters cimport strip as _strip
+cimport filters_wrapper
 
 
 def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
@@ -120,8 +115,9 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
         len_anchors = 0
 
 
-    status = _strip(&input_c[0], input_c.size, factor, niterations, w,
-                    &anchors_c[0], len_anchors, &output[0])
+    status = filters_wrapper.strip(&input_c[0], input_c.size,
+                                    factor, niterations, w,
+                                    &anchors_c[0], len_anchors, &output[0])
 
     return numpy.asarray(output).reshape(data_shape)
 
@@ -166,7 +162,7 @@ def snip1d(data, snip_width):
                           dtype=numpy.float64,
                           order='C').reshape(-1)
 
-    _snip1d(&data_c[0], data_c.size, snip_width)
+    filters_wrapper.snip1d(&data_c[0], data_c.size, snip_width)
 
     return numpy.asarray(data_c).reshape(data_shape)
 
@@ -227,7 +223,7 @@ def snip2d(data, snip_width):
                           dtype=numpy.float64,
                           order='C').reshape(-1)
 
-    _snip2d(&data_c[0], nrows, ncolumns, snip_width)
+    filters_wrapper.snip2d(&data_c[0], nrows, ncolumns, snip_width)
 
     return numpy.asarray(data_c).reshape(data_shape)
 
@@ -292,8 +288,7 @@ def snip3d(data, snip_width):
                           dtype=numpy.float64,
                           order='C').reshape(-1)
 
-    _snip3d(&data_c[0], nx, ny, nz, snip_width)
-
+    filters_wrapper.snip3d(&data_c[0], nx, ny, nz, snip_width)
 
     return numpy.asarray(data_c).reshape(data_shape)
 
@@ -319,7 +314,8 @@ def savitsky_golay(data, npoints=5):
     output = numpy.empty(shape=(data_c.size,),
                          dtype=numpy.float64)
 
-    status = SavitskyGolay(&data_c[0], data_c.size, npoints, &output[0])
+    status = filters_wrapper.SavitskyGolay(&data_c[0], data_c.size,
+                                           npoints, &output[0])
 
     if status:
         _logger.error("Smoothing failed. Check that npoints is greater " +
