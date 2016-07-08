@@ -107,6 +107,8 @@ class PlotWindow(PlotWidget):
                  copy=True, save=True, print_=True,
                  control=False, position=False, roi=True, mask=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
+        if parent is None:
+            self.setWindowTitle('PlotWindow')
 
         self._dockWidgets = []
 
@@ -253,6 +255,28 @@ class PlotWindow(PlotWidget):
         """QAction toggling image mask dock widget"""
         return self.maskToolsDockWidget.toggleViewAction()
 
+    def getSelectionMask(self):
+        """Return the current mask handled by :attr:`maskToolsDockWidget`.
+
+        :return: The array of the mask with dimension of the 'active' image.
+                 If there is no active image, an empty array is returned.
+        :rtype: 2D numpy.ndarray of uint8
+        """
+        return self.maskToolsDockWidget.getSelectionMask()
+
+    def setSelectionMask(self, mask):
+        """Set the mask handled by :attr`maskToolsDockWidget`.
+
+        If the provided mask has not the same dimension as the 'active'
+        image, it will by cropped or padded.
+
+        :param mask: The array to use for the mask.
+        :type mask: numpy.ndarray of uint8 of dimension 2, C-contiguous.
+                    Array of other types are converted.
+        :return: True if success, False if failed
+        """
+        return bool(self.maskToolsDockWidget.setSelectionMask(mask))
+
     @property
     def consoleDockWidget(self):
         """DockWidget with IPython console (lazy-loaded)."""
@@ -364,6 +388,8 @@ class Plot1D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
                                      roi=True, mask=False)
+        if parent is None:
+            self.setWindowTitle('Plot1D')
         self.setGraphXLabel('X')
         self.setGraphYLabel('Y')
 
@@ -389,6 +415,8 @@ class Plot2D(PlotWindow):
                                      copy=True, save=True, print_=True,
                                      control=False, position=posInfo,
                                      roi=False, mask=True)
+        if parent is None:
+            self.setWindowTitle('Plot2D')
         self.setGraphXLabel('Columns')
         self.setGraphYLabel('Rows')
 

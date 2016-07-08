@@ -29,6 +29,7 @@ __date__ = "18/04/2016"
 import unittest
 
 from .test_specfile import suite as test_specfile_suite
+from .test_specfilewrapper import suite as test_specfilewrapper_suite
 from .test_dictdump import suite as test_dictdump_suite
 from .test_spech5 import suite as test_spech5_suite
 from .test_spectoh5 import suite as test_spectoh5_suite
@@ -39,6 +40,7 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_dictdump_suite())
     test_suite.addTest(test_specfile_suite())
+    test_suite.addTest(test_specfilewrapper_suite())
     test_suite.addTest(test_spech5_suite())
     test_suite.addTest(test_spectoh5_suite())
     test_suite.addTest(test_utils_suite())

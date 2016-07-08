@@ -427,14 +427,19 @@ class ColormapDialog(qt.QDialog):
             self._normButtonLinear.setChecked(normalization == 'linear')
             self._normButtonLog.setChecked(normalization == 'log')
 
-        if autoscale is not None:
-            self._rangeAutoscaleButton.setChecked(autoscale)
-
         if vmin is not None:
             self._minValue.setValue(vmin)
 
         if vmax is not None:
             self._maxValue.setValue(vmax)
+
+        if autoscale is not None:
+            self._rangeAutoscaleButton.setChecked(autoscale)
+            if autoscale:
+                dataRange = self.getDataRange()
+                if dataRange is not None:
+                    self._minValue.setValue(dataRange[0])
+                    self._maxValue.setValue(dataRange[1])
 
         # Do it once for all the changes
         self._notify()

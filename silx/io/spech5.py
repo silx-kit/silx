@@ -439,7 +439,8 @@ def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
                        "does not exist in SpecFile %s" % sf.filename)
 
     number_of_MCA_spectra = len(sf[scan_key].mca)
-    number_of_data_lines = sf[scan_key].data.shape[0]
+    # Scan.data is transposed
+    number_of_data_lines = sf[scan_key].data.shape[1]
 
     # Number of MCA spectra must be a multiple of number of data lines
     assert number_of_MCA_spectra % number_of_data_lines == 0
@@ -814,7 +815,7 @@ def _demultiplex_mca(scan, analyser_index):
     mca_data = scan.mca
 
     number_of_MCA_spectra = len(mca_data)
-    number_of_scan_data_lines = scan.data.shape[0]
+    number_of_scan_data_lines = scan.data.shape[1]
 
     # Number of MCA spectra must be a multiple of number of scan data lines
     assert number_of_MCA_spectra % number_of_scan_data_lines == 0
@@ -998,10 +999,10 @@ class SpecH5Group(object):
             return ret
 
         # number of data columns must be equal to number of labels
-        assert self._scan.data.shape[1] == len(self._scan.labels)
+        assert self._scan.data.shape[0] == len(self._scan.labels)
 
         number_of_MCA_spectra = len(self._scan.mca)
-        number_of_data_lines = self._scan.data.shape[0]
+        number_of_data_lines = self._scan.data.shape[1]
 
         # Number of MCA spectra must be a multiple of number of data lines
         assert number_of_MCA_spectra % number_of_data_lines == 0
