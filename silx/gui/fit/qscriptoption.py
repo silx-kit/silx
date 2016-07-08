@@ -178,7 +178,6 @@ class QScriptOption(TabSheets):
         """Output dictionary storing user input from  all fields contained
         in the sheets.
         """
-
         self.output.update(self.default)
 
         # remove any tabs initially present (2 placeholder tabs added in
@@ -202,14 +201,14 @@ class QScriptOption(TabSheets):
                 self.tabWidget.setCurrentWidget(self.sheets[name])
 
         # perform the binding to the buttons
-        self.buttonOk.clicked.connect(self.myaccept)
-        self.buttonCancel.clicked.connect(self.myreject)
+        self.buttonOk.clicked.connect(self.accept)
+        self.buttonCancel.clicked.connect(self.reject)
         if not nodefaults:
             self.buttonDefaults.clicked.connect(self.defaults)
         if not nohelp:
             self.buttonHelp.clicked.connect(self.myhelp)
 
-    def myaccept(self):
+    def accept(self):
         """When *OK* is clicked, update :attr:`output` with data from
         :attr:`sheets` (user input)"""
         self.output.update(self.default)
@@ -221,13 +220,13 @@ class QScriptOption(TabSheets):
             if self.output[key] is None:
                 if key in self.default:
                     self.output[key] = self.default[key]
-        self.accept()
+        super(QScriptOption, self).accept()
 
-    def myreject(self):
+    def reject(self):
         """When *Cancel is clicked, reinitialize :attr:`output` and quit
         """
         self.default()
-        self.reject()
+        super(QScriptOption, self).reject()
 
     def defaults(self):
         """Reinitialize :attr:`output` with :attr:`default`
@@ -286,15 +285,21 @@ class FieldSheet(qt.QWidget):
                 layout.addWidget(myfield)
 
     def get(self):
+        """Return a dictionary with all values stored in the various fields
+        """
         result = {}
         for field in self.fields:
             result.update(field.getvalue())
         return result
 
     def setdefaults(self, dict):
+        """Set all fields with values from a dictionary.
+
+        :param dict: Dictionary of values to be updated in fields with
+            matching keys.
+        """
         for field in self.fields:
             field.setdefaults(dict)
-        return
 
 
 class Label(qt.QWidget):
@@ -359,7 +364,8 @@ class EntryField(qt.QWidget):
         layout1.addWidget(self.TextLabel)
         layout1.addWidget(self.Entry)
 
-
+# FIXME: why do we need multiple keys in each field when they are all updated
+# with the same value?
 class MyEntryField(EntryField):
     """Entry field with a QLineEdit (:attr:`Entry`), a QLabel
     (:attr:`TextLabel`), and 3 methods to interact with
