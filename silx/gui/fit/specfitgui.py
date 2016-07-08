@@ -206,15 +206,25 @@ class SpecfitGui(qt.QWidget):
             self.__initialparameters()
 
     def configureGui(self, oldconfiguration):
+        """Display a :class:`silx.gui.fit.qscriptoption.QScriptOption`
+        dialog, allowing the user to define fit configuration parameters:
+
+            - ``PositiveHeightAreaFlag``
+            - ``QuotedPositionFlag``
+            - ``PositiveFwhmFlag``
+            - ``SameFwhmFlag``
+            - ``QuotedEtaFlag``
+            - ``NoConstraintsFlag``
+            - ``FwhmPoints``
+            - ``Sensitivity``
+            - ``Yscaling``
+            - ``ForcePeakPresence``
+
+        :return: User defined parameters in a dictionary"""
         # this method can be overwritten for custom
         # it should give back a new dictionary
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
-        if (0):
-            # example to force a given default configuration
-            newconfiguration['FitTheory'] = "Pseudo-Voigt Line"
-            newconfiguration['AutoFwhm'] = 1
-            newconfiguration['AutoScaling'] = 1
 
         # example script options like
         sheet1 = {'notetitle': 'Restrains',
@@ -235,8 +245,8 @@ class SpecfitGui(qt.QWidget):
                              ["EntryField", 'Yscaling',   'Y Factor   : '],
                              ["CheckField", 'ForcePeakPresence',   'Force peak presence '])}
         w = QScriptOption(self, name='Fit Configuration',
-                                        sheets=(sheet1, sheet2),
-                                        default=oldconfiguration)
+                          sheets=(sheet1, sheet2),
+                          default=oldconfiguration)
 
         w.show()
         w.exec_()
@@ -244,6 +254,7 @@ class SpecfitGui(qt.QWidget):
             newconfiguration.update(w.output)
         # we do not need the dialog any longer
         del w
+
         newconfiguration['FwhmPoints'] = int(
             float(newconfiguration['FwhmPoints']))
         newconfiguration['Sensitivity'] = float(
@@ -253,31 +264,16 @@ class SpecfitGui(qt.QWidget):
         return newconfiguration
 
     def estimate(self):
-        # if self.specfit.fitconfig['McaMode']:
-        #     try:
-        #         mcaresult = self.specfit.mcafit()
-        #     except:
-        #         msg = qt.QMessageBox(self)
-        #         msg.setIcon(qt.QMessageBox.Critical)
-        #         msg.setWindowTitle("Error on mcafit")
-        #         msg.setInformativeText(str(sys.exc_info()[1]))
-        #         msg.setDetailedText(traceback.format_exc())
-        #         msg.exec_()
-        #         ddict = {}
-        #         ddict['event'] = 'FitError'
-        #         self._emitSignal(ddict)
-        #         if DEBUG:
-        #             raise
-        #         return
-        #     self.guiparameters.fillfrommca(mcaresult)
-        #     ddict = {}
-        #     ddict['event'] = 'McaFitFinished'
-        #     ddict['data'] = mcaresult
-        #     self._emitSignal(ddict)
-        #     #self.guiparameters.removeallviews(keep='Region 1')
-        # else:
+        """Run parameter estimation function then emit
+        :attr:`sigSpecfitGuiSignal` with a dictionary containing a status
+        message *'EstimateFinished'* and a list of fit parameters estimations
+        in the format defined in
+        :attr:`silx.math.fit.specfit.Specfit.fit_results`
+        """
         try:
-            if self.specfit.theorydict[self.specfit.fitconfig['fittheory']][2] is not None:
+            theory_name = self.specfit.fitconfig['fittheory']
+            estimation_function = self.specfit.theorydict[theory_name][2]
+            if estimation_function is not None:
                 self.specfit.estimate(callback=self.fitstatus)
             else:
                 msg = qt.QMessageBox(self)
@@ -305,36 +301,17 @@ class SpecfitGui(qt.QWidget):
         ddict['data'] = self.specfit.fit_results
         self._emitSignal(ddict)
 
-        return
-
     def __forward(self, ddict):
         self._emitSignal(ddict)
 
     def startfit(self):
-        # if self.specfit.fitconfig['McaMode']:
-        #     try:
-        #         mcaresult = self.specfit.mcafit()
-        #     except:
-        #         msg = qt.QMessageBox(self)
-        #         msg.setIcon(qt.QMessageBox.Critical)
-        #         msg.setText("Error on mcafit: %s" % sys.exc_info()[1])
-        #         msg.exec_()
-        #         if DEBUG:
-        #             raise
-        #         return
-        #     self.guiparameters.fillfrommca(mcaresult)
-        #     ddict = {}
-        #     ddict['event'] = 'McaFitFinished'
-        #     ddict['data'] = mcaresult
-        #     self._emitSignal(ddict)
-        #     # self.guiparameters.removeview(view='Fit')
-        # else:
+        """Run fit, then emit :attr:`sigSpecfitGuiSignal` with a dictionary
+        containing a status
+        message *'FitFinished'* and a list of fit parameters results
+        in the format defined in
+        :attr:`silx.math.fit.specfit.Specfit.fit_results`
+        """
         self.specfit.fit_results = self.guiparameters.fillfitfromtable()
-        if DEBUG:
-            for param in self.specfit.fit_results:
-                print(param['name'], param['group'], param['estimation'])
-            print("TESTING")
-            self.specfit.startfit(callback=self.fitstatus)
         try:
             self.specfit.startfit(callback=self.fitstatus)
         except:
