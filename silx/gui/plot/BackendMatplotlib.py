@@ -334,7 +334,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
                 # Set unset/negative bounds to positive bounds
                 if vmin is None or vmax is None:
-                    posData = data[data > 0]
+                    finiteData = data[numpy.isfinite(data)]
+                    posData = finiteData[finiteData > 0]
                     if vmax is None:
                         # 1. as an ultimate fallback
                         vmax = posData.max() if posData.size > 0 else 1.
@@ -347,8 +348,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             else:  # Linear normalization
                 if colormap['autoscale']:
-                    vmin = data.min()
-                    vmax = data.max()
+                    finiteData = data[numpy.isfinite(data)]
+                    vmin = finiteData.min()
+                    vmax = finiteData.max()
                 else:
                     vmin = colormap['vmin']
                     vmax = colormap['vmax']
