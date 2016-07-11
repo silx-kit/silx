@@ -1,3 +1,4 @@
+# coding: utf-8
 #/*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #

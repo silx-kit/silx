@@ -1,3 +1,4 @@
+# coding: utf-8
 #/*##########################################################################
 # Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
 #
@@ -45,21 +46,40 @@ _logger = logging.getLogger(__name__)
 
 
 class SpecfitGui(qt.QWidget):
+    """Widget to configure, run and display results of a fitting.
+    It works hand in hand with a :class:`silx.math.fit.specfit.Specfit`
+    object that handles the fit functions and calls the iterative least-square
+    fitting algorithm.
+    """
     sigSpecfitGuiSignal = qt.pyqtSignal(object)
 
-    def __init__(self, parent=None, name=None, fl=0,
-                 specfit_instance=None,
-                 config=0, status=0, buttons=0):
+    def __init__(self, parent=None, name=None,
+                 specfit=None,
+                 enableconfig=True, enablestatus=True, enablebuttons=True):
+        """
+
+        :param parent: Parent widget
+        :param name: Window title
+        :param specfit: Instance of :class:`silx.math.fit.specfit.Specfit`
+        :param enableconfig: If ``True``, activate widgets to modify the fit
+            configuration (select between several fit functions or background
+            functions, apply global constraints, peak search parameters…)
+        :param enablestatus: If ``True``, add a fit status widget, to display
+            a message when fit estimation is available and when fit results
+            are available, as well as a measure of the fit error.
+        :param enablebuttons: If ``True``, add buttons to run estimation and
+            fitting.
+        """
         if name is None:
             name = "SpecfitGui"
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
         layout = qt.QVBoxLayout(self)
 
-        if specfit_instance is None:
+        if specfit is None:
             self.specfit = specfit.Specfit()
         else:
-            self.specfit = specfit_instance
+            self.specfit = specfit
 
         # initialize the default fitting functions in case
         # none is present
@@ -72,7 +92,9 @@ class SpecfitGui(qt.QWidget):
 
         self.setdata = self.specfit.setdata
         self.guiconfig = None
-        if config:
+        """If ``enableconfig`` is ``True``, this parameter is a
+        :class:`FitConfigWidget`"""
+        if enableconfig:
             self.guiconfig = FitConfigWidget(self)
             # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
             # self.guiconfig.WeightCheckBox.stateChanged[
@@ -91,14 +113,14 @@ class SpecfitGui(qt.QWidget):
         self.guiparameters = ParametersTab(self)
         layout.addWidget(self.guiparameters)
         self.guiparameters.sigMultiParametersSignal.connect(self.__forward)
-        if config:
+        if enableconfig:
             for key in self.specfit.bkgdict.keys():
                 self.guiconfig.BkgComBox.addItem(str(key))
             for key in self.specfit.theorydict:
                 self.guiconfig.FunComBox.addItem(str(key))
             configuration = {}
-            if specfit_instance is not None:
-                configuration = specfit_instance.configure()
+            if specfit is not None:
+                configuration = specfit.configure()
                 if configuration['fittheory'] is None:
                     self.guiconfig.FunComBox.setCurrentIndex(1)
                     self.funevent(self.specfit.theorydict.keys[0])
@@ -132,18 +154,18 @@ class SpecfitGui(qt.QWidget):
             else:
                 self.guiconfig.AutoScalingCheckBox.setChecked(0)
 
-        if status:
+        if enablestatus:
             self.guistatus = FitStatusLines(self)
             layout.addWidget(self.guistatus)
-        if buttons:
+        if enablebuttons:
             self.guibuttons = FitActionsButtons(self)
             self.guibuttons.EstimateButton.clicked.connect(self.estimate)
             self.guibuttons.StartfitButton.clicked.connect(self.startfit)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
             layout.addWidget(self.guibuttons)
 
-    def updateGui(self, configuration=None):
-        self.__configureGui(configuration)
+    # def updateGui(self, configuration=None):
+    #     self.__configureGui(configuration)
 
     def _emitSignal(self, ddict):
         self.sigSpecfitGuiSignal.emit(ddict)
@@ -153,25 +175,19 @@ class SpecfitGui(qt.QWidget):
 
     def __configureGui(self, newconfiguration=None):
         if self.guiconfig is not None:
-            # get current dictionary
-            # print "before ",self.specfit.fitconfig['fitbkg']
             configuration = self.configure()
             # get new dictionary
             if newconfiguration is None:
                 newconfiguration = self.configureGui(configuration)
             # update configuration
             configuration.update(self.configure(**newconfiguration))
-            # print "after =",self.specfit.fitconfig['fitbkg']
-            # update Gui
-            # current function
-            # self.funevent(list(self.specfit.theorydict.keys())[0])
             try:
                 i = 1 + \
                     list(self.specfit.theorydict.keys()).index(
                         self.specfit.fitconfig['fittheory'])
                 self.guiconfig.FunComBox.setCurrentIndex(i)
                 self.funevent(self.specfit.fitconfig['fittheory'])
-            except:
+            except:    # Fixme
                 print("Function not in list %s" %
                       self.specfit.fitconfig['fittheory'])
                 self.funevent(list(self.specfit.theorydict.keys())[0])
@@ -181,7 +197,7 @@ class SpecfitGui(qt.QWidget):
                 i = 1 + list(self.specfit.bkgdict.keys()
                              ).index(self.specfit.fitconfig['fitbkg'])
                 self.guiconfig.BkgComBox.setCurrentIndex(i)
-            except:
+            except:    # Fixme
                 print("Background not in list %s" %
                       self.specfit.fitconfig['fitbkg'])
                 self.bkgevent(list(self.specfit.bkgdict.keys())[0])
@@ -368,6 +384,14 @@ class SpecfitGui(qt.QWidget):
         return
 
     def funevent(self, item):
+        """Select a fit theory to be used for fitting. If this theory exists
+        in :attr:`specfit`, use it.
+
+        :param item: Name of the fit theory to use for fittingIf this theory
+            exists in :attr:`specfit`, use it. Else, open a file dialog to open
+            a custom fit function definition file with
+            :meth:`specfit.importfun`.
+        """
         item = str(item)
         if item in self.specfit.theorydict:
             self.specfit.settheory(item)
@@ -384,27 +408,19 @@ class SpecfitGui(qt.QWidget):
                         return
                     else:
                         # empty the ComboBox
-                        n = self.guiconfig.FunComBox.count()
                         while(self.guiconfig.FunComBox.count() > 1):
                             self.guiconfig.FunComBox.removeItem(1)
                         # and fill it again
                         for key in self.specfit.theorydict:
-                            if QTVERSION < '4.0.0':
-                                self.guiconfig.FunComBox.insertItem(str(key))
-                            else:
-                                self.guiconfig.FunComBox.addItem(str(key))
+                            self.guiconfig.FunComBox.addItem(str(key))
                 except:
                     qt.QMessageBox.critical(self, "ERROR",
                                             "Function not imported")
             i = 1 + \
                 list(self.specfit.theorydict.keys()).index(
                     self.specfit.fitconfig['fittheory'])
-            if QTVERSION < '4.0.0':
-                self.guiconfig.FunComBox.setCurrentItem(i)
-            else:
-                self.guiconfig.FunComBox.setCurrentIndex(i)
+            self.guiconfig.FunComBox.setCurrentIndex(i)
         self.__initialparameters()
-        return
 
     def __initialparameters(self):
         self.specfit.parameter_names = []
@@ -482,7 +498,7 @@ if __name__ == "__main__":
 
     a = qt.QApplication(sys.argv)
     a.lastWindowClosed.connect(a.quit)
-    w = SpecfitGui(config=1, status=1, buttons=1)
+    w = SpecfitGui(enableconfig=1, enablestatus=1, enablebuttons=1)
     w.setdata(x=x, y=y)
     w.show()
     a.exec_()
