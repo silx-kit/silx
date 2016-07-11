@@ -83,7 +83,7 @@ class SpecfitGui(qt.QWidget):
                 int].connect(self.autoscaleevent)
             self.guiconfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
-            self.guiconfig.PrintPushButton.clicked.connect(self.printps)
+            # self.guiconfig.PrintPushButton.clicked.connect(self.printps)
             self.guiconfig.BkgComBox.activated[str].connect(self.bkgevent)
             self.guiconfig.FunComBox.activated[str].connect(self.funevent)
             layout.addWidget(self.guiconfig)
@@ -294,7 +294,7 @@ class SpecfitGui(qt.QWidget):
             msg.exec_()
             return
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, current='Fit')
+            self.specfit.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
         ddict = {}
         ddict['event'] = 'EstimateFinished'
@@ -323,7 +323,7 @@ class SpecfitGui(qt.QWidget):
                 raise
             return
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, current='Fit')
+            self.specfit.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
         ddict = {}
         ddict['event'] = 'FitFinished'
@@ -331,27 +331,19 @@ class SpecfitGui(qt.QWidget):
         self._emitSignal(ddict)
         return
 
-    def printps(self, **kw):
-        text = self.guiparameters.getHTMLtext(**kw)
-        if __name__ == "__main__":
-            self.__printps(text)
-        else:
-            ddict = {'event': 'print',
-                     'text': text}
-            self._emitSignal(ddict)
-
-    def __printps(self, text):
-        msg = qt.QMessageBox(self)
-        msg.setIcon(qt.QMessageBox.Critical)
-        msg.setText("Sorry, Qt4 printing not implemented yet")
-        msg.exec_()
+    # def printps(self, **kw):
+    #     """Get parameters as a HTML table formatted string.
+    #     Emit this string in a dictionary"""
+    #     text = self.guiparameters.getHTMLtext(**kw)
+    #     ddict = {'event': 'print',
+    #              'text': text}
+    #     self._emitSignal(ddict)
 
     def autofwhmevent(self, item):
         if int(item):
             self.configure(AutoFwhm=1)
         else:
             self.configure(AutoFwhm=0)
-        return
 
     def autoscaleevent(self, item):
         if int(item):
@@ -444,11 +436,11 @@ class SpecfitGui(qt.QWidget):
                                                'xmax': None})
         # if self.specfit.fitconfig['McaMode']:
         #     self.guiparameters.fillfromfit(
-        #         self.specfit.fit_results, current='Region 1')
+        #         self.specfit.fit_results, view='Region 1')
         #     self.guiparameters.removeallviews(keep='Region 1')
         # else:
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, current='Fit')
+            self.specfit.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
 
     def fitstatus(self, data):

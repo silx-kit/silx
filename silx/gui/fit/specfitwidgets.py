@@ -148,8 +148,6 @@ class FitConfigWidget(qt.QWidget):
         through :attr:`AutoFWHMCheckBox`
       - open a dialog for modifying advanced parameters through
         :attr:`ConfigureButton`
-      - print all fit parameters or emit a signal with that data
-        using :attr:`PrintPushButton`
     """
 
     def __init__(self, parent=None):
@@ -231,10 +229,10 @@ class FitConfigWidget(qt.QWidget):
         layout5.setContentsMargins(0, 0, 0, 0)
         layout5.setSpacing(6)
 
-        self.PrintPushButton = qt.QPushButton(self)
-        self.PrintPushButton.setText("Print")
-
-        layout5.addWidget(self.PrintPushButton, 1, 0)
+        # self.PrintPushButton = qt.QPushButton(self)
+        # self.PrintPushButton.setText("Print")
+        #
+        # layout5.addWidget(self.PrintPushButton, 1, 0)
 
         self.ConfigureButton = qt.QPushButton(self)
         self.ConfigureButton.setText("Configure")
@@ -467,7 +465,7 @@ class ParametersTab(qt.QTabWidget):
         # Show first fit result in a tab in our widget
         w = ParametersTab()
         w.show()
-        w.fillfromfit(fit.fit_results, current='Gaussians')
+        w.fillfromfit(fit.fit_results, view='Gaussians')
 
         # new synthetic data
         y2 = functions.sum_splitgauss(x,
@@ -488,7 +486,7 @@ class ParametersTab(qt.QTabWidget):
         fit.startfit()
 
         # Show first fit result in another tab in our widget
-        w.fillfromfit(fit.fit_results, current='Asymetric gaussians')
+        w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
         a.exec_()
 
     """
@@ -625,7 +623,7 @@ class ParametersTab(qt.QTabWidget):
     #     for result in mcaresult:
     #         region = region + 1
     #         self.fillfromfit(result['paramlist'],
-    #                          current='Region %d' % region)
+    #                          view='Region %d' % region)
     #     name = 'MCA'
     #     if name in self.tables:
     #         table = self.tables[name]
