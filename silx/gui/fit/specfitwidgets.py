@@ -20,7 +20,7 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
-"""Widgets used to build :class:`specfitgui.SpecfitGui`"""
+"""Widgets used to build :class:`silx.gui.fit.specfitgui.SpecfitGui`"""
 
 from collections import OrderedDict
 
@@ -137,16 +137,19 @@ class FitStatusLines(qt.QWidget):
 class FitConfigWidget(qt.QWidget):
     """Widget with 2 ``QComboBox``, 4 ``QCheckBox`` and 2 ``QPushButtons``.
 
-    These text widgets can be accessed as public attributes::
+    The purpose of this widget, as it is used in
+    :class:`silx.gui.fit.specfitgui.SpecfitGui`, is to offer an interface
+    to quickly modify the main parameters prior to running a fitting:
 
-        - ``BkgComBox``
-        - ``FunComBox``
-        - ``WeightCheckBox``
-        #- ``MCACheckBox``
-        - ``AutoFWHMCheckBox``
-        - ``AutoScalingCheckBox``
-        - ``PrintPushButton``
-        - ``ConfigureButton``
+      - select a fitting function through :attr:`FunComBox`
+      - select a background function through :attr:`BkgComBox`
+      - enable auto-scaling through :attr:`AutoScalingCheckBox`
+      - enable automatic estimation of peaks' full-width at half maximum
+        through :attr:`AutoFWHMCheckBox`
+      - open a dialog for modifying advanced parameters through
+        :attr:`ConfigureButton`
+      - print all fit parameters or emit a signal with that data
+        using :attr:`PrintPushButton`
     """
 
     def __init__(self, parent=None):
@@ -154,9 +157,9 @@ class FitConfigWidget(qt.QWidget):
 
         self.setWindowTitle("FitConfigGUI")
 
-        FitConfigGUILayout = qt.QHBoxLayout(self)
-        FitConfigGUILayout.setContentsMargins(11, 11, 11, 11)
-        FitConfigGUILayout.setSpacing(6)
+        fitconfigguilayout = qt.QHBoxLayout(self)
+        fitconfigguilayout.setContentsMargins(11, 11, 11, 11)
+        fitconfigguilayout.setSpacing(6)
 
         layout9 = qt.QHBoxLayout(None)
         layout9.setContentsMargins(0, 0, 0, 0)
@@ -238,186 +241,293 @@ class FitConfigWidget(qt.QWidget):
 
         layout5.addWidget(self.ConfigureButton, 0, 0)
         layout9.addLayout(layout5)
-        FitConfigGUILayout.addLayout(layout9)
+        fitconfigguilayout.addLayout(layout9)
 
-
-class McaTable(qt.QTableWidget):
-    sigMcaTableSignal = qt.pyqtSignal(object)
-
-    def __init__(self, labels=None, *args, **kw):
-        qt.QTableWidget.__init__(self, *args)
-        self.setRowCount(1)
-        self.setColumnCount(1)
-
-        self.code_options = ["FREE", "POSITIVE", "QUOTED",
-                             "FIXED", "FACTOR", "DELTA", "SUM", "IGNORE", "ADD", "SHOW"]
-
-        if labels is not None:
-            self.labels = labels
-        else:
-            self.labels = ['Position', 'Fit Area', 'MCA Area', 'Sigma',
-                           'Fwhm', 'Chisq', 'Region', 'XBegin', 'XEnd']
-
-        self.setColumnCount(len(self.labels))
-        for i, label in enumerate(self.labels):
-            item = self.horizontalHeaderItem(i)
-            if item is None:
-                item = qt.QTableWidgetItem(label,
-                                           qt.QTableWidgetItem.Type)
-                self.setHorizontalHeaderItem(i, item)
-            item.setText(label)
-            self.resizeColumnToContents(i)
-
-        self.regionlist = []
-        self.regiondict = {}
-
-        self.cellClicked[int, int].connect(self.__myslot)
-        self.itemSelectionChanged[()].connect(self.__myslot)
-
-    def fillfrommca(self, mcaresult, diag=1):
-        line0 = 0
-        region = 0
-        alreadyforced = 0
-        for result in mcaresult:
-            region += 1
-            if result['chisq'] is not None:
-                chisq = "%6.2f" % (result['chisq'])
-            else:
-                chisq = "Fit Error"
-            if 1:
-                xbegin = "%6g" % (result['xbegin'])
-                xend = "%6g" % (result['xend'])
-                fitlabel, fitpars, fitsigmas = self.__getfitpar(result)
-                if QTVERSION < '4.0.0':
-                    qt.QHeader.setLabel(
-                        self.horizontalHeader(), 1, "Fit " + fitlabel)
-                else:
-                    item = self.horizontalHeaderItem(1)
-                    item.setText("Fit " + fitlabel)
-                i = 0
-                for (pos, area, sigma, fwhm) in result['mca_areas']:
-                    line0 += 1
-                    if QTVERSION < '4.0.0':
-                        nlines = self.numRows()
-                        if (line0 > nlines):
-                            self.setNumRows(line0)
-                    else:
-                        nlines = self.rowCount()
-                        if (line0 > nlines):
-                            self.setRowCount(line0)
-                    line = line0 - 1
-                    pos = "%6g" % (pos)
-                    fitpar = "%6g" % (fitpars[i])
-                    if fitlabel == 'Area':
-                        sigma = max(sigma, fitsigmas[i])
-                    areastr = "%6g" % (area)
-                    sigmastr = "%6.3g" % (sigma)
-                    fwhm = "%6g" % (fwhm)
-                    tregion = "%6g" % (region)
-                    fields = [pos, fitpar, areastr, sigmastr,
-                              fwhm, chisq, tregion, xbegin, xend]
-                    col = 0
-                    recolor = 0
-                    if fitlabel == 'Area':
-                        if diag:
-                            if abs(fitpars[i] - area) > (3.0 * sigma):
-                                color = qt.QColor(255, 182, 193)
-                                recolor = 1
-                    for field in fields:
-                        key = self.item(line, col)
-                        if key is None:
-                            key = qt.QTableWidgetItem(field)
-                            self.setItem(line, col, key)
-                        else:
-                            item.setText(field)
-                        if recolor:
-                            # function introduced in Qt 4.2.0
-                            if QTVERSION >= '4.2.0':
-                                item.setBackground(qt.QBrush(color))
-                        item.setFlags(qt.Qt.ItemIsSelectable |
-                                      qt.Qt.ItemIsEnabled)
-                        col = col + 1
-                    if recolor:
-                        if not alreadyforced:
-                            alreadyforced = 1
-                            self.scrollToItem(self.item(line, 0))
-                    i += 1
-
-        for i in range(len(self.labels)):
-            self.resizeColumnToContents(i)
-        ndict = {}
-        ndict['event'] = 'McaTableFilled'
-        self.sigMcaTableSignal.emit(ndict)
-
-    def __getfitpar(self, result):
-        if result['fitconfig']['fittheory'].find("Area") != -1:
-            fitlabel = 'Area'
-        elif result['fitconfig']['fittheory'].find("Hypermet") != -1:
-            fitlabel = 'Area'
-        else:
-            fitlabel = 'Height'
-        values = []
-        sigmavalues = []
-        for param in result['paramlist']:
-            if param['name'].find('ST_Area') != -1:
-                # value and sigmavalue known via fitlabel
-                values[-1] = value * (1.0 + param['fitresult'])
-                # just an approximation
-                sigmavalues[-1] = sigmavalue * (1.0 + param['fitresult'])
-            elif param['name'].find('LT_Area') != -1:
-                pass
-            elif param['name'].find(fitlabel) != -1:
-                value = param['fitresult']
-                sigmavalue = param['sigma']
-                values.append(value)
-                sigmavalues.append(sigmavalue)
-        return fitlabel, values, sigmavalues
-
-    def __myslot(self, *var):
-        ddict = {}
-        if len(var) == 0:
-            # selection changed event
-            # get the current selection
-            ddict['event'] = 'McaTableClicked'
-            row = self.currentRow()
-        else:
-            # Header click
-            ddict['event'] = 'McaTableRowHeaderClicked'
-            row = var[0]
-        ccol = self.currentColumn()
-        ddict['row'] = row
-        ddict['col'] = ccol
-        ddict['labelslist'] = self.labels
-        if row >= 0:
-            col = 0
-            for label in self.labels:
-                text = str(self.item(row, col).text())
-                try:
-                    ddict[label] = float(text)
-                except:
-                    ddict[label] = text
-                col += 1
-        self.sigMcaTableSignal.emit(ddict)
+#
+# class McaTable(qt.QTableWidget):
+#     """This widget provides a table to input or display complex data,
+#     such as fit configuration parameters together with estimation values
+#     and final results of fitting.
+#
+#     """
+#     sigMcaTableSignal = qt.pyqtSignal(object)
+#
+#     def __init__(self, labels=None, *args):
+#         """
+#
+#         :param labels: List of labels used as column headers in the table
+#             and
+#         :param args: All arguments, besides ``label``, are used for
+#             initializing the base class ``QTableWidget``
+#         """
+#         qt.QTableWidget.__init__(self, *args)
+#         self.setRowCount(1)
+#         self.setColumnCount(1)
+#
+#         self.code_options = ["FREE", "POSITIVE", "QUOTED",
+#                              "FIXED", "FACTOR", "DELTA", "SUM", "IGNORE", "ADD", "SHOW"]
+#
+#         if labels is not None:
+#             self.labels = labels
+#         else:
+#             self.labels = ['Position', 'Fit Area', 'MCA Area', 'Sigma',
+#                            'Fwhm', 'Chisq', 'Region', 'XBegin', 'XEnd']
+#
+#         self.setColumnCount(len(self.labels))
+#         for i, label in enumerate(self.labels):
+#             item = self.horizontalHeaderItem(i)
+#             if item is None:
+#                 item = qt.QTableWidgetItem(label,
+#                                            qt.QTableWidgetItem.Type)
+#                 self.setHorizontalHeaderItem(i, item)
+#             item.setText(label)
+#             self.resizeColumnToContents(i)
+#
+#         self.regionlist = []
+#         self.regiondict = {}
+#
+#         self.cellClicked[int, int].connect(self.__myslot)
+#         self.itemSelectionChanged[()].connect(self.__myslot)
+#
+#     def fillfrommca(self, mcaresult, diag=1):
+#         line0 = 0
+#         region = 0
+#         alreadyforced = False
+#         for result in mcaresult:
+#             region += 1
+#             if result['chisq'] is not None:
+#                 chisq = "%6.2f" % (result['chisq'])
+#             else:
+#                 chisq = "Fit Error"
+#             if 1:
+#                 xbegin = "%6g" % (result['xbegin'])
+#                 xend = "%6g" % (result['xend'])
+#                 fitlabel, fitpars, fitsigmas = self.__getfitpar(result)
+#                 if QTVERSION < '4.0.0':
+#                     qt.QHeader.setLabel(
+#                         self.horizontalHeader(), 1, "Fit " + fitlabel)
+#                 else:
+#                     item = self.horizontalHeaderItem(1)
+#                     item.setText("Fit " + fitlabel)
+#                 i = 0
+#                 for (pos, area, sigma, fwhm) in result['mca_areas']:
+#                     line0 += 1
+#                     if QTVERSION < '4.0.0':
+#                         nlines = self.numRows()
+#                         if line0 > nlines:
+#                             self.setNumRows(line0)
+#                     else:
+#                         nlines = self.rowCount()
+#                         if line0 > nlines:
+#                             self.setRowCount(line0)
+#                     line = line0 - 1
+#                     pos = "%6g" % pos
+#                     fitpar = "%6g" % fitpars[i]
+#                     if fitlabel == 'Area':
+#                         sigma = max(sigma, fitsigmas[i])
+#                     areastr = "%6g" % area
+#                     sigmastr = "%6.3g" % sigma
+#                     fwhm = "%6g" % fwhm
+#                     tregion = "%6g" % region
+#                     fields = [pos, fitpar, areastr, sigmastr,
+#                               fwhm, chisq, tregion, xbegin, xend]
+#                     col = 0
+#                     color = None
+#                     if fitlabel == 'Area':
+#                         if diag:
+#                             if abs(fitpars[i] - area) > (3.0 * sigma):
+#                                 color = qt.QColor(255, 182, 193)
+#                     for field in fields:
+#                         key = self.item(line, col)
+#                         if key is None:
+#                             key = qt.QTableWidgetItem(field)
+#                             self.setItem(line, col, key)
+#                         else:
+#                             item.setText(field)
+#                         if color is not None:
+#                             # function introduced in Qt 4.2.0
+#                             if QTVERSION >= '4.2.0':
+#                                 item.setBackground(qt.QBrush(color))
+#                         item.setFlags(qt.Qt.ItemIsSelectable |
+#                                       qt.Qt.ItemIsEnabled)
+#                         col += 1
+#                     if color is not None:
+#                         if not alreadyforced:
+#                             alreadyforced = True
+#                             self.scrollToItem(self.item(line, 0))
+#                     i += 1
+#
+#         for i in range(len(self.labels)):
+#             self.resizeColumnToContents(i)
+#         ndict = {}
+#         ndict['event'] = 'McaTableFilled'
+#         self.sigMcaTableSignal.emit(ndict)
+#
+#     def __getfitpar(self, result):
+#         if result['fitconfig']['fittheory'].find("Area") != -1:
+#             fitlabel = 'Area'
+#         elif result['fitconfig']['fittheory'].find("Hypermet") != -1:
+#             fitlabel = 'Area'
+#         else:
+#             fitlabel = 'Height'
+#         values = []
+#         sigmavalues = []
+#         for param in result['paramlist']:
+#             if param['name'].find('ST_Area') != -1:
+#                 # value and sigmavalue known via fitlabel
+#                 values[-1] = value * (1.0 + param['fitresult'])
+#                 # just an approximation
+#                 sigmavalues[-1] = sigmavalue * (1.0 + param['fitresult'])
+#             elif param['name'].find('LT_Area') != -1:
+#                 pass
+#             elif param['name'].find(fitlabel) != -1:
+#                 value = param['fitresult']
+#                 sigmavalue = param['sigma']
+#                 values.append(value)
+#                 sigmavalues.append(sigmavalue)
+#         return fitlabel, values, sigmavalues
+#
+#     def __myslot(self, *var):
+#         """Emit a signal with a dictionary containing the data in the active
+#         row of the table.
+#
+#         The dictionary contains also special fields:
+#
+#            - 'event': string 'McaTableClicked' or 'McaTableRowHeaderClicked'
+#            - 'row': 0-based row index (integer)
+#            - 'col': 0-based column index (integer)
+#            - 'labelslist': list of all labels (:attr:`labels`) which are
+#              the keys to the remaining dictionary items.
+#
+#         The table values are stored as strings."""
+#         ddict = {}
+#         if len(var) == 0:
+#             # selection changed event
+#             # get the current selection
+#             ddict['event'] = 'McaTableClicked'
+#             row_idx = self.currentRow()
+#         else:
+#             # Header click
+#             ddict['event'] = 'McaTableRowHeaderClicked'
+#             row_idx = var[0]
+#         ccol = self.currentColumn()
+#         ddict['row'] = row_idx
+#         ddict['col'] = ccol
+#         ddict['labelslist'] = self.labels
+#         if row_idx >= 0:
+#             for col_idx, label in enumerate(self.labels):
+#                 text = str(self.item(row_idx, col_idx).text())
+#                 try:
+#                     ddict[label] = float(text)
+#                 except:
+#                     ddict[label] = text
+#         self.sigMcaTableSignal.emit(ddict)
 
 
 class ParametersTab(qt.QTabWidget):
+    """This widget provides tabs to display and modify fit parameters. Each
+    tab contains a table with such as parameter names, estimated values,
+    fit constraints, and final fit results.
+
+    The usual way to initialize the table is to fill it with the fit
+    parameters from a :class:`silx.math.fit.specfit.Specfit` object, after
+    the estimation process or after the final fit.
+
+    In the following example we use a :class:`ParametersTab` to display the
+    results of two separate fits::
+
+        from silx.math.fit import fitestimatefunctions
+        from silx.math.fit import specfit
+        from silx.math.fit import functions
+        from silx.gui import qt
+        import numpy
+
+        a = qt.QApplication([])
+
+        # Create synthetic data
+        x = numpy.arange(1000)
+        y1 = functions.sum_gauss(x, 100, 400, 100)
+
+        fit = specfit.Specfit(x=x, y=y1)
+
+        fitfuns = fitestimatefunctions.FitEstimateFunctions()
+        fit.addtheory(theory="Gaussian",
+                      function=functions.sum_gauss,
+                      parameters=("height", "peak center", "fwhm"),
+                      estimate=fitfuns.estimate_height_position_fwhm)
+        fit.settheory('Gaussian')
+        fit.configure(PositiveFwhmFlag=True,
+                      PositiveHeightAreaFlag=True,
+                      AutoFwhm=True,)
+
+        # Fit
+        fit.estimate()
+        fit.startfit()
+
+        # Show first fit result in a tab in our widget
+        w = ParametersTab()
+        w.show()
+        w.fillfromfit(fit.fit_results, current='Gaussians')
+
+        # new synthetic data
+        y2 = functions.sum_splitgauss(x,
+                                  100, 400, 100, 40,
+                                  10, 600, 50, 500,
+                                  80, 850, 10, 50)
+        fit.setdata(x=x, y=y2)
+
+        # Define new theory
+        fit.addtheory(theory="Asymetric gaussian",
+                      function=functions.sum_splitgauss,
+                      parameters=("height", "peak center", "left fwhm", "right fwhm"),
+                      estimate=fitfuns.estimate_splitgauss)
+        fit.settheory('Asymetric gaussian')
+
+        # Fit
+        fit.estimate()
+        fit.startfit()
+
+        # Show first fit result in another tab in our widget
+        w.fillfromfit(fit.fit_results, current='Asymetric gaussians')
+        a.exec_()
+
+    """
     sigMultiParametersSignal = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, name="FitParameters"):
+        """
+
+        :param parent: Parent widget
+        :param name: Widget title
+        """
         qt.QTabWidget.__init__(self, parent)
         self.setWindowTitle(name)
 
         # the widgets in the notebook
         self.views = OrderedDict()
+
+
         # the widgets/tables themselves
         self.tables = {}
-        self.mcatable = None
+        """Dictionary of :class:`silx.gui.fit.parameters.Parameters` objects.
+        These objects store fit results
+        """
+        #self.mcatable = None  # Fixme: probably not used
         self.setContentsMargins(10, 10, 10, 10)
-        # self.setview(name="Region 1")
 
-    def setview(self, name=None, fitparameterslist=None):
+    def setview(self, name=None, fitresults=None):
+        """Add or update a table. Fill it with data from a fit
+
+        :param name: Tab name to be added or updated. If ``None``, update
+            the currently active view.
+        :param fitresults: Fit data to be added to the table
+        """
         if name is None:
-            name = self.current
+            if self.current is not None:
+                name = self.current
+            else:
+                name = "view 1"
+                # raise KeyError("You must specify a name for the first view")
 
         if name in self.tables.keys():
             table = self.tables[name]
@@ -428,67 +538,82 @@ class ParametersTab(qt.QTabWidget):
             self.views[name] = table
             self.addTab(table, str(name))
 
-        if fitparameterslist is not None:
-            table.fillfromfit(fitparameterslist)
+        if fitresults is not None:
+            table.fillfromfit(fitresults)
 
-        if QTVERSION < '4.0.0':
-            self.showPage(self.views[name])
-        else:
-            self.setCurrentWidget(self.views[name])
+        self.setCurrentWidget(self.views[name])
 
         self.current = name
 
     def renameview(self, oldname=None, newname=None):
+        """Rename a view (tab)
+
+        :param oldname: Name of the view to be renamed
+        :param newname: New name of the view"""
         error = 1
         if newname is not None:
             if newname not in self.views.keys():
                 if oldname in self.views.keys():
-                    parameterlist = self.tables[oldname].fillfitfromtable()
-                    self.setview(name=newname,
-                                 fitparameterslist=parameterlist)
+                    parameterlist = self.tables[oldname].getfitresults()
+                    self.setview(name=newname, fitresults=parameterlist)
                     self.removeview(oldname)
                     error = 0
         return error
 
-    def fillfromfit(self, fitparameterslist, current=None):
-        if current is None:
-            current = self.current
+    def fillfromfit(self, fitparameterslist, view=None):
+        """Update a view with data  from a fit (alias for :meth:`setview`)
 
-        self.setview(fitparameterslist=fitparameterslist,
-                     name=current)
+        :param name: Tab name to be added or updated. If ``None``, update
+            the currently active view.
+        :param fitparameterslist: Fit data to be added to the table
+        """
+        self.setview(name=view, fitresults=fitparameterslist)
 
-    def fillfitfromtable(self, name=None):
+    def getfitresults(self, name=None):
+        """Call :meth:`getfitresults` for the
+        :class:`silx.gui.fit.parameters.Parameters` corresponding to the
+        currently active table or to the named table (if ``name`` is not
+        ``None``). This return a list of dictionaries in the format used by
+        :class:`silx.math.fit import specfit.Specfit` to store fit parameter
+        results.
+
+        :param name: View name. If ``None``, use name of
+            the currently active view.
+        """
         if name is None:
             name = self.current
 
-        if hasattr(self.tables[name], 'fillfitfromtable'):
-            return self.tables[name].fillfitfromtable()
-        else:
-            return None
+        return self.tables[name].getfitresults()
 
-    def removeview(self, view=None):
+    def removeview(self, name=None):
+        """Remove a view by name.
+
+        :param name: View name. If ``None``, use name of
+            the currently active view.
+        :return: 0 if view removal succeeded, 1 if it failed (no view with this
+            name or if the name corresponds to the active view"""
         error = 1
-        if view is None:
+        if name is None:
             return error
 
-        if view == self.current:
+        if name == self.current:
             return error
 
-        if view in self.views.keys():
-            if QTVERSION < '4.0.0':
-                self.removePage(self.tables[view])
-                self.removePage(self.views[view])
-            else:
-                index = self.indexOf(self.tables[view])
-                self.removeTab(index)
-                index = self.indexOf(self.views[view])
-                self.removeTab(index)
-            del self.tables[view]
-            del self.views[view]
+        if name in self.views.keys():
+            index = self.indexOf(self.tables[name])
+            self.removeTab(index)
+            index = self.indexOf(self.views[name])
+            self.removeTab(index)
+            del self.tables[name]
+            del self.views[name]
             error = 0
         return error
 
-    def removeallviews(self, keep='Fit'):
+    def removeallviews(self, keep=None):
+        """Remove all views, except the one specified (argument
+        ``keep``)
+
+        :param keep: Name of the view to be kept."""
         for view in list(self.tables.keys()):
             if view != keep:
                 self.removeview(view)
@@ -513,28 +638,25 @@ class ParametersTab(qt.QTabWidget):
     #     table.fillfrommca(mcaresult)
     #     self.setview(name=name)
     #     return
+    #
+    # def __forward(self, ddict):
+    #     self.sigMultiParametersSignal.emit(ddict)
 
-    def __forward(self, ddict):
-        self.sigMultiParametersSignal.emit(ddict)
+    def getHTMLtext(self, name=None):
+        """Return the table data as HTML
 
-    def gettext(self, name=None):
+        :param name: View name. If ``None``, use name of
+            the currently active view."""
         if name is None:
             name = self.current
         table = self.tables[name]
         lemon = ("#%x%x%x" % (255, 250, 205)).upper()
-        if QTVERSION < '4.0.0':
-            hb = table.horizontalHeader().paletteBackgroundColor()
-            hcolor = ("#%x%x%x" % (hb.red(), hb.green(), hb.blue())).upper()
-        else:
-            hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
+        hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
         text = ""
         text += ("<nobr>")
         text += ("<table>")
         text += ("<tr>")
-        if QTVERSION < '4.0.0':
-            ncols = table.numCols()
-        else:
-            ncols = table.columnCount()
+        ncols = table.columnCount()
         for l in range(ncols):
             text += ('<td align="left" bgcolor="%s"><b>' % hcolor)
             if QTVERSION < '4.0.0':
@@ -543,19 +665,13 @@ class ParametersTab(qt.QTabWidget):
                 text += (str(table.horizontalHeaderItem(l).text()))
             text += ("</b></td>")
         text += ("</tr>")
-        if QTVERSION < '4.0.0':
-            nrows = table.numRows()
-        else:
-            nrows = table.rowCount()
+        nrows = table.rowCount()
         for r in range(nrows):
             text += ("<tr>")
-            if QTVERSION < '4.0.0':
-                newtext = str(table.text(r, 0))
-            else:
-                item = table.item(r, 0)
-                newtext = ""
-                if item is not None:
-                    newtext = str(item.text())
+            item = table.item(r, 0)
+            newtext = ""
+            if item is not None:
+                newtext = str(item.text())
             if len(newtext):
                 color = "white"
                 b = "<b>"
@@ -570,13 +686,10 @@ class ParametersTab(qt.QTabWidget):
             except:
                 pass
             for c in range(ncols):
-                if QTVERSION < '4.0.0':
-                    newtext = str(table.text(r, c))
-                else:
-                    item = table.item(r, c)
-                    newtext = ""
-                    if item is not None:
-                        newtext = str(item.text())
+                item = table.item(r, c)
+                newtext = ""
+                if item is not None:
+                    newtext = str(item.text())
                 if len(newtext):
                     finalcolor = color
                 else:
@@ -592,13 +705,10 @@ class ParametersTab(qt.QTabWidget):
                     text += ("</td>")
                 else:
                     text += ("</b></td>")
-            if QTVERSION < '4.0.0':
-                newtext = str(table.text(r, 0))
-            else:
-                item = table.item(r, 0)
-                newtext = ""
-                if item is not None:
-                    newtext = str(item.text())
+            item = table.item(r, 0)
+            newtext = ""
+            if item is not None:
+                newtext = str(item.text())
             if len(newtext):
                 text += ("</b>")
             text += ("</tr>")
@@ -607,35 +717,36 @@ class ParametersTab(qt.QTabWidget):
         text += ("</nobr>")
         return text
 
-    def getHTMLText(self, name=None):
-        return self.gettext(name)
+    def gettext(self, name=None):
+        """Return the table data as CSV formatted text, using tabulation
+        characters as separators.
 
-    if QTVERSION > '4.0.0':
-        def getText(self, name=None):
-            if name is None:
-                name = self.current
-            table = self.tables[name]
-            text = ""
-            ncols = table.columnCount()
-            for l in range(ncols):
-                text += (str(table.horizontalHeaderItem(l).text())) + "\t"
+        :param name: View name. If ``None``, use name of
+            the currently active view."""
+        if name is None:
+            name = self.current
+        table = self.tables[name]
+        text = ""
+        ncols = table.columnCount()
+        for l in range(ncols):
+            text += (str(table.horizontalHeaderItem(l).text())) + "\t"
+        text += ("\n")
+        nrows = table.rowCount()
+        for r in range(nrows):
+            for c in range(ncols):
+                newtext = ""
+                if c != 4:
+                    item = table.item(r, c)
+                    if item is not None:
+                        newtext = str(item.text())
+                else:
+                    item = table.cellWidget(r, c)
+                    if item is not None:
+                        newtext = str(item.currentText())
+                text += (newtext) + "\t"
             text += ("\n")
-            nrows = table.rowCount()
-            for r in range(nrows):
-                for c in range(ncols):
-                    newtext = ""
-                    if c != 4:
-                        item = table.item(r, c)
-                        if item is not None:
-                            newtext = str(item.text())
-                    else:
-                        item = table.cellWidget(r, c)
-                        if item is not None:
-                            newtext = str(item.currentText())
-                    text += (newtext) + "\t"
-                text += ("\n")
-            text += ("\n")
-            return text
+        text += ("\n")
+        return text
 
 
 def test():
@@ -645,24 +756,15 @@ def test():
     from silx.gui import qt
     from silx.gui.plot.PlotWindow import PlotWindow
     import numpy
+
     a = qt.QApplication([])
-    a.lastWindowClosed.connect(a.quit)
-    w = ParametersTab()
-    w.show()
 
-    # Create synthetic data
     x = numpy.arange(1000)
-    y1 = functions.sum_gauss(x,
-                             100, 400, 100,
-                             10, 600, 50,
-                             80, 850, 10)
-    y1 += 2.5 + 0.001 * x                # add linear bg
+    y1 = functions.sum_gauss(x, 100, 400, 100)
 
-    fit = specfit.Specfit()
-    fit.setdata(x=x, y=y1)
+    fit = specfit.Specfit(x=x, y=y1)
 
-    # Define new theory
-    fitfuns = fitestimatefunctions._FitEstimateFunctions()
+    fitfuns = fitestimatefunctions.FitEstimateFunctions()
     fit.addtheory(theory="Gaussian",
                   function=functions.sum_gauss,
                   parameters=("height", "peak center", "fwhm"),
@@ -673,20 +775,17 @@ def test():
                   AutoFwhm=True,)
 
     # Fit
-    fit.setbackground('Linear')
     fit.estimate()
     fit.startfit()
 
     w = ParametersTab()
     w.show()
-    w.fillfromfit(fit.fit_results, current='Gaussians')
+    w.fillfromfit(fit.fit_results, view='Gaussians')
 
-    # Create synthetic data
     y2 = functions.sum_splitgauss(x,
-                                  100, 400, 100, 40,
-                                  10, 600, 50, 500,
-                                  80, 850, 10, 50)
-    y2 += 2.5 + 0.001 * x
+                              100, 400, 100, 40,
+                              10, 600, 50, 500,
+                              80, 850, 10, 50)
     fit.setdata(x=x, y=y2)
 
     # Define new theory
@@ -700,7 +799,7 @@ def test():
     fit.estimate()
     fit.startfit()
 
-    w.fillfromfit(fit.fit_results, current='Asymetric gaussians')
+    w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
 
     # Plot
     pw = PlotWindow(control=True)
@@ -709,8 +808,6 @@ def test():
     pw.show()
 
     a.exec_()
-
-
 
 
 if __name__ == "__main__":

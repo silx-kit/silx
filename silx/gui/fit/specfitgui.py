@@ -32,9 +32,9 @@ from silx.math.fit import specfit, functions
 from silx.gui import qt
 from .specfitwidgets import (FitActionsButtons, FitStatusLines,
                              FitConfigWidget, ParametersTab)
+from .qscriptoption import QScriptOption
 
 QTVERSION = qt.qVersion()
-from .qscriptoption import QScriptOption
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -311,7 +311,7 @@ class SpecfitGui(qt.QWidget):
         in the format defined in
         :attr:`silx.math.fit.specfit.Specfit.fit_results`
         """
-        self.specfit.fit_results = self.guiparameters.fillfitfromtable()
+        self.specfit.fit_results = self.guiparameters.getfitresults()
         try:
             self.specfit.startfit(callback=self.fitstatus)
         except:
@@ -332,15 +332,13 @@ class SpecfitGui(qt.QWidget):
         return
 
     def printps(self, **kw):
-        text = self.guiparameters.gettext(**kw)
+        text = self.guiparameters.getHTMLtext(**kw)
         if __name__ == "__main__":
             self.__printps(text)
         else:
-            ddict = {}
-            ddict['event'] = 'print'
-            ddict['text'] = text
+            ddict = {'event': 'print',
+                     'text': text}
             self._emitSignal(ddict)
-        return
 
     def __printps(self, text):
         msg = qt.QMessageBox(self)

@@ -138,7 +138,7 @@ DEFAULT_CONFIG = {'NoConstraintsFlag': False,
                   'SameAreaRatioFlag': 1}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
-This dictionary  is replicated as attribute :attr:`_FitEstimateFunctions.config`,
+This dictionary  is replicated as attribute :attr:`FitEstimateFunctions.config`,
 which can be modified by configuration functions defined in
 :const:`CONFIGURE`.
 """
@@ -153,7 +153,7 @@ CSUM = 6
 CIGNORED = 7
 
 
-class _FitEstimateFunctions(object):
+class FitEstimateFunctions(object):
     """Class wrapping functions from :class:`silx.math.fit.functions`
     and providing estimate functions for all of these fit functions."""
     def __init__(self, config=None):
@@ -1120,7 +1120,7 @@ class _FitEstimateFunctions(object):
                 self.config[key] = kw[key]
         return self.config
 
-fitfuns = _FitEstimateFunctions()
+fitfuns = FitEstimateFunctions()
 
 THEORY = {
     'gauss': {

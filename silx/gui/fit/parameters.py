@@ -263,14 +263,14 @@ class Parameters(qt.QTableWidget):
     def getConfiguration(self):
         """Return ``Specfit.paramlist`` dictionary
         encapsulated in another dictionary"""
-        return {'parameters': self.fillfitfromtable()}
+        return {'parameters': self.getfitresults()}
 
     def setConfiguration(self, ddict):
         """Fill table with values from a ``Specfit.paramlist`` dictionary
         encapsulated in another dictionary"""
         self.fillfromfit(ddict['parameters'])
 
-    def fillfitfromtable(self):
+    def getfitresults(self):
         """Return fit parameters as a list of dictionaries in the format used
         by :class:`Specfit` (attribute ``paramlist``).
         """
