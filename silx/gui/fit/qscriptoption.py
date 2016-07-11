@@ -26,6 +26,32 @@ This module is a refactored version of
 
 It defines a widget with customizable tabs, storing all user input in an
 internal dictionary.
+
+Example::
+
+    >>> from silx.gui import qt
+    >>> from silx.gui.fit.qscriptoption import QScriptOption
+    >>> app = qt.QApplication([])
+    >>> sheet1 = {'notetitle': "First Sheet",
+    ...           'fields': (["Label", 'Text displayed in the first tab'],
+    ...                      ["EntryField", 'entry1', 'Type something here'],
+    ...                      ["EntryField", 'entry2', 'Type something here too'],
+    ...                      ["CheckField", 'checkbox1', 'Check this box'])}
+    >>> sheet2 = {'notetitle': "Second Sheet",
+    ...           'fields': (["Label", 'Text displayed in the second tab'],
+    ...                      ["EntryField", 'entry3', 'Type something here as well'],
+    ...                      ["CheckField", 'checkbox2', 'Check this other box'])}
+    >>> qso = QScriptOption(sheets=(sheet1, sheet2))
+    >>> qso.show()
+    >>> app.exec_()
+
+After interacting with the dialog, you can click the Ok button. Your user
+input is available as a dictionary called :attr:`output`::
+
+    >>> print(qso.output)
+    {'entry2': '1337', 'checkbox1': 1, 'checkbox2': 0,
+    'entry1': 'my user input', 'entry3': 'hello'}
+
 """
 import sys
 from collections import OrderedDict
@@ -124,9 +150,23 @@ class TabSheets(qt.QDialog):
 
 
 class QScriptOption(TabSheets):
-    """Subclass of :class:`TabSheets` with added feature of defining
-    content (entry fields, text, radio buttons) to add to the tabs.
+    """
+    This is the main widget in the module. It provides a dialog presenting
+    multiple tabs to the user. Each tab, or *sheet*, can contain a variable
+    number of *fields*, which can be simple text labels or input fields such
+    as text entries and check-boxes.
 
+    When the user is done filling all the fields, he clicks the *OK* button
+    and the program can resume. The user input data can be accessed in a
+    dictionary :attr:`output`.
+
+    It is possible to supply a default dictionary to pre-fill the fields.
+    The widget has a defaults button to allow the user to reinitialize all
+    fields to the values in the default dict. The keys in this dictionary
+    must match the names of the fields (non-matching keys are just ignored).
+
+    Entry fields take strings as values. Checkbox fields take 1 (*checked*)
+    or 0 (*un-checked*) as possible values.
     """
 
     def __init__(self, parent=None, name=None, modal=True,
@@ -364,8 +404,7 @@ class EntryField(qt.QWidget):
         layout1.addWidget(self.TextLabel)
         layout1.addWidget(self.Entry)
 
-# FIXME: why do we need multiple keys in each field when they are all updated
-# with the same value?
+
 class MyEntryField(EntryField):
     """Entry field with a QLineEdit (:attr:`Entry`), a QLabel
     (:attr:`TextLabel`), and 3 methods to interact with
@@ -451,9 +490,9 @@ class MyCheckField(CheckField):
         """Dictionary storing user input"""
         if type(keys) == _tuple_type:
             for key in keys:
-                self.dict[key] = None
+                self.dict[key] = 0
         else:
-            self.dict[keys] = None
+            self.dict[keys] = 0
         self.CheckBox.setText(str(params))
         self.CheckBox.stateChanged[int].connect(self.setvalue)
 
