@@ -29,7 +29,7 @@
 - `PySide <http://www.pyside.org>`_.
 
 If a Qt binding is already loaded, it will use it, otherwise the different
-Qt bindings are tried in this order: PyQt5, PyQt4, PySide.
+Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
@@ -83,22 +83,22 @@ elif 'PyQt4' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt5  # noqa
+        import PyQt4  # noqa
     except ImportError:
         try:
-            import PyQt4  # noqa
+            import PySide  # noqa
         except ImportError:
             try:
-                import PySide  # noqa
+                import PyQt5  # noqa
             except ImportError:
                 raise ImportError(
                     'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
             else:
-                BINDING = 'PySide'
+                BINDING = 'PyQt5'
         else:
-            BINDING = 'PyQt4'
+            BINDING = 'PySide'
     else:
-        BINDING = 'PyQt5'
+        BINDING = 'PyQt4'
 
 
 if BINDING == 'PyQt4':
