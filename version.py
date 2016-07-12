@@ -53,7 +53,7 @@ from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/06/2016"
+__date__ = "12/07/2016"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 __all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion", "calc_hexversion"]
@@ -69,8 +69,8 @@ RELEASE_LEVEL_VALUE = {"dev": 0,
 MAJOR = 0
 MINOR = 2
 MICRO = 0
-RELEV = "dev"  # <16
-SERIAL = 1  # <16
+RELEV = "final"  # <16
+SERIAL = 0  # <16
 
 date = __date__
 

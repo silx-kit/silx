@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Unreleased
-----------
+0.2.0: 2016/07/12
+-----------------
 
  * Added bilinear interpolator and line-profile for images to silx.image
  * Added Levenberg-Marquardt least-square fitting algorithm to silx.math.fit
