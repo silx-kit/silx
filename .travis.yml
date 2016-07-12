@@ -1,0 +1,82 @@
+language: python
+
+matrix:
+    include:
+        - python: 2.7
+          os: linux
+          env: BUILD_COMMAND=sdist
+
+        - python: 3.4
+          os: linux
+          env: BUILD_COMMAND=sdist
+
+        - python: 3.5
+          os: linux
+          env: BUILD_COMMAND=sdist
+
+        - language: generic
+          os: osx
+          env: BUILD_COMMAND=bdist_wheel
+
+cache:
+    apt: true
+
+addons:
+    apt:
+        packages:
+            - libhdf5-serial-1.8.4
+            - libhdf5-serial-dev
+
+install:
+    # Mac OS X specific bootstrap
+    - source ./ci/travis_osx.sh
+    - travis_osx_install_begin
+
+    # Upgrade distribution modules
+    - pip install --upgrade setuptools
+    - pip install --upgrade pip
+
+    # Install build dependencies
+    - pip install wheel
+    #TODO: cleanup after https://github.com/h5py/h5py/issues/731 is fixed 
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy --upgrade
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py --no-index
+    # Print Python info
+    - python ./ci/info_platform.py
+    - pip freeze
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; 
+      then 
+          dpkg -l;
+          ldd $(python -c "import h5py;print(h5py.h5d.__file__)");
+      fi
+
+    # Generate source package or wheel
+    - python setup.py $BUILD_COMMAND
+    - ls dist
+
+    # Mac OS X specific cleanup
+    - travis_osx_install_end
+
+script:
+    # Mac OS X specific bootstrap
+    - travis_osx_run_begin
+
+    # Upgrade distribution modules
+    - pip install --upgrade setuptools
+    - pip install --upgrade pip
+
+    # Install from source package
+    - pip install --pre --find-links dist/ --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ silx
+
+    # Install h5py for silx.io tests
+    - pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py
+
+    # Print Python info
+    - python ci/info_platform.py
+    - pip freeze
+
+    # Run the tests (disable silx.gui tests)
+    - WITH_QT_TEST=False python run_tests.py
+
+    # Mac OS X specific cleanup
+    - travis_osx_run_end
