@@ -61,6 +61,26 @@ else:
     qWaitForWindowExposed = QTest.qWaitForWindowExposed
 
 
+def qWaitForWindowExposedAndActivate(window, timeout=None):
+    """Waits until the window is shown in the screen.
+
+    It also activates the window and raises it.
+
+    See QTest.qWaitForWindowExposed for details.
+    """
+    if timeout is None:
+        result = qWaitForWindowExposed(window)
+    else:
+        result = qWaitForWindowExposed(window, timeout)
+
+    if result:
+        # Makes sure window is active and on top
+        window.activateWindow()
+        window.raise_()
+
+    return result
+
+
 # Placeholder for QApplication
 _qapp = None
 
@@ -277,10 +297,7 @@ class TestCaseQt(unittest.TestCase):
 
         See QTest.qWaitForWindowExposed for details.
         """
-        if timeout is None:
-            result = qWaitForWindowExposed(window)
-        else:
-            result = qWaitForWindowExposed(window, timeout)
+        result = qWaitForWindowExposedAndActivate(window, timeout)
 
         if self.TIMEOUT_WAIT:
             QTest.qWait(self.TIMEOUT_WAIT)
