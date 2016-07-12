@@ -35,7 +35,7 @@ import unittest
 
 from silx.testutils import ParametricTestCase, test_logging
 from silx.gui.testutils import (
-    qWaitForWindowExposed, TestCaseQt, getQToolButtonFromAction)
+    qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
 from silx.gui.plot import PlotWindow, PlotTools
 
@@ -50,7 +50,7 @@ def _tearDownDocTest(docTest):
     Checks that plot widget is displayed
     """
     plot = docTest.globs['plot']
-    qWaitForWindowExposed(plot)
+    qWaitForWindowExposedAndActivate(plot)
     plot.setAttribute(qt.Qt.WA_DeleteOnClose)
     plot.close()
     del plot
