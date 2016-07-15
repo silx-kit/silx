@@ -50,14 +50,14 @@ def _add_values_to_array_if_missing(array, values, n_values):
 
     if len(array.shape) == 1:
         if not max_in_col:
-            rnd_idx = np.random.random_integers(0,
+            rnd_idx = np.random.randint(0,
                                                 high=len(array)-1,
                                                 size=(n_values,))
             array[rnd_idx] = values
     else:
         for i in range(len(max_in_col)):
             if not max_in_col[i]:
-                rnd_idx = np.random.random_integers(0,
+                rnd_idx = np.random.randint(0,
                                                     high=len(array)-1,
                                                     size=(n_values,))
                 array[rnd_idx, i] = values[i]
@@ -118,7 +118,7 @@ class _TestHistogramnd(unittest.TestCase):
         self.state_msg = ('Current RNG state :\n'
                           '{0}'.format(self.rng_state))
 
-        sample = np.random.random_integers(int_min,
+        sample = np.random.randint(int_min,
                                            high=int_max,
                                            size=shape)
 
@@ -128,7 +128,7 @@ class _TestHistogramnd(unittest.TestCase):
                   (self.sample_rng[1]-self.sample_rng[0]) /
                   (int_max-int_min)).astype(self.dtype_sample)
 
-        weights = np.random.random_integers(int_min,
+        weights = np.random.randint(int_min,
                                             high=int_max,
                                             size=(n_elements,))
         weights = weights.astype(self.dtype_weights)
