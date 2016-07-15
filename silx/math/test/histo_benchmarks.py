@@ -107,7 +107,7 @@ def benchmark(n_loops,
     int_min = 0
     int_max = 100000
 
-    sample = np.random.random_integers(int_min,
+    sample = np.random.randint(int_min,
                                        high=int_max,
                                        size=sample_shape).astype(np.double)
     sample = (sample_rng[0] +
@@ -117,7 +117,7 @@ def benchmark(n_loops,
     sample = sample.astype(dtype)
 
     if do_weights:
-        weights = np.random.random_integers(int_min,
+        weights = np.random.randint(int_min,
                                             high=int_max,
                                             size=(sample_shape[0],))
         weights = weights.astype(np.double)
