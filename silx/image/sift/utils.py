@@ -142,3 +142,20 @@ def bin2RGB(img):
         return out
 
 
+def get_opencl_code(name):
+    """Read the kernel source code  and return it. 
+
+    :param str name: Filename of the kernel source,
+    :return: Corresponding surce code
+    :raises: ValueError when name is not known
+    """
+    res = None
+    if not name.endswith(".cl"):
+        name += ".cl"
+    try:
+        filename = resource_filename('opencl/sift/' + name)
+    except ValueError:
+        raise ValueError('Not an OpenCL kernel file: %s' % filename)
+    with open(filename, "r") as fileobj:
+        res = fileobj.read()
+    return res.strip()

@@ -65,7 +65,7 @@ import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
 
-from .utils import calc_size, kernel_size  # , sizeof
+from .utils import calc_size, kernel_size, get_opencl_code  # , sizeof
 logger = logging.getLogger("sift.plan")
 
 
@@ -373,14 +373,8 @@ class SiftPlan(object):
         """
         Call the OpenCL compiler
         """
-        kernel_directory = os.path.dirname(os.path.abspath(__file__))
-        if not os.path.exists(os.path.join(kernel_directory, "algebra" + ".cl")):
-            while (".zip" in kernel_directory) and (len(kernel_directory) > 4):
-                kernel_directory = os.path.dirname(kernel_directory)
-            kernel_directory = os.path.join(kernel_directory, "sift_kernels")
         for kernel in self.kernels:
-            kernel_file = os.path.join(kernel_directory, kernel + ".cl")
-            kernel_src = open(kernel_file).read()
+            kernel_src = get_opencl_code(kernel)
             if self.max_workgroup_size:
                 if "__len__" not in dir(self.kernels[kernel]):
                     wg_size = min(self.max_workgroup_size, self.kernels[kernel])

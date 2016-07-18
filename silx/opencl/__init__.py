@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "15/07/2016"
+__date__ = "18/07/2016"
 __status__ = "stable"
 
 import os
@@ -53,6 +53,8 @@ else:
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
+    else:
+        import pyopencl.array as array
 
 FLOP_PER_CORE = {"GPU": 64,  # GPU, Fermi at least perform 64 flops per cycle/multicore, G80 were at 24 or 48 ...
                  "CPU": 4,  # CPU, at least intel's have 4 operation per cycle
