@@ -1,22 +1,34 @@
 language: python
 
+git:
+    depth: 1
+
 matrix:
     include:
         - python: 2.7
           os: linux
-          env: BUILD_COMMAND=sdist
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=False
 
         - python: 3.4
           os: linux
-          env: BUILD_COMMAND=sdist
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=False
 
         - python: 3.5
           os: linux
-          env: BUILD_COMMAND=sdist
+          env:
+              - BUILD_COMMAND=sdist
+              - WITH_QT_TEST=True
+              - QT_BINDINGS=PyQt5
 
         - language: generic
           os: osx
-          env: BUILD_COMMAND=bdist_wheel
+          env:
+              - BUILD_COMMAND=bdist_wheel
+              - WITH_QT_TEST=False
 
 cache:
     apt: true
@@ -26,6 +38,7 @@ addons:
         packages:
             - libhdf5-serial-1.8.4
             - libhdf5-serial-dev
+            - libegl1-mesa  # Required by Qt xcb platform plugin
 
 install:
     # Mac OS X specific bootstrap
@@ -34,16 +47,17 @@ install:
 
     # Upgrade distribution modules
     - pip install --upgrade setuptools
-    - pip install --upgrade pip
+    - python -m pip install --upgrade pip
 
     # Install build dependencies
-    - pip install wheel
+    - pip install --upgrade wheel
+
     #TODO: cleanup after https://github.com/h5py/h5py/issues/731 is fixed 
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy --upgrade
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py --no-index
     # Print Python info
     - python ./ci/info_platform.py
-    - pip freeze
+    - pip list
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; 
       then 
           dpkg -l;
@@ -57,26 +71,49 @@ install:
     # Mac OS X specific cleanup
     - travis_osx_install_end
 
+before_script:
+    # Start X Virtual Framebuffer useful for GUI testing
+    # Doc: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-x
+    - if [ "$TRAVIS_OS_NAME" == "linux" ];
+      then
+          export DISPLAY=:99.0;
+          sh -e /etc/init.d/xvfb start;
+          sleep 3;
+      fi
+
 script:
     # Mac OS X specific bootstrap
     - travis_osx_run_begin
 
     # Upgrade distribution modules
     - pip install --upgrade setuptools
-    - pip install --upgrade pip
+    - python -m pip install --upgrade pip
 
-    # Install from source package
-    - pip install --pre --find-links dist/ --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ silx
+    # Install numpy
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy --upgrade
 
     # Install h5py for silx.io tests
     - pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py
 
+    # Install GUI dependencies
+    - if [ "$WITH_QT_TEST" == "True" ];
+      then
+          pip install --pre matplotlib "$QT_BINDINGS" ipython qtconsole;
+      fi
+
+    # Install built package
+    # Make sure silx does not come from cache or pypi
+    # At this point all install_requires dependencies MUST be installed
+    # as this is installing only from dist
+    - pip install --pre --find-links dist/ --no-cache-dir --no-index silx
+
     # Print Python info
     - python ci/info_platform.py
-    - pip freeze
+    - pip list
 
-    # Run the tests (disable silx.gui tests)
-    - WITH_QT_TEST=False python run_tests.py
+    # Run the tests using WITH_QT_TEST from the environment
+    - echo "WITH_QT_TEST=$WITH_QT_TEST"
+    - python run_tests.py
 
     # Mac OS X specific cleanup
     - travis_osx_run_end
