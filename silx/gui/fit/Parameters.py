@@ -20,9 +20,11 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
+"""This module defines a table widget that is specialized in displaying
+fit parameter results and associated constraints."""
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/06/2016"
+__date__ = "18/07/2016"
 
 import sys
 from collections import OrderedDict

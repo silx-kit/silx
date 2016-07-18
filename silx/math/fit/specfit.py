@@ -72,7 +72,7 @@ class Specfit:
        These attributes may be modified at a latter stage by filters.
     """
 
-    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=False, fwhm_points=8,
+    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=True, fwhm_points=8,
                  auto_scaling=False, yscaling=1.0, sensitivity=2.5):
         """
         :param x: Abscissa data. If ``None``, :attr:`xdata` is set to

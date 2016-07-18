@@ -21,12 +21,13 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
-"""Widgets used to build :class:`silx.gui.fit.specfitgui.SpecfitGui`"""
+"""Collection of widgets used to build
+:class:`silx.gui.fit.FitWidget.FitWidget`"""
 
 from collections import OrderedDict
 
 from silx.gui import qt
-from silx.gui.fit.parameters import Parameters
+from silx.gui.fit.Parameters import Parameters
 
 QTVERSION = qt.qVersion()
 
@@ -139,7 +140,7 @@ class FitConfigWidget(qt.QWidget):
     """Widget with 2 ``QComboBox``, 4 ``QCheckBox`` and 2 ``QPushButtons``.
 
     The purpose of this widget, as it is used in
-    :class:`silx.gui.fit.specfitgui.SpecfitGui`, is to offer an interface
+    :class:`silx.gui.fit.specfitgui.FitWidget`, is to offer an interface
     to quickly modify the main parameters prior to running a fitting:
 
       - select a fitting function through :attr:`FunComBox`
@@ -425,8 +426,8 @@ class FitConfigWidget(qt.QWidget):
 
 class ParametersTab(qt.QTabWidget):
     """This widget provides tabs to display and modify fit parameters. Each
-    tab contains a table with such as parameter names, estimated values,
-    fit constraints, and final fit results.
+    tab contains a table with fit data such as parameter names, estimated
+    values, fit constraints, and final fit results.
 
     The usual way to initialize the table is to fill it with the fit
     parameters from a :class:`silx.math.fit.specfit.Specfit` object, after
@@ -505,44 +506,43 @@ class ParametersTab(qt.QTabWidget):
         # the widgets in the notebook
         self.views = OrderedDict()
 
-
         # the widgets/tables themselves
         self.tables = {}
         """Dictionary of :class:`silx.gui.fit.parameters.Parameters` objects.
         These objects store fit results
         """
-        #self.mcatable = None  # Fixme: probably not used
+        # self.mcatable = None  # Fixme: probably not used
         self.setContentsMargins(10, 10, 10, 10)
 
-    def setview(self, name=None, fitresults=None):
+    def setview(self, view=None, fitresults=None):
         """Add or update a table. Fill it with data from a fit
 
-        :param name: Tab name to be added or updated. If ``None``, update
+        :param view: Tab name to be added or updated. If ``None``, update
             the currently active view.
         :param fitresults: Fit data to be added to the table
         """
-        if name is None:
+        if view is None:
             if self.current is not None:
-                name = self.current
+                view = self.current
             else:
-                name = "view 1"
+                view = "view 1"
                 # raise KeyError("You must specify a name for the first view")
 
-        if name in self.tables.keys():
-            table = self.tables[name]
+        if view in self.tables.keys():
+            table = self.tables[view]
         else:
             # create the parameters instance
-            self.tables[name] = Parameters(self)
-            table = self.tables[name]
-            self.views[name] = table
-            self.addTab(table, str(name))
+            self.tables[view] = Parameters(self)
+            table = self.tables[view]
+            self.views[view] = table
+            self.addTab(table, str(view))
 
         if fitresults is not None:
             table.fillfromfit(fitresults)
 
-        self.setCurrentWidget(self.views[name])
+        self.setCurrentWidget(self.views[view])
 
-        self.current = name
+        self.current = view
 
     def renameview(self, oldname=None, newname=None):
         """Rename a view (tab)
@@ -554,19 +554,19 @@ class ParametersTab(qt.QTabWidget):
             if newname not in self.views.keys():
                 if oldname in self.views.keys():
                     parameterlist = self.tables[oldname].getfitresults()
-                    self.setview(name=newname, fitresults=parameterlist)
+                    self.setview(view=newname, fitresults=parameterlist)
                     self.removeview(oldname)
                     error = 0
         return error
 
     def fillfromfit(self, fitparameterslist, view=None):
-        """Update a view with data  from a fit (alias for :meth:`setview`)
+        """Update a view with data from a fit (alias for :meth:`setview`)
 
-        :param name: Tab name to be added or updated. If ``None``, update
+        :param view: Tab name to be added or updated. If ``None``, update
             the currently active view.
         :param fitparameterslist: Fit data to be added to the table
         """
-        self.setview(name=view, fitresults=fitparameterslist)
+        self.setview(view=view, fitresults=fitparameterslist)
 
     def getfitresults(self, name=None):
         """Call :meth:`getfitresults` for the
@@ -652,9 +652,9 @@ class ParametersTab(qt.QTabWidget):
         lemon = ("#%x%x%x" % (255, 250, 205)).upper()
         hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
         text = ""
-        text += ("<nobr>")
-        text += ("<table>")
-        text += ("<tr>")
+        text += "<nobr>"
+        text += "<table>"
+        text += "<tr>"
         ncols = table.columnCount()
         for l in range(ncols):
             text += ('<td align="left" bgcolor="%s"><b>' % hcolor)
@@ -662,11 +662,11 @@ class ParametersTab(qt.QTabWidget):
                 text += (str(table.horizontalHeader().label(l)))
             else:
                 text += (str(table.horizontalHeaderItem(l).text()))
-            text += ("</b></td>")
-        text += ("</tr>")
+            text += "</b></td>"
+        text += "</tr>"
         nrows = table.rowCount()
         for r in range(nrows):
-            text += ("<tr>")
+            text += "<tr>"
             item = table.item(r, 0)
             newtext = ""
             if item is not None:
@@ -699,21 +699,21 @@ class ParametersTab(qt.QTabWidget):
                 else:
                     text += ('<td align="right" bgcolor="%s">%s' %
                              (finalcolor, b))
-                text += (newtext)
+                text += newtext
                 if len(b):
-                    text += ("</td>")
+                    text += "</td>"
                 else:
-                    text += ("</b></td>")
+                    text += "</b></td>"
             item = table.item(r, 0)
             newtext = ""
             if item is not None:
                 newtext = str(item.text())
             if len(newtext):
-                text += ("</b>")
-            text += ("</tr>")
-            text += ("\n")
-        text += ("</table>")
-        text += ("</nobr>")
+                text += "</b>"
+            text += "</tr>"
+            text += "\n"
+        text += "</table>"
+        text += "</nobr>"
         return text
 
     def gettext(self, name=None):
@@ -729,7 +729,7 @@ class ParametersTab(qt.QTabWidget):
         ncols = table.columnCount()
         for l in range(ncols):
             text += (str(table.horizontalHeaderItem(l).text())) + "\t"
-        text += ("\n")
+        text += "\n"
         nrows = table.rowCount()
         for r in range(nrows):
             for c in range(ncols):
@@ -742,9 +742,9 @@ class ParametersTab(qt.QTabWidget):
                     item = table.cellWidget(r, c)
                     if item is not None:
                         newtext = str(item.currentText())
-                text += (newtext) + "\t"
-            text += ("\n")
-        text += ("\n")
+                text += newtext + "\t"
+            text += "\n"
+        text += "\n"
         return text
 
 
@@ -782,9 +782,9 @@ def test():
     w.fillfromfit(fit.fit_results, view='Gaussians')
 
     y2 = functions.sum_splitgauss(x,
-                              100, 400, 100, 40,
-                              10, 600, 50, 500,
-                              80, 850, 10, 50)
+                                  100, 400, 100, 40,
+                                  10, 600, 50, 500,
+                                  80, 850, 10, 50)
     fit.setdata(x=x, y=y2)
 
     # Define new theory

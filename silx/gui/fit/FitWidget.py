@@ -31,9 +31,9 @@ import traceback
 from silx.math.fit import fitestimatefunctions
 from silx.math.fit import specfit, functions
 from silx.gui import qt
-from .specfitwidgets import (FitActionsButtons, FitStatusLines,
-                             FitConfigWidget, ParametersTab)
-from .qscriptoption import QScriptOption
+from .FitWidgets import (FitActionsButtons, FitStatusLines,
+                         FitConfigWidget, ParametersTab)
+from .QScriptOption import QScriptOption
 
 QTVERSION = qt.qVersion()
 
@@ -45,7 +45,7 @@ DEBUG = 0
 _logger = logging.getLogger(__name__)
 
 
-class SpecfitGui(qt.QWidget):
+class FitWidget(qt.QWidget):
     """Widget to configure, run and display results of a fitting.
     It works hand in hand with a :class:`silx.math.fit.specfit.Specfit`
     object that handles the fit functions and calls the iterative least-square
@@ -54,7 +54,7 @@ class SpecfitGui(qt.QWidget):
     sigSpecfitGuiSignal = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, name=None,
-                 specfit=None,
+                 fitinstance=None,
                  enableconfig=True, enablestatus=True, enablebuttons=True):
         """
 
@@ -71,15 +71,15 @@ class SpecfitGui(qt.QWidget):
             fitting.
         """
         if name is None:
-            name = "SpecfitGui"
+            name = "FitWidget"
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
         layout = qt.QVBoxLayout(self)
 
-        if specfit is None:
+        if fitinstance is None:
             self.specfit = specfit.Specfit()
         else:
-            self.specfit = specfit
+            self.specfit = fitinstance
 
         # initialize the default fitting functions in case
         # none is present
@@ -119,8 +119,8 @@ class SpecfitGui(qt.QWidget):
             for key in self.specfit.theorydict:
                 self.guiconfig.FunComBox.addItem(str(key))
             configuration = {}
-            if specfit is not None:
-                configuration = specfit.configure()
+            if fitinstance is not None:
+                configuration = fitinstance.configure()
                 if configuration['fittheory'] is None:
                     self.guiconfig.FunComBox.setCurrentIndex(1)
                     self.funevent(self.specfit.theorydict.keys[0])
@@ -298,7 +298,7 @@ class SpecfitGui(qt.QWidget):
                 text += "the initial parameters. Please, fill them\n"
                 text += "yourself in the table and press Start Fit\n"
                 msg.setText(text)
-                msg.setWindowTitle('SpecfitGui Message')
+                msg.setWindowTitle('FitWidget Message')
                 msg.exec_()
                 return
         except:
@@ -498,7 +498,7 @@ if __name__ == "__main__":
 
     a = qt.QApplication(sys.argv)
     a.lastWindowClosed.connect(a.quit)
-    w = SpecfitGui(enableconfig=1, enablestatus=1, enablebuttons=1)
+    w = FitWidget(enableconfig=1, enablestatus=1, enablebuttons=1)
     w.setdata(x=x, y=y)
     w.show()
     a.exec_()

@@ -24,13 +24,14 @@
 This module is a refactored version of
 *PyMca5.PyMcaGui.math.fitting.QScriptOption*
 
-It defines a widget with customizable tabs, storing all user input in an
-internal dictionary.
+It defines a dialog widget with customizable tabs, storing all user input in
+an internal dictionary. This is used by FitWidget to set advanced fit
+configuration parameters.
 
 Example::
 
     >>> from silx.gui import qt
-    >>> from silx.gui.fit.qscriptoption import QScriptOption
+    >>> from silx.gui.fit.QScriptOption import QScriptOption
     >>> app = qt.QApplication([])
     >>> sheet1 = {'notetitle': "First Sheet",
     ...           'fields': (["Label", 'Text displayed in the first tab'],
