@@ -4,6 +4,26 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Test suite for algebra kernels
@@ -16,33 +36,12 @@ __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "2013-05-28"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
-
-import time, os, logging
+import time
+import os
+import logging
 import numpy
-import pyopencl, pyopencl.array
+from sild.opencl import pyopencl, array
 import scipy, scipy.misc, scipy.ndimage
 import sys
 import unittest
@@ -62,14 +61,11 @@ PRINT_KEYPOINTS = False
 print "working on %s" % ctx.devices[0].name
 
 
-
-
 def my_combine(mat1, a1, mat2, a2):
     """
     reference linear combination
     """
     return a1 * mat1 + a2 * mat2
-
 
 
 def my_compact(keypoints, nbkeypoints):
@@ -86,8 +82,6 @@ def my_compact(keypoints, nbkeypoints):
     return output, length
 
 
-
-
 class test_algebra(unittest.TestCase):
     def setUp(self):
 
@@ -96,16 +90,10 @@ class test_algebra(unittest.TestCase):
         self.program = pyopencl.Program(ctx, kernel_src).build()
         self.wg = (32, 4)
 
-
     def tearDown(self):
         self.mat1 = None
         self.mat2 = None
         self.program = None
-
-
-
-
-
 
     def test_combine(self):
         """
@@ -139,8 +127,6 @@ class test_algebra(unittest.TestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
-
-
     def test_compact(self):
         """
         tests the "compact" kernel
@@ -153,7 +139,8 @@ class test_algebra(unittest.TestCase):
             if ((numpy.random.rand(1))[0] < 0.25):
                 keypoints[i] = (-1, -1, i, -1)
                 nb_ones += 1
-            else: keypoints[i,2] = i
+            else: 
+                keypoints[i,2] = i
 
         gpu_keypoints = pyopencl.array.to_device(queue, keypoints)
         output = pyopencl.array.empty(queue, (nbkeypoints, 4), dtype=numpy.float32, order="C")
@@ -192,30 +179,8 @@ class test_algebra(unittest.TestCase):
             logger.info("Compact operation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def test_suite_algebra():
+def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(test_algebra("test_combine"))
     testSuite.addTest(test_algebra("test_compact"))
     return testSuite
-
-if __name__ == '__main__':
-    mysuite = test_suite_algebra()
-    runner = unittest.TextTestRunner()
-    if not runner.run(mysuite).wasSuccessful():
-        sys.exit(1)
-

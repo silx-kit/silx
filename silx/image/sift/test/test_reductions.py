@@ -1,9 +1,29 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Test suite for all reductionsessing kernels.
@@ -14,31 +34,8 @@ from __future__ import division
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-06-25"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/07/2016"
 
 import time, os, logging, math
 import numpy
@@ -96,7 +93,7 @@ class test_reductions(unittest.TestCase):
 #        max_min_gpu = pyopencl.array.empty(queue, (wg, 2), dtype=numpy.float32, order="C")
         max_gpu = pyopencl.array.empty(queue, (1,), dtype=numpy.float32, order="C")
         min_gpu = pyopencl.array.empty(queue, (1,), dtype=numpy.float32, order="C")
-        logger.info("workgroup: %s, size: %s"%( wg, size))
+        logger.info("workgroup: %s, size: %s" % (wg, size))
         t = time.time()
         nmin = data.min()
         nmax = data.max()
@@ -108,10 +105,10 @@ class test_reductions(unittest.TestCase):
         min_res = min_gpu.get()
         max_res = max_gpu.get()
 
-        logger.info( "temp res: max %s min %s", max_min_gpu.get().max(), max_min_gpu.get().min())
+        logger.info("temp res: max %s min %s", max_min_gpu.get().max(), max_min_gpu.get().min())
 #        logger.info( max_min_gpu.get()
 
-        logger.info( "Fina res: max %s min %s", min_res, max_res)
+        logger.info("Fina res: max %s min %s", min_res, max_res)
         t1 = time.time()
         min_pyocl = pyopencl.array.min(inp_gpu, queue).get()
         max_pyocl = pyopencl.array.max(inp_gpu, queue).get()
@@ -133,17 +130,11 @@ class test_reductions(unittest.TestCase):
         self.assertEqual(max_pyocl, max_res, "max: ours vs pyopencl")
 
 
-def test_suite_reductions():
+def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(test_reductions("test_max_min_rnd"))
     testSuite.addTest(test_reductions("test_max_min"))
     testSuite.addTest(test_reductions("test_max_min_rnd_big"))
 
     return testSuite
-
-if __name__ == '__main__':
-    mysuite = test_suite_reductions()
-    runner = unittest.TextTestRunner()
-    if not runner.run(mysuite).wasSuccessful():
-        sys.exit(1)
 

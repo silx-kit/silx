@@ -1,9 +1,29 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Test suite for all OpenCL preprocessing kernels.
@@ -14,31 +34,8 @@ from __future__ import division
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-05-28"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/07/2016"
 
 import os, imp, sys, subprocess, threading
 import distutils.util
@@ -82,9 +79,9 @@ class UtilsTest(object):
     """
     Static class providing useful stuff for preparing tests.
     """
-    timeout = 60        #timeout in seconds for downloading images
+    timeout = 60  # timeout in seconds for downloading images
     url_base = "http://upload.wikimedia.org"
-    #Nota https crashes with error 501 under windows.
+    # Nota https crashes with error 501 under windows.
 #    url_base = "https://forge.epn-campus.eu/attachments/download"
     test_home = os.path.dirname(os.path.abspath(__file__))
     sem = threading.Semaphore()
@@ -277,8 +274,8 @@ def getLogger(filename=__file__):
 
 import sift_pyocl as sift
 from sift_pyocl.opencl import ocl
-#This is the shared context for all tests:
-if "," in options.device: #Form 0,1
+# This is the shared context for all tests:
+if "," in options.device:  # Form 0,1
     platform, device = options.device.split(",", 1)
     platform = int(platform[-1])
     device = int(device[0])

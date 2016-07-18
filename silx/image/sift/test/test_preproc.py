@@ -1,9 +1,29 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Test suite for all preprocessing kernels.
@@ -14,31 +34,8 @@ from __future__ import division
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-05-28"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/07/2016"
 
 import time, os, logging
 import numpy
@@ -98,8 +95,8 @@ def binning(input_img, binsize):
     bigSize = [i * j  for i, j in zip(outputSize, binsize)]
     delta = [j - i  for i, j in zip(inputSize, bigSize)]
     big_array = numpy.empty(bigSize, input_img.dtype)
-    big_array[:inputSize[0],:inputSize[1]]=input_img
-    #corner
+    big_array[:inputSize[0], :inputSize[1]] = input_img
+    # corner
     big_array[inputSize[0]:, inputSize[1]:] = input_img[-1:-delta[0] - 1:-1, -1:-delta[1] - 1:-1]
     # 2 sides
     big_array[inputSize[0]:, :inputSize[1]] = input_img[-1:-delta[0] - 1:-1, :]
@@ -129,12 +126,12 @@ class test_preproc(unittest.TestCase):
         self.reduction = pyopencl.Program(ctx, reduct_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        self.wg = (32, 16)#(256, 2) #(32, 16) # (2, 256)
+        self.wg = (32, 16)  # (256, 2) #(32, 16) # (2, 256)
         self.shape = calc_size((self.IMAGE_W, self.IMAGE_H), self.wg)
 #        print self.shape
-        self.binning = (4, 2) # Nota if wg < ouptup size weired results are expected !
+        self.binning = (4, 2)  # Nota if wg < ouptup size weired results are expected !
 #        self.binning = (2, 2)
-        self.red_size = 128 #reduction size
+        self.red_size = 128  # reduction size
         self.twofivefive = pyopencl.array.to_device(queue, numpy.array([255], numpy.float32))
         self.buffers_max_min = pyopencl.array.empty(queue, (self.red_size, 2), dtype=numpy.float32)  # temporary buffer for max/min reduction
         self.buffers_min = pyopencl.array.empty(queue, (1), dtype=numpy.float32)
@@ -325,7 +322,7 @@ class test_preproc(unittest.TestCase):
                                      self.IMAGE_W, self.IMAGE_H)
         res = self.gpudata.get()
         t1 = time.time()
-        ref = normalize(lint.max(axis= -1))
+        ref = normalize(lint.max(axis=-1))
         t2 = time.time()
         delta = abs(ref - res).max()
         if PROFILE:
@@ -421,9 +418,7 @@ class test_preproc(unittest.TestCase):
             raw_input("enter")
         self.assert_(delta < 1e-6, "delta=%s" % delta)
 
-
-
-def test_suite_preproc():
+def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(test_preproc("test_uint8"))
     testSuite.addTest(test_preproc("test_uint16"))
@@ -433,11 +428,3 @@ def test_suite_preproc():
     testSuite.addTest(test_preproc("test_shrink"))
     testSuite.addTest(test_preproc("test_bin"))
     return testSuite
-
-if __name__ == '__main__':
-    mysuite = test_suite_preproc()
-    runner = unittest.TextTestRunner()
-    if not runner.run(mysuite).wasSuccessful():
-        sys.exit(1)
-
-

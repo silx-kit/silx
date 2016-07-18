@@ -268,16 +268,8 @@ class test_keypoints(unittest.TestCase):
             
             
 
-def test_suite_keypoints():
+def suite():
     testSuite = unittest.TestSuite()
 #    testSuite.addTest(test_keypoints("test_orientation"))
     testSuite.addTest(test_keypoints("test_descriptor"))
     return testSuite
-
-if __name__ == '__main__':
-    mysuite = test_suite_keypoints()
-    runner = unittest.TextTestRunner()
-    if not runner.run(mysuite).wasSuccessful():
-        sys.exit(1)
-
-

@@ -4,6 +4,26 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+# 
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Test suite for image kernels
@@ -14,31 +34,8 @@ from __future__ import division
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-05-28"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "18/07/2016"
 
 import time, os, logging
 import numpy
@@ -47,8 +44,8 @@ import scipy, scipy.misc, scipy.ndimage, pylab
 import sys
 import unittest
 from utilstest import UtilsTest, getLogger, ctx
-from test_image_functions import * #for Python implementation of tested functions
-from test_image_setup import *
+from .test_image_functions import * #for Python implementation of tested functions
+from .test_image_setup import *
 import sift_pyocl as sift
 from sift_pyocl.utils import calc_size
 logger = getLogger(__file__)
@@ -322,7 +319,7 @@ class test_keypoints(ParameterisedTestCase):
             
             
 
-def test_suite_keypoints():
+def suite():
     testSuite = unittest.TestSuite()
     TESTCASES = [{"orientation_gpu":(128,), "keypoints_gpu2":(8, 8, 8)},
                  {"orientation_cpu":(1,), "keypoints_cpu":(1,)},
@@ -336,10 +333,3 @@ def test_suite_keypoints():
 #    testSuite.addTest(test_keypoints("test_orientation"))
 #    testSuite.addTest(test_keypoints("test_descriptor"))
     return testSuite
-
-if __name__ == '__main__':
-    mysuite = test_suite_keypoints()
-    runner = unittest.TextTestRunner()
-    if not runner.run(mysuite).wasSuccessful():
-        sys.exit(1)
-
