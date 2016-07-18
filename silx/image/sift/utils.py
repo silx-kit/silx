@@ -34,12 +34,10 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "2013-06-13"
 __status__ = "beta"
-__license__ = """
-
-"""
 
 from math import ceil
 import numpy
+from silx.resources import resource_filename
 
 
 def calc_size(shape, blocksize):
@@ -142,4 +140,5 @@ def bin2RGB(img):
         return out.astype(dtype)
     else:
         return out
+
 
