@@ -30,15 +30,8 @@ from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('image', parent_package, top_path)
+    config = Configuration('sift', parent_package, top_path)
     config.add_subpackage('test')
-    config.add_extension('bilinear',
-                         sources=["bilinear.pyx"],
-                         language='c')
-    config.add_extension('shapes',
-                         sources=["shapes.pyx"],
-                         language='c')
-    config.add_subpackage('sift')
     return config
 
 

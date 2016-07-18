@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
-#             https://github.com/kif/sift_pyocl
+#             https://github.com/silx-kit/silx
 #
 
 """

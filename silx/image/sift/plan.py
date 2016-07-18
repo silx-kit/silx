@@ -1,20 +1,43 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# This code implements the SIFT algorithm
-# The SIFT algorithm belongs to the University of British Columbia. It is
-# protected by patent US6711293. If you are on a country where this pattent
-# applies (like the USA), please check if you are allowed to use it. The
-# University of British Columbia does not require a license for its use for
-# non-commercial research applications.
 #
 #    Project: Sift implementation in Python + OpenCL
-#             https://github.com/kif/sift_pyocl
+#             https://github.com/silx-kit/silx
 #
-"""
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
+"""
 Contains a class for creating a plan, allocating arrays, compiling kernels and other things like that...
 to calculate SIFT keypoints and descriptors.
+
+
+This code implements the SIFT algorithm
+The SIFT algorithm belongs to the University of British Columbia. It is
+protected by patent US6711293. If you are on a country where this pattent
+applies (like the USA), please check if you are allowed to use it. The
+University of British Columbia does not require a license for its use for
+non-commercial research applications.
+
 
 This algorithm is patented: U.S. Patent 6,711,293: 
 "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image", 
@@ -29,38 +52,22 @@ __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "2013-07-19"
 __status__ = "beta"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
-import time, math, os, logging, threading, sys
+import time
+import math
+import os
+import logging
+import threading
+import sys
 # import sys
 import gc
 import numpy
 from .param import par
-from .opencl import ocl, pyopencl
+from silx.opencl import ocl, pyopencl
 
 from .utils import calc_size, kernel_size  # , sizeof
 logger = logging.getLogger("sift.plan")
+
 
 class SiftPlan(object):
     """
@@ -77,26 +84,26 @@ class SiftPlan(object):
     This SIFT algorithm is patented: U.S. Patent 6,711,293: 
     "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image", 
     """
-    kernels = {"convolution":1024,  # key: name value max local workgroup size
+    kernels = {"convolution": 1024,  # key: name value max local workgroup size
                "preprocess": 1024,
                "algebra": 1024,
-               "image":1024,
-               "gaussian":1024,
-               "reductions":1024,
-               "orientation_cpu":1,
-               "orientation_gpu":128,
-               "keypoints_gpu1":(8, 4, 4),
-               "keypoints_gpu2":(8, 8, 8),
-               "keypoints_cpu":1,
-               "memset":128, }
+               "image": 1024,
+               "gaussian": 1024,
+               "reductions": 1024,
+               "orientation_cpu": 1,
+               "orientation_gpu": 128,
+               "keypoints_gpu1": (8, 4, 4),
+               "keypoints_gpu2": (8, 8, 8),
+               "keypoints_cpu": 1,
+               "memset": 128, }
 #               "keypoints":128}
-    converter = {numpy.dtype(numpy.uint8):"u8_to_float",
-                 numpy.dtype(numpy.uint16):"u16_to_float",
-                 numpy.dtype(numpy.uint32):"u32_to_float",
-                 numpy.dtype(numpy.int32):"s32_to_float",
-                 numpy.dtype(numpy.int64):"s64_to_float",
-#                    numpy.float64:"double_to_float",
-                      }
+    converter = {numpy.dtype(numpy.uint8): "u8_to_float",
+                 numpy.dtype(numpy.uint16): "u16_to_float",
+                 numpy.dtype(numpy.uint32): "u32_to_float",
+                 numpy.dtype(numpy.int32): "s32_to_float",
+                 numpy.dtype(numpy.int64): "s64_to_float",
+#                numpy.float64:"double_to_float",
+                }
     sigmaRatio = 2.0 ** (1.0 / par.Scales)
     PIX_PER_KP = 10  # pre_allocate buffers for keypoints
     dtype_kp = numpy.dtype([('x', numpy.float32),
@@ -203,12 +210,12 @@ class SiftPlan(object):
                     if isinstance(v, int):
                         self.kernels[k] = 1
                     else:
-                        self.kernels[k] = tuple([1 for i in v])
+                        self.kernels[k] = tuple([1] * len(v))
         else:
             self.USE_CPU = False
             if "HD Graphics" in ocl.platforms[self.device[0]].devices[self.device[1]].name:
-                self.LOW_END=2
-            
+                self.LOW_END = 2
+
     def __del__(self):
         """
         Destructor: release all buffers
@@ -288,17 +295,17 @@ class SiftPlan(object):
                 self.buffers["raw"] = pyopencl.array.empty(self.queue, rgbshape, dtype=self.dtype)
             else:
                 self.buffers["raw"] = pyopencl.array.empty(self.queue, shape, dtype=self.dtype)
-        self.buffers[ "Kp_1" ] = pyopencl.array.empty(self.queue, (self.kpsize, 4), dtype=numpy.float32)
-        self.buffers[ "Kp_2" ] = pyopencl.array.empty(self.queue, (self.kpsize, 4), dtype=numpy.float32)
-        self.buffers[ "descr" ] = pyopencl.array.empty(self.queue, (self.kpsize, 128), dtype=numpy.uint8)
-        self.buffers["cnt" ] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
+        self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (self.kpsize, 4), dtype=numpy.float32)
+        self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (self.kpsize, 4), dtype=numpy.float32)
+        self.buffers["descr"] = pyopencl.array.empty(self.queue, (self.kpsize, 128), dtype=numpy.uint8)
+        self.buffers["cnt"] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
         self.buffers["descriptors"] = pyopencl.array.empty(self.queue, (self.kpsize, 128), dtype=numpy.uint8)
 
         self.buffers["tmp"] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
         self.buffers["ori"] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
         for scale in range(par.Scales + 3):
-            self.buffers[scale ] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
-        self.buffers["DoGs" ] = pyopencl.array.empty(self.queue, (par.Scales + 2, shape[0], shape[1]), dtype=numpy.float32)
+            self.buffers[scale] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
+        self.buffers["DoGs"] = pyopencl.array.empty(self.queue, (par.Scales + 2, shape[0], shape[1]), dtype=numpy.float32)
         wg_float = min(512.0, numpy.sqrt(self.shape[0] * self.shape[1]))
 #        wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
         self.buffers["max_min"] = pyopencl.array.empty(self.queue, (self.red_size, 2), dtype=numpy.float32)  # temporary buffer for max/min reduction
@@ -318,7 +325,6 @@ class SiftPlan(object):
             increase = prevSigma * math.sqrt(self.sigmaRatio ** 2 - 1.0)
             self._init_gaussian(increase)
             prevSigma *= self.sigmaRatio
-
 
     def _init_gaussian(self, sigma):
         """
@@ -345,12 +351,11 @@ class SiftPlan(object):
         else:
             gaussian_gpu = pyopencl.array.empty(self.queue, size, dtype=numpy.float32)
             evt = self.programs["gaussian"].gaussian(self.queue, (wg_size,), (wg_size,),
-                                                gaussian_gpu.data,  # __global     float     *data,
-                                                numpy.float32(sigma),  # const        float     sigma,
-                                                numpy.int32(size))  # const        int     SIZE
+                                                     gaussian_gpu.data,  # __global     float     *data,
+                                                     numpy.float32(sigma),  # const        float     sigma,
+                                                     numpy.int32(size))  # const        int     SIZE
             if self.profile: self.events.append(("gaussian %s" % sigma, evt))
         self.buffers[name] = gaussian_gpu
-
 
     def _free_buffers(self):
         """
@@ -370,7 +375,7 @@ class SiftPlan(object):
         """
         kernel_directory = os.path.dirname(os.path.abspath(__file__))
         if not os.path.exists(os.path.join(kernel_directory, "algebra" + ".cl")):
-            while (".zip" in kernel_directory)  and (len(kernel_directory) > 4):
+            while (".zip" in kernel_directory) and (len(kernel_directory) > 4):
                 kernel_directory = os.path.dirname(kernel_directory)
             kernel_directory = os.path.join(kernel_directory, "sift_kernels")
         for kernel in self.kernels:

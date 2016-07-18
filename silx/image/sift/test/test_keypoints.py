@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 #    Project: Sift implementation in Python + OpenCL
-#             https://github.com/kif/sift_pyocl
+#             https://github.com/silx-kit/silx
 #
 
 """
@@ -50,7 +50,8 @@ from utilstest import UtilsTest, getLogger, ctx
 from test_image_functions import * #for Python implementation of tested functions
 from test_image_setup import *
 import sift_pyocl as sift
-sift_pyocllogger = getLogger(__file__)
+from sift_pyocl.utils import calc_size
+logger = getLogger(__file__)
 if logger.getEffectiveLevel() <= logging.INFO:
     PROFILE = True
     queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
@@ -60,30 +61,70 @@ else:
     queue = pyopencl.CommandQueue(ctx)
 
 SHOW_FIGURES = False
-PRINT_KEYPOINTS = False
-USE_CPU = False
+PRINT_KEYPOINTS = True
+#USE_CPU = False
 USE_CPP_SIFT = False #use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
 
 
 
-print "working on %s" % ctx.devices[0].name
+#print "working on %s" % ctx.devices[0].name
 
 '''
 For Python implementation of tested functions, see "test_image_functions.py"
 '''
 
 
+class ParameterisedTestCase(unittest.TestCase):
+    """ TestCase classes that want to be parameterised should
+        inherit from this class.
+        From Eli Bendersky's website
+        http://eli.thegreenplace.net/2011/08/02/python-unit-testing-parametrized-test-cases/
+    """
+    def __init__(self, methodName='runTest', param=None):
+        super(ParameterisedTestCase, self).__init__(methodName)
+        self.param = param
 
-class test_keypoints(unittest.TestCase):
+    @staticmethod
+    def parameterise(testcase_klass, param=None):
+        """ Create a suite containing all tests taken from the given
+            subclass, passing them the parameter 'param'.
+        """
+        testloader = unittest.TestLoader()
+        testnames = testloader.getTestCaseNames(testcase_klass)
+        suite = unittest.TestSuite()
+        for name in testnames:
+            suite.addTest(testcase_klass(name, param=param))
+        return suite
+
+
+class test_keypoints(ParameterisedTestCase):
     def setUp(self):
-
-        kernel_file = "keypoints_cpu.cl" if USE_CPU else "keypoints_gpu1.cl"
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file)
-        kernel_src = open(kernel_path).read()
-        self.program = pyopencl.Program(ctx, kernel_src).build(options="-cl-nv-arch sm_20")
-        self.wg = (1, 128)
-
-
+        self.abort = False
+        for kernel_file in self.param:
+            if "cpu" in kernel_file:
+                self.USE_CPU = True
+            else:
+                self.USE_CPU = False
+            if kernel_file.startswith("orient"):
+                self.wg_orient = self.param[kernel_file]
+                kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file + ".cl")
+                kernel_src = open(kernel_path).read()
+                try:
+                    self.program_orient = pyopencl.Program(ctx, kernel_src).build()
+                except:
+                    logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
+                    self.abort = True
+                    return
+            elif kernel_file.startswith("keypoint"):
+                self.wg_keypoint = self.param[kernel_file]
+                kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file + ".cl")
+                kernel_src = open(kernel_path).read()
+                try:
+                    self.program_keypoint = pyopencl.Program(ctx, kernel_src).build()
+                except:
+                    logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
+                    self.abort = True
+                    return
 
     def tearDown(self):
         self.mat = None
@@ -96,19 +137,21 @@ class test_keypoints(unittest.TestCase):
         '''
         #tests keypoints orientation assignment kernel
         '''
-
+        if self.abort:
+            return
         #orientation_setup :
         keypoints, nb_keypoints, updated_nb_keypoints, grad, ori, octsize = orientation_setup()
         keypoints, compact_cnt = my_compact(numpy.copy(keypoints),nb_keypoints)
         updated_nb_keypoints = compact_cnt
         
-        if (USE_CPU):
-            print("Using CPU-optimized kernels")
-            wg = 1,
-            shape = keypoints.shape[0]*wg[0],
-        else:
-            wg = 128, #FIXME : have to choose it for histograms #wg = max(self.wg),
-            shape = keypoints.shape[0]*wg[0],  #shape = calc_size(keypoints.shape, self.wg)
+#        if (USE_CPU):
+#            print("Using CPU-optimized kernels")
+#            wg = 1,
+#            shape = keypoints.shape[0]*wg[0],
+#        else:
+#            wg = 128, #FIXME : have to choose it for histograms #wg = max(self.wg),
+        wg = self.wg_orient
+        shape = keypoints.shape[0] * wg[0],  #shape = calc_size(keypoints.shape, self.wg)
         
         gpu_keypoints = pyopencl.array.to_device(queue, keypoints)
         actual_nb_keypoints = numpy.int32(updated_nb_keypoints)
@@ -123,7 +166,7 @@ class test_keypoints(unittest.TestCase):
         counter = pyopencl.array.to_device(queue, keypoints_end) #actual_nb_keypoints)
 
         t0 = time.time()
-        k1 = self.program.orientation_assignment(queue, shape, wg,
+        k1 = self.program_orient.orientation_assignment(queue, shape, wg,
         	gpu_keypoints.data, gpu_grad.data, gpu_ori.data, counter.data,
         	octsize, orisigma, nb_keypoints, keypoints_start, keypoints_end, grad_width, grad_height)
         res = gpu_keypoints.get()
@@ -178,6 +221,9 @@ class test_keypoints(unittest.TestCase):
         '''
         #tests keypoints descriptors creation kernel
         '''
+        if self.abort:
+            return
+
         #descriptor_setup :
         keypoints_o, nb_keypoints, actual_nb_keypoints, grad, ori, octsize = descriptor_setup()
         #keypoints should be a compacted vector of keypoints
@@ -188,16 +234,20 @@ class test_keypoints(unittest.TestCase):
         print("Working on keypoints : [%s,%s] (octave = %s)" % (keypoints_start, keypoints_end-1,int(numpy.log2(octsize)+1)))
         if not(USE_CPP_SIFT) and (100 < keypoints_end-keypoints_start): print "NOTE: Python implementation of descriptors is slow. Do not handle more than 100 keypoints, or grab a coffee..."
         
-        if (USE_CPU):
-            print "Using CPU-optimized kernels"
-            wg = 1,
-            shape = keypoints.shape[0]*wg[0],
-        else:
+#        if (self.USE_CPU):
+#            print "Using CPU-optimized kernels"
+#            wg = 1,
+#            shape = keypoints.shape[0]*wg[0],
+#        else:
 #            wg = (8, 8, 8)
 #            shape = int(keypoints.shape[0]*wg[0]), 8, 8
-            wg = (8, 4, 4)
-            shape = int(keypoints.shape[0]*wg[0]), 4, 4
-                        
+#            wg = (4, 4, 8)
+#            shape = int(keypoints.shape[0]*wg[0]), 4, 8
+        wg = self.wg_keypoint
+        if len(wg) == 1:
+            shape = keypoints.shape[0] * wg[0],
+        else:
+            shape = keypoints.shape[0] * wg[0], wg[1], wg[2]
         gpu_keypoints = pyopencl.array.to_device(queue, keypoints)
         #NOTE: for the following line, use pyopencl.array.empty instead of pyopencl.array.zeros if the keypoints are compacted
         gpu_descriptors = pyopencl.array.zeros(queue, (keypoints_end - keypoints_start, 128), dtype=numpy.uint8, order="C")
@@ -209,10 +259,14 @@ class test_keypoints(unittest.TestCase):
         counter = pyopencl.array.to_device(queue, keypoints_end)
         
         t0 = time.time()
-        k1 = self.program.descriptor(queue, shape, wg,
+        k1 = self.program_keypoint.descriptor(queue, shape, wg,
             gpu_keypoints.data, gpu_descriptors.data, gpu_grad.data, gpu_ori.data, numpy.int32(octsize),
             keypoints_start, counter.data, grad_width, grad_height)
-        res = gpu_descriptors.get()
+        try:
+            res = gpu_descriptors.get()
+        except (pyopencl.LogicError, RuntimeError) as error:
+            logger.warning("Segmentation fault like error (%s) on Descriptor for %s" % (error, self.param))
+            return
         t1 = time.time()
 
         if (USE_CPP_SIFT):
@@ -270,8 +324,17 @@ class test_keypoints(unittest.TestCase):
 
 def test_suite_keypoints():
     testSuite = unittest.TestSuite()
+    TESTCASES = [{"orientation_gpu":(128,), "keypoints_gpu2":(8, 8, 8)},
+                 {"orientation_cpu":(1,), "keypoints_cpu":(1,)},
+                  {"orientation_gpu":(128,), "keypoints_gpu1":(4, 4, 8)},
+
+                  ]
+    for param in TESTCASES:
+        testSuite.addTest(ParameterisedTestCase.parameterise(
+                test_keypoints, param))
+
 #    testSuite.addTest(test_keypoints("test_orientation"))
-    testSuite.addTest(test_keypoints("test_descriptor"))
+#    testSuite.addTest(test_keypoints("test_descriptor"))
     return testSuite
 
 if __name__ == '__main__':
@@ -279,5 +342,4 @@ if __name__ == '__main__':
     runner = unittest.TextTestRunner()
     if not runner.run(mysuite).wasSuccessful():
         sys.exit(1)
-
 

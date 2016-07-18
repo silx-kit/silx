@@ -1,9 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#    Project: Sift implementation in Python + OpenCL
-#             https://github.com/kif/sift_pyocl
 #
+#    Project: Sift implementation in Python + OpenCL
+#             https://github.com/silx-kit/silx
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+#
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
 
 """
 Contains a class for creating a matching plan, allocating arrays, compiling kernels and other things like that
@@ -15,42 +36,25 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-07-23"
+__date__ = "18/07/2016"
 __status__ = "beta"
-__license__ = """
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-"""
-import time, math, os, logging, sys, threading
+import time
+import math
+import os
+import logging
+import sys
+import threading
 import gc
 import numpy
 from .param import par
-from .opencl import ocl, pyopencl
+from silx.opencl import ocl, pyopencl
 from .utils import calc_size, kernel_size, sizeof
 logger = logging.getLogger("sift.match")
 if pyopencl:
     from pyopencl import mem_flags as MF
 else:
     logger.warning("No PyOpenCL, no sift")
+
 
 class MatchPlan(object):
     """
@@ -62,16 +66,16 @@ class MatchPlan(object):
     kp is a nx132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint
 
     """
-    kernels = {"matching_gpu":64,
-               "matching_cpu":16,
-               "memset":128, }
+    kernels = {"matching_gpu": 64,
+               "matching_cpu": 16,
+               "memset": 128, }
 
     dtype_kp = numpy.dtype([('x', numpy.float32),
-                                ('y', numpy.float32),
-                                ('scale', numpy.float32),
-                                ('angle', numpy.float32),
-                                ('desc', (numpy.uint8, 128))
-                                ])
+                            ('y', numpy.float32),
+                            ('scale', numpy.float32),
+                            ('angle', numpy.float32),
+                            ('desc', (numpy.uint8, 128))
+                            ])
 
     def __init__(self, size=16384, devicetype="CPU", profile=False, device=None, max_workgroup_size=None, roi=None, context=None):
         """
