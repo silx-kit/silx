@@ -73,7 +73,7 @@ install:
 
 before_script:
     # Start X Virtual Framebuffer useful for GUI testing
-    # Doc: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-x
+    # Doc: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
     - if [ "$TRAVIS_OS_NAME" == "linux" ];
       then
           export DISPLAY=:99.0;
