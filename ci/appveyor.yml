@@ -57,7 +57,7 @@ build_script:
     - "virtualenv --clear %VENV_BUILD_DIR%"
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
 
-    # Install buils dependencies
+    # Install build dependencies
     - "pip install wheel"
     - "pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy"
 
