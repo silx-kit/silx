@@ -330,7 +330,8 @@ class ROITable(qt.QTableWidget):
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
         """Set the ROIs
 
-        :param list roilist: List of ROI names (keys of roidict)
+        :param roilist: List of ROI names (keys of roidict)
+        :type roilist: List
         :param dict roidict: Dict of ROI information
         :param currentroi: Name of the selected ROI or None (no selection)
         """

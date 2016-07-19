@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """Widget providing a set of tools to draw masks on a PlotWidget.
 
-This widget is meant to work with :class:`PlotWidget`.
+This widget is meant to work with :class:`silx.gui.plot.PlotWidget`.
 
 - :class:`Mask`: Handle mask bitmap update and history
 - :class:`MaskToolsWidget`: GUI for :class:`Mask`
@@ -1207,7 +1207,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
 
     For integration in a :class:`PlotWindow`.
 
-    :param PlotWidget plot: The PlotWidget this widget is operating on
+    :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
     :param parent: See :class:`QDockWidget`
     """

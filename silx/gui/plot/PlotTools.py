@@ -107,10 +107,11 @@ class PositionInfo(qt.QWidget):
         """Toggle snapping use position to active curve.
 
         - True to snap used coordinates to the active curve if the active curve
-        is displayed with symbols and mouse is close enough.
-        If the mouse is not close to a point of the curve, values are
-        displayed in red.
+          is displayed with symbols and mouse is close enough.
+          If the mouse is not close to a point of the curve, values are
+          displayed in red.
         - False (the default) to always use mouse coordinates.
+
         """
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
