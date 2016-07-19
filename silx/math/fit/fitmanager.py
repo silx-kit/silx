@@ -53,7 +53,7 @@ from .leastsq import leastsq
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/06/2016"
+__date__ = "19/07/2016"
 
 _logger = logging.getLogger(__name__)
 
@@ -684,7 +684,7 @@ class FitManager:
                             "theorydict[%s]" % fittheory +
                             " must be callable.")
 
-    def importfun(self, file):
+    def importfun(self, fname):
         """Import user defined fit functions defined in an external Python
         source file, and save them in :attr:`theorydict`.
 
@@ -736,16 +736,16 @@ class FitManager:
         The external python file can also define a function called ``INIT``.
         Such a function will be executed before anything is loaded.
 
-        :param file: Name of python source file containing the definition
+        :param fname: Name of python source file containing the definition
             of fit functions.
         """
-        sys.path.append(os.path.dirname(file))
-        f = os.path.basename(os.path.splitext(file)[0])
+        sys.path.append(os.path.dirname(fname))
+        f = os.path.basename(os.path.splitext(fname)[0])
         newfun = __import__(f)
         if hasattr(newfun, "INIT"):
             newfun.INIT()
 
-        msg = "File %s does not contain a THEORY dictionary" % file
+        msg = "File %s does not contain a THEORY dictionary" % fname
         if not hasattr(newfun, "THEORY") or not isinstance(newfun.THEORY, dict):
             raise ImportError(msg)
 
