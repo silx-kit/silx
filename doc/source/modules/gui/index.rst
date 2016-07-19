@@ -14,6 +14,7 @@ Available modules:
    :maxdepth: 1
 
    plot/index.rst
+   fit/index.rst
    qt.rst
    icons.rst
    console.rst

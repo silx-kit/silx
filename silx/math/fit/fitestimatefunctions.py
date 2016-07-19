@@ -24,7 +24,10 @@
 ########################################################################### */
 """This modules provides a set of fit functions and associated
 estimation functions in a format that can be imported into a
-:class:`silx.math.fit.specfit.FitManager` instance.
+:class:`silx.math.fit.FitManager` instance.
+
+The source code of this module can serve as template for defining your own
+fit functions.
 
 The functions to be imported by :meth:`FitManager.importfun` are defined by
 a dictionary :const:`THEORY`: with the following structure::
@@ -41,6 +44,14 @@ a dictionary :const:`THEORY`: with the following structure::
         'theory_name_2': {
            …
         },
+    }
+
+.. note::
+
+    Consider using an OrderedDict instead of a regular dictionary, when
+    defining your own theory dictionary, if the order matters to you.
+    This will likely be the case if you intend to load a selection of
+    functions in a GUI such as :class:`silx.gui.fit.FitManager`.
 
 Theory names can be customized (e.g. ``gauss, lorentz, splitgauss``…).
 
@@ -48,7 +59,7 @@ Fit functions must have the signature ``f(x, *params)``, where ``x``
 is an array of values for the independent variable, and ``params`` are
 the parameters to be fitted. The number of parameters must be the same
 as in the ``parameters`` field of ``THEORY``, or a multiple of this
-number if the function handles summing a variable number of base
+number if the function is defined as a sum of a variable number of base
 functions.
 
 The estimation function must have the following signature::
@@ -73,15 +84,14 @@ is actually defined in this module, which is not a problem if the fit
 algorithm has a default derivative function, as is the case for
 :func:`silx.math.fit.leastsq`.
 
-If you plan to use the source code of this module as a template to define
-your own fit functions, you might be interested in learning that you can
-also define an ``INIT`` function that will be executed by
+You can also define an ``INIT`` function that will be executed by
 :meth:`FitManager.importfun`.
 
 Module members:
 ---------------
 """
 import numpy
+from collections import OrderedDict
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
@@ -176,7 +186,6 @@ class FitEstimateFunctions(object):
 
         For example, 15 can be expressed as ``1111`` in base 2, so a flag of
         15 means all terms are active.
-
         """
         g_term = self.config['HypermetTails'] & 1
         st_term = (self.config['HypermetTails'] >> 1) & 1
@@ -382,10 +391,10 @@ class FitEstimateFunctions(object):
                                                              yscaling)
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
-        # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
             fwhm = fittedpar[3 * i + 2]
+            # Replace height with area in fittedpar
             fittedpar[3 * i] = numpy.sqrt(2 * numpy.pi) * height * fwhm / (
                                2.0 * numpy.sqrt(2 * numpy.log(2)))
         return fittedpar, cons
@@ -413,10 +422,10 @@ class FitEstimateFunctions(object):
                                                              yscaling)
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
-        # Replace height with area in fittedpar
         for i in range(npeaks):
             height = fittedpar[3 * i]
             fwhm = fittedpar[3 * i + 2]
+            # Replace height with area in fittedpar
             fittedpar[3 * i] = (height * fwhm * 0.5 * numpy.pi)
         return fittedpar, cons
 
@@ -436,7 +445,7 @@ class FitEstimateFunctions(object):
             for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
-            *Area, Position, FWHM1, FWHM2*.
+            *Height, Position, FWHM1, FWHM2*.
             Fit constraints depend on :attr:`config`.
         """
         fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
@@ -448,21 +457,27 @@ class FitEstimateFunctions(object):
         for i in range(npeaks):
             for j in range(3):
                 estimated_parameters.append(fittedpar[3 * i + j])
+            # fwhm2 estimate = fwhm1
             estimated_parameters.append(fittedpar[3 * i + 2])
+            # height
             estimated_constraints[4 * i, 0] = cons[3 * i, 0]
-            estimated_constraints[4 * i + 1, 0] = cons[3 * i + 1, 0]
-            estimated_constraints[4 * i + 2, 0] = cons[3 * i + 2, 0]
-            estimated_constraints[4 * i + 3, 0] = cons[3 * i + 2, 0]
             estimated_constraints[4 * i, 1] = cons[3 * i, 1]
-            estimated_constraints[4 * i + 1, 1] = cons[3 * i + 1, 1]
-            estimated_constraints[4 * i + 2, 1] = cons[3 * i + 2, 1]
-            estimated_constraints[4 * i + 3, 1] = cons[3 * i + 2, 1]
             estimated_constraints[4 * i, 2] = cons[3 * i, 2]
+            # position
+            estimated_constraints[4 * i + 1, 0] = cons[3 * i + 1, 0]
+            estimated_constraints[4 * i + 1, 1] = cons[3 * i + 1, 1]
             estimated_constraints[4 * i + 1, 2] = cons[3 * i + 1, 2]
+            # fwhm1
+            estimated_constraints[4 * i + 2, 0] = cons[3 * i + 2, 0]
+            estimated_constraints[4 * i + 2, 1] = cons[3 * i + 2, 1]
             estimated_constraints[4 * i + 2, 2] = cons[3 * i + 2, 2]
+            # fwhm2
+            estimated_constraints[4 * i + 3, 0] = cons[3 * i + 2, 0]
+            estimated_constraints[4 * i + 3, 1] = cons[3 * i + 2, 1]
             estimated_constraints[4 * i + 3, 2] = cons[3 * i + 2, 2]
-            if cons[3 * i + 2, 0] == 4:
-                # same FWHM case
+            if cons[3 * i + 2, 0] == CFACTOR:
+                # convert indices of related parameters
+                # (this happens if SameFwhmFlag == True)
                 estimated_constraints[4 * i + 2, 1] = \
                     int(cons[3 * i + 2, 1] / 3) * 4 + 2
                 estimated_constraints[4 * i + 3, 1] = \
@@ -515,21 +530,23 @@ class FitEstimateFunctions(object):
             newpar.append(fittedpar[3 * i + 1])
             newpar.append(fittedpar[3 * i + 2])
             newpar.append(0.5)
+            # height
             newcons[4 * i, 0] = cons[3 * i, 0]
-            newcons[4 * i + 1, 0] = cons[3 * i + 1, 0]
-            newcons[4 * i + 2, 0] = cons[3 * i + 2, 0]
             newcons[4 * i, 1] = cons[3 * i, 1]
-            newcons[4 * i + 1, 1] = cons[3 * i + 1, 1]
-            newcons[4 * i + 2, 1] = cons[3 * i + 2, 1]
             newcons[4 * i, 2] = cons[3 * i, 2]
+            # position
+            newcons[4 * i + 1, 0] = cons[3 * i + 1, 0]
+            newcons[4 * i + 1, 1] = cons[3 * i + 1, 1]
             newcons[4 * i + 1, 2] = cons[3 * i + 1, 2]
+            # fwhm
+            newcons[4 * i + 2, 0] = cons[3 * i + 2, 0]
+            newcons[4 * i + 2, 1] = cons[3 * i + 2, 1]
             newcons[4 * i + 2, 2] = cons[3 * i + 2, 2]
             # Eta constrains
-            newcons[4 * i + 3, 0] = 0
+            newcons[4 * i + 3, 0] = CFREE
             newcons[4 * i + 3, 1] = 0
             newcons[4 * i + 3, 2] = 0
             if self.config['QuotedEtaFlag']:
-                # QUOTED=2
                 newcons[4 * i + 3, 0] = CQUOTED
                 newcons[4 * i + 3, 1] = 0.0
                 newcons[4 * i + 3, 2] = 1.0
@@ -581,30 +598,41 @@ class FitEstimateFunctions(object):
             newpar.append(fittedpar[3 * i + 1])
             # fwhm1
             newpar.append(fittedpar[3 * i + 2])
-            # fwhm2 equal to the first
+            # fwhm2 estimate equal to fwhm1
             newpar.append(fittedpar[3 * i + 2])
             # eta
             newpar.append(0.5)
+            # constraint codes
+            # ----------------
+            # height
             newcons[5 * i, 0] = cons[3 * i, 0]
+            # position
             newcons[5 * i + 1, 0] = cons[3 * i + 1, 0]
+            # fwhm1
             newcons[5 * i + 2, 0] = cons[3 * i + 2, 0]
+            # fwhm2
             newcons[5 * i + 3, 0] = cons[3 * i + 2, 0]
+            # cons 1
+            # ------
             newcons[5 * i, 1] = cons[3 * i, 1]
             newcons[5 * i + 1, 1] = cons[3 * i + 1, 1]
             newcons[5 * i + 2, 1] = cons[3 * i + 2, 1]
             newcons[5 * i + 3, 1] = cons[3 * i + 2, 1]
+            # cons 2
+            # ------
             newcons[5 * i, 2] = cons[3 * i, 2]
             newcons[5 * i + 1, 2] = cons[3 * i + 1, 2]
             newcons[5 * i + 2, 2] = cons[3 * i + 2, 2]
             newcons[5 * i + 3, 2] = cons[3 * i + 2, 2]
-            if cons[3 * i + 2, 0] == 4:
+
+            if cons[3 * i + 2, 0] == CFACTOR:
+                # fwhm2 connstraint depends on fwhm1
                 newcons[5 * i + 3, 1] = newcons[5 * i + 2, 1] + 1
-            # Eta constrains
-            newcons[5 * i + 4, 0] = 0
+            # eta constraints
+            newcons[5 * i + 4, 0] = CFREE
             newcons[5 * i + 4, 1] = 0
             newcons[5 * i + 4, 2] = 0
             if self.config['QuotedEtaFlag']:
-                # QUOTED=2
                 newcons[5 * i + 4, 0] = CQUOTED
                 newcons[5 * i + 4, 1] = 0.0
                 newcons[5 * i + 4, 2] = 1.0
@@ -1122,114 +1150,100 @@ class FitEstimateFunctions(object):
 
 fitfuns = FitEstimateFunctions()
 
-THEORY = {
-    'gauss': {
+THEORY = OrderedDict((
+    ('gauss', {
         'description': 'Gaussian functions',
         'function': functions.sum_gauss,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_height_position_fwhm,
-        'configure': fitfuns.configure
-    },
-    'lorentz': {
+        'configure': fitfuns.configure}),
+    ('lorentz', {
         'description': 'Lorentzian functions',
         'function': functions.sum_lorentz,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_height_position_fwhm,
-        'configure': fitfuns.configure
-    },
-    'agauss': {
+        'configure': fitfuns.configure}),
+    ('agauss', {
         'description': 'Gaussian functions (area)',
         'function': functions.sum_agauss,
         'parameters': ('Area', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_agauss,
-        'configure': fitfuns.configure
-    },
-    'alorentz': {
+        'configure': fitfuns.configure}),
+    ('alorentz', {
         'description': 'Lorentzian functions (area)',
         'function': functions.sum_alorentz,
         'parameters': ('Area', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_alorentz,
-        'configure': fitfuns.configure
-    },
-    'pvoigt': {
+        'configure': fitfuns.configure}),
+    ('pvoigt', {
         'description': 'Pseudo-Voigt functions',
         'function': functions.sum_pvoigt,
         'parameters': ('Height', 'Position', 'FWHM', 'Eta'),
         'estimate': fitfuns.estimate_pvoigt,
-        'configure': fitfuns.configure
-    },
-    'apvoigt': {
+        'configure': fitfuns.configure}),
+    ('apvoigt', {
         'description': 'Pseudo-Voigt functions (area)',
         'function': functions.sum_apvoigt,
         'parameters': ('Area', 'Position', 'FWHM', 'Eta'),
         'estimate': fitfuns.estimate_apvoigt,
-        'configure': fitfuns.configure
-    },
-    'splitgauss': {
+        'configure': fitfuns.configure}),
+    ('splitgauss', {
         'description': 'Split gaussian functions',
         'function': functions.sum_splitgauss,
-        'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM'),
+        'parameters': ('Height', 'Position', 'LowFWHM',
+                       'HighFWHM'),
         'estimate': fitfuns.estimate_splitgauss,
-        'configure': fitfuns.configure
-    },
-    'splitlorentz': {
+        'configure': fitfuns.configure}),
+    ('splitlorentz', {
         'description': 'Split lorentzian functions',
         'function': functions.sum_splitlorentz,
         'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM'),
         'estimate': fitfuns.estimate_splitgauss,
-        'configure': fitfuns.configure
-    },
-    'splitpvoigt': {
+        'configure': fitfuns.configure}),
+    ('splitpvoigt', {
         'description': 'Split pseudo-Voigt functions',
         'function': functions.sum_splitpvoigt,
         'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM', 'Eta'),
         'estimate': fitfuns.estimate_splitpvoigt,
-        'configure': fitfuns.configure
-    },
-    'stepdown': {
+        'configure': fitfuns.configure}),
+    ('stepdown', {
         'description': 'Step down function',
         'function': functions.sum_stepdown,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_stepdown,
-        'configure': fitfuns.configure
-    },
-    'stepup': {
+        'configure': fitfuns.configure}),
+    ('stepup', {
         'description': 'Step up function',
         'function': functions.sum_stepup,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_stepup,
-        'configure': fitfuns.configure
-    },
-    'slit': {
+        'configure': fitfuns.configure}),
+    ('slit', {
         'description': 'Slit function',
         'function': functions.sum_slit,
         'parameters': ('Height', 'Position', 'FWHM', 'BeamFWHM'),
         'estimate': fitfuns.estimate_slit,
-        'configure': fitfuns.configure
-    },
-    'atan_stepup': {
+        'configure': fitfuns.configure}),
+    ('atan_stepup', {
         'description': 'Arctan step up function',
         'function': functions.atan_stepup,
         'parameters': ('Height', 'Position', 'Width'),
         'estimate': fitfuns.estimate_stepup,
-        'configure': fitfuns.configure
-    },
-    'ahypermet': {
+        'configure': fitfuns.configure}),
+    ('ahypermet', {
         'description': 'Hypermet functions',
         'function': fitfuns.ahypermet,     # customized version of functions.sum_ahypermet
         'parameters': ('G_Area', 'Position', 'FWHM', 'ST_Area',
                        'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
         'estimate': fitfuns.estimate_ahypermet,
-        'configure': fitfuns.configure
-    },
-    'periodic_gauss': {
+        'configure': fitfuns.configure}),
+    ('periodic_gauss', {
         'description': 'Periodic gaussian functions',
         'function': functions.periodic_gauss,
         'parameters': ('N', 'Delta', 'Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_periodic_gauss,
-        'configure': fitfuns.configure
-    },
-}
+        'configure': fitfuns.configure})
+))
 """Dictionary of fit functions and their associated estimation function,
 parameters list, configuration function and description.
 """

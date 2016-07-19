@@ -141,7 +141,7 @@ class FitConfigWidget(qt.QWidget):
     """Widget with 2 ``QComboBox``, 4 ``QCheckBox`` and 2 ``QPushButtons``.
 
     The purpose of this widget, as it is used in
-    :class:`silx.gui.fit.specfitgui.FitWidget`, is to offer an interface
+    :class:`silx.gui.fit.FitWidget.FitWidget`, is to offer an interface
     to quickly modify the main parameters prior to running a fitting:
 
       - select a fitting function through :attr:`FunComBox`
@@ -431,14 +431,14 @@ class ParametersTab(qt.QTabWidget):
     values, fit constraints, and final fit results.
 
     The usual way to initialize the table is to fill it with the fit
-    parameters from a :class:`silx.math.fit.specfit.FitManager` object, after
+    parameters from a :class:`silx.math.fit.fitmanager.FitManager` object, after
     the estimation process or after the final fit.
 
     In the following example we use a :class:`ParametersTab` to display the
     results of two separate fits::
 
         from silx.math.fit import fitestimatefunctions
-        from silx.math.fit import specfit
+        from silx.math.fit import fitmanager
         from silx.math.fit import functions
         from silx.gui import qt
         import numpy
@@ -449,7 +449,7 @@ class ParametersTab(qt.QTabWidget):
         x = numpy.arange(1000)
         y1 = functions.sum_gauss(x, 100, 400, 100)
 
-        fit = specfit.FitManager(x=x, y=y1)
+        fit = fitmanager.FitManager(x=x, y=y1)
 
         fitfuns = fitestimatefunctions.FitEstimateFunctions()
         fit.addtheory(theory="Gaussian",
@@ -574,7 +574,7 @@ class ParametersTab(qt.QTabWidget):
         :class:`silx.gui.fit.parameters.Parameters` corresponding to the
         currently active table or to the named table (if ``name`` is not
         ``None``). This return a list of dictionaries in the format used by
-        :class:`silx.math.fit import specfit.FitManager` to store fit parameter
+        :class:`silx.math.fit.fitmanager.FitManager` to store fit parameter
         results.
 
         :param name: View name. If ``None``, use name of

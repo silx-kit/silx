@@ -12,7 +12,7 @@
    peaksearch.rst
    functions.rst
    filters.rst
-   specfit.rst
+   fitmanager.rst
    fitestimatefunctions.rst
 
 

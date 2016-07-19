@@ -24,6 +24,16 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
+"""This module provides a widget designed to configure and run a fitting
+process with constraints on parameters.
+
+The main class is :class:`FitWidget`. It relies on
+:mod:`silx.math.fit.fitmanager`.
+
+The user can choose between functions before running the fit. These function can
+be user defined, or by default are loaded from
+:mod:`silx.math.fit.fitestimatefunctions`.
+"""
 import logging
 import sys
 import traceback
@@ -39,7 +49,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/06/2016"
+__date__ = "19/07/2016"
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)
@@ -47,7 +57,7 @@ _logger = logging.getLogger(__name__)
 
 class FitWidget(qt.QWidget):
     """Widget to configure, run and display results of a fitting.
-    It works hand in hand with a :class:`silx.math.fit.specfit.FitManager`
+    It works hand in hand with a :class:`silx.math.fit.fitmanager.FitManager`
     object that handles the fit functions and calls the iterative least-square
     fitting algorithm.
     """
@@ -60,7 +70,7 @@ class FitWidget(qt.QWidget):
 
         :param parent: Parent widget
         :param name: Window title
-        :param specfit: Instance of :class:`silx.math.fit.specfit.FitManager`
+        :param fitmanager: Instance of :class:`silx.math.fit.fitmanager.FitManager`
         :param enableconfig: If ``True``, activate widgets to modify the fit
             configuration (select between several fit functions or background
             functions, apply global constraints, peak search parameters…)
@@ -77,20 +87,19 @@ class FitWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
 
         if fitinstance is None:
-            self.specfit = fitmanager.FitManager()
+            self.fitmanager = fitmanager.FitManager()
         else:
-            self.specfit = fitinstance
+            self.fitmanager = fitinstance
 
         # initialize the default fitting functions in case
         # none is present
-        if not len(self.specfit.theorydict):
-            self.specfit.importfun(fitestimatefunctions.__file__)
+        if not len(self.fitmanager.theorydict):
+            self.fitmanager.importfun(fitestimatefunctions.__file__)
 
-        # copy specfit.configure method for direct access
-        self.configure = self.specfit.configure
-        self.fitconfig = self.specfit.fitconfig
+        # copy fitmanager.configure method for direct access
+        self.configure = self.fitmanager.configure
+        self.fitconfig = self.fitmanager.fitconfig
 
-        self.setdata = self.specfit.setdata
         self.guiconfig = None
         """If ``enableconfig`` is ``True``, this parameter is a
         :class:`FitConfigWidget`"""
@@ -114,28 +123,28 @@ class FitWidget(qt.QWidget):
         layout.addWidget(self.guiparameters)
         self.guiparameters.sigMultiParametersSignal.connect(self.__forward)
         if enableconfig:
-            for key in self.specfit.bkgdict.keys():
+            for key in self.fitmanager.bkgdict.keys():
                 self.guiconfig.BkgComBox.addItem(str(key))
-            for key in self.specfit.theorydict:
+            for key in self.fitmanager.theorydict:
                 self.guiconfig.FunComBox.addItem(str(key))
             configuration = {}
             if fitinstance is not None:
                 configuration = fitinstance.configure()
                 if configuration['fittheory'] is None:
                     self.guiconfig.FunComBox.setCurrentIndex(1)
-                    self.funevent(self.specfit.theorydict.keys[0])
+                    self.funevent(self.fitmanager.theorydict.keys[0])
                 else:
                     self.funevent(configuration['fittheory'])
                 if configuration['fitbkg'] is None:
                     self.guiconfig.BkgComBox.setCurrentIndex(1)
-                    self.bkgevent(list(self.specfit.bkgdict.keys())[0])
+                    self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
                 else:
                     self.bkgevent(configuration['fitbkg'])
             else:
                 self.guiconfig.BkgComBox.setCurrentIndex(1)
                 self.guiconfig.FunComBox.setCurrentIndex(1)
-                self.funevent(list(self.specfit.theorydict.keys())[0])
-                self.bkgevent(list(self.specfit.bkgdict.keys())[0])
+                self.funevent(list(self.fitmanager.theorydict.keys())[0])
+                self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
             configuration.update(self.configure())
             # if configuration['McaMode']:
             #     self.guiconfig.MCACheckBox.setChecked(1)
@@ -167,6 +176,25 @@ class FitWidget(qt.QWidget):
     # def updateGui(self, configuration=None):
     #     self.__configureGui(configuration)
 
+    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
+        """Set data to be fitted.
+
+        :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
+            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
+        :type x: Sequence or numpy array or None
+        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
+            shape as ``x`` if ``x`` is not ``None``.
+        :type y: Sequence or numpy array or None
+        :param sigmay: The uncertainties in the ``ydata`` array. These are
+            used as weights in the least-squares problem.
+            If ``None``, the uncertainties are assumed to be 1.
+        :type sigmay: Sequence or numpy array or None
+        :param xmin: Lower value of x values to use for fitting
+        :param xmax: Upper value of x values to use for fitting
+        """
+        self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
+                                       xmin=xmin, xmax=xmax)
+
     def _emitSignal(self, ddict):
         self.sigSpecfitGuiSignal.emit(ddict)
 
@@ -183,24 +211,23 @@ class FitWidget(qt.QWidget):
             configuration.update(self.configure(**newconfiguration))
             try:
                 i = 1 + \
-                    list(self.specfit.theorydict.keys()).index(
-                        self.specfit.fitconfig['fittheory'])
+                    list(self.fitmanager.theorydict.keys()).index(
+                        self.fitmanager.fitconfig['fittheory'])
                 self.guiconfig.FunComBox.setCurrentIndex(i)
-                self.funevent(self.specfit.fitconfig['fittheory'])
+                self.funevent(self.fitmanager.fitconfig['fittheory'])
             except:    # Fixme
                 print("Function not in list %s" %
-                      self.specfit.fitconfig['fittheory'])
-                self.funevent(list(self.specfit.theorydict.keys())[0])
+                      self.fitmanager.fitconfig['fittheory'])
+                self.funevent(list(self.fitmanager.theorydict.keys())[0])
             # current background
             try:
-                # the list conversion is needed in python 3.
-                i = 1 + list(self.specfit.bkgdict.keys()
-                             ).index(self.specfit.fitconfig['fitbkg'])
+                i = 1 + list(self.fitmanager.bkgdict.keys()
+                             ).index(self.fitmanager.fitconfig['fitbkg'])
                 self.guiconfig.BkgComBox.setCurrentIndex(i)
             except:    # Fixme
                 print("Background not in list %s" %
-                      self.specfit.fitconfig['fitbkg'])
-                self.bkgevent(list(self.specfit.bkgdict.keys())[0])
+                      self.fitmanager.fitconfig['fitbkg'])
+                self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
             # and all the rest
             # if configuration['McaMode']:
             #     self.guiconfig.MCACheckBox.setChecked(1)
@@ -222,8 +249,8 @@ class FitWidget(qt.QWidget):
             self.__initialparameters()
 
     def configureGui(self, oldconfiguration):
-        """Display a :class:`silx.gui.fit.qscriptoption.QScriptOption`
-        dialog, allowing the user to define fit configuration parameters:
+        """Display a dialog, allowing the user to define fit configuration
+        parameters:
 
             - ``PositiveHeightAreaFlag``
             - ``QuotedPositionFlag``
@@ -284,13 +311,13 @@ class FitWidget(qt.QWidget):
         :attr:`sigSpecfitGuiSignal` with a dictionary containing a status
         message *'EstimateFinished'* and a list of fit parameters estimations
         in the format defined in
-        :attr:`silx.math.fit.specfit.FitManager.fit_results`
+        :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
         """
         try:
-            theory_name = self.specfit.fitconfig['fittheory']
-            estimation_function = self.specfit.theorydict[theory_name][2]
+            theory_name = self.fitmanager.fitconfig['fittheory']
+            estimation_function = self.fitmanager.theorydict[theory_name][2]
             if estimation_function is not None:
-                self.specfit.estimate(callback=self.fitstatus)
+                self.fitmanager.estimate(callback=self.fitstatus)
             else:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Information)
@@ -301,7 +328,7 @@ class FitWidget(qt.QWidget):
                 msg.setWindowTitle('FitWidget Message')
                 msg.exec_()
                 return
-        except:
+        except:    # FIXME
             if DEBUG:
                 raise
             msg = qt.QMessageBox(self)
@@ -310,11 +337,11 @@ class FitWidget(qt.QWidget):
             msg.exec_()
             return
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, view='Fit')
+            self.fitmanager.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
         ddict = {}
         ddict['event'] = 'EstimateFinished'
-        ddict['data'] = self.specfit.fit_results
+        ddict['data'] = self.fitmanager.fit_results
         self._emitSignal(ddict)
 
     def __forward(self, ddict):
@@ -325,11 +352,11 @@ class FitWidget(qt.QWidget):
         containing a status
         message *'FitFinished'* and a list of fit parameters results
         in the format defined in
-        :attr:`silx.math.fit.specfit.FitManager.fit_results`
+        :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
         """
-        self.specfit.fit_results = self.guiparameters.getfitresults()
+        self.fitmanager.fit_results = self.guiparameters.getfitresults()
         try:
-            self.specfit.startfit(callback=self.fitstatus)
+            self.fitmanager.startfit(callback=self.fitstatus)
         except:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
@@ -339,11 +366,11 @@ class FitWidget(qt.QWidget):
                 raise
             return
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, view='Fit')
+            self.fitmanager.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
         ddict = {}
         ddict['event'] = 'FitFinished'
-        ddict['data'] = self.specfit.fit_results
+        ddict['data'] = self.fitmanager.fit_results
         self._emitSignal(ddict)
         return
 
@@ -370,8 +397,8 @@ class FitWidget(qt.QWidget):
 
     def bkgevent(self, item):
         item = str(item)
-        if item in self.specfit.bkgdict.keys():
-            self.specfit.setbackground(item)
+        if item in self.fitmanager.bkgdict.keys():
+            self.fitmanager.setbackground(item)
         else:
             qt.QMessageBox.information(
                 self, "Info", "Function not implemented")
@@ -385,16 +412,16 @@ class FitWidget(qt.QWidget):
 
     def funevent(self, item):
         """Select a fit theory to be used for fitting. If this theory exists
-        in :attr:`specfit`, use it.
+        in :attr:`fitmanager`, use it.
 
         :param item: Name of the fit theory to use for fittingIf this theory
-            exists in :attr:`specfit`, use it. Else, open a file dialog to open
+            exists in :attr:`fitmanager`, use it. Else, open a file dialog to open
             a custom fit function definition file with
-            :meth:`specfit.importfun`.
+            :meth:`fitmanager.importfun`.
         """
         item = str(item)
-        if item in self.specfit.theorydict:
-            self.specfit.settheory(item)
+        if item in self.fitmanager.theorydict:
+            self.fitmanager.settheory(item)
         else:
             functionsfile = qt.QFileDialog.getOpenFileName(
                 self, "Select python module with your function(s)", "",
@@ -402,7 +429,7 @@ class FitWidget(qt.QWidget):
 
             if len(functionsfile):
                 try:
-                    if self.specfit.importfun(functionsfile):
+                    if self.fitmanager.importfun(functionsfile):
                         qt.QMessageBox.critical(self, "ERROR",
                                                 "Function not imported")
                         return
@@ -411,23 +438,23 @@ class FitWidget(qt.QWidget):
                         while(self.guiconfig.FunComBox.count() > 1):
                             self.guiconfig.FunComBox.removeItem(1)
                         # and fill it again
-                        for key in self.specfit.theorydict:
+                        for key in self.fitmanager.theorydict:
                             self.guiconfig.FunComBox.addItem(str(key))
                 except:
                     qt.QMessageBox.critical(self, "ERROR",
                                             "Function not imported")
             i = 1 + \
-                list(self.specfit.theorydict.keys()).index(
-                    self.specfit.fitconfig['fittheory'])
+                list(self.fitmanager.theorydict.keys()).index(
+                    self.fitmanager.fitconfig['fittheory'])
             self.guiconfig.FunComBox.setCurrentIndex(i)
         self.__initialparameters()
 
     def __initialparameters(self):
-        self.specfit.parameter_names = []
-        self.specfit.fit_results = []
-        for pname in self.specfit.bkgdict[self.specfit.fitconfig['fitbkg']][1]:
-            self.specfit.parameter_names.append(pname)
-            self.specfit.fit_results.append({'name': pname,
+        self.fitmanager.parameter_names = []
+        self.fitmanager.fit_results = []
+        for pname in self.fitmanager.bkgdict[self.fitmanager.fitconfig['fitbkg']][1]:
+            self.fitmanager.parameter_names.append(pname)
+            self.fitmanager.fit_results.append({'name': pname,
                                            'estimation': 0,
                                            'group': 0,
                                            'code': 'FREE',
@@ -437,10 +464,10 @@ class FitWidget(qt.QWidget):
                                            'sigma': 0.0,
                                            'xmin': None,
                                            'xmax': None})
-        if self.specfit.fitconfig['fittheory'] is not None:
-            for pname in self.specfit.theorydict[self.specfit.fitconfig['fittheory']][1]:
-                self.specfit.parameter_names.append(pname + "1")
-                self.specfit.fit_results.append({'name': pname + "1",
+        if self.fitmanager.fitconfig['fittheory'] is not None:
+            for pname in self.fitmanager.theorydict[self.fitmanager.fitconfig['fittheory']][1]:
+                self.fitmanager.parameter_names.append(pname + "1")
+                self.fitmanager.fit_results.append({'name': pname + "1",
                                                'estimation': 0,
                                                'group': 1,
                                                'code': 'FREE',
@@ -450,13 +477,13 @@ class FitWidget(qt.QWidget):
                                                'sigma': 0.0,
                                                'xmin': None,
                                                'xmax': None})
-        # if self.specfit.fitconfig['McaMode']:
+        # if self.fitmanager.fitconfig['McaMode']:
         #     self.guiparameters.fillfromfit(
-        #         self.specfit.fit_results, view='Region 1')
+        #         self.fitmanager.fit_results, view='Region 1')
         #     self.guiparameters.removeallviews(keep='Region 1')
         # else:
         self.guiparameters.fillfromfit(
-            self.specfit.fit_results, view='Fit')
+            self.fitmanager.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
 
     def fitstatus(self, data):
@@ -480,25 +507,20 @@ class FitWidget(qt.QWidget):
 if __name__ == "__main__":
     import numpy
 
-    x = numpy.arange(2000).astype(numpy.float)
+    x = numpy.arange(1500).astype(numpy.float)
+    constant_bg = 3.14
 
-    p = numpy.array([1500, 100., 30.0,
-                     1500, 300., 30.0,
-                     1500, 500., 30.0,
-                     1500, 700., 30.0,
-                     1500, 900., 30.0,
-                     1500, 1100., 30.0,
-                     1500, 1300., 30.0,
-                     1500, 1500., 30.0,
-                     1500, 1700., 30.0,
-                     1500, 1900., 30.0])
-    y = functions.sum_gauss(x, *p) + 1
-
-    y /= 1000.0
+    p = [1000, 100., 30.0,
+         500, 300., 25.,
+         1700, 500., 35.,
+         750, 700., 30.0,
+         1234, 900., 29.5,
+         302, 1100., 30.5,
+         75, 1300., 210.]
+    y = functions.sum_gauss(x, *p) + constant_bg
 
     a = qt.QApplication(sys.argv)
-    a.lastWindowClosed.connect(a.quit)
-    w = FitWidget(enableconfig=1, enablestatus=1, enablebuttons=1)
+    w = FitWidget()
     w.setdata(x=x, y=y)
     w.show()
     a.exec_()

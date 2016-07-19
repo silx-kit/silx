@@ -35,3 +35,4 @@ from .leastsq import \
 from .functions import *
 from .filters import *
 from .peaks import peak_search
+from .fitmanager import FitManager

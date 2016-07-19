@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.math.fit
 
-:mod:`specfitfunctions`: Fit functions for :mod:`specfit`
----------------------------------------------------------
+:mod:`fitestimatefunctions`: Fit functions for :mod:`fitmanager`
+----------------------------------------------------------------
 
-.. automodule:: silx.math.fit.specfitfunctions
+.. automodule:: silx.math.fit.fitestimatefunctions
     :members:

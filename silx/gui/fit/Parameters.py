@@ -643,7 +643,7 @@ class Parameters(qt.QTableWidget):
         if code is not None:
             code = str(code)
             self.parameters[name]['code'] = code
-            # update combobox
+            # update combobox
             index = self.parameters[name]['code_item'].findText(code)
             self.parameters[name]['code_item'].setCurrentIndex(index)
         else:
