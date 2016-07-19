@@ -24,9 +24,9 @@
 ########################################################################### */
 """This modules provides a set of fit functions and associated
 estimation functions in a format that can be imported into a
-:class:`silx.math.fit.specfit.Specfit` instance.
+:class:`silx.math.fit.specfit.FitManager` instance.
 
-The functions to be imported by :meth:`Specfit.importfun` are defined by
+The functions to be imported by :meth:`FitManager.importfun` are defined by
 a dictionary :const:`THEORY`: with the following structure::
 
     THEORY = {
@@ -76,7 +76,7 @@ algorithm has a default derivative function, as is the case for
 If you plan to use the source code of this module as a template to define
 your own fit functions, you might be interested in learning that you can
 also define an ``INIT`` function that will be executed by
-:meth:`Specfit.importfun`.
+:meth:`FitManager.importfun`.
 
 Module members:
 ---------------
@@ -192,7 +192,7 @@ class FitEstimateFunctions(object):
         of *Height, Position, FWHM* for each gaussian peak in the data.
 
         To conform to the estimation function signature expected by
-        :mod:`Specfit`, this function must be called with at least 3
+        :mod:`FitManager`, this function must be called with at least 3
         and at most 5 arguments. All arguments are ignored.
 
         :return: Tuple of estimated parameters and constraints. Parameters are
@@ -1255,13 +1255,13 @@ parameters list, configuration function and description.
 def test(a):
     from silx.gui import qt
     from silx.gui.plot import plot1D
-    from silx.math.fit import specfit
+    from silx.math.fit import fitmanager
     x = numpy.arange(1000).astype(numpy.float)
     p = numpy.array([1500, 100., 50.0,
                      1500, 700., 50.0])
     y_synthetic = functions.sum_gauss(x, *p) + 1
 
-    fit = specfit.Specfit(x, y_synthetic)
+    fit = fitmanager.FitManager(x, y_synthetic)
     fit.addtheory('Gaussians', functions.sum_gauss, ['Height', 'Position', 'FWHM'],
                   a.estimate_height_position_fwhm)
     fit.settheory('Gaussians')

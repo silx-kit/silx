@@ -24,3 +24,5 @@
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "07/07/2016"
+
+from FitWidget import FitWidget

@@ -58,7 +58,7 @@ __date__ = "29/06/2016"
 _logger = logging.getLogger(__name__)
 
 
-class Specfit:
+class FitManager:
     """
     Multi-peak fitting functions manager
 
@@ -587,15 +587,15 @@ class Specfit:
                 cons2 = fun_esti_constraints[fun_param_index][2]
 
             self.fit_results.append({'name': pname,
-                                   'estimation': estimation_value,
-                                   'group': group_number,
-                                   'code': constraint_code,
-                                   'cons1': cons1,
-                                   'cons2': cons2,
-                                   'fitresult': 0.0,
-                                   'sigma': 0.0,
-                                   'xmin': xmin,
-                                   'xmax': xmax})
+                                     'estimation': estimation_value,
+                                     'group': group_number,
+                                     'code': constraint_code,
+                                     'cons1': cons1,
+                                     'cons2': cons2,
+                                     'fitresult': 0.0,
+                                     'sigma': 0.0,
+                                     'xmin': xmin,
+                                     'xmax': xmax})
 
         self.state = 'Ready to Fit'
         self.chisq = None
@@ -1119,7 +1119,7 @@ def test():
     y = 2.65 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
-    fit = Specfit()
+    fit = FitManager()
     fit.setdata(x=x, y=y)
     fit.importfun(fitestimatefunctions.__file__)
     fit.settheory('gauss')

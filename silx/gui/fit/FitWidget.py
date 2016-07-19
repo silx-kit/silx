@@ -29,7 +29,7 @@ import sys
 import traceback
 
 from silx.math.fit import fitestimatefunctions
-from silx.math.fit import specfit, functions
+from silx.math.fit import fitmanager, functions
 from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
@@ -47,7 +47,7 @@ _logger = logging.getLogger(__name__)
 
 class FitWidget(qt.QWidget):
     """Widget to configure, run and display results of a fitting.
-    It works hand in hand with a :class:`silx.math.fit.specfit.Specfit`
+    It works hand in hand with a :class:`silx.math.fit.specfit.FitManager`
     object that handles the fit functions and calls the iterative least-square
     fitting algorithm.
     """
@@ -60,7 +60,7 @@ class FitWidget(qt.QWidget):
 
         :param parent: Parent widget
         :param name: Window title
-        :param specfit: Instance of :class:`silx.math.fit.specfit.Specfit`
+        :param specfit: Instance of :class:`silx.math.fit.specfit.FitManager`
         :param enableconfig: If ``True``, activate widgets to modify the fit
             configuration (select between several fit functions or background
             functions, apply global constraints, peak search parameters…)
@@ -77,7 +77,7 @@ class FitWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
 
         if fitinstance is None:
-            self.specfit = specfit.Specfit()
+            self.specfit = fitmanager.FitManager()
         else:
             self.specfit = fitinstance
 
@@ -284,7 +284,7 @@ class FitWidget(qt.QWidget):
         :attr:`sigSpecfitGuiSignal` with a dictionary containing a status
         message *'EstimateFinished'* and a list of fit parameters estimations
         in the format defined in
-        :attr:`silx.math.fit.specfit.Specfit.fit_results`
+        :attr:`silx.math.fit.specfit.FitManager.fit_results`
         """
         try:
             theory_name = self.specfit.fitconfig['fittheory']
@@ -325,7 +325,7 @@ class FitWidget(qt.QWidget):
         containing a status
         message *'FitFinished'* and a list of fit parameters results
         in the format defined in
-        :attr:`silx.math.fit.specfit.Specfit.fit_results`
+        :attr:`silx.math.fit.specfit.FitManager.fit_results`
         """
         self.specfit.fit_results = self.guiparameters.getfitresults()
         try:

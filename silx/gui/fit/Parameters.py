@@ -20,8 +20,8 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
-"""This module defines a table widget that is specialized in displaying
-fit parameter results and associated constraints."""
+"""This module defines a table widget that is specialized in displaying fit
+parameter results and associated constraints."""
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "18/07/2016"
@@ -43,6 +43,7 @@ def float_else_zero(sstring):
         return float(sstring)
     except ValueError:
         return 0
+
 
 class QComboTableItem(qt.QComboBox):
     """:class:`qt.QComboBox` augmented with a ``sigCellChanged`` signal
@@ -92,7 +93,7 @@ class QCheckBoxItem(qt.QCheckBox):
 
 class Parameters(qt.QTableWidget):
     """:class:`qt.QTableWidget` customized to display fit results
-    and to interact with :class:`Specfit` objects.
+    and to interact with :class:`FitManager` objects.
 
     Data and references to cell widgets are kept in a dictionary
     attribute :attr:`parameters`.
@@ -223,11 +224,11 @@ class Parameters(qt.QTableWidget):
         return self.parameters[param]['fields'].index(field)
 
     def fillfromfit(self, fitparameterslist):
-        """Fill table with values from a ``Specfit.paramlist`` list
+        """Fill table with values from a ``FitManager.paramlist`` list
         of dictionaries.
 
         :param fitparameterslist: List of parameters as recorded
-             in the ``paramlist`` attribute of a :class:`Specfit` object
+             in the ``paramlist`` attribute of a :class:`FitManager` object
         :type fitparameterslist: list[dict]
         """
         self.setRowCount(len(fitparameterslist))
@@ -263,18 +264,18 @@ class Parameters(qt.QTableWidget):
                                 xmin=xmin, xmax=xmax)
 
     def getConfiguration(self):
-        """Return ``Specfit.paramlist`` dictionary
+        """Return ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
         return {'parameters': self.getfitresults()}
 
     def setConfiguration(self, ddict):
-        """Fill table with values from a ``Specfit.paramlist`` dictionary
+        """Fill table with values from a ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
         self.fillfromfit(ddict['parameters'])
 
     def getfitresults(self):
         """Return fit parameters as a list of dictionaries in the format used
-        by :class:`Specfit` (attribute ``paramlist``).
+        by :class:`FitManager` (attribute ``paramlist``).
         """
         fitparameterslist = []
         for param in self.parameters:
@@ -800,7 +801,7 @@ class Parameters(qt.QTableWidget):
 
 def main(args):
     from silx.math.fit import fitestimatefunctions
-    from silx.math.fit import specfit
+    from silx.math.fit import fitmanager
     from silx.gui import qt
     from PyMca5 import PyMcaDataDir    # FIXME
     import numpy
@@ -818,7 +819,7 @@ def main(args):
                       "XRFSpectrum.mca"))    # FIXME
 
     x = numpy.arange(len(y)) * 0.0502883 - 0.492773
-    fit = specfit.Specfit()
+    fit = fitmanager.FitManager()
     fit.setdata(x=x, y=y, xmin=20, xmax=150)
 
     fit.importfun(fitestimatefunctions.__file__)
