@@ -13,7 +13,7 @@ notifications:
   on_build_status_changed: true
 
 os:
-    - Visual Studio 2015 - GCE
+    - Visual Studio 2015
 
 cache:
     - '%LOCALAPPDATA%\pip\Cache'
@@ -37,14 +37,6 @@ environment:
           QT_BINDINGS: "PySide"
 
 install:
-    # Activate AppVeyor proxy and set pip to use it
-    # Doc:
-    # - https://www.appveyor.com/docs/how-to/http-proxy
-    # - https://pip.pypa.io/en/stable/user_guide/#environment-variables
-    - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-http-proxy.ps1'))
-    - "SET PIP_PROXY=%APPVEYOR_HTTP_PROXY_IP%:%APPVEYOR_HTTP_PROXY_PORT%"
-    - "echo pip proxy: %PIP_PROXY%"
-
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
 
