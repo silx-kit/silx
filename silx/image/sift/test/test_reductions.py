@@ -35,45 +35,58 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging, math
+import time
+import os
+import logging
+import math
 import numpy
-import pyopencl, pyopencl.array
 import scipy, scipy.misc
 import sys
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
 
-logger = getLogger(__file__)
+from ..utils import calc_size, get_opencl_code
 
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
-
-
+logger = logging.getLogger(__name__)
 
 
 class test_reductions(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super(test_reductions, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(test_reductions, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
+
     def setUp(self):
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), "reductions.cl")
-        kernel_src = open(kernel_path).read()
-        self.program = pyopencl.Program(ctx, kernel_src).build(options="")
+        kernel_src = get_opencl_code("reductions")
+        self.program = pyopencl.Program(self.ctx, kernel_src).build(options="")
 
     def tearDown(self):
         self.program = None
 
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
+
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
-
 
     def test_max_min(self, val_max=1.0, val_min=0.0, shape=((512, 512)), data=None):
         """
@@ -85,21 +98,21 @@ class test_reductions(unittest.TestCase):
             data = ((val_max - val_min) * numpy.random.random(shape) + val_min).astype(numpy.float32)
 #            data = numpy.arange(shape[0] * shape[1], dtype="float32").reshape(shape)
             #        data = numpy.zeros(shape, dtype=numpy.float32)
-        inp_gpu = pyopencl.array.to_device(queue, data)
+        inp_gpu = pyopencl.array.to_device(self.queue, data)
         wg_float = min(512.0, numpy.sqrt(data.size))
         wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
         size = wg * wg
-        max_min_gpu = pyopencl.array.zeros(queue, (wg, 2), dtype=numpy.float32, order="C")
-#        max_min_gpu = pyopencl.array.empty(queue, (wg, 2), dtype=numpy.float32, order="C")
-        max_gpu = pyopencl.array.empty(queue, (1,), dtype=numpy.float32, order="C")
-        min_gpu = pyopencl.array.empty(queue, (1,), dtype=numpy.float32, order="C")
+        max_min_gpu = pyopencl.array.zeros(self.queue, (wg, 2), dtype=numpy.float32, order="C")
+#        max_min_gpu = pyopencl.array.empty(self.queue, (wg, 2), dtype=numpy.float32, order="C")
+        max_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")
+        min_gpu = pyopencl.array.empty(self.queue, (1,), dtype=numpy.float32, order="C")
         logger.info("workgroup: %s, size: %s" % (wg, size))
         t = time.time()
         nmin = data.min()
         nmax = data.max()
         t0 = time.time()
-        k1 = self.program.max_min_global_stage1(queue, (size,), (wg,), inp_gpu.data, max_min_gpu.data, numpy.uint32(data.size))
-        k2 = self.program.max_min_global_stage2(queue, (wg,), (wg,), max_min_gpu.data, max_gpu.data, min_gpu.data)
+        k1 = self.program.max_min_global_stage1(self.queue, (size,), (wg,), inp_gpu.data, max_min_gpu.data, numpy.uint32(data.size))
+        k2 = self.program.max_min_global_stage2(self.queue, (wg,), (wg,), max_min_gpu.data, max_gpu.data, min_gpu.data)
         k2.wait()
         t1 = time.time()
         min_res = min_gpu.get()
@@ -110,12 +123,12 @@ class test_reductions(unittest.TestCase):
 
         logger.info("Fina res: max %s min %s", min_res, max_res)
         t1 = time.time()
-        min_pyocl = pyopencl.array.min(inp_gpu, queue).get()
-        max_pyocl = pyopencl.array.max(inp_gpu, queue).get()
+        min_pyocl = pyopencl.array.min(inp_gpu, self.queue).get()
+        max_pyocl = pyopencl.array.max(inp_gpu, self.queue).get()
         t2 = time.time()
         max_res = max_res.max()
         min_res = min_res.min()
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms, pyopencl: %.3fms." % (1000.0 * (t0 - t), 1000.0 * (t1 - t0), 1000.0 * (t2 - t1)))
             logger.info("reduction took %.3fms + %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start), 1e-6 * (k2.profile.end - k2.profile.start)))
         logger.info("Minimum: ref %s obt %s other %s", nmin, min_res, min_pyocl)
@@ -132,9 +145,9 @@ class test_reductions(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_reductions("test_max_min_rnd"))
-    testSuite.addTest(test_reductions("test_max_min"))
-    testSuite.addTest(test_reductions("test_max_min_rnd_big"))
+    if ocl:
+        testSuite.addTest(test_reductions("test_max_min_rnd"))
+        testSuite.addTest(test_reductions("test_max_min"))
+        testSuite.addTest(test_reductions("test_max_min_rnd_big"))
 
     return testSuite
-

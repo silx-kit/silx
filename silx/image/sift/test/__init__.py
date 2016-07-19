@@ -24,27 +24,27 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
 import unittest
-from .test_gaussian import suite as  test_suite_gaussian
-from .test_preproc import suite as  test_suite_preproc
-from .test_reductions import suite as  test_suite_reductions
-from .test_convol import suite as  test_suite_convol
-from .test_algebra import suite as  test_suite_algebra
-from .test_image import suite as  test_suite_image
-from .test_keypoints import suite as  test_suite_keypoints
-from .test_matching import suite as  test_suite_matching
+from . import test_gaussian
+from . import test_preproc
+from . import test_reductions
+from . import test_convol
+from . import test_algebra
+from . import test_image
+from . import test_keypoints
+from . import test_matching
 
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_suite_algebra())
-    testSuite.addTest(test_suite_gaussian())
-    testSuite.addTest(test_suite_preproc())
-    testSuite.addTest(test_suite_reductions())
-    testSuite.addTest(test_suite_convol())
-    testSuite.addTest(test_suite_image())
-    testSuite.addTest(test_suite_keypoints())
-    testSuite.addTest(test_suite_matching())
+    testSuite.addTest(test_algebra.suite())
+    testSuite.addTest(test_gaussian.suite())
+    testSuite.addTest(test_preproc.suite())
+    testSuite.addTest(test_reductions.suite())
+    testSuite.addTest(test_convol.suite())
+    testSuite.addTest(test_image.suite())
+    testSuite.addTest(test_keypoints.suite())
+    testSuite.addTest(test_matching.suite())
     return testSuite

@@ -55,17 +55,15 @@ __status__ = "beta"
 
 import time
 import math
-import os
 import logging
 import threading
 import sys
-# import sys
 import gc
 import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
 
-from .utils import calc_size, kernel_size, get_opencl_code  # , sizeof
+from .utils import calc_size, kernel_size, get_opencl_code
 logger = logging.getLogger("sift.plan")
 
 
@@ -148,7 +146,7 @@ class SiftPlan(object):
             self.RGB = False
         else:
             raise RuntimeError("Unable to process image of shape %s" % (tuple(self.shape,)))
-        if PIX_PER_KP :
+        if PIX_PER_KP:
             self.PIX_PER_KP = int(PIX_PER_KP)
         self.profile = bool(profile)
         if max_workgroup_size:
@@ -433,7 +431,6 @@ class SiftPlan(object):
             self.procsize.append(calc_size(shape[-1::-1], wg))
             shape = tuple(i // 2 for i in shape)
 
-
     def keypoints(self, image):
         """
         Calculates the keypoints of the image
@@ -487,13 +484,13 @@ class SiftPlan(object):
                 self.events.append(("max_min_stage1", k1))
                 self.events.append(("max_min_stage2", k2))
             evt = self.programs["preprocess"].normalizes(self.queue, self.procsize[0], self.wgsize[0],
-                                                   self.buffers[0].data,
-                                                   self.buffers["min"].data,
-                                                   self.buffers["max"].data,
-                                                   self.buffers["255"].data,
-                                                   *self.scales[0])
-            if self.profile:self.events.append(("normalize", evt))
-
+                                                         self.buffers[0].data,
+                                                         self.buffers["min"].data,
+                                                         self.buffers["max"].data,
+                                                         self.buffers["255"].data,
+                                                         *self.scales[0])
+            if self.profile:
+                self.events.append(("normalize", evt))
 
             curSigma = 1.0 if par.DoubleImSize else 0.5
             octave = 0
@@ -544,9 +541,11 @@ class SiftPlan(object):
         temp_data = self.buffers["tmp"]
         gaussian = self.buffers["gaussian_%s" % sigma]
         k1 = self.programs["convolution"].horizontal_convolution(self.queue, self.procsize[octave], self.wgsize[octave],
-                                input_data.data, temp_data.data, gaussian.data, numpy.int32(gaussian.size), *self.scales[octave])
+                                                                 input_data.data, temp_data.data, gaussian.data, numpy.int32(gaussian.size),
+                                                                 *self.scales[octave])
         k2 = self.programs["convolution"].vertical_convolution(self.queue, self.procsize[octave], self.wgsize[octave],
-                                temp_data.data, output_data.data, gaussian.data, numpy.int32(gaussian.size), *self.scales[octave])
+                                                               temp_data.data, output_data.data, gaussian.data, numpy.int32(gaussian.size),
+                                                               *self.scales[octave])
 
         if self.profile:
             self.events += [("Blur sigma %s octave %s" % (sigma, octave), k1), ("Blur sigma %s octave %s" % (sigma, octave), k2)]
@@ -575,37 +574,38 @@ class SiftPlan(object):
             self._gaussian_convolution(self.buffers[scale], self.buffers[scale + 1], sigma, octave)
             prevSigma *= self.sigmaRatio
             evt = self.programs["algebra"].combine(self.queue, self.procsize[octave], self.wgsize[octave],
-                                             self.buffers[scale + 1].data, numpy.float32(-1.0),
-                                             self.buffers[scale].data, numpy.float32(+1.0),
-                                             self.buffers["DoGs"].data, numpy.int32(scale),
-                                             *self.scales[octave])
-            if self.profile:self.events.append(("DoG %s %s" % (octave, scale), evt))
+                                                   self.buffers[scale + 1].data, numpy.float32(-1.0),
+                                                   self.buffers[scale].data, numpy.float32(+1.0),
+                                                   self.buffers["DoGs"].data, numpy.int32(scale),
+                                                   *self.scales[octave])
+            if self.profile:
+                self.events.append(("DoG %s %s" % (octave, scale), evt))
         for scale in range(1, par.Scales + 1):
-#                print("Before local_maxmin, cnt is %s %s %s" % (self.buffers["cnt"].get()[0], self.procsize[octave], self.wgsize[octave]))
             evt = self.programs["image"].local_maxmin(self.queue, self.procsize[octave], self.wgsize[octave],
-                                            self.buffers["DoGs"].data,  # __global float* DOGS,
-                                            self.buffers["Kp_1"].data,  # __global keypoint* output,
-                                            numpy.int32(par.BorderDist),  # int border_dist,
-                                            numpy.float32(par.PeakThresh),  # float peak_thresh,
-                                            octsize,  # int octsize,
-                                            numpy.float32(par.EdgeThresh1),  # float EdgeThresh0,
-                                            numpy.float32(par.EdgeThresh),  # float EdgeThresh,
-                                            self.buffers["cnt"].data,  # __global int* counter,
-                                            kpsize32,  # int nb_keypoints,
-                                            numpy.int32(scale),  # int scale,
-                                            *self.scales[octave])  # int width, int height)
-            if self.profile:self.events.append(("local_maxmin %s %s" % (octave, scale), evt))
+                                                      self.buffers["DoGs"].data,  # __global float* DOGS,
+                                                      self.buffers["Kp_1"].data,  # __global keypoint* output,
+                                                      numpy.int32(par.BorderDist),  # int border_dist,
+                                                      numpy.float32(par.PeakThresh),  # float peak_thresh,
+                                                      octsize,  # int octsize,
+                                                      numpy.float32(par.EdgeThresh1),  # float EdgeThresh0,
+                                                      numpy.float32(par.EdgeThresh),  # float EdgeThresh,
+                                                      self.buffers["cnt"].data,  # __global int* counter,
+                                                      kpsize32,  # int nb_keypoints,
+                                                      numpy.int32(scale),  # int scale,
+                                                      *self.scales[octave])  # int width, int height)
+            if self.profile:
+                self.events.append(("local_maxmin %s %s" % (octave, scale), evt))
             procsize = calc_size((self.kpsize,), wgsize)
             cp_evt = pyopencl.enqueue_copy(self.queue, self.cnt, self.buffers["cnt"].data)
             # TODO: modify interp_keypoint so that it reads end_keypoint from GPU memory
             evt = self.programs["image"].interp_keypoint(self.queue, procsize, wgsize,
-                                          self.buffers["DoGs"].data,  # __global float* DOGS,
-                                          self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                          last_start,  # int start_keypoint,
-                                          self.cnt[0],  # int end_keypoint,
-                                          numpy.float32(par.PeakThresh),  # float peak_thresh,
-                                          numpy.float32(self._init_sigma),  # float InitSigma,
-                                          *self.scales[octave])  # int width, int height)
+                                                         self.buffers["DoGs"].data,  # __global float* DOGS,
+                                                         self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                                         last_start,  # int start_keypoint,
+                                                         self.cnt[0],  # int end_keypoint,
+                                                         numpy.float32(par.PeakThresh),  # float peak_thresh,
+                                                         numpy.float32(self._init_sigma),  # float InitSigma,
+                                                         *self.scales[octave])  # int width, int height)
             if self.profile:
                 self.events += [("get cnt", cp_evt),
                                 ("interp_keypoint %s %s" % (octave, scale), evt)
@@ -613,11 +613,12 @@ class SiftPlan(object):
 
             newcnt = self._compact(last_start)
             evt = self.programs["image"].compute_gradient_orientation(self.queue, self.procsize[octave], self.wgsize[octave],
-                               self.buffers[scale].data,  # __global float* igray,
-                               self.buffers["tmp"].data,  # __global float *grad,
-                               self.buffers["ori"].data,  # __global float *ori,
-                               *self.scales[octave])  # int width,int height
-            if self.profile:self.events.append(("compute_gradient_orientation %s %s" % (octave, scale), evt))
+                                                                      self.buffers[scale].data,  # __global float* igray,
+                                                                      self.buffers["tmp"].data,  # __global float *grad,
+                                                                      self.buffers["ori"].data,  # __global float *ori,
+                                                                      *self.scales[octave])  # int width,int height
+            if self.profile:
+                self.events.append(("compute_gradient_orientation %s %s" % (octave, scale), evt))
 
 #           Orientation assignement: 1D kernel, rather heavy kernel
             if newcnt and newcnt > last_start:  # launch kernel only if neededwgsize = (128,)
@@ -819,7 +820,7 @@ class SiftPlan(object):
                     if "descriptors" in e[0]:
                         descr += et
 
-        print("_"*80)
+        print("_" * 80)
         print("%50s:\t%.3fms" % ("Total execution time", t))
         print("%50s:\t%.3fms" % ("Total Orientation assignment", orient))
         print("%50s:\t%.3fms" % ("Total Descriptors", descr))

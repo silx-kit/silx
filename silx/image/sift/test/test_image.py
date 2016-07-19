@@ -35,55 +35,54 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging
+import time
+import os
+import logging
 import numpy
-import pyopencl, pyopencl.array
-import scipy, scipy.misc, scipy.ndimage, pylab
+import scipy, scipy.misc
 import sys
+import math
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
-from test_image_functions import * #for Python implementation of tested functions
-from test_image_setup import *
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
-logger = getLogger(__file__)
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
+from ..utils import calc_size, get_opencl_code
+from .test_image_setup import my_gradient, my_local_maxmin, my_interp_keypoint, interpolation_setup, local_maxmin_setup
+logger = logging.getLogger(__name__)
 
-SHOW_FIGURES = False
 PRINT_KEYPOINTS = False
 
 
-print "working on %s" % ctx.devices[0].name
+class TestImage(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestImage, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
 
-'''
-For Python implementation of tested functions, see "test_image_functions.py"
-'''
+    @classmethod
+    def tearDownClass(cls):
+        super(TestImage, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
 
-
-
-class test_image(unittest.TestCase):
     def setUp(self):
-
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), "image.cl")
-        kernel_src = open(kernel_path).read()
-        self.program = pyopencl.Program(ctx, kernel_src).build()
+        kernel_src = get_opencl_code("image")
+        self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (8, 1)
-
-
 
     def tearDown(self):
         self.mat = None
         self.program = None
-
-
 
     def test_gradient(self):
         """
@@ -93,13 +92,13 @@ class test_image(unittest.TestCase):
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, scale, nb_keypoints, width, height, DOGS, g = local_maxmin_setup()
         self.mat = numpy.ascontiguousarray(g[1])
         self.height, self.width = numpy.int32(self.mat.shape)
-        self.gpu_mat = pyopencl.array.to_device(queue, self.mat)
-        self.gpu_grad = pyopencl.array.empty(queue, self.mat.shape, dtype=numpy.float32, order="C")
-        self.gpu_ori = pyopencl.array.empty(queue, self.mat.shape, dtype=numpy.float32, order="C")
+        self.gpu_mat = pyopencl.array.to_device(self.queue, self.mat)
+        self.gpu_grad = pyopencl.array.empty(self.queue, self.mat.shape, dtype=numpy.float32, order="C")
+        self.gpu_ori = pyopencl.array.empty(self.queue, self.mat.shape, dtype=numpy.float32, order="C")
         self.shape = calc_size((self.width, self.height), self.wg)
 
         t0 = time.time()
-        k1 = self.program.compute_gradient_orientation(queue, self.shape, self.wg, self.gpu_mat.data, self.gpu_grad.data, self.gpu_ori.data, self.width, self.height)
+        k1 = self.program.compute_gradient_orientation(self.queue, self.shape, self.wg, self.gpu_mat.data, self.gpu_grad.data, self.gpu_ori.data, self.width, self.height)
         res_norm = self.gpu_grad.get()
         res_ori = self.gpu_ori.get()
         t1 = time.time()
@@ -127,7 +126,7 @@ class test_image(unittest.TestCase):
         logger.info("delta_norm=%s" % delta_norm)
         logger.info("delta_ori=%s" % delta_ori)
 
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Gradient computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
@@ -142,15 +141,15 @@ class test_image(unittest.TestCase):
         #local_maxmin_setup :
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, s, nb_keypoints, width, height, DOGS, g = local_maxmin_setup()
         self.s = numpy.int32(s) #1, 2, 3 ... not 4 nor 0.
-        self.gpu_dogs = pyopencl.array.to_device(queue, DOGS)
-        self.output = pyopencl.array.empty(queue, (nb_keypoints, 4), dtype=numpy.float32, order="C")
-        self.output.fill(-1.0, queue) #memset for invalid keypoints
-        self.counter = pyopencl.array.zeros(queue, (1,), dtype=numpy.int32, order="C")
+        self.gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
+        self.output = pyopencl.array.empty(self.queue, (nb_keypoints, 4), dtype=numpy.float32, order="C")
+        self.output.fill(-1.0, self.queue) #memset for invalid keypoints
+        self.counter = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32, order="C")
         nb_keypoints = numpy.int32(nb_keypoints)
         self.shape = calc_size((DOGS.shape[1], DOGS.shape[0] * DOGS.shape[2]), self.wg) #it's a 3D vector !!
 
         t0 = time.time()
-        k1 = self.program.local_maxmin(queue, self.shape, self.wg,
+        k1 = self.program.local_maxmin(self.queue, self.shape, self.wg,
         	self.gpu_dogs.data, self.output.data,
        		border_dist, peakthresh, octsize, EdgeThresh0, EdgeThresh,
        		self.counter.data, nb_keypoints, self.s, width, height)
@@ -190,14 +189,9 @@ class test_image(unittest.TestCase):
         logger.info("delta_r=%s" % delta_r)
         logger.info("delta_c=%s" % delta_c)
 
-
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Local extrema search took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-
-
-
-
 
     def test_interpolation(self):
         """
@@ -211,14 +205,14 @@ class test_image(unittest.TestCase):
         # actual_nb_keypoints is the number of keypoints returned by "local_maxmin".
         #After the interpolation, it will be reduced, but we can still use it as a boundary.
         shape = calc_size(keypoints_prev.shape, self.wg)
-        gpu_dogs = pyopencl.array.to_device(queue, DOGS)
-        gpu_keypoints1 = pyopencl.array.to_device(queue, keypoints_prev)
+        gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
+        gpu_keypoints1 = pyopencl.array.to_device(self.queue, keypoints_prev)
         #actual_nb_keypoints = numpy.int32(len((keypoints_prev[:,0])[keypoints_prev[:,1] != -1]))
         start_keypoints = numpy.int32(0)
         actual_nb_keypoints = numpy.int32(actual_nb_keypoints)
         InitSigma = numpy.float32(1.6) #warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
-        k1 = self.program.interp_keypoint(queue, shape, self.wg,
+        k1 = self.program.interp_keypoint(self.queue, shape, self.wg,
         	gpu_dogs.data, gpu_keypoints1.data, start_keypoints, actual_nb_keypoints,
         	peakthresh, InitSigma, width, height)
         res = gpu_keypoints1.get()
@@ -230,11 +224,9 @@ class test_image(unittest.TestCase):
 
         t2 = time.time()
 
-
         #we have to compare keypoints different from (-1,-1,-1,-1)
         res2 = res[res[:, 1] != -1]
         ref2 = ref[ref[:, 1] != -1]
-
 
         if (PRINT_KEYPOINTS):
             print("[s=%s]Keypoints before interpolation: %s" % (s, actual_nb_keypoints))
@@ -249,14 +241,14 @@ class test_image(unittest.TestCase):
         self.assert_(delta < 1e-4, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
 
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Keypoints interpolation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_image("test_gradient"))
-    testSuite.addTest(test_image("test_local_maxmin"))
-    testSuite.addTest(test_image("test_interpolation"))
+    testSuite.addTest(TestImage("test_gradient"))
+    testSuite.addTest(TestImage("test_local_maxmin"))
+    testSuite.addTest(TestImage("test_interpolation"))
     return testSuite

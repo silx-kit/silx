@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
 import os, imp, sys, subprocess, threading
 import distutils.util
@@ -268,20 +268,3 @@ def getLogger(filename=__file__):
     else:
         UtilsTest.deep_reload()
     return mylogger
-################################################################################
-# This is very specific to PyOpenCL
-################################################################################
-
-import sift_pyocl as sift
-from sift_pyocl.opencl import ocl
-# This is the shared context for all tests:
-if "," in options.device:  # Form 0,1
-    platform, device = options.device.split(",", 1)
-    platform = int(platform[-1])
-    device = int(device[0])
-    ctx = ocl.create_context(platformid=platform, deviceid=device)
-else:
-    ctx = ocl.create_context(devicetype=options.device)
-print("working on %s" % ctx.devices[0].name)
-
-

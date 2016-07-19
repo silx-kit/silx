@@ -25,9 +25,12 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-import numpy, scipy.ndimage, scipy.misc
-from .test_image_functions import *
-from .test_algebra import *
+import numpy
+import scipy.ndimage
+import scipy.misc
+from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
+    my_interp_keypoint, my_descriptor, my_orientation
+from .test_algebra import my_compact, my_combine
 from math import ceil
 '''
 Unit tests become more and more difficult as we progress in the global SIFT algorithm
@@ -46,7 +49,6 @@ def my_blur(img, sigma):
     return scipy.ndimage.filters.convolve1d(tmp1, gaussian, axis=0, mode="reflect")
 
 
-
 def local_maxmin_setup():
     border_dist = numpy.int32(5)  # SIFT
     peakthresh = numpy.float32(255.0 * 0.04 / 3.0)  # SIFT uses 255.0 * 0.04 / 3.0
@@ -63,7 +65,6 @@ def local_maxmin_setup():
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
     for octave_cnt in range(1, int(numpy.log2(octsize)) + 1 + 1):
 
-
         width = numpy.int32(l.shape[1])
         height = numpy.int32(l.shape[0])
 
@@ -76,8 +77,10 @@ def local_maxmin_setup():
         '''
         if (octave_cnt == 1):
             initsigma = 1.6
-            if (doubleimsize): cursigma = 1.0
-            else: cursigma = 0.5
+            if (doubleimsize):
+                cursigma = 1.0
+            else:
+                cursigma = 0.5
             # Convolving initial image to achieve std = initsigma = 1.6
             if (initsigma > cursigma):
                 sigma = numpy.sqrt(initsigma ** 2 - cursigma ** 2)
@@ -93,20 +96,12 @@ def local_maxmin_setup():
             sigma = initsigma * (sigmaratio) ** (i - 1.0) * numpy.sqrt(sigmaratio ** 2 - 1.0)  # sift.cpp "increase"
             g[i] = my_blur(g[i - 1], sigma)  # blur[i]
 
-        for s in range(1, 6): DOGS[s - 1] = -(g[s] - g[s - 1])  # DoG[s-1]
+        for s in range(1, 6):
+            DOGS[s - 1] = -(g[s] - g[s - 1])  # DoG[s-1]
 
         if (octsize > 1):  # if a higher octave is required, we have to sample Blur[3]
             l = shrink(g[3], 2, 2)
-    # end for
-
-    # print("[Octave %s] printing blur 2" %(int(numpy.log2(octsize))+1))
-    # print g[2,0:10,0:10]
-    # print("[Octave %s] printing dog 2" %(int(numpy.log2(octsize))+1))
-    # print DOGS[2,0:10,0:10]
-
     return border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, scale, nb_keypoints, width, height, DOGS, g
-
-
 
 
 def interpolation_setup():
@@ -121,11 +116,9 @@ def interpolation_setup():
 
     # Assumes that local_maxmin is working so that we can use Python's "my_local_maxmin" instead of the kernel
     keypoints_prev, actual_nb_keypoints = my_local_maxmin(DOGS, peakthresh, border_dist, octsize,
-        EdgeThresh0, EdgeThresh, nb_keypoints, s, width, height)
+                                                          EdgeThresh0, EdgeThresh, nb_keypoints, s, width, height)
 
     return border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, nb_keypoints, actual_nb_keypoints, width, height, DOGS, s, keypoints_prev, g[s]
-
-
 
 
 def orientation_setup():
@@ -142,10 +135,8 @@ def orientation_setup():
         ref[i] = my_interp_keypoint(DOGS, s, k[1], k[2], 5, peakthresh, width, height)
 
     grad, ori = my_gradient(blur)  # gradient is applied on blur[s]
-   # ref, actual_nb_keypoints = my_compact(ref,nb_keypoints)
 
     return ref, nb_keypoints, actual_nb_keypoints, grad, ori, octsize
-
 
 
 def descriptor_setup():
@@ -160,10 +151,6 @@ def descriptor_setup():
     ref, updated_nb_keypoints = my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad, ori, octsize, orisigma)
 
     return ref, nb_keypoints, updated_nb_keypoints, grad, ori, octsize
-
-
-
-
 
 def matching_setup():
     '''

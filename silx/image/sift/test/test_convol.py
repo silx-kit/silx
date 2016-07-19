@@ -12,10 +12,10 @@
 # copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following
 # conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 # OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,51 +35,64 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging
+import time
+import os
+import logging
 import numpy
-import pyopencl, pyopencl.array
-import scipy, scipy.misc, scipy.ndimage
-import sys
-import unittest
-from utilstest import UtilsTest, getLogger, ctx
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
-logger = getLogger(__file__)
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
 
-print "working on %s" % ctx.devices[0].name
+import scipy, scipy.misc, scipy.ndimage
+
+import unittest
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
+from ..utils import calc_size, get_opencl_code
+logger = logging.getLogger(__name__)
+
 
 def my_blur(img, kernel):
     """
     hand made implementation of gaussian blur with OUR kernel
     which differs from Scipy's if ksize is even
     """
-    tmp1 = scipy.ndimage.filters.convolve1d(img, kernel, axis= -1, mode="reflect")
+    tmp1 = scipy.ndimage.filters.convolve1d(img, kernel, axis=-1, mode="reflect")
     return scipy.ndimage.filters.convolve1d(tmp1, kernel, axis=0, mode="reflect")
 
 
 class test_convol(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(test_convol, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(test_convol, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
+
     def setUp(self):
         self.input = scipy.misc.lena().astype(numpy.float32)
-        self.input = numpy.ascontiguousarray(self.input[0:507,0:209])
-        
-        self.gpu_in = pyopencl.array.to_device(queue, self.input)
-        self.gpu_tmp = pyopencl.array.empty(queue, self.input.shape, dtype=numpy.float32, order="C")
-        self.gpu_out = pyopencl.array.empty(queue, self.input.shape, dtype=numpy.float32, order="C")
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), "convolution.cl")
-        kernel_src = open(kernel_path).read()
+        self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
+
+        self.gpu_in = pyopencl.array.to_device(self.queue, self.input)
+        self.gpu_tmp = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
+        self.gpu_out = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
+        kernel_src = get_opencl_code("convolution.cl")
 #        compile_options = "-D NIMAGE=%i" % self.input.size
 #        logger.info("Compiling file %s with options %s" % (kernel_path, compile_options))
 #        self.program = pyopencl.Program(ctx, kernel_src).build(options=compile_options)
-        self.program = pyopencl.Program(ctx, kernel_src).build()
+        self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
         self.wg = (256, 2)
@@ -99,13 +112,13 @@ class test_convol(unittest.TestCase):
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
             gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
-            gpu_filter = pyopencl.array.to_device(queue, gaussian)
+            gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(queue, self.shape, self.wg,
+            k1 = self.program.horizontal_convolution(self.queue, self.shape, self.wg,
                                 self.gpu_in.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
             res = self.gpu_out.get()
             t1 = time.time()
-            ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis= -1, mode="reflect")
+            ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=-1, mode="reflect")
             t2 = time.time()
             delta = abs(ref - res).max()
             if ksize % 2 == 0:  #we have a problem with even kernels !!!
@@ -113,7 +126,7 @@ class test_convol(unittest.TestCase):
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
-            if PROFILE:
+            if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
                 fig = pylab.figure()
@@ -128,6 +141,7 @@ class test_convol(unittest.TestCase):
                 sp4.imshow(res, interpolation="nearest")
                 fig.show()
                 raw_input("enter")
+
     def test_convol_vert(self):
         """
         tests the convolution kernel
@@ -137,10 +151,14 @@ class test_convol(unittest.TestCase):
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
             gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
-            gpu_filter = pyopencl.array.to_device(queue, gaussian)
+            gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.vertical_convolution(queue, self.shape, self.wg,
-                                self.gpu_in.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
+            k1 = self.program.vertical_convolution(self.queue, self.shape, self.wg,
+                                                   self.gpu_in.data,
+                                                   self.gpu_out.data,
+                                                   gpu_filter.data,
+                                                   numpy.int32(ksize),
+                                                   self.IMAGE_W, self.IMAGE_H)
             res = self.gpu_out.get()
             t1 = time.time()
             ref = scipy.ndimage.filters.convolve1d(self.input, gaussian, axis=0, mode="reflect")
@@ -151,7 +169,7 @@ class test_convol(unittest.TestCase):
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
-            if PROFILE:
+            if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
                 fig = pylab.figure()
@@ -167,7 +185,6 @@ class test_convol(unittest.TestCase):
                 fig.show()
                 raw_input("enter")
 
-
     def test_convol(self):
         """
         tests the convolution kernel
@@ -177,11 +194,11 @@ class test_convol(unittest.TestCase):
             x = numpy.arange(ksize) - (ksize - 1.0) / 2.0
             gaussian = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
             gaussian /= gaussian.sum(dtype=numpy.float32)
-            gpu_filter = pyopencl.array.to_device(queue, gaussian)
+            gpu_filter = pyopencl.array.to_device(self.queue, gaussian)
             t0 = time.time()
-            k1 = self.program.horizontal_convolution(queue, self.shape, self.wg,
+            k1 = self.program.horizontal_convolution(self.queue, self.shape, self.wg,
                                 self.gpu_in.data, self.gpu_tmp.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
-            k2 = self.program.vertical_convolution(queue, self.shape, self.wg,
+            k2 = self.program.vertical_convolution(self.queue, self.shape, self.wg,
                                 self.gpu_tmp.data, self.gpu_out.data, gpu_filter.data, numpy.int32(ksize), self.IMAGE_W, self.IMAGE_H)
             res = self.gpu_out.get()
             k2.wait()
@@ -195,7 +212,7 @@ class test_convol(unittest.TestCase):
             else:
                 self.assert_(delta < 1e-4, "sigma= %s delta=%s" % (sigma, delta))
             logger.info("sigma= %s delta=%s" % (sigma, delta))
-            if PROFILE:
+            if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms and vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start),
                                                                                           1e-6 * (k2.profile.end - k2.profile.start)))
@@ -211,6 +228,7 @@ class test_convol(unittest.TestCase):
                 sp4.imshow(res, interpolation="nearest")
                 fig.show()
                 raw_input("enter")
+
 
 def suite():
     testSuite = unittest.TestSuite()

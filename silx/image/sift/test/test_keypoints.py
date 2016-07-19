@@ -35,36 +35,29 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging
+import os 
+import time
+import logging
 import numpy
 import pyopencl, pyopencl.array
 import scipy, scipy.misc, scipy.ndimage, pylab
 import sys
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
 from .test_image_functions import * #for Python implementation of tested functions
 from .test_image_setup import *
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
-logger = getLogger(__file__)
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
+from ..utils import calc_size, get_opencl_code
+logger = logging.getLogger(__name__)
 
 SHOW_FIGURES = False
 PRINT_KEYPOINTS = True
 #USE_CPU = False
 USE_CPP_SIFT = False #use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
 
-
-
-#print "working on %s" % ctx.devices[0].name
 
 '''
 For Python implementation of tested functions, see "test_image_functions.py"
@@ -77,6 +70,25 @@ class ParameterisedTestCase(unittest.TestCase):
         From Eli Bendersky's website
         http://eli.thegreenplace.net/2011/08/02/python-unit-testing-parametrized-test-cases/
     """
+    @classmethod
+    def setUpClass(cls):
+        super(ParameterisedTestCase, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(ParameterisedTestCase, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
+
     def __init__(self, methodName='runTest', param=None):
         super(ParameterisedTestCase, self).__init__(methodName)
         self.param = param
@@ -104,20 +116,18 @@ class test_keypoints(ParameterisedTestCase):
                 self.USE_CPU = False
             if kernel_file.startswith("orient"):
                 self.wg_orient = self.param[kernel_file]
-                kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file + ".cl")
-                kernel_src = open(kernel_path).read()
+                kernel_src = get_opencl_code(kernel_file)
                 try:
-                    self.program_orient = pyopencl.Program(ctx, kernel_src).build()
+                    self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
                     logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
                     self.abort = True
                     return
             elif kernel_file.startswith("keypoint"):
                 self.wg_keypoint = self.param[kernel_file]
-                kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file + ".cl")
-                kernel_src = open(kernel_path).read()
+                kernel_src = get_opencl_code(kernel_file)
                 try:
-                    self.program_keypoint = pyopencl.Program(ctx, kernel_src).build()
+                    self.program_keypoint = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
                     logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
                     self.abort = True
@@ -126,9 +136,6 @@ class test_keypoints(ParameterisedTestCase):
     def tearDown(self):
         self.mat = None
         self.program = None
-
-
-
 
     def test_orientation(self):
         '''
@@ -150,20 +157,20 @@ class test_keypoints(ParameterisedTestCase):
         wg = self.wg_orient
         shape = keypoints.shape[0] * wg[0],  #shape = calc_size(keypoints.shape, self.wg)
         
-        gpu_keypoints = pyopencl.array.to_device(queue, keypoints)
+        gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
         actual_nb_keypoints = numpy.int32(updated_nb_keypoints)
         print("Number of keypoints before orientation assignment : %s" % actual_nb_keypoints)
 
-        gpu_grad = pyopencl.array.to_device(queue, grad)
-        gpu_ori = pyopencl.array.to_device(queue, ori)
+        gpu_grad = pyopencl.array.to_device(self.queue, grad)
+        gpu_ori = pyopencl.array.to_device(self.queue, ori)
         orisigma = numpy.float32(1.5) #SIFT
         grad_height, grad_width = numpy.int32(grad.shape)
         keypoints_start = numpy.int32(0)
         keypoints_end = numpy.int32(actual_nb_keypoints)
-        counter = pyopencl.array.to_device(queue, keypoints_end) #actual_nb_keypoints)
+        counter = pyopencl.array.to_device(self.queue, keypoints_end) #actual_nb_keypoints)
 
         t0 = time.time()
-        k1 = self.program_orient.orientation_assignment(queue, shape, wg,
+        k1 = self.program_orient.orientation_assignment(self.queue, shape, wg,
         	gpu_keypoints.data, gpu_grad.data, gpu_ori.data, counter.data,
         	octsize, orisigma, nb_keypoints, keypoints_start, keypoints_end, grad_width, grad_height)
         res = gpu_keypoints.get()
@@ -209,10 +216,9 @@ class test_keypoints(ParameterisedTestCase):
         logger.info("delta_sigma=%s" % d3)
         logger.info("delta_angle=%s" % d4)
         
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Orientation assignment took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-        
 
     def test_descriptor(self):
         '''
@@ -245,18 +251,18 @@ class test_keypoints(ParameterisedTestCase):
             shape = keypoints.shape[0] * wg[0],
         else:
             shape = keypoints.shape[0] * wg[0], wg[1], wg[2]
-        gpu_keypoints = pyopencl.array.to_device(queue, keypoints)
+        gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
         #NOTE: for the following line, use pyopencl.array.empty instead of pyopencl.array.zeros if the keypoints are compacted
-        gpu_descriptors = pyopencl.array.zeros(queue, (keypoints_end - keypoints_start, 128), dtype=numpy.uint8, order="C")
-        gpu_grad = pyopencl.array.to_device(queue, grad)
-        gpu_ori = pyopencl.array.to_device(queue, ori)
+        gpu_descriptors = pyopencl.array.zeros(self.queue, (keypoints_end - keypoints_start, 128), dtype=numpy.uint8, order="C")
+        gpu_grad = pyopencl.array.to_device(self.queue, grad)
+        gpu_ori = pyopencl.array.to_device(self.queue, ori)
 
         keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
         grad_height, grad_width = numpy.int32(grad.shape)
-        counter = pyopencl.array.to_device(queue, keypoints_end)
+        counter = pyopencl.array.to_device(self.queue, keypoints_end)
         
         t0 = time.time()
-        k1 = self.program_keypoint.descriptor(queue, shape, wg,
+        k1 = self.program_keypoint.descriptor(self.queue, shape, wg,
             gpu_keypoints.data, gpu_descriptors.data, gpu_grad.data, gpu_ori.data, numpy.int32(octsize),
             keypoints_start, counter.data, grad_width, grad_height)
         try:
@@ -311,12 +317,9 @@ class test_keypoints(ParameterisedTestCase):
         logger.info("delta=%s" % delta)
         '''
 
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Descriptors computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-            
-            
-            
             
 
 def suite():

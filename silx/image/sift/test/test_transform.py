@@ -35,82 +35,81 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging
+import time
+import os
+import logging
 import numpy
-import pyopencl, pyopencl.array
+
 import scipy, scipy.misc, scipy.ndimage, pylab
 import sys
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
-from test_image_functions import * #for Python implementation of tested functions
-from test_image_setup import *
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
-logger = getLogger(__file__)
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
+from sift.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
+from .test_image_functions import * #for Python implementation of tested functions
+from .test_image_setup import *
+from ..utils import calc_size, get_opencl_code
+from ..plan import SiftPlan
+from ..match import MatchPlan
+logger = logging.getLogger(__file__)
 
 SHOW_FIGURES = False
 IMAGE_RESHAPE = True
 USE_LENA = False
 
-print "working on %s" % ctx.devices[0].name
-
-
-
-
 
 class test_transform(unittest.TestCase):
-    def setUp(self):
-        
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), "transform.cl")
-        kernel_src = open(kernel_path).read()
-        self.program = pyopencl.Program(ctx, kernel_src).build() #.build('-D WORKGROUP_SIZE=%s' % wg_size)
+    @classmethod
+    def setUpClass(cls):
+        super(test_transform, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(test_transform, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
+
+    def setUp(self):        
+        kernel_src = get_opencl_code("transform")
+        self.program = pyopencl.Program(self.ctx, kernel_src).build() #.build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
-
-
 
     def tearDown(self):
         self.program = None
         
-
-    
-    
     def image_reshape(self,img,output_height,output_width,image_height, image_width):
         '''
         Reshape the image to get a bigger image with the input image in the center
         
         '''
-        image3 = numpy.zeros((output_height,output_width),dtype=numpy.float32)
-        d1 = (output_width - image_width)/2
-        d0 = (output_height - image_height)/2
-        image3[d0:-d0,d1:-d1] = numpy.copy(img)
+        image3 = numpy.zeros((output_height, output_width),dtype=numpy.float32)
+        d1 = (output_width - image_width) / 2
+        d0 = (output_height - image_height) / 2
+        image3[d0:-d0, d1:-d1] = numpy.copy(img)
         image = image3
         image_height, image_width = output_height, output_width
-        return image, image_height, image_width
+        return image, image_height, image_width   
     
-    
-    
-    
-    
-    
-    
-    def matching_correction(self,image,image2):
+    def matching_correction(self, image, image2):
         '''
         Computes keypoints for two images and try to align image2 on image1
         '''
         #computing keypoints matching
-        s = sift.SiftPlan(template=image,devicetype="gpu")
+        s = SiftPlan(template=image,devicetype="gpu")
         kp1 = s.keypoints(image)
         kp2 = s.keypoints(image2) #image2 and image must have the same size
-        m = sift.MatchPlan(devicetype="GPU")
+        m = MatchPlan(devicetype="GPU")
         matching = m.match(kp2,kp1)
         N = matching.shape[0]
         #solving normals equations for least square fit
@@ -220,10 +219,14 @@ class test_transform(unittest.TestCase):
 #        print res[0,0]
         
         ref = scipy.ndimage.interpolation.affine_transform(image2,correction_matrix,
-            offset=offset_value, output_shape=(output_height,output_width),order=1, mode="constant", cval=fill_value)
+                                                           offset=offset_value, 
+                                                           output_shape=(output_height,output_width),
+                                                           order=1, 
+                                                           mode="constant", 
+                                                           cval=fill_value)
         t2 = time.time()
         
-        delta = abs(res-image)
+        delta = abs(res - image)
         delta_arg = delta.argmax()
         delta_max = delta.max()
 #        delta_mse_res = ((res-image)**2).sum()/image.size
@@ -239,13 +242,13 @@ class test_transform(unittest.TestCase):
         SHOW_FIGURES = True
         if SHOW_FIGURES:
             fig = pylab.figure()
-            sp1 = fig.add_subplot(221,title="Input image")
+            sp1 = fig.add_subplot(221, title="Input image")
             sp1.imshow(image, interpolation="nearest")
-            sp2 = fig.add_subplot(222,title="Image after deformation")
+            sp2 = fig.add_subplot(222, title="Image after deformation")
             sp2.imshow(image2, interpolation="nearest")
-            sp2 = fig.add_subplot(223,title="Corrected image (OpenCL)")
+            sp2 = fig.add_subplot(223, title="Corrected image (OpenCL)")
             sp2.imshow(res, interpolation="nearest")
-            sp2 = fig.add_subplot(224,title="Corrected image (Scipy)")
+            sp2 = fig.add_subplot(224, title="Corrected image (Scipy)")
             sp2.imshow(ref, interpolation="nearest")
 #            sp2.imshow(ref, interpolation="nearest")
 #            sp3 = fig.add_subplot(223,title="delta (max = %f)" %delta_max)
@@ -254,8 +257,7 @@ class test_transform(unittest.TestCase):
             fig.show()
             raw_input("enter")
 
-
-        if PROFILE:
+        if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Transformation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
             

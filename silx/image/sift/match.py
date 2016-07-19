@@ -36,10 +36,8 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 __status__ = "beta"
-import time
-import math
 import os
 import logging
 import sys
@@ -48,11 +46,9 @@ import gc
 import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
-from .utils import calc_size, kernel_size, sizeof
+from .utils import calc_size
 logger = logging.getLogger("sift.match")
-if pyopencl:
-    from pyopencl import mem_flags as MF
-else:
+if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 
 
@@ -159,11 +155,11 @@ class MatchPlan(object):
         gc.collect()
 
     def _allocate_buffers(self):
-        self.buffers[ "Kp_1" ] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-        self.buffers[ "Kp_2" ] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
+        self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
+        self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
 #        self.buffers[ "tmp" ] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-        self.buffers[ "match" ] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
-        self.buffers["cnt" ] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
+        self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
+        self.buffers["cnt"] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
 
     def _free_buffers(self):
         """

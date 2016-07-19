@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 __status__ = "beta"
 
 import os
@@ -43,22 +43,21 @@ import gc
 import sys
 from threading import Semaphore
 import numpy
-from .param import par
 from silx.opencl import ocl, pyopencl
-from .utils import calc_size, kernel_size, sizeof, matching_correction
+from .utils import calc_size, matching_correction
 import logging
 logger = logging.getLogger("sift.alignment")
-if pyopencl:
-    from pyopencl import mem_flags as MF
-else:
+if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 
-from . import MatchPlan, SiftPlan
+from .match import MatchPlan
+from .plan import  SiftPlan
 
 try:
     import feature
 except ImportError:
     feature = None
+
 
 def arrow_start(kplist):
     x_ref = kplist.x
@@ -68,16 +67,18 @@ def arrow_start(kplist):
     x_ref2 = kplist.x + scale_ref * numpy.cos(angle_ref)
     y_ref2 = kplist.y + scale_ref * numpy.sin(angle_ref)
     return x_ref2, y_ref2
+
 def transform_pts(matrix, offset, x, y):
     nx = -offset[1] + y * matrix[1, 0] + x * matrix[1, 1]
     ny = -offset[0] + x * matrix[0, 1] + y * matrix[0, 0]
     return nx, ny
 
+
 class LinearAlign(object):
     """
-    Align images on a reference image based on an Afine transformation (bi-linear + offset)
+    Align images on a reference image based on an afine transformation (bi-linear + offset)
     """
-    kernels = {"transform":128}
+    kernels = {"transform": 128}
 
     def __init__(self, image, devicetype="CPU", profile=False, device=None, max_workgroup_size=None,
                  ROI=None, extra=0, context=None, init_sigma=None):
@@ -155,7 +156,6 @@ class LinearAlign(object):
             else:
                 self.wg = (8, 4)
 
-
         self.sift = SiftPlan(template=image, context=self.ctx, profile=self.profile,
                              max_workgroup_size=self.max_workgroup_size, init_sigma=init_sigma)
         self.ref_kp = self.sift.keypoints(image)
@@ -202,6 +202,7 @@ class LinearAlign(object):
             self.buffers["output"] = pyopencl.array.empty(self.queue, shape=self.outshape, dtype=numpy.float32)
         self.buffers["matrix"] = pyopencl.array.empty(self.queue, shape=(2, 2), dtype=numpy.float32)
         self.buffers["offset"] = pyopencl.array.empty(self.queue, shape=(1, 2), dtype=numpy.float32)
+
     def _free_buffers(self):
         """
         free all memory allocated on the device
@@ -221,7 +222,7 @@ class LinearAlign(object):
         kernel_directory = os.path.dirname(os.path.abspath(__file__))
         kernel_file = self.kernels.keys()[0]
         if not os.path.exists(os.path.join(kernel_directory, kernel_file + ".cl")):
-            while (".zip" in kernel_directory)  and (len(kernel_directory) > 4):
+            while (".zip" in kernel_directory) and (len(kernel_directory) > 4):
                 kernel_directory = os.path.dirname(kernel_directory)
             kernel_directory = os.path.join(kernel_directory, "sift_kernels")
         kernel_file = os.path.join(kernel_directory, kernel_file + ".cl")
@@ -254,7 +255,8 @@ class LinearAlign(object):
             data = numpy.ascontiguousarray(img, numpy.float32)
         with self.sem:
             cpy = pyopencl.enqueue_copy(self.queue, self.buffers["input"].data, data)
-            if self.profile:self.events.append(("Copy H->D", cpy))
+            if self.profile:
+                self.events.append(("Copy H->D", cpy))
             cpy.wait()
             kp = self.sift.keypoints(self.buffers["input"])
 #            print("ref %s img %s" % (self.buffers["ref_kp_gpu"].shape, kp.shape))
@@ -346,16 +348,16 @@ class LinearAlign(object):
                 shape = self.shape[1], self.shape[0]
                 transform = self.program.transform
             ev = transform(self.queue, calc_size(shape, self.wg), self.wg,
-                                   self.buffers["input"].data,
-                                   self.buffers["output"].data,
-                                   self.buffers["matrix"].data,
-                                   self.buffers["offset"].data,
-                                   numpy.int32(self.shape[1]),
-                                   numpy.int32(self.shape[0]),
-                                   numpy.int32(self.outshape[1]),
-                                   numpy.int32(self.outshape[0]),
-                                   self.sift.buffers["min"].get()[0],
-                                   numpy.int32(1))
+                           self.buffers["input"].data,
+                           self.buffers["output"].data,
+                           self.buffers["matrix"].data,
+                           self.buffers["offset"].data,
+                           numpy.int32(self.shape[1]),
+                           numpy.int32(self.shape[0]),
+                           numpy.int32(self.outshape[1]),
+                           numpy.int32(self.outshape[0]),
+                           self.sift.buffers["min"].get()[0],
+                           numpy.int32(1))
             if self.profile:
                 self.events += [("transform", ev)]
             result = self.buffers["output"].get()
@@ -368,7 +370,7 @@ class LinearAlign(object):
             rms = numpy.sqrt((corr * corr).sum(axis=-1).mean())
 
             # Todo: calculate the RMS of deplacement and return it:
-            return {"result":result, "keypoint":kp, "matching":matching, "offset":offset, "matrix": matrix, "rms":rms}
+            return {"result": result, "keypoint": kp, "matching": matching, "offset": offset, "matrix": matrix, "rms": rms}
         return result
 
     def log_profile(self):
@@ -384,6 +386,3 @@ class LinearAlign(object):
                     et = 1e-6 * (e[1].profile.end - e[1].profile.start)
                     print("%50s:\t%.3fms" % (e[0], et))
                     t += et
-
-
-

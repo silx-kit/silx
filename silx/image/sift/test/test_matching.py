@@ -35,27 +35,25 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "19/07/2016"
 
-import time, os, logging
+import time
+import os
+import logging
+import sys
 import numpy
 import pyopencl, pyopencl.array
 import scipy, scipy.misc, scipy.ndimage, pylab
-import sys
+
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
 from test_image_functions import * #for Python implementation of tested functions
 from test_image_setup import *
-import sift_pyocl as sift
-from sift_pyocl.utils import calc_size
-logger = getLogger(__file__)
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
+from ..utils import calc_size, get_opencl_code
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
+
+logger = logging.getLogger(__file__)
 
 SHOW_FIGURES = False
 PRINT_KEYPOINTS = False
@@ -63,31 +61,40 @@ USE_CPU = False
 USE_CPP_SIFT = True #use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
 
 
-
-print "working on %s" % ctx.devices[0].name
-
 '''
 For Python implementation of tested functions, see "test_image_functions.py"
 '''
 
 
+class TestMatching(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super(TestMatching, cls).setUpClass()
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
 
-class test_matching(unittest.TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        super(TestMatching, cls).tearDownClass()
+        cls.ctx = None
+        cls.queue = None
+
     def setUp(self):
-        
-        kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), ("matching_gpu.cl" if not(USE_CPU) else "matching_cpu.cl"))
-        print kernel_path
-        kernel_src = open(kernel_path).read()
-        self.program = pyopencl.Program(ctx, kernel_src).build() #.build('-D WORKGROUP_SIZE=%s' % wg_size)
+        kernel = ("matching_gpu.cl" if not(USE_CPU) else "matching_cpu.cl")
+        kernel_src = get_opencl_code(kernel)
+        self.program = pyopencl.Program(self.ctx, kernel_src).build() #.build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
-
-
 
     def tearDown(self):
         self.mat = None
         self.program = None
-        
-        
 
     def test_matching(self):
         '''
@@ -111,22 +118,24 @@ class test_matching(unittest.TestCase):
             t1_matching = time.time()
             ref = ref_sift.desc
             
-            if (USE_CPU): wg = 1,
-            else: wg = 64,
-            shape = ref_sift.shape[0]*wg[0],
+            if (USE_CPU): 
+                wg = 1,
+            else: 
+                wg = 64,
+            shape = ref_sift.shape[0] * wg[0],
             
             ratio_th = numpy.float32(0.5329) #sift.cpp : 0.73*0.73
             keypoints_start, keypoints_end = 0, min(ref_sift.shape[0],ref_sift_2.shape[0])
             
-            gpu_keypoints1 = pyopencl.array.to_device(queue, ref_sift)
-            gpu_keypoints2 = pyopencl.array.to_device(queue, ref_sift_2)
-            gpu_matchings = pyopencl.array.zeros(queue, (keypoints_end-keypoints_start,2),dtype=numpy.int32, order="C")
+            gpu_keypoints1 = pyopencl.array.to_device(self.queue, ref_sift)
+            gpu_keypoints2 = pyopencl.array.to_device(self.queue, ref_sift_2)
+            gpu_matchings = pyopencl.array.zeros(self.queue, (keypoints_end-keypoints_start,2),dtype=numpy.int32, order="C")
             keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
             nb_keypoints = numpy.int32(10000)
-            counter = pyopencl.array.zeros(queue, (1,1),dtype=numpy.int32, order="C")
+            counter = pyopencl.array.zeros(self.queue, (1,1),dtype=numpy.int32, order="C")
 
             t0 = time.time()
-            k1 = self.program.matching(queue, shape, wg,
+            k1 = self.program.matching(self.queue, shape, wg,
                     gpu_keypoints1.data, gpu_keypoints2.data, gpu_matchings.data, counter.data,
                     nb_keypoints, ratio_th, keypoints_end, keypoints_end)
             res = gpu_matchings.get()
@@ -153,12 +162,12 @@ class test_matching(unittest.TestCase):
             logger.info("delta=%s" % delta)
             '''
 
-            if PROFILE:
+            if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Matching took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_matching("test_matching"))
+    testSuite.addTest(TestMatching("test_matching"))
     return testSuite

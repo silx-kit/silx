@@ -149,7 +149,6 @@ def get_opencl_code(name):
     :return: Corresponding surce code
     :raises: ValueError when name is not known
     """
-    res = None
     if not name.endswith(".cl"):
         name += ".cl"
     try:
