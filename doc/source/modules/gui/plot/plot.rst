@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`Plot`
-===========
+:mod:`Plot`: Full plot API
+==========================
 
 .. automodule:: silx.gui.plot.Plot
 

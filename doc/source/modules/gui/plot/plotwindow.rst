@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`PlotWindow`
-=================
+:mod:`PlotWindow`: Plot widget with toolbar
+===========================================
 
 .. automodule:: silx.gui.plot.PlotWindow
 
@@ -15,15 +15,15 @@
    :show-inheritance:
    :members:
 
-:class:`Plot1D` class
----------------------
+:class:`Plot1D`: Plot curves
+----------------------------
 
 .. autoclass:: Plot1D
    :show-inheritance:
    :members:
 
-:class:`Plot2D` class
----------------------
+:class:`Plot2D`: Plot images
+----------------------------
 
 .. autoclass:: Plot2D
    :show-inheritance:

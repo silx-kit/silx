@@ -13,7 +13,7 @@
 
 .. automodule:: silx.gui.plot
 
-For an introduction to the widgets of this module, see :doc:`getting_started`.
+For an introduction to the widgets of this package, see :doc:`getting_started`.
 
 Widgets gallery
 ---------------
@@ -67,11 +67,10 @@ Public modules
 .. toctree::
    :maxdepth: 2
 
-   plot.rst
    plotwidget.rst
    plotwindow.rst
    imageview.rst
-
+   plot.rst
 
 Internals
 ---------
