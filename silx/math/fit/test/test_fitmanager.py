@@ -234,9 +234,9 @@ class TestFitmanager(unittest.TestCase):
                       derivative=None)    # FIXME
 
         fit.settheory('polynomial')
-        fit.configure(d=4.5)
+        fit.configure(d_=4.5)
         fit.estimate()
-        fit.startfit()
+        params1 = fit.startfit()
 
         self.assertEqual(fit.fit_results[0]["name"],
                          "A1")
@@ -244,26 +244,23 @@ class TestFitmanager(unittest.TestCase):
                                -3.14)
         self.assertEqual(fit.fit_results[1]["name"],
                          "B1")
-        self.assertAlmostEqual(fit.fit_results[1]["fitresult"],
+        # params1[1] is the same as fit.fit_results[1]["fitresult"]
+        self.assertAlmostEqual(params1[1],
                                1234.5)
         self.assertEqual(fit.fit_results[2]["name"],
                          "C1")
-        self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
+        self.assertAlmostEqual(params1[2],
                                10000)
 
         # change configuration scaling factor and check that the fit returns
         # different values
-        fit.configure(d=5.)
+        fit.configure(d_=5.)
         fit.estimate()
-        params = fit.startfit()  # alternative way of getting fit parameters
-        print(params)
-
-        self.assertNotAlmostEqual(params[0],
-                                  -3.14)
-        self.assertNotAlmostEqual(params[1],
-                                  1234.5)
-        self.assertNotAlmostEqual(params[2],
-                                  10000)
+        params2 = fit.startfit()
+        for p1, p2 in zip(params1, params2):
+            self.assertFalse(numpy.array_equal(p1, p2),
+                             "Fit parameters are equal even though the " +
+                             "configuration has been changed")
 
 
 test_cases = (TestFitmanager,)
