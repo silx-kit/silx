@@ -364,7 +364,8 @@ class LegendModel(qt.QAbstractListModel):
     def insertLegendList(self, row, llist):
         """
         :param int row: Determines after which row the items are inserted
-        :param list llist: Carries the new legend information
+        :param llist: Carries the new legend information
+        :type llist: List
         """
         modelIndex = self.createIndex(row, 0)
         count = len(llist)

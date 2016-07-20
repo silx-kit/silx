@@ -55,6 +55,8 @@ _logger = logging.getLogger(__name__)
 class PlotWindow(PlotWidget):
     """Qt Widget providing a 1D/2D plot area and additional tools.
 
+    This widgets inherits from :class:`.PlotWidget` and provides its plot API.
+
     This widget includes the following QAction as attributes:
 
     - resetZoomAction: Reset zoom
@@ -376,6 +378,8 @@ class PlotWindow(PlotWidget):
 class Plot1D(PlotWindow):
     """PlotWindow with tools specific for curves.
 
+    This widgets provides the plot API of :class:`.PlotWidget`.
+
     :param parent: The parent of this widget
     """
 
@@ -396,6 +400,8 @@ class Plot1D(PlotWindow):
 
 class Plot2D(PlotWindow):
     """PlotWindow with a toolbar specific for images.
+
+    This widgets provides the plot API of :class:`.PlotWidget`.
 
     :param parent: The parent of this widget
     """

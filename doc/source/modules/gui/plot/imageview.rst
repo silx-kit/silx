@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`ImageView`
-================
+:mod:`ImageView`: Plot an image with side histograms
+====================================================
 
 .. automodule:: silx.gui.plot.ImageView
 
@@ -12,4 +12,4 @@
 ------------------------
 
 .. autoclass:: ImageView
-   :members:
+   :members: valueChanged, profile, setImage, getColormap, setColormap, getHistogram, setGraphTitle, setGraphXLabel, setGraphYLabel
