@@ -62,42 +62,43 @@ class FitManager:
     """
     Multi-peak fitting functions manager
 
-    Data attributes:
+    :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
+        ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
+    :type x: Sequence or numpy array or None
+    :param y: The dependant data ``y = f(x)``. ``y`` must have the same
+        shape as ``x`` if ``x`` is not ``None``.
+    :type y: Sequence or numpy array or None
+    :param sigmay: The uncertainties in the ``ydata`` array. These are
+        used as weights in the least-squares problem.
+        If ``None``, the uncertainties are assumed to be 1.
+    :type sigmay: Sequence or numpy array or None
 
-     - :attr:`xdata0`, :attr:`ydata0` and :attr:`sigmay0` store the initial data
-       and uncertainties. These attributes are not modified after
-       initialization.
-     - :attr:`xdata`, :attr:`ydata` and :attr:`sigmay` store the data after
-       removing values where :attr:`xdata < xmin` or :attr:`xdata > xmax`.
-       These attributes may be modified at a latter stage by filters.
+    :param auto_fwhm: Flag to enable or disable automatic estimation of
+        the peaks' full width at half maximum.
+    :param fwhm_points:
+    :param auto_scaling: Enable on disable auto-scaling based on y data.
+        If ``True``, init argument ``yscaling`` is ignored and
+        :attr:`fitconfig` ``['Yscaling']`` is calculated based on data.
+        If ``False``, ``yscaling`` is used.
+    :param yscaling: Scaling parameter for ``y`` data.
+    :param sensitivity: Sensitivity value used for by peak detection
+        algorithm. To be detected, a peak must have an amplitude greater
+        than ``σn * sensitivity`` (where ``σn`` is an estimated value of
+        the standard deviation of the noise).
     """
+    # TODO: document following attributes
+    # Data attributes:
+    #
+    #  - :attr:`xdata0`, :attr:`ydata0` and :attr:`sigmay0` store the initial data
+    #    and uncertainties. These attributes are not modified after
+    #    initialization.
+    #  - :attr:`xdata`, :attr:`ydata` and :attr:`sigmay` store the data after
+    #    removing values where :attr:`xdata < xmin` or :attr:`xdata > xmax`.
+    #    These attributes may be modified at a latter stage by filters.
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=True, fwhm_points=8,
                  auto_scaling=False, yscaling=1.0, sensitivity=2.5):
         """
-        :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
-            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
-        :type x: Sequence or numpy array or None
-        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
-            shape as ``x`` if ``x`` is not ``None``.
-        :type y: Sequence or numpy array or None
-        :param sigmay: The uncertainties in the ``ydata`` array. These are
-            used as weights in the least-squares problem.
-            If ``None``, the uncertainties are assumed to be 1.
-        :type sigmay: Sequence or numpy array or None
-
-        :param auto_fwhm: Flag to enable or disable automatic estimation of
-            the peaks' full width at half maximum.
-        :param fwhm_points:
-        :param auto_scaling: Enable on disable auto-scaling based on y data.
-            If ``True``, init argument ``yscaling`` is ignored and
-            :attr:`fitconfig` ``['Yscaling']`` is calculated based on data.
-            If ``False``, ``yscaling`` is used.
-        :param yscaling: Scaling parameter for ``y`` data.
-        :param sensitivity: Sensitivity value used for by peak detection
-            algorithm. To be detected, a peak must have an amplitude greater
-            than ``σn * sensitivity`` (where ``σn`` is an estimated value of
-            the standard deviation of the noise).
         """
         self.fitconfig = {}
         """Dictionary of fit configuration parameters.
@@ -299,64 +300,18 @@ class FitManager:
         parameters, ``index`` is the fitting parameter index for which the
         derivative has to be calculated."""
 
-    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
-        """Set data attributes:
+    ##################
+    # Public methods #
+    ##################
+    def addbackground(self, background, function, parameters, estimate=None):
+        """Add a new background function to dictionary :attr:`bkgdict`.
 
-            - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
-              and uncertainties. These attributes are not modified after
-              initialization.
-            - ``xdata``, ``ydata`` and ``sigmay`` store the data after
-              removing values where ``xdata < xmin`` or ``xdata > xmax``.
-              These attributes may be modified at a latter stage by filters.
-
-
-        :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
-            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
-        :type x: Sequence or numpy array or None
-        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
-            shape as ``x`` if ``x`` is not ``None``.
-        :type y: Sequence or numpy array or None
-        :param sigmay: The uncertainties in the ``ydata`` array. These are
-            used as weights in the least-squares problem.
-            If ``None``, the uncertainties are assumed to be 1.
-        :type sigmay: Sequence or numpy array or None
-        :param xmin: Lower value of x values to use for fitting
-        :param xmax: Upper value of x values to use for fitting
+        :param background: String with the name describing the function
+        :param function: Actual function
+        :param parameters: Parameters names ['p1','p2','p3',...]
+        :param estimate: The initial parameters estimation function if any
         """
-        if y is None:
-            self.xdata0 = numpy.array([], numpy.float)
-            self.ydata0 = numpy.array([], numpy.float)
-            self.sigmay0 = numpy.array([], numpy.float)
-            self.xdata = numpy.array([], numpy.float)
-            self.ydata = numpy.array([], numpy.float)
-            self.sigmay = numpy.array([], numpy.float)
-
-        else:
-            self.ydata0 = numpy.array(y)
-            self.ydata = numpy.array(y)
-            if x is None:
-                self.xdata0 = numpy.arange(len(self.ydata0))
-                self.xdata = numpy.arange(len(self.ydata0))
-            else:
-                self.xdata0 = numpy.array(x)
-                self.xdata = numpy.array(x)
-
-            # default weight in the least-square problem is 1.
-            if sigmay is None:
-                self.sigmay0 = numpy.ones(self.ydata.shape, dtype=numpy.float)
-                self.sigmay = numpy.ones(self.ydata.shape, dtype=numpy.float)
-            else:
-                self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = numpy.array(sigmay)
-
-            # take the data between limits, using boolean array indexing
-            if (xmin is not None or xmax is not None) and len(self.xdata):
-                xmin = xmin if xmin is not None else min(self.xdata)
-                xmax = xmax if xmax is not None else max(self.xdata)
-                bool_array = (self.xdata >= xmin) & (self.xdata <= xmax)
-                self.xdata = self.xdata[bool_array]
-                self.ydata = self.ydata[bool_array]
-                self.sigmay = self.sigmay[bool_array]
+        self.bkgdict[background] = [function, parameters, estimate]
 
     def addtheory(self, theory, function, parameters, estimate=None,
                   configure=None, derivative=None):
@@ -385,101 +340,51 @@ class FitManager:
         self.theorydict[theory] = [function, parameters,
                                    estimate, configure, derivative]
 
-    def addbackground(self, background, function, parameters, estimate=None):
-        """Add a new background function to dictionary :attr:`bkgdict`.
+    def configure(self, **kw):
+        """Configure the current theory by filling or updating the
+        :attr:`fitconfig` dictionary.
+        Call the custom configuration function, if any. This allows the user
+        to modify the behavior of the custom fit function or the custom
+        estimate function.
 
-        :param background: String with the name describing the function
-        :param function: Actual function
-        :param parameters: Parameters names ['p1','p2','p3',...]
-        :param estimate: The initial parameters estimation function if any
+        This methods accepts only named parameters. All ``**kw`` parameters
+        are expected to be fields of :attr:`fitconfig` to be updated, unless
+        they have a special meaning for the custom configuration function
+        defined in ``fitconfig['fittheory']``.
+
+        This method returns the modified config dictionary returned by the
+        custom configuration function.
         """
-        self.bkgdict[background] = [function, parameters, estimate]
+        # inspect **kw to find known keys, update them in self.fitconfig
+        for key in self.fitconfig.keys():
+            if key in kw:
+                self.fitconfig[key] = kw[key]
 
-    def settheory(self, theory):
-        """Pick a theory from :attr:`theorydict`.
+        # initialize dict with existing config dict
+        result = {}
+        result.update(self.fitconfig)
 
-        This updates the following attributes:
+        # Apply custom configuration function defined in self.theorydict[][3]
+        theory_name = self.fitconfig['fittheory']
+        if theory_name in self.theorydict.keys():
+            custom_config_fun = self.selectedconfigure
+            if custom_config_fun is not None:
+                result.update(custom_config_fun(**kw))
 
-            - :attr:`fitconfig` ``['fittheory']``
-            - :attr:`selectedfunction`
-            - :attr:`selectedderivative`
+                # Update self.fitconfig with custom config
+                for key in self.fitconfig.keys():
+                    if key in result:
+                        self.fitconfig[key] = result[key]
 
-        :param theory: Name of the theory to be used.
-        :raise: KeyError if ``theory`` is not a key of :attr:`theorydict`.
-        """
-        if theory is None:
-            self.fitconfig['fittheory'] = None
-        elif theory in self.theorydict:
-            self.fitconfig['fittheory'] = theory
-            self.selectedfunction = self.theorydict[theory][0]
-            self.selectedparameters = self.theorydict[theory][1]
-            self.selectedestimate = self.theorydict[theory][2]
-            self.selectedconfigure = self.theorydict[theory][3]
-            self.selectedderivative = self.theorydict[theory][4]
+        # overwrite existing keys with values from **kw in fitconfig
+        if "fitbkg" in self.fitconfig:
+            self.setbackground(self.fitconfig["fitbkg"])
+        if "fittheory" in self.fitconfig["fittheory"]:
+            if self.fitconfig["fittheory"] is not None:
+                self.settheory(self.fitconfig["fittheory"])
 
-        else:
-            msg = "No theory with name %s in theorydict.\n" % theory
-            msg += "Available theories: %s\n" % self.theorydict.keys()
-            raise KeyError(msg)
-
-    def setbackground(self, theory):
-        """Choose a background type from within :attr:`bkgdict`.
-
-        This updates the following attributes:
-
-            - :attr:`fitconfig` ``['fitbkg']``
-            - :attr:`bkgfun`
-
-        :param theory: The name of the background to be used.
-        :raise: KeyError if ``theory`` is not a key of :attr:`bkgdict``.
-        """
-        if theory in self.bkgdict:
-            self.fitconfig['fitbkg'] = theory
-            self.bkgfun = self.bkgdict[theory][0]
-        else:
-            msg = "No theory with name %s in bkgdict.\n" % theory
-            msg += "Available theories: %s\n" % self.bkgdict.keys()
-            raise KeyError(msg)
-
-    def fitfunction(self, x, *pars):
-        """Function to be fitted.
-
-        This is the sum of the selected background function plus
-        a number of peak functions.
-
-        :param x: Independent variable where the function is calculated.
-        :param pars: Sequence of all fit parameters. The first few parameters
-            are background parameters, then come the peak function parameters.
-            The total number of fit parameters in ``pars`` will
-            be `nb_bg_pars + nb_peak_pars * nb_peaks`.
-        :return: Output of the fit function with ``x`` as input and ``pars``
-            as fit parameters.
-        """
-        fitbkg_key = self.fitconfig['fitbkg']
-        bg_pars_list = self.bkgdict[fitbkg_key][1]
-        nb_bg_pars = len(bg_pars_list)
-
-        peak_pars_list = self.selectedparameters
-        nb_peak_pars = len(peak_pars_list)
-
-        nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
-
-        result = numpy.zeros(numpy.shape(x), numpy.float)
-
-        # Compute one peak function per peak, and sum the output numpy arrays
-        for i in range(nb_peaks):
-            start_par_index = nb_bg_pars + i * nb_peak_pars
-            end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
-            result += self.selectedfunction(x, *pars[start_par_index:end_par_index])
-
-        if nb_bg_pars > 0:
-            result += self.bkgfun(x, *pars[0:nb_bg_pars])
-        # TODO: understand and document this Square Filter
-        if self.fitconfig['fitbkg'] == "Square Filter":
-            result = result - pars[1]
-            return pars[1] + self.squarefilter(result, pars[0])
-        else:
-            return result
+        result.update(self.fitconfig)
+        return result
 
     def estimate(self, callback=None):
         """
@@ -558,7 +463,7 @@ class FitManager:
 
         self.fit_results = []
         nb_fun_params_per_group = len(self.selectedparameters)
-        group_number = 0 #k
+        group_number = 0
         xmin = min(xwork)
         xmax = max(xwork)
         nb_bg_params = len(bg_params)
@@ -605,6 +510,314 @@ class FitManager:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
         return numpy.append(bg_params, fun_esti_parameters)
+
+    def gendata(self, x=None, paramlist=None):
+        """Return a data array using the currently selected fit function
+        and the fitted parameters.
+
+        :param x: Independent variable where the function is calculated.
+            If ``None``, use :attr:`xdata`.
+        :param paramlist: List of dictionaries, each dictionary item being a
+            fit parameter. The dictionary's format is documented in
+            :attr:`fit_results`.
+            If ``None`` (default), use parameters from :attr:`fit_results`.
+        :return: :meth:`fitfunction` calculated for parameters whose code is
+            not set to ``"IGNORE"``.
+
+        This calculates :meth:`fitfunction` on `x` data using fit parameters
+        from a list of parameter dictionaries, if field ``code`` is not set
+        to ``"IGNORE"``.
+        """
+        if x is None:
+            x = self.xdata
+        if paramlist is None:
+            paramlist = self.fit_results
+        active_params = []
+        for param in paramlist:
+            if param['code'] not in ['IGNORE', 0, 0.]:
+                active_params.append(param['fitresult'])
+
+        newdata = self.fitfunction(numpy.array(x), *active_params)
+        return newdata
+
+    def importfun(self, theories):
+        """Import user defined fit functions defined in an external Python
+        source file, and save them in :attr:`theorydict`.
+
+        An example of such a file can be found in the sources of
+        :mod:`silx.math.fit.fittheories`. It must contain a nested
+        dictionary named ``THEORY`` with the following structure::
+
+            THEORY = {
+                'theory_name_1': {
+                    'description': 'Description of theory 1',
+                    'function': fitfunction1,
+                    'parameters': ('param name 1', 'param name 2', …),
+                    'estimate': estimation_function1,
+                    'configure': configuration_function1,
+                    'derivative': derivative_function1
+                },
+                'theory_name_2': {
+                   …
+                },
+
+        See documentation of :mod:`silx.math.fit.fittheories` for more
+        information on designing your fit functions file.
+
+        :param theories: Name of python source file, or module containing the
+            definition of fit functions.
+        :raise: ImportError if theories cannot be imported
+        """
+        from types import ModuleType
+        if isinstance(theories, ModuleType):
+            theories_module = theories
+        else:
+            # if theories is not a module, it must be a string
+            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+            if not isinstance(theories, string_types):
+                raise ImportError("theory must be a python module, a module" +
+                                  "name or a python filename")
+            # if theories is a filename
+            if os.path.isfile(theories):
+                sys.path.append(os.path.dirname(theories))
+                f = os.path.basename(os.path.splitext(theories)[0])
+                theories_module = __import__(f)
+            # if theories is a module name
+            else:
+                theories_module = __import__(theories)
+
+        if hasattr(theories_module, "INIT"):
+            theories.INIT()
+
+        msg = "File %s does not contain a THEORY dictionary" % theories
+        if not hasattr(theories_module, "THEORY") or not isinstance(theories_module.THEORY, dict):
+            raise ImportError(msg)
+
+        for theory_name, theory_dict in list(theories_module.THEORY.items()):
+            derivative = theory_dict.get("derivative", None)
+            configure = theory_dict.get("configure", None)
+            self.addtheory(theory_name,
+                           theory_dict["function"],
+                           theory_dict["parameters"],
+                           theory_dict["estimate"],
+                           configure,
+                           derivative)
+
+    def setbackground(self, theory):
+        """Choose a background type from within :attr:`bkgdict`.
+
+        This updates the following attributes:
+
+            - :attr:`fitconfig` ``['fitbkg']``
+            - :attr:`bkgfun`
+
+        :param theory: The name of the background to be used.
+        :raise: KeyError if ``theory`` is not a key of :attr:`bkgdict``.
+        """
+        if theory in self.bkgdict:
+            self.fitconfig['fitbkg'] = theory
+            self.bkgfun = self.bkgdict[theory][0]
+        else:
+            msg = "No theory with name %s in bkgdict.\n" % theory
+            msg += "Available theories: %s\n" % self.bkgdict.keys()
+            raise KeyError(msg)
+
+    def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
+        """Set data attributes:
+
+            - ``xdata0``, ``ydata0`` and ``sigmay0`` store the initial data
+              and uncertainties. These attributes are not modified after
+              initialization.
+            - ``xdata``, ``ydata`` and ``sigmay`` store the data after
+              removing values where ``xdata < xmin`` or ``xdata > xmax``.
+              These attributes may be modified at a latter stage by filters.
+
+
+        :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
+            ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
+        :type x: Sequence or numpy array or None
+        :param y: The dependant data ``y = f(x)``. ``y`` must have the same
+            shape as ``x`` if ``x`` is not ``None``.
+        :type y: Sequence or numpy array or None
+        :param sigmay: The uncertainties in the ``ydata`` array. These are
+            used as weights in the least-squares problem.
+            If ``None``, the uncertainties are assumed to be 1.
+        :type sigmay: Sequence or numpy array or None
+        :param xmin: Lower value of x values to use for fitting
+        :param xmax: Upper value of x values to use for fitting
+        """
+        if y is None:
+            self.xdata0 = numpy.array([], numpy.float)
+            self.ydata0 = numpy.array([], numpy.float)
+            # self.sigmay0 = numpy.array([], numpy.float)
+            self.xdata = numpy.array([], numpy.float)
+            self.ydata = numpy.array([], numpy.float)
+            # self.sigmay = numpy.array([], numpy.float)
+
+        else:
+            self.ydata0 = numpy.array(y)
+            self.ydata = numpy.array(y)
+            if x is None:
+                self.xdata0 = numpy.arange(len(self.ydata0))
+                self.xdata = numpy.arange(len(self.ydata0))
+            else:
+                self.xdata0 = numpy.array(x)
+                self.xdata = numpy.array(x)
+
+            # default weight in the least-square problem is 1.
+            if sigmay is None:
+                self.sigmay0 = None
+                self.sigmay = None
+            else:
+                self.sigmay0 = numpy.array(sigmay)
+                self.sigmay = numpy.array(sigmay)
+
+            # take the data between limits, using boolean array indexing
+            if (xmin is not None or xmax is not None) and len(self.xdata):
+                xmin = xmin if xmin is not None else min(self.xdata)
+                xmax = xmax if xmax is not None else max(self.xdata)
+                bool_array = (self.xdata >= xmin) & (self.xdata <= xmax)
+                self.xdata = self.xdata[bool_array]
+                self.ydata = self.ydata[bool_array]
+                self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
+
+    def settheory(self, theory):
+        """Pick a theory from :attr:`theorydict`.
+
+        This updates the following attributes:
+
+            - :attr:`fitconfig` ``['fittheory']``
+            - :attr:`selectedfunction`
+            - :attr:`selectedderivative`
+
+        :param theory: Name of the theory to be used.
+        :raise: KeyError if ``theory`` is not a key of :attr:`theorydict`.
+        """
+        if theory is None:
+            self.fitconfig['fittheory'] = None
+        elif theory in self.theorydict:
+            self.fitconfig['fittheory'] = theory
+            self.selectedfunction = self.theorydict[theory][0]
+            self.selectedparameters = self.theorydict[theory][1]
+            self.selectedestimate = self.theorydict[theory][2]
+            self.selectedconfigure = self.theorydict[theory][3]
+            self.selectedderivative = self.theorydict[theory][4]
+
+        else:
+            msg = "No theory with name %s in theorydict.\n" % theory
+            msg += "Available theories: %s\n" % self.theorydict.keys()
+            raise KeyError(msg)
+
+    def startfit(self, callback=None):
+        """Run the actual fitting and fill :attr:`fit_results` with fit results.
+
+        Before running this method, :attr:`fit_results` must already be
+        populated with a list of all parameters and their estimated values.
+        For this, run :meth:`estimate` beforehand.
+
+        :param callback: Optional callback function, conforming to the
+            signature ``callback(data)`` with ``data`` being a dictionary.
+            This callback function is called before and after the estimation
+            process, and is given a dictionary containing the values of
+            :attr:`state` (``'Fit in progress'`` or ``'Ready'``)
+            and :attr:`chisq`.
+            This is used for instance in :mod:`silx.gui.fit.FitWidget` to
+            update a widget displaying a status message.
+        :return: Fitted parameters
+        """
+        if self.dataupdate is not None:
+            self.dataupdate()
+
+        self.state = 'Fit in progress'
+        self.chisq = None
+
+        if callback is not None:
+            callback(data={'chisq': self.chisq,
+                           'status': self.state})
+
+        param_val = []
+        param_constraints = []
+        # Initial values are set to the ones computed in estimate()
+        for param in self.fit_results:
+            param_val.append(param['estimation'])
+            param_constraints.append([param['code'], param['cons1'], param['cons2']])
+
+        ywork = self.ydata
+
+        if self.fitconfig['fitbkg'] == "Square Filter":
+            ywork = self.squarefilter(
+                    self.ydata, self.fit_results[0]['estimation'])
+
+        params, covariance_matrix, infodict = leastsq(
+                self.fitfunction,  # bg + actual model function
+                self.xdata, ywork, param_val,
+                sigma=self.sigmay,
+                constraints=param_constraints,
+                model_deriv=self.selectedderivative,
+                full_output=True)
+        if covariance_matrix is not None:
+            sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
+        else:
+            # sometimes leastsq returns None and logs:
+            # "Error calculating covariance matrix after successful fit"
+            sigmas = numpy.zeros(shape=(len(params),))
+
+        for i, param in enumerate(self.fit_results):
+            if param['code'] != 'IGNORE':
+                param['fitresult'] = params[i]
+                param['sigma'] = sigmas[i]
+
+        self.chisq = infodict["chisq"]
+        self.state = 'Ready'
+
+        if callback is not None:
+            callback(data={'chisq': self.chisq,
+                           'status': self.state})
+
+        return params
+
+    ###################
+    # Private methods #
+    ###################
+    def fitfunction(self, x, *pars):
+        """Function to be fitted.
+
+        This is the sum of the selected background function plus
+        a number of peak functions.
+
+        :param x: Independent variable where the function is calculated.
+        :param pars: Sequence of all fit parameters. The first few parameters
+            are background parameters, then come the peak function parameters.
+            The total number of fit parameters in ``pars`` will
+            be `nb_bg_pars + nb_peak_pars * nb_peaks`.
+        :return: Output of the fit function with ``x`` as input and ``pars``
+            as fit parameters.
+        """
+        fitbkg_key = self.fitconfig['fitbkg']
+        bg_pars_list = self.bkgdict[fitbkg_key][1]
+        nb_bg_pars = len(bg_pars_list)
+
+        peak_pars_list = self.selectedparameters
+        nb_peak_pars = len(peak_pars_list)
+
+        nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
+
+        result = numpy.zeros(numpy.shape(x), numpy.float)
+
+        # Compute one peak function per peak, and sum the output numpy arrays
+        for i in range(nb_peaks):
+            start_par_index = nb_bg_pars + i * nb_peak_pars
+            end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
+            result += self.selectedfunction(x, *pars[start_par_index:end_par_index])
+
+        if nb_bg_pars > 0:
+            result += self.bkgfun(x, *pars[0:nb_bg_pars])
+        # TODO: understand and document this Square Filter
+        if self.fitconfig['fitbkg'] == "Square Filter":
+            result = result - pars[1]
+            return pars[1] + self.squarefilter(result, pars[0])
+        else:
+            return result
 
     def estimate_bkg(self, x, y):
         """Estimate background parameters using the function defined in
@@ -684,150 +897,6 @@ class FitManager:
             raise TypeError("Estimation function in attribute " +
                             "theorydict[%s]" % fittheory +
                             " must be callable.")
-
-    def importfun(self, fname):
-        """Import user defined fit functions defined in an external Python
-        source file, and save them in :attr:`theorydict`.
-
-        An example of such a file can be found in the sources of
-        :mod:`silx.math.fit.fittheories`. It must contain a nested
-        dictionary named ``THEORY`` with the following structure::
-
-            THEORY = {
-                'theory_name_1': {
-                    'description': 'Description of theory 1',
-                    'function': fitfunction1,
-                    'parameters': ('param name 1', 'param name 2', …),
-                    'estimate': estimation_function1,
-                    'configure': configuration_function1,
-                    'derivative': derivative_function1
-                },
-                'theory_name_2': {
-                   …
-                },
-
-        See documentation of :mod:`silx.math.fit.fittheories` for more
-        information on designing your fit functions file.
-
-        :param fname: Name of python source file containing the definition
-            of fit functions.
-        """
-        sys.path.append(os.path.dirname(fname))
-        f = os.path.basename(os.path.splitext(fname)[0])
-        newfun = __import__(f)
-        if hasattr(newfun, "INIT"):
-            newfun.INIT()
-
-        msg = "File %s does not contain a THEORY dictionary" % fname
-        if not hasattr(newfun, "THEORY") or not isinstance(newfun.THEORY, dict):
-            raise ImportError(msg)
-
-        for theory_name, theory_dict in list(newfun.THEORY.items()):
-            derivative = theory_dict.get("derivative", None)
-            configure = theory_dict.get("configure", None)
-            self.addtheory(theory_name,
-                           theory_dict["function"],
-                           theory_dict["parameters"],
-                           theory_dict["estimate"],
-                           configure,
-                           derivative)
-
-    def startfit(self, callback=None):
-        """Run the actual fitting and fill :attr:`fit_results` with fit results.
-
-        Before running this method, :attr:`fit_results` must already be
-        populated with a list of all parameters and their estimated values.
-        For this, run :meth:`estimate` beforehand.
-
-        :param callback: Optional callback function, conforming to the
-            signature ``callback(data)`` with ``data`` being a dictionary.
-            This callback function is called before and after the estimation
-            process, and is given a dictionary containing the values of
-            :attr:`state` (``'Fit in progress'`` or ``'Ready'``)
-            and :attr:`chisq`.
-            This is used for instance in :mod:`silx.gui.fit.FitWidget` to
-            update a widget displaying a status message.
-        :return: Fitted parameters
-        """
-        if self.dataupdate is not None:
-            self.dataupdate()
-
-        self.state = 'Fit in progress'
-        self.chisq = None
-
-        if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
-
-        param_val = []
-        param_constraints = []
-        # Initial values are set to the ones computed in estimate()
-        for param in self.fit_results:
-            param_val.append(param['estimation'])
-            param_constraints.append([param['code'], param['cons1'], param['cons2']])
-
-        ywork = self.ydata
-
-        if self.fitconfig['fitbkg'] == "Square Filter":
-            ywork = self.squarefilter(
-                self.ydata, self.fit_results[0]['estimation'])
-
-        params, covariance_matrix, infodict = leastsq(
-                                                self.fitfunction,  # bg + actual model function
-                                                self.xdata, ywork,
-                                                param_val,
-                                                constraints=param_constraints,
-                                                model_deriv=self.selectedderivative,
-                                                full_output=True)
-        if covariance_matrix is not None:
-            sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
-        else:
-            # sometimes leastsq returns None and logs:
-            # "Error calculating covariance matrix after successful fit"
-            sigmas = numpy.zeros(shape=(len(params),))
-
-        for i, param in enumerate(self.fit_results):
-            if param['code'] != 'IGNORE':
-                param['fitresult'] = params[i]
-                param['sigma'] = sigmas[i]
-
-        self.chisq = infodict["chisq"]
-        self.state = 'Ready'
-
-        if callback is not None:
-            callback(data={'chisq': self.chisq,
-                           'status': self.state})
-
-        return params
-
-    def gendata(self, x=None, paramlist=None):
-        """Return a data array using the currently selected fit function
-        and the fitted parameters.
-
-        :param x: Independent variable where the function is calculated.
-            If ``None``, use :attr:`xdata`.
-        :param paramlist: List of dictionaries, each dictionary item being a
-            fit parameter. The dictionary's format is documented in
-            :attr:`fit_results`.
-            If ``None`` (default), use parameters from :attr:`fit_results`.
-        :return: :meth:`fitfunction` calculated for parameters whose code is
-            not set to ``"IGNORE"``.
-
-        This calculates :meth:`fitfunction` on `x` data using fit parameters
-        from a list of parameter dictionaries, if field ``code`` is not set
-        to ``"IGNORE"``.
-        """
-        if x is None:
-            x = self.xdata
-        if paramlist is None:
-            paramlist = self.fit_results
-        active_params = []
-        for param in paramlist:
-            if param['code'] not in ['IGNORE', 0, 0.]:
-                active_params.append(param['fitresult'])
-
-        newdata = self.fitfunction(numpy.array(x), *active_params)
-        return newdata
 
     def bkg_constant(self, x, *pars):
         """Constant background function ``y = constant``
@@ -980,52 +1049,6 @@ class FitManager:
         # Fixme: should we return a bg computed using our estimated params, instead of stripped bg?
         return fittedpar, cons, background
 
-    def configure(self, **kw):
-        """Configure the current theory by filling or updating the
-        :attr:`fitconfig` dictionary.
-        Call the custom configuration function defined in :attr:`theorydict`
-        (this way the user can modify the behavior of the custom fit function
-        or the custom estimate function).
-
-        Return config dictionary modified returned by the custom configuration
-        function.
-
-        This methods accepts only named parameters. All ``**kw`` parameters
-        are expected to be fields of :attr:`fitconfig` to be updated, unless
-        they have a special meaning for the custom configuration function
-        defined in ``fitconfig['fittheory']``.
-        """
-        # inspect **kw to find known keys, update them in self.fitconfig
-        for key in self.fitconfig.keys():
-            if key in kw:
-                self.fitconfig[key] = kw[key]
-
-        # initialize dict with existing config dict
-        result = {}
-        result.update(self.fitconfig)
-
-        # Apply custom configuration function defined in self.theorydict[][3]
-        theory_name = self.fitconfig['fittheory']
-        if theory_name in self.theorydict.keys():
-            custom_config_fun = self.selectedconfigure
-            if custom_config_fun is not None:
-                result.update(custom_config_fun(**kw))
-
-                # Update self.fitconfig with custom config
-                for key in self.fitconfig.keys():
-                    if key in result:
-                        self.fitconfig[key] = result[key]
-
-        # overwrite existing keys with values from **kw in fitconfig
-        if "fitbkg" in self.fitconfig:
-            self.setbackground(self.fitconfig["fitbkg"])
-        if "fittheory" in self.fitconfig["fittheory"]:
-            if self.fitconfig["fittheory"] is not None:
-                self.settheory(self.fitconfig["fittheory"])
-
-        result.update(self.fitconfig)
-        return result
-
     def guess_yscaling(self, y=None):
         """Return the inverse chi-squared value"""
         if y is None:
@@ -1130,6 +1153,7 @@ def test():
     pw.legendsDockWidget.show()
     pw.show()
     app.exec_()
+
 
 if __name__ == "__main__":
     test()
