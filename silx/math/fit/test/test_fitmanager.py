@@ -38,8 +38,6 @@ from silx.math.fit.functions import sum_gauss
 from silx.testutils import temp_dir
 
 custom_function_definition = """
-import numpy
-
 CONFIG = {'d': 1.}
 
 def myfun(x, a, b, c):
@@ -94,6 +92,8 @@ class TestFitmanager(unittest.TestCase):
         pass
 
     def testFitManager(self):
+        """Test fit manager on synthetic data using a gaussian function
+        and a linear background"""
         # Create synthetic data with a sum of gaussian functions
         x = numpy.arange(1000).astype(numpy.float)
 
@@ -107,6 +107,7 @@ class TestFitmanager(unittest.TestCase):
         fit = fitmanager.FitManager()
         fit.setdata(x=x, y=y)
         fit.importfun(fitestimatefunctions.__file__)
+        # Use one of the default fit functions
         fit.settheory('gauss')
         fit.setbackground('Linear')
         fit.estimate()
@@ -131,7 +132,10 @@ class TestFitmanager(unittest.TestCase):
                                  "FWHM%d" % param_number)
             self.assertAlmostEqual(param["fitresult"],
                                    p[i])
-    def testCustomFitFunction(self):
+
+    def testImportCustomFitFunction(self):
+        """Test FitManager using a custom fit function defined in an external
+        file and imported with FitManager.importfun"""
         # Create synthetic data with a sum of gaussian functions
         x = numpy.arange(100).astype(numpy.float)
 
@@ -144,6 +148,7 @@ class TestFitmanager(unittest.TestCase):
         fit = fitmanager.FitManager()
         fit.setdata(x=x, y=y)
 
+        # Create a temporary function definition file, and import it
         with temp_dir() as tmpDir:
             tmpfile = os.path.join(tmpDir, 'customfun.py')
             fd = open(tmpfile, "w")
@@ -156,6 +161,7 @@ class TestFitmanager(unittest.TestCase):
             os.unlink(tmpfile)
 
         fit.settheory('my fit theory')
+        # Test configure
         fit.configure(d=4.5)
         fit.estimate()
         fit.startfit()
@@ -172,6 +178,92 @@ class TestFitmanager(unittest.TestCase):
                          "C1")
         self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
                                3.5)
+
+    def testAddTheory(self):
+        """Test FitManager using a custom fit function imported with
+        FitManager.addtheory"""
+        # Create synthetic data with a sum of gaussian functions
+        x = numpy.arange(100).astype(numpy.float)
+
+        # a, b, c are the fit parameters
+        # d is a known scaling parameter that is set using configure()
+        a, b, c, d = -3.14, 1234.5, 10000, 4.5
+        y = (a * x**2 + b * x + c) / d
+
+        # Fitting
+        fit = fitmanager.FitManager()
+        fit.setdata(x=x, y=y)
+
+        # Define and add the fit theory
+        CONFIG = {'d': 1.}
+        def myfun(x, a, b, c):
+            "Model function"
+            return (a * x**2 + b * x + c) / CONFIG['d']
+
+        def myesti(x, y, bg, yscaling):
+            """"Initial parameters for iterative fit:
+                 (a, b, c) = (1, 1, 1)
+            Constraints all set to 0 (FREE)"""
+            return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
+
+        def myconfig(d=1.):
+            """This function can modify CONFIG"""
+            CONFIG["d"] = d
+            return CONFIG
+
+        def myderiv(x, parameters, index):
+            """Custom derivative
+            (does not work, causes singular matrix)"""
+            pars_plus = parameters
+            pars_plus[index] *= 1.001
+
+            pars_minus = parameters
+            pars_minus[index] *= 0.999
+
+            delta_fun = myfun(x, *pars_plus) - myfun(x, *pars_minus)
+            delta_par = parameters[index] * 0.001 * 2
+
+            return delta_fun / delta_par
+
+        fit.addtheory(theory="polynomial",
+                      function=myfun,
+                      parameters=["A", "B", "C"],
+                      estimate=myesti,
+                      configure=myconfig,
+                      derivative=None)    # FIXME
+
+        fit.settheory('polynomial')
+        fit.configure(d=4.5)
+        fit.estimate()
+        fit.startfit()
+
+        self.assertEqual(fit.fit_results[0]["name"],
+                         "A1")
+        self.assertAlmostEqual(fit.fit_results[0]["fitresult"],
+                               -3.14)
+        self.assertEqual(fit.fit_results[1]["name"],
+                         "B1")
+        self.assertAlmostEqual(fit.fit_results[1]["fitresult"],
+                               1234.5)
+        self.assertEqual(fit.fit_results[2]["name"],
+                         "C1")
+        self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
+                               10000)
+
+        # change configuration scaling factor and check that the fit returns
+        # different values
+        fit.configure(d=5.)
+        fit.estimate()
+        params = fit.startfit()  # alternative way of getting fit parameters
+        print(params)
+
+        self.assertNotAlmostEqual(params[0],
+                                  -3.14)
+        self.assertNotAlmostEqual(params[1],
+                                  1234.5)
+        self.assertNotAlmostEqual(params[2],
+                                  10000)
+
 
 test_cases = (TestFitmanager,)
 
