@@ -151,11 +151,9 @@ class TestFitmanager(unittest.TestCase):
         # Create a temporary function definition file, and import it
         with temp_dir() as tmpDir:
             tmpfile = os.path.join(tmpDir, 'customfun.py')
+            # custom_function_definition 
             fd = open(tmpfile, "w")
-            if sys.version < '3.0':
-                fd.write(custom_function_definition)
-            else:
-                fd.write(custom_function_definition, 'ascii')
+            fd.write(custom_function_definition)
             fd.close()
             fit.loadtheories(tmpfile)
             os.unlink(tmpfile)
