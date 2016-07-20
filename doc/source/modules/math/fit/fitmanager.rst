@@ -10,5 +10,6 @@ API
 ---
 
 .. autoclass:: silx.math.fit.fitmanager.FitManager
-   :members:
+   :members: addbackground, addtheory, configure, estimate, fitconfig, fit_results, gendata, importfun,
+             setdata, setbackground,  settheory, startfit
    :special-members: __init__
