@@ -113,7 +113,7 @@ class TestFitmanager(unittest.TestCase):
         fit.estimate()
         fit.startfit()
 
-        # first 2 parameters are related to the linear background
+        # first 2 parameters are related to the linear background
         self.assertEqual(fit.fit_results[0]["name"], "Constant")
         self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 13)
         self.assertEqual(fit.fit_results[1]["name"], "Slope")
@@ -151,7 +151,7 @@ class TestFitmanager(unittest.TestCase):
         # Create a temporary function definition file, and import it
         with temp_dir() as tmpDir:
             tmpfile = os.path.join(tmpDir, 'customfun.py')
-            # custom_function_definition 
+            # custom_function_definition
             fd = open(tmpfile, "w")
             fd.write(custom_function_definition)
             fd.close()
