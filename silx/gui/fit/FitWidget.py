@@ -94,7 +94,7 @@ class FitWidget(qt.QWidget):
         # initialize the default fitting functions in case
         # none is present
         if not len(self.fitmanager.theorydict):
-            self.fitmanager.importfun(fittheories.__file__)
+            self.fitmanager.loadtheories(fittheories.__file__)
 
         # copy fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
@@ -417,7 +417,7 @@ class FitWidget(qt.QWidget):
         :param item: Name of the fit theory to use for fittingIf this theory
             exists in :attr:`fitmanager`, use it. Else, open a file dialog to open
             a custom fit function definition file with
-            :meth:`fitmanager.importfun`.
+            :meth:`fitmanager.loadtheories`.
         """
         item = str(item)
         if item in self.fitmanager.theorydict:
@@ -429,7 +429,7 @@ class FitWidget(qt.QWidget):
 
             if len(functionsfile):
                 try:
-                    if self.fitmanager.importfun(functionsfile):
+                    if self.fitmanager.loadtheories(functionsfile):
                         qt.QMessageBox.critical(self, "ERROR",
                                                 "Function not imported")
                         return

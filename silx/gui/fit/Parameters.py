@@ -803,7 +803,10 @@ def main(args):
     from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
     from silx.gui import qt
-    from PyMca5 import PyMcaDataDir    # FIXME
+    try:
+        from PyMca5 import PyMcaDataDir
+    except ImportError:
+        raise ImportError("This demo requires PyMca data. Install PyMca5.")
     import numpy
     import os
     app = qt.QApplication(args)
@@ -822,7 +825,7 @@ def main(args):
     fit = fitmanager.FitManager()
     fit.setdata(x=x, y=y, xmin=20, xmax=150)
 
-    fit.importfun(fittheories.__file__)
+    fit.loadtheories(fittheories)
 
     fit.settheory('ahypermet')
     fit.configure(Yscaling=1.,

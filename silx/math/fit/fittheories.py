@@ -29,7 +29,7 @@ estimation functions in a format that can be imported into a
 The source code of this module can serve as template for defining your own
 fit functions.
 
-The functions to be imported by :meth:`FitManager.importfun` are defined by
+The functions to be imported by :meth:`FitManager.loadtheories` are defined by
 a dictionary :const:`THEORY`: with the following structure::
 
     THEORY = {
@@ -89,7 +89,7 @@ is not a problem if the fit algorithm has a default derivative function,
 as is the case for :func:`silx.math.fit.leastsq`.
 
 You can also define an ``INIT`` function that will be executed by
-:meth:`FitManager.importfun`.
+:meth:`FitManager.loadtheories`.
 
 Module members:
 ---------------

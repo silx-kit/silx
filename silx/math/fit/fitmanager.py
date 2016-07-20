@@ -282,13 +282,13 @@ class FitManager:
 
         self.selectedestimate = None
         """Estimation function for the currently selected theory. See
-        :meth:`importfun` for more documentation on custom derivative
+        :meth:`loadtheories` for more documentation on custom derivative
         functions.
         """
 
         self.selectedconfigure = None
         """Configuration function for the currently selected theory. See
-        :meth:`importfun` for more documentation on custom configuration
+        :meth:`loadtheories` for more documentation on custom configuration
         functions.
         """
 
@@ -317,7 +317,7 @@ class FitManager:
                   configure=None, derivative=None):
         """Add a new theory to dictionary :attr:`theorydict`.
 
-        See :meth:`importfun` for more information on estimation functions,
+        See :meth:`loadtheories` for more information on estimation functions,
         configuration functions and custom derivative functions.
 
         :param theory: String with the name describing the function
@@ -540,7 +540,7 @@ class FitManager:
         newdata = self.fitfunction(numpy.array(x), *active_params)
         return newdata
 
-    def importfun(self, theories):
+    def loadtheories(self, theories):
         """Import user defined fit functions defined in an external Python
         source file, and save them in :attr:`theorydict`.
 
@@ -1125,7 +1125,7 @@ def test():
     # Fitting
     fit = FitManager()
     fit.setdata(x=x, y=y)
-    fit.importfun(fittheories.__file__)
+    fit.loadtheories(fittheories)
     fit.settheory('gauss')
     fit.setbackground('Linear')
     fit.estimate()

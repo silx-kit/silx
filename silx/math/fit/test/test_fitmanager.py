@@ -106,7 +106,7 @@ class TestFitmanager(unittest.TestCase):
         # Fitting
         fit = fitmanager.FitManager()
         fit.setdata(x=x, y=y)
-        fit.importfun(fittheories.__file__)
+        fit.loadtheories(fittheories)
         # Use one of the default fit functions
         fit.settheory('gauss')
         fit.setbackground('Linear')
@@ -133,9 +133,9 @@ class TestFitmanager(unittest.TestCase):
             self.assertAlmostEqual(param["fitresult"],
                                    p[i])
 
-    def testImportCustomFitFunction(self):
+    def testLoadCustomFitFunction(self):
         """Test FitManager using a custom fit function defined in an external
-        file and imported with FitManager.importfun"""
+        file and imported with FitManager.loadtheories"""
         # Create synthetic data with a sum of gaussian functions
         x = numpy.arange(100).astype(numpy.float)
 
@@ -157,7 +157,7 @@ class TestFitmanager(unittest.TestCase):
             else:
                 fd.write(custom_function_definition, 'ascii')
             fd.close()
-            fit.importfun(tmpfile)
+            fit.loadtheories(tmpfile)
             os.unlink(tmpfile)
 
         fit.settheory('my fit theory')
