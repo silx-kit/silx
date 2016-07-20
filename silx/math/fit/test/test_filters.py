@@ -45,11 +45,11 @@ class Test_smooth(unittest.TestCase):
         x = numpy.arange(5000)
         # (height1, center1, fwhm1, beamfwhm...)
         slit_params = (50, 500, 200, 100,
-                        50, 600, 80, 30,
-                        20, 2000, 150, 150,
-                        50, 2250, 110, 100,
-                        40, 3000, 50, 10,
-                        23, 4980, 250, 20)
+                       50, 600, 80, 30,
+                       20, 2000, 150, 150,
+                       50, 2250, 110, 100,
+                       40, 3000, 50, 10,
+                       23, 4980, 250, 20)
 
         self.y1 = functions.sum_slit(x, *slit_params)
         # 5% noise
@@ -95,7 +95,9 @@ class Test_smooth(unittest.TestCase):
             # Try various smoothing levels
             npts += 25
 
+
 test_cases = (Test_smooth,)
+
 
 def suite():
     loader = unittest.defaultTestLoader

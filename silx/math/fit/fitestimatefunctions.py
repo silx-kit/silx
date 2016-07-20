@@ -74,15 +74,19 @@ the function may multiply ``y`` values with for certain operations
 (such as searching peaks in the data).
 
 The optional configuration function must conform to the signature
-``f(**kw)`` (i.e it must accept any named argument).
+``f(**kw) -> dict`` (i.e it must accept any named argument and
+return a dictionary).
 It can be used to modify configuration parameters to alter the
 behavior of the fit function and the estimation function.
 
 The optional derivative function must conform to the signature
-``model_deriv(xdata, parameters, index)``. No custom derivative function
-is actually defined in this module, which is not a problem if the fit
-algorithm has a default derivative function, as is the case for
-:func:`silx.math.fit.leastsq`.
+``model_deriv(xdata, parameters, index)``, where parameters is a sequence
+with the current values of the fitting parameters, index is the fitting
+parameter index for which the the derivative has to be provided in the
+supplied array of xdata points.
+No custom derivative function is actually defined in this module, which
+is not a problem if the fit algorithm has a default derivative function,
+as is the case for :func:`silx.math.fit.leastsq`.
 
 You can also define an ``INIT`` function that will be executed by
 :meth:`FitManager.importfun`.

@@ -31,6 +31,7 @@ from .test_fit import suite as test_curve_fit
 from .test_functions import suite as test_fitfuns
 from .test_filters import suite as test_fitfilters
 from .test_peaks import suite as test_peaks
+from .test_fitmanager import suite as test_fitmanager
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -38,4 +39,5 @@ def suite():
     test_suite.addTest(test_fitfuns())
     test_suite.addTest(test_fitfilters())
     test_suite.addTest(test_peaks())
+    test_suite.addTest(test_fitmanager())
     return test_suite
