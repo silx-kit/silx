@@ -502,6 +502,7 @@ class FitManager:
             and :attr:`chisq`.
             This is used for instance in :mod:`silx.gui.fit.specfitgui` to
             update a widget displaying a status message.
+        :return: Estimated parameters
         """
         self.state = 'Estimate in progress'
         self.chisq = None
@@ -603,7 +604,7 @@ class FitManager:
         if callback is not None:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
-        return self.fit_results
+        return numpy.append(bg_params, fun_esti_parameters)
 
     def estimate_bkg(self, x, y):
         """Estimate background parameters using the function defined in
@@ -766,9 +767,15 @@ class FitManager:
         populated with a list of all parameters and their estimated values.
         For this, run :meth:`estimate` beforehand.
 
-        This method registers and sends a *FitStatusChanged* event, before
-        starting the fit and after completing. This event sends a
-        *status* (`"Fit in progress"` or "Ready") and a *chisq* value.
+        :param callback: Optional callback function, conforming to the
+            signature ``callback(data)`` with ``data`` being a dictionary.
+            This callback function is called before and after the estimation
+            process, and is given a dictionary containing the values of
+            :attr:`state` (``'Fit in progress'`` or ``'Ready'``)
+            and :attr:`chisq`.
+            This is used for instance in :mod:`silx.gui.fit.specfitgui` to
+            update a widget displaying a status message.
+        :return: Fitted parameters
         """
         if self.dataupdate is not None:
             self.dataupdate()
@@ -794,7 +801,7 @@ class FitManager:
                 self.ydata, self.fit_results[0]['estimation'])
 
         params, covariance_matrix, infodict = leastsq(
-                                                self.fitfunction,
+                                                self.fitfunction,  # bg + actual model function
                                                 self.xdata, ywork,
                                                 param_val,
                                                 constraints=param_constraints,
@@ -818,6 +825,8 @@ class FitManager:
         if callback is not None:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
+
+        return params
 
     def gendata(self, x=None, paramlist=None):
         """Return a data array using the currently selected fit function
