@@ -423,7 +423,7 @@ class FitManager:
             raise KeyError(msg)
 
     def setbackground(self, theory):
-        """Choose a background type from within :attr:`bkgdict``.
+        """Choose a background type from within :attr:`bkgdict`.
 
         This updates the following attributes:
 
@@ -500,7 +500,7 @@ class FitManager:
             process, and is given a dictionary containing the values of
             :attr:`state` (``'Estimate in progress'`` or ``'Ready to Fit'``)
             and :attr:`chisq`.
-            This is used for instance in :mod:`silx.gui.fit.specfitgui` to
+            This is used for instance in :mod:`silx.gui.fit.FitWidget` to
             update a widget displaying a status message.
         :return: Estimated parameters
         """
@@ -690,7 +690,7 @@ class FitManager:
         source file, and save them in :attr:`theorydict`.
 
         An example of such a file can be found in the sources of
-        :mod:`silx.math.fit.specfitfunctions`. It must contain a nested
+        :mod:`silx.math.fit.fittheories`. It must contain a nested
         dictionary named ``THEORY`` with the following structure::
 
             THEORY = {
@@ -706,36 +706,8 @@ class FitManager:
                    …
                 },
 
-        Theory names can be customized (e.g. ``gauss, lorentz, splitgauss``…).
-
-        Fit functions must have the signature ``f(x, *params)``, where ``x``
-        is an array of values for the independent variable, and ``params`` are
-        the parameters to be fitted. The number of parameters must be the same
-        as in the ``parameters`` field of ``THEORY``, or a multiple of this
-        number if the function handles summing a variable number of base
-        functions.
-
-        The estimation function must have the following signature::
-
-            ``f(x, y, bg, yscaling)``
-
-        Where ``x`` is an array of values for the independent variable, ``y``
-        is an array of the same length as ``x`` containing the data to be
-        fitted, ``bg`` is an array of background signal to be subtracted from
-        ``y`` before running the fit and ``yscaling`` is a scaling factor that
-        the function may multiply ``y`` values with for certain operations
-        (such as searching peaks in the data).
-
-        The optional configuration function must conform to the signature
-        ``f(**kw)`` (i.e it must accept any named argument).
-        It can be used to modify configuration parameters to alter the
-        behavior of the fit function and the estimation function.
-
-        The optional derivative function must conform to the signature
-        ``model_deriv(xdata, parameters, index)``
-
-        The external python file can also define a function called ``INIT``.
-        Such a function will be executed before anything is loaded.
+        See documentation of :mod:`silx.math.fit.fittheories` for more
+        information on designing your fit functions file.
 
         :param fname: Name of python source file containing the definition
             of fit functions.
@@ -773,7 +745,7 @@ class FitManager:
             process, and is given a dictionary containing the values of
             :attr:`state` (``'Fit in progress'`` or ``'Ready'``)
             and :attr:`chisq`.
-            This is used for instance in :mod:`silx.gui.fit.specfitgui` to
+            This is used for instance in :mod:`silx.gui.fit.FitWidget` to
             update a widget displaying a status message.
         :return: Fitted parameters
         """
@@ -1117,7 +1089,7 @@ class FitManager:
 
 def test():
     from .functions import sum_gauss
-    from . import fitestimatefunctions
+    from . import fittheories
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
@@ -1130,7 +1102,7 @@ def test():
     # Fitting
     fit = FitManager()
     fit.setdata(x=x, y=y)
-    fit.importfun(fitestimatefunctions.__file__)
+    fit.importfun(fittheories.__file__)
     fit.settheory('gauss')
     fit.setbackground('Linear')
     fit.estimate()

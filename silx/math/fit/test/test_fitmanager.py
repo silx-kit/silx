@@ -32,7 +32,7 @@ import os
 import os.path
 
 from silx.math.fit import fitmanager
-from silx.math.fit import fitestimatefunctions
+from silx.math.fit import fittheories
 from silx.math.fit.functions import sum_gauss
 
 from silx.testutils import temp_dir
@@ -106,7 +106,7 @@ class TestFitmanager(unittest.TestCase):
         # Fitting
         fit = fitmanager.FitManager()
         fit.setdata(x=x, y=y)
-        fit.importfun(fitestimatefunctions.__file__)
+        fit.importfun(fittheories.__file__)
         # Use one of the default fit functions
         fit.settheory('gauss')
         fit.setbackground('Linear')
@@ -196,22 +196,23 @@ class TestFitmanager(unittest.TestCase):
 
         # Define and add the fit theory
         CONFIG = {'d': 1.}
-        def myfun(x, a, b, c):
-            "Model function"
-            return (a * x**2 + b * x + c) / CONFIG['d']
 
-        def myesti(x, y, bg, yscaling):
+        def myfun(x_, a_, b_, c_):
+            """"Model function"""
+            return (a_ * x_**2 + b_ * x_ + c_) / CONFIG['d']
+
+        def myesti(x_, y_, bg, yscaling):
             """"Initial parameters for iterative fit:
                  (a, b, c) = (1, 1, 1)
             Constraints all set to 0 (FREE)"""
             return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
-        def myconfig(d=1.):
+        def myconfig(d_=1.):
             """This function can modify CONFIG"""
-            CONFIG["d"] = d
+            CONFIG["d"] = d_
             return CONFIG
 
-        def myderiv(x, parameters, index):
+        def myderiv(x_, parameters, index):
             """Custom derivative
             (does not work, causes singular matrix)"""
             pars_plus = parameters
@@ -220,7 +221,7 @@ class TestFitmanager(unittest.TestCase):
             pars_minus = parameters
             pars_minus[index] *= 0.999
 
-            delta_fun = myfun(x, *pars_plus) - myfun(x, *pars_minus)
+            delta_fun = myfun(x_, *pars_plus) - myfun(x_, *pars_minus)
             delta_par = parameters[index] * 0.001 * 2
 
             return delta_fun / delta_par
@@ -266,6 +267,7 @@ class TestFitmanager(unittest.TestCase):
 
 
 test_cases = (TestFitmanager,)
+
 
 def suite():
     loader = unittest.defaultTestLoader

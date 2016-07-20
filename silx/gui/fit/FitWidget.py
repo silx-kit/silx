@@ -32,13 +32,13 @@ The main class is :class:`FitWidget`. It relies on
 
 The user can choose between functions before running the fit. These function can
 be user defined, or by default are loaded from
-:mod:`silx.math.fit.fitestimatefunctions`.
+:mod:`silx.math.fit.fittheories`.
 """
 import logging
 import sys
 import traceback
 
-from silx.math.fit import fitestimatefunctions
+from silx.math.fit import fittheories
 from silx.math.fit import fitmanager, functions
 from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
@@ -61,7 +61,7 @@ class FitWidget(qt.QWidget):
     object that handles the fit functions and calls the iterative least-square
     fitting algorithm.
     """
-    sigSpecfitGuiSignal = qt.pyqtSignal(object)
+    sigFitWidgetSignal = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, name=None,
                  fitinstance=None,
@@ -94,7 +94,7 @@ class FitWidget(qt.QWidget):
         # initialize the default fitting functions in case
         # none is present
         if not len(self.fitmanager.theorydict):
-            self.fitmanager.importfun(fitestimatefunctions.__file__)
+            self.fitmanager.importfun(fittheories.__file__)
 
         # copy fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
@@ -196,7 +196,7 @@ class FitWidget(qt.QWidget):
                                        xmin=xmin, xmax=xmax)
 
     def _emitSignal(self, ddict):
-        self.sigSpecfitGuiSignal.emit(ddict)
+        self.sigFitWidgetSignal.emit(ddict)
 
     def __configureGuiSlot(self):
         self.__configureGui()
@@ -308,7 +308,7 @@ class FitWidget(qt.QWidget):
 
     def estimate(self):
         """Run parameter estimation function then emit
-        :attr:`sigSpecfitGuiSignal` with a dictionary containing a status
+        :attr:`sigFitWidgetSignal` with a dictionary containing a status
         message *'EstimateFinished'* and a list of fit parameters estimations
         in the format defined in
         :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
@@ -348,7 +348,7 @@ class FitWidget(qt.QWidget):
         self._emitSignal(ddict)
 
     def startfit(self):
-        """Run fit, then emit :attr:`sigSpecfitGuiSignal` with a dictionary
+        """Run fit, then emit :attr:`sigFitWidgetSignal` with a dictionary
         containing a status
         message *'FitFinished'* and a list of fit parameters results
         in the format defined in
@@ -404,8 +404,8 @@ class FitWidget(qt.QWidget):
                 self, "Info", "Function not implemented")
             return
             i = 1 + \
-                self.specfit.bkgdict.keys().index(
-                    self.specfit.fitconfig['fitbkg'])
+                self.fitmanager.bkgdict.keys().index(
+                    self.fitmanager.fitconfig['fitbkg'])
             self.guiconfig.BkgComBox.setCurrentIndex(i)
         self.__initialparameters()
         return

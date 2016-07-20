@@ -800,7 +800,7 @@ class Parameters(qt.QTableWidget):
 
 
 def main(args):
-    from silx.math.fit import fitestimatefunctions
+    from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
     from silx.gui import qt
     from PyMca5 import PyMcaDataDir    # FIXME
@@ -822,7 +822,7 @@ def main(args):
     fit = fitmanager.FitManager()
     fit.setdata(x=x, y=y, xmin=20, xmax=150)
 
-    fit.importfun(fitestimatefunctions.__file__)
+    fit.importfun(fittheories.__file__)
 
     fit.settheory('ahypermet')
     fit.configure(Yscaling=1.,

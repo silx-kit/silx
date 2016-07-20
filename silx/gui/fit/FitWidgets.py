@@ -437,7 +437,7 @@ class ParametersTab(qt.QTabWidget):
     In the following example we use a :class:`ParametersTab` to display the
     results of two separate fits::
 
-        from silx.math.fit import fitestimatefunctions
+        from silx.math.fit import fittheories
         from silx.math.fit import fitmanager
         from silx.math.fit import functions
         from silx.gui import qt
@@ -451,7 +451,7 @@ class ParametersTab(qt.QTabWidget):
 
         fit = fitmanager.FitManager(x=x, y=y1)
 
-        fitfuns = fitestimatefunctions.FitEstimateFunctions()
+        fitfuns = fittheories.FitTheories()
         fit.addtheory(theory="Gaussian",
                       function=functions.sum_gauss,
                       parameters=("height", "peak center", "fwhm"),
@@ -750,7 +750,7 @@ class ParametersTab(qt.QTabWidget):
 
 
 def test():
-    from silx.math.fit import fitestimatefunctions
+    from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
     from silx.math.fit import functions
     from silx.gui import qt
@@ -764,7 +764,7 @@ def test():
 
     fit = fitmanager.FitManager(x=x, y=y1)
 
-    fitfuns = fitestimatefunctions.FitEstimateFunctions()
+    fitfuns = fittheories.FitTheories()
     fit.addtheory(theory="Gaussian",
                   function=functions.sum_gauss,
                   parameters=("height", "peak center", "fwhm"),
