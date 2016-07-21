@@ -29,13 +29,6 @@ environment:
         - PYTHON_DIR: "C:\\Python35-x64"
           QT_BINDINGS: "PyQt5"
 
-        # Python 2.7
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDINGS: "PyQt4"
-
-        - PYTHON_DIR: "C:\\Python27-x64"
-          QT_BINDINGS: "PySide"
-
 install:
     # Add Python to PATH
     - "SET PATH=%PYTHON_DIR%;%PYTHON_DIR%\\Scripts;%PATH%"
@@ -52,6 +45,7 @@ build_script:
     # Create build virtualenv
     - "virtualenv --clear %VENV_BUILD_DIR%"
     - "%VENV_BUILD_DIR%\\Scripts\\activate.bat"
+    - "set"
 
     # Install build dependencies
     - "pip install --upgrade wheel"
