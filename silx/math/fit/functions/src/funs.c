@@ -43,7 +43,7 @@
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
-#ifdef WIN32
+#if defined(_WIN32)
 #define erf myerf
 #define erfc myerfc
 #endif
