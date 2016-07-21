@@ -31,6 +31,9 @@ import math
 
 from silx.math.fit import functions
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "21/07/2016"
 
 class Test_functions(unittest.TestCase):
     """
@@ -118,14 +121,18 @@ class Test_functions(unittest.TestCase):
         x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]
         erfx = functions.erf(x)
         for i in range(len(x)):
-            self.assertAlmostEqual(erfx[i], math.erf(x[i]))
+            self.assertAlmostEqual(erfx[i],
+                                   math.erf(x[i]),
+                                   places=5)
 
         # ndarray
         x = numpy.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
         erfx = functions.erf(x)
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
-                self.assertAlmostEqual(erfx[i, j], math.erf(x[i, j]))
+                self.assertAlmostEqual(erfx[i, j],
+                                       math.erf(x[i, j]),
+                                       places=5)
 
     def testErfc(self):
         """Compare erf with math.erf"""
