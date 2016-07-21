@@ -113,9 +113,9 @@ class Test_functions(unittest.TestCase):
     def testErf(self):
         """Compare erf with math.erf"""
         # scalars
-        self.assertAlmostEqual(functions.erf(0.14), math.erf(0.14))
-        self.assertAlmostEqual(functions.erf(0), math.erf(0))
-        self.assertAlmostEqual(functions.erf(-0.74), math.erf(-0.74))
+        self.assertAlmostEqual(functions.erf(0.14), math.erf(0.14), places=5)
+        self.assertAlmostEqual(functions.erf(0), math.erf(0), places=5)
+        self.assertAlmostEqual(functions.erf(-0.74), math.erf(-0.74), places=5)
 
         # lists
         x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]
@@ -137,9 +137,9 @@ class Test_functions(unittest.TestCase):
     def testErfc(self):
         """Compare erf with math.erf"""
         # scalars
-        self.assertAlmostEqual(functions.erfc(0.14), math.erfc(0.14))
-        self.assertAlmostEqual(functions.erfc(0), math.erfc(0))
-        self.assertAlmostEqual(functions.erfc(-0.74), math.erfc(-0.74))
+        self.assertAlmostEqual(functions.erfc(0.14), math.erfc(0.14), places=5)
+        self.assertAlmostEqual(functions.erfc(0), math.erfc(0), places=5)
+        self.assertAlmostEqual(functions.erfc(-0.74), math.erfc(-0.74), places=5)
 
         # lists
         x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]

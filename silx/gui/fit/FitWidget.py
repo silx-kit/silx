@@ -70,7 +70,8 @@ class FitWidget(qt.QWidget):
 
         :param parent: Parent widget
         :param name: Window title
-        :param fitmanager: Instance of :class:`silx.math.fit.fitmanager.FitManager`
+        :param fitinstance: User defined instance of
+            :class:`silx.math.fit.fitmanager.FitManager`, or ``None``
         :param enableconfig: If ``True``, activate widgets to modify the fit
             configuration (select between several fit functions or background
             functions, apply global constraints, peak search parameters…)
@@ -86,15 +87,9 @@ class FitWidget(qt.QWidget):
         self.setWindowTitle(name)
         layout = qt.QVBoxLayout(self)
 
-        if fitinstance is None:
-            self.fitmanager = fitmanager.FitManager()
-        else:
-            self.fitmanager = fitinstance
-
-        # initialize the default fitting functions in case
-        # none is present
-        if not len(self.fitmanager.theorydict):
-            self.fitmanager.loadtheories(fittheories.__file__)
+        self.fitmanager = self._set_fitmanager(fitinstance)
+        """Instance of :class:`FitManager`. If no theories are defined,
+        we import the default ones from :mod:`silx.math.fit.fittheories`."""
 
         # copy fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
@@ -103,8 +98,12 @@ class FitWidget(qt.QWidget):
         self.guiconfig = None
         """If ``enableconfig`` is ``True``, this parameter is a
         :class:`FitConfigWidget`"""
+
         if enableconfig:
             self.guiconfig = FitConfigWidget(self)
+            """Fast configuration widget at the top of FitWidget, to select
+            fit function, background function, and open an advanced
+            configuration dialog."""
             # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
             # self.guiconfig.WeightCheckBox.stateChanged[
             #     int].connect(self.weightevent)
@@ -119,16 +118,15 @@ class FitWidget(qt.QWidget):
             self.guiconfig.FunComBox.activated[str].connect(self.funevent)
             layout.addWidget(self.guiconfig)
 
-        self.guiparameters = ParametersTab(self)
-        layout.addWidget(self.guiparameters)
-        self.guiparameters.sigMultiParametersSignal.connect(self.__forward)
-        if enableconfig:
-            for key in self.fitmanager.bkgdict.keys():
+            for key in self.fitmanager.bkgdict:
                 self.guiconfig.BkgComBox.addItem(str(key))
             for key in self.fitmanager.theorydict:
                 self.guiconfig.FunComBox.addItem(str(key))
-            configuration = {}
+
             if fitinstance is not None:
+                # customized FitManager provided in __init__:
+                #    - activate selected fit theory (if any)
+                #    - activate selected bg theory (if any)
                 configuration = fitinstance.configure()
                 if configuration['fittheory'] is None:
                     self.guiconfig.FunComBox.setCurrentIndex(1)
@@ -141,33 +139,49 @@ class FitWidget(qt.QWidget):
                 else:
                     self.bkgevent(configuration['fitbkg'])
             else:
+                # Default FitManager and fittheories used:
+                #    - activate first fit theory (gauss)
+                #    - activate first bg theory (no bg)
+                configuration = {}
                 self.guiconfig.BkgComBox.setCurrentIndex(1)
                 self.guiconfig.FunComBox.setCurrentIndex(1)
                 self.funevent(list(self.fitmanager.theorydict.keys())[0])
                 self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
             configuration.update(self.configure())
+
             # if configuration['McaMode']:
             #     self.guiconfig.MCACheckBox.setChecked(1)
             # else:
             #     self.guiconfig.MCACheckBox.setChecked(0)
+
             # if configuration['WeightFlag']:
             #     self.guiconfig.WeightCheckBox.setChecked(1)
             # else:
             #     self.guiconfig.WeightCheckBox.setChecked(0)
+
             if configuration['AutoFwhm']:
                 self.guiconfig.AutoFWHMCheckBox.setChecked(1)
             else:
                 self.guiconfig.AutoFWHMCheckBox.setChecked(0)
+
             if configuration['AutoScaling']:
                 self.guiconfig.AutoScalingCheckBox.setChecked(1)
             else:
                 self.guiconfig.AutoScalingCheckBox.setChecked(0)
 
+        self.guiparameters = ParametersTab(self)
+        """Table widget for display of fit parameters and constraints"""
+        layout.addWidget(self.guiparameters)
+        self.guiparameters.sigMultiParametersSignal.connect(self.__forward)
+
         if enablestatus:
             self.guistatus = FitStatusLines(self)
+            """Status bar"""
             layout.addWidget(self.guistatus)
+
         if enablebuttons:
             self.guibuttons = FitActionsButtons(self)
+            """Widget with estimate, start fit and dismiss buttons"""
             self.guibuttons.EstimateButton.clicked.connect(self.estimate)
             self.guibuttons.StartfitButton.clicked.connect(self.startfit)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
@@ -175,6 +189,20 @@ class FitWidget(qt.QWidget):
 
     # def updateGui(self, configuration=None):
     #     self.__configureGui(configuration)
+
+    def _set_fitmanager(self, fitinstance):
+        """Initialize a :class:`FitManager` instance, to be assigned to
+        :attr:`fitmanager`"""
+        if isinstance(fitmanager.FitManager, fitinstance):
+            fitmngr = fitinstance
+        else:
+            fitmngr = fitmanager.FitManager()
+
+        # initialize the default fitting functions in case
+        # none is present
+        if not len(fitmngr.theorydict):
+            fitmngr.loadtheories(fittheories)
+        return fitmngr
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data to be fitted.
@@ -414,7 +442,7 @@ class FitWidget(qt.QWidget):
         """Select a fit theory to be used for fitting. If this theory exists
         in :attr:`fitmanager`, use it.
 
-        :param item: Name of the fit theory to use for fittingIf this theory
+        :param item: Name of the fit theory to use for fitting. If this theory
             exists in :attr:`fitmanager`, use it. Else, open a file dialog to open
             a custom fit function definition file with
             :meth:`fitmanager.loadtheories`.
