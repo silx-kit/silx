@@ -101,7 +101,7 @@ class FitWidget(qt.QWidget):
 
         self.guiparameters = ParametersTab(self)
         """Table widget for display of fit parameters and constraints"""
-        self.guiparameters.sigMultiParametersSignal.connect(self.__forward)
+        # self.guiparameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
             self.guiconfig = FitConfigWidget(self)
@@ -115,7 +115,6 @@ class FitWidget(qt.QWidget):
                 int].connect(self.autoscaleevent)
             self.guiconfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
-            # self.guiconfig.PrintPushButton.clicked.connect(self.printps)
             self.guiconfig.BkgComBox.activated[str].connect(self.bkgevent)
             self.guiconfig.FunComBox.activated[str].connect(self.funevent)
             layout.addWidget(self.guiconfig)
@@ -223,18 +222,32 @@ class FitWidget(qt.QWidget):
                                 xmin=xmin, xmax=xmax)
 
     def _emitSignal(self, ddict):
+        """Emit pyqtSignal after estimation completed
+        (``ddict = {'event': 'EstimateFinished', 'data': fit_results}``)
+        and after fit completed
+        (``ddict = {'event': 'FitFinished', 'data': fit_results}``)"""
         self.sigFitWidgetSignal.emit(ddict)
 
     def __configureGuiSlot(self):
+        """Open an advanced configuration dialog widget"""
         self.__configureGui()
 
     def __configureGui(self, newconfiguration=None):
+        """Open an advanced configuration dialog widget to get a configuration
+        dictionary, or use a supplied configuration dictionary. Call
+        :meth:`configure` with this dictionary as a parameter. Update the gui
+        accordingly. Reinitialize the fit results in the table and in
+        :attr:`fitmanager`.
+
+        :param newconfiguration: User supplied configuration dictionary. If ``None``,
+            open a dialog widget that returns a dictionary."""
         configuration = self.configure()
         # get new dictionary
         if newconfiguration is None:
             newconfiguration = self.configureGui(configuration)
         # update configuration
         configuration.update(self.configure(**newconfiguration))
+        # set fit function theory
         try:
             i = 1 + \
                 list(self.fitmanager.theorydict.keys()).index(
@@ -373,8 +386,9 @@ class FitWidget(qt.QWidget):
         ddict['data'] = self.fitmanager.fit_results
         self._emitSignal(ddict)
 
-    def __forward(self, ddict):
-        self._emitSignal(ddict)
+    # related to MCA
+    # def __forward(self, ddict):
+    #     self._emitSignal(ddict)
 
     def startfit(self):
         """Run fit, then emit :attr:`sigFitWidgetSignal` with a dictionary
@@ -402,28 +416,22 @@ class FitWidget(qt.QWidget):
         self._emitSignal(ddict)
         return
 
-    # def printps(self, **kw):
-    #     """Get parameters as a HTML table formatted string.
-    #     Emit this string in a dictionary"""
-    #     text = self.guiparameters.getHTMLtext(**kw)
-    #     ddict = {'event': 'print',
-    #              'text': text}
-    #     self._emitSignal(ddict)
-
     def autofwhmevent(self, item):
+        """Set :attr:`fitmanager"fitconfig['AutoFwhm']`"""
         if int(item):
-            self.configure(AutoFwhm=1)
+            self.configure(AutoFwhm=True)
         else:
-            self.configure(AutoFwhm=0)
+            self.configure(AutoFwhm=False)
 
     def autoscaleevent(self, item):
+        """Set :attr:`fitmanager"fitconfig['AutoScaling']`"""
         if int(item):
-            self.configure(AutoScaling=1)
+            self.configure(AutoScaling=True)
         else:
-            self.configure(AutoScaling=0)
-        return
+            self.configure(AutoScaling=False)
 
     def bkgevent(self, bgtheory):
+        """Select background theory, then reinitialize parameters"""
         bgtheory = str(bgtheory)
         if bgtheory in self.fitmanager.bkgdict.keys():
             self.fitmanager.setbackground(bgtheory)
@@ -435,41 +443,40 @@ class FitWidget(qt.QWidget):
             )
             return
         self.__initialparameters()
-        return
 
-    def funevent(self, item):
+    def funevent(self, theoryname):
         """Select a fit theory to be used for fitting. If this theory exists
-        in :attr:`fitmanager`, use it.
+        in :attr:`fitmanager`, use it. Then, reinitialize table.
 
-        :param item: Name of the fit theory to use for fitting. If this theory
+        :param theoryname: Name of the fit theory to use for fitting. If this theory
             exists in :attr:`fitmanager`, use it. Else, open a file dialog to open
             a custom fit function definition file with
             :meth:`fitmanager.loadtheories`.
         """
-        item = str(item)
-        if item in self.fitmanager.theorydict:
-            self.fitmanager.settheory(item)
+        theoryname = str(theoryname)
+        if theoryname in self.fitmanager.theorydict:
+            self.fitmanager.settheory(theoryname)
         else:
+            # open a load file dialog
             functionsfile = qt.QFileDialog.getOpenFileName(
                 self, "Select python module with your function(s)", "",
                 "Python Files (*.py);;All Files (*)")
 
             if len(functionsfile):
                 try:
-                    if self.fitmanager.loadtheories(functionsfile):
-                        qt.QMessageBox.critical(self, "ERROR",
-                                                "Function not imported")
-                        return
-                    else:
-                        # empty the ComboBox
-                        while(self.guiconfig.FunComBox.count() > 1):
-                            self.guiconfig.FunComBox.removeItem(1)
-                        # and fill it again
-                        for key in self.fitmanager.theorydict:
-                            self.guiconfig.FunComBox.addItem(str(key))
-                except:
+                    self.fitmanager.loadtheories(functionsfile)
+                except ImportError:
                     qt.QMessageBox.critical(self, "ERROR",
                                             "Function not imported")
+                    return
+                else:
+                    # empty the ComboBox
+                    while(self.guiconfig.FunComBox.count() > 1):
+                        self.guiconfig.FunComBox.removeItem(1)
+                    # and fill it again
+                    for key in self.fitmanager.theorydict:
+                        self.guiconfig.FunComBox.addItem(str(key))
+
             i = 1 + \
                 list(self.fitmanager.theorydict.keys()).index(
                     self.fitmanager.fitconfig['fittheory'])
@@ -518,6 +525,7 @@ class FitWidget(qt.QWidget):
             self.fitmanager.fit_results, view='Fit')
 
     def fitstatus(self, data):
+        """Set *status* and *chisq* in status bar"""
         if 'chisq' in data:
             if data['chisq'] is None:
                 self.guistatus.ChisqLine.setText(" ")
@@ -528,11 +536,10 @@ class FitWidget(qt.QWidget):
         if 'status' in data:
             status = data['status']
             self.guistatus.StatusLine.setText(str(status))
-        return
 
     def dismiss(self):
+        """Close FitWidget"""
         self.close()
-        return
 
 
 if __name__ == "__main__":

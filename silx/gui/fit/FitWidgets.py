@@ -493,7 +493,7 @@ class ParametersTab(qt.QTabWidget):
         a.exec_()
 
     """
-    sigMultiParametersSignal = qt.pyqtSignal(object)
+    # sigMultiParametersSignal = qt.pyqtSignal(object)   # mca related
 
     def __init__(self, parent=None, name="FitParameters"):
         """
@@ -508,8 +508,8 @@ class ParametersTab(qt.QTabWidget):
         """Dictionary of views. Keys are view names,
          items are :class:`Parameters` widgets"""
 
-        self.current_view = None
-        """Name of active view"""
+        self.latest_view = None
+        """Name of latest view"""
 
         # the widgets/tables themselves
         self.tables = {}
@@ -523,17 +523,17 @@ class ParametersTab(qt.QTabWidget):
         """Add or update a table. Fill it with data from a fit
 
         :param view: Tab name to be added or updated. If ``None``, use the
-            active view.
+            latest view.
         :param fitresults: Fit data to be added to the table
-        :raise: KeyError if no view name specified and no active view
+        :raise: KeyError if no view name specified and no latest view
             available.
         """
         if view is None:
-            if self.current_view is not None:
-                view = self.current_view
+            if self.latest_view is not None:
+                view = self.latest_view
             else:
                 raise KeyError(
-                    "No active view available. You must specify a view" +
+                    "No view available. You must specify a view" +
                     " name the first time you call this method."
                 )
 
@@ -550,7 +550,7 @@ class ParametersTab(qt.QTabWidget):
             table.fillfromfit(fitresults)
 
         self.setCurrentWidget(self.views[view])
-        self.current_view = view
+        self.latest_view = view
 
     def renameview(self, oldname=None, newname=None):
         """Rename a view (tab)
@@ -570,7 +570,7 @@ class ParametersTab(qt.QTabWidget):
     def fillfromfit(self, fitparameterslist, view=None):
         """Update a view with data from a fit (alias for :meth:`setview`)
 
-        :param view: Tab name to be added or updated.
+        :param view: Tab name to be added or updated (default: latest view)
         :param fitparameterslist: Fit data to be added to the table
         """
         self.setview(view=view, fitresults=fitparameterslist)
@@ -578,7 +578,7 @@ class ParametersTab(qt.QTabWidget):
     def getfitresults(self, name=None):
         """Call :meth:`getfitresults` for the
         :class:`silx.gui.fit.parameters.Parameters` corresponding to the
-        currently active table or to the named table (if ``name`` is not
+        latest table or to the named table (if ``name`` is not
         ``None``). This return a list of dictionaries in the format used by
         :class:`silx.math.fit.fitmanager.FitManager` to store fit parameter
         results.
@@ -586,7 +586,7 @@ class ParametersTab(qt.QTabWidget):
         :param name: View name.
         """
         if name is None:
-            name = "Fit"
+            name = self.latest_view
         return self.tables[name].getfitresults()
 
     def removeview(self, name):
@@ -607,7 +607,7 @@ class ParametersTab(qt.QTabWidget):
         ``keep``)
 
         :param keep: Name of the view to be kept."""
-        for view in list(self.tables.keys()):
+        for view in self.tables:
             if view != keep:
                 self.removeview(view)
 
@@ -635,10 +635,12 @@ class ParametersTab(qt.QTabWidget):
     # def __forward(self, ddict):
     #     self.sigMultiParametersSignal.emit(ddict)
 
-    def getHTMLtext(self, name):
+    def getHTMLtext(self, name=None):
         """Return the table data as HTML
 
         :param name: View name."""
+        if name is None:
+            name = self.latest_view
         table = self.tables[name]
         lemon = ("#%x%x%x" % (255, 250, 205)).upper()
         hcolor = ("#%x%x%x" % (230, 240, 249)).upper()
@@ -707,11 +709,13 @@ class ParametersTab(qt.QTabWidget):
         text += "</nobr>"
         return text
 
-    def gettext(self, name):
+    def gettext(self, name=None):
         """Return the table data as CSV formatted text, using tabulation
         characters as separators.
 
         :param name: View name."""
+        if name is None:
+            name = self.latest_view
         table = self.tables[name]
         text = ""
         ncols = table.columnCount()

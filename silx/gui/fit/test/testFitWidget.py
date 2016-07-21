@@ -52,7 +52,6 @@ class TestFitWidget(TestCaseQt):
         super(TestFitWidget, self).tearDown()
 
     def testShow(self):
-        print ("!!!!!!!!!!!!!!!!!!!!!!")
         pass
 
     def testInteract(self):
