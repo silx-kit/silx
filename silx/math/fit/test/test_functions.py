@@ -145,14 +145,14 @@ class Test_functions(unittest.TestCase):
         x = [-5, -2, -1.5, -0.6, 0, 0.1, 2, 3]
         erfcx = functions.erfc(x)
         for i in range(len(x)):
-            self.assertAlmostEqual(erfcx[i], math.erfc(x[i]))
+            self.assertAlmostEqual(erfcx[i], math.erfc(x[i]), places=5)
 
         # ndarray
         x = numpy.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]])
         erfcx = functions.erfc(x)
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
-                self.assertAlmostEqual(erfcx[i, j], math.erfc(x[i, j]))
+                self.assertAlmostEqual(erfcx[i, j], math.erfc(x[i, j]), places=5)
 
     def testAtanStepUp(self):
         """Compare atan_stepup with math.atan

@@ -504,8 +504,12 @@ class ParametersTab(qt.QTabWidget):
         qt.QTabWidget.__init__(self, parent)
         self.setWindowTitle(name)
 
-        # the widgets in the notebook
         self.views = OrderedDict()
+        """Dictionary of views. Keys are view names,
+         items are :class:`Parameters` widgets"""
+
+        self.current_view = None
+        """Name of active view"""
 
         # the widgets/tables themselves
         self.tables = {}
@@ -515,12 +519,24 @@ class ParametersTab(qt.QTabWidget):
         # self.mcatable = None  # Fixme: probably not used
         self.setContentsMargins(10, 10, 10, 10)
 
-    def setview(self, view, fitresults=None):
+    def setview(self, view=None, fitresults=None):
         """Add or update a table. Fill it with data from a fit
 
-        :param view: Tab name to be added or updated.
+        :param view: Tab name to be added or updated. If ``None``, use the
+            active view.
         :param fitresults: Fit data to be added to the table
+        :raise: KeyError if no view name specified and no active view
+            available.
         """
+        if view is None:
+            if self.current_view is not None:
+                view = self.current_view
+            else:
+                raise KeyError(
+                    "No active view available. You must specify a view" +
+                    " name the first time you call this method."
+                )
+
         if view in self.tables.keys():
             table = self.tables[view]
         else:
@@ -534,6 +550,7 @@ class ParametersTab(qt.QTabWidget):
             table.fillfromfit(fitresults)
 
         self.setCurrentWidget(self.views[view])
+        self.current_view = view
 
     def renameview(self, oldname=None, newname=None):
         """Rename a view (tab)
@@ -558,7 +575,7 @@ class ParametersTab(qt.QTabWidget):
         """
         self.setview(view=view, fitresults=fitparameterslist)
 
-    def getfitresults(self, name):
+    def getfitresults(self, name=None):
         """Call :meth:`getfitresults` for the
         :class:`silx.gui.fit.parameters.Parameters` corresponding to the
         currently active table or to the named table (if ``name`` is not
@@ -568,6 +585,8 @@ class ParametersTab(qt.QTabWidget):
 
         :param name: View name.
         """
+        if name is None:
+            name = "Fit"
         return self.tables[name].getfitresults()
 
     def removeview(self, name):
@@ -575,7 +594,7 @@ class ParametersTab(qt.QTabWidget):
 
         :param name: View name.
         """
-        if name in self.views.keys():
+        if name in self.views:
             index = self.indexOf(self.tables[name])
             self.removeTab(index)
             index = self.indexOf(self.views[name])
@@ -721,7 +740,6 @@ def test():
     from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
     from silx.math.fit import functions
-    from silx.gui import qt
     from silx.gui.plot.PlotWindow import PlotWindow
     import numpy
 
