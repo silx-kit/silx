@@ -146,13 +146,6 @@ class FitManager:
               (``model_deriv(xdata, parameters, index)``).
         """
 
-        self.dataupdate = None
-        """This attribute can be updated with a user defined function to
-        update data (for instance modify range fo :attr:`xdata`,
-        :attr:`ydata` and :attr:`sigmay` when user zooms in or out in a GUI
-        plot).
-        """
-
         self.bkgdict = OrderedDict(
             [('No Background', [self.bkg_none, [], None]),
              ('Constant', [self.bkg_constant, ['Constant'],
@@ -386,6 +379,19 @@ class FitManager:
         result.update(self.fitconfig)
         return result
 
+    def dataupdate(self):
+        """This method can be updated with a user defined function to
+        update data (for instance modify range fo :attr:`xdata`,
+        :attr:`ydata` and :attr:`sigmay` when user zooms in or out in a GUI
+        plot).
+
+        It is called at the beginning of :meth:`estimate` and
+        :meth:`startfit`.
+
+        By default, it does nothing.
+        """
+        pass
+
     def estimate(self, callback=None):
         """
         Fill :attr:`fit_results` with an estimation of the fit parameters.
@@ -426,8 +432,7 @@ class FitManager:
                 7: 'IGNORE'}
 
         # Update data using user defined method
-        if self.dataupdate is not None:
-            self.dataupdate()
+        self.dataupdate()
 
         xwork = self.xdata
         ywork = self.ydata
@@ -573,7 +578,7 @@ class FitManager:
             theories_module = theories
         else:
             # if theories is not a module, it must be a string
-            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
             if not isinstance(theories, string_types):
                 raise ImportError("theory must be a python module, a module" +
                                   "name or a python filename")
@@ -725,8 +730,7 @@ class FitManager:
             update a widget displaying a status message.
         :return: Fitted parameters
         """
-        if self.dataupdate is not None:
-            self.dataupdate()
+        self.dataupdate()
 
         self.state = 'Fit in progress'
         self.chisq = None

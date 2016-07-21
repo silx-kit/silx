@@ -802,7 +802,6 @@ class Parameters(qt.QTableWidget):
 def main(args):
     from silx.math.fit import fittheories
     from silx.math.fit import fitmanager
-    from silx.gui import qt
     try:
         from PyMca5 import PyMcaDataDir
     except ImportError:

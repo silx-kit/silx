@@ -98,7 +98,7 @@ else:
     import configparser
 
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 
 def _boolean(sstr):

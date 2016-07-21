@@ -169,7 +169,7 @@ __date__ = "30/03/2016"
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 # Static subitems: all groups and datasets that are present in any
 # scan (excludes list of scans, data columns, list of mca devices,
