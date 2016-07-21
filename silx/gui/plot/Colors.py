@@ -98,7 +98,13 @@ _COLORMAP_CURSOR_COLORS = {
     'temperature': 'black',
     'red': 'white',
     'green': 'white',
-    'blue': 'white'}
+    'blue': 'white',
+    'jet': 'white',
+    'viridis': 'white',
+    'magma': 'white',
+    'inferno': 'white',
+    'plasma': 'white',
+    }
 
 
 def cursorColorForColormap(colormapName):

@@ -1084,13 +1084,13 @@ class Plot(object):
 
         Examples:
 
-        - remove() clears the plot
-        - remove(kind='curve') removes all curves from the plot
-        - remove('myCurve', kind='curve') removes the curve with
+        - ``remove()`` clears the plot
+        - ``remove(kind='curve')`` removes all curves from the plot
+        - ``remove('myCurve', kind='curve')`` removes the curve with
           legend 'myCurve' from the plot.
-        - remove('myImage, kind='image') removes the image with
+        - ``remove('myImage, kind='image')`` removes the image with
           legend 'myImage' from the plot.
-        - remove('myImage') removes elements (for instance curve, image,
+        - ``remove('myImage')`` removes elements (for instance curve, image,
           item and marker) with legend 'myImage'.
 
         :param str legend: The legend associated to the element to remove,

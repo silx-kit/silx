@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2015 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -549,11 +549,17 @@ SfFileHeader ( SpecFile *sf, long index, char *string, char ***lines, int *error
 
      if (sfSetCurrent(sf,index,error) == -1)
           return(-1);
+     if (sf->filebuffersize > 0)
+     {
+        headbuf   = sf->filebuffer;
+        endheader = sf->filebuffer + sf->filebuffersize;
 
-     headbuf   = sf->filebuffer;
-     endheader = sf->filebuffer + sf->filebuffersize;
-
-     return(sfFindLines(headbuf,endheader,string,lines,error));
+        return(sfFindLines(headbuf,endheader,string,lines,error));
+     }
+     else
+     {
+         return 0;
+     }
 }
 
 
@@ -703,7 +709,7 @@ sfGetHeaderLine( SpecFile *sf, int from , char sf_char, char **buf, int *error)
 static char *
 sfOneLine(char *from,char *end,int *error)
 {
-     static char linebuf[1000];
+     static char linebuf[5000];
 
      char *ptr,*buf;
      long  i;

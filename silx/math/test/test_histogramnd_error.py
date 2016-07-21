@@ -59,7 +59,7 @@ class _Test_chistogramnd_errors(unittest.TestCase):
             test_msg = ('Testing invalid weights shape : {0}'
                         ''.format(err_w_shape))
 
-            err_weights = np.random.random_integers(0,
+            err_weights = np.random.randint(0,
                                                     high=10,
                                                     size=err_w_shape)
             err_weights = err_weights.astype(np.double)
@@ -393,12 +393,12 @@ class Test_chistogramnd_1D_errors(_Test_chistogramnd_errors):
 
         self.h_shape = (self.n_bins,)
 
-        self.sample = np.random.random_integers(0,
+        self.sample = np.random.randint(0,
                                                 high=10,
                                                 size=self.s_shape)
         self.sample = self.sample.astype(np.double)
 
-        self.weights = np.random.random_integers(0,
+        self.weights = np.random.randint(0,
                                                  high=10,
                                                  size=self.w_shape)
         self.weights = self.weights.astype(np.double)
@@ -443,12 +443,12 @@ class Test_chistogramnd_ND_errors(_Test_chistogramnd_errors):
 
         self.h_shape = self.n_bins
 
-        self.sample = np.random.random_integers(0,
+        self.sample = np.random.randint(0,
                                                 high=10,
                                                 size=self.s_shape)
         self.sample = self.sample.astype(np.double)
 
-        self.weights = np.random.random_integers(0,
+        self.weights = np.random.randint(0,
                                                  high=10,
                                                  size=self.w_shape)
         self.weights = self.weights.astype(np.double)

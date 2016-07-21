@@ -1,5 +1,5 @@
 #/*##########################################################################
-# Copyright (C) 2004-2013 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -119,7 +119,7 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
     /*
      * It is a new scan. Free memory allocated for previous one.
      */
-    freeAllData(sf);
+     freeAllData(sf);
 
     /*
      * Find scan
@@ -166,8 +166,15 @@ sfSetCurrent( SpecFile *sf, long index,int *error )
 
         start        = scan->file_header;
         flist        = findFirstInFile(&(sf->list),scan->file_header);
-        fscan        = flist->contents;
-        fileheadsize = fscan->offset - start;
+        if (flist == (ObjectList *) NULL) {
+            fileheadsize = 0;
+            sf->filebuffersize = fileheadsize;
+        }
+        else
+        {
+            fscan        = flist->contents;
+            fileheadsize = fscan->offset - start;
+        }
 
         if (fileheadsize > 0) {
             sf->filebuffer = ( char *) malloc(fileheadsize);

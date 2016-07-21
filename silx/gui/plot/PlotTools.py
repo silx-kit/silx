@@ -41,7 +41,8 @@ import numpy
 
 from .. import icons
 from .. import qt
-from ...image.bilinear import BilinearImage
+from silx.image.bilinear import BilinearImage
+from .Colors import cursorColorForColormap
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -74,12 +75,12 @@ class PositionInfo(qt.QWidget):
     The PositionInfo widget is created with a list of converters, here
     to display polar coordinates of the mouse position.
 
-    >>> import math
+    >>> import numpy
     >>> from silx.gui.plot.PlotTools import PositionInfo
 
     >>> position = PositionInfo(plot, converters=[
-    ...     ('Radius', lambda x, y: math.sqrt(x*x + y*y)),
-    ...     ('Angle', lambda x, y: math.degrees(math.atan2(y, x)))])
+    ...     ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
+    ...     ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
 
     >>> toolBar.addWidget(position)  # Add the widget to the toolbar
     <...>
@@ -106,10 +107,11 @@ class PositionInfo(qt.QWidget):
         """Toggle snapping use position to active curve.
 
         - True to snap used coordinates to the active curve if the active curve
-        is displayed with symbols and mouse is close enough.
-        If the mouse is not close to a point of the curve, values are
-        displayed in red.
+          is displayed with symbols and mouse is close enough.
+          If the mouse is not close to a point of the curve, values are
+          displayed in red.
         - False (the default) to always use mouse coordinates.
+
         """
 
         self._fields = []  # To store (QLineEdit, name, function (x, y)->v)
@@ -339,20 +341,15 @@ class ProfileToolBar(qt.QToolBar):
         assert plot is not None
         self.plot = plot
 
-        self._overlayColor = 'red'
+        self._overlayColor = None
+        self._defaultOverlayColor = 'red'  # update when active image change
 
         self._roiInfo = None  # Store start and end points and type of ROI
 
         if profileWindow is None:
             # Import here to avoid cyclic import
-            from .PlotWindow import PlotWindow  # noqa
-            self.profileWindow = PlotWindow(parent=None, backend=None,
-                                            resetzoom=True, autoScale=True,
-                                            logScale=True, grid=True,
-                                            curveStyle=True, colormap=False,
-                                            aspectRatio=False, yInverted=False,
-                                            copy=True, save=True, print_=True,
-                                            control=False, position=True)
+            from .PlotWindow import Plot1D  # noqa
+            self.profileWindow = Plot1D()
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -436,6 +433,12 @@ class ProfileToolBar(qt.QToolBar):
         """Handle active image change: toggle enabled toolbar, update curve"""
         self.setEnabled(legend is not None)
         if legend is not None:
+            # Update default profile color
+            activeImage = self.plot.getActiveImage()
+            if activeImage is not None:
+                self._defaultOverlayColor = cursorColorForColormap(
+                    activeImage[4]['colormap']['name'])
+
             self.updateProfile()
 
     def _lineWidthSpinBoxValueChangedSlot(self, value):
@@ -505,8 +508,12 @@ class ProfileToolBar(qt.QToolBar):
 
     @property
     def overlayColor(self):
-        """The color to use for the ROI."""
-        return self._overlayColor
+        """The color to use for the ROI.
+
+        If set to None (the default), the overlay color is adapted to the
+        active image colormap and changes if the active image colormap changes.
+        """
+        return self._overlayColor or self._defaultOverlayColor
 
     @overlayColor.setter
     def overlayColor(self, color):
