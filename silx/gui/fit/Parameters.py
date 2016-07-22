@@ -1,3 +1,4 @@
+# coding: utf-8
 #/*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
@@ -64,7 +65,7 @@ class QComboTableItem(qt.QComboBox):
         qt.QComboBox.__init__(self, parent)
         self.activated[int].connect(self._cellChanged)
 
-    def _cellChanged(self, idx):
+    def _cellChanged(self, idx):  # noqa
         self.sigCellChanged.emit(self._row, self._col)
 
 
@@ -250,7 +251,6 @@ class Parameters(qt.QTableWidget):
             sigma = param['sigma']
             fitresult = param['fitresult']
 
-            # dict.get() returns None if key does not exist
             xmin = param.get('xmin')
             xmax = param.get('xmax')
 
@@ -370,7 +370,7 @@ class Parameters(qt.QTableWidget):
             return self.set_code_value(param, oldvalue, newvalue)
             # FIXME: validate() shouldn't have side effects. Move this bit to configure_line()?
         if field == 'val1' and str(self.parameters[param]['code']) in ['DELTA', 'FACTOR', 'SUM']:
-            best, candidates = self.get_related_candidates(param)
+            _, candidates = self.get_related_candidates(param)
             # We expect val1 to be a fit parameter name
             if str(newvalue) in candidates:
                 return True
@@ -716,7 +716,7 @@ class Parameters(qt.QTableWidget):
             # FIXME: val1 is sometimes specified as an index rather than a param name
             self.parameters[name]['val1'] = self.parameters[name]['relatedto']
 
-            # cons1 is the index of the fit parameter in the ordered dict
+            # cons1 is the index of the fit parameter in the ordered dictionary
             if self.parameters[name]['val1'] in paramlist:
                 self.parameters[name]['cons1'] =\
                     paramlist.index(self.parameters[name]['val1'])

@@ -1,3 +1,4 @@
+# coding: utf-8
 #/*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
@@ -253,7 +254,7 @@ class QScriptOption(TabSheets):
         """When *OK* is clicked, update :attr:`output` with data from
         :attr:`sheets` (user input)"""
         self.output.update(self.default)
-        for name, sheet in self.sheets.items():
+        for _, sheet in self.sheets.items():
             self.output.update(sheet.get())
 
         # avoid pathological None cases
@@ -266,7 +267,7 @@ class QScriptOption(TabSheets):
     def reject(self):
         """When *Cancel is clicked, reinitialize :attr:`output` and quit
         """
-        self.default()
+        self.defaults()
         super(QScriptOption, self).reject()
 
     def defaults(self):
@@ -284,19 +285,30 @@ class QScriptOption(TabSheets):
 
 
 class FieldSheet(qt.QWidget):
-    """Widget displaying a variable number of fields in a vertical layout.
+    """Container widget displaying a variable number of interactive field
+    widgets (:class:`MyLabel`,:class:`MyEntryField` or:class:`MyCheckField`)
+    in a vertical layout.
     """
     def __init__(self, parent=None, fields=()):
         """
 
         :param parent: Parent widget
-        :param fields: Tuple of lists defining fields::
+        :param fields: Sequence of sequences defining field widgets. Each
+            field is defined by length 3 sequence::
 
-               [field_type, key, parameters]
+               [field_type, keys, text]
 
             ``field_type`` can be *"Label", "CheckField", or "EntryField"*
 
-            ``key`` is a
+            ``keys`` is a sequences of keys or a single key identifying
+             items in the field's internal dictionary.
+
+             ``text`` is the text displayed in a label in the field widget
+
+             If the fied definition sequence is of length 2, it is considered
+             to be ``[field_type, text]``. This is only relevant to *Label*
+             fields which are not interactive and whose ``getvalue()`` method
+             returns an empty dictionary.
         """
         qt.QWidget.__init__(self, parent)
         layout = qt.QVBoxLayout(self)
@@ -309,15 +321,15 @@ class FieldSheet(qt.QWidget):
         for field in fields:
             fieldtype = field[0]
             key = field[1] if len(field) == 3 else None
-            parameters = field[-1]
+            text = field[-1]
 
             myfield = None
             if fieldtype == "Label":
-                myfield = MyLabel(self, keys=key, params=parameters)
+                myfield = MyLabel(self, keys=key, text=text)
             elif fieldtype == "CheckField":
-                myfield = MyCheckField(self, keys=key, params=parameters)
+                myfield = MyCheckField(self, keys=key, text=text)
             elif fieldtype == "EntryField":
-                myfield = MyEntryField(self, keys=key, params=parameters)
+                myfield = MyEntryField(self, keys=key, text=text)
             # elif fieldtype == "RadioField":
             #     myfield = RadioField(self, keys=key, params=parameters)
 
@@ -326,21 +338,22 @@ class FieldSheet(qt.QWidget):
                 layout.addWidget(myfield)
 
     def get(self):
-        """Return a dictionary with all values stored in the various fields
+        """Return an agglomerated dictionary with all values stored in all the
+        fields internal dictionaries.
         """
         result = {}
         for field in self.fields:
             result.update(field.getvalue())
         return result
 
-    def setdefaults(self, dict):
+    def setdefaults(self, default_dict):
         """Set all fields with values from a dictionary.
 
-        :param dict: Dictionary of values to be updated in fields with
+        :param default_dict: Dictionary of values to be updated in fields with
             matching keys.
         """
         for field in self.fields:
-            field.setdefaults(dict)
+            field.setdefaults(default_dict)
 
 
 class Label(qt.QWidget):
@@ -373,9 +386,10 @@ class MyLabel(Label):
     """Simple label with dummy methods to conform to the interface required
     by :class:`FieldSheet`"""
     def __init__(self, parent=None,
-                 keys=(), params=()):
+                 keys=(), text=None):  # noqa
         Label.__init__(self, parent)
-        self.TextLabel.setText(str(params))
+        if text is not None:
+            self.TextLabel.setText(text)
 
     def getvalue(self):
         """return empty dict"""
@@ -385,7 +399,7 @@ class MyLabel(Label):
         """pass"""
         pass
 
-    def setdefaults(self, dict):
+    def setdefaults(self, default_dict):  # noqa
         """pass"""
         pass
 
@@ -416,44 +430,45 @@ class MyEntryField(EntryField):
     storing user input from the entry field."""
 
     def __init__(self, parent=None,
-                 keys=(), params=()):
+                 keys=(), text=None):
         """
 
         :param parent: Parent widget
-        :param keys: Keys of :attr:`dict`
-        :param params: Text to be displayed in the label.
+        :param keys: Keys of :attr:`internal_dict`
+        :param text: Text to be displayed in the label.
         """
         EntryField.__init__(self, parent)
-        self.dict = {}
+        self.internal_dict = {}
         """Dictionary storing user input"""
         if type(keys) == _tuple_type:
             for key in keys:
-                self.dict[key] = None
+                self.internal_dict[key] = None
         else:
-            self.dict[keys] = None
-        self.TextLabel.setText(str(params))
+            self.internal_dict[keys] = None
+        if text is not None:
+            self.TextLabel.setText(text)
         self.Entry.textChanged[str].connect(self.setvalue)
 
     def getvalue(self):
-        """Return :attr:`dict`"""
-        return self.dict
+        """Return :attr:`internal_dict`"""
+        return self.internal_dict
 
     def setvalue(self, value):
-        """Update all values in :attr:`dict` with ``value``"""
-        for key in self.dict.keys():
-            self.dict[key] = str(value)
+        """Update all values in :attr:`internal_dict` with ``value``"""
+        for key in self.internal_dict.keys():
+            self.internal_dict[key] = str(value)
 
-    def setdefaults(self, ddict):
-        """Update values in :attr:`dict` with values in
-        ``ddict`` if keys match, then update the entry
+    def setdefaults(self, default_dict):
+        """Update values in :attr:`internal_dict` with values in
+        ``default_dict`` if keys match, then update the entry
         value with each value."""
-        for key in list(self.dict.keys()):
-            if key in ddict:
-                self.dict[key] = ddict[key]
+        for key in list(self.internal_dict.keys()):
+            if key in default_dict:
+                self.internal_dict[key] = default_dict[key]
                 # This will probably trigger setvalue which updates all
                 # values to the same value, so at the end I expect all
                 # values to be equal to the las one. Do we really want this?
-                self.Entry.setText(str(ddict[key]))
+                self.Entry.setText(str(default_dict[key]))
 
 
 class CheckField(qt.QWidget):
@@ -462,13 +477,13 @@ class CheckField(qt.QWidget):
         qt.QWidget.__init__(self, parent)
         self.resize(321, 45)
 
-        CheckFieldLayout = qt.QHBoxLayout(self)
-        CheckFieldLayout.setContentsMargins(11, 11, 11, 11)
-        CheckFieldLayout.setSpacing(6)
+        checkfieldlayout = qt.QHBoxLayout(self)
+        checkfieldlayout.setContentsMargins(11, 11, 11, 11)
+        checkfieldlayout.setSpacing(6)
 
         self.CheckBox = qt.QCheckBox(self)
         self.CheckBox.setText("CheckBox")
-        CheckFieldLayout.addWidget(self.CheckBox)
+        checkfieldlayout.addWidget(self.CheckBox)
 
 
 class MyCheckField(CheckField):
@@ -479,55 +494,56 @@ class MyCheckField(CheckField):
     These methods can be used to get or set the internal dictionary
     storing user input from the entry field."""
     def __init__(self, parent=None,
-                 keys=(), params=()):
+                 keys=(), text=None):
         """
 
         :param parent: Parent widget
-        :param keys: Keys of :attr:`dict`
-        :param params: Text to be displayed in the label.
+        :param keys: Keys of :attr:`internal_dict`
+        :param text: Text to be displayed in the label.
         """
         CheckField.__init__(self, parent)
-        self.dict = {}
+        self.internal_dict = {}
         """Dictionary storing user input"""
         if type(keys) == _tuple_type:
             for key in keys:
-                self.dict[key] = 0
+                self.internal_dict[key] = 0
         else:
-            self.dict[keys] = 0
-        self.CheckBox.setText(str(params))
+            self.internal_dict[keys] = 0
+        if text is not None:
+            self.CheckBox.setText(text)
         self.CheckBox.stateChanged[int].connect(self.setvalue)
 
     def getvalue(self):
-        """Return :attr:`dict`"""
-        return self.dict
+        """Return :attr:`internal_dict`"""
+        return self.internal_dict
 
     def setvalue(self, value):
-        """Update all values in :attr:`dict` with 0 if the checkbox
+        """Update all values in :attr:`internal_dict` with 0 if the checkbox
         has been un-ticked or 1 if it has been ticked"""
         if value:
             val = 1
         else:
             val = 0
-        for key in self.dict.keys():
-            self.dict[key] = val
+        for key in self.internal_dict.keys():
+            self.internal_dict[key] = val
 
-    def setdefaults(self, ddict):
-        """Update values in :attr:`dict` with values in
+    def setdefaults(self, default_dict):
+        """Update values in :attr:`internal_dict` with values in
         ``ddict`` if keys match, then update the checkbox
         with each value.
 
-        :param ddict: Dictionary whose values must be integers
+        :param default_dict: Dictionary whose values must be integers
             or convertible to integers. All values which don't
             convert to zero will result in the corresponding key
-            being set to 1 in :attr:`dict`"""
-        for key in self.dict.keys():
-            if key in ddict:
-                if int(ddict[key]):
+            being set to 1 in :attr:`internal_dict`"""
+        for key in self.internal_dict.keys():
+            if key in default_dict:
+                if int(default_dict[key]):
                     self.CheckBox.setChecked(1)
-                    self.dict[key] = 1
+                    self.internal_dict[key] = 1
                 else:
                     self.CheckBox.setChecked(0)
-                    self.dict[key] = 0
+                    self.internal_dict[key] = 0
 #
 # # FIXME: deactivated, does not work (pyqt3?)
 # class RadioField(qt.QWidget):
@@ -546,12 +562,12 @@ class MyCheckField(CheckField):
 #             RadioFieldBoxLayout.setAlignment(qt.Qt.AlignTop)
 #             Layout1 = qt.QVBoxLayout(None, 0, 6, "Layout1")
 #
-#             self.dict={}
+#             self.internal_dict={}
 #             if type(keys) == _tuple_type:
 #                 for key in keys:
-#                     self.dict[key]=1
+#                     self.internal_dict[key]=1
 #             else:
-#                 self.dict[keys]=1
+#                 self.internal_dict[keys]=1
 #             self.RadioButton=[]
 #             i=0
 #             for text in params:
@@ -569,21 +585,21 @@ class MyCheckField(CheckField):
 #             self.RadioFieldBox.clicked[int].connect(self.setvalue)
 #
 #     def getvalue(self):
-#         return self.dict
+#         return self.internal_dict
 #
 #     def setvalue(self,value):
 #         if value:
 #             val=1
 #         else:
 #             val=0
-#         for key in self.dict.keys():
-#             self.dict[key]=val
+#         for key in self.internal_dict.keys():
+#             self.internal_dict[key]=val
 #         return
 #
 #     def setdefaults(self, ddict):
-#         for key in list(self.dict.keys()):
+#         for key in list(self.internal_dict.keys()):
 #             if key in ddict:
-#                 self.dict[key]=ddict[key]
+#                 self.internal_dict[key]=ddict[key]
 #                 i=int(ddict[key])
 #                 self.RadioButton[i].setChecked(1)
 #         return
@@ -591,27 +607,28 @@ class MyCheckField(CheckField):
 
 def test():
     a = qt.QApplication(sys.argv)
-    w = FieldSheet(fields=(["Label",'Simple Entry'],
-                          ["EntryField", 'entry', 'MyLabel'],
-                          ["CheckField", 'label', 'Check Label'],))
-                          # ["RadioField",'radio',('Button1','hmmm','3')]))
+    w1 = FieldSheet(fields=(["Label", 'Dummy FieldSheet Widget'],
+                            ["EntryField", 'entry', 'MyLabel'],
+                            ["CheckField", 'label', 'Check Label'],))
+                            # ["RadioField",'radio',('Button1','hmmm','3')]))
+    w1.show()
     sheet1 = {'notetitle': "First Sheet",
-              'fields': (["Label", 'Simple Entry'],
+              'fields': (["Label", 'label on first page'],
                          ["EntryField", 'entry', 'MyLabel'],
                          ["CheckField", 'label', 'Check Label'])}
     sheet2 = {'notetitle': "Second Sheet",
-              'fields': (["Label", 'Simple Radio Buttons'],
+              'fields': (["Label", 'bépo'],
                          ["EntryField", 'entry2', 'MyLabel2'],
                          ["CheckField", 'label2', 'Check Label2'],
                          ["EntryField", 'entry3', 'MyLabel3'],
                          ["CheckField", 'label3', 'Check Label3'])}
-    w = QScriptOption(name='QScriptOptions', sheets=(sheet1, sheet2),
+    w2 = QScriptOption(name='QScriptOptions', sheets=(sheet1, sheet2),
                       default={'entry': 'type here', 'label': 1, "label3": 0,
-                               'entry3': "chanson d'automne"})
+                               'entry3': "sanglots longs des violons"})
 
-    w.show()
+    w2.show()
     a.exec_()
-    print(w.output)
+    print(w2.output)
 
 if __name__ == "__main__":
     test()
