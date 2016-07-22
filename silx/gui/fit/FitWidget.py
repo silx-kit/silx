@@ -61,7 +61,7 @@ class FitWidget(qt.QWidget):
     object that handles the fit functions and calls the iterative least-square
     fitting algorithm.
     """
-    sigFitWidgetSignal = qt.pyqtSignal(object)
+    sigFitWidgetSignal = qt.Signal(object)
 
     def __init__(self, parent=None, name=None, fitinstance=None,
                  enableconfig=True, enablestatus=True, enablebuttons=True):

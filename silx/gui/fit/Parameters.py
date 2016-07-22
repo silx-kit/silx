@@ -54,7 +54,7 @@ class QComboTableItem(qt.QComboBox):
 
     :param row: Row number of the table cell containing this widget
     :param col: Column number of the table cell containing this widget"""
-    sigCellChanged = qt.pyqtSignal(int, int)
+    sigCellChanged = qt.Signal(int, int)
     """Signal emitted when this ``QComboBox`` is activated.
     A ``(row, column)`` tuple is passed."""
 
@@ -77,7 +77,7 @@ class QCheckBoxItem(qt.QCheckBox):
 
     :param row: Row number of the table cell containing this widget
     :param col: Column number of the table cell containing this widget"""
-    sigCellChanged = qt.pyqtSignal(int, int)
+    sigCellChanged = qt.Signal(int, int)
     """Signal emitted when this ``QCheckBox`` is clicked.
     A ``(row, column)`` tuple is passed."""
 
