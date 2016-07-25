@@ -172,6 +172,9 @@ class FitConfigWidget(qt.QWidget):
 
         self.BkgComBox = qt.QComboBox(self)
         self.BkgComBox.addItem("Add Background")
+        self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
+                                   "Load background theories from a file",
+                                   qt.Qt.ToolTipRole)
 
         layout2.addWidget(self.BkgComBox, 1, 1)
 
@@ -182,6 +185,9 @@ class FitConfigWidget(qt.QWidget):
 
         self.FunComBox = qt.QComboBox(self)
         self.FunComBox.addItem("Add Function(s)")
+        self.FunComBox.setItemData(self.FunComBox.findText("Add Function(s)"),
+                                   "Load fit theories from a file",
+                                   qt.Qt.ToolTipRole)
 
         layout2.addWidget(self.FunComBox, 0, 1)
 

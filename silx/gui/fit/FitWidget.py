@@ -119,10 +119,19 @@ class FitWidget(qt.QWidget):
             self.guiconfig.FunComBox.activated[str].connect(self.funevent)
             layout.addWidget(self.guiconfig)
 
-            for key in self.fitmanager.bkgdict:
-                self.guiconfig.BkgComBox.addItem(str(key))
-            for key in self.fitmanager.theorydict:
-                self.guiconfig.FunComBox.addItem(str(key))
+            for theory_name in self.fitmanager.bkgdict:
+                self.guiconfig.BkgComBox.addItem(theory_name)
+                self.guiconfig.BkgComBox.setItemData(
+                    self.guiconfig.BkgComBox.findText(theory_name),
+                    self.fitmanager.bkgdict[theory_name]["description"],
+                    qt.Qt.ToolTipRole)
+
+            for theory_name in self.fitmanager.theorydict:
+                self.guiconfig.FunComBox.addItem(theory_name)
+                self.guiconfig.FunComBox.setItemData(
+                    self.guiconfig.FunComBox.findText(theory_name),
+                    self.fitmanager.theorydict[theory_name]["description"],
+                    qt.Qt.ToolTipRole)
 
             if fitinstance is not None:
                 # customized FitManager provided in __init__:
@@ -130,6 +139,7 @@ class FitWidget(qt.QWidget):
                 #    - activate selected bg theory (if any)
                 configuration = fitinstance.configure()
                 if configuration['fittheory'] is None:
+                    # take the first one by default
                     self.guiconfig.FunComBox.setCurrentIndex(1)
                     self.funevent(self.fitmanager.theorydict.keys[0])
                 else:
@@ -358,7 +368,7 @@ class FitWidget(qt.QWidget):
         """
         try:
             theory_name = self.fitmanager.fitconfig['fittheory']
-            estimation_function = self.fitmanager.theorydict[theory_name][2]
+            estimation_function = self.fitmanager.theorydict[theory_name]["estimate"]
             if estimation_function is not None:
                 self.fitmanager.estimate(callback=self.fitstatus)
             else:
@@ -433,7 +443,7 @@ class FitWidget(qt.QWidget):
     def bkgevent(self, bgtheory):
         """Select background theory, then reinitialize parameters"""
         bgtheory = str(bgtheory)
-        if bgtheory in self.fitmanager.bkgdict.keys():
+        if bgtheory in self.fitmanager.bkgdict:
             self.fitmanager.setbackground(bgtheory)
         else:
             qt.QMessageBox.information(
@@ -491,7 +501,7 @@ class FitWidget(qt.QWidget):
         in :attr:`guiparameters`"""
         self.fitmanager.parameter_names = []
         self.fitmanager.fit_results = []
-        for pname in self.fitmanager.bkgdict[self.fitmanager.fitconfig['fitbkg']][1]:
+        for pname in self.fitmanager.bkgdict[self.fitmanager.fitconfig['fitbkg']]["parameters"]:
             self.fitmanager.parameter_names.append(pname)
             self.fitmanager.fit_results.append({'name': pname,
                                            'estimation': 0,
@@ -504,7 +514,8 @@ class FitWidget(qt.QWidget):
                                            'xmin': None,
                                            'xmax': None})
         if self.fitmanager.fitconfig['fittheory'] is not None:
-            for pname in self.fitmanager.theorydict[self.fitmanager.fitconfig['fittheory']][1]:
+            theory = self.fitmanager.fitconfig['fittheory']
+            for pname in self.fitmanager.theorydict[theory]["parameters"]:
                 self.fitmanager.parameter_names.append(pname + "1")
                 self.fitmanager.fit_results.append({'name': pname + "1",
                                                'estimation': 0,
