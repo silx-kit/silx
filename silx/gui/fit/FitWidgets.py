@@ -171,10 +171,11 @@ class FitConfigWidget(qt.QWidget):
         layout2.setSpacing(6)
 
         self.BkgComBox = qt.QComboBox(self)
-        self.BkgComBox.addItem("Add Background")
-        self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
-                                   "Load background theories from a file",
-                                   qt.Qt.ToolTipRole)
+        # Not implemented (TODO?)
+        # self.BkgComBox.addItem("Add Background")
+        # self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
+        #                            "Load background theories from a file",
+        #                            qt.Qt.ToolTipRole)
 
         layout2.addWidget(self.BkgComBox, 1, 1)
 

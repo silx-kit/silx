@@ -163,7 +163,8 @@ class FitManager:
                  'parameters': ['Constant', 'Slope'],
                  'estimate': self.estimate_builtin_bkg}),
              ('Internal', {
-                 'description': "",   # TODO
+                 'description': "Background based on strip filter\n" +
+                                "Parameters 'Curvature', 'Iterations' and 'Constant'",
                  'function': self.bkg_internal,
                  'parameters': ['Curvature', 'Iterations', 'Constant'],
                  'estimate': self.estimate_builtin_bkg})))
@@ -972,9 +973,10 @@ class FitManager:
 
     def bkg_internal(self, x, *pars):
         """
-        Internal Background
+        Internal Background based on strip filter
+        (:meth:`silx.math.fit.filters.strip`)
         """
-        # TODO: understand and document
+        # TODO: document
 
         if self.bkg_internal_oldpars[0] == pars[0]:
             if self.bkg_internal_oldpars[1] == pars[1]:

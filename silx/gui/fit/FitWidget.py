@@ -448,8 +448,8 @@ class FitWidget(qt.QWidget):
         else:
             qt.QMessageBox.information(
                 self, "Info",
-                "%s is not a known background theory. Known theories are: " +
-                ", ".join(self.fitmanager.bkgdict)
+                "%s is not a known background theory. Known " % bgtheory +
+                "theories are: " + ", ".join(self.fitmanager.bkgdict)
             )
             return
         self.__initialparameters()
