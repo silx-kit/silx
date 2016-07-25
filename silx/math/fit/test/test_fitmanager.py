@@ -58,7 +58,7 @@ def myderiv(x, parameters, index):
     pars_plus = parameters
     pars_plus[index] *= 1.00001
 
-    pars_minus = parameters
+    pars_minus = parameters[:]
     pars_minus[index] *= 0.99999
 
     delta_fun = myfun(x, *pars_plus) - myfun(x, *pars_minus)
@@ -108,7 +108,7 @@ class TestFitmanager(unittest.TestCase):
         fit.setdata(x=x, y=y)
         fit.loadtheories(fittheories)
         # Use one of the default fit functions
-        fit.settheory('gauss')
+        fit.settheory('Gaussians')
         fit.setbackground('Linear')
         fit.estimate()
         fit.startfit()
@@ -234,7 +234,7 @@ class TestFitmanager(unittest.TestCase):
         fit.settheory('polynomial')
         fit.configure(d_=4.5)
         fit.estimate()
-        params1 = fit.startfit()
+        params1, sigmas, infodict = fit.startfit()
 
         self.assertEqual(fit.fit_results[0]["name"],
                          "A1")
@@ -254,7 +254,7 @@ class TestFitmanager(unittest.TestCase):
         # different values
         fit.configure(d_=5.)
         fit.estimate()
-        params2 = fit.startfit()
+        params2, sigmas, infodict = fit.startfit()
         for p1, p2 in zip(params1, params2):
             self.assertFalse(numpy.array_equal(p1, p2),
                              "Fit parameters are equal even though the " +

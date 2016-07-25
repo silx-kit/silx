@@ -131,67 +131,82 @@ class FitManager:
         """Dictionary of functions to be fitted to individual peaks.
 
         Keys are descriptive theory names (e.g "Gaussians" or "Step up").
-        Values are lists:
-        ``[function, parameters, estimate, configure, derivative]``
+        Values are dictionaries with the following items:
 
-            - ``function`` is the fit function for an individual peak
-            - ``parameters`` is a sequence of parameter names
-            - ``estimate`` is the parameter estimation function
-            - ``configure`` is the function returning the configuration dict
+            - *"function"* is the fit function for an individual peak
+            - *"parameters"* is a sequence of parameter names
+            - *"estimate"* is the parameter estimation function
+            - *"configure"* is the function returning the configuration dict
               for the theory in the format described in the :attr:` fitconfig`
               documentation
-            - ``derivative`` (optional) is a custom derivative function, whose
+            - *"derivative"* (optional) is a custom derivative function, whose
               signature is described in the documentation of
               :func:`silx.math.fit.leastsq.leastsq`
               (``model_deriv(xdata, parameters, index)``).
+            - *"description"* is a description string
         """
 
-        self.bkgdict = OrderedDict(
-            [('No Background', [self.bkg_none, [], None]),
-             ('Constant', [self.bkg_constant, ['Constant'],
-                           self.estimate_builtin_bkg]),
-             ('Linear', [self.bkg_linear, ['Constant', 'Slope'],
-                         self.estimate_builtin_bkg]),
-             ('Internal', [self.bkg_internal,
-                           ['Curvature', 'Iterations', 'Constant'],
-                           self.estimate_builtin_bkg])])
+        self.bkgdict = OrderedDict((
+             ('No Background', {
+                 'description': "No background function",
+                 'function': self.bkg_none,
+                 'parameters': [],
+                 'estimate': None}),
+             ('Constant', {
+                 'description': "Constant background",
+                 'function': self.bkg_constant,
+                 'parameters': ['Constant'],
+                 'estimate': self.estimate_builtin_bkg}),
+             ('Linear', {
+                 'description': "Linear background, parameters 'Constant' and 'Slope'",
+                 'function': self.bkg_linear,
+                 'parameters': ['Constant', 'Slope'],
+                 'estimate': self.estimate_builtin_bkg}),
+             ('Internal', {
+                 'description': "",   # TODO
+                 'function': self.bkg_internal,
+                 'parameters': ['Curvature', 'Iterations', 'Constant'],
+                 'estimate': self.estimate_builtin_bkg})))
         """Dictionary of background functions.
 
         Keys are descriptive theory names (e.g "Constant" or "Linear").
-        Values are list: ``[function, parameters, estimate]``
+        Values are dictionaries with the following items:
 
-        ``function`` is a callable function with the signature ``function(x, params) -> y``
-        where params is a sequence of parameters.
+          - *description* is an optional description string, which can be used
+            for instance as a tooltip message in a GUI.
 
-        ``parameters`` is a sequence of parameter names (e.g. could be
-        for a linear function ``["constant", "slope"]``).
+          - *function* is a callable function with the signature ``function(x, params) -> y``
+            where params is a sequence of parameters.
 
-        ``estimate`` is a function to compute initial values for parameters.
-        It should have the following signature:
-        ``f(x, y, bg_data, xscaling=1.0, yscaling=None) -> (estimated_param, constraints, bg_data)``
+          - *parameters* is a sequence of parameter names (e.g. could be
+            for a linear function ``["constant", "slope"]``).
 
-            Parameters:
+          - *estimate* is a function to compute initial values for parameters.
+            It should have the following signature:
+            ``f(x, y, bg_data, xscaling=1.0, yscaling=None) -> (estimated_param, constraints, bg_data)``
 
-            - ``x`` is the independant variable, i.e. all the points where
-              the function is calculated
-            - ``y`` is the data from which we want to extract the bg
-            - ``bg_data`` is the background data, usually extracted from ``y``
-              using a strip filter.
-            - ``xscaling`` is an optional scaling factor applied to the ``x``
-              array
-            - ``yscaling`` is an optional scaling factor applied to the ``y``
-              array
+                Parameters:
 
-            Return values:
+                - ``x`` is the independant variable, i.e. all the points where
+                  the function is calculated
+                - ``y`` is the data from which we want to extract the bg
+                - ``bg_data`` is the background data, usually extracted from ``y``
+                  using a strip filter.
+                - ``xscaling`` is an optional scaling factor applied to the ``x``
+                  array
+                - ``yscaling`` is an optional scaling factor applied to the ``y``
+                  array
 
-            - ``estimated_param`` is a list of estimated values for each
-              background parameter.
-            - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
+                Return values:
 
-              See explanation about 'constraints' in :attr:`fit_results`
-              documentation.
-            - ``bg_data`` is the background data extracted from the signal
-              by the estimation function.
+                - ``estimated_param`` is a list of estimated values for each
+                  background parameter.
+                - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
+
+                  See explanation about 'constraints' in :attr:`fit_results`
+                  documentation.
+                - ``bg_data`` is the background data extracted from the signal
+                  by the estimation function.
         """
 
         # TODO:  document following attributes
@@ -296,7 +311,8 @@ class FitManager:
     ##################
     # Public methods #
     ##################
-    def addbackground(self, background, function, parameters, estimate=None):
+    def addbackground(self, background, function, parameters, estimate=None,
+                      description=None):
         """Add a new background function to dictionary :attr:`bkgdict`.
 
         :param background: String with the name describing the function
@@ -304,10 +320,14 @@ class FitManager:
         :param parameters: Parameters names ['p1','p2','p3',...]
         :param estimate: The initial parameters estimation function if any
         """
-        self.bkgdict[background] = [function, parameters, estimate]
+        self.bkgdict[background] = {
+            'description': description,
+            'function': function,
+            'parameters': parameters,
+            'estimate': estimate}
 
     def addtheory(self, theory, function, parameters, estimate=None,
-                  configure=None, derivative=None):
+                  configure=None, derivative=None, description=None):
         """Add a new theory to dictionary :attr:`theorydict`.
 
         See :meth:`loadtheories` for more information on estimation functions,
@@ -328,10 +348,17 @@ class FitManager:
             This function will be given as a parameter to
             :func:`silx.math.fit.leastsq`. If ``None``, :func:`leastsq`
             will use its default derivative.
-
+        :param description: Description string (used for instance as tooltip
+            in a GUI)
         """
-        self.theorydict[theory] = [function, parameters,
-                                   estimate, configure, derivative]
+        self.theorydict[theory] = {
+            'function': function,
+            'parameters': parameters,
+            'estimate': estimate,
+            'configure': configure,
+            'derivative': derivative,
+            'description': description
+        }
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
@@ -349,7 +376,7 @@ class FitManager:
         custom configuration function.
         """
         # inspect **kw to find known keys, update them in self.fitconfig
-        for key in self.fitconfig.keys():
+        for key in self.fitconfig:
             if key in kw:
                 self.fitconfig[key] = kw[key]
 
@@ -357,15 +384,15 @@ class FitManager:
         result = {}
         result.update(self.fitconfig)
 
-        # Apply custom configuration function defined in self.theorydict[][3]
+        # Apply custom configuration function defined in self.theorydict["configure"]
         theory_name = self.fitconfig['fittheory']
-        if theory_name in self.theorydict.keys():
+        if theory_name in self.theorydict:
             custom_config_fun = self.selectedconfigure
             if custom_config_fun is not None:
                 result.update(custom_config_fun(**kw))
 
                 # Update self.fitconfig with custom config
-                for key in self.fitconfig.keys():
+                for key in self.fitconfig:
                     if key in result:
                         self.fitconfig[key] = result[key]
 
@@ -455,8 +482,8 @@ class FitManager:
         # build the names
         self.parameter_names = []
 
-        fitbkg = self.fitconfig['fitbkg']
-        for bg_param_name in self.bkgdict[fitbkg][1]:
+        fitbgname = self.fitconfig['fitbkg']
+        for bg_param_name in self.bkgdict[fitbgname]["parameters"]:
             self.parameter_names.append(bg_param_name)
 
         param_index, peak_index = 0, 0
@@ -621,14 +648,13 @@ class FitManager:
             raise ImportError(msg)
 
         for theory_name, theory_dict in list(theories_module.THEORY.items()):
-            derivative = theory_dict.get("derivative", None)
-            configure = theory_dict.get("configure", None)
             self.addtheory(theory_name,
                            theory_dict["function"],
                            theory_dict["parameters"],
                            theory_dict["estimate"],
-                           configure,
-                           derivative)
+                           theory_dict.get("configure", None),
+                           theory_dict.get("derivative", None),
+                           theory_dict.get("description", None))
 
     def setbackground(self, theory):
         """Choose a background type from within :attr:`bkgdict`.
@@ -643,7 +669,7 @@ class FitManager:
         """
         if theory in self.bkgdict:
             self.fitconfig['fitbkg'] = theory
-            self.bkgfun = self.bkgdict[theory][0]
+            self.bkgfun = self.bkgdict[theory]["function"]
         else:
             msg = "No theory with name %s in bkgdict.\n" % theory
             msg += "Available theories: %s\n" % self.bkgdict.keys()
@@ -724,12 +750,11 @@ class FitManager:
             self.fitconfig['fittheory'] = None
         elif theory in self.theorydict:
             self.fitconfig['fittheory'] = theory
-            self.selectedfunction = self.theorydict[theory][0]
-            self.selectedparameters = self.theorydict[theory][1]
-            self.selectedestimate = self.theorydict[theory][2]
-            self.selectedconfigure = self.theorydict[theory][3]
-            self.selectedderivative = self.theorydict[theory][4]
-
+            self.selectedfunction = self.theorydict[theory]["function"]
+            self.selectedparameters = self.theorydict[theory]["parameters"]
+            self.selectedestimate = self.theorydict[theory]["estimate"]
+            self.selectedconfigure = self.theorydict[theory]["configure"]
+            self.selectedderivative = self.theorydict[theory]["derivative"]
         else:
             msg = "No theory with name %s in theorydict.\n" % theory
             msg += "Available theories: %s\n" % self.theorydict.keys()
@@ -781,12 +806,13 @@ class FitManager:
                 constraints=param_constraints,
                 model_deriv=self.selectedderivative,
                 full_output=True)
-        if covariance_matrix is not None:
-            sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
-        else:
-            # sometimes leastsq returns None and logs:
-            # "Error calculating covariance matrix after successful fit"
-            sigmas = numpy.zeros(shape=(len(params),))
+        # if covariance_matrix is not None:
+        #     sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
+        # else:
+        #     # sometimes leastsq returns None and logs:
+        #     # "Error calculating covariance matrix after successful fit"
+        #     sigmas = numpy.zeros(shape=(len(params),))
+        sigmas = infodict['uncertainties']
 
         for i, param in enumerate(self.fit_results):
             if param['code'] != 'IGNORE':
@@ -800,7 +826,7 @@ class FitManager:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
 
-        return params
+        return params, sigmas, infodict
 
     ###################
     # Private methods #
@@ -820,7 +846,7 @@ class FitManager:
             as fit parameters.
         """
         fitbkg_key = self.fitconfig['fitbkg']
-        bg_pars_list = self.bkgdict[fitbkg_key][1]
+        bg_pars_list = self.bkgdict[fitbkg_key]["parameters"]
         nb_bg_pars = len(bg_pars_list)
 
         peak_pars_list = self.selectedparameters
@@ -875,7 +901,7 @@ class FitManager:
             - ``bg_data`` is the background data computed by the function.
         """
         fitbkg = self.fitconfig['fitbkg']
-        background_estimate_function = self.bkgdict[fitbkg][2]
+        background_estimate_function = self.bkgdict[fitbkg]["estimate"]
         if background_estimate_function is not None:
             return background_estimate_function(x, y)
         else:
