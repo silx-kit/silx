@@ -714,6 +714,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     else:
         return chisq, alpha, beta
 
+
 def _get_parameters(parameters, constraints):
     """
     Apply constraints to input parameters.
@@ -758,6 +759,7 @@ def _get_parameters(parameters, constraints):
             newparam[i] = constraints[i][2]-newparam[int(constraints[i][1])]
     return newparam
 
+
 def _get_sigma_parameters(parameters, sigma0, constraints):
     """
     Internal function propagating the uncertainty on the actually fitted parameters and related parameters to the
@@ -766,9 +768,10 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
     Parameters
     ----------
         parameters : 1D sequence of length equal to the number of free parameters N
-            The parameters acually used in the fitting process.
+            The parameters actually used in the fitting process.
         sigma0 : 1D sequence of length N
-            The independent variable where the data is measured.
+            Uncertainties calculated as the square-root of the diagonal of
+            the covariance matrix
         constraints : The set of constraints applied in the fitting process
     """
     # 0 = Free       1 = Positive     2 = Quoted
@@ -777,7 +780,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
         return sigma0
     n_free = 0
     sigma_par = numpy.zeros(parameters.shape, numpy.float)
-    for i in range(len(constraints [0])):
+    for i in range(len(constraints)):
         if constraints[i][0] == CFREE:
             sigma_par [i] = sigma0[n_free]
             n_free += 1
@@ -797,7 +800,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
                 sigma_par [i] = parameters[i]
         elif abs(constraints[i][0]) == CFIXED:
             sigma_par[i] = parameters[i]
-    for i in range(len(constraints [0])):
+    for i in range(len(constraints)):
         if constraints[i][0] == CFACTOR:
             sigma_par [i] = constraints[i][2]*sigma_par[int(constraints[i][1])]
         elif constraints[i][0] == CDELTA:
