@@ -545,6 +545,28 @@ class FitManager:
         newdata = self.fitfunction(numpy.array(x), *active_params)
         return newdata
 
+    def get_estimation(self):
+        """Return the list of fit parameter names."""
+        if self.state not in ["Ready to fit", "Fit in progress", "Ready"]:
+            _logger.warning("get_estimation() called before estimate() completed")
+        return [param["estimation"] for param in self.fit_results]
+
+    def get_names(self):
+        """Return the list of fit parameter estimations."""
+        if self.state not in ["Ready to fit", "Fit in progress", "Ready"]:
+            msg = "get_names() called before estimate() completed, "
+            msg += "names are not populated at this stage"
+            _logger.warning(msg)
+        return [param["name"] for param in self.fit_results]
+
+    def get_fit_result(self):
+        """Return the list of fit parameter results."""
+        if self.state not in ["Ready"]:
+            msg = "get_fit_result() called before startfit() completed, "
+            msg += "results are not available a this stage"
+            _logger.warning(msg)
+        return [param["fitresult"] for param in self.fit_results]
+
     def loadtheories(self, theories):
         """Import user defined fit functions defined in an external Python
         source file, and save them in :attr:`theorydict`.

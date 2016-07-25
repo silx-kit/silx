@@ -96,10 +96,14 @@ Module members:
 """
 import numpy
 from collections import OrderedDict
+import logging
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
 from silx.math.fit.leastsq import leastsq
+
+logging.basicConfig()
+_logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -1155,93 +1159,93 @@ class FitTheories(object):
 fitfuns = FitTheories()
 
 THEORY = OrderedDict((
-    ('gauss', {
+    ('Gaussians', {
         'description': 'Gaussian functions',
         'function': functions.sum_gauss,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_height_position_fwhm,
         'configure': fitfuns.configure}),
-    ('lorentz', {
+    ('Lorentz', {
         'description': 'Lorentzian functions',
         'function': functions.sum_lorentz,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_height_position_fwhm,
         'configure': fitfuns.configure}),
-    ('agauss', {
+    ('Area Gaussians', {
         'description': 'Gaussian functions (area)',
         'function': functions.sum_agauss,
         'parameters': ('Area', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_agauss,
         'configure': fitfuns.configure}),
-    ('alorentz', {
+    ('Area Lorentz', {
         'description': 'Lorentzian functions (area)',
         'function': functions.sum_alorentz,
         'parameters': ('Area', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_alorentz,
         'configure': fitfuns.configure}),
-    ('pvoigt', {
+    ('Pseudo-Voigt Line', {
         'description': 'Pseudo-Voigt functions',
         'function': functions.sum_pvoigt,
         'parameters': ('Height', 'Position', 'FWHM', 'Eta'),
         'estimate': fitfuns.estimate_pvoigt,
         'configure': fitfuns.configure}),
-    ('apvoigt', {
+    ('Area Pseudo-Voigt', {
         'description': 'Pseudo-Voigt functions (area)',
         'function': functions.sum_apvoigt,
         'parameters': ('Area', 'Position', 'FWHM', 'Eta'),
         'estimate': fitfuns.estimate_apvoigt,
         'configure': fitfuns.configure}),
-    ('splitgauss', {
+    ('Split Gaussian', {
         'description': 'Split gaussian functions',
         'function': functions.sum_splitgauss,
         'parameters': ('Height', 'Position', 'LowFWHM',
                        'HighFWHM'),
         'estimate': fitfuns.estimate_splitgauss,
         'configure': fitfuns.configure}),
-    ('splitlorentz', {
+    ('Split Lorentz', {
         'description': 'Split lorentzian functions',
         'function': functions.sum_splitlorentz,
         'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM'),
         'estimate': fitfuns.estimate_splitgauss,
         'configure': fitfuns.configure}),
-    ('splitpvoigt', {
+    ('Split Pseudo-Voigt', {
         'description': 'Split pseudo-Voigt functions',
         'function': functions.sum_splitpvoigt,
         'parameters': ('Height', 'Position', 'LowFWHM', 'HighFWHM', 'Eta'),
         'estimate': fitfuns.estimate_splitpvoigt,
         'configure': fitfuns.configure}),
-    ('stepdown', {
+    ('Step Down', {
         'description': 'Step down function',
         'function': functions.sum_stepdown,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_stepdown,
         'configure': fitfuns.configure}),
-    ('stepup', {
+    ('Step Up', {
         'description': 'Step up function',
         'function': functions.sum_stepup,
         'parameters': ('Height', 'Position', 'FWHM'),
         'estimate': fitfuns.estimate_stepup,
         'configure': fitfuns.configure}),
-    ('slit', {
+    ('Slit', {
         'description': 'Slit function',
         'function': functions.sum_slit,
         'parameters': ('Height', 'Position', 'FWHM', 'BeamFWHM'),
         'estimate': fitfuns.estimate_slit,
         'configure': fitfuns.configure}),
-    ('atan_stepup', {
+    ('Atan', {
         'description': 'Arctan step up function',
         'function': functions.atan_stepup,
         'parameters': ('Height', 'Position', 'Width'),
         'estimate': fitfuns.estimate_stepup,
         'configure': fitfuns.configure}),
-    ('ahypermet', {
+    ('Hypermet', {
         'description': 'Hypermet functions',
         'function': fitfuns.ahypermet,     # customized version of functions.sum_ahypermet
         'parameters': ('G_Area', 'Position', 'FWHM', 'ST_Area',
                        'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
         'estimate': fitfuns.estimate_ahypermet,
         'configure': fitfuns.configure}),
-    ('periodic_gauss', {
+    ('Periodic Gaussians', {
         'description': 'Periodic gaussian functions',
         'function': functions.periodic_gauss,
         'parameters': ('N', 'Delta', 'Height', 'Position', 'FWHM'),
@@ -1252,31 +1256,12 @@ THEORY = OrderedDict((
 parameters list, configuration function and description.
 """
 
-# Old names
-# THEORY = ['Gaussians',
-#           'Lorentz',
-#           'Area Gaussians',
-#           'Area Lorentz',
-#           'Pseudo-Voigt Line',
-#           'Area Pseudo-Voigt',
-#           'Split Gaussian',
-#           'Split Lorentz',
-#           'Split Pseudo-Voigt',
-#           'Step Down',
-#           'Step Up',
-#           'Slit',
-#           'Atan',
-#           'Hypermet',
-#           'Periodic Gaussians']
-
 
 def test(a):
-    from silx.gui import qt
-    from silx.gui.plot import plot1D
     from silx.math.fit import fitmanager
     x = numpy.arange(1000).astype(numpy.float)
-    p = numpy.array([1500, 100., 50.0,
-                     1500, 700., 50.0])
+    p = [1500, 100., 50.0,
+         1500, 700., 50.0]
     y_synthetic = functions.sum_gauss(x, *p) + 1
 
     fit = fitmanager.FitManager(x, y_synthetic)
@@ -1290,12 +1275,21 @@ def test(a):
 
     y_fit = fit.gendata()
 
-    app = qt.QApplication([])
+    print("Fit parameter names: %s" % str(fit.get_names()))
+    print("Theoretical parameters: %s" % str(numpy.append([1, 0],  p)))
+    print("Fitted parameters: %s" % str(fit.get_fit_result()))
 
-    # Offset of 1 to see the difference in log scale
-    plot1D(x, (y_synthetic + 1, y_fit), "Input data + 1, Fit")
+    try:
+        from silx.gui import qt
+        from silx.gui.plot import plot1D
+        app = qt.QApplication([])
 
-    app.exec_()
+        # Offset of 1 to see the difference in log scale
+        plot1D(x, (y_synthetic + 1, y_fit), "Input data + 1, Fit")
+
+        app.exec_()
+    except ImportError:
+        _logger.warning("Unable to load qt binding, can't plot results.")
 
 
 if __name__ == "__main__":
