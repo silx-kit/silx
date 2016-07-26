@@ -318,6 +318,44 @@ class Test_leastsq(unittest.TestCase):
                                                       fittedpar[i])
             self.assertTrue(test_condition, msg)
 
+    def testUncertainties(self):
+        """Test for validity of uncertainties in returned full-output
+        dictionary. This is a non-regression test for pull request #197"""
+        parameters_actual = [10.5, 2, 1000.0, 20., 15, 2001.0, 30.1, 16]
+        x = numpy.arange(10000.)
+        y = self.gauss(x, *parameters_actual)
+        parameters_estimate = [0.0, 1.0, 900.0, 25., 10., 1500., 20., 2.0]
+
+        # test that uncertainties are not 0.
+        fittedpar, cov, infodict = self.instance(self.gauss, x, y, parameters_estimate,
+                                                 full_output=True)
+        uncertainties = infodict["uncertainties"]
+        self.assertEqual(len(uncertainties), len(parameters_actual))
+        self.assertEqual(len(uncertainties), len(fittedpar))
+        for uncertainty in uncertainties:
+            self.assertNotAlmostEqual(uncertainty, 0.)
+
+        # set constraint FIXED for half the parameters.
+        # This should cause leastsq to return 100% uncertainty.
+        parameters_estimate = [10.6, 2.1, 1000.1, 20.1, 15.1, 2001.1, 30.2, 16.1]
+        CFIXED = 3
+        CFREE = 0
+        constraints = []
+        for i in range(len(parameters_estimate)):
+            if i % 2:
+                constraints.append([CFIXED, 0, 0])
+            else:
+                constraints.append([CFREE, 0, 0])
+        fittedpar, cov, infodict = self.instance(self.gauss, x, y, parameters_estimate,
+                                                 constraints=constraints,
+                                                 full_output=True)
+        uncertainties = infodict["uncertainties"]
+        for i in range(len(parameters_estimate)):
+            if i % 2:
+                # test that all FIXED parameters have 100% uncertainty
+                self.assertAlmostEqual(uncertainties[i],
+                                       parameters_estimate[i])
+
 
 test_cases = (Test_leastsq,)
 
