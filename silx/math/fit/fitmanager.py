@@ -128,10 +128,12 @@ class FitManager(object):
         self.fitconfig['fittheory'] = None
 
         self.theories = OrderedDict()
-        """Dictionary of functions to be fitted to individual peaks.
+        """Dictionary of fit theories, defining functions to be fitted
+        to individual peaks.
 
         Keys are descriptive theory names (e.g "Gaussians" or "Step up").
-        Values are dictionaries with the following items:
+        Values are :class:`silx.math.fit.fittheory.FitTheory` objects with
+        the following attributes:
 
             - *"function"* is the fit function for an individual peak
             - *"parameters"* is a sequence of parameter names
