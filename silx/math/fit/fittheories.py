@@ -309,6 +309,7 @@ class FitTheories(object):
                     index_largest_peak = peak_index
                 peak_index += 1
 
+            print("npoints: %d\nx:%d\ny:%d\nbg:%d\n\n" % (npoints, len(x), len(y), len(bg)))
             # Make arrays 2D and substract background
             xw = numpy.resize(x, (npoints, 1))
             yw = numpy.resize(y - bg, (npoints, 1))
@@ -853,12 +854,10 @@ class FitTheories(object):
             *height, centroid, fwhm* .
         """
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
-        cutoff = 2
-        yy = numpy.convolve(y, crappyfilter, mode=1)[cutoff:-cutoff]
+        yy = numpy.convolve(y, crappyfilter, mode=1)[2:-2]
         if max(yy) > 0:
             yy = yy * max(y) / max(yy)
-        xx = x[cutoff:-cutoff]
-        fittedpar, newcons = self.estimate_agauss(xx, yy, bg, yscaling)
+        fittedpar, newcons = self.estimate_agauss(x[2:-2], yy, bg[2:-2], yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -976,12 +975,10 @@ class FitTheories(object):
             *height, centroid, fwhm* .
         """
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
-        cutoff = 2
-        yy = numpy.convolve(y, crappyfilter, mode=1)[cutoff:-cutoff]
+        yy = numpy.convolve(y, crappyfilter, mode=1)[2:-2]
         if max(yy) > 0:
             yy = yy * max(y) / max(yy)
-        xx = x[cutoff:-cutoff]
-        fittedpar, cons = self.estimate_agauss(xx, yy, bg, yscaling)
+        fittedpar, cons = self.estimate_agauss(x[2:-2], yy, bg[2:-2], yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
