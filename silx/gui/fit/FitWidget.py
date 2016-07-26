@@ -154,8 +154,8 @@ class FitWidget(qt.QWidget):
                 #    - activate first fit theory (gauss)
                 #    - activate first bg theory (no bg)
                 configuration = {}
-                self.guiconfig.BkgComBox.setCurrentIndex(1)
-                self.guiconfig.FunComBox.setCurrentIndex(1)
+                self.guiconfig.BkgComBox.setCurrentIndex(0)
+                self.guiconfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
                 self.funevent(list(self.fitmanager.theorydict.keys())[0])
                 self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
             configuration.update(self.configure())
