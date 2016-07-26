@@ -127,7 +127,7 @@ class FitManager(object):
         self.fitconfig['fitbkg'] = 'No Background'
         self.fitconfig['fittheory'] = None
 
-        self.theorydict = OrderedDict()
+        self.theories = OrderedDict()
         """Dictionary of functions to be fitted to individual peaks.
 
         Keys are descriptive theory names (e.g "Gaussians" or "Step up").
@@ -224,7 +224,7 @@ class FitManager(object):
         in :meth:`estimate`.
 
         It is the responsibility of the estimate function defined in
-        :attr:`theorydict` to determine how many parameters there will be,
+        :attr:`theories` to determine how many parameters there will be,
         based on how many peaks it detects and how many parameters are needed
         to fit an individual peak.
         """
@@ -282,7 +282,7 @@ class FitManager(object):
         It must take the independent variable as the first argument and the
         parameters to fit as separate remaining arguments.
 
-        The function can be chosen from :attr:`theorydict` using
+        The function can be chosen from :attr:`theories` using
         :meth:`settheory`"""
 
         self.selectedparameters = None
@@ -327,39 +327,17 @@ class FitManager(object):
             'parameters': parameters,
             'estimate': estimate}
 
-    def addtheory(self, theory, function, parameters, estimate=None,
-                  configure=None, derivative=None, description=None):
-        """Add a new theory to dictionary :attr:`theorydict`.
+    def addtheory(self, theory_name, fittheory):
+        """Add a new theory to dictionary :attr:`theories`.
 
         See :meth:`loadtheories` for more information on estimation functions,
         configuration functions and custom derivative functions.
 
-        :param theory: String with the name describing the function
-        :param function: Actual function to be fitted.
-        :param parameters: Parameters names for function ``['p1','p2',…]``
-        :param estimate: Estimation function. This function makes an initial
-            estimation of parameters, to be used as input to the iterative
-            fitting function. It is also responsible for determining the
-            number of parameters to be fitted, if ``function`` has a variable
-            number of parameters (e.g. multi-peak functions).
-        :param configure: Optional function to be called to modify
-            estimation and fitting parameters prior to fit
-        :param derivative: Optional analytical derivative function.
-            Its signature should be ``f(xdata, parameters, index)``
-            This function will be given as a parameter to
-            :func:`silx.math.fit.leastsq`. If ``None``, :func:`leastsq`
-            will use its default derivative.
-        :param description: Description string (used for instance as tooltip
-            in a GUI)
+        :param theory_name: String with the name describing the function
+        :param fittheory: :class:`FitTheory` object
+        :type fittheory: :class:`silx.math.fit.fittheory.FitTheory`
         """
-        self.theorydict[theory] = {
-            'function': function,
-            'parameters': parameters,
-            'estimate': estimate,
-            'configure': configure,
-            'derivative': derivative,
-            'description': description
-        }
+        self.theories[theory_name] = fittheory
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
@@ -385,9 +363,9 @@ class FitManager(object):
         result = {}
         result.update(self.fitconfig)
 
-        # Apply custom configuration function defined in self.theorydict["configure"]
+        # Apply custom configuration function defined in self.theories.configure
         theory_name = self.fitconfig['fittheory']
-        if theory_name in self.theorydict:
+        if theory_name in self.theories:
             custom_config_fun = self.selectedconfigure
             if custom_config_fun is not None:
                 result.update(custom_config_fun(**kw))
@@ -597,32 +575,33 @@ class FitManager(object):
 
     def loadtheories(self, theories):
         """Import user defined fit functions defined in an external Python
-        source file, and save them in :attr:`theorydict`.
+        source file, and save them in :attr:`theories`.
 
         An example of such a file can be found in the sources of
-        :mod:`silx.math.fit.fittheories`. It must contain a nested
+        :mod:`silx.math.fit.fittheories`. It must contain a
         dictionary named ``THEORY`` with the following structure::
 
             THEORY = {
-                'theory_name_1': {
-                    'description': 'Description of theory 1',
-                    'function': fitfunction1,
-                    'parameters': ('param name 1', 'param name 2', …),
-                    'estimate': estimation_function1,
-                    'configure': configuration_function1,
-                    'derivative': derivative_function1
-                },
-                'theory_name_2': {
-                   …
-                },
+                'theory_name_1':
+                    FitTheory(description='Description of theory 1',
+                              function=fitfunction1,
+                              parameters=('param name 1', 'param name 2', …),
+                              estimate=estimation_function1,
+                              configure=configuration_function1,
+                              derivative=derivative_function1),
+                'theory_name_2':
+                    FitTheory(…),
+            }
 
-        See documentation of :mod:`silx.math.fit.fittheories` for more
+        See documentation of :mod:`silx.math.fit.fittheories` and
+        :mod:`silx.math.fit.fittheory` for more
         information on designing your fit functions file.
 
         :param theories: Name of python source file, or module containing the
             definition of fit functions.
         :raise: ImportError if theories cannot be imported
         """
+        # TODO: compatibility with legacy PyMca
         from types import ModuleType
         if isinstance(theories, ModuleType):
             theories_module = theories
@@ -644,18 +623,12 @@ class FitManager(object):
         if hasattr(theories_module, "INIT"):
             theories.INIT()
 
-        msg = "File %s does not contain a THEORY dictionary" % theories
         if not hasattr(theories_module, "THEORY") or not isinstance(theories_module.THEORY, dict):
+            msg = "File %s does not contain a THEORY dictionary" % theories
             raise ImportError(msg)
 
-        for theory_name, theory_dict in list(theories_module.THEORY.items()):
-            self.addtheory(theory_name,
-                           theory_dict["function"],
-                           theory_dict["parameters"],
-                           theory_dict["estimate"],
-                           theory_dict.get("configure", None),
-                           theory_dict.get("derivative", None),
-                           theory_dict.get("description", None))
+        for theory_name, fittheory in list(theories_module.THEORY.items()):
+            self.addtheory(theory_name, fittheory)
 
     def setbackground(self, theory):
         """Choose a background type from within :attr:`bkgdict`.
@@ -736,7 +709,7 @@ class FitManager(object):
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
 
     def settheory(self, theory):
-        """Pick a theory from :attr:`theorydict`.
+        """Pick a theory from :attr:`theories`.
 
         This updates the following attributes:
 
@@ -745,20 +718,20 @@ class FitManager(object):
             - :attr:`selectedderivative`
 
         :param theory: Name of the theory to be used.
-        :raise: KeyError if ``theory`` is not a key of :attr:`theorydict`.
+        :raise: KeyError if ``theory`` is not a key of :attr:`theories`.
         """
         if theory is None:
             self.fitconfig['fittheory'] = None
-        elif theory in self.theorydict:
+        elif theory in self.theories:
             self.fitconfig['fittheory'] = theory
-            self.selectedfunction = self.theorydict[theory]["function"]
-            self.selectedparameters = self.theorydict[theory]["parameters"]
-            self.selectedestimate = self.theorydict[theory]["estimate"]
-            self.selectedconfigure = self.theorydict[theory]["configure"]
-            self.selectedderivative = self.theorydict[theory]["derivative"]
+            self.selectedfunction = self.theories[theory].function
+            self.selectedparameters = self.theories[theory].parameters
+            self.selectedestimate = self.theories[theory].estimate
+            self.selectedconfigure = self.theories[theory].configure
+            self.selectedderivative = self.theories[theory].derivative
         else:
-            msg = "No theory with name %s in theorydict.\n" % theory
-            msg += "Available theories: %s\n" % self.theorydict.keys()
+            msg = "No theory with name %s in theories.\n" % theory
+            msg += "Available theories: %s\n" % self.theories.keys()
             raise KeyError(msg)
 
     def startfit(self, callback=None):
@@ -948,7 +921,7 @@ class FitManager(object):
 
             # fit requires at least one parameter
             raise TypeError("Estimation function in attribute " +
-                            "theorydict[%s]" % fittheory +
+                            "theories[%s]" % fittheory +
                             " must be callable.")
 
     def bkg_constant(self, x, *pars):

@@ -126,11 +126,11 @@ class FitWidget(qt.QWidget):
                     self.fitmanager.bkgdict[theory_name]["description"],
                     qt.Qt.ToolTipRole)
 
-            for theory_name in self.fitmanager.theorydict:
+            for theory_name in self.fitmanager.theories:
                 self.guiconfig.FunComBox.addItem(theory_name)
                 self.guiconfig.FunComBox.setItemData(
                     self.guiconfig.FunComBox.findText(theory_name),
-                    self.fitmanager.theorydict[theory_name]["description"],
+                    self.fitmanager.theories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
             if fitinstance is not None:
@@ -141,7 +141,7 @@ class FitWidget(qt.QWidget):
                 if configuration['fittheory'] is None:
                     # take the first one by default
                     self.guiconfig.FunComBox.setCurrentIndex(1)
-                    self.funevent(self.fitmanager.theorydict.keys[0])
+                    self.funevent(self.fitmanager.theories.keys[0])
                 else:
                     self.funevent(configuration['fittheory'])
                 if configuration['fitbkg'] is None:
@@ -156,7 +156,7 @@ class FitWidget(qt.QWidget):
                 configuration = {}
                 self.guiconfig.BkgComBox.setCurrentIndex(0)
                 self.guiconfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
-                self.funevent(list(self.fitmanager.theorydict.keys())[0])
+                self.funevent(list(self.fitmanager.theories.keys())[0])
                 self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
             configuration.update(self.configure())
 
@@ -208,7 +208,7 @@ class FitWidget(qt.QWidget):
 
         # initialize the default fitting functions in case
         # none is present
-        if not len(fitmngr.theorydict):
+        if not len(fitmngr.theories):
             fitmngr.loadtheories(fittheories)
         return fitmngr
 
@@ -260,14 +260,14 @@ class FitWidget(qt.QWidget):
         # set fit function theory
         try:
             i = 1 + \
-                list(self.fitmanager.theorydict.keys()).index(
+                list(self.fitmanager.theories.keys()).index(
                     self.fitmanager.fitconfig['fittheory'])
             self.guiconfig.FunComBox.setCurrentIndex(i)
             self.funevent(self.fitmanager.fitconfig['fittheory'])
         except ValueError:
             _logger.error("Function not in list %s",
                           self.fitmanager.fitconfig['fittheory'])
-            self.funevent(list(self.fitmanager.theorydict.keys())[0])
+            self.funevent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
             i = 1 + list(self.fitmanager.bkgdict.keys()
@@ -368,7 +368,7 @@ class FitWidget(qt.QWidget):
         """
         try:
             theory_name = self.fitmanager.fitconfig['fittheory']
-            estimation_function = self.fitmanager.theorydict[theory_name]["estimate"]
+            estimation_function = self.fitmanager.theories[theory_name].estimate
             if estimation_function is not None:
                 self.fitmanager.estimate(callback=self.fitstatus)
             else:
@@ -464,7 +464,7 @@ class FitWidget(qt.QWidget):
             :meth:`fitmanager.loadtheories`.
         """
         theoryname = str(theoryname)
-        if theoryname in self.fitmanager.theorydict:
+        if theoryname in self.fitmanager.theories:
             self.fitmanager.settheory(theoryname)
         else:
             # open a load file dialog
@@ -484,11 +484,11 @@ class FitWidget(qt.QWidget):
                     while(self.guiconfig.FunComBox.count() > 1):
                         self.guiconfig.FunComBox.removeItem(1)
                     # and fill it again
-                    for key in self.fitmanager.theorydict:
+                    for key in self.fitmanager.theories:
                         self.guiconfig.FunComBox.addItem(str(key))
 
             i = 1 + \
-                list(self.fitmanager.theorydict.keys()).index(
+                list(self.fitmanager.theories.keys()).index(
                     self.fitmanager.fitconfig['fittheory'])
             self.guiconfig.FunComBox.setCurrentIndex(i)
         self.__initialparameters()
@@ -515,7 +515,7 @@ class FitWidget(qt.QWidget):
                                            'xmax': None})
         if self.fitmanager.fitconfig['fittheory'] is not None:
             theory = self.fitmanager.fitconfig['fittheory']
-            for pname in self.fitmanager.theorydict[theory]["parameters"]:
+            for pname in self.fitmanager.theories[theory].parameters:
                 self.fitmanager.parameter_names.append(pname + "1")
                 self.fitmanager.fit_results.append({'name': pname + "1",
                                                'estimation': 0,
