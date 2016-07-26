@@ -53,12 +53,12 @@ from .leastsq import leastsq
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/07/2016"
+__date__ = "26/07/2016"
 
 _logger = logging.getLogger(__name__)
 
 
-class FitManager:
+class FitManager(object):
     """
     Multi-peak fitting functions manager
 
