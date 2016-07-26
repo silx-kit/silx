@@ -13,6 +13,7 @@
    functions.rst
    filters.rst
    fitmanager.rst
+   fittheory.rst
    fittheories.rst
 
 
