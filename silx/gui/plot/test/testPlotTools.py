@@ -75,7 +75,7 @@ class TestPositionInfo(TestCaseQt):
         self.plot = PlotWindow()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
-        self.mouseMove(self.plot)  # Move to center
+        self.mouseMove(self.plot, pos=(1, 1))
         self.qapp.processEvents()
 
     def tearDown(self):
@@ -101,12 +101,9 @@ class TestPositionInfo(TestCaseQt):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        self.qapp.processEvents()
-
         with TestLogging(PlotTools.__name__, **kwargs):
-            # Move mouse away from center
-            xCenter, yCenter = self.plot.width() // 2, self.plot.height() // 2
-            self.mouseMove(self.plot, pos=(xCenter + 1, yCenter + 1))
+            # Move mouse to center
+            self.mouseMove(self.plot)
             self.qapp.processEvents()
 
     def testDefaultConverters(self):
