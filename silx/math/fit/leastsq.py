@@ -789,8 +789,8 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
             sigma_par [i] = sigma0[n_free]
             n_free += 1
         elif constraints[i][0] == CQUOTED:
-            pmax = max(constraints [1] [i], constraints [2] [i])
-            pmin = min(constraints [1] [i], constraints [2] [i])
+            pmax = max(constraints [i][1], constraints [i][2])
+            pmin = min(constraints [i][1], constraints [i][2])
             # A = 0.5 * (pmax + pmin)
             B = 0.5 * (pmax - pmin)
             if (B > 0) & (parameters [i] < pmax) & (parameters [i] > pmin):
