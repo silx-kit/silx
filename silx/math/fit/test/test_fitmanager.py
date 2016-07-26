@@ -33,11 +33,14 @@ import os.path
 
 from silx.math.fit import fitmanager
 from silx.math.fit import fittheories
+from silx.math.fit.fittheory import FitTheory
 from silx.math.fit.functions import sum_gauss
 
 from silx.testutils import temp_dir
 
 custom_function_definition = """
+from silx.math.fit.fittheory import FitTheory
+
 CONFIG = {'d': 1.}
 
 def myfun(x, a, b, c):
@@ -67,16 +70,14 @@ def myderiv(x, parameters, index):
     return delta_fun / delta_par
 
 THEORY = {
-    'my fit theory': {
-        'function': myfun,
-        'parameters': ('A', 'B', 'C'),
-        'estimate': myesti,
-        'configure': myconfig,
-        # FIXME: using myderiv causes LinAlgError: Singular matrix
-        'derivative': None
-    }
+    'my fit theory':
+        FitTheory(function=myfun,
+                  parameters=('A', 'B', 'C'),
+                  estimate=myesti,
+                  configure=myconfig,
+                  # FIXME: using myderiv causes LinAlgError: Singular matrix
+                  derivative=None)
 }
-
 
 """
 
@@ -224,12 +225,12 @@ class TestFitmanager(unittest.TestCase):
 
             return delta_fun / delta_par
 
-        fit.addtheory(theory="polynomial",
-                      function=myfun,
-                      parameters=["A", "B", "C"],
-                      estimate=myesti,
-                      configure=myconfig,
-                      derivative=None)    # FIXME
+        fit.addtheory("polynomial",
+                      FitTheory(function=myfun,
+                                parameters=["A", "B", "C"],
+                                estimate=myesti,
+                                configure=myconfig,
+                                derivative=None))    # FIXME
 
         fit.settheory('polynomial')
         fit.configure(d_=4.5)
