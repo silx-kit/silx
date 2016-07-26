@@ -472,8 +472,8 @@ class Parameters(qt.QTableWidget):
         # one by updating xmin and xmax to the same values as group `gtype`
         line = len(list(self.parameters))
         for param in newparam:
-            line += 1
             self.newparameterline(param, line)
+            line += 1
         for param in newparam:
             self.configure_line(name=param, group=newg, xmin=xmin, xmax=xmax)
 
