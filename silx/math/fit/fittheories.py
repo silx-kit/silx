@@ -828,10 +828,14 @@ class FitTheories(object):
             *height, centroid, fwhm* .
         """
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
-        yy = numpy.convolve(y, crappyfilter, mode=1)[2:-2]
+        cutoff = len(crappyfilter) // 2
+        yy = numpy.convolve(y, crappyfilter, mode=1)
         if max(yy) > 0:
             yy = yy * max(y) / max(yy)
-        fittedpar, newcons = self.estimate_agauss(x[2:-2], yy, bg[2:-2], yscaling)
+        fittedpar, newcons = self.estimate_agauss(x[cutoff:-cutoff],
+                                                  yy[cutoff:-cutoff],
+                                                  bg[cutoff:-cutoff],
+                                                  yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
