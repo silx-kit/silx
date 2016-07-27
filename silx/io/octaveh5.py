@@ -82,47 +82,61 @@ class Octaveh5():
             logger.info(info)
             return
 
-        data_dict= {}
+        if(sys.version_info.major >=3 ):
+            functionToWrite = np.bytes0
+        else:
+            functionToWrite = np.string0
 
-        grr=(self.file[struct_name].items()[1])[1]
+        data_dict= {}
+        grr=(list(self.file[struct_name].items())[1])[1]
         try:
             gr_level2=grr.items()
         except:
             reason = "no gr_level2"
             return
 
-        for key, val in dict(gr_level2).iteritems():
-            data_dict[str(key)] = (val.items()[1])[1].value
+        for key, val in iter(dict(gr_level2).items()):
+            data_dict[str(key)] = list(val.items())[1][1].value
 
-            # In the case Octave have added a 0 at the end
-            if (val.items()[0])[1].value == 'sq_string' and self.octave_targetted_version < 3.8 :
-                data_dict[str(key)] = data_dict[str(key)][:-1]
+            if list(val.items())[0][1].value != functionToWrite('sq_string') :
+                data_dict[str(key)] = float(data_dict[str(key)])
+            else:
+                data_dict[str(key)] = data_dict[str(key)].decode('UTF-8')
+
+                # In the case Octave have added an extra character at the end
+                if self.octave_targetted_version < 3.8 :
+                    data_dict[str(key)] = data_dict[str(key)][:-1]
 
         return data_dict
 
     def write(self, struct_name, data_dict):
+        """write data_dict under the group struct_name in the open hdf5 file"""
         if self.file == None : 
             info = "No file currently open"
             logger.info(info)
             return
 
-        # write
+        if(sys.version_info.major >=3 ):
+            functionToWrite = np.bytes0
+        else:
+            functionToWrite = np.string0
+
         group_l1 = self.file.create_group(struct_name)
         group_l1.attrs['OCTAVE_GLOBAL'] = np.uint8(1)
         group_l1.attrs['OCTAVE_NEW_FORMAT'] = np.uint8(1)
-        data_l1 = group_l1.create_dataset("type", data=np.string0('scalar struct'), dtype="|S14")
+        data_l1 = group_l1.create_dataset("type", data=functionToWrite('scalar struct'), dtype="|S14")
         group_l2 = group_l1.create_group('value')
         for ftparams in data_dict:
             group_l3 = group_l2.create_group(ftparams)
             group_l3.attrs['OCTAVE_NEW_FORMAT'] = np.uint8(1)
             if type(data_dict[ftparams]) == str:
-                data_l2 = group_l3.create_dataset("type",(), data=np.string0('sq_string'), dtype="|S10")
+                data_l2 = group_l3.create_dataset("type",(), data=functionToWrite('sq_string'), dtype="|S10")
                 if self.octave_targetted_version < 3.8 :
-                    data_l3 = group_l3.create_dataset("value", data=np.string0(data_dict[ftparams]+'0'))
+                    data_l3 = group_l3.create_dataset("value", data=functionToWrite(data_dict[ftparams]+'0'))
                 else :
-                    data_l3 = group_l3.create_dataset("value", data=np.string0(data_dict[ftparams]))
+                    data_l3 = group_l3.create_dataset("value", data=functionToWrite(data_dict[ftparams]))
             else:
-                data_l2 = group_l3.create_dataset("type",(), data=np.string0('scalar'), dtype="|S7")
+                data_l2 = group_l3.create_dataset("type",(), data=functionToWrite('scalar'), dtype="|S7")
                 data_l3 = group_l3.create_dataset("value", data=data_dict[ftparams])
 
     def close(self):
