@@ -116,9 +116,17 @@ class Parameters(qt.QTableWidget):
         self.setRowCount(1)
         self.setColumnCount(1)
         # Default column headers
+        tooltips = None
         if labels is None:
             labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
-                      'Constraints', 'Min/Parame', 'Max/Factor/Delta/']
+                      'Constraints', 'Min/Parame', 'Max/Factor/Delta']
+            tooltips = ["Fit parameter name",
+                        "Estimated value for fit parameter. You can edit this column.",
+                        "Actual value for parameter, after fit",
+                        "Uncertainty (same unit as the parameter)",
+                        "Constraint to be applied to the parameter for fit",
+                        "First parameter for constraint (name of another param or min value)",
+                        "Second parameter for constraint (max value, or factor/delta)"]
 
         self.code_options = ["FREE", "POSITIVE", "QUOTED", "FIXED",
                              "FACTOR", "DELTA", "SUM", "IGNORE", "ADD"]
@@ -134,7 +142,10 @@ class Parameters(qt.QTableWidget):
                 item = qt.QTableWidgetItem(label,
                                            qt.QTableWidgetItem.Type)
                 self.setHorizontalHeaderItem(i, item)
+
             item.setText(label)
+            if tooltips is not None:
+                item.setToolTip(tooltips[i])
 
         self.resizeColumnToContents(0)
         self.resizeColumnToContents(1)
