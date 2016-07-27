@@ -39,7 +39,6 @@ import os.path
 import logging
 logger = logging.getLogger(__name__)
 import numpy as np
-from silx.gui import qt
 
 try:
     import h5py
@@ -58,8 +57,8 @@ class Octaveh5():
     """  
 
     def __init__(self, octave_targetted_version=3.8):
-            self.file = None
-            self.octave_targetted_version = octave_targetted_version
+        self.file = None
+        self.octave_targetted_version = octave_targetted_version
 
     def open(self, h5file, mode='r'):
         """Open the h5 file which has been write by octave"""
@@ -81,6 +80,7 @@ class Octaveh5():
         if self.file == None : 
             info = "No file currently open"
             logger.info(info)
+            return
 
         data_dict= {}
 
@@ -104,6 +104,8 @@ class Octaveh5():
         if self.file == None : 
             info = "No file currently open"
             logger.info(info)
+            return
+
         # write
         group_l1 = self.file.create_group(struct_name)
         group_l1.attrs['OCTAVE_GLOBAL'] = np.uint8(1)
