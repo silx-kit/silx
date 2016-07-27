@@ -80,6 +80,24 @@ THEORY = {
 
 """
 
+old_custom_function_definition = """
+CONFIG = {'d': 4.5}
+
+def myfun(x, a, b, c):
+    "Model function"
+    return (a * x**2 + b * x + c) / CONFIG['d']
+
+def myesti(x, y, bg, yscaling):
+    "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
+    return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
+
+THEORY = ['my fit theory']
+PARAMETERS = [('A', 'B', 'C')]
+FUNCTION = [myfun]
+ESTIMATE = [myesti]
+
+"""
+
 
 class TestFitmanager(unittest.TestCase):
     """
@@ -161,6 +179,49 @@ class TestFitmanager(unittest.TestCase):
         fit.settheory('my fit theory')
         # Test configure
         fit.configure(d=4.5)
+        fit.estimate()
+        fit.startfit()
+
+        self.assertEqual(fit.fit_results[0]["name"],
+                         "A1")
+        self.assertAlmostEqual(fit.fit_results[0]["fitresult"],
+                               1.5)
+        self.assertEqual(fit.fit_results[1]["name"],
+                         "B1")
+        self.assertAlmostEqual(fit.fit_results[1]["fitresult"],
+                               2.5)
+        self.assertEqual(fit.fit_results[2]["name"],
+                         "C1")
+        self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
+                               3.5)
+
+    def testLoadOldCustomFitFunction(self):
+        """Test FitManager using a custom fit function defined in an external
+        file and imported with FitManager.loadtheories (legacy PyMca format)"""
+        # Create synthetic data with a sum of gaussian functions
+        x = numpy.arange(100).astype(numpy.float)
+
+        # a, b, c are the fit parameters
+        # d is a known scaling parameter that is set using configure()
+        a, b, c, d = 1.5, 2.5, 3.5, 4.5
+        y = (a * x**2 + b * x + c) / d
+
+        # Fitting
+        fit = fitmanager.FitManager()
+        fit.setdata(x=x, y=y)
+
+        # Create a temporary function definition file, and import it
+        with temp_dir() as tmpDir:
+            tmpfile = os.path.join(tmpDir, 'oldcustomfun.py')
+            # custom_function_definition
+            fd = open(tmpfile, "w")
+            fd.write(old_custom_function_definition)
+            fd.close()
+            fit.loadtheories(tmpfile)
+            os.unlink(tmpfile)
+
+        fit.settheory('my fit theory')
+        # Test configure
         fit.estimate()
         fit.startfit()
 

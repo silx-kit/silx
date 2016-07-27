@@ -49,6 +49,7 @@ import sys
 
 from .filters import strip
 from .leastsq import leastsq
+from .fittheory import FitTheory
 
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
@@ -599,11 +600,13 @@ class FitManager(object):
         :mod:`silx.math.fit.fittheory` for more
         information on designing your fit functions file.
 
+        This method can also load user defined functions in the legacy
+        format used in *PyMca*.
+
         :param theories: Name of python source file, or module containing the
             definition of fit functions.
         :raise: ImportError if theories cannot be imported
         """
-        # TODO: compatibility with legacy PyMca
         from types import ModuleType
         if isinstance(theories, ModuleType):
             theories_module = theories
@@ -625,12 +628,16 @@ class FitManager(object):
         if hasattr(theories_module, "INIT"):
             theories.INIT()
 
-        if not hasattr(theories_module, "THEORY") or not isinstance(theories_module.THEORY, dict):
+        if not hasattr(theories_module, "THEORY"):
             msg = "File %s does not contain a THEORY dictionary" % theories
             raise ImportError(msg)
 
-        for theory_name, fittheory in list(theories_module.THEORY.items()):
-            self.addtheory(theory_name, fittheory)
+        elif isinstance(theories_module.THEORY, dict):
+            # silx format for theory definition
+            for theory_name, fittheory in list(theories_module.THEORY.items()):
+                self.addtheory(theory_name, fittheory)
+        else:
+            self._load_legacy_theories(theories_module)
 
     def setbackground(self, theory):
         """Choose a background type from within :attr:`bkgdict`.
@@ -998,6 +1005,44 @@ class FitManager(object):
         :return: Array of 0 values of the same shape as ``x``
         """
         return numpy.zeros(x.shape, numpy.float)
+
+    def _load_legacy_theories(self, theories_module):
+        """Load theories from a custom module in the old PyMca format.
+
+        See PyMca5.PyMcaMath.fitting.SpecfitFunctions for an example.
+        """
+        mandatory_attributes = ["THEORY", "PARAMETERS",
+                                "FUNCTION", "ESTIMATE"]
+        err_msg = "Custom fit function file must define: "
+        err_msg += ", ".join(mandatory_attributes)
+        for attr in mandatory_attributes:
+            if not hasattr(theories_module, attr):
+                raise ImportError(err_msg)
+
+        derivative = theories_module.DERIVATIVE if hasattr(theories_module, "DERIVATIVE") else None
+        configure = theories_module.CONFIGURE if hasattr(theories_module, "CONFIGURE") else None
+
+        if isinstance(theories_module.THEORY, (list, tuple)):
+            # multiple fit functions
+            for i in range(len(theories_module.THEORY)):
+                deriv = derivative[i] if derivative is not None else None
+                config = configure[i] if configure is not None else None
+                self.addtheory(theories_module.THEORY[i],
+                               FitTheory(
+                                   theories_module.FUNCTION[i],
+                                   theories_module.PARAMETERS[i],
+                                   theories_module.ESTIMATE[i],  # FIXME: should we handle no ESTIMATE?
+                                   config,
+                                   deriv))
+        else:
+            # single fit function
+            self.addtheory(theories_module.THEORY,
+                           FitTheory(
+                               theories_module.FUNCTION,
+                               theories_module.PARAMETERS,
+                               theories_module.ESTIMATE,
+                               configure,
+                               derivative))
 
     def estimate_builtin_bkg(self, x, y):
         """Compute the initial parameters for the background function before
