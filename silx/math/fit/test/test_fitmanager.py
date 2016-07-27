@@ -38,6 +38,7 @@ from silx.math.fit.functions import sum_gauss, sum_stepdown, sum_stepup
 from silx.testutils import temp_dir
 
 custom_function_definition = """
+import copy
 from silx.math.fit.fittheory import FitTheory
 
 CONFIG = {'d': 1.}
@@ -57,11 +58,11 @@ def myconfig(d=1.):
 
 def myderiv(x, parameters, index):
     "Custom derivative (does not work, causes singular matrix)"
-    pars_plus = parameters
-    pars_plus[index] *= 1.00001
+    pars_plus = copy.copy(parameters)
+    pars_plus[index] *= 1.0001
 
-    pars_minus = parameters[:]
-    pars_minus[index] *= 0.99999
+    pars_minus = parameters
+    pars_minus[index] *= copy.copy(0.9999)
 
     delta_fun = myfun(x, *pars_plus) - myfun(x, *pars_minus)
     delta_par = parameters[index] * 0.0001 * 2
@@ -74,8 +75,7 @@ THEORY = {
                   parameters=('A', 'B', 'C'),
                   estimate=myesti,
                   configure=myconfig,
-                  # FIXME: using myderiv causes LinAlgError: Singular matrix
-                  derivative=None)
+                  derivative=myderiv)
 }
 
 """
@@ -272,12 +272,11 @@ class TestFitmanager(unittest.TestCase):
             return CONFIG
 
         def myderiv(x_, parameters, index):
-            """Custom derivative
-            (does not work, causes singular matrix)"""
-            pars_plus = parameters
+            """Custom derivative"""
+            pars_plus = numpy.array(parameters, copy=True)
             pars_plus[index] *= 1.001
 
-            pars_minus = parameters
+            pars_minus = numpy.array(parameters, copy=True)
             pars_minus[index] *= 0.999
 
             delta_fun = myfun(x_, *pars_plus) - myfun(x_, *pars_minus)
@@ -290,7 +289,7 @@ class TestFitmanager(unittest.TestCase):
                                 parameters=["A", "B", "C"],
                                 estimate=myesti,
                                 configure=myconfig,
-                                derivative=None))    # FIXME
+                                derivative=myderiv))
 
         fit.settheory('polynomial')
         fit.configure(d_=4.5)
