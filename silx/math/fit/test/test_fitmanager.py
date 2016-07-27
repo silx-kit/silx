@@ -346,12 +346,11 @@ class TestFitmanager(unittest.TestCase):
             params, sigmas, infodict = fit.startfit()
 
             # # first 2 parameters are related to the linear background
-            self.assertAlmostEqual(params[0], 13)
-            self.assertAlmostEqual(params[1], 2.65)
+            self.assertAlmostEqual(params[0], 13, places=5)
+            self.assertAlmostEqual(params[1], 2.65, places=5)
 
             for i, param in enumerate(params[2:]):
-                self.assertAlmostEqual(param,
-                                       p[i])
+                self.assertAlmostEqual(param, p[i], places=5)
 
 
 test_cases = (TestFitmanager,)
