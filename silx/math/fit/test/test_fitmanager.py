@@ -27,14 +27,13 @@ Tests for fitmanager module
 
 import unittest
 import numpy
-import sys
 import os
 import os.path
 
 from silx.math.fit import fitmanager
 from silx.math.fit import fittheories
 from silx.math.fit.fittheory import FitTheory
-from silx.math.fit.functions import sum_gauss
+from silx.math.fit.functions import sum_gauss, sum_stepdown, sum_stepup
 
 from silx.testutils import temp_dir
 
@@ -260,6 +259,39 @@ class TestFitmanager(unittest.TestCase):
             self.assertFalse(numpy.array_equal(p1, p2),
                              "Fit parameters are equal even though the " +
                              "configuration has been changed")
+
+    def testStep(self):
+        """Test fit manager on a step function with a more complex estimate
+        function than the gaussian (convolution filter)"""
+        for theory_name, theory_fun in (('Step Down', sum_stepdown),
+                                        ('Step Up', sum_stepup)):
+            # Create synthetic data with a sum of gaussian functions
+            x = numpy.arange(1000).astype(numpy.float)
+
+            # ('Height', 'Position', 'FWHM')
+            p = [1000, 439, 250]
+
+            linear_bg = 2.65 * x + 13
+            y = theory_fun(x, *p) + linear_bg
+
+            # Fitting
+            fit = fitmanager.FitManager()
+            fit.setdata(x=x, y=y)
+            fit.loadtheories(fittheories)
+            # Use one of the default fit functions
+            fit.settheory(theory_name)
+            fit.setbackground('Linear')
+            fit.estimate()
+
+            params, sigmas, infodict = fit.startfit()
+
+            # # first 2 parameters are related to the linear background
+            self.assertAlmostEqual(params[0], 13)
+            self.assertAlmostEqual(params[1], 2.65)
+
+            for i, param in enumerate(params[2:]):
+                self.assertAlmostEqual(param,
+                                       p[i])
 
 
 test_cases = (TestFitmanager,)

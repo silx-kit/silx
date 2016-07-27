@@ -819,23 +819,28 @@ class FitTheories(object):
 
         :param x: Array of abscissa values
         :param y: Array of ordinate values (``y = f(x)``)
-        :param bg: If not ``None``, background signal to be subtracted from
-            ``y`` before fitting gaussian functions to peaks.
+        :param bg: Background signal.
         :param yscaling: Scaling factor applied to ``y`` data when searching
             for peaks
         :return: Tuple of estimated fit parameters and fit newconstraints.
             Parameters to be estimated for each stepdown are:
             *height, centroid, fwhm* .
         """
+        if bg is not None:
+            y_no_bg = y - bg
+        else:
+            y_no_bg = y
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
         cutoff = len(crappyfilter) // 2
-        yy = numpy.convolve(y, crappyfilter, mode=1)
-        if max(yy) > 0:
-            yy = yy * max(y) / max(yy)
-        fittedpar, newcons = self.estimate_agauss(x[cutoff:-cutoff],
-                                                  yy[cutoff:-cutoff],
-                                                  bg[cutoff:-cutoff],
-                                                  yscaling)
+        y_deriv = numpy.convolve(y_no_bg, crappyfilter, mode=1)[cutoff:-cutoff]
+
+        # make the derivative's peak have the same amplitude as the step
+        if max(y_deriv) > 0:
+            y_deriv = y_deriv * max(y_no_bg) / max(y_deriv)
+
+        fittedpar, newcons = self.estimate_height_position_fwhm(
+                                 x[cutoff:-cutoff], y_deriv,
+                                 None, yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -891,9 +896,9 @@ class FitTheories(object):
             *height, position, fwhm, beamfwhm* .
         """
         largestup, cons = self.estimate_stepup(
-            x, y, bg, yscaling)
+            x, y, None, yscaling)
         largestdown, cons = self.estimate_stepdown(
-            x, y, bg, yscaling)
+            x, y, None, yscaling)
         fwhm = numpy.fabs(largestdown[1] - largestup[1])
         beamfwhm = 0.5 * (largestup[2] + largestdown[1])
         beamfwhm = min(beamfwhm, fwhm / 10.0)
@@ -952,11 +957,18 @@ class FitTheories(object):
             Parameters to be estimated for each stepup are:
             *height, centroid, fwhm* .
         """
+        if bg is not None:
+            y_no_bg = y - bg
+        else:
+            y_no_bg = y
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
-        yy = numpy.convolve(y, crappyfilter, mode=1)[2:-2]
-        if max(yy) > 0:
-            yy = yy * max(y) / max(yy)
-        fittedpar, cons = self.estimate_agauss(x[2:-2], yy, bg[2:-2], yscaling)
+        cutoff = len(crappyfilter) // 2
+        y_deriv = numpy.convolve(y_no_bg, crappyfilter, mode=1)[cutoff:-cutoff]
+        if max(y_deriv) > 0:
+            y_deriv = y_deriv * max(y_no_bg) / max(y_deriv)
+        fittedpar, cons = self.estimate_height_position_fwhm(
+                              x[cutoff:-cutoff], y_deriv,
+                              None, yscaling)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -969,7 +981,7 @@ class FitTheories(object):
                 largest = [fittedpar[3 * largest_index],
                            fittedpar[3 * largest_index + 1],
                            fittedpar[3 * largest_index + 2]]
-        largest[0] = max(y) - min(y)
+        largest[0] = max(y_no_bg) - min(y_no_bg)
         # Setup constrains
         if not self.config['NoConstraintsFlag']:
                 # Setup height constraints
@@ -1135,98 +1147,98 @@ fitfuns = FitTheories()
 
 THEORY = OrderedDict((
     ('Gaussians',
-          FitTheory(description='Gaussian functions',
-                    function=functions.sum_gauss,
-                    parameters=('Height', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_height_position_fwhm,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Gaussian functions',
+                  function=functions.sum_gauss,
+                  parameters=('Height', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_height_position_fwhm,
+                  configure=fitfuns.configure)),
     ('Lorentz',
-          FitTheory(description='Lorentzian functions',
-                    function=functions.sum_lorentz,
-                    parameters=('Height', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_height_position_fwhm,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Lorentzian functions',
+                  function=functions.sum_lorentz,
+                  parameters=('Height', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_height_position_fwhm,
+                  configure=fitfuns.configure)),
     ('Area Gaussians',
-          FitTheory(description='Gaussian functions (area)',
-                    function=functions.sum_agauss,
-                    parameters=('Area', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_agauss,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Gaussian functions (area)',
+                  function=functions.sum_agauss,
+                  parameters=('Area', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_agauss,
+                  configure=fitfuns.configure)),
     ('Area Lorentz',
-          FitTheory(description='Lorentzian functions (area)',
-                    function=functions.sum_alorentz,
-                    parameters=('Area', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_alorentz,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Lorentzian functions (area)',
+                  function=functions.sum_alorentz,
+                  parameters=('Area', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_alorentz,
+                  configure=fitfuns.configure)),
     ('Pseudo-Voigt Line',
-          FitTheory(description='Pseudo-Voigt functions',
-                    function=functions.sum_pvoigt,
-                    parameters=('Height', 'Position', 'FWHM', 'Eta'),
-                    estimate=fitfuns.estimate_pvoigt,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Pseudo-Voigt functions',
+                  function=functions.sum_pvoigt,
+                  parameters=('Height', 'Position', 'FWHM', 'Eta'),
+                  estimate=fitfuns.estimate_pvoigt,
+                  configure=fitfuns.configure)),
     ('Area Pseudo-Voigt',
-          FitTheory(description='Pseudo-Voigt functions (area)',
-                    function=functions.sum_apvoigt,
-                    parameters=('Area', 'Position', 'FWHM', 'Eta'),
-                    estimate=fitfuns.estimate_apvoigt,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Pseudo-Voigt functions (area)',
+                  function=functions.sum_apvoigt,
+                  parameters=('Area', 'Position', 'FWHM', 'Eta'),
+                  estimate=fitfuns.estimate_apvoigt,
+                  configure=fitfuns.configure)),
     ('Split Gaussian',
-          FitTheory(description='Split gaussian functions',
-                    function=functions.sum_splitgauss,
-                    parameters=('Height', 'Position', 'LowFWHM',
-                                'HighFWHM'),
-                    estimate=fitfuns.estimate_splitgauss,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Split gaussian functions',
+                  function=functions.sum_splitgauss,
+                  parameters=('Height', 'Position', 'LowFWHM',
+                              'HighFWHM'),
+                  estimate=fitfuns.estimate_splitgauss,
+                  configure=fitfuns.configure)),
     ('Split Lorentz',
-          FitTheory(description='Split lorentzian functions',
-                    function=functions.sum_splitlorentz,
-                    parameters=('Height', 'Position', 'LowFWHM', 'HighFWHM'),
-                    estimate=fitfuns.estimate_splitgauss,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Split lorentzian functions',
+                  function=functions.sum_splitlorentz,
+                  parameters=('Height', 'Position', 'LowFWHM', 'HighFWHM'),
+                  estimate=fitfuns.estimate_splitgauss,
+                  configure=fitfuns.configure)),
     ('Split Pseudo-Voigt',
-          FitTheory(description='Split pseudo-Voigt functions',
-                    function=functions.sum_splitpvoigt,
-                    parameters=('Height', 'Position', 'LowFWHM',
-                                'HighFWHM', 'Eta'),
-                    estimate=fitfuns.estimate_splitpvoigt,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Split pseudo-Voigt functions',
+                  function=functions.sum_splitpvoigt,
+                  parameters=('Height', 'Position', 'LowFWHM',
+                              'HighFWHM', 'Eta'),
+                  estimate=fitfuns.estimate_splitpvoigt,
+                  configure=fitfuns.configure)),
     ('Step Down',
-          FitTheory(description='Step down function',
-                    function=functions.sum_stepdown,
-                    parameters=('Height', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_stepdown,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Step down function',
+                  function=functions.sum_stepdown,
+                  parameters=('Height', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_stepdown,
+                  configure=fitfuns.configure)),
     ('Step Up',
-          FitTheory(description='Step up function',
-                    function=functions.sum_stepup,
-                    parameters=('Height', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_stepup,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Step up function',
+                  function=functions.sum_stepup,
+                  parameters=('Height', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_stepup,
+                  configure=fitfuns.configure)),
     ('Slit',
-          FitTheory(description='Slit function',
-                    function=functions.sum_slit,
-                    parameters=('Height', 'Position', 'FWHM', 'BeamFWHM'),
-                    estimate=fitfuns.estimate_slit,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Slit function',
+                  function=functions.sum_slit,
+                  parameters=('Height', 'Position', 'FWHM', 'BeamFWHM'),
+                  estimate=fitfuns.estimate_slit,
+                  configure=fitfuns.configure)),
     ('Atan',
-          FitTheory(description='Arctan step up function',
-                    function=functions.atan_stepup,
-                    parameters=('Height', 'Position', 'Width'),
-                    estimate=fitfuns.estimate_stepup,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Arctan step up function',
+                  function=functions.atan_stepup,
+                  parameters=('Height', 'Position', 'Width'),
+                  estimate=fitfuns.estimate_stepup,
+                  configure=fitfuns.configure)),
     ('Hypermet',
-          FitTheory(description='Hypermet functions',
-                    function=fitfuns.ahypermet,     # customized version of functions.sum_ahypermet
-                    parameters=('G_Area', 'Position', 'FWHM', 'ST_Area',
-                                'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
-                    estimate=fitfuns.estimate_ahypermet,
-                    configure=fitfuns.configure)),
+        FitTheory(description='Hypermet functions',
+                  function=fitfuns.ahypermet,     # customized version of functions.sum_ahypermet
+                  parameters=('G_Area', 'Position', 'FWHM', 'ST_Area',
+                              'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
+                  estimate=fitfuns.estimate_ahypermet,
+                  configure=fitfuns.configure)),
     ('Periodic Gaussians',
-          FitTheory(description='Periodic gaussian functions',
-                    function=functions.periodic_gauss,
-                    parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
-                    estimate=fitfuns.estimate_periodic_gauss,
-                    configure=fitfuns.configure))
+        FitTheory(description='Periodic gaussian functions',
+                  function=functions.periodic_gauss,
+                  parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
+                  estimate=fitfuns.estimate_periodic_gauss,
+                  configure=fitfuns.configure))
 ))
 """Dictionary of fit theories: fit functions and their associated estimation
 function, parameters list, configuration function and description.
