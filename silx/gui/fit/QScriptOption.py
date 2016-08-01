@@ -320,8 +320,9 @@ class FieldSheet(qt.QWidget):
         self.nbfield = 1
         for field in fields:
             fieldtype = field[0]
-            key = field[1] if len(field) == 3 else None
-            text = field[-1]
+            key = field[1] if len(field) >= 3 else None
+            text = field[2] if len(field) >= 3 else field[1]
+            tooltip = field[3] if len(field) == 4 else None
 
             myfield = None
             if fieldtype == "Label":
@@ -336,6 +337,9 @@ class FieldSheet(qt.QWidget):
             if myfield is not None:
                 self.fields.append(myfield)
                 layout.addWidget(myfield)
+                if tooltip is not None:
+                    myfield.setToolTip(tooltip)
+
 
     def get(self):
         """Return an agglomerated dictionary with all values stored in all the

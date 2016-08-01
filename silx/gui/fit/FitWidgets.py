@@ -146,12 +146,13 @@ class FitConfigWidget(qt.QWidget):
 
       - select a fitting function through :attr:`FunComBox`
       - select a background function through :attr:`BkgComBox`
-      - enable auto-scaling through :attr:`AutoScalingCheckBox`
       - enable automatic estimation of peaks' full-width at half maximum
         through :attr:`AutoFWHMCheckBox`
       - open a dialog for modifying advanced parameters through
         :attr:`ConfigureButton`
     """
+    # recently removed feature:
+    #   - enable auto-scaling through :attr:`AutoScalingCheckBox`
 
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -223,13 +224,17 @@ class FitConfigWidget(qt.QWidget):
 
         self.AutoFWHMCheckBox = qt.QCheckBox(self)
         self.AutoFWHMCheckBox.setText("Auto FWHM")
+        self.AutoFWHMCheckBox.setToolTip(
+                "Ignore configuration parameter Fwhm Points, compute value" +
+                " from data."
+        )
 
         layout6_2.addWidget(self.AutoFWHMCheckBox, 0, 0)
 
-        self.AutoScalingCheckBox = qt.QCheckBox(self)
-        self.AutoScalingCheckBox.setText("Auto Scaling")
-
-        layout6_2.addWidget(self.AutoScalingCheckBox, 1, 0)
+        # self.AutoScalingCheckBox = qt.QCheckBox(self)
+        # self.AutoScalingCheckBox.setText("Auto Scaling")
+        #
+        # layout6_2.addWidget(self.AutoScalingCheckBox, 1, 0)
         layout9.addLayout(layout6_2)
         spacer_2 = qt.QSpacerItem(20, 20, qt.QSizePolicy.Expanding,
                                   qt.QSizePolicy.Minimum)

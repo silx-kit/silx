@@ -115,8 +115,8 @@ class FitWidget(qt.QWidget):
             #     int].connect(self.weightevent)
             self.guiconfig.AutoFWHMCheckBox.stateChanged[
                 int].connect(self.autofwhmevent)
-            self.guiconfig.AutoScalingCheckBox.stateChanged[
-                int].connect(self.autoscaleevent)
+            # self.guiconfig.AutoScalingCheckBox.stateChanged[
+            #     int].connect(self.autoscaleevent)
             self.guiconfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
             self.guiconfig.BkgComBox.activated[str].connect(self.bkgevent)
@@ -127,7 +127,7 @@ class FitWidget(qt.QWidget):
                 self.guiconfig.BkgComBox.addItem(theory_name)
                 self.guiconfig.BkgComBox.setItemData(
                     self.guiconfig.BkgComBox.findText(theory_name),
-                    self.fitmanager.bgtheories[theory_name]["description"],
+                    self.fitmanager.bgtheories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
             for theory_name in self.fitmanager.theories:
@@ -142,17 +142,17 @@ class FitWidget(qt.QWidget):
                 #    - activate selected fit theory (if any)
                 #    - activate selected bg theory (if any)
                 configuration = fitinstance.configure()
-                if configuration['fittheory'] is None:
+                if fitinstance.selectedtheory is None:
                     # take the first one by default
                     self.guiconfig.FunComBox.setCurrentIndex(1)
                     self.funevent(self.fitmanager.theories.keys[0])
                 else:
-                    self.funevent(configuration['fittheory'])
-                if configuration['fitbkg'] is None:
+                    self.funevent(fitinstance.selectedtheory)
+                if fitinstance.selectedbg is None:
                     self.guiconfig.BkgComBox.setCurrentIndex(1)
                     self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
                 else:
-                    self.bkgevent(configuration['fitbkg'])
+                    self.bkgevent(fitinstance.selectedbg)
             else:
                 # Default FitManager and fittheories used:
                 #    - activate first fit theory (gauss)
@@ -179,10 +179,10 @@ class FitWidget(qt.QWidget):
             else:
                 self.guiconfig.AutoFWHMCheckBox.setChecked(0)
 
-            if configuration['AutoScaling']:
-                self.guiconfig.AutoScalingCheckBox.setChecked(1)
-            else:
-                self.guiconfig.AutoScalingCheckBox.setChecked(0)
+            # if configuration['AutoScaling']:
+            #     self.guiconfig.AutoScalingCheckBox.setChecked(1)
+            # else:
+            #     self.guiconfig.AutoScalingCheckBox.setChecked(0)
 
         layout.addWidget(self.guiparameters)
 
@@ -265,21 +265,21 @@ class FitWidget(qt.QWidget):
         try:
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
-                    self.fitmanager.fitconfig['fittheory'])
+                    self.fitmanager.selectedtheory)
             self.guiconfig.FunComBox.setCurrentIndex(i)
-            self.funevent(self.fitmanager.fitconfig['fittheory'])
+            self.funevent(self.fitmanager.selectedtheory)
         except ValueError:
             _logger.error("Function not in list %s",
-                          self.fitmanager.fitconfig['fittheory'])
+                          self.fitmanager.selectedtheory)
             self.funevent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
             i = 1 + list(self.fitmanager.bgtheories.keys()
-                         ).index(self.fitmanager.fitconfig['fitbkg'])
+                         ).index(self.fitmanager.selectedbg)
             self.guiconfig.BkgComBox.setCurrentIndex(i)
         except ValueError:
             _logger.error("Background not in list %s",
-                          self.fitmanager.fitconfig['fitbkg'])
+                          self.fitmanager.selectedbg)
             self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
 
         # and all the rest
@@ -298,10 +298,10 @@ class FitWidget(qt.QWidget):
         else:
             self.guiconfig.AutoFWHMCheckBox.setChecked(0)
 
-        if configuration['AutoScaling']:
-            self.guiconfig.AutoScalingCheckBox.setChecked(1)
-        else:
-            self.guiconfig.AutoScalingCheckBox.setChecked(0)
+        # if configuration['AutoScaling']:
+        #     self.guiconfig.AutoScalingCheckBox.setChecked(1)
+        # else:
+        #     self.guiconfig.AutoScalingCheckBox.setChecked(0)
         # update the Gui
         self.__initialparameters()
 
@@ -326,7 +326,6 @@ class FitWidget(qt.QWidget):
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
-        # example script options like
         sheet1 = {'notetitle': 'Restrains',
                   'fields': (["CheckField", 'PositiveHeightAreaFlag',
                               'Force positive Height/Area'],
@@ -340,10 +339,16 @@ class FitWidget(qt.QWidget):
                              ["CheckField", 'NoConstraintsFlag', 'Ignore Restrains'])}
 
         sheet2 = {'notetitle': 'Search',
-                  'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: '],
-                             ["EntryField", 'Sensitivity', 'Sensitivity: '],
+                  'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: ',
+                              "Number of data points for fwhm (used by peak " +
+                              "detection algorithm"],
+                             ["EntryField", 'Sensitivity', 'Sensitivity: ',
+                              "Sensitivity parameter for the peak detection algorithm"],
                              ["EntryField", 'Yscaling',   'Y Factor   : '],
-                             ["CheckField", 'ForcePeakPresence',   'Force peak presence '])}
+                             ["CheckField", 'ForcePeakPresence', 'Force peak presence',
+                              "In case no peak is detected by the peak-search" +
+                              " algorithm, put one peak at the max data location."]
+                             )}
         w = QScriptOption(self, name='Fit Configuration',
                           sheets=(sheet1, sheet2),
                           default=oldconfiguration)
@@ -371,7 +376,7 @@ class FitWidget(qt.QWidget):
         :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
         """
         try:
-            theory_name = self.fitmanager.fitconfig['fittheory']
+            theory_name = self.fitmanager.selectedtheory
             estimation_function = self.fitmanager.theories[theory_name].estimate
             if estimation_function is not None:
                 self.fitmanager.estimate(callback=self.fitstatus)
@@ -437,12 +442,12 @@ class FitWidget(qt.QWidget):
         else:
             self.configure(AutoFwhm=False)
 
-    def autoscaleevent(self, item):
-        """Set :attr:`fitmanager"fitconfig['AutoScaling']`"""
-        if int(item):
-            self.configure(AutoScaling=True)
-        else:
-            self.configure(AutoScaling=False)
+    # def autoscaleevent(self, item):
+    #     """Set :attr:`fitmanager"fitconfig['AutoScaling']`"""
+    #     if int(item):
+    #         self.configure(AutoScaling=True)
+    #     else:
+    #         self.configure(AutoScaling=False)
 
     def bkgevent(self, bgtheory):
         """Select background theory, then reinitialize parameters"""
@@ -493,7 +498,7 @@ class FitWidget(qt.QWidget):
 
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
-                    self.fitmanager.fitconfig['fittheory'])
+                    self.fitmanager.selectedtheory)
             self.guiconfig.FunComBox.setCurrentIndex(i)
         self.__initialparameters()
 
@@ -505,7 +510,7 @@ class FitWidget(qt.QWidget):
         in :attr:`guiparameters`"""
         self.fitmanager.parameter_names = []
         self.fitmanager.fit_results = []
-        for pname in self.fitmanager.bgtheories[self.fitmanager.fitconfig['fitbkg']]["parameters"]:
+        for pname in self.fitmanager.bgtheories[self.fitmanager.selectedbg].parameters:
             self.fitmanager.parameter_names.append(pname)
             self.fitmanager.fit_results.append({'name': pname,
                                            'estimation': 0,
@@ -517,8 +522,8 @@ class FitWidget(qt.QWidget):
                                            'sigma': 0.0,
                                            'xmin': None,
                                            'xmax': None})
-        if self.fitmanager.fitconfig['fittheory'] is not None:
-            theory = self.fitmanager.fitconfig['fittheory']
+        if self.fitmanager.selectedtheory is not None:
+            theory = self.fitmanager.selectedtheory
             for pname in self.fitmanager.theories[theory].parameters:
                 self.fitmanager.parameter_names.append(pname + "1")
                 self.fitmanager.fit_results.append({'name': pname + "1",

@@ -161,7 +161,7 @@ class FitManager(object):
                                  estimate=self.estimate_builtin_bkg)),
              ('Internal', FitTheory(
                                  description="Background based on strip filter\n" +
-                                                "Parameters 'Curvature', 'Iterations' and 'Constant'",
+                                             "Parameters 'Curvature', 'Iterations' and 'Constant'",
                                  function=self.bkg_internal,
                                  parameters=['Curvature', 'Iterations', 'Constant'],
                                  estimate=self.estimate_builtin_bkg))))
