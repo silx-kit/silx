@@ -1228,13 +1228,13 @@ def test(a):
     fit.setbackground('Linear')
 
     fit.estimate()
-    fit.startfit()
+    fit.runfit()
 
     y_fit = fit.gendata()
 
     print("Fit parameter names: %s" % str(fit.get_names()))
     print("Theoretical parameters: %s" % str(numpy.append([1, 0],  p)))
-    print("Fitted parameters: %s" % str(fit.get_fit_result()))
+    print("Fitted parameters: %s" % str(fit.get_fitted_parameters()))
 
     try:
         from silx.gui import qt

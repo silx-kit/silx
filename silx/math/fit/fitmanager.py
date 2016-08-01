@@ -210,7 +210,7 @@ class FitManager(object):
         self.fit_results = []
         """This list stores detailed information about all fit parameters.
         It is initialized in :meth:`estimate` and completed with final fit
-        values in :meth:`startfit`.
+        values in :meth:`runfit`.
 
         Each fit parameter is stored as a dictionary with following fields:
 
@@ -342,7 +342,7 @@ class FitManager(object):
         plot).
 
         It is called at the beginning of :meth:`estimate` and
-        :meth:`startfit`.
+        :meth:`runfit`.
 
         By default, it does nothing.
         """
@@ -359,7 +359,7 @@ class FitManager(object):
 
         This process determines the number of needed fit parameters and
         provides an initial estimation for them, to serve as an input for the
-        actual iterative fitting performed in :meth:`startfit`.
+        actual iterative fitting performed in :meth:`runfit`.
 
         :param callback: Optional callback function, conforming to the
             signature ``callback(data)`` with ``data`` being a dictionary.
@@ -464,6 +464,13 @@ class FitManager(object):
                            'status': self.state})
         return numpy.append(bg_params, fun_params)
 
+    def fit(self):
+        """Convenience method to call :meth:`estimate` followed by :meth:`runfit`.
+
+        :return: Output of :meth:`runfit`"""
+        self.estimate()
+        return self.runfit()
+
     def gendata(self, x=None, paramlist=None):
         """Return a data array using the currently selected fit function
         and the fitted parameters.
@@ -507,10 +514,10 @@ class FitManager(object):
             _logger.warning(msg)
         return [param["name"] for param in self.fit_results]
 
-    def get_fit_result(self):
-        """Return the list of fit parameter results."""
+    def get_fitted_parameters(self):
+        """Return the list of fitted parameters."""
         if self.state not in ["Ready"]:
-            msg = "get_fit_result() called before startfit() completed, "
+            msg = "get_fitted_parameters() called before runfit() completed, "
             msg += "results are not available a this stage"
             _logger.warning(msg)
         return [param["fitresult"] for param in self.fit_results]
@@ -667,7 +674,7 @@ class FitManager(object):
             msg += "Available theories: %s\n" % self.theories.keys()
             raise KeyError(msg)
 
-    def startfit(self, callback=None):
+    def runfit(self, callback=None):
         """Run the actual fitting and fill :attr:`fit_results` with fit results.
 
         Before running this method, :attr:`fit_results` must already be
@@ -682,7 +689,11 @@ class FitManager(object):
             and :attr:`chisq`.
             This is used for instance in :mod:`silx.gui.fit.FitWidget` to
             update a widget displaying a status message.
-        :return: Fitted parameters
+        :return: Tuple ``(fitted parameters, uncertainties, infodict)``.
+            *infodict* is the dictionary returned by
+            :func:`silx.math.fit.leastsq` when called with option
+            ``full_output=True``. Uncertainties is a sequence of uncertainty
+            values associated with each fitted parameter.
         """
         self.dataupdate()
 
@@ -1102,7 +1113,7 @@ def test():
     fit.settheory('gauss')
     fit.setbackground('Linear')
     fit.estimate()
-    fit.startfit()
+    fit.runfit()
 
     print("Searched parameters = ", p)
     print("Obtained parameters : ")

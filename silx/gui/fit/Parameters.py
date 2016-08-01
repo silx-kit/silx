@@ -846,7 +846,7 @@ def main(args):
                   HypermetTails=1)
     fit.setbackground('Linear')
     fit.estimate()
-    fit.startfit()
+    fit.runfit()
     tab.fillfromfit(fit.fit_results)
     tab.show()
     app.exec_()

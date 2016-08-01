@@ -413,7 +413,7 @@ class FitWidget(qt.QWidget):
         """
         self.fitmanager.fit_results = self.guiparameters.getfitresults()
         try:
-            self.fitmanager.startfit(callback=self.fitstatus)
+            self.fitmanager.runfit(callback=self.fitstatus)
         except:  # noqa (we want to catch and report all errors)
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)

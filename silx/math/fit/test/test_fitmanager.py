@@ -129,7 +129,7 @@ class TestFitmanager(unittest.TestCase):
         fit.settheory('Gaussians')
         fit.setbackground('Linear')
         fit.estimate()
-        fit.startfit()
+        fit.runfit()
 
         # first 2 parameters are related to the linear background
         self.assertEqual(fit.fit_results[0]["name"], "Constant")
@@ -180,7 +180,7 @@ class TestFitmanager(unittest.TestCase):
         # Test configure
         fit.configure(d=4.5)
         fit.estimate()
-        fit.startfit()
+        fit.runfit()
 
         self.assertEqual(fit.fit_results[0]["name"],
                          "A1")
@@ -223,7 +223,7 @@ class TestFitmanager(unittest.TestCase):
         fit.settheory('my fit theory')
         # Test configure
         fit.estimate()
-        fit.startfit()
+        fit.runfit()
 
         self.assertEqual(fit.fit_results[0]["name"],
                          "A1")
@@ -294,7 +294,7 @@ class TestFitmanager(unittest.TestCase):
         fit.settheory('polynomial')
         fit.configure(d_=4.5)
         fit.estimate()
-        params1, sigmas, infodict = fit.startfit()
+        params1, sigmas, infodict = fit.runfit()
 
         self.assertEqual(fit.fit_results[0]["name"],
                          "A1")
@@ -314,7 +314,7 @@ class TestFitmanager(unittest.TestCase):
         # different values
         fit.configure(d_=5.)
         fit.estimate()
-        params2, sigmas, infodict = fit.startfit()
+        params2, sigmas, infodict = fit.runfit()
         for p1, p2 in zip(params1, params2):
             self.assertFalse(numpy.array_equal(p1, p2),
                              "Fit parameters are equal even though the " +
@@ -343,7 +343,7 @@ class TestFitmanager(unittest.TestCase):
             fit.setbackground('Linear')
             fit.estimate()
 
-            params, sigmas, infodict = fit.startfit()
+            params, sigmas, infodict = fit.runfit()
 
             # # first 2 parameters are related to the linear background
             self.assertAlmostEqual(params[0], 13, places=5)

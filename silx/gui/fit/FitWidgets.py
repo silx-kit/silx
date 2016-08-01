@@ -47,11 +47,11 @@ class FitActionsButtons(qt.QWidget):
 
     You will typically need to access these attributes to connect the buttons
     to actions. For instance, if you have 3 functions ``estimate``,
-    ``startfit`` and  ``dismiss``, you can connect them like this::
+    ``runfit`` and  ``dismiss``, you can connect them like this::
 
         >>> fit_actions_buttons = FitActionsButtons()
         >>> fit_actions_buttons.EstimateButton.clicked.connect(estimate)
-        >>> fit_actions_buttons.StartfitButton.clicked.connect(startfit)
+        >>> fit_actions_buttons.StartfitButton.clicked.connect(runfit)
         >>> fit_actions_buttons.DismissButton.clicked.connect(dismiss)
 
     """
@@ -470,7 +470,7 @@ class ParametersTab(qt.QTabWidget):
 
         # Fit
         fit.estimate()
-        fit.startfit()
+        fit.runfit()
 
         # Show first fit result in a tab in our widget
         w = ParametersTab()
@@ -493,7 +493,7 @@ class ParametersTab(qt.QTabWidget):
 
         # Fit
         fit.estimate()
-        fit.startfit()
+        fit.runfit()
 
         # Show first fit result in another tab in our widget
         w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
@@ -773,7 +773,7 @@ def test():
 
     # Fit
     fit.estimate()
-    fit.startfit()
+    fit.runfit()
 
     w = ParametersTab()
     w.show()
@@ -794,7 +794,7 @@ def test():
 
     # Fit
     fit.estimate()
-    fit.startfit()
+    fit.runfit()
 
     w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
 
