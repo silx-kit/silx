@@ -1128,15 +1128,18 @@ def test():
     p1 = dummy_list[2:]
     y2 = slope * x + constant + sum_gauss(x, *p1)
 
-    from silx.gui import qt
-    from silx.gui.plot.PlotWindow import PlotWindow
-    app = qt.QApplication([])
-    pw = PlotWindow(control=True)
-    pw.addCurve(x, y, "Original")
-    pw.addCurve(x, y2, "Fit result")
-    pw.legendsDockWidget.show()
-    pw.show()
-    app.exec_()
+    try:
+        from silx.gui import qt
+        from silx.gui.plot.PlotWindow import PlotWindow
+        app = qt.QApplication([])
+        pw = PlotWindow(control=True)
+        pw.addCurve(x, y, "Original")
+        pw.addCurve(x, y2, "Fit result")
+        pw.legendsDockWidget.show()
+        pw.show()
+        app.exec_()
+    except ImportError:
+        _logger.warning("Could not import qt to display fit result as curve")
 
 
 if __name__ == "__main__":
