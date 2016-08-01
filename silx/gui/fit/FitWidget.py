@@ -104,6 +104,10 @@ class FitWidget(qt.QWidget):
         # self.guiparameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
+            # todo:
+            #     - separate theory selection from config
+            #     - replace config with FitTheory.configWidget (if provided)
+
             self.guiconfig = FitConfigWidget(self)
 
             # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
@@ -119,11 +123,11 @@ class FitWidget(qt.QWidget):
             self.guiconfig.FunComBox.activated[str].connect(self.funevent)
             layout.addWidget(self.guiconfig)
 
-            for theory_name in self.fitmanager.bkgdict:
+            for theory_name in self.fitmanager.bgtheories:
                 self.guiconfig.BkgComBox.addItem(theory_name)
                 self.guiconfig.BkgComBox.setItemData(
                     self.guiconfig.BkgComBox.findText(theory_name),
-                    self.fitmanager.bkgdict[theory_name]["description"],
+                    self.fitmanager.bgtheories[theory_name]["description"],
                     qt.Qt.ToolTipRole)
 
             for theory_name in self.fitmanager.theories:
@@ -146,7 +150,7 @@ class FitWidget(qt.QWidget):
                     self.funevent(configuration['fittheory'])
                 if configuration['fitbkg'] is None:
                     self.guiconfig.BkgComBox.setCurrentIndex(1)
-                    self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
+                    self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
                 else:
                     self.bkgevent(configuration['fitbkg'])
             else:
@@ -157,7 +161,7 @@ class FitWidget(qt.QWidget):
                 self.guiconfig.BkgComBox.setCurrentIndex(0)
                 self.guiconfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
                 self.funevent(list(self.fitmanager.theories.keys())[0])
-                self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
+                self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
             configuration.update(self.configure())
 
             # if configuration['McaMode']:
@@ -270,13 +274,13 @@ class FitWidget(qt.QWidget):
             self.funevent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
-            i = 1 + list(self.fitmanager.bkgdict.keys()
+            i = 1 + list(self.fitmanager.bgtheories.keys()
                          ).index(self.fitmanager.fitconfig['fitbkg'])
             self.guiconfig.BkgComBox.setCurrentIndex(i)
         except ValueError:
             _logger.error("Background not in list %s",
                           self.fitmanager.fitconfig['fitbkg'])
-            self.bkgevent(list(self.fitmanager.bkgdict.keys())[0])
+            self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
 
         # and all the rest
         # if configuration['McaMode']:
@@ -443,13 +447,13 @@ class FitWidget(qt.QWidget):
     def bkgevent(self, bgtheory):
         """Select background theory, then reinitialize parameters"""
         bgtheory = str(bgtheory)
-        if bgtheory in self.fitmanager.bkgdict:
+        if bgtheory in self.fitmanager.bgtheories:
             self.fitmanager.setbackground(bgtheory)
         else:
             qt.QMessageBox.information(
                 self, "Info",
                 "%s is not a known background theory. Known " % bgtheory +
-                "theories are: " + ", ".join(self.fitmanager.bkgdict)
+                "theories are: " + ", ".join(self.fitmanager.bgtheories)
             )
             return
         self.__initialparameters()
@@ -501,7 +505,7 @@ class FitWidget(qt.QWidget):
         in :attr:`guiparameters`"""
         self.fitmanager.parameter_names = []
         self.fitmanager.fit_results = []
-        for pname in self.fitmanager.bkgdict[self.fitmanager.fitconfig['fitbkg']]["parameters"]:
+        for pname in self.fitmanager.bgtheories[self.fitmanager.fitconfig['fitbkg']]["parameters"]:
             self.fitmanager.parameter_names.append(pname)
             self.fitmanager.fit_results.append({'name': pname,
                                            'estimation': 0,

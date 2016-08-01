@@ -178,7 +178,7 @@ class FitTheories(object):
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
 
-    def user_estimate(self, x, y, z, yscaling=1.0):
+    def user_estimate(self, x, y, z):
         """Interactive estimation function for gaussian parameters.
         The user is prompted for the number of peaks and for his estimation
         of *Height, Position, FWHM* for each gaussian peak in the data.
@@ -203,8 +203,7 @@ class FitTheories(object):
             newpar.append(input('FWHM     = '))
         return newpar, numpy.zeros((len(newpar), 3), numpy.float)
 
-    def estimate_height_position_fwhm(self, x, y, bg=None,
-                                      yscaling=None):
+    def estimate_height_position_fwhm(self, x, y, bg=None):
         """Estimation of *Height, Position, FWHM* of peaks, for gaussian-like
         curves.
 
@@ -216,15 +215,12 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Height, Position, FWHM*.
             Fit constraints depend on :attr:`config`.
         """
-        if yscaling is None:
-            yscaling = self.config.get('Yscaling', 1.0)
+        yscaling = self.config.get('Yscaling', 1.0)
         if yscaling == 0:
             yscaling = 1.0
 
@@ -351,7 +347,7 @@ class FitTheories(object):
 
         return fittedpar, cons
 
-    def estimate_agauss(self, x, y, bg, yscaling=None):
+    def estimate_agauss(self, x, y, bg):
         """Estimation of *Area, Position, FWHM* of peaks, for gaussian-like
         curves.
 
@@ -363,15 +359,12 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Area, Position, FWHM*.
             Fit constraints depend on :attr:`config`.
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
-                                                             yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
         for i in range(npeaks):
@@ -382,7 +375,7 @@ class FitTheories(object):
                                2.0 * numpy.sqrt(2 * numpy.log(2)))
         return fittedpar, cons
 
-    def estimate_alorentz(self, x, y, bg, yscaling=None):
+    def estimate_alorentz(self, x, y, bg):
         """Estimation of *Area, Position, FWHM* of peaks, for Lorentzian
         curves.
 
@@ -394,15 +387,12 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Area, Position, FWHM*.
             Fit constraints depend on :attr:`config`.
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
-                                                             yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
         for i in range(npeaks):
@@ -412,7 +402,7 @@ class FitTheories(object):
             fittedpar[3 * i] = (height * fwhm * 0.5 * numpy.pi)
         return fittedpar, cons
 
-    def estimate_splitgauss(self, x, y, bg, yscaling=None):
+    def estimate_splitgauss(self, x, y, bg):
         """Estimation of *Height, Position, FWHM1, FWHM2* of peaks, for
         asymmetric gaussian-like curves.
 
@@ -424,15 +414,12 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Height, Position, FWHM1, FWHM2*.
             Fit constraints depend on :attr:`config`.
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
-                                                             yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         # get the number of found peaks
         npeaks = len(fittedpar) // 3
         estimated_parameters = []
@@ -467,7 +454,7 @@ class FitTheories(object):
                     int(cons[3 * i + 2, 1] / 3) * 4 + 3
         return estimated_parameters, estimated_constraints
 
-    def estimate_pvoigt(self, x, y, bg, yscaling=None):
+    def estimate_pvoigt(self, x, y, bg):
         """Estimation of *Height, Position, FWHM, eta* of peaks, for
         pseudo-Voigt curves.
 
@@ -483,8 +470,6 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Height, Position, FWHM, eta*.
@@ -492,8 +477,7 @@ class FitTheories(object):
             by setting :attr:`config`['QuotedEtaFlag'] to ``True``.
             If this is not the case, the constraint code is set to FREE.
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
-                                                             yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((4 * npeaks, 3), numpy.float)
@@ -535,7 +519,7 @@ class FitTheories(object):
                 newcons[4 * i + 3, 2] = 1.0
         return newpar, newcons
 
-    def estimate_splitpvoigt(self, x, y, bg, yscaling=None):
+    def estimate_splitpvoigt(self, x, y, bg):
         """Estimation of *Height, Position, FWHM1, FWHM2, eta* of peaks, for
         asymmetric pseudo-Voigt curves.
 
@@ -552,14 +536,11 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Height, Position, FWHM1, FWHM2, eta*.
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg,
-                                                             yscaling)
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((5 * npeaks, 3), numpy.float)
@@ -621,7 +602,7 @@ class FitTheories(object):
                 newcons[5 * i + 4, 2] = 1.0
         return newpar, newcons
 
-    def estimate_apvoigt(self, x, y, bg, yscaling=None):
+    def estimate_apvoigt(self, x, y, bg):
         """Estimation of *Area, Position, FWHM1, eta* of peaks, for
         pseudo-Voigt curves.
 
@@ -632,13 +613,11 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *Area, Position, FWHM, eta*.
         """
-        fittedpar, cons = self.estimate_pvoigt(x, y, bg, yscaling)
+        fittedpar, cons = self.estimate_pvoigt(x, y, bg)
         npeaks = len(fittedpar) // 4
         # Assume 50% of the area is determined by the gaussian and 50% by
         # the Lorentzian.
@@ -650,7 +629,7 @@ class FitTheories(object):
                        ) * numpy.sqrt(2 * numpy.pi)
         return fittedpar, cons
 
-    def estimate_ahypermet(self, x, y, bg, yscaling=None):
+    def estimate_ahypermet(self, x, y, bg):
         """Estimation of *area, position, fwhm, st_area_r, st_slope_r,
         lt_area_r, lt_slope_r, step_height_r* of peaks, for hypermet curves.
 
@@ -658,14 +637,15 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each peak are:
             *area, position, fwhm, st_area_r, st_slope_r,
             lt_area_r, lt_slope_r, step_height_r* .
         """
-        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg, yscaling)
+        yscaling = self.config.get('Yscaling', 1.0)
+        if yscaling == 0:
+            yscaling = 1.0
+        fittedpar, cons = self.estimate_height_position_fwhm(x, y, bg)
         npeaks = len(fittedpar) // 3
         newpar = []
         newcons = numpy.zeros((8 * npeaks, 3), numpy.float)
@@ -809,7 +789,7 @@ class FitTheories(object):
                         newcons[8 * i + 5, 2] = 1.0
         return newpar, newcons
 
-    def estimate_stepdown(self, x, y, bg, yscaling=1.0):
+    def estimate_stepdown(self, x, y, bg):
         """Estimation of parameters for stepdown curves.
 
         The functions estimates gaussian parameters for the derivative of
@@ -820,8 +800,6 @@ class FitTheories(object):
         :param x: Array of abscissa values
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: Background signal.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit newconstraints.
             Parameters to be estimated for each stepdown are:
             *height, centroid, fwhm* .
@@ -839,8 +817,7 @@ class FitTheories(object):
             y_deriv = y_deriv * max(y_no_bg) / max(y_deriv)
 
         fittedpar, newcons = self.estimate_height_position_fwhm(
-                                 x[cutoff:-cutoff], y_deriv,
-                                 None, yscaling)
+                                 x[cutoff:-cutoff], y_deriv, None)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -876,7 +853,7 @@ class FitTheories(object):
 
         return largest, newcons
 
-    def estimate_slit(self, x, y, bg, yscaling=1.0):
+    def estimate_slit(self, x, y, bg):
         """Estimation of parameters for slit curves.
 
         The functions estimates stepup and stepdown parameters for the largest
@@ -889,16 +866,14 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each slit are:
             *height, position, fwhm, beamfwhm* .
         """
         largestup, cons = self.estimate_stepup(
-            x, y, None, yscaling)
+            x, y, None)
         largestdown, cons = self.estimate_stepdown(
-            x, y, None, yscaling)
+            x, y, None)
         fwhm = numpy.fabs(largestdown[1] - largestup[1])
         beamfwhm = 0.5 * (largestup[2] + largestdown[1])
         beamfwhm = min(beamfwhm, fwhm / 10.0)
@@ -939,7 +914,7 @@ class FitTheories(object):
                 cons[3, 2] = 0
         return largest, cons
 
-    def estimate_stepup(self, x, y, bg, yscaling=1.0):
+    def estimate_stepup(self, x, y, bg):
         """Estimation of parameters for a single step up curve.
 
         The functions estimates gaussian parameters for the derivative of
@@ -951,8 +926,6 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
             Parameters to be estimated for each stepup are:
             *height, centroid, fwhm* .
@@ -967,8 +940,7 @@ class FitTheories(object):
         if max(y_deriv) > 0:
             y_deriv = y_deriv * max(y_no_bg) / max(y_deriv)
         fittedpar, cons = self.estimate_height_position_fwhm(
-                              x[cutoff:-cutoff], y_deriv,
-                              None, yscaling)
+                              x[cutoff:-cutoff], y_deriv, None)
         npeaks = len(fittedpar) // 3
         largest_index = 0
         largest = [fittedpar[3 * largest_index],
@@ -1004,7 +976,7 @@ class FitTheories(object):
 
         return largest, newcons
 
-    def estimate_periodic_gauss(self, x, y, bg=None, yscaling=None):
+    def estimate_periodic_gauss(self, x, y, bg=None):
         """Estimation of parameters for periodic gaussian curves:
         *number of peaks, distance between peaks, height, position of the
         first peak, fwhm*
@@ -1022,15 +994,9 @@ class FitTheories(object):
         :param y: Array of ordinate values (``y = f(x)``)
         :param bg: If not ``None``, background signal to be subtracted from
             ``y`` before fitting gaussian functions to peaks.
-        :param yscaling: Scaling factor applied to ``y`` data when searching
-            for peaks
         :return: Tuple of estimated fit parameters and fit constraints.
         """
-        if yscaling is None:
-            try:
-                yscaling = self.config['Yscaling']
-            except KeyError:
-                yscaling = 1.0
+        yscaling = self.config.get('Yscaling', 1.0)
         if yscaling == 0:
             yscaling = 1.0
 

@@ -70,14 +70,25 @@ class FitTheory(object):
         self.estimate = estimate
         """The estimation function must have the following signature::
 
-            ``f(x, y, bg, yscaling)``
+            f(x, y) -> (estimated_param, constraints)
 
-        Where ``x`` is an array of values for the independent variable, ``y``
-        is an array of the same length as ``x`` containing the data to be
-        fitted, ``bg`` is an array of background signal to be subtracted from
-        ``y`` before running the fit and ``yscaling`` is a scaling factor that
-        the function may multiply ``y`` values with for certain operations
-        (such as searching peaks in the data)."""
+        Parameters:
+
+            - ``x`` is a sequence of values for the independent variable
+            - ``y`` is a sequence of the same length as ``x`` containing the
+              data to be fitted
+            - ``bg`` is an optional sequence of background signal to be subtracted
+              from ``y`` before doing the estimation.
+
+        Return values:
+
+            - ``estimated_param`` is a sequence of estimated fit parameters to
+              be used as initial values for an iterative fit.
+            - ``constraints`` is a sequence of shape *(n, 3)*, where *n* is the
+              number of estimated parameters, containing the constraints for each
+              parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
+              explanations about constraints.
+        """
         # TODO remove bg and scaling
 
         self.configure = configure

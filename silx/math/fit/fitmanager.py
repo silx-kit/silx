@@ -77,11 +77,6 @@ class FitManager(object):
     :param auto_fwhm: Flag to enable or disable automatic estimation of
         the peaks' full width at half maximum.
     :param fwhm_points:
-    :param auto_scaling: Enable on disable auto-scaling based on y data.
-        If ``True``, init argument ``yscaling`` is ignored and
-        :attr:`fitconfig` ``['Yscaling']`` is calculated based on data.
-        If ``False``, ``yscaling`` is used.
-    :param yscaling: Scaling parameter for ``y`` data.
     :param sensitivity: Sensitivity value used for by peak detection
         algorithm. To be detected, a peak must have an amplitude greater
         than ``σn * sensitivity`` (where ``σn`` is an estimated value of
@@ -98,35 +93,30 @@ class FitManager(object):
     #    These attributes may be modified at a latter stage by filters.
 
     def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=True, fwhm_points=8,
-                 auto_scaling=False, yscaling=1.0, sensitivity=2.5):
+                 sensitivity=2.5):
         """
         """
-        self.fitconfig = {}
+        self.fitconfig = {
+            'AutoFwhm': auto_fwhm,
+            'FwhmPoints': fwhm_points,
+            'Sensitivity': sensitivity,
+            'fitbkg': 'No Background',
+            'fittheory': None,
+        }
         """Dictionary of fit configuration parameters.
+        These parameters can be modified using the :meth:`configure` method.
 
         Keys are:
 
-            - 'fittheory': name of the function used for fitting peaks
             - 'fitbkg': name of the function used for fitting a low frequency
               background signal
             - 'AutoFwhm': Flag to enable or disable automatic estimation of
               the peaks' full width at half maximum.
             - 'FwhmPoints': default full width at half maximum value for the
               peaks'. Ignored if ``AutoFwhm==True``.
-            - 'AutoScaling': Flag to enable or disable automatic estimation of
-              'Yscaling' (using an inverse chi-square value)
-            - 'Yscaling': Scaling factor for the data
             - 'Sensitivity': Sensitivity parameter for the peak detection
               algorithm (:func:`silx.math.fit.peak_search`)
         """
-
-        self.fitconfig['AutoFwhm'] = auto_fwhm
-        self.fitconfig['FwhmPoints'] = fwhm_points
-        self.fitconfig['AutoScaling'] = auto_scaling
-        self.fitconfig['Yscaling'] = yscaling
-        self.fitconfig['Sensitivity'] = sensitivity
-        self.fitconfig['fitbkg'] = 'No Background'
-        self.fitconfig['fittheory'] = None
 
         self.theories = OrderedDict()
         """Dictionary of fit theories, defining functions to be fitted
@@ -149,32 +139,36 @@ class FitManager(object):
             - *"description"* is a description string
         """
 
-        self.bkgdict = OrderedDict((
-             ('No Background', {
-                 'description': "No background function",
-                 'function': self.bkg_none,
-                 'parameters': [],
-                 'estimate': None}),
-             ('Constant', {
-                 'description': "Constant background",
-                 'function': self.bkg_constant,
-                 'parameters': ['Constant'],
-                 'estimate': self.estimate_builtin_bkg}),
-             ('Linear', {
-                 'description': "Linear background, parameters 'Constant' and 'Slope'",
-                 'function': self.bkg_linear,
-                 'parameters': ['Constant', 'Slope'],
-                 'estimate': self.estimate_builtin_bkg}),
-             ('Internal', {
-                 'description': "Background based on strip filter\n" +
-                                "Parameters 'Curvature', 'Iterations' and 'Constant'",
-                 'function': self.bkg_internal,
-                 'parameters': ['Curvature', 'Iterations', 'Constant'],
-                 'estimate': self.estimate_builtin_bkg})))
-        """Dictionary of background functions.
+        self.selectedtheory = None
+        """Name of currently selected theory. This name matches a key in
+        :attr:`theories`."""
+
+        self.bgtheories = OrderedDict((
+             ('No Background', FitTheory(
+                                 description="No background function",
+                                 function=self.bkg_none,
+                                 parameters=[],
+                                 estimate=None)),
+             ('Constant', FitTheory(
+                                 description="Constant background",
+                                 function=self.bkg_constant,
+                                 parameters=['Constant'],
+                                 estimate=self.estimate_builtin_bkg)),
+             ('Linear', FitTheory(
+                                 description="Linear background, parameters 'Constant' and 'Slope'",
+                                 function=self.bkg_linear,
+                                 parameters=['Constant', 'Slope'],
+                                 estimate=self.estimate_builtin_bkg)),
+             ('Internal', FitTheory(
+                                 description="Background based on strip filter\n" +
+                                                "Parameters 'Curvature', 'Iterations' and 'Constant'",
+                                 function=self.bkg_internal,
+                                 parameters=['Curvature', 'Iterations', 'Constant'],
+                                 estimate=self.estimate_builtin_bkg))))
+        """Dictionary of background theories.
 
         Keys are descriptive theory names (e.g "Constant" or "Linear").
-        Values are dictionaries with the following items:
+        Values are :class:`silx.math.fit.fittheory.FitTheory` objects.
 
           - *description* is an optional description string, which can be used
             for instance as a tooltip message in a GUI.
@@ -187,7 +181,7 @@ class FitManager(object):
 
           - *estimate* is a function to compute initial values for parameters.
             It should have the following signature:
-            ``f(x, y, bg_data, xscaling=1.0, yscaling=None) -> (estimated_param, constraints, bg_data)``
+            ``f(x, y, bg_data) -> (estimated_param, constraints, bg_data)``
 
                 Parameters:
 
@@ -196,10 +190,6 @@ class FitManager(object):
                 - ``y`` is the data from which we want to extract the bg
                 - ``bg_data`` is the background data, usually extracted from ``y``
                   using a strip filter.
-                - ``xscaling`` is an optional scaling factor applied to the ``x``
-                  array
-                - ``yscaling`` is an optional scaling factor applied to the ``y``
-                  array
 
                 Return values:
 
@@ -213,24 +203,9 @@ class FitManager(object):
                   by the estimation function.
         """
 
-        # TODO:  document following attributes
-        self.bkg_internal_oldx = numpy.array([])
-        self.bkg_internal_oldy = numpy.array([])
-        self.bkg_internal_oldpars = [0, 0]
-        self.bkg_internal_oldbkg = numpy.array([])
-
-        self.setdata(x, y, sigmay)
-
-        self.parameter_names = []
-        """This list stores all fit parameter names: background function
-        parameters and fit function parameters for every peak. It is filled
-        in :meth:`estimate`.
-
-        It is the responsibility of the estimate function defined in
-        :attr:`theories` to determine how many parameters there will be,
-        based on how many peaks it detects and how many parameters are needed
-        to fit an individual peak.
-        """
+        self.selectedbg = 'No Background'
+        """Name of currently selected background theory. This name matches a
+        key in :attr:``."""
 
         self.fit_results = []
         """This list stores detailed information about all fit parameters.
@@ -280,55 +255,36 @@ class FitManager(object):
               was performed
         """
 
-        self.selectedfunction = None
-        """The model function, currently selected ``f(x, ...)``.
-        It must take the independent variable as the first argument and the
-        parameters to fit as separate remaining arguments.
+        self.parameter_names = []
+        """This list stores all fit parameter names: background function
+        parameters and fit function parameters for every peak. It is filled
+        in :meth:`estimate`.
 
-        The function can be chosen from :attr:`theories` using
-        :meth:`settheory`"""
-
-        self.selectedparameters = None
-        """List of parameters names for the currently selected theory.
+        It is the responsibility of the estimate function defined in
+        :attr:`theories` to determine how many parameters are needed,
+        based on how many peaks are detected and how many parameters are needed
+        to fit an individual peak.
         """
 
-        self.selectedestimate = None
-        """Estimation function for the currently selected theory. See
-        :meth:`loadtheories` for more documentation on custom derivative
-        functions.
-        """
+        # TODO:  document following attributes
+        self.bkg_internal_oldx = numpy.array([])
+        self.bkg_internal_oldy = numpy.array([])
+        self.bkg_internal_oldpars = [0, 0]
+        self.bkg_internal_oldbkg = numpy.array([])
 
-        self.selectedconfigure = None
-        """Configuration function for the currently selected theory. See
-        :meth:`loadtheories` for more documentation on custom configuration
-        functions.
-        """
-
-        self.selectedderivative = None
-        """None (default) or function providing the derivatives of the fitting
-        function respect to the fitted parameters.
-        It will be called as ``model_deriv(xdata, parameters, index)`` where
-        ``parameters`` is a sequence with the current values of the fitting
-        parameters, ``index`` is the fitting parameter index for which the
-        derivative has to be calculated."""
+        self.setdata(x, y, sigmay)
 
     ##################
     # Public methods #
     ##################
-    def addbackground(self, background, function, parameters, estimate=None,
-                      description=None):
-        """Add a new background function to dictionary :attr:`bkgdict`.
+    def addbackground(self, bgname, bgtheory):
+        """Add a new background theory to dictionary :attr:`bgtheories`.
 
-        :param background: String with the name describing the function
-        :param function: Actual function
-        :param parameters: Parameters names ['p1','p2','p3',...]
-        :param estimate: The initial parameters estimation function if any
+        :param bgname: String with the name describing the function
+        :param bgtheory:  :class:`FitTheory` object
+        :type bgtheory: :class:`silx.math.fit.fittheory.FitTheory`
         """
-        self.bkgdict[background] = {
-            'description': description,
-            'function': function,
-            'parameters': parameters,
-            'estimate': estimate}
+        self.bgtheories[bgname] = bgtheory
 
     def addtheory(self, theory_name, fittheory):
         """Add a new theory to dictionary :attr:`theories`.
@@ -352,7 +308,7 @@ class FitManager(object):
         This methods accepts only named parameters. All ``**kw`` parameters
         are expected to be fields of :attr:`fitconfig` to be updated, unless
         they have a special meaning for the custom configuration function
-        defined in ``fitconfig['fittheory']``.
+        of the currently selected theory..
 
         This method returns the modified config dictionary returned by the
         custom configuration function.
@@ -366,24 +322,15 @@ class FitManager(object):
         result = {}
         result.update(self.fitconfig)
 
-        # Apply custom configuration function defined in self.theories.configure
-        theory_name = self.fitconfig['fittheory']
-        if theory_name in self.theories:
-            custom_config_fun = self.selectedconfigure
-            if custom_config_fun is not None:
-                result.update(custom_config_fun(**kw))
+        # Apply custom configuration function
+        custom_config_fun = self.theories[self.selectedtheory].configure
+        if custom_config_fun is not None:
+            result.update(custom_config_fun(**kw))
 
-                # Update self.fitconfig with custom config
-                for key in self.fitconfig:
-                    if key in result:
-                        self.fitconfig[key] = result[key]
-
-        # overwrite existing keys with values from **kw in fitconfig
-        if "fitbkg" in self.fitconfig:
-            self.setbackground(self.fitconfig["fitbkg"])
-        if "fittheory" in self.fitconfig["fittheory"]:
-            if self.fitconfig["fittheory"] is not None:
-                self.settheory(self.fitconfig["fittheory"])
+            # Update self.fitconfig with custom config
+            for key in self.fitconfig:
+                if key in result:
+                    self.fitconfig[key] = result[key]
 
         result.update(self.fitconfig)
         return result
@@ -449,34 +396,25 @@ class FitManager(object):
         # estimate the background
         bg_params, bg_constraints, bg_data = self.estimate_bkg(xwork, ywork)
 
-        # scaling
-        if self.fitconfig['AutoScaling']:
-            yscaling = self.guess_yscaling(y=ywork)
-        elif self.fitconfig['Yscaling'] is not None:
-            yscaling = self.fitconfig['Yscaling']
-
         # estimate the function
-        esti_fun = self.estimate_fun(xwork, ywork, bg_data, yscaling=yscaling)
-
-        fun_esti_parameters = esti_fun[0]
-        fun_esti_constraints = esti_fun[1]
+        fun_params, fun_constraints = self.estimate_fun(xwork, ywork, bg_data)
 
         # build the names
         self.parameter_names = []
 
-        fitbgname = self.fitconfig['fitbkg']
-        for bg_param_name in self.bkgdict[fitbgname]["parameters"]:
+        for bg_param_name in self.bgtheories[self.selectedbg].parameters:
             self.parameter_names.append(bg_param_name)
 
+        fun_param_names = self.theories[self.selectedtheory].parameters
         param_index, peak_index = 0, 0
-        while param_index < len(fun_esti_parameters):
+        while param_index < len(fun_params):
             peak_index += 1
-            for fun_param_name in self.selectedparameters:
+            for fun_param_name in fun_param_names:
                 self.parameter_names.append(fun_param_name + "%d" % peak_index)
                 param_index += 1
 
         self.fit_results = []
-        nb_fun_params_per_group = len(self.selectedparameters)
+        nb_fun_params_per_group = len(fun_param_names)
         group_number = 0
         xmin = min(xwork)
         xmax = max(xwork)
@@ -496,15 +434,15 @@ class FitManager(object):
                 if (fun_param_index % nb_fun_params_per_group) == 0:
                     group_number += 1
 
-                estimation_value = fun_esti_parameters[fun_param_index]
-                constraint_code = CONS[int(fun_esti_constraints[fun_param_index][0])]
+                estimation_value = fun_params[fun_param_index]
+                constraint_code = CONS[int(fun_constraints[fun_param_index][0])]
                 # cons1 is the index of another fit parameter. In the global
                 # fit_results, we must adjust the index to account for the bg
                 # params added to the start of the list.
-                cons1 = fun_esti_constraints[fun_param_index][1]
+                cons1 = fun_constraints[fun_param_index][1]
                 if constraint_code in ["FACTOR", "DELTA", "SUM"]:
                     cons1 += nb_bg_params
-                cons2 = fun_esti_constraints[fun_param_index][2]
+                cons2 = fun_constraints[fun_param_index][2]
 
             self.fit_results.append({'name': pname,
                                      'estimation': estimation_value,
@@ -523,7 +461,7 @@ class FitManager(object):
         if callback is not None:
             callback(data={'chisq': self.chisq,
                            'status': self.state})
-        return numpy.append(bg_params, fun_esti_parameters)
+        return numpy.append(bg_params, fun_params)
 
     def gendata(self, x=None, paramlist=None):
         """Return a data array using the currently selected fit function
@@ -640,22 +578,18 @@ class FitManager(object):
             self._load_legacy_theories(theories_module)
 
     def setbackground(self, theory):
-        """Choose a background type from within :attr:`bkgdict`.
+        """Choose a background type from within :attr:`bgtheories`.
 
-        This updates the following attributes:
-
-            - :attr:`fitconfig` ``['fitbkg']``
-            - :attr:`bkgfun`
+        This updates :attr:`selectedbg`.
 
         :param theory: The name of the background to be used.
-        :raise: KeyError if ``theory`` is not a key of :attr:`bkgdict``.
+        :raise: KeyError if ``theory`` is not a key of :attr:`bgtheories``.
         """
-        if theory in self.bkgdict:
-            self.fitconfig['fitbkg'] = theory
-            self.bkgfun = self.bkgdict[theory]["function"]
+        if theory in self.bgtheories:
+            self.selectedbg = theory
         else:
-            msg = "No theory with name %s in bkgdict.\n" % theory
-            msg += "Available theories: %s\n" % self.bkgdict.keys()
+            msg = "No theory with name %s in bgtheories.\n" % theory
+            msg += "Available theories: %s\n" % self.bgtheories.keys()
             raise KeyError(msg)
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
@@ -720,24 +654,13 @@ class FitManager(object):
     def settheory(self, theory):
         """Pick a theory from :attr:`theories`.
 
-        This updates the following attributes:
-
-            - :attr:`fitconfig` ``['fittheory']``
-            - :attr:`selectedfunction`
-            - :attr:`selectedderivative`
-
         :param theory: Name of the theory to be used.
         :raise: KeyError if ``theory`` is not a key of :attr:`theories`.
         """
         if theory is None:
-            self.fitconfig['fittheory'] = None
+            self.selectedtheory = None
         elif theory in self.theories:
-            self.fitconfig['fittheory'] = theory
-            self.selectedfunction = self.theories[theory].function
-            self.selectedparameters = self.theories[theory].parameters
-            self.selectedestimate = self.theories[theory].estimate
-            self.selectedconfigure = self.theories[theory].configure
-            self.selectedderivative = self.theories[theory].derivative
+            self.selectedtheory = theory
         else:
             msg = "No theory with name %s in theories.\n" % theory
             msg += "Available theories: %s\n" % self.theories.keys()
@@ -778,7 +701,7 @@ class FitManager(object):
 
         ywork = self.ydata
 
-        if self.fitconfig['fitbkg'] == "Square Filter":
+        if self.selectedbg == "Square Filter":
             ywork = self.squarefilter(
                     self.ydata, self.fit_results[0]['estimation'])
 
@@ -787,14 +710,9 @@ class FitManager(object):
                 self.xdata, ywork, param_val,
                 sigma=self.sigmay,
                 constraints=param_constraints,
-                model_deriv=self.selectedderivative,
+                model_deriv=self.theories[self.selectedtheory].derivative,
                 full_output=True)
-        # if covariance_matrix is not None:
-        #     sigmas = numpy.sqrt(numpy.diag(covariance_matrix))
-        # else:
-        #     # sometimes leastsq returns None and logs:
-        #     # "Error calculating covariance matrix after successful fit"
-        #     sigmas = numpy.zeros(shape=(len(params),))
+
         sigmas = infodict['uncertainties']
 
         for i, param in enumerate(self.fit_results):
@@ -828,11 +746,10 @@ class FitManager(object):
         :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
-        fitbkg_key = self.fitconfig['fitbkg']
-        bg_pars_list = self.bkgdict[fitbkg_key]["parameters"]
+        bg_pars_list = self.bgtheories[self.selectedbg].parameters
         nb_bg_pars = len(bg_pars_list)
 
-        peak_pars_list = self.selectedparameters
+        peak_pars_list = self.theories[self.selectedtheory].parameters
         nb_peak_pars = len(peak_pars_list)
 
         nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
@@ -840,15 +757,17 @@ class FitManager(object):
         result = numpy.zeros(numpy.shape(x), numpy.float)
 
         # Compute one peak function per peak, and sum the output numpy arrays
+        selectedfun = self.theories[self.selectedtheory].function
         for i in range(nb_peaks):
             start_par_index = nb_bg_pars + i * nb_peak_pars
             end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
-            result += self.selectedfunction(x, *pars[start_par_index:end_par_index])
+            result += selectedfun(x, *pars[start_par_index:end_par_index])
 
         if nb_bg_pars > 0:
-            result += self.bkgfun(x, *pars[0:nb_bg_pars])
+            bgfun = self.bgtheories[self.selectedbg].function
+            result += bgfun(x, *pars[0:nb_bg_pars])
         # TODO: understand and document this Square Filter
-        if self.fitconfig['fitbkg'] == "Square Filter":
+        if self.selectedbg == "Square Filter":
             result = result - pars[1]
             return pars[1] + self.squarefilter(result, pars[0])
         else:
@@ -858,9 +777,11 @@ class FitManager(object):
         """Estimate background parameters using the function defined in
         the current fit configuration.
 
-        To change the selected background model, :attr:`fitconfig`['fitbkg']
-        must be changed. The actual background function to be used is
-        referenced in :attr:`bkgdict`
+        To change the selected background model, attribute :attr:`selectdbg`
+        must be changed using method :meth:`setbackground`.
+
+        The actual background function to be used is
+        referenced in :attr:`bgtheories`
 
         :param x: Sequence of x data
         :param y: sequence of y data
@@ -883,24 +804,19 @@ class FitManager(object):
                   documentation.
             - ``bg_data`` is the background data computed by the function.
         """
-        fitbkg = self.fitconfig['fitbkg']
-        background_estimate_function = self.bkgdict[fitbkg]["estimate"]
+        background_estimate_function = self.bgtheories[self.selectedbg].estimate
         if background_estimate_function is not None:
             return background_estimate_function(x, y)
         else:
             return [], [], numpy.zeros_like(y)
 
-    def estimate_fun(self, x, y, bg, xscaling=1.0, yscaling=None):
+    def estimate_fun(self, x, y, bg):
         """Estimate fit parameters using the function defined in
         the current fit configuration.
 
         :param x: Sequence of x data
         :param y: sequence of y data
         :param bg: Background signal, to be subtracted from ``y`` before fitting.
-        :param xscaling: Scaling factor for ``x`` data. Default ``1.0`` (no scaling)
-        :param yscaling: Scaling factor for ``y`` data. Default ``None``,
-            meaning use value from configuration dictionary
-            :attr:`fitconfig` (``'Yscaling'`` field).
         :return: Tuple of two sequences ``(estimated_param, constraints)``:
 
             - ``estimated_param`` is a list of estimated values for each
@@ -920,17 +836,12 @@ class FitManager(object):
         :raise: ``TypeError`` if estimation function is not callable
 
         """
-        fittheory = self.fitconfig['fittheory']
-        estimatefunction = self.selectedestimate
+        estimatefunction = self.theories[self.selectedtheory].estimate
         if hasattr(estimatefunction, '__call__'):
-            return estimatefunction(x, y, bg,
-                                    yscaling=yscaling)
+            return estimatefunction(x, y, bg)
         else:
-            # return [], []
-
-            # fit requires at least one parameter
             raise TypeError("Estimation function in attribute " +
-                            "theories[%s]" % fittheory +
+                            "theories[%s]" % self.selectedtheory +
                             " must be callable.")
 
     def bkg_constant(self, x, *pars):
@@ -1072,13 +983,13 @@ class FitManager(object):
         # TODO: document square filter
         background = strip(y, w=1, niterations=10000, factor=1.0)
         npoints = len(background)
-        if self.fitconfig['fitbkg'] == 'Constant':
+        if self.selectedbg == 'Constant':
             # Constant background
             Sy = min(background)
             fittedpar = [Sy]
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-        elif self.fitconfig['fitbkg'] == 'Internal':
+        elif self.selectedbg == 'Internal':
             # Internal
             fittedpar = [1.000, 10000, 0.0]
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
@@ -1086,12 +997,12 @@ class FitManager(object):
             cons[0][0] = 3
             cons[1][0] = 3
             cons[2][0] = 3
-        elif self.fitconfig['fitbkg'] == 'No Background':
+        elif self.selectedbg == 'No Background':
             # None
             fittedpar = []
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-        elif self.fitconfig['fitbkg'] == 'Square Filter':
+        elif self.selectedbg == 'Square Filter':
             fwhm = self.fitconfig['FwhmPoints']
 
             # set an odd number
@@ -1103,7 +1014,7 @@ class FitManager(object):
             # code = 3: FIXED
             cons[0][0] = 3
             cons[1][0] = 3
-        else:  # Linear regression
+        elif self.selectedbg == 'Linear':
             n = float(npoints)
             Sy = numpy.sum(background)
             Sx = float(numpy.sum(x))
@@ -1122,32 +1033,6 @@ class FitManager(object):
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
         # Fixme: should we return a bg computed using our estimated params, instead of stripped bg?
         return fittedpar, cons, background
-
-    def guess_yscaling(self, y=None):
-        """Return the inverse chi-squared value"""
-        if y is None:
-            y = self.ydata
-
-        # Apply basic smoothing
-        # (the convolution adds one extra sample to each side of the array)
-        yfit = numpy.convolve(y, [1., 1., 1.])[1:-1] / 3.0
-
-        # Find indices of non-zero samples
-        # (numpy.nonzero returns one array per dimension.
-        # We are dealing with 1D data, hence the [0])
-        idx = numpy.nonzero(y)[0]
-
-        # Reject zero values
-        y = numpy.take(y, idx)
-        yfit = numpy.take(yfit, idx)
-
-        chisq = numpy.sum(((y - yfit) * (y - yfit)) /
-                          (numpy.fabs(y) * len(y)))
-        try:
-            scaling = 1. / chisq
-        except ZeroDivisionError:
-            scaling = 1.0
-        return scaling
 
     def squarefilter(self, y, width):
         """

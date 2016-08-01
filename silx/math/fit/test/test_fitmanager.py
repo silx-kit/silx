@@ -47,7 +47,7 @@ def myfun(x, a, b, c):
     "Model function"
     return (a * x**2 + b * x + c) / CONFIG['d']
 
-def myesti(x, y, bg, yscaling):
+def myesti(x, y, bg):
     "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
     return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
@@ -87,7 +87,7 @@ def myfun(x, a, b, c):
     "Model function"
     return (a * x**2 + b * x + c) / CONFIG['d']
 
-def myesti(x, y, bg, yscaling):
+def myesti(x, y, bg):
     "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
     return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
@@ -260,7 +260,7 @@ class TestFitmanager(unittest.TestCase):
             """"Model function"""
             return (a_ * x_**2 + b_ * x_ + c_) / CONFIG['d']
 
-        def myesti(x_, y_, bg, yscaling):
+        def myesti(x_, y_, bg):
             """"Initial parameters for iterative fit:
                  (a, b, c) = (1, 1, 1)
             Constraints all set to 0 (FREE)"""
