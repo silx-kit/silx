@@ -394,7 +394,8 @@ class FitManager(object):
         ywork = self.ydata
 
         # estimate the background
-        bg_params, bg_constraints, bg_data = self.estimate_bkg(xwork, ywork)
+        bg_data = strip(ywork, w=1, niterations=10000, factor=1.0)
+        bg_params, bg_constraints = self.estimate_bkg(xwork, ywork)
 
         # estimate the function
         fun_params, fun_constraints = self.estimate_fun(xwork, ywork, bg_data)
@@ -802,13 +803,12 @@ class FitManager(object):
                 - ``constraints[i][2]``
                   See explanation about 'cons2' in :attr:`fit_results`
                   documentation.
-            - ``bg_data`` is the background data computed by the function.
         """
         background_estimate_function = self.bgtheories[self.selectedbg].estimate
         if background_estimate_function is not None:
             return background_estimate_function(x, y)
         else:
-            return [], [], numpy.zeros_like(y)
+            return [], []
 
     def estimate_fun(self, x, y, bg):
         """Estimate fit parameters using the function defined in
@@ -981,7 +981,10 @@ class FitManager(object):
               using a :func:`strip` filter
         """
         # TODO: document square filter
+
+        # extract bg by applying a strip filter
         background = strip(y, w=1, niterations=10000, factor=1.0)
+
         npoints = len(background)
         if self.selectedbg == 'Constant':
             # Constant background
@@ -989,6 +992,7 @@ class FitManager(object):
             fittedpar = [Sy]
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
+
         elif self.selectedbg == 'Internal':
             # Internal
             fittedpar = [1.000, 10000, 0.0]
@@ -997,14 +1001,15 @@ class FitManager(object):
             cons[0][0] = 3
             cons[1][0] = 3
             cons[2][0] = 3
+
         elif self.selectedbg == 'No Background':
             # None
             fittedpar = []
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
+
         elif self.selectedbg == 'Square Filter':
             fwhm = self.fitconfig['FwhmPoints']
-
             # set an odd number
             if fwhm % 2 == 1:
                 fittedpar = [fwhm, 0.0]
@@ -1014,6 +1019,7 @@ class FitManager(object):
             # code = 3: FIXED
             cons[0][0] = 3
             cons[1][0] = 3
+
         elif self.selectedbg == 'Linear':
             n = float(npoints)
             Sy = numpy.sum(background)
@@ -1031,8 +1037,16 @@ class FitManager(object):
             fittedpar = [bg / 1.0, slop / 1.0]
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-        # Fixme: should we return a bg computed using our estimated params, instead of stripped bg?
-        return fittedpar, cons, background
+
+        else:
+            # this can happen if someone modifies self.selectedbg without
+            # going through the proper channels (method setbackground)
+            msg = "Selected background theory %s " % self.selectedbg
+            msg += "not a valid theory. Valid theories: "
+            msg += str(list(self.bgtheories.keys()))
+            raise AttributeError(msg)
+
+        return fittedpar, cons
 
     def squarefilter(self, y, width):
         """
