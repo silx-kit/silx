@@ -23,8 +23,27 @@
 #############################################################################*/
 """This module provides functions to convert a SpecFile into a HDF5 file.
 
-.. note:: These functions depend on the `h5py <http://www.h5py.org/>`_ 
-    library, which is not a mandatory dependency for `silx`.
+Read the documentation of :mod:`silx.io.spech5` for information on the
+structure of the output HDF5 files.
+
+Strings are written to the HDF5 datasets as fixed-length ASCII (NumPy *S* type).
+If you read the files back with *h5py* in Python 3, you will recover bytes,
+which you should decode to transform them into strings::
+
+    >>> import h5py
+    >>> f = h5py.File("myfile.h5")
+    >>> f["/1.1/instrument/specfile/scan_header"][0]
+    b'#S 94  ascan  del -0.5 0.5  20 1'
+    >>> f["/1.1/instrument/specfile/scan_header"][0].decode()
+    '#S 94  ascan  del -0.5 0.5  20 1'
+
+Arrays of strings, such as file and scan headers, are stored as fixed-length
+strings. The length of all strings in an array is equal to the length of the
+longest string. Shorter strings are right-padded with blank spaces.
+
+.. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
+    library, which is not a mandatory dependency for `silx`. You might need
+    to install it if you don't already have it.
 """
 
 import numpy
