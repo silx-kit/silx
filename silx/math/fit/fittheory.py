@@ -70,7 +70,7 @@ class FitTheory(object):
         self.estimate = estimate
         """The estimation function must have the following signature::
 
-            f(x, y) -> (estimated_param, constraints)
+            f(x, y, bg=None) -> (estimated_param, constraints)
 
         Parameters:
 
@@ -78,7 +78,10 @@ class FitTheory(object):
             - ``y`` is a sequence of the same length as ``x`` containing the
               data to be fitted
             - ``bg`` is an optional sequence of background signal to be subtracted
-              from ``y`` before doing the estimation.
+              from ``y`` before doing the estimation. The estimate function
+              should be able to handle *bg* being a data array of the same
+              shape as ``y``, or ``bg = None`` (meaning there is no background
+              signal to subtract).
 
         Return values:
 
@@ -89,7 +92,6 @@ class FitTheory(object):
               parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
               explanations about constraints.
         """
-        # TODO remove bg and scaling
 
         self.configure = configure
         """The optional configuration function must conform to the signature
