@@ -589,7 +589,7 @@ class TiffIO(object):
 
         if rowMax < rowMin:
             txt = "Max Row smaller than Min Row. Reverse selection not supported"
-            raise NotImplemented(txt)
+            raise NotImplementedError(txt)
 
         if rowMin >= nRows:
             raise IndexError("Image only has %d rows" % nRows)
