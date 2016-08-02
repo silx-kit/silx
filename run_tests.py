@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "26/05/2016"
+__date__ = "02/08/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -68,17 +68,17 @@ else:
 try:
     import numpy
 except Exception as error:
-    logger.warning("Numpy missing: %s" % error)
+    logger.warning("Numpy missing: %s", error)
 else:
-    logger.info("Numpy %s" % numpy.version.version)
+    logger.info("Numpy %s", numpy.version.version)
 
 
 try:
     import h5py
 except Exception as error:
-    logger.warning("h5py missing: %s" % error)
+    logger.warning("h5py missing: %s", error)
 else:
-    logger.info("h5py %s" % h5py.version.version)
+    logger.info("h5py %s", h5py.version.version)
 
 
 def get_project_name(root_dir):
@@ -87,17 +87,17 @@ def get_project_name(root_dir):
     :param str root_dir: Directory where to run the command.
     :return: The name of the project stored in root_dir
     """
-    logger.debug("Getting project name in %s" % root_dir)
+    logger.debug("Getting project name in %s", root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
     name, stderr_data = p.communicate()
-    logger.debug("subprocess ended with rc= %s" % p.returncode)
+    logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
 
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info('Project name: %s' % PROJECT_NAME)
+logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TestResult(unittest.TestResult):
@@ -212,10 +212,10 @@ def build_project(name, root_dir):
     else:
         home = os.path.join(root_dir, "build", architecture)
 
-    logger.warning("Building %s to %s" % (name, home))
+    logger.warning("Building %s to %s", name, home)
     p = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=root_dir)
-    logger.debug("subprocess ended with rc= %s" % p.wait())
+    logger.debug("subprocess ended with rc= %s", p.wait())
     return home
 
 
@@ -270,7 +270,7 @@ if options.coverage:
 if (os.path.dirname(os.path.abspath(__file__)) ==
         os.path.abspath(sys.path[0])):
     removed_from_sys_path = sys.path.pop(0)
-    logger.info("Patched sys.path, removed: '%s'" % removed_from_sys_path)
+    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
 
 
 # import module
@@ -287,7 +287,7 @@ if options.insource:
     build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
 
     sys.path.insert(0, build_dir)
-    logger.warning("Patched sys.path, added: '%s'" % build_dir)
+    logger.warning("Patched sys.path, added: '%s'", build_dir)
     module = importer(PROJECT_NAME)
 
 
