@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "27/11/2015"
+__date__ = "02/08/2016"
 
 
 import sys
@@ -98,7 +98,7 @@ cwd = os.getcwd()
 os.chdir(home)
 build = subprocess.Popen([sys.executable, "setup.py", "build"],
                 shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
-logger.info("Build process ended with rc= %s" % build.wait())
+logger.info("Build process ended with rc= %s", build.wait())
 #_copy_files("openCL", os.path.join(LIBPATH, TARGET, "openCL"), ".cl")
 #_copy_files("gui", os.path.join(LIBPATH, TARGET, "gui"), ".ui")
 #_copy_files("calibration", os.path.join(LIBPATH, TARGET, "calibration"), ".D")
@@ -114,19 +114,19 @@ if __name__ == "__main__":
         script = sys.argv[1]
 
     if script:
-        logger.info("Executing %s from source checkout" % (script))
+        logger.info("Executing %s from source checkout", script)
     else:
         logging.info("Running iPython by default")
     sys.path.insert(0, LIBPATH)
-    logger.info("01. Patched sys.path with %s" % LIBPATH)
+    logger.info("01. Patched sys.path with %s", LIBPATH)
 
     sys.path.insert(0, SCRIPTSPATH)
-    logger.info("02. Patched sys.path with %s" % SCRIPTSPATH)
+    logger.info("02. Patched sys.path with %s", SCRIPTSPATH)
 
     if script:
         sys.argv = sys.argv[1:]
-        logger.info("03. patch the sys.argv : ", sys.argv)
-        logger.info("04. Executing %s.main()" % (script,))
+        logger.info("03. patch the sys.argv: %s", sys.argv)
+        logger.info("04. Executing %s.main()", script)
         fullpath = os.path.join(SCRIPTSPATH, script)
         if os.path.exists(fullpath):
             runfile(fullpath)
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                         runfile(fullpath)
                         break
     else:
-        logger.info("03. patch the sys.argv : ", sys.argv)
+        logger.info("03. patch the sys.argv: %s", sys.argv)
         sys.path.insert(2, "")
         try:
             from IPython import embed
