@@ -9,6 +9,7 @@
    
    configdict.rst
    dictdump.rst
+   octaveh5.rst
    specfile.rst
    specfilewrapper.rst
    spech5.rst

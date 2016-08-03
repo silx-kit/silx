@@ -22,15 +22,30 @@
 #
 #############################################################################*/
 """
-Python h5 module and octave h5 module have differente ways to deal without
+Python h5 module and octave h5 module have differente ways to deal with
 h5 files.
 This module is used to make the link between octave and python using such files.
-(python is using a dictionnay and octave a struct )
+(python is using a dictionary and octave a struct )
 
-This module provides to prepare fasttomo input as HDF5 file.
+This module provides tool to set HDF5 file for fasttomo input.
+
+Here is an example of a simple read and write :
+
+.. code-block:: python
+    :emphasize-lines: 3,5    
+
+    # writing a structure
+    myStruct = {'MKEEP_MASK': 0.0, 'UNSHARP_SIGMA': 0.80000000000000004 }
+    writer = Octaveh5().open("my_h5file", 'a')
+    writer.write('mt_struct_name', myStruct)
+
+    # reading a h5 file
+    reader = Octaveh5().open("my_h5file")
+    strucDict = reader.get('mt_struct_name')
 
 .. note:: These functions depend on the `h5py <http://www.h5py.org/>`_ 
     library, which is not a mandatory dependency for `silx`.
+
 """
 
 import sys
@@ -50,22 +65,32 @@ __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"
 __date__ = "25/05/2016"
 
-
 class Octaveh5():
     """
     This class allows communication between octave and python using hdf5 format.
     """  
 
     def __init__(self, octave_targetted_version=3.8):
+        """
+        Constructor
+
+        :param octave_targetted_version: the version of Octave for which we want to write this hdf5 file.
+        This is needed because for old Octave version we need to had a hack(adding one extra character)
+        """
         self.file = None
         self.octave_targetted_version = octave_targetted_version
 
     def open(self, h5file, mode='r'):
-        """Open the h5 file which has been write by octave"""
+        """
+        Open the h5 file which has been write by octave
+
+        :param h5file: The path of the file to read
+        :param mode: the opening mode of the file :'r', 'w'...
+        """
         try:
             self.file = h5py.File(h5file, mode)
             return self
-        except:
+        except IOError:
             if mode == 'a' : 
                 reason = "\n %s: Can t find or create " % h5file
             else :
@@ -73,14 +98,19 @@ class Octaveh5():
             self.file = None
 
             logger.info(reason)
-            return
+            return None
 
     def get(self, struct_name):
-        """Read octave equivalent structures in hdf5 file"""   
+        """
+        Read octave equivalent structures in hdf5 file
+
+        :param struct_name: the identification of the top level identity we want to get from an hdf5 structure
+        :return: the dictionnary of the requested struct. None if can t find it
+        """   
         if self.file == None : 
             info = "No file currently open"
             logger.info(info)
-            return
+            return None
 
         if(sys.version_info.major >=3 ):
             functionToWrite = np.bytes0
@@ -91,9 +121,10 @@ class Octaveh5():
         grr=(list(self.file[struct_name].items())[1])[1]
         try:
             gr_level2=grr.items()
-        except:
+        except AttributeError:
             reason = "no gr_level2"
-            return
+            logger.info(reason)
+            return None
 
         for key, val in iter(dict(gr_level2).items()):
             data_dict[str(key)] = list(val.items())[1][1].value
@@ -110,7 +141,12 @@ class Octaveh5():
         return data_dict
 
     def write(self, struct_name, data_dict):
-        """write data_dict under the group struct_name in the open hdf5 file"""
+        """
+        write data_dict under the group struct_name in the open hdf5 file
+
+        :param struct_name: the identificatioon of the structure to write in the hdf5
+        :param data_dict: The python dictionnary containing the informations to write
+        """
         if self.file == None : 
             info = "No file currently open"
             logger.info(info)
@@ -140,11 +176,16 @@ class Octaveh5():
                 data_l3 = group_l3.create_dataset("value", data=data_dict[ftparams])
 
     def close(self):
-        """Close the file after calling read function"""
+        """
+        Close the file after calling read function
+        """
         if self.file :
             self.file.close()
 
     def __del__(self):
+        """
+        Destructor
+        """
         self.close()
 
         
