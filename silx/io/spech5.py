@@ -57,7 +57,12 @@ Specfile data structure exposed by this API:
               …
               mca_0/
                    data -> /1.1/instrument/mca_0/data
-                   info -> /1.1/instrument/mca_0/
+                   info/
+                       calibration -> /1.1/instrument/mca_0/calibration
+                       channels -> /1.1/instrument/mca_0/channels
+                       preset_time -> /1.1/instrument/mca_0/preset_time
+                       elapsed_time -> /1.1/instrument/mca_0/elapsed_time
+                       live_time -> /1.1/instrument/mca_0/live_time
               …
       2.1/
           …
@@ -149,7 +154,6 @@ Classes
 - :class:`SpecH5`
 - :class:`SpecH5Group`
 - :class:`SpecH5Dataset`
-- :class:`SpecH5LinkToGroup`
 - :class:`SpecH5LinkToDataset`
 """
 
@@ -164,7 +168,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "04/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -180,6 +184,7 @@ static_items = {
     "scan/instrument": [u"specfile", u"positioners"],
     "scan/instrument/specfile": [u"file_header", u"scan_header"],
     "scan/measurement/mca": [u"data", u"info"],
+    "scan/measurement/mca/info": [u"calibration", u"channels"],
     "scan/instrument/mca": [u"data", u"calibration", u"channels"],
 }
 
@@ -192,9 +197,7 @@ positioners_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/
 measurement_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/?$")
 measurement_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/?$")
 instrument_mca_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/?$")
-
-# Link to group
-measurement_mca_info_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
+measurement_mca_info_group_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/?$")
 
 # Patterns for dataset keys
 header_pattern = re.compile(r"/[0-9]+\.[0-9]+/header$")
@@ -245,7 +248,7 @@ def is_group(name):
         root_pattern, scan_pattern, instrument_pattern,
         specfile_group_pattern, positioners_group_pattern,
         measurement_group_pattern, measurement_mca_group_pattern,
-        instrument_mca_group_pattern
+        instrument_mca_group_pattern, measurement_mca_info_group_pattern,
     )
     return _bulk_match(name, group_patterns)
 
@@ -282,19 +285,6 @@ def is_dataset(name):
         instrument_mca_live_t_pattern
     )
     return _bulk_match(name, data_patterns)
-
-
-def is_link_to_group(name):
-    """Check if ``name`` is a valid link to a group in a :class:`SpecH5`.
-    Return ``True`` or ``False``
-
-    :param name: Full name of member
-    :type name: str
-    """
-    # so far we only have one type of link to a group
-    if measurement_mca_info_pattern.match(name):
-        return True
-    return False
 
 
 def is_link_to_dataset(name):
@@ -362,7 +352,7 @@ def _get_attrs_dict(name):
             {},
         measurement_mca_data_pattern:
             {"interpretation": "spectrum", },
-        measurement_mca_info_pattern:
+        measurement_mca_info_group_pattern:
             {"NX_class": "NXdetector", }
     }
 
@@ -784,11 +774,11 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
         elif "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
             (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
-            if instrument_mca_preset_t_pattern.match(name):
+            if mca_hdr_type == "preset_time":
                 array_like = preset_time
-            elif instrument_mca_live_t_pattern.match(name):
+            elif mca_hdr_type == "live_time":
                 array_like = live_time
-            elif instrument_mca_elapsed_t_pattern.match(name):
+            elif mca_hdr_type == "elapsed_time":
                 array_like = elapsed_time
 
     if array_like is None:
@@ -878,7 +868,7 @@ class SpecH5Group(object):
 
         # key not matching any known pattern
         if not is_group(key) and not is_dataset(key) and\
-           not is_link_to_group(key) and not is_link_to_dataset(key):
+                not is_link_to_dataset(key):
             return False
 
         # nonexistent scan in specfile
@@ -953,8 +943,6 @@ class SpecH5Group(object):
             return SpecH5Group(full_key, self.file)
         elif is_dataset(full_key):
             return _dataset_builder(full_key, self.file, self)
-        elif is_link_to_group(full_key):
-            return SpecH5LinkToGroup(full_key, self.file)
         elif is_link_to_dataset(full_key):
             return _link_to_dataset_builder(full_key, self.file, self)
         else:
@@ -995,7 +983,13 @@ class SpecH5Group(object):
         if instrument_mca_group_pattern.match(self.name):
             ret = static_items["scan/instrument/mca"]
             if "CTIME" in self._scan.mca_header_dict:
-                ret += ["preset_time", "elapsed_time", "live_time"]
+                return ret + [u"preset_time", u"elapsed_time", u"live_time"]
+            return ret
+
+        if measurement_mca_info_group_pattern.match(self.name):
+            ret = static_items["scan/measurement/mca/info"]
+            if "CTIME" in self._scan.mca_header_dict:
+                return ret + [u"preset_time", u"elapsed_time", u"live_time"]
             return ret
 
         # number of data columns must be equal to number of labels
@@ -1043,14 +1037,12 @@ class SpecH5Group(object):
         for member_name in self.keys():
             member = self[member_name]
             ret = None
-            if not is_link_to_dataset(member.name) and\
-               not is_link_to_group(member.name):
+            if not is_link_to_dataset(member.name):
                 ret = func(member.name)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
+            if isinstance(self[member_name], SpecH5Group):
                 self[member_name].visit(func)
 
     def visititems(self, func):
@@ -1082,6 +1074,7 @@ class SpecH5Group(object):
             f = File('foo.dat')
             f["1.1"].visititems(func)
         """
+
         for member_name in self.keys():
             member = self[member_name]
             ret = None
@@ -1090,26 +1083,25 @@ class SpecH5Group(object):
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
+            if isinstance(self[member_name], SpecH5Group):
                 self[member_name].visititems(func)
 
 
-class SpecH5LinkToGroup(SpecH5Group):
-    """Special :class:`SpecH5Group` representing a link to a group.
-
-    It works exactly like a regular group but :meth:`SpecH5Group.visit`
-    and :meth:`SpecH5Group.visititems` methods will recognize it as a
-    link and will ignore it.
-    """
-    def keys(self):
-        """:return: List of all names of members attached to the target group
-        """
-        # we only have a single type of link to a group:
-        # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
-        if measurement_mca_info_pattern.match(self.name):
-            link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
-            return SpecH5Group(link_target, self.file).keys()
+# class SpecH5LinkToGroup(SpecH5Group):
+#     """Special :class:`SpecH5Group` representing a link to a group.
+#
+#     It works exactly like a regular group but :meth:`SpecH5Group.visit`
+#     and :meth:`SpecH5Group.visititems` methods will recognize it as a
+#     link and will ignore it.
+#     """
+#     def keys(self):
+#         """:return: List of all names of members attached to the target group
+#         """
+#         # we only have a single type of link to a group:
+#         # /1.1/measurement/mca_0/info/ -> /1.1/instrument/mca_0/
+#         if measurement_mca_info_group_pattern.match(self.name):
+#             link_target = self.name.replace("measurement", "instrument").rstrip("/")[:-4]
+#             return SpecH5Group(link_target, self.file).keys()
 
 
 class SpecH5(SpecH5Group):

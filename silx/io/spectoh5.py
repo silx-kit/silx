@@ -39,12 +39,12 @@ except ImportError as e:
     raise e
 
 from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
-     SpecH5LinkToGroup, SpecH5LinkToDataset
+     SpecH5LinkToDataset
 
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/05/2016"
+__date__ = "04/08/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -118,11 +118,10 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     def append_spec_member_to_h5(spec_h5_name, obj):
         h5_name = h5path + spec_h5_name.lstrip("/")
 
-        if isinstance(obj, SpecH5LinkToGroup) or\
-                isinstance(obj, SpecH5LinkToDataset):
-            # links are created at the same time as their targets
-            logger.debug("Ignoring link: " + h5_name)
-            pass
+        if isinstance(obj, SpecH5LinkToDataset):
+            logger.debug(
+                "Ignoring link for now: " + h5_name +
+                " (links are created together with their targets)")
 
         elif isinstance(obj, SpecH5Dataset):
             logger.debug("Saving dataset: " + h5_name)
@@ -148,12 +147,26 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
                 if overwrite_data or key not in ds.attrs:
                     ds.attrs.create(key, numpy.string_(obj.attrs[key]))
 
-            # link:
+            # links:
             #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
-            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/data$",
                         h5_name):
                 link_name = h5_name.replace("instrument", "measurement")
                 create_link(link_name, ds)
+
+            # /1.1/measurement/mca_0/info/*  --> /1.1/instrument/mca_0/*
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/.+?$",
+                        h5_name):
+                m = re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/(.+)?$",
+                             h5_name)
+                scan_num = m.group(1)
+                mca_num = m.group(2)
+                dataset_name = m.group(3)
+                if dataset_name in ["calibration", "channels", "live_time",
+                                    "preset_time", "elapsed_time"]:
+                    link_name = h5path
+                    link_name += "%s/measurement/mca_%s/info/%s" % (scan_num, mca_num, dataset_name)
+                    create_link(link_name, ds)
 
             # this has to be at the end if we want link creation and
             # dataset creation to remain independent for odd cases
@@ -172,14 +185,6 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             for key in obj.attrs:
                 if overwrite_data or key not in grp.attrs:
                     grp.attrs.create(key,  numpy.string_(obj.attrs[key]))
-
-            # link:
-            # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
-            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
-                        h5_name):
-                link_name = h5_name.replace("instrument", "measurement")
-                link_name += "/info"
-                create_link(link_name, grp)
 
     sfh5.visititems(append_spec_member_to_h5)
 

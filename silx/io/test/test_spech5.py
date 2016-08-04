@@ -23,7 +23,7 @@
 #############################################################################*/
 """Tests for spech5"""
 import gc
-from numpy import float32, array_equal
+from numpy import float32, array_equal, array
 import os
 import sys
 import tempfile
@@ -36,7 +36,7 @@ from ..spech5 import (SpecH5, SpecH5Group,
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "04/08/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -79,6 +79,7 @@ sftext = """#F /tmp/sf.dat
 #@MCA %16C
 #@CHANN 3 0 2 1
 #@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
 #N 3
 #L uno  duo
 1 2
@@ -215,7 +216,7 @@ class TestSpecH5(unittest.TestCase):
         self.assertIn("/25.1", self.sfh5)
         self.assertIn("25.1", self.sfh5)
         self.assertNotIn("25.2", self.sfh5)
-        # measurement is a child of a scan, full path would be required to
+        # measurement is a child of a scan, full path would be required to
         # access from root level
         self.assertNotIn("measurement", self.sfh5)
         # Groups may or may not have a trailing /
@@ -273,8 +274,8 @@ class TestSpecH5(unittest.TestCase):
     def test_header(self):
         # File header has 10 lines
         self.assertEqual(len(self.sfh5["/1.2/instrument/specfile/file_header"]), 10)
-        # 1.2 has 8 scan header lines
-        self.assertEqual(len(self.sfh5["/1.2/instrument/specfile/scan_header"]), 8)
+        # 1.2 has 8 scan header lines
+        self.assertEqual(len(self.sfh5["/1.2/instrument/specfile/scan_header"]), 9)
         # line 4 of file header
         self.assertEqual(
                 self.sfh5["1.2/instrument/specfile/file_header"][3].rstrip(),
@@ -293,8 +294,12 @@ class TestSpecH5(unittest.TestCase):
             array_equal(self.sfh5["/1.2/measurement/mca_0/info/channels"],
                         self.sfh5["/1.2/instrument/mca_0/channels"])
         )
-        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/"].keys(),
-                         self.sfh5["/1.2/instrument/mca_0/"].keys())
+        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/preset_time"],
+                         self.sfh5["/1.2/instrument/mca_0/preset_time"])
+        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/live_time"],
+                         self.sfh5["/1.2/instrument/mca_0/live_time"])
+        self.assertEqual(self.sfh5["/1.2/measurement/mca_0/info/elapsed_time"],
+                         self.sfh5["/1.2/instrument/mca_0/elapsed_time"])
 
     def test_list_of_scan_indices(self):
         self.assertEqual(self.sfh5.keys(),
@@ -322,6 +327,34 @@ class TestSpecH5(unittest.TestCase):
 
         self.assertIs(mca0_chann.dtype.type,
                       float32)
+
+    def test_mca_ctime(self):
+        mca0_preset_time = self.sfh5["/1.2/instrument/mca_0/preset_time"]
+        mca1_preset_time = self.sfh5["/1.2/instrument/mca_1/preset_time"]
+
+        self.assertLess(mca0_preset_time - 123.4,
+                        10**-5)
+        # ctime is unique in a given scan and applies to all analysers
+        self.assertEqual(mca0_preset_time,
+                         mca1_preset_time)
+
+        mca0_live_time = self.sfh5["/1.2/instrument/mca_0/live_time"]
+        mca1_live_time = self.sfh5["/1.2/instrument/mca_1/live_time"]
+
+        self.assertLess(mca0_live_time - 234.5,
+                        10**-5)
+        # ctime is unique in a given scan and applies to all analysers
+        self.assertEqual(mca0_live_time,
+                         mca1_live_time)
+
+        mca0_elapsed_time = self.sfh5["/1.2/instrument/mca_0/elapsed_time"]
+        mca1_elapsed_time = self.sfh5["/1.2/instrument/mca_1/elapsed_time"]
+
+        self.assertLess(mca0_elapsed_time - 345.6,
+                        10**-5)
+        # ctime is unique in a given scan and applies to all analysers
+        self.assertEqual(mca0_elapsed_time,
+                         mca1_elapsed_time)
 
     def test_mca_data(self):
         # sum 1st MCA in scan 1.2 over rows
@@ -360,7 +393,6 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visit(name_list.append)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', name_list)
         self.assertIn("/1.2/instrument/specfile/scan_header", name_list)
-        self.assertEqual(len(name_list), 69)
 
     def test_visit_items(self):
         dataset_name_list = []
@@ -371,7 +403,6 @@ class TestSpecH5(unittest.TestCase):
 
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
-        self.assertEqual(len(dataset_name_list), 48)
 
 
 def suite():
