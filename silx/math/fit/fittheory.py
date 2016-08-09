@@ -27,7 +27,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/07/2016"
+__date__ = "09/08/2016"
 
 
 class FitTheory(object):
@@ -46,8 +46,8 @@ class FitTheory(object):
           interactively modifying the configuration when running a fit from
           a GUI
     """
-    def __init__(self, function, parameters, estimate,
-                 configure=None, derivative=None,
+    def __init__(self, function, parameters,
+                 estimate=None, configure=None, derivative=None,
                  config_widget=None, description=None):
         self.function = function
         """The function must have the signature ``f(x, *params)``, where ``x``
@@ -92,6 +92,8 @@ class FitTheory(object):
               parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
               explanations about constraints.
         """
+        if estimate is None:
+            self.estimate = self.default_estimate
 
         self.configure = configure
         """The optional configuration function must conform to the signature
@@ -113,4 +115,10 @@ class FitTheory(object):
         self.description = description
         """Optional description string for this particular fit theory."""
 
-
+    def default_estimate(self, x=None, y=None, bg=None):
+        """Default estimate function. Return an array of *ones* as the
+        initial estimated parameters, and set all constraints to zero
+        (sets all parameters to FREE)"""
+        estimated_parameters = [1. for _ in self.parameters]
+        estimated_constraints = [[0, 0, 0] for _ in self.parameters]
+        return estimated_parameters, estimated_constraints

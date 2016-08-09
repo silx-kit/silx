@@ -54,7 +54,7 @@ from .fittheory import FitTheory
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "26/07/2016"
+__date__ = "09/08/2016"
 
 _logger = logging.getLogger(__name__)
 
@@ -943,17 +943,18 @@ class FitManager(object):
 
         derivative = theories_module.DERIVATIVE if hasattr(theories_module, "DERIVATIVE") else None
         configure = theories_module.CONFIGURE if hasattr(theories_module, "CONFIGURE") else None
-
+        estimate = theories_module.ESTIMATE if hasattr(theories_module, "ESTIMATE") else None
         if isinstance(theories_module.THEORY, (list, tuple)):
             # multiple fit functions
             for i in range(len(theories_module.THEORY)):
                 deriv = derivative[i] if derivative is not None else None
                 config = configure[i] if configure is not None else None
+                estim = estimate[i] if estimate is not None else None
                 self.addtheory(theories_module.THEORY[i],
                                FitTheory(
                                    theories_module.FUNCTION[i],
                                    theories_module.PARAMETERS[i],
-                                   theories_module.ESTIMATE[i],  # FIXME: should we handle no ESTIMATE?
+                                   estim,
                                    config,
                                    deriv))
         else:
@@ -962,7 +963,7 @@ class FitManager(object):
                            FitTheory(
                                theories_module.FUNCTION,
                                theories_module.PARAMETERS,
-                               theories_module.ESTIMATE,
+                               estimate,
                                configure,
                                derivative))
 

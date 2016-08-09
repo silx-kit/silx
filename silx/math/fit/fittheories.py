@@ -56,8 +56,8 @@ a dictionary :const:`THEORY`: with the following structure::
 
 Theory names can be customized (e.g. ``gauss, lorentz, splitgauss``…).
 
-The mandatory parameters for :class:`FitTheory` are ``function``,
-``parameters`` and estimate.
+The mandatory parameters for :class:`FitTheory` are ``function`` and
+``parameters``.
 
 You can also define an ``INIT`` function that will be executed by
 :meth:`FitManager.loadtheories`.

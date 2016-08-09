@@ -238,7 +238,7 @@ class TestFitmanager(unittest.TestCase):
         self.assertAlmostEqual(fit.fit_results[2]["fitresult"],
                                3.5)
 
-    def testAddTheory(self):
+    def testAddTheory(self, estimate=True):
         """Test FitManager using a custom fit function imported with
         FitManager.addtheory"""
         # Create synthetic data with a sum of gaussian functions
@@ -287,7 +287,7 @@ class TestFitmanager(unittest.TestCase):
         fit.addtheory("polynomial",
                       FitTheory(function=myfun,
                                 parameters=["A", "B", "C"],
-                                estimate=myesti,
+                                estimate=myesti if estimate else None,
                                 configure=myconfig,
                                 derivative=myderiv))
 
@@ -319,6 +319,12 @@ class TestFitmanager(unittest.TestCase):
             self.assertFalse(numpy.array_equal(p1, p2),
                              "Fit parameters are equal even though the " +
                              "configuration has been changed")
+
+    def testNoEstimate(self):
+        """Ensure that the in the absence of the estimation function,
+        the default estimation function :meth:`FitTheory.default_estimate`
+        is used."""
+        self.testAddTheory(estimate=False)
 
     def testStep(self):
         """Test fit manager on a step function with a more complex estimate
