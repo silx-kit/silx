@@ -62,6 +62,17 @@ class FitWidget(qt.QWidget):
     fitting algorithm.
     """
     sigFitWidgetSignal = qt.Signal(object)
+    """This signal is emitted when:
+
+        - estimation is complete
+        - fit is complete
+
+    It carries a dictionary with two items:
+
+        - *event*: *EstimateFinished* or *FitFinished*
+        - *data*: fit result (see documentation for
+          :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
+    """
 
     def __init__(self, parent=None, title=None, fitinstance=None,
                  enableconfig=True, enablestatus=True, enablebuttons=True):
@@ -429,9 +440,10 @@ class FitWidget(qt.QWidget):
         self.guiparameters.fillfromfit(
             self.fitmanager.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
-        ddict = {}
-        ddict['event'] = 'FitFinished'
-        ddict['data'] = self.fitmanager.fit_results
+        ddict = {
+            'event': 'FitFinished',
+            'data': self.fitmanager.fit_results
+        }
         self._emitSignal(ddict)
         return
 

@@ -968,16 +968,28 @@ class FitAction(_PlotAction):
             # curve = curves[0]
             self._errorMessage("No selected curve to be fitted")
             return False
-        x, y, legend = curve[0:3]
+        self.x, self.y, self.legend = curve[0:3]
+        self.plot.addCurve(self.x, self.y, "sanity check")
 
         # open a window with a FitWidget
 
         mw = qt.QMainWindow(self.plot)
-        fw = FitWidget(parent=mw)
-        fw.setdata(x, y)
-        fw.show()
-        mw.setWindowTitle("Fitting " + legend)
-        mw.setCentralWidget(fw)
-        fw.guibuttons.DismissButton.clicked.connect(mw.close)
+        self.fit_widget = FitWidget(parent=mw)
+        self.fit_widget.setdata(self.x, self.y)
+        self.fit_widget.show()
+        mw.setWindowTitle("Fitting " + self.legend)
+        mw.setCentralWidget(self.fit_widget)
+        self.fit_widget.guibuttons.DismissButton.clicked.connect(mw.close)
+        self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
         mw.show()
+
+    def handle_signal(self, ddict):
+        if ddict["event"] == "EstimateFinished":
+            pass
+        if ddict["event"] == "FitFinished":
+            y_fit = self.fit_widget.fitmanager.gendata()
+            print(y_fit)
+            self.plot.addCurve(self.x, y_fit, "Fit <%s>" % self.legend)
+
+
 

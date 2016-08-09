@@ -494,7 +494,7 @@ class FitManager(object):
             paramlist = self.fit_results
         active_params = []
         for param in paramlist:
-            if param['code'] not in ['IGNORE', 0, 0.]:
+            if param['code'] not in ['IGNORE', 7]:
                 active_params.append(param['fitresult'])
 
         newdata = self.fitfunction(numpy.array(x), *active_params)
