@@ -266,13 +266,14 @@ class FitManager(object):
         to fit an individual peak.
         """
 
-        # TODO:  document following attributes
-        self.bkg_internal_oldx = numpy.array([])
-        self.bkg_internal_oldy = numpy.array([])
-        self.bkg_internal_oldpars = [0, 0]
-        self.bkg_internal_oldbkg = numpy.array([])
-
         self.setdata(x, y, sigmay)
+
+        # Attributes used to store internal background parameters and data,
+        # to avoid costly computations when parameters stay the same
+        self._bkg_internal_oldx = numpy.array([])
+        self._bkg_internal_oldy = numpy.array([])
+        self._bkg_internal_oldpars = [0, 0]
+        self._bkg_internal_oldbkg = numpy.array([])
 
     ##################
     # Public methods #
@@ -877,34 +878,36 @@ class FitManager(object):
 
     def bkg_internal(self, x, *pars):
         """
-        Internal Background based on strip filter
-        (:meth:`silx.math.fit.filters.strip`)
-        """
-        # TODO: document
+        Internal Background based on a strip filter
+        (:meth:`silx.math.fit.filters.strip`) and a constant value.
 
-        if self.bkg_internal_oldpars[0] == pars[0]:
-            if self.bkg_internal_oldpars[1] == pars[1]:
-                if (len(x) == len(self.bkg_internal_oldx)) & \
-                   (len(self.ydata) == len(self.bkg_internal_oldy)):
+        Parameters are *(strip_width, n_iterations, constant)*
+
+        See http://pymca.sourceforge.net/stripbackground.html
+        """
+        if self._bkg_internal_oldpars[0] == pars[0]:
+            if self._bkg_internal_oldpars[1] == pars[1]:
+                if (len(x) == len(self._bkg_internal_oldx)) & \
+                   (len(self.ydata) == len(self._bkg_internal_oldy)):
                     # same parameters
-                    if numpy.sum(self.bkg_internal_oldx == x) == len(x):
-                        if numpy.sum(self.bkg_internal_oldy == self.ydata) == len(self.ydata):
-                            return self.bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
-        self.bkg_internal_oldy = self.ydata
-        self.bkg_internal_oldx = x
-        self.bkg_internal_oldpars = pars
+                    if numpy.sum(self._bkg_internal_oldx == x) == len(x):
+                        if numpy.sum(self._bkg_internal_oldy == self.ydata) == len(self.ydata):
+                            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
+        self._bkg_internal_oldy = self.ydata
+        self._bkg_internal_oldx = x
+        self._bkg_internal_oldpars = pars
         idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
         yy = numpy.take(self.ydata, idx)
         nrx = numpy.shape(x)[0]
         nry = numpy.shape(yy)[0]
         if nrx == nry:
-            self.bkg_internal_oldbkg = strip(yy, pars[0], pars[1])
-            return self.bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
+            self._bkg_internal_oldbkg = strip(yy, pars[0], pars[1])
+            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
 
         else:
-            self.bkg_internal_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-                                                         pars[0], pars[1])
-            return self.bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
+            self._bkg_internal_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
+                                              pars[0], pars[1])
+            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
 
     def bkg_squarefilter(self, x, *pars):
         """
