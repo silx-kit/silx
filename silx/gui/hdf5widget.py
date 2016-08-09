@@ -57,7 +57,7 @@ class Hdf5Item(qt.QStandardItem):
     def __init__(self, text, itemtype, obj):
         super(Hdf5Item, self).__init__(text)
 
-        self.name = text
+        self.basename = text
         """Name of the item: base filename, group name, or dataset name"""
 
         self.itemtype = itemtype
@@ -84,29 +84,51 @@ class Hdf5Item(qt.QStandardItem):
             - :class:`silx.io.spech5.SpecH5LinkToDataset` (:attr:`itemtype` *dataset*)
         """
 
+        self.hdf5name = self.obj.name
+        """Name of group or dataset within the HDF5 file."""
+
+    @property
+    def filename(self):
+        """Path to parent file in the filesystem"""
+        # filename made a property rather than an attribute because
+        # we don't know self.parent() in __init__.
+        return self.getParentFile().filename
+
     def getParentFile(self):
         """Return reference to parent file handle (:class:`h5py.File` or
         :class:`silx.io.spech5.SpecH5` object), which is stored
         as attribute ``obj`` of the root level item with
         ``itemtype == "file"``
+
+        You should only call this method if this :class:`Hdf5Item` is part
+        of a valid :class:`Hdf5TreeModel` with a file item a the root level.
         """
         if self.itemtype == "file":
             return self.obj
 
         parent = self.parent()
+
+        errmsg = "Cannot find parent. Hdf5Item %s " % self.basename
+        errmsg += "is not in a valid Hdf5TreeModel"
+        if parent is None:
+            raise AttributeError(errmsg)
+        
         while parent.itemtype != "file":
             parent = parent.parent()
+            if parent is None:
+                raise AttributeError(errmsg)
 
         return parent.obj
 
-    def getFilename(self):
-        """Return complete path to parent file"""
-        return self.getParentFile().filename
-
 
 class Hdf5TreeModel(qt.QStandardItemModel):
-    """Data model for the content of an HDF5 file
-    or a Specfile.
+    """Data model for the content of an HDF5 file or a Specfile.
+    This model is a hierarchical tree, whose nodes are :class:`Hdf5Item`
+    objects in the first column and :class:`qt.QStandardItem` in the second
+    column.
+    The first column contains the data name and a pointer to the HDF5 data
+    objects, while the second column is only a data description to be
+    displayed in a tree view.
     """
     def __init__(self, files_=None):
         """
@@ -123,7 +145,8 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             self.load(file_)
 
     def load(self, file_):
-        """
+        """Load a HDF5 file into the data model.
+
         :param file_: File handle/descriptor for a :class:`h5py.File`
             or a  :class:`spech5.SpecH5` object, or file path.
         """
@@ -152,12 +175,15 @@ class Hdf5TreeModel(qt.QStandardItemModel):
         file_item = Hdf5Item(text=os.path.basename(filename),
                              itemtype="file",
                              obj=fd)
+        file_item.setToolTip("File <%s>" % os.path.abspath(filename))
         self.appendRow([file_item])
 
         # fill HDF5 structure tree underneath file
-        self._recursive_append_rows(file_item, fd)
+        self._recursive_append_rows(h5item=file_item,
+                                    gr_or_ds=fd,
+                                    filename=os.path.abspath(filename))
 
-    def _recursive_append_rows(self, h5item, gr_or_ds):
+    def _recursive_append_rows(self, h5item, gr_or_ds, filename):
         """Recurse through an HDF5 structure to append groups an datasets
         into the tree model.
         :param h5item: Parent :class:`Hdf5Item` or
@@ -186,9 +212,14 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                 else:
                     itemtype = "dataset"
 
+                # actual item
                 child_h5item = Hdf5Item(text=child_gr_ds_name,
                                         itemtype=itemtype,
                                         obj=child_gr_ds)
+                # tooltip for item
+                tt = "HDF5 %s <%s>\n" % (itemtype, child_gr_ds.name)
+                tt += "File <%s>" % filename
+                child_h5item.setToolTip(tt)
 
                 # concatenate description information for 2nd column
                 descr = itemtype[0].upper() + itemtype[1:]
@@ -201,12 +232,11 @@ class Hdf5TreeModel(qt.QStandardItemModel):
 
                 child_description = qt.QStandardItem(descr)
 
-                row = [child_h5item, child_description]
-
-                h5item.appendRow(row)
+                h5item.appendRow([child_h5item, child_description])
 
                 self._recursive_append_rows(child_h5item,
-                                            child_gr_ds)
+                                            child_gr_ds,
+                                            filename)
 
 
 class MyTreeView(qt.QTreeView):
@@ -220,7 +250,7 @@ class MyTreeView(qt.QTreeView):
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setUniformRowHeights(True)
 
-        self._lastMouse = None
+        self.lastMouse = None
         if auto_resize:
             self.expanded.connect(self.resizeAllColumns)
             self.collapsed.connect(self.resizeAllColumns)
@@ -241,29 +271,39 @@ class MyTreeView(qt.QTreeView):
         qt.QTreeView.keyPressEvent(self, event)
 
     def mousePressEvent(self, event):
-        '''On mouse press events, remember which button was pressed
-        in self._lastMouse attribute. Make sure itemClicked signal
+        """On mouse press events, remember which button was pressed
+        in :attr:`lastMouse`. Make sure itemClicked signal
         is emitted.
-        '''
+        """
         button = event.button()
         if button == qt.Qt.LeftButton:
-            self._lastMouse = "left"
+            self.lastMouse = "left"
         elif button == qt.Qt.RightButton:
-            self._lastMouse = "right"
+            self.lastMouse = "right"
         elif button == qt.Qt.MidButton:
-            self._lastMouse = "middle"
+            self.lastMouse = "middle"
         else:
-            self._lastMouse = "????"
+            self.lastMouse = "????"
         qt.QTreeView.mousePressEvent(self, event)
-        if self._lastMouse != "left":
+        if self.lastMouse != "left":
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
                 event = "itemClicked"
-                modelIndex = self.indexAt(event.pos())
-                self.emitSignal(event, modelIndex)
+                qindex = self.indexAt(event.pos())
+                self.emitSignal(event, qindex)
 
 
 class Hdf5TreeView(qt.QWidget):
+    """
+    This widget provides a tree view of one or several HDF5 files,
+    with two columns *Name* and *Description*.
+
+    When hovering the mouse cursor over the name column, you get a tooltip
+    with a complete name.
+
+    The columns automatically resize themselves to the needed width when
+    expanding or collapsing a group.
+    """
     sigHdf5TreeView = qt.pyqtSignal(object)
     """Signal emitted when clicking or pressing the ``Enter`` key. It
     broadcasts a dictionary of information about the event and the
@@ -277,7 +317,6 @@ class Hdf5TreeView(qt.QWidget):
     - ``name``: path within the HDF5 structure
     - ``dtype``: dataset dtype, None if item is a group
     - ``shape``: dataset shape, None if item is a group
-    - ``NX_class``: NX_class attribute of selected item (default None)
     - ``attr``: attributes dictionary of element
     """
     def __init__(self, parent=None, files_=None):
@@ -288,8 +327,8 @@ class Hdf5TreeView(qt.QWidget):
         """
         qt.QWidget.__init__(self, parent)
         layout = qt.QVBoxLayout(self)
-        #layout.setContentsMargins(0, 0, 0, 0)
-        #layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
         self.model = Hdf5TreeModel(files_)
         """:class:`Hdf5TreeModel` in charge of loading and storing
@@ -313,31 +352,31 @@ class Hdf5TreeView(qt.QWidget):
         self.model.load(file_)
 
     def itemClicked(self, modelIndex):
-        '''
+        """
         :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
                            clicked item.
         :type modelIndex: :class:`qt.QModelIndex`
-        '''
+        """
         event = "itemClicked"
         self.emitSignal(event, modelIndex)
 
     def itemDoubleClicked(self, modelIndex):
-        '''
+        """
         :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
                            clicked item.
         :type modelIndex: :class:`qt.QModelIndex`
-        '''
+        """
         event = "itemDoubleClicked"
         self.emitSignal(event, modelIndex)
 
     def itemEnterKeyPressed(self):
-        '''
-        '''
+        """
+        """
         event = "itemEnterKeyPressed"
         modelIndex = self.treeview.selectedIndexes()[0]
         self.emitSignal(event, modelIndex)
 
-    def emitSignal(self, event, modelIndex):
+    def emitSignal(self, event, qindex):
         """
         Emits a ``sigHdf5TreeView`` signal to broadcast a dictionary of
         information about the selected row in the tree view.
@@ -345,43 +384,34 @@ class Hdf5TreeView(qt.QWidget):
         :param event: Type of event: "itemClicked", "itemDoubleClicked",
             or "itemEnterKeyPressed"
         :type event: string
-        :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
+        :param qindex: Index within the :class:`Hdf5TreeModel` of the
                            selected item.
-        :type modelIndex: :class:`qt.QModelIndex`
+        :type qindex: :class:`qt.QModelIndex`
 
         """
         # when selecting a row, we are interested in the first column
-        this_row = modelIndex.row()
-        if modelIndex.column() != 0:
-            modelIndex = modelIndex.sibling(this_row, 0)
+        # item, which has the pointer to the group/dataset
+        this_row = qindex.row()
+        if qindex.column() != 0:
+            qindex = qindex.sibling(this_row, 0)
 
-        item = self.model.itemFromIndex(modelIndex)
-
-        if item.itemtype == "dataset":
-            dtype_ = item.obj.dtype
-            shape_ = item.obj.shape
-        else:
-            dtype_, shape_ = 2 * [None]
-
-        if item.itemtype in ["dataset", "group"]:
-            attrs_ = item.obj.attrs
-        else:
-            attrs_ = None
+        item = self.model.itemFromIndex(qindex)
 
         if not "Clicked" in event:
             mouse_button = None
         else:
-            mouse_button = self.treeview._lastMouse * 1
+            mouse_button = self.treeview.lastMouse * 1
 
         ddict = {
             'event': event,
+            'filename': item.filename,
+            'basename': item.basename,
+            'hdf5name': item.hdf5name,
             'mouse': mouse_button,
-            'filename': item.getFilename(),
-            'name': item.name,
             'obj': item.obj,
-            'dtype': dtype_,
-            'shape': shape_,
-            'attrs': attrs_
+            'dtype': getattr(item.obj, "dtype", None),
+            'shape': getattr(item.obj, "shape", None),
+            'attrs': getattr(item.obj, "attrs", None)
         }
 
         # FIXME: Maybe emit only {event, obj}
