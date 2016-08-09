@@ -72,7 +72,9 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
+from ..fit.FitWidget import FitWidget
 from silx.io.utils import save1D, savespec
+
 
 
 _logger = logging.getLogger(__name__)
@@ -940,3 +942,42 @@ class PanWithArrowKeysAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setPanWithArrowKeys(checked)
+
+
+class FitAction(_PlotAction):
+    """QAction to open a :class:`FitWidget` and set its data to the
+    active curve if any, or to the first curve..
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        super(FitAction, self).__init__(
+            plot, icon='math-fit', text='Fit curve',
+            tooltip='Open a fit dialog',
+            triggered=self._openFitWindow,
+            checkable=False, parent=parent)
+
+    def _openFitWindow(self):
+        curve = self.plot.getActiveCurve()
+        if curve is None:
+            # curves = self.plot.getAllCurves()
+            # if not curves:
+            #     self._errorMessage("No curve to be fitted")
+            #     return False
+            # curve = curves[0]
+            self._errorMessage("No selected curve to be fitted")
+            return False
+        x, y, legend = curve[0:3]
+
+        # open a window with a FitWidget
+
+        mw = qt.QMainWindow(self.plot)
+        fw = FitWidget(parent=mw)
+        fw.setdata(x, y)
+        fw.show()
+        mw.setWindowTitle("Fitting " + legend)
+        mw.setCentralWidget(fw)
+        fw.guibuttons.DismissButton.clicked.connect(mw.close)
+        mw.show()
+

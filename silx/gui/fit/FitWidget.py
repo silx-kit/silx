@@ -63,12 +63,12 @@ class FitWidget(qt.QWidget):
     """
     sigFitWidgetSignal = qt.Signal(object)
 
-    def __init__(self, parent=None, name=None, fitinstance=None,
+    def __init__(self, parent=None, title=None, fitinstance=None,
                  enableconfig=True, enablestatus=True, enablebuttons=True):
         """
 
         :param parent: Parent widget
-        :param name: Window title
+        :param title: Window title
         :param fitinstance: User defined instance of
             :class:`silx.math.fit.fitmanager.FitManager`, or ``None``
         :param enableconfig: If ``True``, activate widgets to modify the fit
@@ -80,10 +80,10 @@ class FitWidget(qt.QWidget):
         :param enablebuttons: If ``True``, add buttons to run estimation and
             fitting.
         """
-        if name is None:
-            name = "FitWidget"
+        if title is None:
+            title = "FitWidget"
         qt.QWidget.__init__(self, parent)
-        self.setWindowTitle(name)
+        self.setWindowTitle(title)
         layout = qt.QVBoxLayout(self)
 
         self.fitmanager = self._set_fitmanager(fitinstance)
