@@ -61,7 +61,7 @@ from silx.gui import qt
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/07/2016"
+__date__ = "11/08/2016"
 
 
 QTVERSION = qt.qVersion()
@@ -186,8 +186,8 @@ class QScriptOption(TabSheets):
 
                 {'notetitle': "First Sheet",
                  'fields': (["Label", 'Simple Entry'],
-                            ["EntryField", 'entry', 'MyLabel'],
-                            ["CheckField", 'label', 'Check Label'])}
+                            ["EntryField", 'entry', 'EntryLabel', 'tooltip'],
+                            ["CheckField", 'label', 'Check Label', 'tooltip'])}
 
             The string in the ``notetitle`` item is used as sheet/tab name.
             The ``fields`` item is used as a parameter for :class:`FieldSheet`.
@@ -241,6 +241,9 @@ class QScriptOption(TabSheets):
                 self.tabWidget.setCurrentIndex(i)
             else:
                 self.tabWidget.setCurrentWidget(self.sheets[name])
+
+        # activate first tab
+        self.tabWidget.setCurrentIndex(0)
 
         # perform the binding to the buttons
         self.buttonOk.clicked.connect(self.accept)

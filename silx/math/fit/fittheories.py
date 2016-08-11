@@ -130,7 +130,7 @@ DEFAULT_CONFIG = {'NoConstraintsFlag': False,
                   'SameSlopeRatioFlag': 1,
                   'SameAreaRatioFlag': 1,
                   # Strip bg removal
-                  'RemoveStripBackground': True,
+                  'StripBackgroundFlag': True,
                   'StripWidth': 1,
                   'StripNIterations': 10000,
                   'StripThresholdFactor': 1.0
@@ -211,9 +211,9 @@ class FitTheories(object):
 
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
-        :attr:`config` dictionary (*RemoveStripBackground, StripWidth,
+        :attr:`config` dictionary (*StripBackgroundFlag, StripWidth,
         StripNIterations, StripThresholdFactor*)"""
-        remove_strip_bg = self.config.get('RemoveStripBackground', False)
+        remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
             strip_width = self.config.get('StripWidth', 1)
             strip_niterations = self.config.get('StripNIterations', 10000)
@@ -823,11 +823,11 @@ class FitTheories(object):
 
         # temporarily disable strip bg removal in config, then estimate
         # gaussian params of the derivative, then restore bg config
-        config_rm_strip_bg = self.config.get("RemoveStripBackground")
-        self.configure(RemoveStripBackground=False)
+        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
+        self.configure(StripBackgroundFlag=False)
         fittedpar, newcons = self.estimate_height_position_fwhm(
                                  x[cutoff:-cutoff], y_deriv)
-        self.configure(RemoveStripBackground=config_rm_strip_bg)
+        self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
         npeaks = len(fittedpar) // 3
         largest_index = 0
@@ -948,11 +948,11 @@ class FitTheories(object):
 
         # temporarily disable strip bg removal in config, then estimate
         # gaussian params of the derivative, then restore bg config
-        config_rm_strip_bg = self.config.get("RemoveStripBackground")
-        self.configure(RemoveStripBackground=False)
+        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
+        self.configure(StripBackgroundFlag=False)
         fittedpar, cons = self.estimate_height_position_fwhm(
                               x[cutoff:-cutoff], y_deriv)
-        self.configure(RemoveStripBackground=config_rm_strip_bg)
+        self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
         npeaks = len(fittedpar) // 3
         largest_index = 0

@@ -49,7 +49,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/07/2016"
+__date__ = "11/08/2016"
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ class FitWidget(qt.QWidget):
                 else:
                     self.funevent(fitinstance.selectedtheory)
                 if fitinstance.selectedbg is None:
-                    self.guiconfig.BkgComBox.setCurrentIndex(1)
+                    self.guiconfig.BkgComBox.setCurrentIndex(0)
                     self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
                 else:
                     self.bkgevent(fitinstance.selectedbg)
@@ -269,7 +269,7 @@ class FitWidget(qt.QWidget):
         configuration = self.configure()
         # get new dictionary
         if newconfiguration is None:
-            newconfiguration = self.configureGui(configuration)
+            newconfiguration = self.configureDialog(configuration)
         # update configuration
         configuration.update(self.configure(**newconfiguration))
         # set fit function theory
@@ -285,8 +285,8 @@ class FitWidget(qt.QWidget):
             self.funevent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
-            i = 1 + list(self.fitmanager.bgtheories.keys()
-                         ).index(self.fitmanager.selectedbg)
+            i = list(self.fitmanager.bgtheories.keys()
+                     ).index(self.fitmanager.selectedbg)
             self.guiconfig.BkgComBox.setCurrentIndex(i)
         except ValueError:
             _logger.error("Background not in list %s",
@@ -316,7 +316,7 @@ class FitWidget(qt.QWidget):
         # update the Gui
         self.__initialparameters()
 
-    def configureGui(self, oldconfiguration):
+    def configureDialog(self, oldconfiguration):
         """Display a dialog, allowing the user to define fit configuration
         parameters:
 
@@ -330,6 +330,10 @@ class FitWidget(qt.QWidget):
             - ``Sensitivity``
             - ``Yscaling``
             - ``ForcePeakPresence``
+            - ``StripBackgroundFlag``
+            - ``StripWidth``
+            - ``StripNIterations``
+            - ``StripThresholdFactor``
 
         :return: User defined parameters in a dictionary"""
         # this method can be overwritten for custom
@@ -337,7 +341,7 @@ class FitWidget(qt.QWidget):
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
-        sheet1 = {'notetitle': 'Restrains',
+        sheet1 = {'notetitle': 'Constraints',
                   'fields': (["CheckField", 'PositiveHeightAreaFlag',
                               'Force positive Height/Area'],
                              ["CheckField", 'QuotedPositionFlag',
@@ -347,7 +351,7 @@ class FitWidget(qt.QWidget):
                              ["CheckField", 'SameFwhmFlag', 'Force same FWHM'],
                              ["CheckField", 'QuotedEtaFlag',
                                  'Force Eta between 0 and 1'],
-                             ["CheckField", 'NoConstraintsFlag', 'Ignore Restrains'])}
+                             ["CheckField", 'NoConstraintsFlag', 'Ignore constraints'])}
 
         sheet2 = {'notetitle': 'Search',
                   'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: ',
@@ -355,13 +359,28 @@ class FitWidget(qt.QWidget):
                               "detection algorithm"],
                              ["EntryField", 'Sensitivity', 'Sensitivity: ',
                               "Sensitivity parameter for the peak detection algorithm"],
-                             ["EntryField", 'Yscaling',   'Y Factor   : '],
+                             ["EntryField", 'Yscaling',   'Y Factor: '],
                              ["CheckField", 'ForcePeakPresence', 'Force peak presence',
                               "In case no peak is detected by the peak-search" +
                               " algorithm, put one peak at the max data location."]
                              )}
+        sheet3 = {'notetitle': 'Background',
+                  'fields': (["CheckField", 'StripBackgroundFlag',
+                              'Subtract strip background for estimation',
+                              "Background filter useful when fitting narrow peaks"],
+                             ["EntryField", 'StripWidth', 'Strip width (samples): ',
+                              "Width of strip operator, in number of samples. A sample will be " +
+                              "compared to the average of the 2 samples at a distance of " +
+                              " + or - width samples."],
+                             ["EntryField", 'StripNIterations', 'Number of iterations: ',
+                              "Number of iterations for strip algorithm"],
+                             ["EntryField", 'StripThresholdFactor', 'Strip threshold factor: ',
+                              "If a sample is higher than the average of the two samples " +
+                              "multiplied by this factor, it will be replaced by the average."]
+                             )}
+
         w = QScriptOption(self, name='Fit Configuration',
-                          sheets=(sheet1, sheet2),
+                          sheets=(sheet1, sheet2, sheet3),
                           default=oldconfiguration)
 
         w.show()
@@ -371,11 +390,18 @@ class FitWidget(qt.QWidget):
         # we do not need the dialog any longer
         del w
 
+        # convert string inputs to numeric values
         newconfiguration['FwhmPoints'] = int(
-            float(newconfiguration['FwhmPoints']))
+                float(newconfiguration['FwhmPoints']))
         newconfiguration['Sensitivity'] = float(
-            newconfiguration['Sensitivity'])
+                newconfiguration['Sensitivity'])
         newconfiguration['Yscaling'] = float(newconfiguration['Yscaling'])
+        newconfiguration['StripWidth'] = int(
+                float(newconfiguration['StripWidth']))
+        newconfiguration['StripNIterations'] = int(float(
+                newconfiguration['StripNIterations']))
+        newconfiguration['StripThresholdFactor'] = float(
+                newconfiguration['StripThresholdFactor'])
 
         return newconfiguration
 
