@@ -21,7 +21,8 @@
 # THE SOFTWARE.
 #
 #############################################################################*/
-"""This module provides background extraction unctions and smoothing functions.
+"""This module provides background extraction functions and smoothing
+functions. These functions are extracted from PyMca module SpecFitFuns.
 
 Index of background extraction functions:
 ------------------------------------------
