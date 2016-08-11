@@ -48,7 +48,8 @@ class FitTheory(object):
     """
     def __init__(self, function, parameters,
                  estimate=None, configure=None, derivative=None,
-                 config_widget=None, description=None):
+                 config_widget=None, description=None,
+                 pymca_legacy=False):
         self.function = function
         """The function must have the signature ``f(x, *params)``, where ``x``
         is an array of values for the independent variable, and ``params`` are
@@ -68,20 +69,15 @@ class FitTheory(object):
         of required parameters """
 
         self.estimate = estimate
-        """The estimation function must have the following signature::
+        """The estimation function should have the following signature::
 
-            f(x, y, bg=None) -> (estimated_param, constraints)
+            f(x, y) -> (estimated_param, constraints)
 
         Parameters:
 
             - ``x`` is a sequence of values for the independent variable
             - ``y`` is a sequence of the same length as ``x`` containing the
               data to be fitted
-            - ``bg`` is an optional sequence of background signal to be subtracted
-              from ``y`` before doing the estimation. The estimate function
-              should be able to handle *bg* being a data array of the same
-              shape as ``y``, or ``bg = None`` (meaning there is no background
-              signal to subtract).
 
         Return values:
 
@@ -91,6 +87,8 @@ class FitTheory(object):
               number of estimated parameters, containing the constraints for each
               parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
               explanations about constraints.
+
+
         """
         if estimate is None:
             self.estimate = self.default_estimate
@@ -115,10 +113,20 @@ class FitTheory(object):
         self.description = description
         """Optional description string for this particular fit theory."""
 
+        self.pymca_legacy = pymca_legacy
+        """This is attribute can be set to *True* to indicate that the theory
+        is a PyMca legacy theory.
+
+        This tells :mod:`silx.math.fit.fitmanager` that the signature of
+        the estimate function is::
+
+            f(x, y, bg, xscaling, yscaling) -> (estimated_param, constraints)
+        """
+
     def default_estimate(self, x=None, y=None, bg=None):
         """Default estimate function. Return an array of *ones* as the
         initial estimated parameters, and set all constraints to zero
-        (sets all parameters to FREE)"""
+        (FREE)"""
         estimated_parameters = [1. for _ in self.parameters]
         estimated_constraints = [[0, 0, 0] for _ in self.parameters]
         return estimated_parameters, estimated_constraints

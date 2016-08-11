@@ -47,7 +47,7 @@ def myfun(x, a, b, c):
     "Model function"
     return (a * x**2 + b * x + c) / CONFIG['d']
 
-def myesti(x, y, bg):
+def myesti(x, y):
     "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
     return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
@@ -81,20 +81,27 @@ THEORY = {
 """
 
 old_custom_function_definition = """
-CONFIG = {'d': 4.5}
+CONFIG = {'d': 1.0}
 
 def myfun(x, a, b, c):
     "Model function"
     return (a * x**2 + b * x + c) / CONFIG['d']
 
-def myesti(x, y, bg):
+def myesti(x, y, bg, xscalinq, yscaling):
     "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
     return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
+
+def myconfig(**kw):
+    "Update or complete CONFIG dictionary"
+    for key in kw:
+        CONFIG[key] = kw[key]
+    return CONFIG
 
 THEORY = ['my fit theory']
 PARAMETERS = [('A', 'B', 'C')]
 FUNCTION = [myfun]
 ESTIMATE = [myesti]
+CONFIGURE = [myconfig]
 
 """
 
@@ -221,7 +228,7 @@ class TestFitmanager(unittest.TestCase):
             os.unlink(tmpfile)
 
         fit.settheory('my fit theory')
-        # Test configure
+        fit.configure(d=4.5)
         fit.estimate()
         fit.runfit()
 
@@ -260,7 +267,7 @@ class TestFitmanager(unittest.TestCase):
             """"Model function"""
             return (a_ * x_**2 + b_ * x_ + c_) / CONFIG['d']
 
-        def myesti(x_, y_, bg):
+        def myesti(x_, y_):
             """"Initial parameters for iterative fit:
                  (a, b, c) = (1, 1, 1)
             Constraints all set to 0 (FREE)"""

@@ -181,15 +181,13 @@ class FitManager(object):
 
           - *estimate* is a function to compute initial values for parameters.
             It should have the following signature:
-            ``f(x, y, bg_data) -> (estimated_param, constraints, bg_data)``
+            ``f(x, y) -> (estimated_param, constraints)``
 
                 Parameters:
 
                 - ``x`` is the independant variable, i.e. all the points where
                   the function is calculated
                 - ``y`` is the data from which we want to extract the bg
-                - ``bg_data`` is the background data, usually extracted from ``y``
-                  using a strip filter.
 
                 Return values:
 
@@ -199,8 +197,6 @@ class FitManager(object):
 
                   See explanation about 'constraints' in :attr:`fit_results`
                   documentation.
-                - ``bg_data`` is the background data extracted from the signal
-                  by the estimation function.
         """
 
         self.selectedbg = 'No Background'
@@ -395,11 +391,10 @@ class FitManager(object):
         ywork = self.ydata
 
         # estimate the background
-        bg_data = strip(ywork, w=1, niterations=10000, factor=1.0)
         bg_params, bg_constraints = self.estimate_bkg(xwork, ywork)
 
         # estimate the function
-        fun_params, fun_constraints = self.estimate_fun(xwork, ywork, bg_data)
+        fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
 
         # build the names
         self.parameter_names = []
@@ -822,7 +817,7 @@ class FitManager(object):
         else:
             return [], []
 
-    def estimate_fun(self, x, y, bg):
+    def estimate_fun(self, x, y):
         """Estimate fit parameters using the function defined in
         the current fit configuration.
 
@@ -850,7 +845,18 @@ class FitManager(object):
         """
         estimatefunction = self.theories[self.selectedtheory].estimate
         if hasattr(estimatefunction, '__call__'):
-            return estimatefunction(x, y, bg)
+            if not self.theories[self.selectedtheory].pymca_legacy:
+                return estimatefunction(x, y)
+            else:
+                # legacy pymca estimate functions have a different signature
+                if self.fitconfig["fitbkg"] == "No Background":
+                    bg = numpy.zeros_like(y)
+                else:
+                    bg = strip(y, w=1, niterations=10000, factor=1.0)
+                # fitconfig can be filled by user defined config function
+                xscaling = self.fitconfig.get('Xscaling', 1.0)
+                yscaling = self.fitconfig.get('Yscaling', 1.0)
+                return estimatefunction(x, y, bg, xscaling, yscaling)
         else:
             raise TypeError("Estimation function in attribute " +
                             "theories[%s]" % self.selectedtheory +
@@ -959,7 +965,8 @@ class FitManager(object):
                                    theories_module.PARAMETERS[i],
                                    estim,
                                    config,
-                                   deriv))
+                                   deriv,
+                                   pymca_legacy=True))
         else:
             # single fit function
             self.addtheory(theories_module.THEORY,
@@ -968,7 +975,8 @@ class FitManager(object):
                                theories_module.PARAMETERS,
                                estimate,
                                configure,
-                               derivative))
+                               derivative,
+                               pymca_legacy=True))
 
     def estimate_builtin_bkg(self, x, y):
         """Compute the initial parameters for the background function before
@@ -984,7 +992,7 @@ class FitManager(object):
 
         :param x: Array of values for the independant variable
         :param y: Array of data values for the dependant data
-        :return: Tuple ``(fitted_param, constraints, background)`` where:
+        :return: Tuple ``(fitted_param, constraints)`` where:
 
             - ``fitted_param`` is a list of the estimated background
               parameters. The length of the list depends on the theory used
@@ -992,8 +1000,6 @@ class FitManager(object):
               *(len(fitted_param), 3)* containing constraint information for
               each parameter *code, cons1, cons2* (see documentation of
               :attr:`fit_results`)
-            - ``background`` is the background signal extracted from the data
-              using a :func:`strip` filter
         """
         # TODO: document square filter
 
