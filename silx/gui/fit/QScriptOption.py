@@ -268,7 +268,8 @@ class QScriptOption(TabSheets):
         super(QScriptOption, self).accept()
 
     def reject(self):
-        """When *Cancel is clicked, reinitialize :attr:`output` and quit
+        """When the *Cancel* button is clicked, reinitialize :attr:`output`
+        and quit
         """
         self.defaults()
         super(QScriptOption, self).reject()
@@ -296,22 +297,26 @@ class FieldSheet(qt.QWidget):
         """
 
         :param parent: Parent widget
-        :param fields: Sequence of sequences defining field widgets. Each
-            field is defined by length 3 sequence::
+        :param fields: Sequence of dictionaries defining field widgets.
+            The dictionary defines following keys:
 
-               [field_type, keys, text]
+              - ``"widget type``: can be *"Label", "CheckField",
+                 or "EntryField"*
 
-            ``field_type`` can be *"Label", "CheckField", or "EntryField"*
+              - ``"name"``: name/key used to retrieve the user data in the
+                 widget's internal dict
 
-            ``keys`` is a sequences of keys or a single key identifying
-             items in the field's internal dictionary.
+              - ``"text"`` is the text displayed in a label in the field widget
 
-             ``text`` is the text displayed in a label in the field widget
+              - ``"tooltip"`` is a tooltip text displayed when the mouse cursor
+                hovers the widget
 
-             If the fied definition sequence is of length 2, it is considered
-             to be ``[field_type, text]``. This is only relevant to *Label*
-             fields which are not interactive and whose ``getvalue()`` method
-             returns an empty dictionary.
+              - ``"data type"`` describes the type of data: *"int"*, *"float"*,
+                *"bool"* or *"str"* (default).
+
+            ``tooltip`` is optional for all widgets.
+            ``name`` is not relevant for *Label* widgets, which don't store data.
+            ``data type`` is only relevant for *Entry* widgets
         """
         qt.QWidget.__init__(self, parent)
         layout = qt.QVBoxLayout(self)
@@ -322,10 +327,12 @@ class FieldSheet(qt.QWidget):
         self.fields = []
         self.nbfield = 1
         for field in fields:
-            fieldtype = field[0]
-            key = field[1] if len(field) >= 3 else None
-            text = field[2] if len(field) >= 3 else field[1]
-            tooltip = field[3] if len(field) == 4 else None
+            fieldtype = field["widget type"]
+            key = field.get("name")
+            text = field["text"]
+            tooltip = field.get("tooltip")
+            data_type = field.get("data type")
+
 
             myfield = None
             if fieldtype == "Label":
@@ -333,7 +340,8 @@ class FieldSheet(qt.QWidget):
             elif fieldtype == "CheckField":
                 myfield = MyCheckField(self, keys=key, text=text)
             elif fieldtype == "EntryField":
-                myfield = MyEntryField(self, keys=key, text=text)
+                myfield = MyEntryField(self, keys=key, text=text,
+                                       data_type=data_type)
             # elif fieldtype == "RadioField":
             #     myfield = RadioField(self, keys=key, params=parameters)
 
@@ -342,7 +350,6 @@ class FieldSheet(qt.QWidget):
                 layout.addWidget(myfield)
                 if tooltip is not None:
                     myfield.setToolTip(tooltip)
-
 
     def get(self):
         """Return an agglomerated dictionary with all values stored in all the
@@ -437,12 +444,14 @@ class MyEntryField(EntryField):
     storing user input from the entry field."""
 
     def __init__(self, parent=None,
-                 keys=(), text=None):
+                 keys=(), text=None,
+                 data_type=None):
         """
 
         :param parent: Parent widget
         :param keys: Keys of :attr:`internal_dict`
-        :param text: Text to be displayed in the label.
+        :param str text: Text to be displayed in the label.
+        :param str data_type: Text to be displayed in the label.
         """
         EntryField.__init__(self, parent)
         self.internal_dict = {}
@@ -456,6 +465,8 @@ class MyEntryField(EntryField):
             self.TextLabel.setText(text)
         self.Entry.textChanged[str].connect(self.setvalue)
 
+        self._data_type = data_type
+
     def getvalue(self):
         """Return :attr:`internal_dict`"""
         return self.internal_dict
@@ -463,7 +474,20 @@ class MyEntryField(EntryField):
     def setvalue(self, value):
         """Update all values in :attr:`internal_dict` with ``value``"""
         for key in self.internal_dict.keys():
-            self.internal_dict[key] = str(value)
+            str_value = str(value)    # probably redundant
+            if self._data_type is None or "str" in self._data_type:
+                self.internal_dict[key] = str_value
+            elif "int" in self._data_type:
+                self.internal_dict[key] = int(float(str_value))
+            elif "float" in self._data_type:
+                self.internal_dict[key] = float(str_value)
+            elif "bool" in self._data_type:
+                if str_value.lower() in ["0", "false", "no", ""]:
+                    self.internal_dict[key] = False
+                else:
+                    self.internal_dict[key] = True
+            else:
+                self.internal_dict[key] = str_value
 
     def setdefaults(self, default_dict):
         """Update values in :attr:`internal_dict` with values in
