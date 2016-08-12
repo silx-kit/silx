@@ -157,7 +157,7 @@ class FitWidget(qt.QWidget):
                 if fitmngr.selectedtheory is None:
                     # take the first one by default
                     self.guiconfig.FunComBox.setCurrentIndex(1)
-                    self.funevent(self.fitmanager.theories.keys()[0])
+                    self.funevent(list(self.fitmanager.theories.keys())[0])
                 else:
                     self.funevent(fitmngr.selectedtheory)
                 if fitmngr.selectedbg is None:
