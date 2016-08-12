@@ -26,10 +26,13 @@
 
 import unittest
 
-from silx.gui.testutils import TestCaseQt
+from ...testutils import TestCaseQt
 
-from silx.gui import qt
-from silx.gui.fit import FitWidget
+from ... import qt
+from .. import FitWidget
+
+from ....math.fit.fittheory import FitTheory
+from ....math.fit.fitmanager import FitManager
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -59,6 +62,49 @@ class TestFitWidget(TestCaseQt):
         self.keyClick(self.fit_widget, qt.Qt.Key_Enter)
         self.qapp.processEvents()
 
+    def testCustomConfigWidget(self):
+        """For the moment we open a fitwidget initialized with a fitmanager
+        containing custom theories with a custom config dialog, and we
+        check that it doesnt raise errors"""
+        class CustomConfigWidget(qt.QDialog):
+            def __init__(self):
+                qt.QDialog.__init__(self)
+                self.setModal(True)
+                self.ok = qt.QPushButton("ok", self)
+                self.ok.clicked.connect(self.accept)
+                cancel = qt.QPushButton("cancel", self)
+                cancel.clicked.connect(self.reject)
+                layout = qt.QVBoxLayout(self)
+                layout.addWidget(self.ok)
+                layout.addWidget(cancel)
+                self.output = {"hello": "world"}
+
+        def fitfun(x, a, b):
+            return a * x + b
+
+        x = list(range(0, 100))
+        y = [fitfun(x_, 2, 3) for x_ in x]
+
+        def conf(**kw):
+            return {"spam": "eggs"}
+
+        theory = FitTheory(
+            function=fitfun,
+            parameters=["a", "b"],
+            configure=conf,
+            config_widget=CustomConfigWidget)
+
+        fitmngr = FitManager()
+        fitmngr.setdata(x, y)
+        fitmngr.addtheory("foo", theory)
+        fitmngr.addtheory("bar", theory)
+
+        fw = FitWidget(fitmngr=fitmngr)
+        fw.show()
+        self.qWaitForWindowExposed(fw)
+
+        # self.mouseClick(fw.guiconfig.ConfigureButton, qt.Qt.LeftButton)
+        # todo: figure out how to click fw.guiconfigdialog.ok to close dialog
 
 def suite():
     test_suite = unittest.TestSuite()

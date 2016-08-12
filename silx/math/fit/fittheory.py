@@ -108,13 +108,28 @@ class FitTheory(object):
         provided in the supplied array of xdata points."""
 
         self.config_widget = config_widget
-        """Optional configuration widget"""
+        """Optional configuration dialog widget that can allow users to modify
+        the fit and estimation configuration.
+
+        This widget must store the modified configuration parameters in a
+        dictionary attribute :attr:`output`.
+
+        The widget must define, or inherit from :class:`qt.QDialog`, following
+        methods which are executed in that order:
+
+            - :meth:`show`
+            - :meth:`exec_`
+            - :meth:`result`: must return ``True`` if the new configuration in
+              :attr:`config_widget.output` is to be accepted, ``False`` if
+              it is to be rejected / ignored (e.g. if the user clicked a
+              *Cancel* button)
+        """
 
         self.description = description
         """Optional description string for this particular fit theory."""
 
         self.pymca_legacy = pymca_legacy
-        """This is attribute can be set to *True* to indicate that the theory
+        """This attribute can be set to *True* to indicate that the theory
         is a PyMca legacy theory.
 
         This tells :mod:`silx.math.fit.fitmanager` that the signature of
