@@ -34,6 +34,7 @@ The user can choose between functions before running the fit. These function can
 be user defined, or by default are loaded from
 :mod:`silx.math.fit.fittheories`.
 """
+from collections import OrderedDict
 import logging
 import sys
 import traceback
@@ -74,13 +75,13 @@ class FitWidget(qt.QWidget):
           :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
     """
 
-    def __init__(self, parent=None, title=None, fitinstance=None,
+    def __init__(self, parent=None, title=None, fitmngr=None,
                  enableconfig=True, enablestatus=True, enablebuttons=True):
         """
 
         :param parent: Parent widget
         :param title: Window title
-        :param fitinstance: User defined instance of
+        :param fitmngr: User defined instance of
             :class:`silx.math.fit.fitmanager.FitManager`, or ``None``
         :param enableconfig: If ``True``, activate widgets to modify the fit
             configuration (select between several fit functions or background
@@ -97,11 +98,11 @@ class FitWidget(qt.QWidget):
         self.setWindowTitle(title)
         layout = qt.QVBoxLayout(self)
 
-        self.fitmanager = self._set_fitmanager(fitinstance)
+        self.fitmanager = self._set_fitmanager(fitmngr)
         """Instance of :class:`FitManager`. If no theories are defined,
         we import the default ones from :mod:`silx.math.fit.fittheories`."""
 
-        # copy fitmanager.configure method for direct access
+        # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
         self.fitconfig = self.fitmanager.fitconfig
 
@@ -148,22 +149,22 @@ class FitWidget(qt.QWidget):
                     self.fitmanager.theories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
-            if fitinstance is not None:
+            if fitmngr is not None:
                 # customized FitManager provided in __init__:
                 #    - activate selected fit theory (if any)
                 #    - activate selected bg theory (if any)
-                configuration = fitinstance.configure()
-                if fitinstance.selectedtheory is None:
+                configuration = fitmngr.configure()
+                if fitmngr.selectedtheory is None:
                     # take the first one by default
                     self.guiconfig.FunComBox.setCurrentIndex(1)
-                    self.funevent(self.fitmanager.theories.keys[0])
+                    self.funevent(self.fitmanager.theories.keys()[0])
                 else:
-                    self.funevent(fitinstance.selectedtheory)
-                if fitinstance.selectedbg is None:
+                    self.funevent(fitmngr.selectedtheory)
+                if fitmngr.selectedbg is None:
                     self.guiconfig.BkgComBox.setCurrentIndex(0)
                     self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
                 else:
-                    self.bkgevent(fitinstance.selectedbg)
+                    self.bkgevent(fitmngr.selectedbg)
             else:
                 # Default FitManager and fittheories used:
                 #    - activate first fit theory (gauss)
@@ -341,67 +342,99 @@ class FitWidget(qt.QWidget):
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
-        sheet1 = {'notetitle': 'Constraints',
-                  'fields': (["CheckField", 'PositiveHeightAreaFlag',
-                              'Force positive Height/Area'],
-                             ["CheckField", 'QuotedPositionFlag',
-                              'Force position in interval'],
-                             ["CheckField", 'PositiveFwhmFlag',
-                                 'Force positive FWHM'],
-                             ["CheckField", 'SameFwhmFlag', 'Force same FWHM'],
-                             ["CheckField", 'QuotedEtaFlag',
-                                 'Force Eta between 0 and 1'],
-                             ["CheckField", 'NoConstraintsFlag', 'Ignore constraints'])}
+        theory = self.fitmanager.selectedtheory
+        custom_config_widget = self.fitmanager.theories[theory].config_widget
 
-        sheet2 = {'notetitle': 'Search',
-                  'fields': (["EntryField", 'FwhmPoints', 'Fwhm Points: ',
-                              "Number of data points for fwhm (used by peak " +
-                              "detection algorithm"],
-                             ["EntryField", 'Sensitivity', 'Sensitivity: ',
-                              "Sensitivity parameter for the peak detection algorithm"],
-                             ["EntryField", 'Yscaling',   'Y Factor: '],
-                             ["CheckField", 'ForcePeakPresence', 'Force peak presence',
-                              "In case no peak is detected by the peak-search" +
-                              " algorithm, put one peak at the max data location."]
-                             )}
-        sheet3 = {'notetitle': 'Background',
-                  'fields': (["CheckField", 'StripBackgroundFlag',
-                              'Subtract strip background for estimation',
-                              "Background filter useful when fitting narrow peaks"],
-                             ["EntryField", 'StripWidth', 'Strip width (samples): ',
-                              "Width of strip operator, in number of samples. A sample will be " +
-                              "compared to the average of the 2 samples at a distance of " +
-                              " + or - width samples."],
-                             ["EntryField", 'StripNIterations', 'Number of iterations: ',
-                              "Number of iterations for strip algorithm"],
-                             ["EntryField", 'StripThresholdFactor', 'Strip threshold factor: ',
-                              "If a sample is higher than the average of the two samples " +
-                              "multiplied by this factor, it will be replaced by the average."]
-                             )}
+        if custom_config_widget is not None:
+            dialog_widget = custom_config_widget()
+            for mandatory_attr in ["show", "exec_", "result", "output"]:
+                if not hasattr(dialog_widget, mandatory_attr):
+                    raise AttributeError(
+                            "Custom configuration widget must define " +
+                            "attribute or method " + mandatory_attr)
 
-        w = QScriptOption(self, name='Fit Configuration',
-                          sheets=(sheet1, sheet2, sheet3),
-                          default=oldconfiguration)
+        else:
+            # default config widget, adapted for default fit theories
+            sheet1 = {'notetitle': 'Constraints',
+                      'fields': (
+                          {'name': 'PositiveHeightAreaFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Force positive Height/Area'},
+                          {'name': 'QuotedPositionFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Force position in interval'},
+                          {'name': 'PositiveFwhmFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Force positive FWHM'},
+                          {'name': 'SameFwhmFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Force same FWHM'},
+                          {'name': 'QuotedEtaFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Force Eta between 0 and 1'},
+                          {'name': 'NoConstraintsFlag',
+                           'widget type': 'CheckField',
+                           'text': 'Ignore constraints'})}
 
-        w.show()
-        w.exec_()
-        if w.result():
-            newconfiguration.update(w.output)
+            sheet2 = {'notetitle': 'Search',
+                      'fields': (
+                          {'widget type': "EntryField",
+                           'name': 'FwhmPoints',
+                           'text': 'Fwhm Points: ',
+                           'data type': "int",
+                           'tooltip': "Number of data points for fwhm (used by" +
+                                      " peak detection algorithm"},
+                          {'widget type': "EntryField",
+                           'name': 'Sensitivity',
+                           'text': 'Sensitivity: ',
+                           'data type': "float",
+                           'tooltip': "Sensitivity parameter for the peak detection algorithm"},
+                          {'widget type': "EntryField",
+                           'name': 'Yscaling',
+                           'data type': "float",
+                           'text': 'Y Factor: '},
+                          {'widget type': "CheckField",
+                           'name': 'ForcePeakPresence',
+                           'text': 'Force peak presence',
+                           'tooltip': "In case no peak is detected by the peak-search" +
+                                      " algorithm, put one peak at the max data location."})}
+            sheet3 = {'notetitle': 'Background',
+                      'fields': (
+                          {'widget type': "CheckField",
+                           'name': 'StripBackgroundFlag',
+                           'text': 'Subtract strip background for estimation',
+                           'tooltip': "Background filter useful when fitting narrow peaks"},
+                          {'widget type': "EntryField",
+                           'name': 'StripWidth',
+                           'text': 'Strip width (samples): ',
+                           'data type': "int",
+                           'tooltip': "Width of strip operator, in number of samples. A sample will be " +
+                                      "compared to the average of the 2 samples at a distance of " +
+                                      " + or - width samples."},
+                          {'widget type': "EntryField",
+                           'name': 'StripNIterations',
+                           'text': 'Number of iterations: ',
+                           'data type': "int",
+                           'tooltip': "Number of iterations for strip algorithm"},
+                          {'widget type': "EntryField",
+                           'name': 'StripThresholdFactor',
+                           'text': 'Strip threshold factor: ',
+                           'data type': "float",
+                           'tooltip': "If a sample is higher than the average of the two samples " +
+                                      "multiplied by this factor, it will be replaced by the average."})}
+
+            dialog_widget = QScriptOption(
+                                self, name='Fit Configuration',
+                                sheets=(sheet1, sheet2, sheet3),
+                                default=oldconfiguration)
+
+        dialog_widget.show()
+        dialog_widget.exec_()
+        if dialog_widget.result():
+            newconfiguration.update(dialog_widget.output)
         # we do not need the dialog any longer
-        del w
+        del dialog_widget
 
-        # convert string inputs to numeric values
-        newconfiguration['FwhmPoints'] = int(
-                float(newconfiguration['FwhmPoints']))
-        newconfiguration['Sensitivity'] = float(
-                newconfiguration['Sensitivity'])
-        newconfiguration['Yscaling'] = float(newconfiguration['Yscaling'])
-        newconfiguration['StripWidth'] = int(
-                float(newconfiguration['StripWidth']))
-        newconfiguration['StripNIterations'] = int(float(
-                newconfiguration['StripNIterations']))
-        newconfiguration['StripThresholdFactor'] = float(
-                newconfiguration['StripThresholdFactor'])
 
         return newconfiguration
 
@@ -437,9 +470,9 @@ class FitWidget(qt.QWidget):
         self.guiparameters.fillfromfit(
             self.fitmanager.fit_results, view='Fit')
         self.guiparameters.removeallviews(keep='Fit')
-        ddict = {}
-        ddict['event'] = 'EstimateFinished'
-        ddict['data'] = self.fitmanager.fit_results
+        ddict = {
+            'event': 'EstimateFinished',
+            'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
     # related to MCA
@@ -528,7 +561,7 @@ class FitWidget(qt.QWidget):
                     return
                 else:
                     # empty the ComboBox
-                    while(self.guiconfig.FunComBox.count() > 1):
+                    while self.guiconfig.FunComBox.count() > 1:
                         self.guiconfig.FunComBox.removeItem(1)
                     # and fill it again
                     for key in self.fitmanager.theories:
