@@ -320,6 +320,10 @@ class FitManager(object):
         result.update(self.fitconfig)
 
         # Apply custom configuration function
+        custom_config_fun = None
+        if self.selectedtheory is None:
+            return result
+
         custom_config_fun = self.theories[self.selectedtheory].configure
         if custom_config_fun is not None:
             result.update(custom_config_fun(**kw))
