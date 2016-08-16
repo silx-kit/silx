@@ -130,19 +130,18 @@ class Hdf5TreeModel(qt.QStandardItemModel):
     objects, while the second column is only a data description to be
     displayed in a tree view.
     """
-    def __init__(self, files_=None):
+    def __init__(self, files=None):
         """
-        :param files_: List of file handles/descriptors for a :class:`h5py.File`
+        :param files: List of file handles/descriptors for a :class:`h5py.File`
             or a  :class:`spech5.SpecH5` object, or list of file pathes.
         """
         super(Hdf5TreeModel, self).__init__()
         self.setHorizontalHeaderLabels(['Name', 'Description'])
 
-        if files_ is None:
-            files_ = []
+        if files is not None:
+            for file_ in files:
+                self.load(file_)
 
-        for file_ in files_:
-            self.load(file_)
 
     def load(self, file_):
         """Load a HDF5 file into the data model.
