@@ -283,17 +283,61 @@ class FitManager(object):
         """
         self.bgtheories[bgname] = bgtheory
 
-    def addtheory(self, theory_name, fittheory):
+    def addtheory(self, name, theory=None,
+                  function=None, parameters=None,
+                  estimate=None, configure=None, derivative=None,
+                  description=None, config_widget=None,
+                  pymca_legacy=False):
         """Add a new theory to dictionary :attr:`theories`.
+
+        You can pass a name and a :class:`FitTheory` object as arguments, or
+        alternatively provide all arguments necessary to instantiate a new
+        :class:`FitTheory` object.
 
         See :meth:`loadtheories` for more information on estimation functions,
         configuration functions and custom derivative functions.
 
-        :param theory_name: String with the name describing the function
-        :param fittheory: :class:`FitTheory` object
-        :type fittheory: :class:`silx.math.fit.fittheory.FitTheory`
+        :param name: String with the name describing the function
+        :param theory: :class:`FitTheory` object, defining a fit function and
+            associated information (estimation function, description…).
+             If this parameter is provided, all other parameters, except for
+             ``name``, are ignored.
+        :type theory: :class:`silx.math.fit.fittheory.FitTheory`
+        :param function function: Mandatory argument if ``theory`` is not provided.
+            See documentation for :attr:`silx.math.fit.fittheory.FitTheory.function`.
+        :param list[str] parameters: Mandatory argument if ``theory`` is not provided.
+            See documentation for :attr:`silx.math.fit.fittheory.FitTheory.parameters`.
+        :param function estimate: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.estimate`
+        :param function configure: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.configure`
+        :param function derivative: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.derivative`
+        :param str description: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.description`
+        :param config_widget: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.config_widget`
+        :param bool pymca_legacy: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.pymca_legacy`
         """
-        self.theories[theory_name] = fittheory
+        if theory is not None:
+            self.theories[name] = theory
+
+        elif function is not None and parameters is not None:
+            self.theories[name] = FitTheory(
+                description=description,
+                function=function,
+                parameters=parameters,
+                estimate=estimate,
+                configure=configure,
+                derivative=derivative,
+                config_widget=config_widget,
+                pymca_legacy=pymca_legacy
+            )
+
+        else:
+            raise TypeError("You must supply a FitTheory object or define " +
+                            "a fit function and its parameters.")
 
     def configure(self, **kw):
         """Configure the current theory by filling or updating the

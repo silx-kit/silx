@@ -50,7 +50,6 @@ The following example shows how to define a custom fit function.
 
 .. code-block:: python
 
-    from silx.math.fit import FitTheory
     from silx.math.fit import FitManager
     from silx.gui import qt
     from silx.gui.fit import FitWidget
@@ -62,14 +61,12 @@ The following example shows how to define a custom fit function.
     x = list(range(0, 100))
     y = [linearfun(x_, 2.0, 3.0) for x_ in x]
 
-    mytheory = FitTheory(
-        function=linearfun,
-        parameters=["a", "b"])
-
     # we need to create a custom fit manager and add our theory
     myfitmngr = FitManager()
     myfitmngr.setdata(x, y)
-    myfitmngr.addtheory("my linear function", mytheory)
+    myfitmngr.addtheory("my linear function",
+                        function=linearfun,
+                        parameters=["a", "b"])
 
     a = qt.QApplication([])
 

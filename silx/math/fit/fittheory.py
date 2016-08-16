@@ -50,6 +50,24 @@ class FitTheory(object):
                  estimate=None, configure=None, derivative=None,
                  config_widget=None, description=None,
                  pymca_legacy=False):
+        """
+        :param function function: Actual function. See documentation for
+            :attr:`function`.
+        :param list[str] parameters: List of parameter names for the function.
+            See documentation for :attr:`parameters`.
+        :param function estimate: Optional estimation function.
+            See documentation for :attr:`estimate`
+        :param function configure: Optional configuration function.
+            See documentation for :attr:`configure`
+        :param function derivative: Optional custom derivative function.
+            See documentation for :attr:`derivative`
+        :param str description: Optional description string.
+            See documentation for :attr:`description`
+        :param config_widget: Optional configuration widget.
+            See documentation for :attr:`config_widget`
+        :param bool pymca_legacy: Flag to indicate that the theory is a PyMca
+            legacy theory. See documentation for :attr:`pymca_legacy`
+        """
         self.function = function
         """The function must have the signature ``f(x, *params)``, where ``x``
         is an array of values for the independent variable, and ``params`` are
