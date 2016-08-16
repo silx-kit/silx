@@ -34,65 +34,6 @@ The user can choose between functions before running the fit. These function can
 be user defined, or by default are loaded from
 :mod:`silx.math.fit.fittheories`.
 
-Example using standard fit theories::
-
-    import numpy
-    from silx.gui import qt
-    from silx.gui.fit import FitWidget
-    from silx.math.fit import functions
-
-    x = numpy.arange(1500).astype(numpy.float)
-    constant_bg = 3.14
-
-    p = [1000, 100., 30.0,
-         500, 300., 25.,
-         1700, 500., 35.,
-         750, 700., 30.0,
-         1234, 900., 29.5,
-         302, 1100., 30.5,
-         75, 1300., 210.]
-
-    y = functions.sum_gauss(x, *p) + constant_bg
-
-    a = qt.QApplication([])
-    fw = FitWidget()
-    fw.setdata(x=x, y=y)
-    fw.show()
-    a.exec_()
-
-
-Example using a custom fit theory::
-
-    from silx.math.fit import FitTheory
-    from silx.math.fit import FitManager
-    from silx.gui import qt
-    from silx.gui.fit import FitWidget
-
-    def linearfun(x, a, b):
-        return a * x + b
-
-    # create synthetic data for the example
-    x = list(range(0, 100))
-    y = [linearfun(x_, 2.0, 3.0) for x_ in x]
-
-    mytheory = FitTheory(
-        function=linearfun,
-        parameters=["a", "b"])
-
-    # we need to create a custom fit manager and add our theory
-    myfitmngr = FitManager()
-    myfitmngr.setdata(x, y)
-    myfitmngr.addtheory("my linear function", mytheory)
-
-    a = qt.QApplication([])
-
-    # our fit widget can now use our custom fit manager
-    fw = FitWidget(fitmngr=myfitmngr)
-    fw.show()
-
-    a.exec_()
-
-
 """
 import logging
 import sys
