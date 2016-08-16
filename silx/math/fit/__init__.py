@@ -34,5 +34,6 @@ from .leastsq import \
 
 from .functions import *
 from .filters import *
-from .peaks import peak_search
+from .peaks import peak_search, guess_fwhm
 from .fitmanager import FitManager
+from .fittheory import FitTheory
