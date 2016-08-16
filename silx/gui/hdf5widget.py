@@ -106,11 +106,28 @@ class Hdf5Item(qt.QStandardItem):
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
 
-        # default tooltip
-        filename = None
-        tt = "HDF5 %s <%s>\n" % (itemtype, obj.name)
-        tt += "File <%s>" % filename
-        self.setToolTip(tt)
+        self._setDefaultTooltip()
+
+    def _setDefaultTooltip(self):
+        """Set the default tooltip"""
+        attrs = dict(self.obj.attrs)
+        if self.itemtype == "dataset":
+            if self.obj.shape == ():
+                attrs["shape"] = "scalar"
+            else:
+                attrs["shape"] = self.obj.shape
+            attrs["dtype"] = self.obj.dtype
+            if self.obj.shape == ():
+                attrs["value"] = self.obj.value
+            else:
+                attrs["value"] = "..."
+
+        if len(attrs) > 0:
+            tooltip = self._htmlFromDict(attrs)
+        else:
+            tooltip = ""
+
+        self.setToolTip(tooltip)
 
     def appendRow(self, list):
         if isinstance(list, Hdf5Item):
@@ -122,6 +139,17 @@ class Hdf5Item(qt.QStandardItem):
         items are content of columns"""
         return [self, self._createDescriptionItem()]
 
+    def _htmlFromDict(self, input):
+        """Generate a readable HTML from a dictionary
+
+        :param input dict: A Dictionary
+        :rtype: str
+        """
+        result = "<html><ul>"
+        for key, value in input.items():
+            result += "<li><b>%s</b>: %s</li>" % (key, value)
+        result += "</ul></html>"
+        return result
     def _createDescriptionItem(self):
         """Create the item holding the description column"""
         # concatenate description information
