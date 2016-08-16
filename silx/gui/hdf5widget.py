@@ -27,6 +27,7 @@
 import h5py
 import os
 import sys
+import numpy
 from silx.gui import qt
 from silx.io import spech5
 
@@ -106,6 +107,10 @@ class Hdf5Item(qt.QStandardItem):
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
 
+        # store owned items
+        self._item_type = self._createTypeItem()
+        self._item_description = self._createDescriptionItem()
+
         self._setDefaultTooltip()
 
     def _setDefaultTooltip(self):
@@ -137,7 +142,7 @@ class Hdf5Item(qt.QStandardItem):
     def _createRow(self):
         """Create the row where the first item is self and other
         items are content of columns"""
-        return [self, self._createDescriptionItem()]
+        return [self, self._description_type, self._item_type]
 
     def _htmlFromDict(self, input):
         """Generate a readable HTML from a dictionary
@@ -150,20 +155,29 @@ class Hdf5Item(qt.QStandardItem):
             result += "<li><b>%s</b>: %s</li>" % (key, value)
         result += "</ul></html>"
         return result
+
+    def _createTypeItem(self):
+        """Create the item holding the type column"""
+        if self.itemtype == "dataset":
+            if self.obj.dtype.type == numpy.string_:
+                text = "string"
+            else:
+                text = str(self.obj.dtype)
+
+            for axes in self.obj.shape:
+                text += u" \u00D7 " + unicode(axes)
+        else:
+            text = ""
+
+        return qt.QStandardItem(text)
+
     def _createDescriptionItem(self):
         """Create the item holding the description column"""
-        # concatenate description information
-        descr = self.itemtype[0].upper() + self.itemtype[1:]
-        if self.itemtype in ["group", "dataset"]:
-            for k, v in self.obj.attrs.items():
-                descr += ", " + "%s=%s" % (k, v)
-        if self.itemtype == "dataset":
-            descr += ", shape " + str(self.obj.shape)
-            descr += ", dtype " + str(self.obj.dtype)
+        text = self.itemtype.capitalize()
+        if "desc" in self.obj.attrs:
+            text += ": " + self.obj.attrs["desc"]
 
-        description = qt.QStandardItem(descr)
-
-        return description
+        return qt.QStandardItem(text)
 
     @property
     def filename(self):
@@ -214,7 +228,7 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             or a  :class:`spech5.SpecH5` object, or list of file pathes.
         """
         super(Hdf5TreeModel, self).__init__()
-        self.setHorizontalHeaderLabels(['Name', 'Description'])
+        self.setHorizontalHeaderLabels(['Name', 'Description', 'Type'])
 
         if files is not None:
             for file_ in files:
