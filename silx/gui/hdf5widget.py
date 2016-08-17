@@ -62,8 +62,9 @@ class Hdf5Item(qt.QStandardItem):
                        spech5.SpecH5, spech5.SpecH5Group,
                        spech5.SpecH5LinkToGroup  # ~ hard link
                        )
+        file_types = (h5py.File, spech5.SpecH5)
 
-        if isinstance(obj, h5py.File):
+        if isinstance(obj, file_types):
             itemtype = "file"
         elif isinstance(obj, h5py.SoftLink):
             itemtype = "soft link"
@@ -198,15 +199,15 @@ class Hdf5Item(qt.QStandardItem):
 
         parent = self.parent()
 
-        errmsg = "Cannot find parent. Hdf5Item %s " % self.basename
-        errmsg += "is not in a valid Hdf5TreeModel"
+        errmsg = "Cannot find parent of Hdf5Item %s"
         if parent is None:
-            raise AttributeError(errmsg)
+            raise AttributeError(errmsg % self.basename)
 
         while parent.itemtype != "file":
+            basename = parent.basename[:]
             parent = parent.parent()
             if parent is None:
-                raise AttributeError(errmsg)
+                raise AttributeError(errmsg % basename)
 
         return parent.obj
 
@@ -302,7 +303,7 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                                             filename)
 
 
-class MyTreeView(qt.QTreeView):
+class ResizingTreeView(qt.QTreeView):
     """QTreeView with column width auto-resizing and additional
     signals
     """
@@ -397,7 +398,7 @@ class Hdf5TreeView(qt.QWidget):
         """:class:`Hdf5TreeModel` in charge of loading and storing
         the HDF5 data structure"""
 
-        self.treeview = MyTreeView(model=self.model)
+        self.treeview = ResizingTreeView(model=self.model)
         """Tree view widget displaying :attr:`model`"""
         layout.addWidget(self.treeview)
 
