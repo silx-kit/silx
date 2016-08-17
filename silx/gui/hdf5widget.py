@@ -67,8 +67,6 @@ class Hdf5Item(qt.QStandardItem):
             itemtype = "file"
         elif isinstance(obj, h5py.SoftLink):
             itemtype = "soft link"
-        elif isinstance(obj, h5py.SoftLink):
-            itemtype = "soft link"
         elif isinstance(obj, h5py.ExternalLink):
             itemtype = "external link"
         # hard link type = target type (Group or Dataset)
@@ -134,15 +132,15 @@ class Hdf5Item(qt.QStandardItem):
 
         self.setToolTip(tooltip)
 
-    def appendRow(self, list):
-        if isinstance(list, Hdf5Item):
-            list = list._createRow()
-        super(Hdf5Item, self).appendRow(list)
+    def appendRow(self, items):
+        if isinstance(items, Hdf5Item):
+            items = items._createRow()
+        super(Hdf5Item, self).appendRow(items)
 
     def _createRow(self):
         """Create the row where the first item is self and other
         items are content of columns"""
-        return [self, self._description_type, self._item_type]
+        return [self, self._item_description, self._item_type]
 
     def _htmlFromDict(self, input):
         """Generate a readable HTML from a dictionary
@@ -234,11 +232,11 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             for file_ in files:
                 self.load(file_)
 
-    def appendRow(self, list):
+    def appendRow(self, items):
         # FIXME it would be better to generate a self invisibleItem, but it looks to be impossible
-        if isinstance(list, Hdf5Item):
-            list = list._createRow()
-        super(Hdf5TreeModel, self).appendRow(list)
+        if isinstance(items, Hdf5Item):
+            items = items._createRow()
+        super(Hdf5TreeModel, self).appendRow(items)
 
     def load(self, file_):
         """Load a HDF5 file into the data model.
