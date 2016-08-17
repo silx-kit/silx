@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from fabio.eigerimage import h5py
-
 """Qt Hdf5 widget examples
 
 .. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_

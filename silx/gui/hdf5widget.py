@@ -65,12 +65,25 @@ def load_file_as_h5py(filename):
         raise IOError("Filename '%s' must be a file path" % filename)
 
     if h5py.is_hdf5(filename):
-        h5file = h5py.File(filename)
-    else:
-        # assume Specfile
+        return h5py.File(filename)
+
+    try:
         from ..io import spech5
-        h5file = spech5.SpecH5(filename)
-    return h5file
+        return spech5.SpecH5(filename)
+    except ImportError:
+        _logger.debug("spech5 can't be loaded.", filename, exc_info=True)
+    except IOError:
+        _logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
+
+    try:
+        from silx.io import fabioh5
+        return fabioh5.File(filename)
+    except ImportError:
+        _logger.debug("fabioh5 can't be loaded.", filename, exc_info=True)
+    except Exception:
+        _logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
+
+    raise IOError("Format of filename '%s' is not supported" % filename)
 
 
 class LoadingItemRunnable(qt.QRunnable):
@@ -895,7 +908,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
-            raise IOError("File '%s' can't be read as HDF5 or SpecFile" % filename)
+            raise IOError("File '%s' can't be read as HDF5, fabio, or SpecFile" % filename)
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)
