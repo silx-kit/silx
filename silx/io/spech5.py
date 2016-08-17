@@ -987,6 +987,10 @@ class SpecH5Group(object):
         for key in self.keys():
             yield key
 
+    def items(self):
+        for key in self.keys():
+            yield key, self[key]
+
     def __len__(self):
         """Return number of members,subgroups and datasets, attached to this
          group.
