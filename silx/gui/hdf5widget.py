@@ -27,12 +27,13 @@
 import h5py
 import os
 import sys
+import numpy
 from silx.gui import qt
 from silx.io import spech5
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/07/2016"
+__date__ = "16/08/2016"
 
 
 def is_hdf5_file(fname):
@@ -54,8 +55,27 @@ class Hdf5Item(qt.QStandardItem):
     item (dataset, file, group or link) as an element of a HDF5-like
     tree structure.
     """
-    def __init__(self, text, itemtype, obj):
+    def __init__(self, text, obj):
         super(Hdf5Item, self).__init__(text)
+
+        group_types = (h5py.File, h5py.Group,
+                       spech5.SpecH5, spech5.SpecH5Group,
+                       spech5.SpecH5LinkToGroup  # ~ hard link
+                       )
+
+        if isinstance(obj, h5py.File):
+            itemtype = "file"
+        elif isinstance(obj, h5py.SoftLink):
+            itemtype = "soft link"
+        elif isinstance(obj, h5py.SoftLink):
+            itemtype = "soft link"
+        elif isinstance(obj, h5py.ExternalLink):
+            itemtype = "external link"
+        # hard link type = target type (Group or Dataset)
+        elif isinstance(obj, group_types):
+            itemtype = "group"
+        else:
+            itemtype = "dataset"
 
         self.basename = text
         """Name of the item: base filename, group name, or dataset name"""
@@ -87,6 +107,78 @@ class Hdf5Item(qt.QStandardItem):
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
 
+        # store owned items
+        self._item_type = self._createTypeItem()
+        self._item_description = self._createDescriptionItem()
+
+        self._setDefaultTooltip()
+
+    def _setDefaultTooltip(self):
+        """Set the default tooltip"""
+        attrs = dict(self.obj.attrs)
+        if self.itemtype == "dataset":
+            if self.obj.shape == ():
+                attrs["shape"] = "scalar"
+            else:
+                attrs["shape"] = self.obj.shape
+            attrs["dtype"] = self.obj.dtype
+            if self.obj.shape == ():
+                attrs["value"] = self.obj.value
+            else:
+                attrs["value"] = "..."
+
+        if len(attrs) > 0:
+            tooltip = self._htmlFromDict(attrs)
+        else:
+            tooltip = ""
+
+        self.setToolTip(tooltip)
+
+    def appendRow(self, list):
+        if isinstance(list, Hdf5Item):
+            list = list._createRow()
+        super(Hdf5Item, self).appendRow(list)
+
+    def _createRow(self):
+        """Create the row where the first item is self and other
+        items are content of columns"""
+        return [self, self._description_type, self._item_type]
+
+    def _htmlFromDict(self, input):
+        """Generate a readable HTML from a dictionary
+
+        :param input dict: A Dictionary
+        :rtype: str
+        """
+        result = "<html><ul>"
+        for key, value in input.items():
+            result += "<li><b>%s</b>: %s</li>" % (key, value)
+        result += "</ul></html>"
+        return result
+
+    def _createTypeItem(self):
+        """Create the item holding the type column"""
+        if self.itemtype == "dataset":
+            if self.obj.dtype.type == numpy.string_:
+                text = "string"
+            else:
+                text = str(self.obj.dtype)
+
+            for axes in self.obj.shape:
+                text += u" \u00D7 " + unicode(axes)
+        else:
+            text = ""
+
+        return qt.QStandardItem(text)
+
+    def _createDescriptionItem(self):
+        """Create the item holding the description column"""
+        text = self.itemtype.capitalize()
+        if "desc" in self.obj.attrs:
+            text += ": " + self.obj.attrs["desc"]
+
+        return qt.QStandardItem(text)
+
     @property
     def filename(self):
         """Path to parent file in the filesystem"""
@@ -112,7 +204,7 @@ class Hdf5Item(qt.QStandardItem):
         errmsg += "is not in a valid Hdf5TreeModel"
         if parent is None:
             raise AttributeError(errmsg)
-        
+
         while parent.itemtype != "file":
             parent = parent.parent()
             if parent is None:
@@ -130,19 +222,23 @@ class Hdf5TreeModel(qt.QStandardItemModel):
     objects, while the second column is only a data description to be
     displayed in a tree view.
     """
-    def __init__(self, files_=None):
+    def __init__(self, files=None):
         """
-        :param files_: List of file handles/descriptors for a :class:`h5py.File`
+        :param files: List of file handles/descriptors for a :class:`h5py.File`
             or a  :class:`spech5.SpecH5` object, or list of file pathes.
         """
         super(Hdf5TreeModel, self).__init__()
-        self.setHorizontalHeaderLabels(['Name', 'Description'])
+        self.setHorizontalHeaderLabels(['Name', 'Description', 'Type'])
 
-        if files_ is None:
-            files_ = []
+        if files is not None:
+            for file_ in files:
+                self.load(file_)
 
-        for file_ in files_:
-            self.load(file_)
+    def appendRow(self, list):
+        # FIXME it would be better to generate a self invisibleItem, but it looks to be impossible
+        if isinstance(list, Hdf5Item):
+            list = list._createRow()
+        super(Hdf5TreeModel, self).appendRow(list)
 
     def load(self, file_):
         """Load a HDF5 file into the data model.
@@ -172,11 +268,9 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                               "or a spech5.SpecH5 object.")
 
         # add root level row with file name
-        file_item = Hdf5Item(text=os.path.basename(filename),
-                             itemtype="file",
-                             obj=fd)
+        file_item = Hdf5Item(text=os.path.basename(filename), obj=fd)
         file_item.setToolTip("File <%s>" % os.path.abspath(filename))
-        self.appendRow([file_item])
+        self.appendRow(file_item)
 
         # fill HDF5 structure tree underneath file
         self._recursive_append_rows(h5item=file_item,
@@ -202,38 +296,9 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             for child_gr_ds_name in gr_or_ds:
                 child_gr_ds = gr_or_ds[child_gr_ds_name]
 
-                if isinstance(child_gr_ds, h5py.SoftLink):
-                    itemtype = "soft link"
-                elif isinstance(child_gr_ds, h5py.ExternalLink):
-                    itemtype = "external link"
-                # hard link type = target type (Group or Dataset)
-                elif isinstance(child_gr_ds, group_types):
-                    itemtype = "group"
-                else:
-                    itemtype = "dataset"
-
                 # actual item
-                child_h5item = Hdf5Item(text=child_gr_ds_name,
-                                        itemtype=itemtype,
-                                        obj=child_gr_ds)
-                # tooltip for item
-                tt = "HDF5 %s <%s>\n" % (itemtype, child_gr_ds.name)
-                tt += "File <%s>" % filename
-                child_h5item.setToolTip(tt)
-
-                # concatenate description information for 2nd column
-                descr = itemtype[0].upper() + itemtype[1:]
-                if itemtype in ["group", "dataset"]:
-                    for k, v in child_gr_ds.attrs.items():
-                        descr += ", " + "%s=%s" % (k, v)
-                if itemtype == "dataset":
-                    descr += ", shape " + str(child_gr_ds.shape)
-                    descr += ", dtype " + str(child_gr_ds.dtype)
-
-                child_description = qt.QStandardItem(descr)
-
-                h5item.appendRow([child_h5item, child_description])
-
+                child_h5item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
+                h5item.appendRow(child_h5item)
                 self._recursive_append_rows(child_h5item,
                                             child_gr_ds,
                                             filename)
