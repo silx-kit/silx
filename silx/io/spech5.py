@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "05/08/2016"
+__date__ = "17/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -986,6 +986,10 @@ class SpecH5Group(object):
     def __iter__(self):
         for key in self.keys():
             yield key
+
+    def items(self):
+        for key in self.keys():
+            yield key, self[key]
 
     def __len__(self):
         """Return number of members,subgroups and datasets, attached to this
