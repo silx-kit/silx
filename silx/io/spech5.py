@@ -164,10 +164,16 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "20/09/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
+
+try:
+    import h5py
+except ImportError:
+    logger1.debug("Module h5py optional.", exc_info=True)
+
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
@@ -665,6 +671,11 @@ class SpecH5Dataset(numpy.ndarray):
         self.file = getattr(obj, 'file', None)
         self.attrs = getattr(obj, 'attrs', None)
 
+    @property
+    def h5py_class(self):
+        """h5py class which is mimicked by this class"""
+        return h5py.Dataset
+
 
 class SpecH5LinkToDataset(SpecH5Dataset):
     """Special :class:`SpecH5Dataset` representing a link to a dataset. It
@@ -874,6 +885,11 @@ class SpecH5Group(object):
         if name != "/":
             scan_key = _get_scan_key_in_name(name)
             self._scan = self.file._sf[scan_key]
+
+    @property
+    def h5py_class(self):
+        """h5py class which is mimicked by this class"""
+        return h5py.Group
 
     @property
     def parent(self):
@@ -1177,3 +1193,7 @@ class SpecH5(SpecH5Group):
                 self.filename == other.filename and
                 self.keys() == other.keys())
 
+    @property
+    def h5py_class(self):
+        """h5py class which is mimicked by this class"""
+        return h5py.File
