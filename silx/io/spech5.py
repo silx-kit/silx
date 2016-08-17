@@ -703,7 +703,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header["D"])
+            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
         else:
             logger1.warn("No #D line in header. " +
                          "Using current system time for start_time.")
