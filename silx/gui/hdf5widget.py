@@ -22,18 +22,35 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+
 """Qt tree model for a HDF5 file
+
+.. note:: This module has a dependency on the `h5py <http://www.h5py.org/>`_
+    library, which is not a mandatory dependency for `silx`. You might need
+    to install it if you don't already have it.
 """
-import h5py
+
 import os
 import sys
 import numpy
+import logging
 from silx.gui import qt
 from silx.io import spech5
 
+
+try:
+    import h5py
+except ImportError as e:
+    _logger.error("Module %s requires h5py", __name__)
+    raise e
+
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "16/08/2016"
+__date__ = "17/08/2016"
+
+
+_logger = logging.getLogger(__name__)
 
 
 def is_hdf5_file(fname):
@@ -55,37 +72,12 @@ class Hdf5Item(qt.QStandardItem):
     item (dataset, file, group or link) as an element of a HDF5-like
     tree structure.
     """
+
     def __init__(self, text, obj):
         super(Hdf5Item, self).__init__(text)
 
-        group_types = (h5py.File, h5py.Group,
-                       spech5.SpecH5, spech5.SpecH5Group,
-                       spech5.SpecH5LinkToGroup  # ~ hard link
-                       )
-        file_types = (h5py.File, spech5.SpecH5)
-
-        if isinstance(obj, file_types):
-            itemtype = "file"
-        elif isinstance(obj, h5py.SoftLink):
-            itemtype = "soft link"
-        elif isinstance(obj, h5py.ExternalLink):
-            itemtype = "external link"
-        # hard link type = target type (Group or Dataset)
-        elif isinstance(obj, group_types):
-            itemtype = "group"
-        else:
-            itemtype = "dataset"
-
         self.basename = text
         """Name of the item: base filename, group name, or dataset name"""
-
-        self.itemtype = itemtype
-        """Type of item: 'file', 'group', 'dataset', 'soft link' or
-        'external link'
-
-        For hard links, the type is the type of the target item.
-        :class:`SpecH5LinkToGroup` and :class:`SpecH5LinkToDataset`
-        items are considered to be hard links."""
 
         self.obj = obj
         """Pointer to data instance. Data can be an instance of one of
@@ -103,14 +95,60 @@ class Hdf5Item(qt.QStandardItem):
             - :class:`silx.io.spech5.SpecH5LinkToDataset` (:attr:`itemtype` *dataset*)
         """
 
+        self.itemtype = self._getH5ClassName()
+        """Type of item: 'file', 'group', 'dataset', 'soft link' or
+        'external link'. For hard links, the type is the type of the target item."""
+
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
+
+        # fill HDF5 structure tree underneath file
+        self._appendChildRows()
 
         # store owned items
         self._item_type = self._createTypeItem()
         self._item_description = self._createDescriptionItem()
 
         self._setDefaultTooltip()
+
+    def _getH5ClassName(self):
+        if hasattr(self.obj, "h5py_class"):
+            class_ = self.obj.h5py_class
+        else:
+            class_ = self.obj.__class__
+
+        if issubclass(class_, h5py.File):
+            return "file"
+        elif issubclass(class_, h5py.SoftLink):
+            return "soft link"
+        elif issubclass(class_, h5py.ExternalLink):
+            return "external link"
+        # hard link type = target type (Group or Dataset)
+        elif issubclass(class_, h5py.Group):
+            return "group"
+        elif issubclass(class_, h5py.Dataset):
+            return "dataset"
+        else:
+            raise TypeError("Unsupported class '%s'" % class_)
+
+    def _appendChildRows(self):
+        """Recurse through an HDF5 structure to append groups an datasets
+        into the tree model.
+        :param h5item: Parent :class:`Hdf5Item` or
+            :class:`Hdf5ItemModel` object
+        :param gr_or_ds: h5py or spech5 object (h5py.File, h5py.Group,
+            h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
+            spech5.SpecH5Dataset)
+        """
+        if self.isGroupObj():
+            for child_gr_ds_name, child_gr_ds in self.obj.items():
+                # actual item
+                child_h5item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
+                self.appendRow(child_h5item)
+
+    def isGroupObj(self):
+        """Is the hdf5 obj contains sub group or datasets"""
+        return self.itemtype in ["group", "file"]
 
     def _setDefaultTooltip(self):
         """Set the default tooltip"""
@@ -261,46 +299,13 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                     # assume Specfile
                     fd = spech5.SpecH5(file_)
             except IOError:
-                # replace error message
-                raise IOError("Parameter file_ must be a file path, " +
-                              "or a h5py.File object, " +
-                              "or a spech5.SpecH5 object.")
+                _logger.debug("File '%s' can't be read.", file_, exc_info=True)
+                raise IOError("File '%s' can't be readed as HDF5, SpecFile, or fabio image" % file_)
 
         # add root level row with file name
         file_item = Hdf5Item(text=os.path.basename(filename), obj=fd)
         file_item.setToolTip("File <%s>" % os.path.abspath(filename))
         self.appendRow(file_item)
-
-        # fill HDF5 structure tree underneath file
-        self._recursive_append_rows(h5item=file_item,
-                                    gr_or_ds=fd,
-                                    filename=os.path.abspath(filename))
-
-    def _recursive_append_rows(self, h5item, gr_or_ds, filename):
-        """Recurse through an HDF5 structure to append groups an datasets
-        into the tree model.
-        :param h5item: Parent :class:`Hdf5Item` or
-            :class:`Hdf5ItemModel` object
-        :param gr_or_ds: h5py or spech5 object (h5py.File, h5py.Group,
-            h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
-            spech5.SpecH5Dataset)
-        """
-
-        group_types = (h5py.File, h5py.Group,
-                       spech5.SpecH5, spech5.SpecH5Group,
-                       spech5.SpecH5LinkToGroup  # ~ hard link
-                       )
-
-        if isinstance(gr_or_ds, group_types):
-            for child_gr_ds_name in gr_or_ds:
-                child_gr_ds = gr_or_ds[child_gr_ds_name]
-
-                # actual item
-                child_h5item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
-                h5item.appendRow(child_h5item)
-                self._recursive_append_rows(child_h5item,
-                                            child_gr_ds,
-                                            filename)
 
 
 class ResizingTreeView(qt.QTreeView):
