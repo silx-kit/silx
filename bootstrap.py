@@ -67,10 +67,8 @@ def runfile(fname):
         run.wait()
 
 home = os.path.dirname(os.path.abspath(__file__))
-SCRIPTSPATH = os.path.join(home,
-                           'build', _distutils_scripts_name())
-LIBPATH = (os.path.join(home,
-                       'build', _distutils_dir_name('lib')))
+SCRIPTSPATH = os.path.join(home, 'build', _distutils_scripts_name())
+LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
 cwd = os.getcwd()
 os.chdir(home)
 build = subprocess.Popen([sys.executable, "setup.py", "build"],
