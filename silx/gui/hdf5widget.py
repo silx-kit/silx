@@ -112,6 +112,37 @@ class MultiColumnTreeItem(qt.QStandardItem):
         super(MultiColumnTreeItem, self).appendRow(item)
 
 
+class Hdf5BrokenLinkItem(MultiColumnTreeItem):
+    """Subclass of :class:`qt.QStandardItem` to represent a broken link
+    in HDF5 tree structure.
+    """
+
+    def __init__(self, text, obj):
+        """Constructor
+
+        :param text str: Text displayed by the item
+        :param obj h5py link: HDF5 object containing link informations
+        """
+        super(Hdf5BrokenLinkItem, self).__init__(text)
+
+        style = qt.QApplication.style()
+        icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+        self.setIcon(icon)
+
+        self.obj = obj
+        if isinstance(self.obj, h5py.ExternalLink):
+            message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
+        elif isinstance(self.obj, h5py.SoftLink):
+            message = "Soft link broken. Path %s does not exist" % (self.obj.path)
+        else:
+            name = obj.__class__.__name__.split(".")[-1].capitalize()
+            message = "%s broken" % (name)
+        self._item_description = qt.QStandardItem(message)
+        self._item_type = qt.QStandardItem("")
+        self.setExtraColumns(self._item_description, self._item_type)
+        self.setToolTip(message)
+
+
 class Hdf5Item(MultiColumnTreeItem):
     """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
     item (dataset, file, group or link) as an element of a HDF5-like
@@ -188,9 +219,13 @@ class Hdf5Item(MultiColumnTreeItem):
         """
         if self.isGroupObj():
             for child_gr_ds_name, child_gr_ds in self.obj.items():
-                # actual item
-                child_h5item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
-                self.appendRow(child_h5item)
+                if child_gr_ds is None:
+                    # that's a broken link
+                    link = self.obj.get(child_gr_ds_name, getlink=True)
+                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                else:
+                    item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
+                self.appendRow(item)
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
@@ -501,6 +536,8 @@ class Hdf5TreeView(qt.QWidget):
             qindex = qindex.sibling(this_row, 0)
 
         item = self.model.itemFromIndex(qindex)
+        if not isinstance(item, Hdf5Item):
+            return
 
         if not "Clicked" in event:
             mouse_button = None
