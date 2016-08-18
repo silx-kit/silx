@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "17/08/2016"
+__date__ = "19/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -67,7 +67,52 @@ def is_hdf5_file(fname):
         return True
 
 
-class Hdf5Item(qt.QStandardItem):
+class MultiColumnTreeItem(qt.QStandardItem):
+    """A QStandardItem used to create an item tree,
+    which is able to manage his item colums"""
+
+    def __init__(self, text=None, icon=None):
+        """Constructor
+
+        :param text str: Text displayed by the item
+        :param icon qtQIcon: Icon displayed by the item
+        """
+        if icon is not None:
+            qt.QStandardItem.__init__(self, icon, text)
+        elif text is not None:
+            qt.QStandardItem.__init__(self, text)
+        else:
+            qt.QStandardItem.__init__(self)
+        self.__row = [self]
+
+    def setExtraColumns(self, *args):
+        """Define other items of the row.
+
+        :param args list of qt.QStandardItem: A list of items
+        """
+        row = [self]
+        row.extend(args)
+        self.__row = row
+
+    def _getItemRow(self):
+        """Return the item row. The one appended to the table
+        
+        :rtype: list
+        """
+        return self.__row
+
+    def appendRow(self, item):
+        """"Override of default appendRow to be able to append the full row
+        instead of the single item.
+        
+        :param item qt.QStandardItem: An item
+        """
+        if isinstance(item, MultiColumnTreeItem):
+            item = item._getItemRow()
+        super(MultiColumnTreeItem, self).appendRow(item)
+
+
+class Hdf5Item(MultiColumnTreeItem):
     """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
     item (dataset, file, group or link) as an element of a HDF5-like
     tree structure.
@@ -108,6 +153,7 @@ class Hdf5Item(qt.QStandardItem):
         # store owned items
         self._item_type = self._createTypeItem()
         self._item_description = self._createDescriptionItem()
+        self.setExtraColumns(self._item_description, self._item_type)
 
         self._setDefaultTooltip()
 
@@ -170,16 +216,6 @@ class Hdf5Item(qt.QStandardItem):
             tooltip = ""
 
         self.setToolTip(tooltip)
-
-    def appendRow(self, items):
-        if isinstance(items, Hdf5Item):
-            items = items._createRow()
-        super(Hdf5Item, self).appendRow(items)
-
-    def _createRow(self):
-        """Create the row where the first item is self and other
-        items are content of columns"""
-        return [self, self._item_description, self._item_type]
 
     def _htmlFromDict(self, input):
         """Generate a readable HTML from a dictionary
@@ -272,9 +308,9 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                 self.load(file_)
 
     def appendRow(self, items):
-        # FIXME it would be better to generate a self invisibleItem, but it looks to be impossible
-        if isinstance(items, Hdf5Item):
-            items = items._createRow()
+        # TODO it would be better to generate a self invisibleItem, but it looks to be impossible
+        if isinstance(items, MultiColumnTreeItem):
+            items = items._getItemRow()
         super(Hdf5TreeModel, self).appendRow(items)
 
     def load(self, file_):
