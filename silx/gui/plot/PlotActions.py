@@ -969,10 +969,8 @@ class FitAction(_PlotAction):
             self._errorMessage("No selected curve to be fitted")
             return False
         self.x, self.y, self.legend = curve[0:3]
-        self.plot.addCurve(self.x, self.y, "sanity check")
 
         # open a window with a FitWidget
-
         mw = qt.QMainWindow(self.plot)
         self.fit_widget = FitWidget(parent=mw)
         self.fit_widget.setdata(self.x, self.y)
@@ -988,7 +986,6 @@ class FitAction(_PlotAction):
             pass
         if ddict["event"] == "FitFinished":
             y_fit = self.fit_widget.fitmanager.gendata()
-            print(y_fit)
             self.plot.addCurve(self.x, y_fit, "Fit <%s>" % self.legend)
 
 
