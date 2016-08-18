@@ -27,8 +27,12 @@ Read the documentation of :mod:`silx.io.spech5` for information on the
 structure of the output HDF5 files.
 
 Strings are written to the HDF5 datasets as fixed-length ASCII (NumPy *S* type).
-If you read the files back with *h5py* in Python 3, you will recover bytes,
-which you should decode to transform them into strings::
+This is done in order to produce files that have maximum compatibility with
+other HDF5 libraries, as recommended in the
+`h5py documentation <http://docs.h5py.org/en/latest/strings.html#how-to-store-text-strings>`_.
+
+If you read the files back with *h5py* in Python 3, you will recover strings
+as bytes, which you should decode to transform them into python strings::
 
     >>> import h5py
     >>> f = h5py.File("myfile.h5")
@@ -48,13 +52,14 @@ longest string. Shorter strings are right-padded with blank spaces.
 
 import numpy
 import logging
-logger = logging.getLogger(__name__)
 import re
+
+_logger = logging.getLogger(__name__)
 
 try:
     import h5py
 except ImportError as e:
-    logger.error("Module " + __name__ + " requires h5py")
+    _logger.error("Module " + __name__ + " requires h5py")
     raise e
 
 from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
@@ -63,7 +68,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/05/2016"
+__date__ = "03/08/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -117,14 +122,14 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         :param target: Handle for target group or dataset
         """
         if link_name not in h5f:
-            logger.debug("Creating link " + link_name + " -> " + target.name)
+            _logger.debug("Creating link " + link_name + " -> " + target.name)
         elif overwrite_data:
-            logger.warn("Overwriting " + link_name + " with link to" +
-                        target.name)
+            _logger.warn("Overwriting " + link_name + " with link to" +
+                         target.name)
             del h5f[link_name]
         else:
-            logger.warn(link_name + " already exist. Can't create link to " +
-                        target.name)
+            _logger.warn(link_name + " already exist. Can't create link to " +
+                         target.name)
             return None
 
         if link_type == "hard":
@@ -140,16 +145,16 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         if isinstance(obj, SpecH5LinkToGroup) or\
                 isinstance(obj, SpecH5LinkToDataset):
             # links are created at the same time as their targets
-            logger.debug("Ignoring link: " + h5_name)
+            _logger.debug("Ignoring link: " + h5_name)
             pass
 
         elif isinstance(obj, SpecH5Dataset):
-            logger.debug("Saving dataset: " + h5_name)
+            _logger.debug("Saving dataset: " + h5_name)
 
             member_initially_exists = h5_name in h5f
 
             if overwrite_data and member_initially_exists:
-                logger.warn("Overwriting dataset: " + h5_name)
+                _logger.warn("Overwriting dataset: " + h5_name)
                 del h5f[h5_name]
 
             if overwrite_data or not member_initially_exists:
@@ -178,11 +183,11 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             # dataset creation to remain independent for odd cases
             # where dataset exists but not the link
             if not overwrite_data and member_initially_exists:
-                logger.warn("Ignoring existing dataset: " + h5_name)
+                _logger.warn("Ignoring existing dataset: " + h5_name)
 
         elif isinstance(obj, SpecH5Group):
             if h5_name not in h5f:
-                logger.debug("Creating group: " + h5_name)
+                _logger.debug("Creating group: " + h5_name)
                 grp = h5f.create_group(h5_name)
             else:
                 grp = h5f[h5_name]
