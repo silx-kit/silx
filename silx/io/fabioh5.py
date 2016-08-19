@@ -145,8 +145,35 @@ class Group(Node):
             yield x
 
     def __getitem__(self, name):
-        """Return a member from is name"""
-        return self.__items[name]
+        """Return a member from is name
+
+        :param name str: name of a member or a path throug members using '/'
+            separator. A '/' as a prefix access to the root item of the tree.
+        :rtype: Node
+        """
+
+        if name is None or name == "":
+            raise ValueError("No name")
+
+        if "/" not in name:
+            return self.__items[name]
+
+        if name.startswith("/"):
+            root = self
+            while root.parent is not None:
+                root = root.parent
+            if name == "/":
+                return root
+            return root[name[1:]]
+
+        path = name.split("/")
+        result = self
+        for item_name in path:
+            if not isinstance(result, Group):
+                raise KeyError("Unable to open object (Component not found)")
+            result = result.__items[item_name]
+
+        return result
 
     def __contains__(self, name):
         """Test if a member name exists"""
