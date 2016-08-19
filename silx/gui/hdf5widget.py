@@ -144,11 +144,12 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
     in HDF5 tree structure.
     """
 
-    def __init__(self, text, obj):
+    def __init__(self, text, obj=None, message=None):
         """Constructor
 
         :param text str: Text displayed by the item
         :param obj h5py link: HDF5 object containing link informations
+        :param message str: Message to display as description
         """
         super(Hdf5BrokenLinkItem, self).__init__(text)
 
@@ -157,13 +158,14 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
         self.setIcon(icon)
 
         self.obj = obj
-        if isinstance(self.obj, h5py.ExternalLink):
-            message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
-        elif isinstance(self.obj, h5py.SoftLink):
-            message = "Soft link broken. Path %s does not exist" % (self.obj.path)
-        else:
-            name = obj.__class__.__name__.split(".")[-1].capitalize()
-            message = "%s broken" % (name)
+        if message is None:
+            if isinstance(self.obj, h5py.ExternalLink):
+                message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
+            elif isinstance(self.obj, h5py.SoftLink):
+                message = "Soft link broken. Path %s does not exist" % (self.obj.path)
+            else:
+                name = obj.__class__.__name__.split(".")[-1].capitalize()
+                message = "%s broken" % (name)
         self._item_description = qt.QStandardItem(message)
         self._item_type = qt.QStandardItem("")
         self.setExtraColumns(self._item_description, self._item_type)
