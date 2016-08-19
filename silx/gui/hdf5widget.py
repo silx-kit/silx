@@ -139,6 +139,26 @@ class MultiColumnTreeItem(qt.QStandardItem):
         super(MultiColumnTreeItem, self).appendRow(item)
 
 
+class LasyLoadDummyItem(MultiColumnTreeItem):
+    """A way to lazy load items of the model.
+    It would be better to catch the expand/collapse event.
+
+    When the data is accessed to display the item text,
+    the item call it's parent to populate child items.
+    """
+
+    def __init__(self, callback):
+        super(LasyLoadDummyItem, self).__init__("Dummy")
+        self.__callback = callback
+
+    def data(self, role=qt.Qt.UserRole+1):
+        if role == 0:
+            self.__callback()
+            return ""
+        else:
+            return MultiColumnTreeItem.data(self, role)
+
+
 class Hdf5BrokenLinkItem(MultiColumnTreeItem):
     """Subclass of :class:`qt.QStandardItem` to represent a broken link
     in HDF5 tree structure.
@@ -219,8 +239,12 @@ class Hdf5Item(MultiColumnTreeItem):
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
 
-        # fill HDF5 structure tree underneath file
-        self._appendChildRows()
+        if self.isGroupObj():
+            if self.hasChildren():
+                # create dummy rows to be able to lazy load real items
+                self.__dummy_child = LasyLoadDummyItem(self._populateChildRows)
+                self.setRowCount(len(self.obj))
+                self.setChild(0, self.__dummy_child)
 
         # store owned items
         self._item_type = self._createTypeItem()
@@ -249,7 +273,23 @@ class Hdf5Item(MultiColumnTreeItem):
         else:
             raise TypeError("Unsupported class '%s'" % class_)
 
-    def _appendChildRows(self):
+    def hasChildren(self):
+        """Override method to be able to generate chrildren on demand.
+        The result is computed from the HDF5 model.
+
+        :rtype: bool
+        """
+        if self.isGroupObj():
+            return len(self.obj) > 0
+        return super(Hdf5Item, self).hasChildren()
+
+    def child(self, *args, **kwargs):
+        """Override method to be able to generate chrildren on demand."""
+        if self.isGroupObj():
+            self._populateChildRows()
+        return MultiColumnTreeItem.child(self, *args, **kwargs)
+
+    def _populateChildRows(self):
         """Recurse through an HDF5 structure to append groups an datasets
         into the tree model.
         :param h5item: Parent :class:`Hdf5Item` or
@@ -258,15 +298,30 @@ class Hdf5Item(MultiColumnTreeItem):
             h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
             spech5.SpecH5Dataset)
         """
+        if self.__dummy_child is None:
+            # already generated
+            return
+
+        row = 0
         if self.isGroupObj():
-            for child_gr_ds_name, child_gr_ds in self.obj.items():
-                if child_gr_ds is None:
-                    # that's a broken link
+            for child_gr_ds_name in self.obj:
+                try:
+                    child_gr_ds = self.obj.get(child_gr_ds_name)
+                except RuntimeError as e:
+                    _logger.error("Internal h5py error", exc_info=True)
                     link = self.obj.get(child_gr_ds_name, getlink=True)
-                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, message=e.args[0])
                 else:
-                    item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
-                self.appendRow(item)
+                    if child_gr_ds is None:
+                        # that's a broken link
+                        link = self.obj.get(child_gr_ds_name, getlink=True)
+                        item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                    else:
+                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
+                self.setChild(row, item)
+                #self.appendRow(item)
+                row += 1
+        self.__dummy_child = None
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
