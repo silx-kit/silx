@@ -357,7 +357,7 @@ class Hdf5Item(MultiColumnTreeItem):
                 text = str(self.obj.dtype)
 
             for axes in self.obj.shape:
-                text += u" \u00D7 " + unicode(axes)
+                text = u"%s \u00D7 %s" % (text, axes)
         else:
             text = ""
 
