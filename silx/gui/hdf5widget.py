@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/08/2016"
+__date__ = "22/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -139,6 +139,64 @@ class MultiColumnTreeItem(qt.QStandardItem):
         super(MultiColumnTreeItem, self).appendRow(item)
 
 
+class MustBeLoadedItem(qt.QStandardItem):
+    """A dummy item must be created, else parent from modelitem is not
+    valid"""
+    pass
+
+
+class LazyLoadableItem(object):
+    """A way to tag Item as lazy loadable item.
+
+    Child can be lazy loaded by the class model by calling
+    hasChildren and child methods. This methods are not virtual
+    in QStandardItem, then it has to be called in python side.
+    """
+
+    def __init__(self):
+        self._must_load_child = self.hasChildren()
+        self._populateDummies()
+
+    def hasChildren(self):
+        """Override method to be able to generate chrildren on demand.
+        The result is computed from the HDF5 model.
+
+        :rtype: bool
+        """
+        raise NotImplementedError()
+
+    def child(self, row, column):
+        """Override method to be able to generate chrildren on demand.
+
+        :rtype list of QStandardItem:
+        """
+        if self._must_load_child:
+            self._populateChild()
+            self._must_load_child = False
+
+    def rowCount(self):
+        """Override method to be able to generate chrildren on demand.
+
+        :rtype list of QStandardItem:
+        """
+        raise NotImplementedError()
+
+    def _populateDummies(self):
+        """Called to populate child with dummy items.
+
+        If no dummies are created, index parent is not valid.
+
+        :rtype list of QStandardItem:
+        """
+        for row in range(self.rowCount()):
+            self.setChild(row, MustBeLoadedItem())
+
+    def _populateChild(self):
+        """Called to populate child
+        """
+        raise NotImplementedError()
+
+
 class Hdf5BrokenLinkItem(MultiColumnTreeItem):
     """Subclass of :class:`qt.QStandardItem` to represent a broken link
     in HDF5 tree structure.
@@ -184,7 +242,7 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
         self.setToolTip(tooltip)
 
 
-class Hdf5Item(MultiColumnTreeItem):
+class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
     """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
     item (dataset, file, group or link) as an element of a HDF5-like
     tree structure.
@@ -219,8 +277,7 @@ class Hdf5Item(MultiColumnTreeItem):
         self.hdf5name = self.obj.name
         """Name of group or dataset within the HDF5 file."""
 
-        # fill HDF5 structure tree underneath file
-        self._appendChildRows()
+        LazyLoadableItem.__init__(self)
 
         # store owned items
         self._item_type = self._createTypeItem()
@@ -249,7 +306,27 @@ class Hdf5Item(MultiColumnTreeItem):
         else:
             raise TypeError("Unsupported class '%s'" % class_)
 
-    def _appendChildRows(self):
+    def hasChildren(self):
+        """Override method to be able to generate chrildren on demand.
+        The result is computed from the HDF5 model.
+
+        :rtype: bool
+        """
+        if self.isGroupObj():
+            return len(self.obj) > 0
+        return super(Hdf5Item, self).hasChildren()
+
+    def rowCount(self):
+        if self.isGroupObj():
+            return len(self.obj)
+        return super(Hdf5Item, self).rowCount()
+
+    def child(self, row, column):
+        """Override method to be able to generate chrildren on demand."""
+        LazyLoadableItem.child(self, row, column)
+        return MultiColumnTreeItem.child(self, row, column)
+
+    def _populateChild(self):
         """Recurse through an HDF5 structure to append groups an datasets
         into the tree model.
         :param h5item: Parent :class:`Hdf5Item` or
@@ -258,15 +335,25 @@ class Hdf5Item(MultiColumnTreeItem):
             h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
             spech5.SpecH5Dataset)
         """
+        row = 0
         if self.isGroupObj():
-            for child_gr_ds_name, child_gr_ds in self.obj.items():
-                if child_gr_ds is None:
-                    # that's a broken link
+            for child_gr_ds_name in self.obj:
+                try:
+                    child_gr_ds = self.obj.get(child_gr_ds_name)
+                except RuntimeError as e:
+                    _logger.error("Internal h5py error", exc_info=True)
                     link = self.obj.get(child_gr_ds_name, getlink=True)
-                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, message=e.args[0])
                 else:
-                    item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
-                self.appendRow(item)
+                    if child_gr_ds is None:
+                        # that's a broken link
+                        link = self.obj.get(child_gr_ds_name, getlink=True)
+                        item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                    else:
+                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
+                self.setChild(row, item)
+                #self.appendRow(item)
+                row += 1
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
@@ -370,6 +457,48 @@ class Hdf5TreeModel(qt.QStandardItemModel):
         if files is not None:
             for file_ in files:
                 self.load(file_)
+
+    def itemFromIndex(self, index):
+        """
+        Override itemFromIndex to be able to call non virtual method
+        Qt.QStandardItem.child
+
+        :param index qt.QModelIndex: An index
+        :rtype: qt.QStandardItem
+        """
+        item = qt.QStandardItemModel.itemFromIndex(self, index)
+        if isinstance(item, MustBeLoadedItem):
+            parent_index = self.parent(index)
+            parent = qt.QStandardItemModel.itemFromIndex(self, parent_index)
+            if isinstance(parent, LazyLoadableItem):
+                item = parent.child(index.row(), index.column())
+        return item
+
+    def hasChildren(self, index):
+        """
+        Override hasChildren to be able to call non virtual method
+        Qt.QStandardItem.hasChildren
+
+        :param index qt.QModelIndex: An index
+        :rtype: bool
+        """
+        item = self.itemFromIndex(index)
+        if isinstance(item, LazyLoadableItem):
+            return item.hasChildren()
+        return super(Hdf5TreeModel, self).hasChildren(index)
+
+    def rowCount(self, index):
+        """
+        Override rowCount to be able to call non virtual method
+        Qt.QStandardItem.rowCount
+
+        :param index qt.QModelIndex: An index
+        :rtype: int
+        """
+        item = self.itemFromIndex(index)
+        if isinstance(item, LazyLoadableItem):
+            return item.rowCount()
+        return super(Hdf5TreeModel, self).rowCount(index)
 
     def appendRow(self, items):
         # TODO it would be better to generate a self invisibleItem, but it looks to be impossible
