@@ -573,16 +573,8 @@ class ResizingTreeView(qt.QTreeView):
         in :attr:`lastMouse`. Make sure itemClicked signal
         is emitted.
         """
-        button = event.button()
-        if button == qt.Qt.LeftButton:
-            self.lastMouse = "left"
-        elif button == qt.Qt.RightButton:
-            self.lastMouse = "right"
-        elif button == qt.Qt.MidButton:
-            self.lastMouse = "middle"
-        else:
-            self.lastMouse = "????"
-        qt.QTreeView.mousePressEvent(self, event)
+        self.lastMouse = event.button()
+        super(ResizingTreeView, self).mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
@@ -696,10 +688,18 @@ class Hdf5TreeView(qt.QWidget):
         if not isinstance(item, Hdf5Item):
             return
 
-        if not "Clicked" in event:
-            mouse_button = None
+        if "Clicked" in event:
+            button = self.treeview.lastMouse
+            if button == qt.Qt.LeftButton:
+                mouse_button = "left"
+            elif button == qt.Qt.RightButton:
+                mouse_button = "right"
+            elif button == qt.Qt.MidButton:
+                mouse_button = "middle"
+            else:
+                mouse_button = "????"
         else:
-            mouse_button = self.treeview.lastMouse * 1
+            mouse_button = None
 
         ddict = {
             'event': event,
