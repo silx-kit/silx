@@ -114,6 +114,20 @@ class MultiColumnTreeItem(qt.QStandardItem):
         """
         return self.__row
 
+    def setChild(self, row, item):
+        """"Override of default setChild to be able to set a full row
+        instead of the single item.
+
+        :param row int: An row index
+        :param item qt.QStandardItem: An item
+        """
+        if isinstance(item, MultiColumnTreeItem):
+            for column, columnItem in enumerate(item._getItemRow()):
+                super(MultiColumnTreeItem, self).setChild(row, column, columnItem)
+            item = item._getItemRow()
+        else:
+            super(MultiColumnTreeItem, self).setChild(row, item)
+
     def appendRow(self, item):
         """"Override of default appendRow to be able to append the full row
         instead of the single item.
