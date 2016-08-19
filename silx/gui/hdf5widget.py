@@ -583,12 +583,11 @@ class ResizingTreeView(qt.QTreeView):
         else:
             self.lastMouse = "????"
         qt.QTreeView.mousePressEvent(self, event)
-        if self.lastMouse != "left":
+        if event.button() != qt.Qt.LeftButton:
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
-                event = "itemClicked"
                 qindex = self.indexAt(event.pos())
-                self.emitSignal(event, qindex)
+                self.clicked.emit(qindex)
 
 
 class Hdf5TreeView(qt.QWidget):
