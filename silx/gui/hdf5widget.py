@@ -67,6 +67,19 @@ def is_hdf5_file(fname):
         return True
 
 
+def htmlFromDict(input):
+    """Generate a readable HTML from a dictionary
+
+    :param input dict: A Dictionary
+    :rtype: str
+    """
+    result = "<html><ul>"
+    for key, value in input.items():
+        result += "<li><b>%s</b>: %s</li>" % (key, value)
+    result += "</ul></html>"
+    return result
+
+
 class MultiColumnTreeItem(qt.QStandardItem):
     """A QStandardItem used to create an item tree,
     which is able to manage his item colums"""
@@ -246,23 +259,11 @@ class Hdf5Item(MultiColumnTreeItem):
                 attrs["value"] = "..."
 
         if len(attrs) > 0:
-            tooltip = self._htmlFromDict(attrs)
+            tooltip = htmlFromDict(attrs)
         else:
             tooltip = ""
 
         self.setToolTip(tooltip)
-
-    def _htmlFromDict(self, input):
-        """Generate a readable HTML from a dictionary
-
-        :param input dict: A Dictionary
-        :rtype: str
-        """
-        result = "<html><ul>"
-        for key, value in input.items():
-            result += "<li><b>%s</b>: %s</li>" % (key, value)
-        result += "</ul></html>"
-        return result
 
     def _createTypeItem(self):
         """Create the item holding the type column"""
