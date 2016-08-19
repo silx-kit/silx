@@ -34,9 +34,14 @@ from functools import partial
 from ..spech5 import (SpecH5, SpecH5Group,
                       SpecH5Dataset, spec_date_to_iso8601)
 
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/08/2016"
+__date__ = "19/08/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -259,6 +264,24 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["25.1/start_time"],
                          b"2015-03-14T03:53:50")
 
+    def testGet(self):
+        """Test :meth:`SpecH5Group.get`"""
+        # default value of param *default* is None
+        self.assertIsNone(self.sfh5.get("toto"))
+        self.assertEqual(self.sfh5["25.1"].get("toto", default=-3),
+                         -3)
+
+        self.assertEqual(self.sfh5.get("/1.1/start_time", default=-3),
+                         b"2016-02-11T09:55:20")
+
+        self.assertIs(self.sfh5["1.1"].get("start_time", getclass=True),
+                      SpecH5Dataset)
+        self.assertIs(self.sfh5["1.1"].get("instrument", getclass=True),
+                      SpecH5Group)
+
+        # spech5 does not define external link, so there is no way
+        # a group can *get* a SpecH5 class
+
     def testGetItemGroup(self):
         group = self.sfh5["25.1"]["instrument"]
         self.assertEqual(group["positioners"].keys(),
@@ -270,6 +293,22 @@ class TestSpecH5(unittest.TestCase):
     def testGetitemSpecH5(self):
         self.assertEqual(self.sfh5["/1.2/instrument/positioners"],
                          self.sfh5["1.2"]["instrument"]["positioners"])
+
+    @unittest.skipIf(h5py is None, "test requires h5py (not installed)")
+    def testH5pyClass(self):
+        """Test :attr:`h5py_class` returns the corresponding h5py class
+        (h5py.File, h5py.Group, h5py.Dataset)"""
+        a_file = self.sfh5
+        self.assertIs(a_file.h5py_class,
+                      h5py.File)
+
+        a_group = self.sfh5["/1.2/measurement"]
+        self.assertIs(a_group.h5py_class,
+                      h5py.Group)
+
+        a_dataset = self.sfh5["/1.1/instrument/positioners/Sslit1 HOff"]
+        self.assertIs(a_dataset.h5py_class,
+                      h5py.Dataset)
 
     def testHeader(self):
         # File header has 10 lines

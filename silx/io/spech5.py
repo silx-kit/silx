@@ -164,15 +164,15 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "17/08/2016"
+__date__ = "19/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
-
 try:
     import h5py
 except ImportError:
+    h5py = None
     logger1.debug("Module h5py optional.", exc_info=True)
 
 
@@ -674,7 +674,15 @@ class SpecH5Dataset(numpy.ndarray):
 
     @property
     def h5py_class(self):
-        """h5py class which is mimicked by this class"""
+        """Return h5py class which is mimicked by this class:
+        :class:`h5py.dataset`.
+
+        Accessing this attribute if :mod:`h5py` is not installed causes
+        an ``ImportError`` to be raised
+        """
+        if h5py is None:
+            raise ImportError("Cannot return h5py.Dataset class, " +
+                              "unable to import h5py module")
         return h5py.Dataset
 
 
@@ -889,7 +897,15 @@ class SpecH5Group(object):
 
     @property
     def h5py_class(self):
-        """h5py class which is mimicked by this class"""
+        """Return h5py class which is mimicked by this class:
+        :class:`h5py.Group`.
+
+        Accessing this attribute if :mod:`h5py` is not installed causes
+        an ``ImportError`` to be raised
+        """
+        if h5py is None:
+            raise ImportError("Cannot return h5py.Group class, " +
+                              "unable to import h5py module")
         return h5py.Group
 
     @property
@@ -963,6 +979,33 @@ class SpecH5Group(object):
                 self.name == other.name and
                 self.file.filename == other.file.filename and
                 self.keys() == other.keys())
+
+    def get(self, name, default=None, getclass=False, getlink=False):
+        """Retrieve an item by name, or a default value if name does not
+        point to an existing item.
+
+        :param name str: name of the item
+        :param default: Default value returned if the name is not found
+        :param bool getclass: if *True*, the returned object is the class of
+            the item, instead of the item instance.
+        :param bool getlink: Not implemented. This method always returns
+            an instance of the original class of the requested item (or
+            just the class, if *getclass* is *True*)
+        :return: The requested item, or its class if *getclass* is *True*,
+            or the specified *default* value if the group does not contain
+            an item with the requested name.
+        """
+        if name not in self:
+            return default
+
+        if getlink:
+            logger1.warning("getlink is not implemented. " +
+                            "It has no effect on SpecH5Group.get()")
+
+        if getclass:
+            return self[name].__class__
+
+        return self[name]
 
     def __getitem__(self, key):
         """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
