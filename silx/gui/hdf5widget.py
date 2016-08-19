@@ -167,7 +167,19 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
         self._item_description = qt.QStandardItem(message)
         self._item_type = qt.QStandardItem("")
         self.setExtraColumns(self._item_description, self._item_type)
-        self.setToolTip(message)
+        self._message = message
+
+        self._setDefaultToolTip()
+
+    def _setDefaultToolTip(self):
+        input = {}
+        if isinstance(self.obj, h5py.ExternalLink):
+            input["linked path"] = self.obj.path
+            input["linked file"] = self.obj.filename
+        elif isinstance(self.obj, h5py.SoftLink):
+            input["linked path"] = self.obj.path
+        tooltip = htmlFromDict(input)
+        self.setToolTip(tooltip)
 
 
 class Hdf5Item(MultiColumnTreeItem):
