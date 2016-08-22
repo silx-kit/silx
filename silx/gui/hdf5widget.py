@@ -34,8 +34,8 @@ import os
 import sys
 import numpy
 import logging
-from silx.gui import qt
-from silx.io import spech5
+from . import qt
+from ..io import spech5
 
 
 try:
@@ -537,7 +537,7 @@ class Hdf5TreeModel(qt.QStandardItemModel):
         self.appendRow(file_item)
 
 
-class ResizingTreeView(qt.QTreeView):
+class Hdf5TreeView(qt.QTreeView):
     """QTreeView with column width auto-resizing and additional
     signals
     """
@@ -574,165 +574,9 @@ class ResizingTreeView(qt.QTreeView):
         is emitted.
         """
         self.lastMouse = event.button()
-        super(ResizingTreeView, self).mousePressEvent(event)
+        super(Hdf5TreeView, self).mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
                 qindex = self.indexAt(event.pos())
                 self.clicked.emit(qindex)
-
-
-class Hdf5TreeView(qt.QWidget):
-    """
-    This widget provides a tree view of one or several HDF5 files,
-    with two columns *Name* and *Description*.
-
-    When hovering the mouse cursor over the name column, you get a tooltip
-    with a complete name.
-
-    The columns automatically resize themselves to the needed width when
-    expanding or collapsing a group.
-    """
-    sigHdf5TreeView = qt.pyqtSignal(object)
-    """Signal emitted when clicking or pressing the ``Enter`` key. It
-    broadcasts a dictionary of information about the event and the
-    selected item.
-
-    Dictionary keys:
-
-    - ``event``: "itemClicked", "itemDoubleClicked",
-            or "itemEnterKeyPressed"
-    - ``filename``: name of HDF5 or Spec file
-    - ``name``: path within the HDF5 structure
-    - ``dtype``: dataset dtype, None if item is a group
-    - ``shape``: dataset shape, None if item is a group
-    - ``attr``: attributes dictionary of element
-    """
-    def __init__(self, parent=None, files_=None):
-        """
-        :param files_: List of HDF5 or Spec files (pathes or
-            :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
-            instances)
-        """
-        qt.QWidget.__init__(self, parent)
-        layout = qt.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        self.model = Hdf5TreeModel(files_)
-        """:class:`Hdf5TreeModel` in charge of loading and storing
-        the HDF5 data structure"""
-
-        self.treeview = ResizingTreeView(model=self.model)
-        """Tree view widget displaying :attr:`model`"""
-        layout.addWidget(self.treeview)
-
-        # connect events to handler methods
-        self.treeview.clicked.connect(self.itemClicked)
-        self.treeview.doubleClicked.connect(self.itemDoubleClicked)
-        self.treeview.enterKeyPressed.connect(self.itemEnterKeyPressed)
-
-    def load(self, file_):
-        """
-        :param file_: HDF5 or Spec file (path or
-            :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
-            instance)
-        """
-        self.model.load(file_)
-
-    def itemClicked(self, modelIndex):
-        """
-        :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
-                           clicked item.
-        :type modelIndex: :class:`qt.QModelIndex`
-        """
-        event = "itemClicked"
-        self.emitSignal(event, modelIndex)
-
-    def itemDoubleClicked(self, modelIndex):
-        """
-        :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
-                           clicked item.
-        :type modelIndex: :class:`qt.QModelIndex`
-        """
-        event = "itemDoubleClicked"
-        self.emitSignal(event, modelIndex)
-
-    def itemEnterKeyPressed(self):
-        """
-        """
-        event = "itemEnterKeyPressed"
-        modelIndex = self.treeview.selectedIndexes()[0]
-        self.emitSignal(event, modelIndex)
-
-    def emitSignal(self, event, qindex):
-        """
-        Emits a ``sigHdf5TreeView`` signal to broadcast a dictionary of
-        information about the selected row in the tree view.
-
-        :param event: Type of event: "itemClicked", "itemDoubleClicked",
-            or "itemEnterKeyPressed"
-        :type event: string
-        :param qindex: Index within the :class:`Hdf5TreeModel` of the
-                           selected item.
-        :type qindex: :class:`qt.QModelIndex`
-
-        """
-        # when selecting a row, we are interested in the first column
-        # item, which has the pointer to the group/dataset
-        this_row = qindex.row()
-        if qindex.column() != 0:
-            qindex = qindex.sibling(this_row, 0)
-
-        item = self.model.itemFromIndex(qindex)
-        if not isinstance(item, Hdf5Item):
-            return
-
-        if "Clicked" in event:
-            button = self.treeview.lastMouse
-            if button == qt.Qt.LeftButton:
-                mouse_button = "left"
-            elif button == qt.Qt.RightButton:
-                mouse_button = "right"
-            elif button == qt.Qt.MidButton:
-                mouse_button = "middle"
-            else:
-                mouse_button = "????"
-        else:
-            mouse_button = None
-
-        ddict = {
-            'event': event,
-            'filename': item.filename,
-            'basename': item.basename,
-            'hdf5name': item.hdf5name,
-            'mouse': mouse_button,
-            'obj': item.obj,
-            'dtype': getattr(item.obj, "dtype", None),
-            'shape': getattr(item.obj, "shape", None),
-            'attrs': getattr(item.obj, "attrs", None)
-        }
-
-        # FIXME: Maybe emit only {event, obj}
-        self.sigHdf5TreeView.emit(ddict)
-
-
-def main(filenames):
-    """
-    :param filenames: list of file paths
-    """
-    app = qt.QApplication([])
-
-    view = Hdf5TreeView(files_=filenames)
-
-    def my_slot(ddict):
-        print(ddict)
-
-    view.sigHdf5TreeView.connect(my_slot)
-    view.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
-
