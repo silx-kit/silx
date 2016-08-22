@@ -555,17 +555,40 @@ class Hdf5TreeView(qt.QTreeView):
     """
     enterKeyPressed = qt.pyqtSignal()
 
-    def __init__(self, parent=None, auto_resize=True):
+    def __init__(self, parent=None):
         qt.QTreeView.__init__(self, parent)
         self.setModel(Hdf5TreeModel())
-
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
-        self.setUniformRowHeights(True)
 
+        self.__autoResizeColumns = False
         self.lastMouse = None
-        if auto_resize:
+
+    def setAutoResizeColumns(self, autoResizeColumns):
+        """Enable/disable  auto-resize of columns headers when
+        expanding/collapsing items.
+
+        :param autoResizeColumns bool: True to enable the behaviour.
+        """
+        if self.__autoResizeColumns == autoResizeColumns:
+            return
+        self.__autoResizeColumns = autoResizeColumns
+        if self.__autoResizeColumns:
             self.expanded.connect(self.resizeAllColumns)
             self.collapsed.connect(self.resizeAllColumns)
+        else:
+            self.expanded.disconnect(self.resizeAllColumns)
+            self.collapsed.disconnect(self.resizeAllColumns)
+
+    def getAutoResizeColumns(self):
+        """Returns true if the auto-resize behaviour is enabled.
+
+        :rtype: bool
+        """
+        return self.__autoResizeColumns
+
+    autoResizeColumns = qt.pyqtProperty(bool, getAutoResizeColumns, setAutoResizeColumns)
+    """Property to enable/disable the auto-resize behaviour when user expend
+    of collapse items."""
 
     def resizeAllColumns(self):
         for i in range(0, self.model().columnCount()):

@@ -79,6 +79,7 @@ class Hdf5TreeView(qt.QWidget):
         self.treeview = hdf5widget.Hdf5TreeView()
         """Tree view widget displaying :attr:`model`"""
         layout.addWidget(self.treeview)
+        layout.addWidget(self.createConfigurationPanel(self))
 
         # append all files to the tree
         for file_name in filenames:
@@ -88,6 +89,18 @@ class Hdf5TreeView(qt.QWidget):
         self.treeview.clicked.connect(self.itemClicked)
         self.treeview.doubleClicked.connect(self.itemDoubleClicked)
         self.treeview.enterKeyPressed.connect(self.itemEnterKeyPressed)
+
+    def createConfigurationPanel(self, tree):
+        """Create a configuration panel to allow to play with widget states"""
+        panel = qt.QGroupBox("Tree options", self)
+        layout = qt.QVBoxLayout()
+        panel.setLayout(layout)
+
+        autosize = qt.QCheckBox("Auto-size headers", panel)
+        autosize.toggled.connect(lambda: self.treeview.setAutoResizeColumns(autosize.isChecked()))
+        layout.addWidget(autosize)
+
+        return panel
 
     def itemClicked(self, modelIndex):
         """
