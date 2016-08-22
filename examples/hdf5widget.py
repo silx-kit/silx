@@ -65,7 +65,7 @@ class Hdf5TreeView(qt.QWidget):
     - ``shape``: dataset shape, None if item is a group
     - ``attr``: attributes dictionary of element
     """
-    def __init__(self, parent=None, files_=None):
+    def __init__(self, parent=None, filenames=None):
         """
         :param files_: List of HDF5 or Spec files (pathes or
             :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
@@ -76,26 +76,18 @@ class Hdf5TreeView(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        self.model = hdf5widget.Hdf5TreeModel(files_)
-        """:class:`Hdf5TreeModel` in charge of loading and storing
-        the HDF5 data structure"""
-
-        self.treeview = hdf5widget.Hdf5TreeView(model=self.model)
+        self.treeview = hdf5widget.Hdf5TreeView()
         """Tree view widget displaying :attr:`model`"""
         layout.addWidget(self.treeview)
+
+        # append all files to the tree
+        for file_name in filenames:
+            self.treeview.model().appendFile(file_name)
 
         # connect events to handler methods
         self.treeview.clicked.connect(self.itemClicked)
         self.treeview.doubleClicked.connect(self.itemDoubleClicked)
         self.treeview.enterKeyPressed.connect(self.itemEnterKeyPressed)
-
-    def load(self, file_):
-        """
-        :param file_: HDF5 or Spec file (path or
-            :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
-            instance)
-        """
-        self.model.load(file_)
 
     def itemClicked(self, modelIndex):
         """
@@ -141,7 +133,7 @@ class Hdf5TreeView(qt.QWidget):
         if qindex.column() != 0:
             qindex = qindex.sibling(this_row, 0)
 
-        item = self.model.itemFromIndex(qindex)
+        item = self.treeview.model().itemFromIndex(qindex)
         if not isinstance(item, hdf5widget.Hdf5Item):
             return
 
@@ -182,7 +174,7 @@ def main(filenames):
 
     window = qt.QMainWindow()
     window.setWindowTitle("Silx HDF5 widget example")
-    tree = Hdf5TreeView(files_=filenames)
+    tree = Hdf5TreeView(filenames=filenames)
     text = qt.QTextEdit()
 
     spliter = qt.QSplitter()

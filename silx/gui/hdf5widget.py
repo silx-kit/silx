@@ -446,17 +446,13 @@ class Hdf5TreeModel(qt.QStandardItemModel):
     objects, while the second column is only a data description to be
     displayed in a tree view.
     """
-    def __init__(self, files=None):
+    def __init__(self):
         """
         :param files: List of file handles/descriptors for a :class:`h5py.File`
             or a  :class:`spech5.SpecH5` object, or list of file pathes.
         """
         super(Hdf5TreeModel, self).__init__()
         self.setHorizontalHeaderLabels(['Name', 'Description', 'Type'])
-
-        if files is not None:
-            for file_ in files:
-                self.load(file_)
 
     def itemFromIndex(self, index):
         """
@@ -506,45 +502,63 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             items = items._getItemRow()
         super(Hdf5TreeModel, self).appendRow(items)
 
-    def load(self, file_):
+    def appendH5pyObject(self, h5pyObject, text=None):
+        """Append an HDF5 object from h5py to the tree.
+
+        :param h5pyObject: File handle/descriptor for a :class:`h5py.File`
+            or any other class of h5py file structure.
+        """
+        if text is None:
+            if hasattr(h5pyObject, "h5py_class"):
+                class_ = h5pyObject.h5py_class
+            else:
+                class_ = h5pyObject.__class__
+
+            if class_ == h5py.File:
+                text = os.path.basename(h5pyObject.filename)
+            else:
+                filename = os.path.basename(h5pyObject.file.filename)
+                path = h5pyObject.name
+                text = "%s::%s" % (filename, path)
+
+        file_item = Hdf5Item(text=text, obj=h5pyObject)
+        self.appendRow(file_item)
+
+    def appendFile(self, filename):
         """Load a HDF5 file into the data model.
 
-        :param file_: File handle/descriptor for a :class:`h5py.File`
-            or a  :class:`spech5.SpecH5` object, or file path.
+        :param filename: file path.
         """
-        if isinstance(file_, (h5py.File, spech5.SpecH5)):
-            filename = file_.filename
-            fd = file_
-        else:
-            if not os.path.isfile(file_):
-                raise IOError("Parameter file_ must be a file path, " +
-                              "or a h5py.File object, " +
-                              "or a spech5.SpecH5 object.")
-            filename = file_
-            try:
-                if is_hdf5_file(file_):
-                    fd = h5py.File(file_)
-                else:
-                    # assume Specfile
-                    fd = spech5.SpecH5(file_)
-            except IOError:
-                _logger.debug("File '%s' can't be read.", file_, exc_info=True)
-                raise IOError("File '%s' can't be readed as HDF5, SpecFile, or fabio image" % file_)
+        if not os.path.isfile(filename):
+            raise IOError("Filename '%s' must be a file path" % filename)
+        try:
+            if is_hdf5_file(filename):
+                fd = h5py.File(filename)
+            else:
+                # assume Specfile
+                fd = spech5.SpecH5(filename)
 
-        # add root level row with file name
-        file_item = Hdf5Item(text=os.path.basename(filename), obj=fd)
-        file_item.setToolTip("File <%s>" % os.path.abspath(filename))
-        self.appendRow(file_item)
+            # add root level row with file name
+            self.appendH5pyObject(fd)
+        except IOError:
+            _logger.debug("File '%s' can't be read.", filename, exc_info=True)
+            raise IOError("File '%s' can't be read as HDF5 or SpecFile" % filename)
 
 
 class Hdf5TreeView(qt.QTreeView):
-    """QTreeView with column width auto-resizing and additional
-    signals
+    """TreeView which allow to browse HDF5 file structure.
+
+    It provids columns width auto-resizing and additional
+    signals.
+
+    The default model is `Hdf5TreeModel`.
     """
     enterKeyPressed = qt.pyqtSignal()
 
-    def __init__(self, parent=None, auto_resize=True, model=None):
+    def __init__(self, parent=None, auto_resize=True):
         qt.QTreeView.__init__(self, parent)
+        self.setModel(Hdf5TreeModel())
+
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setUniformRowHeights(True)
 
@@ -552,9 +566,6 @@ class Hdf5TreeView(qt.QTreeView):
         if auto_resize:
             self.expanded.connect(self.resizeAllColumns)
             self.collapsed.connect(self.resizeAllColumns)
-
-        if model is not None:
-            self.setModel(model)
 
     def resizeAllColumns(self):
         for i in range(0, self.model().columnCount()):
