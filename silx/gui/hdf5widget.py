@@ -249,27 +249,22 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
     """
 
     def __init__(self, text, obj):
+        """
+        :param text str: text displayed
+        :param obj object: Pointer to h5py data. See the `obj` attribute.
+        """
         super(Hdf5Item, self).__init__(text)
 
         self.obj = obj
-        """Pointer to data instance. Data can be an instance of one of
-        the following classes:
+        """Pointer to h5py data. Can be one of the following classes:
 
             - :class:`h5py.File` (:attr:`itemtype` *file*)
             - :class:`h5py.Group` (:attr:`itemtype` *group*)
             - :class:`h5py.Dataset` (:attr:`itemtype` *dataset*)
             - :class:`h5py.SoftLink` (:attr:`itemtype` *soft link*)
             - :class:`h5py.ExternalLink`(:attr:`itemtype` *external link*)
-            - :class:`silx.io.spech5.SpecH5` (:attr:`itemtype` *file*)
-            - :class:`silx.io.spech5.SpecH5Group` (:attr:`itemtype` *group*)
-            - :class:`silx.io.spech5.SpecH5Dataset` (:attr:`itemtype` *dataset*)
-            - :class:`silx.io.spech5.SpecH5LinkToGroup` (:attr:`itemtype` *group*)
-            - :class:`silx.io.spech5.SpecH5LinkToDataset` (:attr:`itemtype` *dataset*)
+            - or a mimick version (in this case the class provide a property `h5py_class`)
         """
-
-        self.itemtype = self._getH5ClassName()
-        """Type of item: 'file', 'group', 'dataset', 'soft link' or
-        'external link'. For hard links, the type is the type of the target item."""
 
         LazyLoadableItem.__init__(self)
 
@@ -280,25 +275,12 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
         self._setDefaultTooltip()
 
-    def _getH5ClassName(self):
+    def _getH5pyClass(self):
         if hasattr(self.obj, "h5py_class"):
             class_ = self.obj.h5py_class
         else:
             class_ = self.obj.__class__
-
-        if issubclass(class_, h5py.File):
-            return "file"
-        elif issubclass(class_, h5py.SoftLink):
-            return "soft link"
-        elif issubclass(class_, h5py.ExternalLink):
-            return "external link"
-        # hard link type = target type (Group or Dataset)
-        elif issubclass(class_, h5py.Group):
-            return "group"
-        elif issubclass(class_, h5py.Dataset):
-            return "dataset"
-        else:
-            raise TypeError("Unsupported class '%s'" % class_)
+        return class_
 
     def hasChildren(self):
         """Override method to be able to generate chrildren on demand.
@@ -351,12 +333,14 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
-        return self.itemtype in ["group", "file"]
+        class_ = self._getH5pyClass()
+        return issubclass(class_, (h5py.File, h5py.Group))
 
     def _setDefaultTooltip(self):
         """Set the default tooltip"""
+        class_ = self._getH5pyClass()
         attrs = dict(self.obj.attrs)
-        if self.itemtype == "dataset":
+        if issubclass(class_, h5py.Dataset):
             if self.obj.shape == ():
                 attrs["shape"] = "scalar"
             else:
@@ -376,7 +360,8 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
     def _createTypeItem(self):
         """Create the item holding the type column"""
-        if self.itemtype == "dataset":
+        class_ = self._getH5pyClass()
+        if issubclass(class_, h5py.Dataset):
             if self.obj.dtype.type == numpy.string_:
                 text = "string"
             else:
@@ -391,11 +376,13 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
     def _createDescriptionItem(self):
         """Create the item holding the description column"""
-        text = self.itemtype.capitalize()
+        class_ = self._getH5pyClass()
+        text = class_.__name__.split(".")[-1]
         if "desc" in self.obj.attrs:
             text += ": " + self.obj.attrs["desc"]
-
-        return qt.QStandardItem(text)
+        item = qt.QStandardItem(text)
+        item.setToolTip("Class name: %s" % self.__class__)
+        return item
 
 
 class Hdf5TreeModel(qt.QStandardItemModel):
