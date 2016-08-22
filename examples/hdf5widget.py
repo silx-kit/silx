@@ -151,7 +151,7 @@ class Hdf5TreeView(qt.QWidget):
             return
 
         if "Clicked" in event:
-            button = self.treeview.lastMouse
+            button = self.treeview.getLastMouseButton()
             if button == qt.Qt.LeftButton:
                 mouse_button = "left"
             elif button == qt.Qt.RightButton:

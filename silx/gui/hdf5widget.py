@@ -561,7 +561,7 @@ class Hdf5TreeView(qt.QTreeView):
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
 
         self.__autoResizeColumns = False
-        self.lastMouse = None
+        self.__lastMouseButton = qt.Qt.NoButton
 
     def setAutoResizeColumns(self, autoResizeColumns):
         """Enable/disable  auto-resize of columns headers when
@@ -607,10 +607,17 @@ class Hdf5TreeView(qt.QTreeView):
         in :attr:`lastMouse`. Make sure itemClicked signal
         is emitted.
         """
-        self.lastMouse = event.button()
+        self.__lastMouseButton = event.button()
         super(Hdf5TreeView, self).mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
                 qindex = self.indexAt(event.pos())
                 self.clicked.emit(qindex)
+
+    def getLastMouseButton(self):
+        """Returns the last mouse button clicked"""
+        return self.__lastMouseButton
+
+    lastMouseButton = qt.pyqtProperty(qt.Qt.MouseButton, getLastMouseButton)
+    """Property to reach last mouse button clicked on this widget."""
