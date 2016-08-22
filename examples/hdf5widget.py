@@ -36,6 +36,7 @@ import numpy
 import logging
 from silx.gui import qt
 from silx.gui import hdf5widget
+import pprint
 
 
 class Hdf5TreeView(qt.QWidget):
@@ -179,13 +180,24 @@ def main(filenames):
     """
     app = qt.QApplication([])
 
-    view = Hdf5TreeView(files_=filenames)
+    window = qt.QMainWindow()
+    window.setWindowTitle("Silx HDF5 widget example")
+    tree = Hdf5TreeView(files_=filenames)
+    text = qt.QTextEdit()
 
-    def my_slot(ddict):
-        print(ddict)
+    spliter = qt.QSplitter()
+    spliter.addWidget(tree)
+    spliter.addWidget(text)
+    spliter.setStretchFactor(1, 1)
+    window.setCentralWidget(spliter)
 
-    view.sigHdf5TreeView.connect(my_slot)
-    view.show()
+    def display_event(event):
+        pp = pprint.PrettyPrinter(indent=4, depth=4)
+        readable_event = pp.pformat(event)
+        text.setText(readable_event)
+
+    tree.sigHdf5TreeView.connect(display_event)
+    window.show()
     sys.exit(app.exec_())
 
 
