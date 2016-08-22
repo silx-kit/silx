@@ -22,6 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+from fabio.eigerimage import h5py
 
 """Qt Hdf5 widget examples
 
@@ -163,16 +164,18 @@ class Hdf5TreeView(qt.QWidget):
         else:
             mouse_button = None
 
+        h5py_obj = item.obj
+
         ddict = {
             'event': event,
-            'filename': item.filename,
-            'basename': item.basename,
-            'hdf5name': item.hdf5name,
+            'filename': h5py_obj.file.filename,
+            'basename': h5py_obj.name.split("/")[-1],
+            'hdf5name': h5py_obj.name,
             'mouse': mouse_button,
-            'obj': item.obj,
-            'dtype': getattr(item.obj, "dtype", None),
-            'shape': getattr(item.obj, "shape", None),
-            'attrs': getattr(item.obj, "attrs", None)
+            'obj': h5py_obj,
+            'dtype': getattr(h5py_obj, "dtype", None),
+            'shape': getattr(h5py_obj, "shape", None),
+            'attrs': getattr(h5py_obj, "attrs", None)
         }
 
         # FIXME: Maybe emit only {event, obj}

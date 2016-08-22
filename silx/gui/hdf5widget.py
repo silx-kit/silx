@@ -251,9 +251,6 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
     def __init__(self, text, obj):
         super(Hdf5Item, self).__init__(text)
 
-        self.basename = text
-        """Name of the item: base filename, group name, or dataset name"""
-
         self.obj = obj
         """Pointer to data instance. Data can be an instance of one of
         the following classes:
@@ -273,9 +270,6 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
         self.itemtype = self._getH5ClassName()
         """Type of item: 'file', 'group', 'dataset', 'soft link' or
         'external link'. For hard links, the type is the type of the target item."""
-
-        self.hdf5name = self.obj.name
-        """Name of group or dataset within the HDF5 file."""
 
         LazyLoadableItem.__init__(self)
 
@@ -402,39 +396,6 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
             text += ": " + self.obj.attrs["desc"]
 
         return qt.QStandardItem(text)
-
-    @property
-    def filename(self):
-        """Path to parent file in the filesystem"""
-        # filename made a property rather than an attribute because
-        # we don't know self.parent() in __init__.
-        return self.getParentFile().filename
-
-    def getParentFile(self):
-        """Return reference to parent file handle (:class:`h5py.File` or
-        :class:`silx.io.spech5.SpecH5` object), which is stored
-        as attribute ``obj`` of the root level item with
-        ``itemtype == "file"``
-
-        You should only call this method if this :class:`Hdf5Item` is part
-        of a valid :class:`Hdf5TreeModel` with a file item a the root level.
-        """
-        if self.itemtype == "file":
-            return self.obj
-
-        parent = self.parent()
-
-        errmsg = "Cannot find parent of Hdf5Item %s"
-        if parent is None:
-            raise AttributeError(errmsg % self.basename)
-
-        while parent.itemtype != "file":
-            basename = parent.basename[:]
-            parent = parent.parent()
-            if parent is None:
-                raise AttributeError(errmsg % basename)
-
-        return parent.obj
 
 
 class Hdf5TreeModel(qt.QStandardItemModel):
