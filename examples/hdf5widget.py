@@ -98,7 +98,8 @@ class Hdf5TreeView(qt.QWidget):
         panel.setLayout(layout)
 
         autosize = qt.QCheckBox("Auto-size headers", panel)
-        autosize.toggled.connect(lambda: self.treeview.setAutoResizeColumns(autosize.isChecked()))
+        autosize.setChecked(self.treeview.header().hasAutoResizeColumns())
+        autosize.toggled.connect(lambda: self.treeview.header().setAutoResizeColumns(autosize.isChecked()))
         layout.addWidget(autosize)
 
         return panel

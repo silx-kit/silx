@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/08/2016"
+__date__ = "23/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -546,54 +546,129 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             raise IOError("File '%s' can't be read as HDF5 or SpecFile" % filename)
 
 
+class Hdf5HeaderView(qt.QHeaderView):
+    """
+    Default HDF5 header
+
+    Manage auto-resize and context menu to display/hide columns
+    """
+
+    def __init__(self, orientation, parent=None):
+        """\
+        Constructor
+
+        :param orientation qt.Qt.Orientation: Orientation of the header
+        :param parent qt.QWidget: Parent of the widget
+        """
+        super(Hdf5HeaderView, self).__init__(orientation, parent)
+        self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.__createContextMenu)
+
+        # default initialization done by QTreeView for it's own header
+        self.setClickable(True)
+        self.setMovable(True)
+        self.setDefaultAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
+        self.setStretchLastSection(True)
+
+        self.__auto_resize = True
+
+    def setModel(self, model):
+        """Override model to configure view when a model is expected
+
+        `qt.QHeaderView.setResizeMode` expect already existing columns
+        to work.
+
+        :param model qt.QAbstractItemModel: A model
+        """
+        super(Hdf5HeaderView, self).setModel(model)
+        self.__updateAutoResize()
+
+    def __updateAutoResize(self):
+        """Update the view according to the state of the auto-resize"""
+        if self.__auto_resize:
+            self.setResizeMode(0, qt.QHeaderView.ResizeToContents)
+            self.setResizeMode(1, qt.QHeaderView.ResizeToContents)
+            self.setResizeMode(2, qt.QHeaderView.ResizeToContents)
+            self.setResizeMode(3, qt.QHeaderView.Interactive)
+            self.setResizeMode(4, qt.QHeaderView.Interactive)
+            self.setResizeMode(5, qt.QHeaderView.ResizeToContents)
+        else:
+            self.setResizeMode(0, qt.QHeaderView.Interactive)
+            self.setResizeMode(1, qt.QHeaderView.Interactive)
+            self.setResizeMode(2, qt.QHeaderView.Interactive)
+            self.setResizeMode(3, qt.QHeaderView.Interactive)
+            self.setResizeMode(4, qt.QHeaderView.Interactive)
+            self.setResizeMode(5, qt.QHeaderView.Interactive)
+
+    def setAutoResizeColumns(self, autoResize):
+        """Enable/disable auto-resize. When auto-resized, the header take care
+        of the content of the column to set fixed size of some of them, or to
+        auto fix the size according to the content.
+
+        :param autoResize bool: Enable/disable auto-resize
+        """
+        if self.__auto_resize == autoResize:
+            return
+        self.__auto_resize = autoResize
+        self.__updateAutoResize()
+
+    def hasAutoResizeColumns(self):
+        """Is auto-resize enabled.
+
+        :rtype: bool
+        """
+        return self.__auto_resize
+
+    autoResizeColumns = qt.pyqtProperty(bool, hasAutoResizeColumns, setAutoResizeColumns)
+    """Property to enable/disable auto-resize."""
+
+    def __createContextMenu(self, pos):
+        """Callback to create and display a context menu
+
+        :param pos qt.QPoint: Requested position for the context menu
+        """
+        model = self.model()
+        if model.columnCount() > 1:
+            menu = qt.QMenu(self)
+            menu.setTitle("Display/hide columns")
+
+            action = qt.QAction("Display/hide column", self)
+            action.setEnabled(False)
+            menu.addAction(action)
+
+            for column in range(model.columnCount()):
+                if column == 0:
+                    # skip the main column
+                    continue
+                text = model.headerData(column, qt.Qt.Horizontal)
+                action = qt.QAction("%s displayed" % text, self)
+                action.setCheckable(True)
+                action.setChecked(not self.isSectionHidden(column))
+                gen_hide_section_event = lambda column: lambda checked: self.setSectionHidden(column, not checked)
+                action.toggled.connect(gen_hide_section_event(column))
+                menu.addAction(action)
+
+            menu.popup(self.viewport().mapToGlobal(pos))
+
+
 class Hdf5TreeView(qt.QTreeView):
     """TreeView which allow to browse HDF5 file structure.
 
     It provids columns width auto-resizing and additional
     signals.
 
-    The default model is `Hdf5TreeModel`.
+    The default model is `Hdf5TreeModel` and the default header is
+    `Hdf5HeaderView`.
     """
     enterKeyPressed = qt.pyqtSignal()
 
     def __init__(self, parent=None):
         qt.QTreeView.__init__(self, parent)
         self.setModel(Hdf5TreeModel())
+        self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
 
-        self.__autoResizeColumns = False
         self.__lastMouseButton = qt.Qt.NoButton
-
-    def setAutoResizeColumns(self, autoResizeColumns):
-        """Enable/disable  auto-resize of columns headers when
-        expanding/collapsing items.
-
-        :param autoResizeColumns bool: True to enable the behaviour.
-        """
-        if self.__autoResizeColumns == autoResizeColumns:
-            return
-        self.__autoResizeColumns = autoResizeColumns
-        if self.__autoResizeColumns:
-            self.expanded.connect(self.resizeAllColumns)
-            self.collapsed.connect(self.resizeAllColumns)
-        else:
-            self.expanded.disconnect(self.resizeAllColumns)
-            self.collapsed.disconnect(self.resizeAllColumns)
-
-    def getAutoResizeColumns(self):
-        """Returns true if the auto-resize behaviour is enabled.
-
-        :rtype: bool
-        """
-        return self.__autoResizeColumns
-
-    autoResizeColumns = qt.pyqtProperty(bool, getAutoResizeColumns, setAutoResizeColumns)
-    """Property to enable/disable the auto-resize behaviour when user expend
-    of collapse items."""
-
-    def resizeAllColumns(self):
-        for i in range(0, self.model().columnCount()):
-            self.resizeColumnToContents(i)
 
     def keyPressEvent(self, event):
         """Overload QTreeView.keyPressEvent to emit an enterKeyPressed
