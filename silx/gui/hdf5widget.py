@@ -667,6 +667,8 @@ class Hdf5TreeView(qt.QTreeView):
         self.setModel(Hdf5TreeModel())
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        # optimise the rendering
+        self.setUniformRowHeights(True)
 
         self.__lastMouseButton = qt.Qt.NoButton
 
