@@ -38,141 +38,110 @@ import logging
 from silx.gui import qt
 from silx.gui import hdf5widget
 import pprint
+import html
 
 
-class Hdf5TreeView(qt.QWidget):
+class Hdf5TreeViewExample(qt.QMainWindow):
     """
-    This widget provides a tree view of one or several HDF5 files,
-    with two columns *Name* and *Description*.
+    This window show an example of use of a Hdf5TreeView.
 
-    When hovering the mouse cursor over the name column, you get a tooltip
-    with a complete name.
-
-    The columns automatically resize themselves to the needed width when
-    expanding or collapsing a group.
+    The tree is initialized with a list of filenames. A panel allow to play
+    with internal property configuration of the widget, and a text screen
+    allow to display events.
     """
-    sigHdf5TreeView = qt.pyqtSignal(object)
-    """Signal emitted when clicking or pressing the ``Enter`` key. It
-    broadcasts a dictionary of information about the event and the
-    selected item.
 
-    Dictionary keys:
-
-    - ``event``: "itemClicked", "itemDoubleClicked",
-            or "itemEnterKeyPressed"
-    - ``filename``: name of HDF5 or Spec file
-    - ``name``: path within the HDF5 structure
-    - ``dtype``: dataset dtype, None if item is a group
-    - ``shape``: dataset shape, None if item is a group
-    - ``attr``: attributes dictionary of element
-    """
-    def __init__(self, parent=None, filenames=None):
+    def __init__(self, filenames=None):
         """
         :param files_: List of HDF5 or Spec files (pathes or
             :class:`silx.io.spech5.SpecH5` or :class:`h5py.File`
             instances)
         """
-        qt.QWidget.__init__(self, parent)
-        layout = qt.QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        qt.QMainWindow.__init__(self)
+        self.setWindowTitle("Silx HDF5 widget example")
 
-        self.treeview = hdf5widget.Hdf5TreeView()
-        """Tree view widget displaying :attr:`model`"""
-        layout.addWidget(self.treeview)
-        layout.addWidget(self.createConfigurationPanel(self))
+        self.__treeview = hdf5widget.Hdf5TreeView()
+        """Silx HDF5 TreeView"""
+        self.__text = qt.QTextEdit(self)
+        """Widget displaying information"""
+
+        tree_panel = qt.QWidget(self)
+        layout = qt.QVBoxLayout()
+        layout.addWidget(self.__treeview)
+        layout.addWidget(self.createTreeViewConfigurationPanel(self, self.__treeview))
+        tree_panel.setLayout(layout)
+
+        spliter = qt.QSplitter()
+        spliter.addWidget(tree_panel)
+        spliter.addWidget(self.__text)
+        spliter.setStretchFactor(1, 1)
+
+        self.setCentralWidget(spliter)
 
         # append all files to the tree
         for file_name in filenames:
-            self.treeview.model().appendFile(file_name)
+            self.__treeview.model().appendFile(file_name)
 
-        # connect events to handler methods
-        self.treeview.clicked.connect(self.itemClicked)
-        self.treeview.doubleClicked.connect(self.itemDoubleClicked)
-        self.treeview.enterKeyPressed.connect(self.itemEnterKeyPressed)
+        self.__treeview.activated.connect(lambda index: self.displayEvent("activated", index))
+        self.__treeview.clicked.connect(lambda index: self.displayEvent("clicked", index))
+        self.__treeview.doubleClicked.connect(lambda index: self.displayEvent("doubleClicked", index))
+        self.__treeview.entered.connect(lambda index: self.displayEvent("entered", index))
+        self.__treeview.pressed.connect(lambda index: self.displayEvent("pressed", index))
 
-    def createConfigurationPanel(self, tree):
+    def displayEvent(self, eventName, index):
+
+        def formatKey(name, value):
+            name, value = html.escape(str(name)), html.escape(str(value))
+            return "<li><b>%s</b>: %s</li>" % (name, value)
+
+        text = "<html>"
+        text += "<h1>Event</h1>"
+        text += "<ul>"
+        text += formatKey("name", eventName)
+        text += formatKey("index", type(index))
+        text += "</ul>"
+
+        text += "<h1>Selected HDF5 objects</h1>"
+
+        for h5py_obj in self.__treeview.selectedH5pyObjects():
+            text += "<h2>HDF5 object</h2>"
+            text += "<ul>"
+            text += formatKey("filename", h5py_obj.file.filename)
+            text += formatKey("basename", h5py_obj.name.split("/")[-1])
+            text += formatKey("hdf5name", h5py_obj.name)
+            text += formatKey("obj", type(h5py_obj))
+            text += formatKey("dtype", getattr(h5py_obj, "dtype", None))
+            text += formatKey("shape", getattr(h5py_obj, "shape", None))
+            text += formatKey("attrs", getattr(h5py_obj, "attrs", None))
+            if hasattr(h5py_obj, "attrs"):
+                text += "<ul>"
+                for key, value in h5py_obj.attrs.items():
+                    text += formatKey(key, value)
+                text += "</ul>"
+            text += "</ul>"
+
+        text += "</html>"
+        self.__text.setHtml(text)
+
+    def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
-        panel = qt.QGroupBox("Tree options", self)
+        panel = qt.QGroupBox("Tree options", parent)
         layout = qt.QVBoxLayout()
         panel.setLayout(layout)
 
         autosize = qt.QCheckBox("Auto-size headers", panel)
-        autosize.setChecked(self.treeview.header().hasAutoResizeColumns())
-        autosize.toggled.connect(lambda: self.treeview.header().setAutoResizeColumns(autosize.isChecked()))
+        autosize.setChecked(treeview.header().hasAutoResizeColumns())
+        autosize.toggled.connect(lambda: treeview.header().setAutoResizeColumns(autosize.isChecked()))
         layout.addWidget(autosize)
 
+        multiselection = qt.QCheckBox("Multi-selection", panel)
+        multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
+        switch_selection = lambda: treeview.setSelectionMode(
+                qt.QAbstractItemView.MultiSelection if multiselection.isChecked()
+                else qt.QAbstractItemView.SingleSelection)
+        multiselection.toggled.connect(switch_selection)
+        layout.addWidget(multiselection)
+
         return panel
-
-    def itemClicked(self, modelIndex):
-        """
-        :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
-                           clicked item.
-        :type modelIndex: :class:`qt.QModelIndex`
-        """
-        event = "itemClicked"
-        self.emitSignal(event, modelIndex)
-
-    def itemDoubleClicked(self, modelIndex):
-        """
-        :param modelIndex: Index within the :class:`Hdf5TreeModel` of the
-                           clicked item.
-        :type modelIndex: :class:`qt.QModelIndex`
-        """
-        event = "itemDoubleClicked"
-        self.emitSignal(event, modelIndex)
-
-    def itemEnterKeyPressed(self):
-        """
-        """
-        event = "itemEnterKeyPressed"
-        modelIndex = self.treeview.selectedIndexes()[0]
-        self.emitSignal(event, modelIndex)
-
-    def emitSignal(self, event, qindex):
-        """
-        Emits a ``sigHdf5TreeView`` signal to broadcast a dictionary of
-        information about the selected row in the tree view.
-
-        :param event: Type of event: "itemClicked", "itemDoubleClicked",
-            or "itemEnterKeyPressed"
-        :type event: string
-        :param qindex: Index within the :class:`Hdf5TreeModel` of the
-                           selected item.
-        :type qindex: :class:`qt.QModelIndex`
-
-        """
-        # when selecting a row, we are interested in the first column
-        # item, which has the pointer to the group/dataset
-        h5py_obj = self.treeview.selectedH5pyObjects()[0]
-
-        if "Clicked" in event:
-            button = self.treeview.getLastMouseButton()
-            if button == qt.Qt.LeftButton:
-                mouse_button = "left"
-            elif button == qt.Qt.RightButton:
-                mouse_button = "right"
-            elif button == qt.Qt.MidButton:
-                mouse_button = "middle"
-            else:
-                mouse_button = "????"
-        else:
-            mouse_button = None
-
-        ddict = {
-            'event': event,
-            'filename': h5py_obj.file.filename,
-            'basename': h5py_obj.name.split("/")[-1],
-            'hdf5name': h5py_obj.name,
-            'mouse': mouse_button,
-            'obj': h5py_obj,
-            'dtype': getattr(h5py_obj, "dtype", None),
-            'shape': getattr(h5py_obj, "shape", None),
-            'attrs': getattr(h5py_obj, "attrs", None)
-        }
-
-        # FIXME: Maybe emit only {event, obj}
-        self.sigHdf5TreeView.emit(ddict)
 
 
 def main(filenames):
@@ -180,24 +149,7 @@ def main(filenames):
     :param filenames: list of file paths
     """
     app = qt.QApplication([])
-
-    window = qt.QMainWindow()
-    window.setWindowTitle("Silx HDF5 widget example")
-    tree = Hdf5TreeView(filenames=filenames)
-    text = qt.QTextEdit()
-
-    spliter = qt.QSplitter()
-    spliter.addWidget(tree)
-    spliter.addWidget(text)
-    spliter.setStretchFactor(1, 1)
-    window.setCentralWidget(spliter)
-
-    def display_event(event):
-        pp = pprint.PrettyPrinter(indent=4, depth=4)
-        readable_event = pp.pformat(event)
-        text.setText(readable_event)
-
-    tree.sigHdf5TreeView.connect(display_event)
+    window = Hdf5TreeViewExample(filenames)
     window.show()
     sys.exit(app.exec_())
 
