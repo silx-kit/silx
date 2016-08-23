@@ -225,8 +225,7 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
                 name = obj.__class__.__name__.split(".")[-1].capitalize()
                 message = "%s broken" % (name)
         self._item_description = qt.QStandardItem(message)
-        self._item_type = qt.QStandardItem("")
-        self.setExtraColumns(self._item_description, self._item_type)
+        self.setExtraColumns(None, None, None, self._item_description, None)
         self._message = message
 
         self._setDefaultToolTip()
@@ -270,8 +269,16 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
         # store owned items
         self._item_type = self._createTypeItem()
+        self._item_shape = self._createShapeItem()
+        self._item_value = self._createValueItem()
         self._item_description = self._createDescriptionItem()
-        self.setExtraColumns(self._item_description, self._item_type)
+        self._item_node = self._createNodeItem()
+        self.setExtraColumns(
+            self._item_type,
+            self._item_shape,
+            self._item_value,
+            self._item_description,
+            self._item_node)
 
         self._setDefaultTooltip()
 
@@ -366,20 +373,59 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
                 text = "string"
             else:
                 text = str(self.obj.dtype)
-
-            for axes in self.obj.shape:
-                text = u"%s \u00D7 %s" % (text, axes)
         else:
             text = ""
 
         return qt.QStandardItem(text)
 
+    def _createShapeItem(self):
+        """Create the item holding the type column"""
+        class_ = self._getH5pyClass()
+        if not issubclass(class_, h5py.Dataset):
+            return None
+
+        shape = [str(i) for i in self.obj.shape]
+        text = u" \u00D7 ".join(shape)
+        return qt.QStandardItem(text)
+
+    def _createValueItem(self):
+        """Create the item holding the type column"""
+        class_ = self._getH5pyClass()
+        if not issubclass(class_, h5py.Dataset):
+            return None
+
+        numpy_object = self.obj.value
+
+        if self.obj.dtype.type == numpy.object_:
+            text = str(numpy_object)
+        elif self.obj.dtype.type == numpy.string_:
+            text = str(numpy_object)
+        else:
+            size = 1
+            for dim in numpy_object.shape:
+                size = size * dim
+
+            if size > 5:
+                text = "..."
+            else:
+                text = str(numpy_object)
+
+        return qt.QStandardItem(text)
+
     def _createDescriptionItem(self):
+        """Create the item holding the description column"""
+        if "desc" in self.obj.attrs:
+            text = self.obj.attrs["desc"]
+        else:
+            return None
+        item = qt.QStandardItem(text)
+        item.setToolTip("Description:%s" % text)
+        return item
+
+    def _createNodeItem(self):
         """Create the item holding the description column"""
         class_ = self._getH5pyClass()
         text = class_.__name__.split(".")[-1]
-        if "desc" in self.obj.attrs:
-            text += ": " + self.obj.attrs["desc"]
         item = qt.QStandardItem(text)
         item.setToolTip("Class name: %s" % self.__class__)
         return item
@@ -400,7 +446,14 @@ class Hdf5TreeModel(qt.QStandardItemModel):
             or a  :class:`spech5.SpecH5` object, or list of file pathes.
         """
         super(Hdf5TreeModel, self).__init__()
-        self.setHorizontalHeaderLabels(['Name', 'Description', 'Type'])
+        self.setHorizontalHeaderLabels([
+            'Name',
+            'Type',
+            'Shape',
+            'Value',
+            'Description',
+            'Node',
+        ])
 
     def itemFromIndex(self, index):
         """
