@@ -144,13 +144,7 @@ class Hdf5TreeView(qt.QWidget):
         """
         # when selecting a row, we are interested in the first column
         # item, which has the pointer to the group/dataset
-        this_row = qindex.row()
-        if qindex.column() != 0:
-            qindex = qindex.sibling(this_row, 0)
-
-        item = self.treeview.model().itemFromIndex(qindex)
-        if not isinstance(item, hdf5widget.Hdf5Item):
-            return
+        h5py_obj = self.treeview.selectedH5pyObjects()[0]
 
         if "Clicked" in event:
             button = self.treeview.getLastMouseButton()
@@ -164,8 +158,6 @@ class Hdf5TreeView(qt.QWidget):
                 mouse_button = "????"
         else:
             mouse_button = None
-
-        h5py_obj = item.obj
 
         ddict = {
             'event': event,

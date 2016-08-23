@@ -670,6 +670,23 @@ class Hdf5TreeView(qt.QTreeView):
 
         self.__lastMouseButton = qt.Qt.NoButton
 
+    def selectedH5pyObjects(self, ignoreBrokenLinks=True):
+        """Returns selected h5py objects like `h5py.File`, `h5py.Group`,
+        `h5py.Dataset` or mimicked objects.
+        :param ignoreBrokenLinks bool: Returns objects which are not not
+            broken links.
+        """
+        result = []
+        for index in self.selectedIndexes():
+            item = self.model().itemFromIndex(index)
+            if item is None:
+                continue
+            if isinstance(item, Hdf5Item):
+                result.append(item.obj)
+            if not ignoreBrokenLinks and isinstance(item, Hdf5BrokenLinkItem):
+                result.append(item.obj)
+        return result
+
     def keyPressEvent(self, event):
         """Overload QTreeView.keyPressEvent to emit an enterKeyPressed
         signal when users press enter.
