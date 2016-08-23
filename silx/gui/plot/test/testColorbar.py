@@ -22,44 +22,48 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for Colorbar"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "23/08/2016"
 
 
+import doctest
 import unittest
 
-from .testColorbar import suite as testColorbarSuite
-from .testColormapDialog import suite as testColormapDialogSuite
-from .testColors import suite as testColorsSuite
-from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
-from .testInteraction import suite as testInteractionSuite
-from .testLegendSelector import suite as testLegendSelectorSuite
-from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
-from .testPlotInteraction import suite as testPlotInteractionSuite
-from .testPlotTools import suite as testPlotToolsSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlotWindow import suite as testPlotWindowSuite
-from .testPlot import suite as testPlotSuite
-from .testProfile import suite as testProfileSuite
-from .testStackView import suite as testStackViewSuite
+from silx.gui import qt
+from silx.gui.plot import Colorbar
+
+
+# Makes sure a QApplication exists
+_qapp = qt.QApplication.instance() or qt.QApplication([])
+
+
+def _tearDownQt(docTest):
+    """Tear down to use for test from docstring.
+
+    Checks that dialog widget is displayed
+    """
+    # Needed twice to display both windows
+    _qapp.processEvents()
+    _qapp.processEvents()
+    for widgetName in ('plot', 'colorbar'):
+        widget = docTest.globs[widgetName]
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.close()
+        del widget
+
+
+colorbarDocTestSuite = doctest.DocTestSuite(Colorbar, tearDown=_tearDownQt)
+"""Test suite of tests from the module's docstrings."""
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testColorsSuite(),
-         testColorbarSuite(),
-         testColormapDialogSuite(),
-         testCurvesROIWidgetSuite(),
-         testInteractionSuite(),
-         testLegendSelectorSuite(),
-         testMaskToolsWidgetSuite(),
-         testPlotInteractionSuite(),
-         testPlotSuite(),
-         testPlotToolsSuite(),
-         testPlotWidgetSuite(),
-         testPlotWindowSuite(),
-         testProfileSuite(),
-         testStackViewSuite()])
+    test_suite.addTest(colorbarDocTestSuite)
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
