@@ -660,8 +660,6 @@ class Hdf5TreeView(qt.QTreeView):
     The default model is `Hdf5TreeModel` and the default header is
     `Hdf5HeaderView`.
     """
-    enterKeyPressed = qt.pyqtSignal()
-
     def __init__(self, parent=None):
         qt.QTreeView.__init__(self, parent)
         self.setModel(Hdf5TreeModel())
@@ -669,8 +667,6 @@ class Hdf5TreeView(qt.QTreeView):
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         # optimise the rendering
         self.setUniformRowHeights(True)
-
-        self.__lastMouseButton = qt.Qt.NoButton
 
     def selectedH5pyObjects(self, ignoreBrokenLinks=True):
         """Returns selected h5py objects like `h5py.File`, `h5py.Group`,
@@ -689,30 +685,13 @@ class Hdf5TreeView(qt.QTreeView):
                 result.append(item.obj)
         return result
 
-    def keyPressEvent(self, event):
-        """Overload QTreeView.keyPressEvent to emit an enterKeyPressed
-        signal when users press enter.
-        """
-        if event.key() in [qt.Qt.Key_Enter, qt.Qt.Key_Return]:
-            self.enterKeyPressed.emit()
-        qt.QTreeView.keyPressEvent(self, event)
-
     def mousePressEvent(self, event):
-        """On mouse press events, remember which button was pressed
-        in :attr:`lastMouse`. Make sure itemClicked signal
-        is emitted.
+        """Override mousePressEvent to provide a consistante compatible API
+        between Qt4 and Qt5
         """
-        self.__lastMouseButton = event.button()
         super(Hdf5TreeView, self).mousePressEvent(event)
         if event.button() != qt.Qt.LeftButton:
             # Qt5 only sends itemClicked on left button mouse click
             if qt.qVersion() > "5":
                 qindex = self.indexAt(event.pos())
                 self.clicked.emit(qindex)
-
-    def getLastMouseButton(self):
-        """Returns the last mouse button clicked"""
-        return self.__lastMouseButton
-
-    lastMouseButton = qt.pyqtProperty(qt.Qt.MouseButton, getLastMouseButton)
-    """Property to reach last mouse button clicked on this widget."""
