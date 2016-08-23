@@ -1,0 +1,196 @@
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""A widget displaying a colorbar linked to a :class:`PlotWidget`.
+
+It is a wrapper over matplotlib :class:`ColorbarBase`.
+
+It uses a description of colormaps as dict compatible with :class:`Plot`.
+
+To run the following sample code, a QApplication must be initialized.
+
+>>> import numpy
+>>> from silx.gui.plot import plot2D
+>>> from silx.gui.plot.Colorbar import ColorbarWidget
+
+>>> image = numpy.arange(100).reshape(10, 10)
+>>> plot = plot2D(image)
+
+>>> colorbar = ColorbarWidget(plot)
+>>> colorbar.setLabel('Colormap')
+>>> colorbar.show()
+"""
+
+__authors__ = ["T. Vincent"]
+__license__ = "MIT"
+__date__ = "23/08/2016"
+
+
+import logging
+import numpy
+
+
+from .. import qt
+
+# Order of import is important for matplotlib initialisation
+from .BackendMatplotlib import FigureCanvasQTAgg
+import matplotlib
+
+from .Colors import getMPLColormap
+
+_logger = logging.getLogger(__name__)
+
+
+# TODO:
+# - Add a signal for plot default colormap changed and register to it
+# - Add a button to edit the colormap
+# - Move init matplotlib somewhere in common with BackendMatplotlib
+# - Handle width and ticks labels
+# - Store data min and max somewhere in common with plot instead of recomputing
+# - Doc + tests
+# - Add get/setOrientation?
+
+class ColorbarWidget(qt.QWidget):
+    """Colorbar widget displaying a colormap
+
+    This widget is using matplotlib.
+
+    :param plot: PlotWidget the colorbar is attached to (optional)
+    :param parent: See :class:`QWidget`
+    """
+
+    def __init__(self, plot=None, parent=None):
+        self.colorbar = None  # matplotlib colorbar
+        self._colormap = None  # PlotWidget compatible colormap
+
+        self._label = ''  # Text label to display
+
+        self._fig = matplotlib.figure.Figure()
+        self._fig.set_facecolor("w")
+
+        self._canvas = FigureCanvasQTAgg(self._fig)
+
+        super(ColorbarWidget, self).__init__(parent)
+        self.setFixedWidth(200)
+        layout = qt.QVBoxLayout()
+        layout.addWidget(self._canvas)
+        self.setLayout(layout)
+
+        self._plot = plot
+        if self._plot is not None:
+            self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
+            self._activeImageChanged(
+                None, self._plot.getActiveImage(just_legend=True))
+
+    def getColormap(self):
+        """Return the colormap displayed in the colorbar as a dict.
+
+        It returns None if no colormap is set.
+        See :class:`Plot` documentation for the description of the colormap
+        dict description.
+        """
+        return self._colormap.copy()
+
+    def setColormap(self, name, normalization='linear',
+                    vmin=0., vmax=1., colors=None):
+        """Set the colormap to display in the colorbar.
+
+        :param str name: The name of the colormap or None
+        :param str normalization: Normalization to use: 'linear' or 'log'
+        :param float vmin: The value to bind to the beginning of the colormap
+        :param float vmax: The value to bind to the end of the colormap
+        :param colors: Array of RGB(A) colors to use as colormap
+        :type colors: numpy.ndarray
+        """
+        if name is None and colors is None:
+            self._fig.clear()
+            self.colorbar = None
+            self._colormap = None
+            self._canvas.draw()
+            return
+
+        if normalization == 'linear':
+            norm = matplotlib.colors.Normalize(vmin=vmin, vmax=vmax)
+        elif normalization == 'log':
+            if vmin <= 0 or vmax <= 0:
+                _logger.warning(
+                    'Log colormap with bound <= 0: changing bounds.')
+                vmin, vmax = 1., 10.
+            norm = matplotlib.colors.LogNorm(vmin=vmin, vmax=vmax)
+        else:
+            raise ValueError('Wrong normalization %s' % normalization)
+
+        self._fig.clear()
+        ax = self._fig.add_axes((0.03, 0.05, 0.4, 0.9))
+        self.colorbar = matplotlib.colorbar.ColorbarBase(
+            ax, cmap=getMPLColormap(name), norm=norm, orientation='vertical')
+        self.colorbar.set_label(self._label)
+        self._canvas.draw()
+
+        self._colormap = {'name': name,
+                          'normalization': normalization,
+                          'autoscale': False,
+                          'vmin': vmin,
+                          'vmax': vmax,
+                          'colors': colors}
+
+    def getLabel(self):
+        """Return the label of the colorbar (str)"""
+        return self._label
+
+    def setLabel(self, label):
+        """Set the label displayed along the colorbar
+
+        :param str label: The label
+        """
+        self._label = str(label)
+        if self.colorbar is not None:
+            self.colorbar.set_label(self._label)
+            self._canvas.draw()
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle plot active curve changed"""
+        if legend is None:  # No active image, display default colormap
+            cmap = self._plot.getDefaultColormap()
+            if cmap['autoscale']:  # Makes sure range is OK
+                vmin, vmax = 1., 10.
+
+        else:
+            cmap = self._plot.getActiveImage()[4]['colormap']
+            if cmap['autoscale']:
+                image = self._plot.getActiveImage()[0]
+                if image.ndim == 2:  # Data set
+                    data = image[
+                        numpy.logical_and(image > 0, numpy.isfinite(image))]
+                    vmin, vmax = data.min(), data.max()
+                else:  # RGB(A) image
+                    vmin, vmax = 1., 10.
+            else:  # No autoscale
+                vmin, vmax = cmap['vmin'], cmap['vmax']
+
+        self.setColormap(name=cmap['name'],
+                         normalization=cmap['normalization'],
+                         vmin=vmin,
+                         vmax=vmax,
+                         colors=cmap.get('colors', None))

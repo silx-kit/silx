@@ -31,7 +31,6 @@ __date__ = "17/10/2016"
 
 import numpy
 import matplotlib
-from matplotlib.colors import LinearSegmentedColormap
 
 from . import MPLColormap
 
