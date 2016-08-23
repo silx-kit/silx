@@ -210,6 +210,7 @@ class Hdf5BrokenLinkItem(MultiColumnTreeItem):
         :param message str: Message to display as description
         """
         super(Hdf5BrokenLinkItem, self).__init__(text)
+        self.setEditable(False)
 
         style = qt.QApplication.style()
         icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
@@ -253,6 +254,7 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
         :param obj object: Pointer to h5py data. See the `obj` attribute.
         """
         super(Hdf5Item, self).__init__(text)
+        self.setEditable(False)
 
         self.obj = obj
         """Pointer to h5py data. Can be one of the following classes:
