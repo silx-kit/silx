@@ -36,6 +36,7 @@ import numpy
 import logging
 from . import qt
 from . import icons
+from ..utils import weakref as silxweakref
 
 try:
     import h5py
@@ -1013,8 +1014,19 @@ class Hdf5TreeView(qt.QTreeView):
 
     The default model is `Hdf5TreeModel` and the default header is
     `Hdf5HeaderView`.
+
+    Context menu is managed by the `setContextMenuPolicy` with the value
+    CustomContextMenu. This policy must not be changed, else context menus
+    will not work anymore. You can use `addContextMenuCallback` and
+    `removeContextMenuCallback` to add your custum actions according to the
+    selected objects.
     """
     def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param parent qt.QWidget: The parent widget
+        """
         qt.QTreeView.__init__(self, parent)
         self.setModel(Hdf5TreeModel())
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
@@ -1026,6 +1038,56 @@ class Hdf5TreeView(qt.QTreeView):
         self.setDragEnabled(True)
         self.setDragDropMode(qt.QAbstractItemView.DragDrop)
         self.showDropIndicator()
+
+        self.__context_menu_callbacks = silxweakref.WeakList()
+        self.setContextMenuPolicy(qt.Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._createContextMenu)
+
+    def __removeContextMenuProxies(self, ref):
+        """Callback to remove dead proxy from the list"""
+        self.__context_menu_callbacks.remove(ref)
+
+    def _createContextMenu(self, pos):
+        """
+        Create context menu.
+
+        :param pos qt.QPoint: Position of the context menu
+        """
+        selected_objects = self.selectedH5pyObjects(ignoreBrokenLinks=True)
+        actions = []
+
+        for callback in self.__context_menu_callbacks:
+            try:
+                new_actions = callback(self, selected_objects)
+                actions.extend(new_actions)
+            except KeyboardInterrupt:
+                raise
+            except:
+                # make sure no user callback crash the application
+                _logger.error("Error while calling callback", exc_info=True)
+                pass
+
+        if len(actions) > 0:
+            menu = qt.QMenu(self)
+            for action in actions:
+                menu.addAction(action)
+            menu.popup(self.viewport().mapToGlobal(pos))
+
+    def addContextMenuCallback(self, callback):
+        """Register a context menu callback.
+
+        The callback will be called when a context menu is requested with the
+        treeview and the list of selected h5py objects in parameters. The
+        callback must return a list of `qt.QAction` object.
+
+        Callbacks are stored as saferef. The object must store a reference by
+        itself.
+        """
+        self.__context_menu_callbacks.append(callback)
+
+    def removeContextMenuCallback(self, callback):
+        """Unregister a context menu callback"""
+        self.__context_menu_callbacks.remove(callback)
 
     def dragEnterEvent(self, event):
         if self.model().isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):

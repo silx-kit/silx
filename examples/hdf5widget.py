@@ -233,6 +233,13 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__treeview.entered.connect(lambda index: self.displayEvent("entered", index))
         self.__treeview.pressed.connect(lambda index: self.displayEvent("pressed", index))
 
+        self.__treeview.addContextMenuCallback(self.customContextMenu)
+        # lamba function will never be called cause we store it as weakref
+        self.__treeview.addContextMenuCallback(lambda: None)
+        # you have to store it first
+        self.__store_lambda = lambda x, y: self.anotherCustomContextMenu(x, y)
+        self.__treeview.addContextMenuCallback(self.__store_lambda)
+
     def displayEvent(self, eventName, index):
 
         def formatKey(name, value):
@@ -283,6 +290,28 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             self.__treeview.model().insertFileAsync(worker.filename)
         else:
             self.__treeview.model().insertFile(worker.filename)
+
+    def customContextMenu(self, treeview, selectedObjects):
+        hasDataset = False
+        for object in selectedObjects:
+            if hasattr(object, "value"):
+                hasDataset = True
+                break
+
+        if hasDataset:
+            action = qt.QAction("Do something on the datasets", treeview)
+            return [action]
+        else:
+            return []
+
+    def anotherCustomContextMenu(self, treeview, selectedObjects):
+        actions = []
+        for object in selectedObjects:
+            if hasattr(object, "filename"):
+                filename = os.path.basename(object.filename)
+                action = qt.QAction("Do something on %s" % filename, treeview)
+                actions.append(action)
+        return actions
 
     def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
