@@ -199,9 +199,8 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip=
-                'Enable x-axis auto-scale when checked.\n'
-                'If unchecked, x-axis does not change when reseting zoom.',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -223,9 +222,8 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip=
-                'Enable y-axis auto-scale when checked.\n'
-                'If unchecked, y-axis does not change when reseting zoom.',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
