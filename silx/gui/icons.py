@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 
 from . import qt
@@ -44,12 +44,11 @@ def getQIcon(name):
     :return: Corresponding QIcon
     :raises: ValueError when name is not known
     """
-    try:
-        filename = resource_filename('gui/icons/%s.png' % name)
-    except ValueError:
+    qfile = getQFile(name)
+    if qfile.exists():
+        return qt.QIcon(qfile.fileName())
+    else:
         raise ValueError('Not an icon name: %s' % name)
-
-    return qt.QIcon(filename)
 
 
 def getQPixmap(name):
@@ -60,9 +59,20 @@ def getQPixmap(name):
     :return: Corresponding QPixmap
     :raises: ValueError when name is not known
     """
-    try:
-        filename = resource_filename('gui/icons/%s.png' % name)
-    except ValueError:
+    qfile = getQFile(name)
+    if qfile.exists():
+        return qt.QPixmap(qfile.fileName())
+    else:
         raise ValueError('Not an icon name: %s' % name)
 
-    return qt.QPixmap(filename)
+
+def getQFile(name):
+    """Create a QFile from its name.
+
+    :param str name: Name of the icon, in one of the defined icons
+                     in this module.
+    :return: Corresponding QFile
+    :rtype: qt.QFile
+    """
+    filename = resource_filename('gui/icons/%s.png' % name)
+    return qt.QFile(filename)

@@ -41,22 +41,16 @@ class TestIcons(testutils.TestCaseQt):
     def testExistingIcon(self):
         icon = icons.getQIcon("crop")
         self.assertIsNotNone(icon)
-        # No way to check existing/unexisting icons
 
     def testUnexistingIcon(self):
-        icon = icons.getQIcon("not-exists")
-        self.assertIsNotNone(icon)
-        # No way to check existing/unexisting icons
+        self.assertRaises(ValueError, icons.getQIcon, "not-exists")
 
     def testExistingQPixmap(self):
         icon = icons.getQPixmap("crop")
         self.assertIsNotNone(icon)
-        # No way to check existing/unexisting pixmaps
 
     def testUnexistingQPixmap(self):
-        icon = icons.getQPixmap("not-exists")
-        self.assertIsNotNone(icon)
-        # No way to check existing/unexisting pixmaps
+        self.assertRaises(ValueError, icons.getQPixmap, "not-exists")
 
 
 def suite():
