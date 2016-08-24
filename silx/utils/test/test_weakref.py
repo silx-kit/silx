@@ -116,6 +116,25 @@ class TestWeakMethod(unittest.TestCase):
         store = None
         self.assertEquals(self.__count, 1)
 
+    def testEquals(self):
+        dummy = Dummy()
+        callable1 = weakref.WeakMethod(dummy.inc)
+        callable2 = weakref.WeakMethod(dummy.inc)
+        self.assertEquals(callable1, callable2)
+
+    def testInSet(self):
+        callable_set = set([])
+        dummy = Dummy()
+        callable_set.add(weakref.WeakMethod(dummy.inc))
+        callable = weakref.WeakMethod(dummy.inc)
+        self.assertIn(callable, callable_set)
+
+    def testInDict(self):
+        callable_dict = {}
+        dummy = Dummy()
+        callable_dict[weakref.WeakMethod(dummy.inc)] = 10
+        callable = weakref.WeakMethod(dummy.inc)
+        self.assertEquals(callable_dict.get(callable), 10)
 
 def suite():
     test_suite = unittest.TestSuite()

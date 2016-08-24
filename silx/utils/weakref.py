@@ -55,23 +55,23 @@ class WeakMethod(object):
             no longer be available
         """
         self.__callback = callback
-        weakref_callback = self.__call_callback if callback is not None else None
 
         if inspect.ismethod(callable):
             # it is a bound method
-            self.__obj = weakref.ref(callable.__self__, weakref_callback)
-            self.__method = weakref.ref(callable.__func__, weakref_callback)
+            self.__obj = weakref.ref(callable.__self__, self.__call_callback)
+            self.__method = weakref.ref(callable.__func__, self.__call_callback)
         else:
             self.__obj = None
-            self.__method = weakref.ref(callable, weakref_callback)
+            self.__method = weakref.ref(callable, self.__call_callback)
 
     def __call_callback(self, ref):
         """Called when the object is about to be finalized"""
-        if self.__obj is None and self.__method is None:
+        if not self.is_alive():
             return
         self.__obj = None
         self.__method = None
-        self.__callback(self)
+        if self.__callback is not None:
+            self.__callback(self)
 
     def __call__(self):
         """Return a callable function or None if the WeakMethod is dead."""
@@ -85,3 +85,33 @@ class WeakMethod(object):
             return self.__method()
         else:
             return None
+
+    def is_alive(self):
+        """True if the WeakMethod is still alive"""
+        return self.__method is not None
+
+    def __eq__(self, other):
+        """Check it another obect is equal to this.
+
+        :param object other: Object to compare with
+        """
+        if isinstance(other, WeakMethod):
+            if not self.is_alive():
+                return False
+            return self.__obj == other.__obj and self.__method == other.__method
+        return False
+
+    def __ne__(self, other):
+        """Check it another obect is not equal to this.
+
+        :param object other: Object to compare with
+        """
+        if isinstance(other, WeakMethod):
+            if not self.is_alive():
+                return False
+            return self.__obj != other.__obj or self.__method != other.__method
+        return True
+
+    def __hash__(self):
+        """Returns the hash for the object."""
+        return self.__obj.__hash__() ^ self.__method.__hash__()
