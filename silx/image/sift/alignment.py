@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "24/08/2016"
 __status__ = "beta"
 
 import os
@@ -51,7 +51,7 @@ if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 
 from .match import MatchPlan
-from .plan import  SiftPlan
+from .plan import SiftPlan
 
 try:
     import feature
@@ -60,13 +60,14 @@ except ImportError:
 
 
 def arrow_start(kplist):
-    x_ref = kplist.x
-    y_ref = kplist.y
+#     x_ref = kplist.x
+#     y_ref = kplist.y
     angle_ref = kplist.angle
     scale_ref = kplist.scale
     x_ref2 = kplist.x + scale_ref * numpy.cos(angle_ref)
     y_ref2 = kplist.y + scale_ref * numpy.sin(angle_ref)
     return x_ref2, y_ref2
+
 
 def transform_pts(matrix, offset, x, y):
     nx = -offset[1] + y * matrix[1, 0] + x * matrix[1, 1]
@@ -378,8 +379,8 @@ class LinearAlign(object):
         If we are in debugging mode, prints out all timing for every single OpenCL call
         """
         t = 0.0
-        orient = 0.0
-        descr = 0.0
+#         orient = 0.0
+#         descr = 0.0
         if self.profile:
             for e in self.events:
                 if "__len__" in dir(e) and len(e) >= 2:

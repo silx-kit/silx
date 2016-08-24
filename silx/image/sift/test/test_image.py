@@ -29,13 +29,13 @@
 Test suite for image kernels
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "24/08/2016"
 
 import time
 import os
@@ -88,7 +88,7 @@ class TestImage(unittest.TestCase):
         """
         tests the gradient kernel (norm and orientation)
         """
-        
+
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, scale, nb_keypoints, width, height, DOGS, g = local_maxmin_setup()
         self.mat = numpy.ascontiguousarray(g[1])
         self.height, self.width = numpy.int32(self.mat.shape)
@@ -108,11 +108,11 @@ class TestImage(unittest.TestCase):
         delta_ori = abs(ref_ori - res_ori).max()
         if (PRINT_KEYPOINTS):
             rmin, cmin = 0, 0
-            rmax, cmax = rmin+6, cmin+6
-            
-            print res_norm[-rmax,cmin:cmax]
-            print ""
-            print ref_norm[-rmax,cmin:cmax]
+            rmax, cmax = rmin + 6, cmin + 6
+
+            logger.info(res_norm[-rmax, cmin:cmax])
+            logger.info("")
+            logger.info(ref_norm[-rmax, cmin:cmax])
             fig = pylab.figure()
             sp1 = fig.add_subplot(121)
             sp1.imshow(res_norm, interpolation="nearest")
@@ -120,7 +120,7 @@ class TestImage(unittest.TestCase):
             sp2.imshow(ref_norm, interpolation="nearest")
             fig.show()
             raw_input("enter")
-        
+
         self.assert_(delta_norm < 1e-4, "delta_norm=%s" % (delta_norm))
         self.assert_(delta_ori < 1e-4, "delta_ori=%s" % (delta_ori))
         logger.info("delta_norm=%s" % delta_norm)
@@ -138,15 +138,15 @@ class TestImage(unittest.TestCase):
         """
         tests the local maximum/minimum detection kernel
         """
-        #local_maxmin_setup :
+        # local_maxmin_setup :
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, s, nb_keypoints, width, height, DOGS, g = local_maxmin_setup()
-        self.s = numpy.int32(s) #1, 2, 3 ... not 4 nor 0.
+        self.s = numpy.int32(s)  # 1, 2, 3 ... not 4 nor 0.
         self.gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
         self.output = pyopencl.array.empty(self.queue, (nb_keypoints, 4), dtype=numpy.float32, order="C")
-        self.output.fill(-1.0, self.queue) #memset for invalid keypoints
+        self.output.fill(-1.0, self.queue)  # memset for invalid keypoints
         self.counter = pyopencl.array.zeros(self.queue, (1,), dtype=numpy.int32, order="C")
         nb_keypoints = numpy.int32(nb_keypoints)
-        self.shape = calc_size((DOGS.shape[1], DOGS.shape[0] * DOGS.shape[2]), self.wg) #it's a 3D vector !!
+        self.shape = calc_size((DOGS.shape[1], DOGS.shape[0] * DOGS.shape[2]), self.wg)  # it's a 3D vector !!
 
         t0 = time.time()
         k1 = self.program.local_maxmin(self.queue, self.shape, self.wg,
@@ -155,32 +155,32 @@ class TestImage(unittest.TestCase):
        		self.counter.data, nb_keypoints, self.s, width, height)
 
         res = self.output.get()
-        self.keypoints1 = self.output #for further use
-        self.actual_nb_keypoints = self.counter.get()[0] #for further use
+        self.keypoints1 = self.output  # for further use
+        self.actual_nb_keypoints = self.counter.get()[0]  # for further use
 
         t1 = time.time()
         ref, actual_nb_keypoints2 = my_local_maxmin(DOGS, peakthresh, border_dist, octsize,
         	EdgeThresh0, EdgeThresh, nb_keypoints, self.s, width, height)
         t2 = time.time()
 
-        #we have to sort the arrays, for peaks orders is unknown for GPU
+        # we have to sort the arrays, for peaks orders is unknown for GPU
         res_peaks = res[(res[:, 0].argsort(axis=0)), 0]
         ref_peaks = ref[(ref[:, 0].argsort(axis=0)), 0]
         res_r = res[(res[:, 1].argsort(axis=0)), 1]
         ref_r = ref[(ref[:, 1].argsort(axis=0)), 1]
         res_c = res[(res[:, 2].argsort(axis=0)), 2]
         ref_c = ref[(ref[:, 2].argsort(axis=0)), 2]
-        #res_s = res[(res[:,3].argsort(axis=0)),3]
-        #ref_s = ref[(ref[:,3].argsort(axis=0)),3]
+        # res_s = res[(res[:,3].argsort(axis=0)),3]
+        # ref_s = ref[(ref[:,3].argsort(axis=0)),3]
         delta_peaks = abs(ref_peaks - res_peaks).max()
         delta_r = abs(ref_r - res_r).max()
         delta_c = abs(ref_c - res_c).max()
 
         if (PRINT_KEYPOINTS):
-            print("keypoints after 2 steps of refinement: (s= %s, octsize=%s) %s" % (self.s, octsize, self.actual_nb_keypoints))
-            #print("For ref: %s" %(ref_peaks[ref_peaks!=-1].shape))
-            print res[0:self.actual_nb_keypoints]#[0:74]
-            #print ref[0:32]
+            logger.info("keypoints after 2 steps of refinement: (s= %s, octsize=%s) %s" , self.s, octsize, self.actual_nb_keypoints)
+            # logger.info("For ref: %s" %(ref_peaks[ref_peaks!=-1].shape))
+            logger.info(res[0:self.actual_nb_keypoints])  # [0:74]
+            # logger.info(ref[0:32]
 
         self.assert_(delta_peaks < 1e-4, "delta_peaks=%s" % (delta_peaks))
         self.assert_(delta_r < 1e-4, "delta_r=%s" % (delta_r))
@@ -199,43 +199,42 @@ class TestImage(unittest.TestCase):
         Requires the following: "self.keypoints1", "self.actual_nb_keypoints", 	"self.gpu_dog_prev", self.gpu_dog", 			"self.gpu_dog_next", "self.s", "self.width", "self.height", "self.peakthresh"
         """
 
-        #interpolation_setup :
+        # interpolation_setup :
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, nb_keypoints, actual_nb_keypoints, width, height, DOGS, s, keypoints_prev, blur = interpolation_setup()
 
         # actual_nb_keypoints is the number of keypoints returned by "local_maxmin".
-        #After the interpolation, it will be reduced, but we can still use it as a boundary.
+        # After the interpolation, it will be reduced, but we can still use it as a boundary.
         shape = calc_size(keypoints_prev.shape, self.wg)
         gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
         gpu_keypoints1 = pyopencl.array.to_device(self.queue, keypoints_prev)
-        #actual_nb_keypoints = numpy.int32(len((keypoints_prev[:,0])[keypoints_prev[:,1] != -1]))
+        # actual_nb_keypoints = numpy.int32(len((keypoints_prev[:,0])[keypoints_prev[:,1] != -1]))
         start_keypoints = numpy.int32(0)
         actual_nb_keypoints = numpy.int32(actual_nb_keypoints)
-        InitSigma = numpy.float32(1.6) #warning: it must be the same in my_keypoints_interpolation
+        InitSigma = numpy.float32(1.6)  #   warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
         k1 = self.program.interp_keypoint(self.queue, shape, self.wg,
-        	gpu_dogs.data, gpu_keypoints1.data, start_keypoints, actual_nb_keypoints,
-        	peakthresh, InitSigma, width, height)
+                                          gpu_dogs.data, gpu_keypoints1.data, start_keypoints, actual_nb_keypoints,
+        	                              peakthresh, InitSigma, width, height)
         res = gpu_keypoints1.get()
 
         t1 = time.time()
-        ref = numpy.copy(keypoints_prev) #important here
+        ref = numpy.copy(keypoints_prev)  # important here
         for i, k in enumerate(ref[:nb_keypoints, :]):
             ref[i] = my_interp_keypoint(DOGS, s, k[1], k[2], 5, peakthresh, width, height)
 
         t2 = time.time()
 
-        #we have to compare keypoints different from (-1,-1,-1,-1)
+        # we have to compare keypoints different from (-1,-1,-1,-1)
         res2 = res[res[:, 1] != -1]
         ref2 = ref[ref[:, 1] != -1]
 
         if (PRINT_KEYPOINTS):
-            print("[s=%s]Keypoints before interpolation: %s" % (s, actual_nb_keypoints))
-            #print keypoints_prev[0:10,:]
-            print("[s=%s]Keypoints after interpolation : %s" % (s, res2.shape[0]))
-            print res[0:actual_nb_keypoints]#[0:10,:]
-            #print("Ref:")
-            #print ref[0:32,:]
-
+            logger.info("[s=%s]Keypoints before interpolation: %s", s, actual_nb_keypoints)
+            # logger.info(keypoints_prev[0:10,:]
+            logger.info("[s=%s]Keypoints after interpolation : %s", s, res2.shape[0])
+            logger.info(res[0:actual_nb_keypoints])  # [0:10,:]
+            # logger.info("Ref:")
+            # logger.info(ref[0:32,:]
 
         delta = abs(ref2 - res2).max()
         self.assert_(delta < 1e-4, "delta=%s" % (delta))

@@ -12,10 +12,10 @@
 # copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following
 # conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 # OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -29,13 +29,13 @@
 Test suite for image kernels
 """
 
-from __future__ import division
+from __future__ import division, print_function
 
 __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "24/08/2016"
 
 import time
 import os
@@ -46,7 +46,7 @@ import pyopencl, pyopencl.array
 import scipy, scipy.misc, scipy.ndimage, pylab
 
 import unittest
-from test_image_functions import * #for Python implementation of tested functions
+from test_image_functions import *  # for Python implementation of tested functions
 from test_image_setup import *
 from ..utils import calc_size, get_opencl_code
 from silx.opencl import ocl
@@ -58,7 +58,7 @@ logger = logging.getLogger(__file__)
 SHOW_FIGURES = False
 PRINT_KEYPOINTS = False
 USE_CPU = False
-USE_CPP_SIFT = True #use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
+USE_CPP_SIFT = True  # use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
 
 
 '''
@@ -89,7 +89,7 @@ class TestMatching(unittest.TestCase):
     def setUp(self):
         kernel = ("matching_gpu.cl" if not(USE_CPU) else "matching_cpu.cl")
         kernel_src = get_opencl_code(kernel)
-        self.program = pyopencl.Program(self.ctx, kernel_src).build() #.build('-D WORKGROUP_SIZE=%s' % wg_size)
+        self.program = pyopencl.Program(self.ctx, kernel_src).build()  # .build('-D WORKGROUP_SIZE=%s' % wg_size)
         self.wg = (1, 128)
 
     def tearDown(self):
@@ -99,40 +99,40 @@ class TestMatching(unittest.TestCase):
     def test_matching(self):
         '''
         tests keypoints matching kernel
-        '''    
+        '''
         image = scipy.misc.lena().astype(numpy.float32)
         try:
             import feature
         except:
             logger.error("WARNING: feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
             feature = None
-        
+
         if (feature != None):
-            #get the struct keypoints : (x,y,s,angle,[descriptors])
+            # get the struct keypoints : (x,y,s,angle,[descriptors])
             sc = feature.SiftAlignment()
             ref_sift = sc.sift(image)
-            ref_sift_2 = numpy.recarray((ref_sift.shape),dtype=ref_sift.dtype)
+            ref_sift_2 = numpy.recarray((ref_sift.shape), dtype=ref_sift.dtype)
             ref_sift_2[:] = (ref_sift[::-1])
             t0_matching = time.time()
             siftmatch = feature.sift_match(ref_sift, ref_sift_2)
             t1_matching = time.time()
             ref = ref_sift.desc
-            
-            if (USE_CPU): 
+
+            if (USE_CPU):
                 wg = 1,
-            else: 
+            else:
                 wg = 64,
             shape = ref_sift.shape[0] * wg[0],
-            
-            ratio_th = numpy.float32(0.5329) #sift.cpp : 0.73*0.73
-            keypoints_start, keypoints_end = 0, min(ref_sift.shape[0],ref_sift_2.shape[0])
-            
+
+            ratio_th = numpy.float32(0.5329)  # sift.cpp : 0.73*0.73
+            keypoints_start, keypoints_end = 0, min(ref_sift.shape[0], ref_sift_2.shape[0])
+
             gpu_keypoints1 = pyopencl.array.to_device(self.queue, ref_sift)
             gpu_keypoints2 = pyopencl.array.to_device(self.queue, ref_sift_2)
-            gpu_matchings = pyopencl.array.zeros(self.queue, (keypoints_end-keypoints_start,2),dtype=numpy.int32, order="C")
+            gpu_matchings = pyopencl.array.zeros(self.queue, (keypoints_end - keypoints_start, 2), dtype=numpy.int32, order="C")
             keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
             nb_keypoints = numpy.int32(10000)
-            counter = pyopencl.array.zeros(self.queue, (1,1),dtype=numpy.int32, order="C")
+            counter = pyopencl.array.zeros(self.queue, (1, 1), dtype=numpy.int32, order="C")
 
             t0 = time.time()
             k1 = self.program.matching(self.queue, shape, wg,
@@ -144,18 +144,18 @@ class TestMatching(unittest.TestCase):
 
     #        ref_python, nb_match = my_matching(kp1, kp2, keypoints_start, keypoints_end)
             t2 = time.time()
-            
-            res_sort = res[numpy.argsort(res[:,1])]
+
+            res_sort = res[numpy.argsort(res[:, 1])]
     #        ref_sort = ref[numpy.argsort(ref[:,1])]
-            
-            print res[0:20]
-            print ""
+
+            print(res[0:20])
+            print("")
     #        print ref_sort[0:20]
-            print("C++ Matching took %.3f ms" %(1000.0*(t1_matching-t0_matching)))
-            print("OpenCL: %d match / C++ : %d match" %(cnt,siftmatch.shape[0]))
+            print("C++ Matching took %.3f ms" % (1000.0 * (t1_matching - t0_matching)))
+            print("OpenCL: %d match / C++ : %d match" % (cnt, siftmatch.shape[0]))
 
 
-            #sort to compare added keypoints
+            # sort to compare added keypoints
             '''
             delta = abs(res_sort-ref_sort).max()
             self.assert_(delta == 0, "delta=%s" % (delta)) #integers

@@ -28,7 +28,7 @@
 """
 Python implementation of a few functions
 """
-
+from __future__ import print_function, division
 import numpy
 
 

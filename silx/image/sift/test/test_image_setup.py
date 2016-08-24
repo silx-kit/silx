@@ -152,6 +152,7 @@ def descriptor_setup():
 
     return ref, nb_keypoints, updated_nb_keypoints, grad, ori, octsize
 
+
 def matching_setup():
     '''
     Provides the values required by "test_matching"
