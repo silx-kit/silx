@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/05/2016"
+__date__ = "24/08/2016"
 
 
 from . import qt
@@ -61,7 +61,7 @@ def getQPixmap(name):
     :raises: ValueError when name is not known
     """
     try:
-        filename = resource_filename('icons/%s.png')
+        filename = resource_filename('gui/icons/%s.png' % name)
     except ValueError:
         raise ValueError('Not an icon name: %s' % name)
 
