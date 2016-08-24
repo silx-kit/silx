@@ -32,8 +32,13 @@ __license__ = "MIT"
 __date__ = "25/08/2016"
 
 
+import weakref
 from . import qt
 from ..resources import resource_filename
+
+
+_cached_icons = weakref.WeakValueDictionary()
+"""Cache loaded icons in a weak structure"""
 
 
 def getQIcon(name):
@@ -44,8 +49,13 @@ def getQIcon(name):
     :return: Corresponding QIcon
     :raises: ValueError when name is not known
     """
-    qfile = getQFile(name)
-    return qt.QIcon(qfile.fileName())
+    if name not in _cached_icons:
+        qfile = getQFile(name)
+        icon = qt.QIcon(qfile.fileName())
+        _cached_icons[name] = icon
+    else:
+        icon = _cached_icons[name]
+    return icon
 
 
 def getQPixmap(name):

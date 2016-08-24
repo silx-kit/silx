@@ -56,6 +56,20 @@ class TestIcons(testutils.TestCaseQt):
     def testUnexistingQPixmap(self):
         self.assertRaises(ValueError, icons.getQPixmap, "not-exists")
 
+    def testCache(self):
+        icon1 = icons.getQIcon("crop")
+        icon2 = icons.getQIcon("crop")
+        self.assertIs(icon1, icon2)
+
+    def testCacheReleased(self):
+        icon1 = icons.getQIcon("crop")
+        icon1_id = str(icon1.__repr__())
+        icon1 = None
+        # alloc another thing in case the old icon1 object is reused
+        icon3 = icons.getQIcon("colormap")
+        icon2 = icons.getQIcon("crop")
+        icon2_id = str(icon2.__repr__())
+        self.assertNotEquals(icon1_id, icon2_id)
 
 def suite():
     test_suite = unittest.TestSuite()
