@@ -38,8 +38,12 @@ from silx.gui import icons
 class TestIcons(testutils.TestCaseQt):
     """Test to check that icons module."""
 
-    def testExistingIcon(self):
-        icon = icons.getQIcon("crop")
+    def testSvgIcon(self):
+        icon = icons.getQIcon("test-svg")
+        self.assertIsNotNone(icon)
+
+    def testPngIcon(self):
+        icon = icons.getQIcon("test-png")
         self.assertIsNotNone(icon)
 
     def testUnexistingIcon(self):

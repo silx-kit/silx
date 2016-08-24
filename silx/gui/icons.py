@@ -45,10 +45,7 @@ def getQIcon(name):
     :raises: ValueError when name is not known
     """
     qfile = getQFile(name)
-    if qfile.exists():
-        return qt.QIcon(qfile.fileName())
-    else:
-        raise ValueError('Not an icon name: %s' % name)
+    return qt.QIcon(qfile.fileName())
 
 
 def getQPixmap(name):
@@ -60,19 +57,23 @@ def getQPixmap(name):
     :raises: ValueError when name is not known
     """
     qfile = getQFile(name)
-    if qfile.exists():
-        return qt.QPixmap(qfile.fileName())
-    else:
-        raise ValueError('Not an icon name: %s' % name)
+    return qt.QPixmap(qfile.fileName())
 
 
 def getQFile(name):
-    """Create a QFile from its name.
+    """Create a QFile from an icon name. Filename is found
+    according to supported Qt formats.
 
     :param str name: Name of the icon, in one of the defined icons
                      in this module.
     :return: Corresponding QFile
     :rtype: qt.QFile
+    :raises: ValueError when name is not known
     """
-    filename = resource_filename('gui/icons/%s.png' % name)
-    return qt.QFile(filename)
+    for format in qt.QImageReader.supportedImageFormats():
+        format = str(format)
+        filename = resource_filename('gui/icons/%s.%s' % (name, format))
+        qfile = qt.QFile(filename)
+        if qfile.exists():
+            return qfile
+    raise ValueError('Not an icon name: %s' % name)
