@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 
 import unittest
@@ -112,7 +112,7 @@ class TestWeakMethod(unittest.TestCase):
             self.__count += 1
             self.assertIs(callable, ref)
         store = lambda a: a + 1
-        callable = weakref.WeakMethod(lambda a: a + 1, callback)
+        callable = weakref.WeakMethod(store, callback)
         store = None
         self.assertEquals(self.__count, 1)
 
@@ -136,10 +136,138 @@ class TestWeakMethod(unittest.TestCase):
         callable = weakref.WeakMethod(dummy.inc)
         self.assertEquals(callable_dict.get(callable), 10)
 
+
+class TestWeakList(unittest.TestCase):
+    """Tests for weakref.WeakList"""
+
+    def setUp(self):
+        self.list = weakref.WeakList()
+        self.object1 = Dummy()
+        self.object2 = Dummy()
+        self.list.append(self.object1)
+        self.list.append(self.object2)
+
+    def testAppend(self):
+        obj = Dummy()
+        self.list.append(obj)
+        self.assertEquals(len(self.list), 3)
+        obj = None
+        self.assertEquals(len(self.list), 2)
+
+    def testRemove(self):
+        self.list.remove(self.object1)
+        self.assertEquals(len(self.list), 1)
+
+    def testPop(self):
+        obj = self.list.pop(0)
+        self.assertIs(obj, self.object1)
+        self.assertEquals(len(self.list), 1)
+
+    def testGetItem(self):
+        self.assertIs(self.object1, self.list[0])
+
+    def testIter(self):
+        obj_list = list(self.list)
+        self.assertEquals(len(obj_list), 2)
+        self.assertIs(self.object1, obj_list[0])
+
+    def testLen(self):
+        self.assertEquals(len(self.list), 2)
+
+    def testSetItem(self):
+        obj = Dummy()
+        self.list[0] = Dummy()
+        self.assertIsNot(self.object1, self.list[0])
+        obj = None
+        self.assertEquals(len(self.list), 1)
+
+    def testDelItem(self):
+        del self.list[0]
+        self.assertEquals(len(self.list), 1)
+        self.assertIs(self.object2, self.list[0])
+
+    def testContains(self):
+        self.assertIn(self.object1, self.list)
+
+    def testAdd(self):
+        others = [Dummy()]
+        l = self.list + others
+        self.assertIs(l[0], self.object1)
+        self.assertEquals(len(l), 3)
+        others = None
+        self.assertEquals(len(l), 2)
+
+    def testExtend(self):
+        others = [Dummy()]
+        self.list.extend(others)
+        self.assertIs(self.list[0], self.object1)
+        self.assertEquals(len(self.list), 3)
+        others = None
+        self.assertEquals(len(self.list), 2)
+
+    def testIadd(self):
+        others = [Dummy()]
+        self.list += others
+        self.assertIs(self.list[0], self.object1)
+        self.assertEquals(len(self.list), 3)
+        others = None
+        self.assertEquals(len(self.list), 2)
+
+    def testMul(self):
+        l = self.list * 2
+        self.assertIs(l[0], self.object1)
+        self.assertEquals(len(l), 4)
+        self.object1 = None
+        self.assertEquals(len(l), 2)
+        self.assertIs(l[0], self.object2)
+        self.assertIs(l[1], self.object2)
+
+    def testImul(self):
+        self.list *= 2
+        self.assertIs(self.list[0], self.object1)
+        self.assertEquals(len(self.list), 4)
+        self.object1 = None
+        self.assertEquals(len(self.list), 2)
+        self.assertIs(self.list[0], self.object2)
+        self.assertIs(self.list[1], self.object2)
+
+    def testCount(self):
+        """Returns the number of occurencies of an object"""
+        self.list.append(self.object2)
+        self.assertEquals(self.list.count(self.object1), 1)
+        self.assertEquals(self.list.count(self.object2), 2)
+
+    def testIndex(self):
+        self.assertEquals(self.list.index(self.object1), 0)
+        self.assertEquals(self.list.index(self.object2), 1)
+
+    def testInsert(self):
+        """Insert an object at the requested index"""
+        obj = Dummy()
+        self.list.insert(1, obj)
+        self.assertEquals(len(self.list), 3)
+        self.assertIs(self.list[1], obj)
+        obj = None
+        self.assertEquals(len(self.list), 2)
+
+    def testReverse(self):
+        self.list.reverse()
+        self.assertEquals(len(self.list), 2)
+        self.assertIs(self.list[0], self.object2)
+        self.assertIs(self.list[1], self.object1)
+
+    def sort(self, cmp=None, key=None, reverse=False):
+        # only a coverage
+        self.list.sort()
+        self.assertEquals(len(self.list), 2)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakMethod))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakList))
     return test_suite
 
 

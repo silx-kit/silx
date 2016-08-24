@@ -115,3 +115,142 @@ class WeakMethod(object):
     def __hash__(self):
         """Returns the hash for the object."""
         return self.__obj.__hash__() ^ self.__method.__hash__()
+
+
+class WeakList(list):
+    """Manage a list of weaked references.
+    When an object is dead, the list is flaged as invalid.
+    If expected the list is cleaned up to remove dead objects.
+    """
+
+    def __init__(self, enumerator=()):
+        """Create a WeakList
+
+        :param iterator enumerator: A list of object to initialize the
+            list
+        """
+        list.__init__(self)
+        self.__list = []
+        self.__is_valid = True
+        for obj in enumerator:
+            self.append(obj)
+
+    def __invalidate(self, ref):
+        """Flag the list as invalidated. The list contains dead references."""
+        self.__is_valid = False
+
+    def _create_ref(self, obj):
+        """Create a weakref from an object
+        Can be overwrited.
+        """
+        if inspect.ismethod(obj):
+            return WeakMethod(obj, self.__invalidate)
+        else:
+            return weakref.ref(obj, self.__invalidate)
+
+    def __clean(self):
+        """Clean the list from dead references"""
+        if self.__is_valid:
+            return
+        self.__list = [ref for ref in self.__list if ref() is not None]
+        self.__is_valid = True
+
+    def __getitem__(self, index):
+        """Returns the object at the requested index"""
+        self.__clean()
+        return self.__list[index]()
+
+    def __iter__(self):
+        """Iterate over objects of the list"""
+        for ref in self.__list:
+            obj = ref()
+            if obj is not None:
+                yield obj
+
+    def __len__(self):
+        """Count item on the list"""
+        self.__clean()
+        return len(self.__list)
+
+    def __setitem__(self, index, obj):
+        """Set an item at an index"""
+        self.__clean()
+        ref = self._create_ref(obj)
+        self.__list[index] = ref
+
+    def __delitem__(self, index):
+        """Delete an index item of this list"""
+        self.__clean()
+        del self.__list[index]
+
+    def __contains__(self, obj):
+        """Returns true if the object is in the list"""
+        ref = self._create_ref(obj)
+        return ref in self.__list
+
+    def __add__(self, other):
+        """Returns a WeakList containing this list an the other"""
+        l = WeakList(self)
+        l.extend(other)
+        return l
+
+    def __iadd__(self, other):
+        """Add objects to this list inplace"""
+        self.extend(other)
+        return self
+
+    def __mul__(self, n):
+        """Returns a WeakList containing n-duplication object of this list"""
+        return WeakList(list(self) * n)
+
+    def __imul__(self, n):
+        """N-duplication of the objects to this list inplace"""
+        self.__list *= n
+        return self
+
+    def append(self, obj):
+        """Add an object at the end of the list"""
+        ref = self._create_ref(obj)
+        self.__list.append(ref)
+
+    def count(self, obj):
+        """Returns the number of occurencies of an object"""
+        ref = self._create_ref(obj)
+        return self.__list.count(ref)
+
+    def extend(self, other):
+        """Append the list with all objects from another list"""
+        for obj in other:
+            self.append(obj)
+
+    def index(self, obj):
+        """Returns the index of an object"""
+        ref = self._create_ref(obj)
+        return self.__list.index(ref)
+
+    def insert(self, index, obj):
+        """Insert an object at the requested index"""
+        ref = self._create_ref(obj)
+        self.__list.insert(index, ref)
+
+    def pop(self, index):
+        """Remove and return an object at the requested index"""
+        self.__clean()
+        obj = self.__list.pop(index)()
+        return obj
+
+    def remove(self, obj):
+        """Remove an object from the list"""
+        ref = self._create_ref(obj)
+        self.__list.remove(ref)
+
+    def reverse(self):
+        """Reverse the list inplace"""
+        self.__list.reverse()
+
+    def sort(self, cmp=None, key=None, reverse=False):
+        """Sort the list inplace.
+        Not very efficient."""
+        sorted_list = list(self).sort(cmp, key, reverse)
+        self.__list = []
+        self.extend(sorted_list)
