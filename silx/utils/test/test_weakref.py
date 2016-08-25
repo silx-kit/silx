@@ -137,6 +137,20 @@ class TestWeakMethod(unittest.TestCase):
         self.assertEquals(callable_dict.get(callable), 10)
 
 
+class TestWeakMethodProxy(unittest.TestCase):
+
+    def testMethod(self):
+        dummy = Dummy()
+        callable = weakref.WeakMethodProxy(dummy.inc)
+        self.assertEquals(callable(10), 11)
+
+    def testMethodWithDeadObject(self):
+        dummy = Dummy()
+        method = weakref.WeakMethodProxy(dummy.inc)
+        dummy = None
+        self.assertRaises(ReferenceError, method, 9)
+
+
 class TestWeakList(unittest.TestCase):
     """Tests for weakref.WeakList"""
 
@@ -266,6 +280,8 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakMethod))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakMethodProxy))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestWeakList))
     return test_suite

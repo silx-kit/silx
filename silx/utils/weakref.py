@@ -60,6 +60,28 @@ def ref(object, callback=None):
         return weakref.ref(object, callback)
 
 
+def proxy(object, callback=None):
+    """Return a proxy to object which uses a weak reference. This supports use
+    of the proxy in most contexts instead of requiring the explicit
+    dereferencing used with weak reference objects.
+
+    The signature is the same as the standard `weakref` library, but it returns
+    `WeakMethodProxy` if the object is a bound method.
+
+    :param object: An object
+    :param func callback: If provided, and the returned weakref object is
+        still alive, the callback will be called when the object is about to
+        be finalized. The weak reference object will be passed as the only
+        parameter to the callback. Then the referent will no longer be
+        available.
+    :return: A proxy to a weak reference of the object
+    """
+    if inspect.ismethod(object):
+        return WeakMethodProxy(object, callback)
+    else:
+        return weakref.proxy(object, callback)
+
+
 class WeakMethod(object):
     """Wraps a callable object like a function or a bound method.
     Feature callback when the object is about to be finalized.
@@ -138,6 +160,22 @@ class WeakMethod(object):
     def __hash__(self):
         """Returns the hash for the object."""
         return self.__obj.__hash__() ^ self.__method.__hash__()
+
+
+class WeakMethodProxy(WeakMethod):
+    """Wraps a callable object like a function or a bound method
+    with a weakref proxy.
+    """
+    def __call__(self, *args, **kwargs):
+        """Dereference the method and call it if the method is still alive.
+        Else raises an ReferenceError.
+
+        :raises: ReferenceError, if the method is not alive
+        """
+        fn = super(WeakMethodProxy, self).__call__()
+        if fn is None:
+            raise ReferenceError("weakly-referenced object no longer exists")
+        return fn(*args, **kwargs)
 
 
 class WeakList(list):
