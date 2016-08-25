@@ -9,3 +9,4 @@
    
    bilinear.rst
    shapes.rst
+   sift.rst
