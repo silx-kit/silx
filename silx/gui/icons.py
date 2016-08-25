@@ -32,13 +32,22 @@ __license__ = "MIT"
 __date__ = "25/08/2016"
 
 
+import logging
 import weakref
 from . import qt
 from ..resources import resource_filename
 
 
+_logger = logging.getLogger(__name__)
+"""Module logger"""
+
+
 _cached_icons = weakref.WeakValueDictionary()
 """Cache loaded icons in a weak structure"""
+
+
+_supported_formats = None
+"""Order of file format extension to check"""
 
 
 def getQIcon(name):
@@ -80,7 +89,20 @@ def getQFile(name):
     :rtype: qt.QFile
     :raises: ValueError when name is not known
     """
-    for format in qt.QImageReader.supportedImageFormats():
+    global _supported_formats
+    if _supported_formats is None:
+        _supported_formats = []
+        supported_formats = qt.supportedImageFormats()
+        order = ["svg", "png", "jpg"]
+        for format in order:
+            if format in supported_formats:
+                _supported_formats.append(format)
+        if len(_supported_formats) == 0:
+            _logger.error("No format supported for icons")
+        else:
+            _logger.debug("Format %s supported", ", ".join(_supported_formats))
+
+    for format in _supported_formats:
         format = str(format)
         filename = resource_filename('gui/icons/%s.%s' % (name, format))
         qfile = qt.QFile(filename)
