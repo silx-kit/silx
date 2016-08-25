@@ -41,13 +41,17 @@ import time
 import os
 import logging
 import numpy
-import pyopencl, pyopencl.array
-import scipy, scipy.misc, scipy.ndimage
+import pyopencl
+import pyopencl.array
+import scipy
+import scipy.misc
+import scipy.ndimage
 import sys
 import unittest
 from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl
+    import pyopencl.array
 
 from ..alignment import LinearAlign
 logger = logging.getLogger(__file__)
@@ -107,7 +111,6 @@ class TestLinalign(unittest.TestCase):
             print({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
             pylab.show()
             raw_input("enter")
-
 
 
 def suite():

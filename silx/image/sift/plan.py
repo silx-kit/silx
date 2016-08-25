@@ -95,37 +95,38 @@ class SiftPlan(object):
                "keypoints_cpu": 1,
                "memset": 128, }
 #               "keypoints":128}
+
     converter = {numpy.dtype(numpy.uint8): "u8_to_float",
                  numpy.dtype(numpy.uint16): "u16_to_float",
                  numpy.dtype(numpy.uint32): "u32_to_float",
                  numpy.dtype(numpy.int32): "s32_to_float",
                  numpy.dtype(numpy.int64): "s64_to_float",
-#                numpy.float64:"double_to_float",
-                }
+                 }
+
     sigmaRatio = 2.0 ** (1.0 / par.Scales)
     PIX_PER_KP = 10  # pre_allocate buffers for keypoints
     dtype_kp = numpy.dtype([('x', numpy.float32),
-                                ('y', numpy.float32),
-                                ('scale', numpy.float32),
-                                ('angle', numpy.float32),
-                                ('desc', (numpy.uint8, 128))
-                                ])
+                            ('y', numpy.float32),
+                            ('scale', numpy.float32),
+                            ('angle', numpy.float32),
+                            ('desc', (numpy.uint8, 128))
+                            ])
 
     def __init__(self, shape=None, dtype=None, devicetype="CPU", template=None,
                  profile=False, device=None, PIX_PER_KP=None,
                  max_workgroup_size=None, context=None, init_sigma=None):
         """
-        Contructor of the class
+        Constructor of the class
 
-        @param shape: shape of the input image
-        @param dtype: data type of the input image
-        @param devicetype: can be 'CPU' or 'GPU'
-        @param template: extract shape and dtype from an image
-        @param profile: collect timing info
-        @param device: 2-tuple of integers
-        @param PIX_PER_KP: number of keypoint pre-allocated: 1 for 10 pixel
-        @param max_workgroup_size: set to 1 under macosX on CPU
-        @param context: provide an external context
+        :param shape: shape of the input image
+        :param dtype: data type of the input image
+        :param devicetype: can be 'CPU' or 'GPU'
+        :param template: extract shape and dtype from an image
+        :param profile: collect timing info
+        :param device: 2-tuple of integers
+        :param PIX_PER_KP: number of keypoint pre-allocated: 1 for 10 pixel
+        :param max_workgroup_size: set to 1 under macosX on CPU
+        :param context: provide an external context
         """
         if init_sigma is None:
             init_sigma = par.InitSigma
@@ -325,11 +326,10 @@ class SiftPlan(object):
             prevSigma *= self.sigmaRatio
 
     def _init_gaussian(self, sigma):
-        """
-        Create a buffer of the right size according to the width of the gaussian ...
+        """Create a buffer of the right size according to the width of the gaussian ...
 
 
-        @param  sigma: width of the gaussian, the length of the function will be 8*sigma + 1
+        :param  sigma: width of the gaussian, the length of the function will be 8*sigma + 1
 
         Same calculation done on CPU
         x = numpy.arange(size) - (size - 1.0) / 2.0
@@ -352,12 +352,12 @@ class SiftPlan(object):
                                                      gaussian_gpu.data,  # __global     float     *data,
                                                      numpy.float32(sigma),  # const        float     sigma,
                                                      numpy.int32(size))  # const        int     SIZE
-            if self.profile: self.events.append(("gaussian %s" % sigma, evt))
+            if self.profile:
+                self.events.append(("gaussian %s" % sigma, evt))
         self.buffers[name] = gaussian_gpu
 
     def _free_buffers(self):
-        """
-        free all memory allocated on the device
+        """free all memory allocated on the device
         """
         for buffer_name in self.buffers:
             if self.buffers[buffer_name] is not None:
@@ -368,8 +368,7 @@ class SiftPlan(object):
                     logger.error("Error while freeing buffer %s" % buffer_name)
 
     def _compile_kernels(self):
-        """
-        Call the OpenCL compiler
+        """Call the OpenCL compiler
         """
         for kernel in self.kernels:
             kernel_src = get_opencl_code(kernel)
@@ -400,14 +399,12 @@ class SiftPlan(object):
             self.programs[kernel] = program
 
     def _free_kernels(self):
-        """
-        free all kernels
+        """free all kernels
         """
         self.programs = {}
 
     def _calc_workgroups(self):
-        """
-        First try to guess the best workgroup size, then calculate all global worksize
+        """First try to guess the best workgroup size, then calculate all global worksize
 
         Nota:
         The workgroup size is limited by the device
@@ -432,9 +429,10 @@ class SiftPlan(object):
             shape = tuple(i // 2 for i in shape)
 
     def keypoints(self, image):
-        """
-        Calculates the keypoints of the image
-        @param image: ndimage of 2D (or 3D if RGB)
+        """Calculates the keypoints of the image
+        
+        :param image: ndimage of 2D (or 3D if RGB)
+        :return: vector of keypoint (1D numpy array) 
         """
         self.reset_timer()
         with self._sem:
@@ -450,25 +448,30 @@ class SiftPlan(object):
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image.data)
                 else:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image)
-                if self.profile:self.events.append(("copy H->D", evt))
+                if self.profile:
+                    self.events.append(("copy H->D", evt))
             elif (len(image.shape) == 3) and (self.dtype == numpy.uint8) and (self.RGB):
                 if type(image) == pyopencl.array.Array:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image.data)
                 else:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image)
-                if self.profile:self.events.append(("copy H->D", evt))
-#                print self.procsize[0], self.wgsize[0]
+                if self.profile:
+                    self.events.append(("copy H->D", evt))
+
                 evt = self.programs["preprocess"].rgb_to_float(self.queue, self.procsize[0], self.wgsize[0],
                                                              self.buffers["raw"].data, self.buffers[0].data, *self.scales[0])
-                if self.profile:self.events.append(("RGB -> float", evt))
+                if self.profile:
+                    self.events.append(("RGB -> float", evt))
 
             elif self.dtype in self.converter:
                 program = self.programs["preprocess"].__getattr__(self.converter[self.dtype])
                 evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image)
-                if self.profile:self.events.append(("copy H->D", evt))
+                if self.profile:
+                    self.events.append(("copy H->D", evt))
                 evt = program(self.queue, self.procsize[0], self.wgsize[0],
-                        self.buffers["raw"].data, self.buffers[0].data, *self.scales[0])
-                if self.profile:self.events.append(("convert -> float", evt))
+                              self.buffers["raw"].data, self.buffers[0].data, *self.scales[0])
+                if self.profile:
+                    self.events.append(("convert -> float", evt))
             else:
                 raise RuntimeError("invalid input format error")
 
@@ -525,14 +528,16 @@ class SiftPlan(object):
             logger.info("Execution time: %.3fms" % (1000 * (time.time() - t0)))
         return output
 
+    __call__ = keypoints
+
     def _gaussian_convolution(self, input_data, output_data, sigma, octave=0):
         """
         Calculate the gaussian convolution with precalculated kernels.
 
-        @param input_data: pyopencl array with input
-        @param output_data: pyopencl array with result
-        @param sigma: width of the gaussian
-        @param octave: related to the size on the input images
+        :param input_data: pyopencl array with input
+        :param output_data: pyopencl array with result
+        :param sigma: width of the gaussian
+        :param octave: related to the size on the input images
 
         * Uses a temporary buffer
         * Needs gaussian kernel to be available on device
@@ -554,7 +559,7 @@ class SiftPlan(object):
         """
         Does all scales within an octave
 
-        @param octave: number of the octave
+        :param octave: number of the octave
         """
         prevSigma = self._init_sigma
         logger.info("Calculating octave %i" % octave)
@@ -632,16 +637,16 @@ class SiftPlan(object):
                 wgsize2 = self.kernels[file_to_use],
                 procsize = int(newcnt * wgsize2[0]),
                 evt = self.programs[file_to_use].orientation_assignment(self.queue, procsize, wgsize2,
-                                      self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                      self.buffers["tmp"].data,  # __global float* grad,
-                                      self.buffers["ori"].data,  # __global float* ori,
-                                      self.buffers["cnt"].data,  # __global int* counter,
-                                      octsize,  # int octsize,
-                                      numpy.float32(par.OriSigma),  # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
-                                      kpsize32,  # int max of nb_keypoints,
-                                      numpy.int32(last_start),  # int keypoints_start,
-                                      newcnt,  # int keypoints_end,
-                                      *self.scales[octave])  # int grad_width, int grad_height)
+                                                                        self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                                                        self.buffers["tmp"].data,  # __global float* grad,
+                                                                        self.buffers["ori"].data,  # __global float* ori,
+                                                                        self.buffers["cnt"].data,  # __global int* counter,
+                                                                        octsize,  # int octsize,
+                                                                        numpy.float32(par.OriSigma),  # float OriSigma, //WARNING: (1.5), it is not "InitSigma (=1.6)"
+                                                                        kpsize32,  # int max of nb_keypoints,
+                                                                        numpy.int32(last_start),  # int keypoints_start,
+                                                                        newcnt,  # int keypoints_end,
+                                                                        *self.scales[octave])  # int grad_width, int grad_height)
                 # newcnt = self.buffers["cnt"].get()[0] #do not forget to update numbers of keypoints, modified above !
                 evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.buffers["cnt"].data)
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
@@ -653,7 +658,7 @@ class SiftPlan(object):
                     procsize2 = int(newcnt * wgsize2[0]),
 
                 else:
-                    if self.LOW_END == 1 :
+                    if self.LOW_END == 1:
                         file_to_use = "keypoints_gpu1"
                         logger.info("Computing descriptors with older-GPU optimized kernels")
                         wgsize2 = self.kernels[file_to_use]
@@ -664,14 +669,14 @@ class SiftPlan(object):
                     procsize2 = int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2]
                 try:
                     evt2 = self.programs[file_to_use].descriptor(self.queue, procsize2, wgsize2,
-                                          self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                          self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
-                                          self.buffers["tmp"].data,  # __global float* grad,
-                                          self.buffers["ori"].data,  # __global float* ori,
-                                          octsize,  # int octsize,
-                                          numpy.int32(last_start),  # int keypoints_start,
-                                          self.buffers["cnt"].data,  # int* keypoints_end,
-                                          *self.scales[octave])  # int grad_width, int grad_height)
+                                                                 self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                                                 self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
+                                                                 self.buffers["tmp"].data,  # __global float* grad,
+                                                                 self.buffers["ori"].data,  # __global float* ori,
+                                                                 octsize,  # int octsize,
+                                                                 numpy.int32(last_start),  # int keypoints_start,
+                                                                 self.buffers["cnt"].data,  # int* keypoints_end,
+                                                                 *self.scales[octave])  # int grad_width, int grad_height)
                 except pyopencl.RuntimeError as error:
                     self.LOW_END += 1
                     logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
@@ -682,7 +687,7 @@ class SiftPlan(object):
                         procsize2 = int(newcnt * wgsize2[0]),
 
                     else:
-                        if self.LOW_END == 1 :
+                        if self.LOW_END == 1:
                             file_to_use = "keypoints_gpu1"
                             logger.info("Computing descriptors with older-GPU optimized kernels")
                             wgsize2 = self.kernels[file_to_use]
@@ -693,14 +698,14 @@ class SiftPlan(object):
                         procsize2 = int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2]
 
                     evt2 = self.programs[file_to_use].descriptor(self.queue, procsize2, wgsize2,
-                                          self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                          self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
-                                          self.buffers["tmp"].data,  # __global float* grad,
-                                          self.buffers["ori"].data,  # __global float* ori,
-                                          octsize,  # int octsize,
-                                          numpy.int32(last_start),  # int keypoints_start,
-                                          self.buffers["cnt"].data,  # int* keypoints_end,
-                                          *self.scales[octave])  # int grad_width, int grad_height)
+                                                                 self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                                                 self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
+                                                                 self.buffers["tmp"].data,  # __global float* grad,
+                                                                 self.buffers["ori"].data,  # __global float* ori,
+                                                                 octsize,  # int octsize,
+                                                                 numpy.int32(last_start),  # int keypoints_start,
+                                                                 self.buffers["cnt"].data,  # int* keypoints_end,
+                                                                 *self.scales[octave])  # int grad_width, int grad_height)
                 if self.profile:
                     self.events += [("orientation_assignment %s %s" % (octave, scale), evt),
                                     ("copy cnt D->H", evt_cp),
@@ -716,11 +721,11 @@ class SiftPlan(object):
         ########################################################################
         if octave < self.octave_max - 1:
             evt = self.programs["preprocess"].shrink(self.queue, self.procsize[octave + 1], self.wgsize[octave + 1],
-                                                    self.buffers[par.Scales].data,
-                                                    self.buffers[0].data,
-                                                    numpy.int32(2), numpy.int32(2),
-                                                    self.scales[octave][0], self.scales[octave][1],
-                                                    *self.scales[octave + 1])
+                                                     self.buffers[par.Scales].data,
+                                                     self.buffers[0].data,
+                                                     numpy.int32(2), numpy.int32(2),
+                                                     self.scales[octave][0], self.scales[octave][1],
+                                                     *self.scales[octave + 1])
             if self.profile:
                 self.events.append(("shrink %s->%s" % (self.scales[octave], self.scales[octave + 1]), evt))
         results = numpy.empty((last_start, 4), dtype=numpy.float32)
@@ -737,11 +742,11 @@ class SiftPlan(object):
         """
         Compact the vector of keypoints starting from start
 
-        @param start: start compacting at this adress. Before just copy
-        @type start: numpy.int32
+        :param start: start compacting at this adress. Before just copy
+        :type  start: numpy.int32
         """
         wgsize = self.max_workgroup_size,  # (max(self.wgsize[0]),) #TODO: optimize
-        kpsize32 = numpy.int32(self.kpsize)
+#         kpsize32 = numpy.int32(self.kpsize)
         cp0_evt = pyopencl.enqueue_copy(self.queue, self.cnt, self.buffers["cnt"].data)
         kp_counter = self.cnt[0]
         procsize = calc_size((self.kpsize,), wgsize)
@@ -752,11 +757,11 @@ class SiftPlan(object):
         self.cnt[0] = start
         cp1_evt = pyopencl.enqueue_copy(self.queue, self.buffers["cnt"].data, self.cnt)
         evt = self.programs["algebra"].compact(self.queue, procsize, wgsize,
-                        self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                        self.buffers["Kp_2"].data,  # __global keypoint* output,
-                        self.buffers["cnt"].data,  # __global int* counter,
-                        start,  # int start,
-                        kp_counter)  # int nbkeypoints
+                                               self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                               self.buffers["Kp_2"].data,  # __global keypoint* output,
+                                               self.buffers["cnt"].data,  # __global int* counter,
+                                               start,  # int start,
+                                               kp_counter)  # int nbkeypoints
         cp2_evt = pyopencl.enqueue_copy(self.queue, self.cnt, self.buffers["cnt"].data)
         # swap keypoints:
         self.buffers["Kp_1"], self.buffers["Kp_2"] = self.buffers["Kp_2"], self.buffers["Kp_1"]
@@ -771,7 +776,6 @@ class SiftPlan(object):
                             ("memset 2", mem_evt)
                             ]
         return self.cnt[0]
-
 
     def _reset_keypoints(self):
         """
@@ -832,15 +836,13 @@ class SiftPlan(object):
         with self._sem:
             self.events = []
 
-if __name__ == "__main__":
+
+def demo():
     # Prepare debugging
     import scipy.misc
-    lena = scipy.misc.lena()
-    s = SiftPlan(template=lena)
-    s.keypoints(lena)
+    img = scipy.misc.ascent()
+    s = SiftPlan(template=img)
+    print(s.keypoints(img))
 
-
-
-
-
-
+if __name__ == "__main__":
+    demo()

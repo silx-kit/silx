@@ -8,3 +8,4 @@ Tutorials and cookbooks:
 
    modules/gui/plot/getting_started.rst
    modules/gui/designer.rst
+   Tutorials/sift/sift.rst

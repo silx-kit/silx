@@ -11,6 +11,7 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 
    overview.rst
    install.rst
+   description/index.rst
    tutorials.rst
    modules/index.rst
    changelog.rst
@@ -21,6 +22,9 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 
 :doc:`install`
     How to install *silx* on Linux, Windows and MacOS X
+
+:doc:`description`
+    Description of the different algorithms and their implementation
 
 :doc:`tutorials`
     Tutorials and sample code

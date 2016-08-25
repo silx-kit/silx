@@ -41,12 +41,15 @@ import time
 import logging
 import numpy
 
-import scipy, scipy.misc, scipy.ndimage
+import scipy
+import scipy.misc
+import scipy.ndimage
 
 import unittest
 from silx.opencl import ocl
 if ocl:
-    import pyopencl, pyopencl.array
+    import pyopencl
+    import pyopencl.array
 from ..utils import calc_size, get_opencl_code
 logger = logging.getLogger(__name__)
 

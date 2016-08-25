@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 __status__ = "beta"
 import os
 import logging
@@ -46,15 +46,14 @@ import gc
 import numpy
 from .param import par
 from silx.opencl import ocl, pyopencl
-from .utils import calc_size
+from .utils import calc_size, get_opencl_code
 logger = logging.getLogger("sift.match")
 if not pyopencl:
     logger.warning("No PyOpenCL, no sift")
 
 
 class MatchPlan(object):
-    """
-    Plan to compare sets of SIFT keypoint
+    """Plan to compare sets of SIFT keypoint
 
     siftp = sift.MatchPlan(devicetype="GPU")
     kp = siftp.match(kp1,kp2)
@@ -74,16 +73,15 @@ class MatchPlan(object):
                             ])
 
     def __init__(self, size=16384, devicetype="CPU", profile=False, device=None, max_workgroup_size=None, roi=None, context=None):
-        """
-        Constructor of the class:
+        """Constructor of the class:
 
-        @param size: size of the input keypoint-list alocated on the GPU.
-        @param devicetype: can be CPU or GPU
-        @param profile: set to true to activate profiling information collection
-        @param device: 2-tuple of integer, see clinfo
-        @param max_workgroup_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128). 
-        @param roi: Region Of Interest: TODO
-        @param context: Use an external context (discard devicetype and device options)
+        :param size: size of the input keypoint-list alocated on the GPU.
+        :param devicetype: can be CPU or GPU
+        :param profile: set to true to activate profiling information collection
+        :param device: 2-tuple of integer, see clinfo
+        :param max_workgroup_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128). 
+        :param roi: Region Of Interest: TODO
+        :param context: Use an external context (discard devicetype and device options)
         """
         self.profile = bool(profile)
         if max_workgroup_size:
@@ -162,8 +160,7 @@ class MatchPlan(object):
         self.buffers["cnt"] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
 
     def _free_buffers(self):
-        """
-        free all memory allocated on the device
+        """free all memory allocated on the device
         """
         for buffer_name in self.buffers:
             if self.buffers[buffer_name] is not None:
@@ -174,18 +171,11 @@ class MatchPlan(object):
                     logger.error("Error while freeing buffer %s" % buffer_name)
 
     def _compile_kernels(self):
+        """Call the OpenCL compiler
         """
-        Call the OpenCL compiler
-        """
-        kernel_directory = os.path.dirname(os.path.abspath(__file__))
-        if not os.path.exists(os.path.join(kernel_directory, "matching_gpu" + ".cl")):
-            while (".zip" in kernel_directory) and (len(kernel_directory) > 4):
-                kernel_directory = os.path.dirname(kernel_directory)
-            kernel_directory = os.path.join(kernel_directory, "sift_kernels")
-
         for kernel in self.kernels:
-            kernel_file = os.path.join(kernel_directory, kernel + ".cl")
-            kernel_src = open(kernel_file).read()
+            kernel_src = get_opencl_code(kernel)
+
             wg_size = self.kernels[kernel]
             try:
                 program = pyopencl.Program(self.ctx, kernel_src).build('-D WORKGROUP_SIZE=%s' % wg_size)
@@ -201,17 +191,15 @@ class MatchPlan(object):
             self.programs[kernel] = program
 
     def _free_kernels(self):
-        """
-        free all kernels
+        """free all kernels
         """
         self.programs = {}
 
     def match(self, nkp1, nkp2, raw_results=False):
-        """
-        calculate the matching of 2 keypoint list
+        """Calculate the matching of 2 keypoint list
 
-        @param nkp1, nkp2: numpy 1D recarray of keypoints or equivalent GPU buffer
-        @param raw_results: if true return the 2D array of indexes of matching keypoints (not the actual keypoints)
+        :param nkp1, nkp2: numpy 1D recarray of keypoints or equivalent GPU buffer
+        :param raw_results: if true return the 2D array of indexes of matching keypoints (not the actual keypoints)
 
         TODO: implement the ROI ...
 
@@ -241,7 +229,7 @@ class MatchPlan(object):
                 self._reset_buffer2()
                 evt2 = pyopencl.enqueue_copy(self.queue, kpt2_gpu.data, nkp2)
                 if self.profile:
-                    self.events.append(("copy H->D KP_1", evt1))
+                    self.events.append(("copy H->D KP_2", evt2))
             else:
                 kpt2_gpu = nkp2
             if min(kpt1_gpu.size, kpt2_gpu.size) > self.buffers["match"].shape[0]:
@@ -249,14 +237,14 @@ class MatchPlan(object):
                 self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
             self._reset_output()
             evt = self.programs[self.matching_kernel].matching(self.queue, calc_size((nkp1.size,), (self.kernels[self.matching_kernel],)), (self.kernels[self.matching_kernel],),
-                                          kpt1_gpu.data,
-                                          kpt2_gpu.data,
-                                          self.buffers["match"].data,
-                                          self.buffers["cnt"].data,
-                                          numpy.int32(self.kpsize),
-                                          numpy.float32(par.MatchRatio * par.MatchRatio),
-                                          numpy.int32(nkp1.size),
-                                          numpy.int32(nkp2.size))
+                                                               kpt1_gpu.data,
+                                                               kpt2_gpu.data,
+                                                               self.buffers["match"].data,
+                                                               self.buffers["cnt"].data,
+                                                               numpy.int32(self.kpsize),
+                                                               numpy.float32(par.MatchRatio * par.MatchRatio),
+                                                               numpy.int32(nkp1.size),
+                                                               numpy.int32(nkp2.size))
             if self.profile:
                 self.events.append(("matching", evt))
             size = self.buffers["cnt"].get()[0]
@@ -273,7 +261,7 @@ class MatchPlan(object):
                 result[:, 0] = nkp1[match[:size, 0]]
                 result[:, 1] = nkp2[match[:size, 1]]
         return result
-
+    __call__ = match
 
     def _reset_buffer(self):
         """Reseet all buffers"""
@@ -283,14 +271,16 @@ class MatchPlan(object):
 
     def _reset_buffer1(self):
         ev1 = self.programs["memset"].memset_kp(self.queue, calc_size((self.buffers["Kp_1"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
-                                          self.buffers["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_1"].size))
+                                                self.buffers["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_1"].size))
         if self.profile:
             self.events.append(("memset Kp1", ev1))
+
     def _reset_buffer2(self):
         ev2 = self.programs["memset"].memset_kp(self.queue, calc_size((self.buffers["Kp_2"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
-                                          self.buffers["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_2"].size))
+                                                self.buffers["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_2"].size))
         if self.profile:
             self.events.append(("memset Kp2", ev2))
+
     def _reset_output(self):
         ev3 = self.programs["memset"].memset_int(self.queue, calc_size((self.buffers["match"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
                                                  self.buffers["match"].data, numpy.int32(-1), numpy.int32(self.buffers["match"].size))
@@ -299,6 +289,7 @@ class MatchPlan(object):
         if self.profile:
             self.events += [("memset match", ev3),
                             ("memset cnt", ev4), ]
+
     def reset_timer(self):
         """
         Resets the profiling timers
@@ -307,21 +298,38 @@ class MatchPlan(object):
             self.events = []
 
     def set_roi(self, roi):
-        """
-        Defines the region of interest
+        """Defines the region of interest
 
-        @param roi: region of interest as 2D numpy array with non zero where
+        :param roi: region of interest as 2D numpy array with non zero where
         valid pixels are.
         """
         with self._sem:
             self.roi = numpy.ascontiguousarray(roi, numpy.int8)
             self.buffers["ROI"] = pyopencl.array.to_device(self.queue, self.roi)
+
     def unset_roi(self):
-        """
-        Unset the region of interest
+        """Unset the region of interest
         """
         with self._sem:
             self.roi = None
             self.buffers["ROI"] = None
 
 
+def demo():
+    import scipy.misc
+    import numpy
+    from .plan import SiftPlan
+    img1 = scipy.misc.ascent()
+    splan = SiftPlan(template=img1)
+    kp1 = splan(img1)
+    img2 = numpy.zeros_like(img1)
+    img2[5:, 8:] = img1[:-5, :-8]
+    kp2 = splan(img2)
+    mp = MatchPlan()
+    match = mp(kp1, kp2)
+    print(match.shape)
+    print(numpy.median(match[:, 0].x - match[:, 1].x))
+    print(numpy.median(match[:, 0].y - match[:, 1].y))
+
+if __name__ == "__main__":
+    demo()

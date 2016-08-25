@@ -30,7 +30,7 @@ To disable them, set WITH_QT_TEST environement variable to 'False'.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "25/08/2016"
 
 
 import logging
@@ -47,7 +47,7 @@ from ..io.test import suite as test_io_suite
 from ..math.test import suite as test_math_suite
 from ..image.test import test_bilinear
 from ..gui.test import suite as test_gui_suite
-
+from ..image.sift.test import import suite as 
 
 def suite():
     test_suite = unittest.TestSuite()
