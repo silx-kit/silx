@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 
 import unittest
@@ -39,6 +39,8 @@ class TestIcons(testutils.TestCaseQt):
     """Test to check that icons module."""
 
     def testSvgIcon(self):
+        if "svg" not in qt.supportedImageFormats():
+            self.skipTest("SVG not supported")
         icon = icons.getQIcon("test-svg")
         self.assertIsNotNone(icon)
 
