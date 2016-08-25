@@ -440,17 +440,17 @@ class SiftPlan(object):
             keypoints = []
             descriptors = []
             assert image.shape[:2] == self.shape
-            assert image.dtype == self.dtype
+            assert image.dtype in [self.dtype, numpy.float32]
             t0 = time.time()
 
-            if self.dtype == numpy.float32:
+            if image.dtype == numpy.float32:
                 if type(image) == pyopencl.array.Array:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image.data)
                 else:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image)
                 if self.profile:
                     self.events.append(("copy H->D", evt))
-            elif (len(image.shape) == 3) and (self.dtype == numpy.uint8) and (self.RGB):
+            elif (len(image.shape) == 3) and (image.dtype == numpy.uint8) and (self.RGB):
                 if type(image) == pyopencl.array.Array:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image.data)
                 else:

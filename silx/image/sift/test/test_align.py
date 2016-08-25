@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 import time
 import os
@@ -77,7 +77,6 @@ class TestLinalign(unittest.TestCase):
         super(TestLinalign, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
-
 
     def setUp(self):
         self.lena = scipy.misc.lena().astype(numpy.float32)
