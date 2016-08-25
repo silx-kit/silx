@@ -306,12 +306,12 @@ class TestCaseQt(unittest.TestCase):
 
 
 def getQToolButtonFromAction(action):
-    """Return a visible QToolButton corresponding to a QAction.
+    """Return a QToolButton corresponding to a QAction.
 
     :param QAction action: The QAction from which to get QToolButton.
-    :return: A visible QToolButton associated to action or None.
+    :return: A QToolButton associated to action or None.
     """
     for widget in action.associatedWidgets():
-        if isinstance(widget, qt.QToolButton) and widget.isVisible():
+        if isinstance(widget, qt.QToolButton):
             return widget
     return None

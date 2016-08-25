@@ -60,7 +60,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     """Signal for all events of the plot.
 
     The signal information is provided as a dict.
-    See :class:`Plot` for documentation of the content of the dict.
+    See :class:`.Plot` for documentation of the content of the dict.
     """
 
     sigSetYAxisInverted = qt.Signal(bool)
