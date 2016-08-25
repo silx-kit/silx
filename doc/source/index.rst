@@ -23,7 +23,7 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
 :doc:`install`
     How to install *silx* on Linux, Windows and MacOS X
 
-:doc:`description`
+:doc:`description/index`
     Description of the different algorithms and their implementation
 
 :doc:`tutorials`

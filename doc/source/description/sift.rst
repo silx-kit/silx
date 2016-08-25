@@ -383,7 +383,7 @@ For instance, if a sample is centered on the image, the user can select the
 center of the image before processing.
 
 
-.. figure:: img/frame_ROI.jpg
+.. figure:: img/sift_frame_ROI.jpg
    :align: center
    :alt: Sample with region of interest
 

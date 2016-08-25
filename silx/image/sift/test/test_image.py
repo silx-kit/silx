@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 import time
 import os
@@ -129,10 +129,6 @@ class TestImage(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Gradient computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-
-
-
-
 
     def test_local_maxmin(self):
         """

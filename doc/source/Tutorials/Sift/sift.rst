@@ -50,7 +50,7 @@ All the tutorial has been made using the Jupyter notebook.
 
 .. parsed-literal::
 
-    <matplotlib.image.AxesImage at 0x7fc3a7ca30f0>
+    <matplotlib.image.AxesImage at 0x7f6e8be189e8>
 
 
 
@@ -69,8 +69,8 @@ All the tutorial has been made using the Jupyter notebook.
 
 .. parsed-literal::
 
-    CPU times: user 228 ms, sys: 8 ms, total: 236 ms
-    Wall time: 225 ms
+    CPU times: user 560 ms, sys: 60 ms, total: 620 ms
+    Wall time: 475 ms
 
 
 .. parsed-literal::
@@ -82,7 +82,7 @@ All the tutorial has been made using the Jupyter notebook.
 .. code:: python
 
     print("Time for calculating the keypoints on one image of size %sx%s"%image.shape)
-    %time keypoints = sift_ocl.keypoints(image)
+    %time keypoints = sift_ocl(image)
     print("Number of keypoints: %s"%len(keypoints))
     print("Keypoint content:")
     print(keypoints.dtype)
@@ -95,8 +95,8 @@ All the tutorial has been made using the Jupyter notebook.
 .. parsed-literal::
 
     Time for calculating the keypoints on one image of size 512x512
-    CPU times: user 1.48 s, sys: 184 ms, total: 1.67 s
-    Wall time: 879 ms
+    CPU times: user 1.49 s, sys: 140 ms, total: 1.63 s
+    Wall time: 860 ms
     Number of keypoints: 491
     Keypoint content:
     (numpy.record, [('x', '<f4'), ('y', '<f4'), ('scale', '<f4'), ('angle', '<f4'), ('desc', 'u1', (128,))])
@@ -123,7 +123,7 @@ All the tutorial has been made using the Jupyter notebook.
 
 .. parsed-literal::
 
-    [<matplotlib.lines.Line2D at 0x7fc3e403c6a0>]
+    [<matplotlib.lines.Line2D at 0x7f6ecdd796d8>]
 
 
 
@@ -135,49 +135,14 @@ All the tutorial has been made using the Jupyter notebook.
 
     #Diplaying keypoints by scale:
     hist(keypoints[:].scale, 100)
+    xlabel("scale")
 
 
 
 
 .. parsed-literal::
 
-    (array([ 113.,  100.,   61.,   47.,   25.,   26.,   14.,   22.,   10.,
-               8.,    7.,    5.,    2.,    4.,    2.,    5.,    1.,    4.,
-               4.,    3.,    1.,    0.,    0.,    0.,    2.,    3.,    1.,
-               1.,    2.,    1.,    1.,    3.,    0.,    1.,    1.,    0.,
-               0.,    2.,    1.,    0.,    0.,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    2.,    0.,    1.,    0.,    1.,    0.,
-               0.,    0.,    0.,    1.,    0.,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    0.,    1.,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    1.,    0.,    0.,    0.,    0.,    0.,
-               0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    0.,    1.]),
-     array([  1.69660795,   2.15425151,   2.61189507,   3.06953864,
-              3.5271822 ,   3.98482576,   4.44246932,   4.90011289,
-              5.35775645,   5.81540001,   6.27304357,   6.73068714,
-              7.1883307 ,   7.64597426,   8.10361782,   8.56126139,
-              9.01890495,   9.47654851,   9.93419207,  10.39183564,
-             10.8494792 ,  11.30712276,  11.76476632,  12.22240989,
-             12.68005345,  13.13769701,  13.59534057,  14.05298414,
-             14.5106277 ,  14.96827126,  15.42591482,  15.88355839,
-             16.34120195,  16.79884551,  17.25648907,  17.71413264,
-             18.1717762 ,  18.62941976,  19.08706332,  19.54470689,
-             20.00235045,  20.45999401,  20.91763757,  21.37528114,
-             21.8329247 ,  22.29056826,  22.74821182,  23.20585539,
-             23.66349895,  24.12114251,  24.57878608,  25.03642964,
-             25.4940732 ,  25.95171676,  26.40936033,  26.86700389,
-             27.32464745,  27.78229101,  28.23993458,  28.69757814,
-             29.1552217 ,  29.61286526,  30.07050883,  30.52815239,
-             30.98579595,  31.44343951,  31.90108308,  32.35872664,
-             32.8163702 ,  33.27401376,  33.73165733,  34.18930089,
-             34.64694445,  35.10458801,  35.56223158,  36.01987514,
-             36.4775187 ,  36.93516226,  37.39280583,  37.85044939,
-             38.30809295,  38.76573651,  39.22338008,  39.68102364,
-             40.1386672 ,  40.59631076,  41.05395433,  41.51159789,
-             41.96924145,  42.42688501,  42.88452858,  43.34217214,
-             43.7998157 ,  44.25745926,  44.71510283,  45.17274639,
-             45.63038995,  46.08803352,  46.54567708,  47.00332064,  47.4609642 ]),
-     <a list of 100 Patch objects>)
+    <matplotlib.text.Text at 0x7f6ea287e128>
 
 
 
@@ -187,7 +152,7 @@ All the tutorial has been made using the Jupyter notebook.
 
 .. code:: python
 
-    #One can see 2 groups of keypoints: <12 and >12. Let's display them using colors.
+    #One can see 3 groups of keypoints, boundaries at: 8 and 20. Let's display them using colors.
     S = 8
     L = 20
     tiny = keypoints[keypoints[:].scale<S]
@@ -204,7 +169,7 @@ All the tutorial has been made using the Jupyter notebook.
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x7fc3a7d19b70>
+    <matplotlib.legend.Legend at 0x7f6e34672da0>
 
 
 
@@ -226,86 +191,64 @@ pixels
 
     shifted = numpy.zeros_like(image)
     shifted[5:,8:] = image[:-5, :-8]
-    shifted_points = sift_ocl.keypoints(shifted)
+    shifted_points = sift_ocl(shifted)
 
 .. code:: python
 
     %time mp = sift.MatchPlan()
-    %time match = mp.match(keypoints, shifted_points)
-    print("Number of Keypoints with for image 1 : %i, For image 2 : %i, Matching keypoints: %i" % (kp1.size, kp2.size, match.shape[0]))
-    
+    %time match = mp(keypoints, shifted_points)
+    print("Number of Keypoints with for image 1 : %i, For image 2 : %i, Matching keypoints: %i" % (keypoints.size, shifted_points.size, match.shape[0]))
+    from numpy import median
+    print("Measured offsets dx: %.3f, dy: %.3f"%(median(match[:,1].x-match[:,0].x),median(match[:,1].y-match[:,0].y)))
+
+
+.. parsed-literal::
+
+    CPU times: user 28 ms, sys: 0 ns, total: 28 ms
+    Wall time: 24.9 ms
+    CPU times: user 76 ms, sys: 20 ms, total: 96 ms
+    Wall time: 22.5 ms
+    Number of Keypoints with for image 1 : 491, For image 2 : 489, Matching keypoints: 424
+    Measured offsets dx: 8.000, dy: 5.000
+
+
+.. parsed-literal::
+
+    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+      "to see more.", CompilerWarning)
+
+
+.. code:: python
+
+    # Example of usage of the automatic alignment:
+    import scipy.ndimage
+    rotated = scipy.ndimage.rotate(image, 20, reshape=False)
+    sa = sift.LinearAlign(image)
+    figure(figsize=(18,5))
+    subplot(1,3,1)
+    imshow(image, cmap="gray")
+    subplot(1,3,2)
+    imshow(rotated,cmap="gray")
+    subplot(1,3,3)
+    imshow(sa.align(rotated), cmap="gray")
+
+
+.. parsed-literal::
+
+    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/pyopencl/__init__.py:207: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+      "to see more.", CompilerWarning)
 
 
 
-::
+
+.. parsed-literal::
+
+    <matplotlib.image.AxesImage at 0x7f6e22502588>
 
 
-    ---------------------------------------------------------------------------
-
-    FileNotFoundError                         Traceback (most recent call last)
-
-    <ipython-input-37-8f97defa84d5> in <module>()
-    ----> 1 get_ipython().magic('time mp = sift.MatchPlan()')
-          2 get_ipython().magic('time match = mp.match(keypoints, shifted_points)')
-          3 print("Number of Keypoints with for image 1 : %i, For image 2 : %i, Matching keypoints: %i" % (kp1.size, kp2.size, match.shape[0]))
-          4 
 
 
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/IPython/core/interactiveshell.py in magic(self, arg_s)
-       2334         magic_name, _, magic_arg_s = arg_s.partition(' ')
-       2335         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-    -> 2336         return self.run_line_magic(magic_name, magic_arg_s)
-       2337 
-       2338     #-------------------------------------------------------------------------
-
-
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/IPython/core/interactiveshell.py in run_line_magic(self, magic_name, line)
-       2255                 kwargs['local_ns'] = sys._getframe(stack_depth).f_locals
-       2256             with self.builtin_trap:
-    -> 2257                 result = fn(*args,**kwargs)
-       2258             return result
-       2259 
-
-
-    <decorator-gen-60> in time(self, line, cell, local_ns)
-
-
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/IPython/core/magic.py in <lambda>(f, *a, **k)
-        191     # but it's overkill for just that one bit of state.
-        192     def magic_deco(arg):
-    --> 193         call = lambda f, *a, **k: f(*a, **k)
-        194 
-        195         if callable(arg):
-
-
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/IPython/core/magics/execution.py in time(self, line, cell, local_ns)
-       1165         else:
-       1166             st = clock2()
-    -> 1167             exec(code, glob, local_ns)
-       1168             end = clock2()
-       1169             out = None
-
-
-    <timed exec> in <module>()
-
-
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/silx/image/sift/match.py in __init__(self, size, devicetype, profile, device, max_workgroup_size, roi, context)
-        120             self.queue = pyopencl.CommandQueue(self.ctx)
-        121 #        self._calc_workgroups()
-    --> 122         self._compile_kernels()
-        123         self._allocate_buffers()
-        124         self.debug = []
-
-
-    /scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/silx/image/sift/match.py in _compile_kernels(self)
-        186         for kernel in self.kernels:
-        187             kernel_file = os.path.join(kernel_directory, kernel + ".cl")
-    --> 188             kernel_src = open(kernel_file).read()
-        189             wg_size = self.kernels[kernel]
-        190             try:
-
-
-    FileNotFoundError: [Errno 2] No such file or directory: '/scisoft/users/jupyter/jupy34/lib/python3.4/site-packages/silx/image/sift/sift_kernels/matching_gpu.cl'
+.. image:: output_11_2.png
 
 
 References
@@ -314,4 +257,3 @@ References
 -  David G. Lowe, Distinctive image features from scale-invariant
    keypoints, International Journal of Computer Vision, vol. 60, no 2,
    2004, p. 91–110 - "http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
-

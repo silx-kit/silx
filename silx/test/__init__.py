@@ -47,7 +47,7 @@ from ..io.test import suite as test_io_suite
 from ..math.test import suite as test_math_suite
 from ..image.test import test_bilinear
 from ..gui.test import suite as test_gui_suite
-from ..image.sift.test import import suite as 
+
 
 def suite():
     test_suite = unittest.TestSuite()
