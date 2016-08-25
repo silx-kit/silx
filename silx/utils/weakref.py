@@ -37,6 +37,29 @@ import types
 import inspect
 
 
+def ref(object, callback=None):
+    """Returns a weak reference to object. The original object can be retrieved
+    by calling the reference object if the referent is still alive. If the
+    referent is no longer alive, calling the reference object will cause None
+    to be returned.
+
+    The signature is the same as the standard `weakref` library, but it returns
+    `WeakMethod` if the object is a bound method.
+
+    :param object: An object
+    :param func callback: If provided, and the returned weakref object is
+        still alive, the callback will be called when the object is about to
+        be finalized. The weak reference object will be passed as the only
+        parameter to the callback. Then the referent will no longer be
+        available.
+    :return: A weak reference to the object
+    """
+    if inspect.ismethod(object):
+        return WeakMethod(object, callback)
+    else:
+        return weakref.ref(object, callback)
+
+
 class WeakMethod(object):
     """Wraps a callable object like a function or a bound method.
     Feature callback when the object is about to be finalized.
@@ -139,14 +162,10 @@ class WeakList(list):
         """Flag the list as invalidated. The list contains dead references."""
         self.__is_valid = False
 
-    def _create_ref(self, obj):
-        """Create a weakref from an object
-        Can be overwrited.
+    def __create_ref(self, obj):
+        """Create a weakref from an object. It uses the `ref` module function.
         """
-        if inspect.ismethod(obj):
-            return WeakMethod(obj, self.__invalidate)
-        else:
-            return weakref.ref(obj, self.__invalidate)
+        return ref(obj, self.__invalidate)
 
     def __clean(self):
         """Clean the list from dead references"""
@@ -175,7 +194,7 @@ class WeakList(list):
     def __setitem__(self, index, obj):
         """Set an item at an index"""
         self.__clean()
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         self.__list[index] = ref
 
     def __delitem__(self, index):
@@ -185,7 +204,7 @@ class WeakList(list):
 
     def __contains__(self, obj):
         """Returns true if the object is in the list"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         return ref in self.__list
 
     def __add__(self, other):
@@ -210,12 +229,12 @@ class WeakList(list):
 
     def append(self, obj):
         """Add an object at the end of the list"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         self.__list.append(ref)
 
     def count(self, obj):
         """Returns the number of occurencies of an object"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         return self.__list.count(ref)
 
     def extend(self, other):
@@ -225,12 +244,12 @@ class WeakList(list):
 
     def index(self, obj):
         """Returns the index of an object"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         return self.__list.index(ref)
 
     def insert(self, index, obj):
         """Insert an object at the requested index"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         self.__list.insert(index, ref)
 
     def pop(self, index):
@@ -241,7 +260,7 @@ class WeakList(list):
 
     def remove(self, obj):
         """Remove an object from the list"""
-        ref = self._create_ref(obj)
+        ref = self.__create_ref(obj)
         self.__list.remove(ref)
 
     def reverse(self):
