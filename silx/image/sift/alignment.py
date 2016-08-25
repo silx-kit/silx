@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 __status__ = "beta"
 
 import os
@@ -44,7 +44,7 @@ import sys
 from threading import Semaphore
 import numpy
 from silx.opencl import ocl, pyopencl
-from .utils import calc_size, matching_correction
+from .utils import calc_size, matching_correction, get_opencl_code
 import logging
 logger = logging.getLogger("sift.alignment")
 if not pyopencl:
@@ -220,19 +220,13 @@ class LinearAlign(object):
         """
         Call the OpenCL compiler
         """
-        kernel_directory = os.path.dirname(os.path.abspath(__file__))
-        kernel_file = self.kernels.keys()[0]
-        if not os.path.exists(os.path.join(kernel_directory, kernel_file + ".cl")):
-            while (".zip" in kernel_directory) and (len(kernel_directory) > 4):
-                kernel_directory = os.path.dirname(kernel_directory)
-            kernel_directory = os.path.join(kernel_directory, "sift_kernels")
-        kernel_file = os.path.join(kernel_directory, kernel_file + ".cl")
-        kernel_src = open(kernel_file).read()
-        try:
-            program = pyopencl.Program(self.ctx, kernel_src).build()
-        except pyopencl.MemoryError as error:
-            raise MemoryError(error)
-        self.program = program
+        for kernel_file in self.kernels:
+            kernel_src = get_opencl_code(kernel_file)
+            try:
+                program = pyopencl.Program(self.ctx, kernel_src).build()
+            except pyopencl.MemoryError as error:
+                raise MemoryError(error)
+            self.program = program
 
     def _free_kernels(self):
         """
@@ -373,6 +367,7 @@ class LinearAlign(object):
             # Todo: calculate the RMS of deplacement and return it:
             return {"result": result, "keypoint": kp, "matching": matching, "offset": offset, "matrix": matrix, "rms": rms}
         return result
+    __call__ = align
 
     def log_profile(self):
         """

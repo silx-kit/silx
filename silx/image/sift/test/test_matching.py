@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "25/08/2016"
 
 import time
 import os
@@ -107,7 +107,7 @@ class TestMatching(unittest.TestCase):
             logger.error("WARNING: feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
             feature = None
 
-        if (feature != None):
+        if (feature is not None):
             # get the struct keypoints : (x,y,s,angle,[descriptors])
             sc = feature.SiftAlignment()
             ref_sift = sc.sift(image)
@@ -136,8 +136,8 @@ class TestMatching(unittest.TestCase):
 
             t0 = time.time()
             k1 = self.program.matching(self.queue, shape, wg,
-                    gpu_keypoints1.data, gpu_keypoints2.data, gpu_matchings.data, counter.data,
-                    nb_keypoints, ratio_th, keypoints_end, keypoints_end)
+                                       gpu_keypoints1.data, gpu_keypoints2.data, gpu_matchings.data, counter.data,
+                                       nb_keypoints, ratio_th, keypoints_end, keypoints_end)
             res = gpu_matchings.get()
             cnt = counter.get()
             t1 = time.time()
