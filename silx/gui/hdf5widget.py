@@ -48,7 +48,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/08/2016"
+__date__ = "29/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -81,220 +81,39 @@ def htmlFromDict(input):
     return result
 
 
-class MultiColumnTreeItem(qt.QStandardItem):
-    """A QStandardItem used to create an item tree,
-    which is able to manage his item colums"""
+class Hdf5Node(object):
+    """Abstract tree node
 
-    def __init__(self, text=None, icon=None):
-        """Constructor
-
-        :param text str: Text displayed by the item
-        :param icon qtQIcon: Icon displayed by the item
-        """
-        if icon is not None:
-            qt.QStandardItem.__init__(self, icon, text)
-        elif text is not None:
-            qt.QStandardItem.__init__(self, text)
-        else:
-            qt.QStandardItem.__init__(self)
-        self.__row = [self]
-
-    def setExtraColumns(self, *args):
-        """Define other items of the row.
-
-        :param args list of qt.QStandardItem: A list of items
-        """
-        row = [self]
-        row.extend(args)
-        self.__row = row
-
-    def _getItemRow(self):
-        """Return the item row. The one appended to the table
-        
-        :rtype: list
-        """
-        return self.__row
-
-    def setChild(self, row, item):
-        """"Override of default setChild to be able to set a full row
-        instead of the single item.
-
-        :param row int: An row index
-        :param item qt.QStandardItem: An item
-        """
-        if isinstance(item, MultiColumnTreeItem):
-            for column, columnItem in enumerate(item._getItemRow()):
-                super(MultiColumnTreeItem, self).setChild(row, column, columnItem)
-            item = item._getItemRow()
-        else:
-            super(MultiColumnTreeItem, self).setChild(row, item)
-
-    def appendRow(self, item):
-        """"Override of default appendRow to be able to append the full row
-        instead of the single item.
-        
-        :param item qt.QStandardItem: An item
-        """
-        if isinstance(item, MultiColumnTreeItem):
-            item = item._getItemRow()
-        super(MultiColumnTreeItem, self).appendRow(item)
-
-
-class MustBeLoadedItem(qt.QStandardItem):
-    """A dummy item must be created, else parent from modelitem is not
-    valid"""
-    pass
-
-
-class LazyLoadableItem(object):
-    """A way to tag Item as lazy loadable item.
-
-    Child can be lazy loaded by the class model by calling
-    hasChildren and child methods. This methods are not virtual
-    in QStandardItem, then it has to be called in python side.
+    It provides link to the childs and to the parents, and a link to an
+    external object.
     """
-
-    def __init__(self):
-        self._must_load_child = self.hasChildren()
-        self._populateDummies()
-
-    def hasChildren(self):
-        """Override method to be able to generate chrildren on demand.
-        The result is computed from the HDF5 model.
-
-        :rtype: bool
-        """
-        raise NotImplementedError()
-
-    def child(self, row, column):
-        """Override method to be able to generate chrildren on demand.
-
-        :rtype list of QStandardItem:
-        """
-        if self._must_load_child:
-            self._populateChild()
-            self._must_load_child = False
-
-    def rowCount(self):
-        """Override method to be able to generate chrildren on demand.
-
-        :rtype list of QStandardItem:
-        """
-        raise NotImplementedError()
-
-    def _populateDummies(self):
-        """Called to populate child with dummy items.
-
-        If no dummies are created, index parent is not valid.
-
-        :rtype list of QStandardItem:
-        """
-        for row in range(self.rowCount()):
-            self.setChild(row, MustBeLoadedItem())
-
-    def _populateChild(self):
-        """Called to populate child
-        """
-        raise NotImplementedError()
-
-
-class Hdf5BrokenLinkItem(MultiColumnTreeItem):
-    """Subclass of :class:`qt.QStandardItem` to represent a broken link
-    in HDF5 tree structure.
-    """
-
-    def __init__(self, text, obj=None, message=None):
-        """Constructor
-
-        :param text str: Text displayed by the item
-        :param obj h5py link: HDF5 object containing link informations
-        :param message str: Message to display as description
-        """
-        super(Hdf5BrokenLinkItem, self).__init__(text)
-        self.setEditable(False)
-
-        style = qt.QApplication.style()
-        icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
-        self.setIcon(icon)
-
-        self.obj = obj
-        if message is None:
-            if isinstance(self.obj, h5py.ExternalLink):
-                message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
-            elif isinstance(self.obj, h5py.SoftLink):
-                message = "Soft link broken. Path %s does not exist" % (self.obj.path)
-            else:
-                name = obj.__class__.__name__.split(".")[-1].capitalize()
-                message = "%s broken" % (name)
-        self._item_description = qt.QStandardItem(message)
-        self.setExtraColumns(None, None, None, self._item_description, None)
-        self._message = message
-
-        self._setDefaultToolTip()
-
-    def _setDefaultToolTip(self):
-        input = {}
-        if isinstance(self.obj, h5py.ExternalLink):
-            input["linked path"] = self.obj.path
-            input["linked file"] = self.obj.filename
-        elif isinstance(self.obj, h5py.SoftLink):
-            input["linked path"] = self.obj.path
-        tooltip = htmlFromDict(input)
-        self.setToolTip(tooltip)
-
-
-class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
-    """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
-    item (dataset, file, group or link) as an element of a HDF5-like
-    tree structure.
-    """
-
-    def __init__(self, text, obj):
+    def __init__(self, parent=None):
         """
         :param text str: text displayed
-        :param obj object: Pointer to h5py data. See the `obj` attribute.
+        :param object obj: Pointer to h5py data. See the `obj` attribute.
+        :param Hdf5Node parent: Parent of the node, else None
         """
-        super(Hdf5Item, self).__init__(text)
-        self.setEditable(False)
+        self.__child = None
+        self.__parent = parent
 
-        self.obj = obj
-        """Pointer to h5py data. Can be one of the following classes:
+    @property
+    def parent(self):
+        return self.__parent
 
-            - :class:`h5py.File` (:attr:`itemtype` *file*)
-            - :class:`h5py.Group` (:attr:`itemtype` *group*)
-            - :class:`h5py.Dataset` (:attr:`itemtype` *dataset*)
-            - :class:`h5py.SoftLink` (:attr:`itemtype` *soft link*)
-            - :class:`h5py.ExternalLink`(:attr:`itemtype` *external link*)
-            - or a mimick version (in this case the class provide a property `h5py_class`)
-        """
+    def setParent(self, parent):
+        self.__parent = parent
 
-        LazyLoadableItem.__init__(self)
+    def appendChild(self, child):
+        self.__initChild()
+        self.__child.append(child)
 
-        # store owned items
-        self._item_type = self._createTypeItem()
-        self._item_shape = self._createShapeItem()
-        self._item_value = self._createValueItem()
-        self._item_description = self._createDescriptionItem()
-        self._item_node = self._createNodeItem()
-        self.setExtraColumns(
-            self._item_type,
-            self._item_shape,
-            self._item_value,
-            self._item_description,
-            self._item_node)
+    def insertChild(self, index, child):
+        self.__initChild()
+        self.__child.insert(index, child)
 
-        self._setDefaultTooltip()
-
-        icon = self._createDefaultIcon()
-        if icon is not None:
-            self.setIcon(icon)
-
-    def _getH5pyClass(self):
-        if hasattr(self.obj, "h5py_class"):
-            class_ = self.obj.h5py_class
-        else:
-            class_ = self.obj.__class__
-        return class_
+    def indexOfChild(self, child):
+        self.__initChild()
+        return self.__child.index(child)
 
     def hasChildren(self):
         """Override method to be able to generate chrildren on demand.
@@ -302,19 +121,25 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
 
         :rtype: bool
         """
-        if self.isGroupObj():
-            return len(self.obj) > 0
-        return super(Hdf5Item, self).hasChildren()
+        return self.childCount() > 0
 
-    def rowCount(self):
-        if self.isGroupObj():
-            return len(self.obj)
-        return super(Hdf5Item, self).rowCount()
+    def childCount(self):
+        if self.__child is not None:
+            return len(self.__child)
+        return self._expectedChildCount()
 
-    def child(self, row, column):
+    def child(self, index):
         """Override method to be able to generate chrildren on demand."""
-        LazyLoadableItem.child(self, row, column)
-        return MultiColumnTreeItem.child(self, row, column)
+        self.__initChild()
+        return self.__child[index]
+
+    def __initChild(self):
+        if self.__child is None:
+            self.__child = []
+            self._populateChild()
+
+    def _expectedChildCount(self):
+        return 0
 
     def _populateChild(self):
         """Recurse through an HDF5 structure to append groups an datasets
@@ -325,32 +150,187 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
             h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
             spech5.SpecH5Dataset)
         """
-        row = 0
+        pass
+
+    def dataName(self, role):
+        """Data for the name column"""
+        return None
+
+    def dataType(self, role):
+        """Data for the type column"""
+        return None
+
+    def dataShape(self, role):
+        """Data for the shape column"""
+        return None
+
+    def dataValue(self, role):
+        """Data for the value column"""
+        return None
+
+    def dataDescription(self, role):
+        """Data for the description column"""
+        return None
+
+    def dataNode(self, role):
+        """Data for the node column"""
+        return None
+
+
+class Hdf5BrokenLinkItem(Hdf5Node):
+    """Subclass of :class:`qt.QStandardItem` to represent a broken link
+    in HDF5 tree structure.
+    """
+
+    def __init__(self, text, obj=None, message=None, parent=None):
+        """Constructor
+
+        :param text str: Text displayed by the item
+        :param obj h5py link: HDF5 object containing link informations
+        :param message str: Message to display as description
+        """
+        super(Hdf5BrokenLinkItem, self).__init__(parent)
+        self.__text = text
+        self.__obj = obj
+        self.__message = message
+
+    @property
+    def obj(self):
+        return self.__obj
+
+    def _getH5pyClass(self):
+        if hasattr(self.__obj, "h5py_class"):
+            class_ = self.__obj.h5py_class
+        else:
+            class_ = self.__obj.__class__
+        return class_
+
+    def _expectedChildCount(self):
+        return 0
+
+    def dataName(self, role):
+        if role == qt.Qt.DecorationRole:
+            style = qt.QApplication.style()
+            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            return icon
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return self.__text
+        if role == qt.Qt.ToolTipRole:
+            input = {}
+            if isinstance(self.obj, h5py.ExternalLink):
+                input["linked path"] = self.obj.path
+                input["linked file"] = self.obj.filename
+            elif isinstance(self.obj, h5py.SoftLink):
+                input["linked path"] = self.obj.path
+            return htmlFromDict(input)
+        return None
+
+    def dataDescription(self, role):
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            if self.__message is None:
+                if isinstance(self.obj, h5py.ExternalLink):
+                    message = "External link broken. Path %s::%s does not exist" % (self.object.filename, self.object.path)
+                elif isinstance(self.object, h5py.SoftLink):
+                    message = "Soft link broken. Path %s does not exist" % (self.object.path)
+                else:
+                    name = self.object.__class__.__name__.split(".")[-1].capitalize()
+                    message = "%s broken" % (name)
+            else:
+                message = self.__message
+            return self.__message
+        return None
+
+    def dataNode(self, role):
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            class_ = self._getH5pyClass()
+            return class_.__name__.split(".")[-1]
+
+
+            class_ = self._getH5pyClass()
+            text = class_.__name__.split(".")[-1]
+            return text
+        if role == qt.Qt.ToolTipRole:
+
+            item = qt.QStandardItem(text)
+            item.setToolTip("Class name: %s" % self.__class__)
+            return text
+        return None
+
+
+class Hdf5Item(Hdf5Node):
+    """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
+    item (dataset, file, group or link) as an element of a HDF5-like
+    tree structure.
+    """
+
+    def __init__(self, text, obj, parent):
+        """
+        :param text str: text displayed
+        :param obj object: Pointer to h5py data. See the `obj` attribute.
+        """
+        Hdf5Node.__init__(self, parent)
+        self.__obj = obj
+        self.__text = text
+
+    @property
+    def obj(self):
+        return self.__obj
+
+    def _getH5pyClass(self):
+        if hasattr(self.__obj, "h5py_class"):
+            class_ = self.__obj.h5py_class
+        else:
+            class_ = self.__obj.__class__
+        return class_
+
+    def _expectedChildCount(self):
         if self.isGroupObj():
-            for child_gr_ds_name in self.obj:
+            return len(self.__obj)
+        return 0
+
+    def _populateChild(self):
+        """Recurse through an HDF5 structure to append groups an datasets
+        into the tree model.
+        :param h5item: Parent :class:`Hdf5Item` or
+            :class:`Hdf5ItemModel` object
+        :param gr_or_ds: h5py or spech5 object (h5py.File, h5py.Group,
+            h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
+            spech5.SpecH5Dataset)
+        """
+        if self.isGroupObj():
+            for child_gr_ds_name in self.__obj:
                 try:
-                    child_gr_ds = self.obj.get(child_gr_ds_name)
+                    child_gr_ds = self.__obj.get(child_gr_ds_name)
                 except RuntimeError as e:
                     _logger.error("Internal h5py error", exc_info=True)
-                    link = self.obj.get(child_gr_ds_name, getlink=True)
-                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, message=e.args[0])
+                    link = self.__obj.get(child_gr_ds_name, getlink=True)
+                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, message=e.args[0], parent=self)
                 else:
                     if child_gr_ds is None:
                         # that's a broken link
-                        link = self.obj.get(child_gr_ds_name, getlink=True)
-                        item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link)
+                        link = self.__obj.get(child_gr_ds_name, getlink=True)
+                        item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, parent=self)
                     else:
-                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds)
-                self.setChild(row, item)
-                #self.appendRow(item)
-                row += 1
+                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds, parent=self)
+                if item is not None:
+                    self.appendChild(item)
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
         class_ = self._getH5pyClass()
-        return issubclass(class_, (h5py.File, h5py.Group))
+        return issubclass(class_, h5py.Group)
 
-    def _createDefaultIcon(self):
+    def _getDefaultIcon(self):
         style = qt.QApplication.style()
         class_ = self._getH5pyClass()
         if issubclass(class_, h5py.File):
@@ -362,28 +342,28 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(self.obj.shape) < 4:
-                name = "item-%ddim" % len(self.obj.shape)
+            if len(self.__obj.shape) < 4:
+                name = "item-%ddim" % len(self.__obj.shape)
             else:
                 name = "item-ndim"
-            if str(self.obj.dtype) == "object":
+            if str(self.__obj.dtype) == "object":
                 name = "item-object"
             icon = icons.getQIcon(name)
             return icon
         return None
 
-    def _setDefaultTooltip(self):
+    def _getDefaultTooltip(self):
         """Set the default tooltip"""
         class_ = self._getH5pyClass()
-        attrs = dict(self.obj.attrs)
+        attrs = dict(self.__obj.attrs)
         if issubclass(class_, h5py.Dataset):
-            if self.obj.shape == ():
+            if self.__obj.shape == ():
                 attrs["shape"] = "scalar"
             else:
-                attrs["shape"] = self.obj.shape
-            attrs["dtype"] = self.obj.dtype
-            if self.obj.shape == ():
-                attrs["value"] = self.obj.value
+                attrs["shape"] = self.__obj.shape
+            attrs["dtype"] = self.__obj.dtype
+            if self.__obj.shape == ():
+                attrs["value"] = self.__obj.value
             else:
                 attrs["value"] = "..."
 
@@ -392,145 +372,208 @@ class Hdf5Item(MultiColumnTreeItem, LazyLoadableItem):
         else:
             tooltip = ""
 
-        self.setToolTip(tooltip)
+        return tooltip
 
-    def _createTypeItem(self):
-        """Create the item holding the type column"""
-        class_ = self._getH5pyClass()
-        if issubclass(class_, h5py.Dataset):
-            if self.obj.dtype.type == numpy.string_:
-                text = "string"
-            else:
-                text = str(self.obj.dtype)
-        else:
-            text = ""
+    def dataName(self, role):
+        """Data for the name column"""
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return self.__text
+        if role == qt.Qt.DecorationRole:
+            return self._getDefaultIcon()
+        if role == qt.Qt.ToolTipRole:
+            return self._getDefaultTooltip()
+        return None
 
-        return qt.QStandardItem(text)
-
-    def _createShapeItem(self):
-        """Create the item holding the type column"""
-        class_ = self._getH5pyClass()
-        if not issubclass(class_, h5py.Dataset):
+    def dataType(self, role):
+        """Data for the type column"""
+        if role == qt.Qt.DecorationRole:
             return None
-
-        shape = [str(i) for i in self.obj.shape]
-        text = u" \u00D7 ".join(shape)
-        return qt.QStandardItem(text)
-
-    def _createValueItem(self):
-        """Create the item holding the type column"""
-        class_ = self._getH5pyClass()
-        if not issubclass(class_, h5py.Dataset):
-            return None
-
-        numpy_object = self.obj.value
-
-        if self.obj.dtype.type == numpy.object_:
-            text = str(numpy_object)
-        elif self.obj.dtype.type == numpy.string_:
-            text = str(numpy_object)
-        else:
-            size = 1
-            for dim in numpy_object.shape:
-                size = size * dim
-
-            if size > 5:
-                text = "..."
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            class_ = self._getH5pyClass()
+            if issubclass(class_, h5py.Dataset):
+                if self.__obj.dtype.type == numpy.string_:
+                    text = "string"
+                else:
+                    text = str(self.obj.dtype)
             else:
+                text = ""
+            return text
+
+        return None
+
+    def dataShape(self, role):
+        """Data for the shape column"""
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            class_ = self._getH5pyClass()
+            if not issubclass(class_, h5py.Dataset):
+                return None
+            shape = [str(i) for i in self.__obj.shape]
+            text = u" \u00D7 ".join(shape)
+            return text
+        return None
+
+    def dataValue(self, role):
+        """Data for the value column"""
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            class_ = self._getH5pyClass()
+            if not issubclass(class_, h5py.Dataset):
+                return None
+
+            numpy_object = self.__obj.value
+
+            if self.__obj.dtype.type == numpy.object_:
                 text = str(numpy_object)
+            elif self.__obj.dtype.type == numpy.string_:
+                text = str(numpy_object)
+            else:
+                size = 1
+                for dim in numpy_object.shape:
+                    size = size * dim
 
-        return qt.QStandardItem(text)
+                if size > 5:
+                    text = "..."
+                else:
+                    text = str(numpy_object)
+            return text
+        return None
 
-    def _createDescriptionItem(self):
-        """Create the item holding the description column"""
-        if "desc" in self.obj.attrs:
-            text = self.obj.attrs["desc"]
-        else:
+    def dataDescription(self, role):
+        """Data for the description column"""
+        if role == qt.Qt.DecorationRole:
             return None
-        item = qt.QStandardItem(text)
-        item.setToolTip("Description:%s" % text)
-        return item
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            if "desc" in self.__obj.attrs:
+                text = self.__obj.attrs["desc"]
+            else:
+                return None
+            return text
+        if role == qt.Qt.ToolTipRole:
+            if "desc" in self.__obj.attrs:
+                text = self.__obj.attrs["desc"]
+            else:
+                return None
+            return "Description: %s" % text
+        return None
 
-    def _createNodeItem(self):
-        """Create the item holding the description column"""
-        class_ = self._getH5pyClass()
-        text = class_.__name__.split(".")[-1]
-        item = qt.QStandardItem(text)
-        item.setToolTip("Class name: %s" % self.__class__)
-        return item
+    def dataNode(self, role):
+        """Data for the node column"""
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            class_ = self._getH5pyClass()
+            text = class_.__name__.split(".")[-1]
+            return text
+        if role == qt.Qt.ToolTipRole:
+            class_ = self._getH5pyClass()
+            return "Class name: %s" % self.__class__
+        return None
 
 
-class Hdf5TreeModel(qt.QStandardItemModel):
-    """Data model for the content of an HDF5 file or a Specfile.
-    This model is a hierarchical tree, whose nodes are :class:`Hdf5Item`
-    objects in the first column and :class:`qt.QStandardItem` in the second
-    column.
-    The first column contains the data name and a pointer to the HDF5 data
-    objects, while the second column is only a data description to be
-    displayed in a tree view.
-    """
-    def __init__(self):
-        """
-        :param files: List of file handles/descriptors for a :class:`h5py.File`
-            or a  :class:`spech5.SpecH5` object, or list of file pathes.
-        """
-        super(Hdf5TreeModel, self).__init__()
-        self.setHorizontalHeaderLabels([
+class Hdf5TreeModel(qt.QAbstractItemModel):
+
+    def __init__(self, parent=None):
+        super(Hdf5TreeModel, self).__init__(parent)
+
+        self.treeView = parent
+        self.header_labels = [
             'Name',
             'Type',
             'Shape',
             'Value',
             'Description',
             'Node',
-        ])
+        ]
 
-    def itemFromIndex(self, index):
-        """
-        Override itemFromIndex to be able to call non virtual method
-        Qt.QStandardItem.child
+        # Create items
+        self.__root = Hdf5Node()
 
-        :param index qt.QModelIndex: An index
-        :rtype: qt.QStandardItem
-        """
-        item = qt.QStandardItemModel.itemFromIndex(self, index)
-        if isinstance(item, MustBeLoadedItem):
-            parent_index = self.parent(index)
-            parent = qt.QStandardItemModel.itemFromIndex(self, parent_index)
-            if isinstance(parent, LazyLoadableItem):
-                item = parent.child(index.row(), index.column())
-        return item
+    def headerData(self, section, orientation, role):
+        if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
+            return self.header_labels[section]
+        return None
 
-    def hasChildren(self, index):
-        """
-        Override hasChildren to be able to call non virtual method
-        Qt.QStandardItem.hasChildren
+    def insertNode(self, row, node):
+        if row == -1:
+            row = self.__root.childCount()
+        self.beginInsertRows(qt.QModelIndex(), row, row)
+        self.__root.insertChild(row, node)
+        self.endInsertRows()
 
-        :param index qt.QModelIndex: An index
-        :rtype: bool
-        """
-        item = self.itemFromIndex(index)
-        if isinstance(item, LazyLoadableItem):
-            return item.hasChildren()
-        return super(Hdf5TreeModel, self).hasChildren(index)
+    def index(self, row, column, parent):
+        node = self.nodeFromIndex(parent)
+        return self.createIndex(row, column, node.child(row))
 
-    def rowCount(self, index):
-        """
-        Override rowCount to be able to call non virtual method
-        Qt.QStandardItem.rowCount
+    def data(self, index, role):
+        node = self.nodeFromIndex(index)
 
-        :param index qt.QModelIndex: An index
-        :rtype: int
-        """
-        item = self.itemFromIndex(index)
-        if isinstance(item, LazyLoadableItem):
-            return item.rowCount()
-        return super(Hdf5TreeModel, self).rowCount(index)
+        if index.column() == 0:
+            return node.dataName(role)
+        elif index.column() == 1:
+            return node.dataType(role)
+        elif index.column() == 2:
+            return node.dataShape(role)
+        elif index.column() == 3:
+            return node.dataValue(role)
+        elif index.column() == 4:
+            return node.dataDescription(role)
+        elif index.column() == 5:
+            return node.dataNode(role)
+        else:
+            return None
 
-    def appendRow(self, items):
-        # TODO it would be better to generate a self invisibleItem, but it looks to be impossible
-        if isinstance(items, MultiColumnTreeItem):
-            items = items._getItemRow()
-        super(Hdf5TreeModel, self).appendRow(items)
+    def columnCount(self, parent):
+        return len(self.header_labels)
+
+    def rowCount(self, parent):
+        node = self.nodeFromIndex(parent)
+        if node is None:
+            return 0
+        return node.childCount()
+
+    def parent(self, child):
+        if not child.isValid():
+            return qt.QModelIndex()
+
+        node = self.nodeFromIndex(child)
+
+        if node is None:
+            return qt.QModelIndex()
+
+        parent = node.parent
+
+        if parent is None:
+            return qt.QModelIndex()
+
+        grandparent = parent.parent
+        if grandparent is None:
+            return qt.QModelIndex()
+        row = grandparent.indexOfChild(parent)
+
+        assert row != - 1
+        return self.createIndex(row, 0, parent)
+
+    def nodeFromIndex(self, index):
+        return index.internalPointer() if index.isValid() else self.__root
+
+    def appendNode(self, h5pyNode):
+        row = self.__root.childCount()
+        self.insertNode(row, h5pyNode)
 
     def appendH5pyObject(self, h5pyObject, text=None):
         """Append an HDF5 object from h5py to the tree.
@@ -550,9 +593,7 @@ class Hdf5TreeModel(qt.QStandardItemModel):
                 filename = os.path.basename(h5pyObject.file.filename)
                 path = h5pyObject.name
                 text = "%s::%s" % (filename, path)
-
-        file_item = Hdf5Item(text=text, obj=h5pyObject)
-        self.appendRow(file_item)
+        self.appendNode(Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
 
     def appendFile(self, filename):
         """Load a HDF5 file into the data model.
@@ -705,7 +746,7 @@ class Hdf5TreeView(qt.QTreeView):
         """
         result = []
         for index in self.selectedIndexes():
-            item = self.model().itemFromIndex(index)
+            item = self.model().nodeFromIndex(index)
             if item is None:
                 continue
             if isinstance(item, Hdf5Item):
