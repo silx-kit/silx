@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "29/08/2016"
 
 
 import weakref
@@ -212,11 +212,6 @@ class WeakList(list):
         self.__list = [ref for ref in self.__list if ref() is not None]
         self.__is_valid = True
 
-    def __getitem__(self, index):
-        """Returns the object at the requested index"""
-        self.__clean()
-        return self.__list[index]()
-
     def __iter__(self):
         """Iterate over objects of the list"""
         for ref in self.__list:
@@ -229,16 +224,59 @@ class WeakList(list):
         self.__clean()
         return len(self.__list)
 
-    def __setitem__(self, index, obj):
-        """Set an item at an index"""
-        self.__clean()
-        ref = self.__create_ref(obj)
-        self.__list[index] = ref
+    def __getitem__(self, key):
+        """Returns the object at the requested index
 
-    def __delitem__(self, index):
-        """Delete an index item of this list"""
+        :param key: Indexes to get
+        :type key: int or slice
+        """
         self.__clean()
-        del self.__list[index]
+        data = self.__list[key]
+        if isinstance(data, list):
+            result = [ref() for ref in data]
+        else:
+            result = data()
+        return result
+
+    def __setitem__(self, key, obj):
+        """Set an item at an index
+
+        :param key: Indexes to set
+        :type key: int or slice
+        """
+        self.__clean()
+        if isinstance(key, slice):
+            objs = [self.__create_ref(o) for o in obj]
+            self.__list[key] = objs
+        else:
+            obj_ref = self.__create_ref(obj)
+            self.__list[key] = obj_ref
+
+    def __delitem__(self, key):
+        """Delete an Indexes item of this list
+
+        :param key: Index to delete
+        :type key: int or slice
+         """
+        self.__clean()
+        del self.__list[key]
+
+    def __delslice__(self, i, j):
+        """Looks to be used in Python 2.7"""
+        self.__delitem__(slice(i, j, None))
+
+    def __setslice__(self, i, j, sequence):
+        """Looks to be used in Python 2.7"""
+        self.__setitem__(slice(i, j, None), sequence)
+
+    def __getslice__(self, i, j):
+        """Looks to be used in Python 2.7"""
+        return self.__getitem__(slice(i, j, None))
+
+    def __reversed__(self):
+        """Returns a copy of the reverted list"""
+        reversed_list = reversed(list(self))
+        return WeakList(reversed_list)
 
     def __contains__(self, obj):
         """Returns true if the object is in the list"""
@@ -308,6 +346,15 @@ class WeakList(list):
     def sort(self, cmp=None, key=None, reverse=False):
         """Sort the list inplace.
         Not very efficient."""
-        sorted_list = list(self).sort(cmp, key, reverse)
+        sorted_list = list(self)
+        sorted_list.sort(cmp, key, reverse)
         self.__list = []
         self.extend(sorted_list)
+
+    def __str__(self):
+        unref_list = list(self)
+        return unref_list.__str__()
+
+    def __repr__(self):
+        unref_list = list(self)
+        return unref_list.__repr__()
