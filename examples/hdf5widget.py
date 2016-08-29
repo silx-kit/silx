@@ -39,6 +39,129 @@ from silx.gui import qt
 from silx.gui import hdf5widget
 import pprint
 import html
+import h5py
+import tempfile
+
+
+_file_cache = {}
+
+
+def get_hdf5_with_all_types():
+    global _file_cache
+    ID = "alltypes"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("arrays")
+    g.create_dataset("scalar", data=10)
+    g.create_dataset("list", data=[10])
+    g.create_dataset("image", data=[[10]])
+    g.create_dataset("cube", data=[[[10]]])
+    g.create_dataset("hypercube", data=[[[[10]]]])
+
+    g = h5.create_group("dtypes")
+    g.create_dataset("int32", data=numpy.int32(10))
+    g.create_dataset("int64", data=numpy.int64(10))
+    g.create_dataset("float32", data=numpy.float32(10))
+    g.create_dataset("float64", data=numpy.float64(10))
+    g.create_dataset("string_", data=numpy.string_("Hi!"))
+    #g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
+
+    g.create_dataset("bool", data=True)
+    g.create_dataset("bool2", data=False)
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_hdf5_with_all_links():
+    global _file_cache
+    ID = "alllinks"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("group")
+    g.create_dataset("dataset", data=numpy.int64(10))
+    h5.create_dataset("dataset", data=numpy.int64(10))
+
+    h5["hard_link_to_group"] = h5["/group"]
+    h5["hard_link_to_dataset"] = h5["/dataset"]
+
+    h5["soft_link_to_group"] = h5py.SoftLink("/group")
+    h5["soft_link_to_dataset"] = h5py.SoftLink("/dataset")
+    h5["soft_link_to_nothing"] = h5py.SoftLink("/foo/bar/2000")
+
+    alltypes_filename = get_hdf5_with_all_types()
+
+    h5["external_link_to_group"] = h5py.ExternalLink(alltypes_filename, "/arrays")
+    h5["external_link_to_dataset"] = h5py.ExternalLink(alltypes_filename, "/arrays/cube")
+    h5["external_link_to_nothing"] = h5py.ExternalLink(alltypes_filename, "/foo/bar/2000")
+    h5["external_link_to_missing_file"] = h5py.ExternalLink("missing_file.h5", "/")
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_hdf5_with_1000_datasets():
+    global _file_cache
+    ID = "dataset1000"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("group")
+    for i in range(1000):
+        g.create_dataset("dataset%i" % i, data=numpy.int64(10))
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_hdf5_with_10000_datasets():
+    global _file_cache
+    ID = "dataset10000"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("group")
+    for i in range(10000):
+        g.create_dataset("dataset%i" % i, data=numpy.int64(10))
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_hdf5_with_100000_datasets():
+    global _file_cache
+    ID = "dataset100000"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("group")
+    for i in range(100000):
+        g.create_dataset("dataset%i" % i, data=numpy.int64(10))
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
 
 
 class Hdf5TreeViewExample(qt.QMainWindow):
@@ -64,18 +187,19 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__text = qt.QTextEdit(self)
         """Widget displaying information"""
 
-        tree_panel = qt.QWidget(self)
-        layout = qt.QVBoxLayout()
-        layout.addWidget(self.__treeview)
-        layout.addWidget(self.createTreeViewConfigurationPanel(self, self.__treeview))
-        tree_panel.setLayout(layout)
-
         spliter = qt.QSplitter()
-        spliter.addWidget(tree_panel)
+        spliter.addWidget(self.__treeview)
         spliter.addWidget(self.__text)
         spliter.setStretchFactor(1, 1)
 
-        self.setCentralWidget(spliter)
+        main_panel = qt.QWidget(self)
+        layout = qt.QVBoxLayout()
+        layout.addWidget(spliter)
+        layout.addWidget(self.createTreeViewConfigurationPanel(self, self.__treeview))
+        layout.setStretchFactor(spliter, 1)
+        main_panel.setLayout(layout)
+
+        self.setCentralWidget(main_panel)
 
         # append all files to the tree
         for file_name in filenames:
@@ -124,22 +248,49 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
     def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
-        panel = qt.QGroupBox("Tree options", parent)
-        layout = qt.QVBoxLayout()
-        panel.setLayout(layout)
+        panel = qt.QWidget(parent)
+        panel.setLayout(qt.QHBoxLayout())
 
-        autosize = qt.QCheckBox("Auto-size headers", panel)
+        content = qt.QGroupBox("Content", panel)
+        content.setLayout(qt.QVBoxLayout())
+        panel.layout().addWidget(content)
+
+        button = qt.QPushButton("Append h5 file containing all types")
+        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_all_types()))
+        content.layout().addWidget(button)
+
+        button = qt.QPushButton("Append h5 file containing all links")
+        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_all_links()))
+        content.layout().addWidget(button)
+
+        button = qt.QPushButton("Append h5 file containing 1000 datasets")
+        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_1000_datasets()))
+        content.layout().addWidget(button)
+
+        button = qt.QPushButton("Append h5 file containing 10000 datasets")
+        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_10000_datasets()))
+        content.layout().addWidget(button)
+
+        button = qt.QPushButton("Append h5 file containing 100000 datasets")
+        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_100000_datasets()))
+        content.layout().addWidget(button)
+
+        option = qt.QGroupBox("Tree options", panel)
+        option.setLayout(qt.QVBoxLayout())
+        panel.layout().addWidget(option)
+
+        autosize = qt.QCheckBox("Auto-size headers", option)
         autosize.setChecked(treeview.header().hasAutoResizeColumns())
         autosize.toggled.connect(lambda: treeview.header().setAutoResizeColumns(autosize.isChecked()))
-        layout.addWidget(autosize)
+        option.layout().addWidget(autosize)
 
-        multiselection = qt.QCheckBox("Multi-selection", panel)
+        multiselection = qt.QCheckBox("Multi-selection", option)
         multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
         switch_selection = lambda: treeview.setSelectionMode(
                 qt.QAbstractItemView.MultiSelection if multiselection.isChecked()
                 else qt.QAbstractItemView.SingleSelection)
         multiselection.toggled.connect(switch_selection)
-        layout.addWidget(multiselection)
+        option.layout().addWidget(multiselection)
 
         return panel
 
