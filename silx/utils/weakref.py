@@ -343,11 +343,12 @@ class WeakList(list):
         """Reverse the list inplace"""
         self.__list.reverse()
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def sort(self, key=None, reverse=False):
         """Sort the list inplace.
-        Not very efficient."""
+        Not very efficient.
+        """
         sorted_list = list(self)
-        sorted_list.sort(cmp, key, reverse)
+        sorted_list.sort(key=key, reverse=reverse)
         self.__list = []
         self.extend(sorted_list)
 

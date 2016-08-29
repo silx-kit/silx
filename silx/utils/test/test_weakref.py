@@ -38,6 +38,9 @@ class Dummy(object):
     def inc(self, a):
         return a + 1
 
+    def __lt__(self, other):
+         return True
+
 
 def dummy_inc(a):
     """Dummy function to use it as geanie pig"""
