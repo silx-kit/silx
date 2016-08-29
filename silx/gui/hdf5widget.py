@@ -746,6 +746,8 @@ class Hdf5TreeView(qt.QTreeView):
         """
         result = []
         for index in self.selectedIndexes():
+            if index.column() != 0:
+                continue
             item = self.model().nodeFromIndex(index)
             if item is None:
                 continue
