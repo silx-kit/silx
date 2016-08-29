@@ -648,7 +648,7 @@ class Hdf5HeaderView(qt.QHeaderView):
         """
         return self.__auto_resize
 
-    autoResizeColumns = qt.pyqtProperty(bool, hasAutoResizeColumns, setAutoResizeColumns)
+    autoResizeColumns = qt.Property(bool, hasAutoResizeColumns, setAutoResizeColumns)
     """Property to enable/disable auto-resize."""
 
     def __createContextMenu(self, pos):
