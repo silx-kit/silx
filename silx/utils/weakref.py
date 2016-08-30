@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/08/2016"
+__date__ = "30/08/2016"
 
 
 import weakref
@@ -354,8 +354,8 @@ class WeakList(list):
 
     def __str__(self):
         unref_list = list(self)
-        return unref_list.__str__()
+        return "WeakList(%s)" % str(unref_list)
 
     def __repr__(self):
         unref_list = list(self)
-        return unref_list.__repr__()
+        return "WeakList(%s)" % repr(unref_list)
