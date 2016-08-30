@@ -511,7 +511,7 @@ class SaveAction(_PlotAction):
         ('Curve as ";"-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
         ('Curve as ","-separated CSV (*.csv)',
-            {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
+         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
         ('Curve as tab-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
         ('Curve as OMNIC CSV (*.csv)',
@@ -524,7 +524,7 @@ class SaveAction(_PlotAction):
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat", )
+    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat"), )
 
     IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
     IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
