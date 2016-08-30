@@ -48,7 +48,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/08/2016"
+__date__ = "30/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -81,6 +81,20 @@ def htmlFromDict(input):
     return result
 
 
+class Hdf5NodeMimeData(qt.QMimeData):
+    """Mimedata class to identify an internal drag and drop of a Hdf5Node."""
+
+    MIME_TYPE = "application/x-internal-h5py-node"
+
+    def __init__(self, node=None):
+        qt.QMimeData.__init__(self)
+        self.__node = node
+        self.setData(self.MIME_TYPE, "")
+
+    def node(self):
+        return self.__node
+
+
 class Hdf5Node(object):
     """Abstract tree node
 
@@ -106,6 +120,9 @@ class Hdf5Node(object):
     def appendChild(self, child):
         self.__initChild()
         self.__child.append(child)
+
+    def deleteChild(self, index):
+        return self.__child.pop(index)
 
     def insertChild(self, index, child):
         self.__initChild()
@@ -502,6 +519,110 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         # Create items
         self.__root = Hdf5Node()
+        self.__fileDropEnabled = True
+        self.__fileMoveEnabled = True
+
+    def isFileDropEnabled(self):
+        return self.__fileDropEnabled
+
+    def setFileDropEnabled(self, enabled):
+        self.__fileDropEnabled = enabled
+
+    fileDropEnabled = qt.Property(bool, isFileDropEnabled, setFileDropEnabled)
+    """Property to enable/disable file dropping in the model."""
+
+    def isFileMoveEnabled(self):
+        return self.__fileMoveEnabled
+
+    def setFileMoveEnabled(self, enabled):
+        self.__fileMoveEnabled = enabled
+
+    fileMoveEnabled = qt.Property(bool, isFileMoveEnabled, setFileMoveEnabled)
+    """Property to enable/disable drag-and-drop to drag and drop files to
+    change the ordering in the model."""
+
+    def supportedDropActions(self):
+        if self.__fileMoveEnabled or self.__fileDropEnabled:
+            return qt.Qt.CopyAction | qt.Qt.MoveAction
+        else:
+            return None
+
+    def mimeTypes(self):
+        if self.__fileMoveEnabled:
+            return [Hdf5NodeMimeData.MIME_TYPE]
+        else:
+            return []
+
+    def mimeData(self, index):
+        if self.__fileMoveEnabled:
+            node = self.nodeFromIndex(index[0])
+            mimeData = Hdf5NodeMimeData(node)
+            return mimeData
+        else:
+            return None
+
+    def flags(self, index):
+        defaultFlags = qt.QAbstractItemModel.flags(self, index)
+
+        if index.isValid():
+            node = self.nodeFromIndex(index)
+            if self.__fileMoveEnabled and node.parent is self.__root:
+                # that's a root
+                return qt.Qt.ItemIsEditable |qt.Qt.ItemIsDragEnabled | defaultFlags
+            return defaultFlags
+        elif self.__fileDropEnabled or self.__fileMoveEnabled:
+            return qt.Qt.ItemIsDropEnabled | defaultFlags
+        else:
+            return defaultFlags
+
+    def dropMimeData(self, mimedata, action, row, column, parentIndex):
+        if action == qt.Qt.IgnoreAction:
+            return True
+
+        if self.__fileMoveEnabled and mimedata.hasFormat(Hdf5NodeMimeData.MIME_TYPE):
+            dragNode = mimedata.node()
+            parentNode = self.nodeFromIndex(parentIndex)
+            if parentNode is not dragNode.parent:
+                return False
+
+            if row == -1:
+                # append to the parent
+                row = parentNode.childCount()
+            else:
+                # insert at row
+                pass
+
+            dragNodeParent = dragNode.parent
+            sourceRow = dragNodeParent.indexOfChild(dragNode)
+            self.moveRow(parentIndex, sourceRow, parentIndex, row)
+            return True
+
+        if self.__fileDropEnabled and mimedata.hasFormat("text/uri-list"):
+
+            parentNode = self.nodeFromIndex(parentIndex)
+            if parentNode is not self.__root:
+                while(parentNode is not self.__root):
+                    node = parentNode
+                    parentNode = node.parent
+                row = parentNode.indexOfChild(node)
+            else:
+                if row == -1:
+                    row = self.__root.childCount()
+
+            messages = []
+            for url in mimedata.urls():
+                try:
+                    self.insertFile(url.toLocalFile(), row)
+                    row += 1
+                except IOError as e:
+                    messages.append(e.args[0])
+            if len(messages) > 0:
+                title = "Error occurred when loading files"
+                message = "<html>%s:<ul><li>%s</li><ul></html>" % (title, "</li><li>".join(messages))
+                qt.QMessageBox.critical(None, title, message)
+            return True
+
+        return False
 
     def headerData(self, section, orientation, role):
         if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
@@ -514,6 +635,28 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.beginInsertRows(qt.QModelIndex(), row, row)
         self.__root.insertChild(row, node)
         self.endInsertRows()
+
+    def moveRow(self, sourceParentIndex, sourceRow, destinationParentIndex, destinationRow):
+        if sourceRow == destinationRow or sourceRow == destinationRow - 1:
+            # abort move, same place
+            return
+        return self.moveRows(sourceParentIndex, sourceRow, 1, destinationParentIndex, destinationRow)
+
+    def moveRows(self, sourceParentIndex, sourceRow, count, destinationParentIndex, destinationRow):
+        self.beginMoveRows(sourceParentIndex, sourceRow, sourceRow, destinationParentIndex, destinationRow)
+        sourceNode = self.nodeFromIndex(sourceParentIndex)
+        destinationNode = self.nodeFromIndex(destinationParentIndex)
+
+        if sourceNode is destinationNode and sourceRow < destinationRow:
+            item = sourceNode.child(sourceRow)
+            destinationNode.insertChild(destinationRow, item)
+            sourceNode.deleteChild(sourceRow)
+        else:
+            item = sourceNode.deleteChild(sourceRow)
+            destinationNode.insertChild(destinationRow, item)
+
+        self.endMoveRows()
+        return True
 
     def index(self, row, column, parent):
         node = self.nodeFromIndex(parent)
@@ -571,11 +714,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
 
-    def appendNode(self, h5pyNode):
-        row = self.__root.childCount()
-        self.insertNode(row, h5pyNode)
-
-    def appendH5pyObject(self, h5pyObject, text=None):
+    def insertH5pyObject(self, h5pyObject, text=None, row=-1):
         """Append an HDF5 object from h5py to the tree.
 
         :param h5pyObject: File handle/descriptor for a :class:`h5py.File`
@@ -593,9 +732,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
                 filename = os.path.basename(h5pyObject.file.filename)
                 path = h5pyObject.name
                 text = "%s::%s" % (filename, path)
-        self.appendNode(Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
+        if row == -1:
+            row = self.__root.childCount()
+        self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
 
-    def appendFile(self, filename):
+    def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
 
         :param filename: file path.
@@ -608,12 +749,17 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             else:
                 # assume Specfile
                 fd = spech5.SpecH5(filename)
+                if len(fd) == 0:
+                    raise IOError("Specfile empty")
 
             # add root level row with file name
-            self.appendH5pyObject(fd)
+            self.insertH5pyObject(fd, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise IOError("File '%s' can't be read as HDF5 or SpecFile" % filename)
+
+    def appendFile(self, filename):
+        self.insertFile(filename, -1)
 
 
 class Hdf5HeaderView(qt.QHeaderView):
@@ -737,6 +883,25 @@ class Hdf5TreeView(qt.QTreeView):
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         # optimise the rendering
         self.setUniformRowHeights(True)
+
+        self.setAcceptDrops(True)
+        self.setDragEnabled(True)
+        self.setDragDropMode(qt.QAbstractItemView.DragDrop)
+        self.showDropIndicator()
+
+    def dragEnterEvent(self, event):
+        if self.model().isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+            self.setState(qt.QAbstractItemView.DraggingState)
+            event.accept()
+        else:
+            qt.QTreeView.dragEnterEvent(self, event)
+
+    def dragMoveEvent(self, event):
+        if self.model().isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+            event.setDropAction(qt.Qt.LinkAction)
+            event.accept()
+        else:
+            qt.QTreeView.dragMoveEvent(self, event)
 
     def selectedH5pyObjects(self, ignoreBrokenLinks=True):
         """Returns selected h5py objects like `h5py.File`, `h5py.Group`,

@@ -292,6 +292,16 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         multiselection.toggled.connect(switch_selection)
         option.layout().addWidget(multiselection)
 
+        filedrop = qt.QCheckBox("Drop external file", option)
+        filedrop.setChecked(treeview.model().isFileDropEnabled())
+        filedrop.toggled.connect(lambda: treeview.model().setFileDropEnabled(filedrop.isChecked()))
+        option.layout().addWidget(filedrop)
+
+        filemove = qt.QCheckBox("Reorder files", option)
+        filemove.setChecked(treeview.model().isFileMoveEnabled())
+        filemove.toggled.connect(lambda: treeview.model().setFileMoveEnabled(filedrop.isChecked()))
+        option.layout().addWidget(filemove)
+
         return panel
 
 
