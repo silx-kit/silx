@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "30/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -1131,6 +1131,9 @@ class SpecH5(SpecH5Group):
         self._sf = SpecFile(filename)
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
+        if len(self) == 0:
+            # SpecFile library do not raise exception for non specfiles
+            raise IOError("Empty specfile. Not a valid spec format.")
 
     def keys(self):
         """

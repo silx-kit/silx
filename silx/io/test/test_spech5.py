@@ -36,7 +36,7 @@ from ..spech5 import (SpecH5, SpecH5Group,
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "30/08/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -372,6 +372,12 @@ class TestSpecH5(unittest.TestCase):
         self.sfh5.visititems(func)
         self.assertIn('/1.2/instrument/positioners/Pslit HGap', dataset_name_list)
         self.assertEqual(len(dataset_name_list), 48)
+
+    def testNotSpecH5(self):
+        tmp = tempfile.NamedTemporaryFile()
+        tmp.file.write(b"Not a spec file!")
+        tmp.file.flush()
+        self.assertRaises(IOError, SpecH5, tmp.name)
 
 
 def suite():
