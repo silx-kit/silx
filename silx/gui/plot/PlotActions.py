@@ -500,35 +500,35 @@ class SaveAction(_PlotAction):
     """
     # TODO find a way to make the filter list selectable and extensible
 
-    SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
+    SNAPSHOT_FILTERS = ('Plot Snapshot PNG (*.png)', 'Plot Snapshot JPEG (*.jpg)')
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
     CURVE_FILTERS_TXT = OrderedDict((
-        ('Curve as Raw ASCII *.txt',
+        ('Curve as Raw ASCII (*.txt)',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ";"-separated CSV *.csv',
+        ('Curve as ";"-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
-        ('Curve as ","-separated CSV *.csv',
-         {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
-        ('Curve as tab-separated CSV *.csv',
+        ('Curve as ","-separated CSV (*.csv)',
+            {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
+        ('Curve as tab-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        ('Curve as OMNIC CSV *.csv',
+        ('Curve as OMNIC CSV (*.csv)',
          {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
-        ('Curve as SpecFile *.dat',
+        ('Curve as SpecFile (*.dat)',
          {'fmt': '%.7g', 'delimiter': '', 'header': False})
     ))
 
-    CURVE_FILTER_NPY = 'Curve as NumPy binary file *.npy'
+    CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile *.dat", )
+    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat", )
 
-    IMAGE_FILTER_EDF = 'Image as EDF *.edf'
-    IMAGE_FILTER_TIFF = 'Image as TIFF *.tif'
-    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
+    IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
+    IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file (*.npy)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
 
     def __init__(self, plot, parent=None):
