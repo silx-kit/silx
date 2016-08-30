@@ -524,7 +524,7 @@ class SaveAction(_PlotAction):
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat"), )
+    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
     IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
     IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
