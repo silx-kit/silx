@@ -125,8 +125,10 @@ read the following sections.
 Installing Python
 +++++++++++++++++
 
-Download and install Python from `python.org <https://www.python.org/downloads/>`_.
-We recommend you to install the 64bits version of Python as the 32bits version is limited to 2 GB of memory.
+Download and install Python from `python.org <https://www.python.org/downloads/>`_. 
+
+We recommend that you install the 64bits version of Python, which is not the default version suggested on the Python website. The 32bits version is limited to 2 GB of memory, and also we don't provide a silx wheel for it. This means that you would have to install silx from its sources, which requires you to install a C compiler first.
+
 We also encourage you to use Python 3.5 or newer.
 
 Configure Python as explained on `docs.python.org

@@ -245,6 +245,31 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         picker = (selectable or draggable)
 
+        # Debian 7 specific support
+        # No transparent colormap with matplotlib < 1.2.0
+        # Add support for transparent colormap for uint8 data with
+        # colormap with 256 colors, linear norm, [0, 255] range
+        if matplotlib.__version__ < '1.2.0':
+            if (len(data.shape) == 2 and colormap['name'] is None and
+                    'colors' in colormap):
+                colors = numpy.array(colormap['colors'], copy=False)
+                if (colors.shape[-1] == 4 and
+                        not numpy.all(numpy.equal(colors[3], 255))):
+                    # This is a transparent colormap
+                    if (colors.shape == (256, 4) and
+                            colormap['normalization'] == 'linear' and
+                            not colormap['autoscale'] and
+                            colormap['vmin'] == 0 and
+                            colormap['vmax'] == 255 and
+                            data.dtype == numpy.uint8):
+                        # Supported case, convert data to RGBA
+                        data = colors[data.reshape(-1)].reshape(
+                            data.shape + (4,))
+                    else:
+                        _logger.warning(
+                            'matplotlib %s does not support transparent '
+                            'colormap.', matplotlib.__version__)
+
         # the normalization can be a source of time waste
         # Two possibilities, we receive data or a ready to show image
         if len(data.shape) == 3:
@@ -310,7 +335,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
                 # Set unset/negative bounds to positive bounds
                 if vmin is None or vmax is None:
-                    posData = data[data > 0]
+                    finiteData = data[numpy.isfinite(data)]
+                    posData = finiteData[finiteData > 0]
                     if vmax is None:
                         # 1. as an ultimate fallback
                         vmax = posData.max() if posData.size > 0 else 1.
@@ -323,8 +349,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             else:  # Linear normalization
                 if colormap['autoscale']:
-                    vmin = data.min()
-                    vmax = data.max()
+                    finiteData = data[numpy.isfinite(data)]
+                    vmin = finiteData.min()
+                    vmax = finiteData.max()
                 else:
                     vmin = colormap['vmin']
                     vmax = colormap['vmax']

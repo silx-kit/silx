@@ -68,7 +68,7 @@ class TestDictToH5(unittest.TestCase):
         os.rmdir(self.tempdir)
 
     def testH5CityAttrs(self):
-        filters = {'compression': "gzip", 'shuffle': True,
+        filters = {'shuffle': True,
                    'fletcher32': True}
         dicttoh5(city_attrs, self.h5_fname, h5path='/city attributes',
                  mode="w", create_dataset_args=filters)
@@ -81,7 +81,7 @@ class TestDictToH5(unittest.TestCase):
 
         # filters only apply to datasets that are not scalars (shape != () )
         ds = h5f["/city attributes/Europe/France/Grenoble/coordinates"]
-        self.assertEqual(ds.compression, "gzip")
+        #self.assertEqual(ds.compression, "gzip")
         self.assertTrue(ds.fletcher32)
         self.assertTrue(ds.shuffle)
 

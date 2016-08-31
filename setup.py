@@ -138,7 +138,9 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'run_tests.py', '-i'])
         if errno != 0:
             raise SystemExit(errno)
+
 cmdclass['test'] = PyTest
+
 
 # ################### #
 # build_doc commandes #
@@ -149,8 +151,22 @@ try:
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
     from sphinx.setup_command import BuildDoc
+
 except ImportError:
-    sphinx = None
+    class build_doc(Command):
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
+        def run(self):
+            raise RuntimeError(
+                'Sphinx is required to build the documentation.\n'
+                'Please install Sphinx (http://www.sphinx-doc.org).')
+
 else:
     # i.e. if sphinx:
     class build_doc(BuildDoc):
@@ -182,7 +198,9 @@ else:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
-    cmdclass['build_doc'] = build_doc
+
+
+cmdclass['build_doc'] = build_doc
 
 
 # ############## #

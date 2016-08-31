@@ -23,7 +23,7 @@
 #############################################################################*/
 """Tests for specfile wrapper"""
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
 __date__ = "29/04/2016"
 
@@ -137,10 +137,19 @@ class TestSpecFile(unittest.TestCase):
             os.write(fd2, bytes(sftext[370:-97], 'ascii'))
         os.close(fd2)
 
+        fd3, cls.fname3 = tempfile.mkstemp(text=False)
+        txt = sftext[371:923]
+        if sys.version < '3.0':
+            os.write(fd3, txt)
+        else:
+            os.write(fd3, bytes(txt, 'ascii'))
+        os.close(fd3)
+
     @classmethod
     def tearDownClass(cls):
         os.unlink(cls.fname1)
         os.unlink(cls.fname2)
+        os.unlink(cls.fname3)
 
 
     def setUp(self):
@@ -152,6 +161,9 @@ class TestSpecFile(unittest.TestCase):
         self.sf_no_fhdr = SpecFile(self.fname2)
         self.scan1_no_fhdr = self.sf_no_fhdr[0]
 
+        self.sf_no_fhdr_crash = SpecFile(self.fname3)
+        self.scan1_no_fhdr_crash = self.sf_no_fhdr_crash[0]
+
     def tearDown(self):
         del self.sf
         del self.sf_no_fhdr
@@ -159,12 +171,35 @@ class TestSpecFile(unittest.TestCase):
         del self.scan1_2
         del self.scan25
         del self.scan1_no_fhdr
+        del self.sf_no_fhdr_crash
+        del self.scan1_no_fhdr_crash
         gc.collect()
 
     def test_open(self):
         self.assertIsInstance(self.sf, SpecFile)
         with self.assertRaises(IOError):
             sf2 = SpecFile("doesnt_exist.dat")
+
+        # test filename types unicode and bytes
+        if sys.version_info[0] < 3:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python2 str")
+            try:
+                SpecFile(unicode(self.fname1))
+            except TypeError:
+                self.fail("failed to handle filename as python2 unicode")
+        else:
+            try:
+                SpecFile(self.fname1)
+            except TypeError:
+                self.fail("failed to handle filename as python3 str")
+            try:
+                SpecFile(bytes(self.fname1, 'utf-8'))
+            except TypeError:
+                self.fail("failed to handle filename as python3 bytes")
+
         
     def test_number_of_scans(self):
         self.assertEqual(3, len(self.sf))
@@ -243,16 +278,21 @@ class TestSpecFile(unittest.TestCase):
                          ['first column', 'second column', '3rd_col'])
 
     def test_data(self):
+        # data_line() and data_col() take 1-based indices as arg
         self.assertAlmostEqual(self.scan1.data_line(1)[2],
                                1.56)
-        self.assertEqual(self.scan1.data.shape, (4, 3))
+        # tests for data transposition between original file and .data attr
+        self.assertAlmostEqual(self.scan1.data[2, 0],
+                               8)
+        self.assertEqual(self.scan1.data.shape, (3, 4))
         self.assertAlmostEqual(numpy.sum(self.scan1.data), 113.631)
 
     def test_data_column_by_name(self):
         self.assertAlmostEqual(self.scan25.data_column_by_name("col2")[1],
                                1.2)
+        # Scan.data is transposed after readinq, so column is the first index
         self.assertAlmostEqual(numpy.sum(self.scan25.data_column_by_name("col2")),
-                               numpy.sum(self.scan25.data[:, 2]))
+                               numpy.sum(self.scan25.data[2, :]))
         with self.assertRaises(KeyError):
             self.scan25.data_column_by_name("ygfxgfyxg")
 
@@ -269,11 +309,6 @@ class TestSpecFile(unittest.TestCase):
     def test_absence_of_file_header(self):
         """We expect Scan.file_header to be an empty list in the absence
         of a file header.
-
-        Important note: A #S line needs to be preceded  by an empty line,
-        so a SpecFile without a file header needs to start with an empty line.
-        Otherwise, this test fails because SfFileHeader() fills
-        Scan.file_header with 15 scan header lines.
         """
         self.assertEqual(len(self.scan1_no_fhdr.motor_names), 0)
         # motor positions can still be read in the scan header
@@ -281,7 +316,20 @@ class TestSpecFile(unittest.TestCase):
         self.assertAlmostEqual(sum(self.scan1_no_fhdr.motor_positions),
                                223.385912)
         self.assertEqual(len(self.scan1_no_fhdr.header), 15)
+        self.assertEqual(len(self.scan1_no_fhdr.scan_header), 15)
         self.assertEqual(len(self.scan1_no_fhdr.file_header), 0)
+
+    def test_crash_absence_of_file_header(self):
+        """Test no crash in absence of file header and no leading newline
+        character
+        """
+        self.assertEqual(len(self.scan1_no_fhdr_crash.motor_names), 0)
+        # motor positions can still be read in the scan header
+        # even in the absence of motor names
+        self.assertAlmostEqual(sum(self.scan1_no_fhdr_crash.motor_positions),
+                               223.385912)
+        self.assertEqual(len(self.scan1_no_fhdr_crash.scan_header), 15)
+        self.assertEqual(len(self.scan1_no_fhdr_crash.file_header), 0)
 
     def test_mca(self):
         self.assertEqual(len(self.scan1.mca), 0)
