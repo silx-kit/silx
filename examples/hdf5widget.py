@@ -312,7 +312,10 @@ def main(filenames):
     app = qt.QApplication([])
     window = Hdf5TreeViewExample(filenames)
     window.show()
-    sys.exit(app.exec_())
+    result = app.exec_()
+    # remove ending warnings relative to QTimer
+    app.deleteLater()
+    sys.exit(result)
 
 
 if __name__ == "__main__":
