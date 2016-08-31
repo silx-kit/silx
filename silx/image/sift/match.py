@@ -53,13 +53,16 @@ if not pyopencl:
 
 
 class MatchPlan(object):
-    """Plan to compare sets of SIFT keypoint
+    """Plan to compare sets of SIFT keypoint and find common ones.
 
-    siftp = sift.MatchPlan(devicetype="GPU")
-    kp = siftp.match(kp1,kp2)
 
-    kp is a nx132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint
+    .. code-block:: python
+    
+        siftp = sift.MatchPlan(devicetype="ALL")
+        commonkp = siftp.match(kp1,kp2)
 
+    where kp1, kp2 is a n x 132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint.
+    commonkp is mx2 array of matching keypoints
     """
     kernels = {"matching_gpu": 64,
                "matching_cpu": 16,
