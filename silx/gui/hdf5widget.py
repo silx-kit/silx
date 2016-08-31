@@ -35,9 +35,7 @@ import sys
 import numpy
 import logging
 from . import qt
-from ..io import spech5
 from . import icons
-
 
 try:
     import h5py
@@ -52,6 +50,26 @@ __date__ = "30/08/2016"
 
 
 _logger = logging.getLogger(__name__)
+
+
+def load_file_as_h5py(filename):
+    """
+    Load a file as an h5py.File object
+
+    :param str filename: A filename
+    :raises: IOError if the file can't be loaded as an h5py.File like object
+    :rtype: h5py.File
+    """
+    if not os.path.isfile(filename):
+        raise IOError("Filename '%s' must be a file path" % filename)
+
+    if h5py.is_hdf5(filename):
+        h5file = h5py.File(filename)
+    else:
+        # assume Specfile
+        from ..io import spech5
+        h5file = spech5.SpecH5(filename)
+    return h5file
 
 
 def htmlFromDict(input):
@@ -727,19 +745,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         :param filename: file path.
         """
-        if not os.path.isfile(filename):
-            raise IOError("Filename '%s' must be a file path" % filename)
         try:
-            if h5py.is_hdf5(filename):
-                fd = h5py.File(filename)
-            else:
-                # assume Specfile
-                fd = spech5.SpecH5(filename)
-                if len(fd) == 0:
-                    raise IOError("Specfile empty")
-
-            # add root level row with file name
-            self.insertH5pyObject(fd, row=row)
+            h5file = load_file_as_h5py(filename)
+            self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
             raise IOError("File '%s' can't be read as HDF5 or SpecFile" % filename)
