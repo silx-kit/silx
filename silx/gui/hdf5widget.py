@@ -54,20 +54,6 @@ __date__ = "30/08/2016"
 _logger = logging.getLogger(__name__)
 
 
-def is_hdf5_file(fname):
-    """Return True if file is an HDF5 file, else False
-    """
-    if not os.path.isfile(fname):
-        raise IOError("Parameter fname (%s) is not a valid file path" % fname)
-    try:
-        f = h5py.File(fname)
-    except IOError:
-        return False
-    else:
-        f.close()
-        return True
-
-
 def htmlFromDict(input):
     """Generate a readable HTML from a dictionary
 
@@ -744,7 +730,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if not os.path.isfile(filename):
             raise IOError("Filename '%s' must be a file path" % filename)
         try:
-            if is_hdf5_file(filename):
+            if h5py.is_hdf5(filename):
                 fd = h5py.File(filename)
             else:
                 # assume Specfile
