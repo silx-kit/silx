@@ -93,18 +93,18 @@ class Device(object):
         """
         Simple container with some important data for the OpenCL device description:
         
-        @param name: name of the device
-        @param dtype: device type: CPU/GPU/ACC...
-        @param version: driver version
-        @param driver_version: 
-        @param extensions: List of opencl extensions
-        @param memory: maximum memory available on the device
-        @param available: is the device desactivated or not 
-        @param cores: number of SM/cores
-        @param frequency: frequency of the device
-        @param flop_cores: Flopating Point operation per core per cycle
-        @param idx: index of the device within the platform
-        @param workgroup: max workgroup size
+        :param name: name of the device
+        :param dtype: device type: CPU/GPU/ACC...
+        :param version: driver version
+        :param driver_version: 
+        :param extensions: List of opencl extensions
+        :param memory: maximum memory available on the device
+        :param available: is the device desactivated or not 
+        :param cores: number of SM/cores
+        :param frequency: frequency of the device
+        :param flop_cores: Flopating Point operation per core per cycle
+        :param idx: index of the device within the platform
+        :param workgroup: max workgroup size
         """
         self.name = name.strip()
         self.type = dtype
@@ -152,11 +152,11 @@ class Platform(object):
         """
         Class containing all descriptions of a platform and all devices description within that platform.
         
-        @param name: platform name
-        @param vendor: name of the brand/vendor
-        @param version:
-        @param extension: list of the extension provided by the platform to all of its devices
-        @param idx: index of the platform
+        :param name: platform name
+        :param vendor: name of the brand/vendor
+        :param version:
+        :param extension: list of the extension provided by the platform to all of its devices
+        :param idx: index of the platform
         """
         self.name = name.strip()
         self.vendor = vendor.strip()
@@ -172,7 +172,7 @@ class Platform(object):
         """
         Add new device to the platform
 
-        @param device: Device instance
+        :param device: Device instance
         """
         self.devices.append(device)
 
@@ -180,7 +180,7 @@ class Platform(object):
         """
         Return a device according to key
 
-        @param key: identifier for a device, either it's id (int) or it's name
+        :param key: identifier for a device, either it's id (int) or it's name
         @type key: int or str
         """
         out = None
@@ -257,7 +257,7 @@ class OpenCL(object):
         """
         Return a platform according
 
-        @param key: identifier for a platform, either an Id (int) or it's name
+        :param key: identifier for a platform, either an Id (int) or it's name
         @type key: int or str
         """
         out = None
@@ -276,10 +276,10 @@ class OpenCL(object):
         """
         Select a device based on few parameters (at the end, keep the one with most memory)
 
-        @param type: "gpu" or "cpu" or "all" ....
-        @param memory: minimum amount of memory (int)
-        @param extensions: list of extensions to be present
-        @param best: shall we look for the
+        :param type: "gpu" or "cpu" or "all" ....
+        :param memory: minimum amount of memory (int)
+        :param extensions: list of extensions to be present
+        :param best: shall we look for the
         """
         if "type" in kwargs:
             dtype = kwargs["type"].upper()
@@ -315,10 +315,10 @@ class OpenCL(object):
         Suggested are GPU,CPU.
         For each setting to work there must be such an OpenCL device and properly installed.
         E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail. The AMD SDK kit is required for CPU via OpenCL.
-        @param devicetype: string in ["cpu","gpu", "all", "acc"]
-        @param useFp64: boolean specifying if double precision will be used
-        @param platformid: integer
-        @param devid: integer
+        :param devicetype: string in ["cpu","gpu", "all", "acc"]
+        :param useFp64: boolean specifying if double precision will be used
+        :param platformid: integer
+        :param devid: integer
         @return: OpenCL context on the selected device
         """
         if (platformid is not None) and (deviceid is not None):
@@ -348,7 +348,7 @@ class OpenCL(object):
         """
         Retrieves the Device from the context
         
-        @param context: OpenCL context
+        :param context: OpenCL context
         @return: instance of Device  
         """
         odevice = context.devices[0]
@@ -367,7 +367,7 @@ else:
 
 def release_cl_buffers(cl_buffers):
     """
-    @param cl_buffer: the buffer you want to release
+    :param cl_buffer: the buffer you want to release
     @type cl_buffer: dict(str, pyopencl.Buffer)
 
     This method release the memory of the buffers store in the dict
@@ -390,7 +390,7 @@ def release_cl_buffers(cl_buffers):
 
 def allocate_cl_buffers(buffers, device=None, context=None):
     """
-    @param buffers: the buffers info use to create the pyopencl.Buffer
+    :param buffers: the buffers info use to create the pyopencl.Buffer
     @type buffer: list(std, flag, numpy.dtype, int)
     @return: a dict containing the instanciated pyopencl.Buffer
     @rtype: dict(str, pyopencl.Buffer)

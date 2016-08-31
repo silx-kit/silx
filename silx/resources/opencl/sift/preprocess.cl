@@ -45,10 +45,10 @@
 /**
  * \brief Cast values of an array of uint8 into a float output array.
  *
- * @param array_int:     Pointer to global memory with the input data as unsigned8 array
- * @param array_float:   Pointer to global memory with the output data as float array
- * @param IMAGE_W:       Width of the image
- * @param IMAGE_H:       Height of the image
+ * :param array_int:     Pointer to global memory with the input data as unsigned8 array
+ * :param array_float:   Pointer to global memory with the output data as float array
+ * :param IMAGE_W:       Width of the image
+ * :param IMAGE_H:       Height of the image
  */
 __kernel void
 u8_to_float( __global unsigned char  *array_int,
@@ -67,10 +67,10 @@ u8_to_float( __global unsigned char  *array_int,
 /**
  * \brief cast values of an array of uint16 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the input data as unsigned16 array
- * @param array_float:  Pointer to global memory with the output data as float array
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the input data as unsigned16 array
+ * :param array_float:  Pointer to global memory with the output data as float array
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  */
 __kernel void
 u16_to_float(__global unsigned short  *array_int,
@@ -89,10 +89,10 @@ u16_to_float(__global unsigned short  *array_int,
 /**
  * \brief cast values of an array of uint32 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the input data as unsigned16 array
- * @param array_float:  Pointer to global memory with the output data as float array
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the input data as unsigned16 array
+ * :param array_float:  Pointer to global memory with the output data as float array
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  */
 __kernel void
 u32_to_float(__global unsigned int  *array_int,
@@ -111,10 +111,10 @@ u32_to_float(__global unsigned int  *array_int,
 /**
  * \brief convert values of an array of int32 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the data in int
- * @param array_float:  Pointer to global memory with the data in float
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the data in int
+ * :param array_float:  Pointer to global memory with the data in float
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  */
 __kernel void
 s32_to_float(    __global int  *array_int,
@@ -133,10 +133,10 @@ s32_to_float(    __global int  *array_int,
 /**
  * \brief convert values of an array of int64 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the data in int
- * @param array_float:  Pointer to global memory with the data in float
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the data in int
+ * :param array_float:  Pointer to global memory with the data in float
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  */
 __kernel void
 s64_to_float(    __global long *array_int,
@@ -155,10 +155,10 @@ s64_to_float(    __global long *array_int,
 /**
  * \brief convert values of an array of float64 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the data in double
- * @param array_float:  Pointer to global memory with the data in float
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the data in double
+ * :param array_float:  Pointer to global memory with the data in float
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  *
  * COMMENTED OUT AS THIS RUNS ONLY ON GPU WITH FP64
  */
@@ -179,10 +179,10 @@ s64_to_float(    __global long *array_int,
 /**
  * \brief convert RGB of an array of 3xuint8 into a float output array.
  *
- * @param array_int:    Pointer to global memory with the data in int
- * @param array_float:  Pointer to global memory with the data in float
- * @param IMAGE_W:        Width of the image
- * @param IMAGE_H:         Height of the image
+ * :param array_int:    Pointer to global memory with the data in int
+ * :param array_float:  Pointer to global memory with the data in float
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
  *
  * WARNING: still untested (formula is the same as PIL)
  */
@@ -205,12 +205,12 @@ rgb_to_float(    __global unsigned char *array_int,
  * \brief Performs normalization of image between 0 and max_out (255) in place.
  *
  *
- * @param image        Float pointer to global memory storing the image.
- * @param min_in:     Minimum value in the input array
- * @param max_in:     Maximum value in the input array
- * @param max_out:     Maximum value in the output array (255 adviced)
- * @param IMAGE_W:    Width of the image
- * @param IMAGE_H:     Height of the image
+ * :param image        Float pointer to global memory storing the image.
+ * :param min_in:     Minimum value in the input array
+ * :param max_in:     Maximum value in the input array
+ * :param max_out:     Maximum value in the output array (255 adviced)
+ * :param IMAGE_W:    Width of the image
+ * :param IMAGE_H:     Height of the image
  *
 **/
 __kernel void
@@ -233,12 +233,12 @@ normalizes(    __global       float     *image,
  * \brief shrink: Subsampling of the image_in into a smaller image_out.
  *
  *
- * @param image_in        Float pointer to global memory storing the big image.
- * @param image_ou        Float pointer to global memory storing the small image.
- * @param scale_w:     Minimum value in the input array
- * @param scale_h:     Maximum value in the input array
- * @param IMAGE_W:    Width of the output image
- * @param IMAGE_H:     Height of the output image
+ * :param image_in        Float pointer to global memory storing the big image.
+ * :param image_ou        Float pointer to global memory storing the small image.
+ * :param scale_w:     Minimum value in the input array
+ * :param scale_h:     Maximum value in the input array
+ * :param IMAGE_W:    Width of the output image
+ * :param IMAGE_H:     Height of the output image
  *
 **/
 __kernel void
@@ -267,14 +267,14 @@ shrink(const __global     float     *image_in,
  * \brief bin: resampling of the image_in into a smaller image_out with higher dynamics.
  *
  *
- * @param image_in        Float pointer to global memory storing the big image.
- * @param image_ou        Float pointer to global memory storing the small image.
- * @param scale_width:    Binning factor in horizontal           
- * @param scale_heigth:   Binning factor in vertical
- * @param orig_width:     Original image size in horizontal
- * @param orig_heigth:    Original image size in vertical
- * @param binned_width:   Width of the output binned image
- * @param binned_heigth:  Height of the output binned image
+ * :param image_in        Float pointer to global memory storing the big image.
+ * :param image_ou        Float pointer to global memory storing the small image.
+ * :param scale_width:    Binning factor in horizontal           
+ * :param scale_heigth:   Binning factor in vertical
+ * :param orig_width:     Original image size in horizontal
+ * :param orig_heigth:    Original image size in vertical
+ * :param binned_width:   Width of the output binned image
+ * :param binned_heigth:  Height of the output binned image
  *
  * Nota: this is a 2D kernel. This is non working and non TESTED !!!
 **/
@@ -319,9 +319,9 @@ bin(        const    __global     float     *image_in,
  * \brief gaussian: Initialize a vector with a gaussian function.
  *
  *
- * @param data:        Float pointer to global memory storing the vector.
- * @param sigma:    width of the gaussian
- * @param size:     size of the function
+ * :param data:        Float pointer to global memory storing the vector.
+ * :param sigma:    width of the gaussian
+ * :param size:     size of the function
  *
 **/
 
@@ -343,9 +343,9 @@ gaussian(            __global     float     *data,
  * \brief divide_cst: divide a vector by a constant.
  *
  *
- * @param data:     Float pointer to global memory storing the vector.
- * @param value:    calc data/value
- * @param size:     size of the vector
+ * :param data:     Float pointer to global memory storing the vector.
+ * :param value:    calc data/value
+ * :param size:     size of the vector
  *
 **/
 

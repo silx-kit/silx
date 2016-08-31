@@ -51,10 +51,10 @@
  * optimal total item size:  (workgroup size)^2
  * if SIZE >total item size: adjust seq_count.
  *
- * @param data:       Float pointer to global memory storing the vector of data.
- * @param out:    	  Float2 pointer to global memory storing the temporary results (workgroup size)
- * @param seq_count:  how many blocksize each thread should read
- * @param SIZE:		  size of the
+ * :param data:       Float pointer to global memory storing the vector of data.
+ * :param out:    	  Float2 pointer to global memory storing the temporary results (workgroup size)
+ * :param seq_count:  how many blocksize each thread should read
+ * :param SIZE:		  size of the
  *
 **/
 
@@ -133,9 +133,9 @@ __kernel void max_min_global_stage1(
  *
  *
  *
- * @param data2:      Float2 pointer to global memory storing the vector of pre-reduced data (workgroup size).
- * @param maximum:    Float pointer to global memory storing the maximum value
- * @param minumum:    Float pointer to global memory storing the minimum value
+ * :param data2:      Float2 pointer to global memory storing the vector of pre-reduced data (workgroup size).
+ * :param maximum:    Float pointer to global memory storing the maximum value
+ * :param minumum:    Float pointer to global memory storing the minimum value
  *
 **/
 

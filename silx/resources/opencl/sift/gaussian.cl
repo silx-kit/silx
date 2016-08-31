@@ -47,9 +47,9 @@
  * This kernel must be run with size == workgroup
  *
  *
- * @param data:        Float pointer to global memory storing the vector.
- * @param sigma:    width of the gaussian
- * @param size:     size of the function
+ * :param data:        Float pointer to global memory storing the vector.
+ * :param sigma:    width of the gaussian
+ * :param size:     size of the function
  *
 **/
 

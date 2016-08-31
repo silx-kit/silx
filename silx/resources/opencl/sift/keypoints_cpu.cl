@@ -18,15 +18,15 @@ typedef float4 keypoint;
 **
  * \brief Compute a SIFT descriptor for each keypoint.
  *
- * @param keypoints: Pointer to global memory with current keypoints vector
- * @param descriptor: Pointer to global memory with the output SIFT descriptor, cast to uint8
- * //@param tmp_descriptor: Pointer to shared memory with temporary computed float descriptors
- * @param grad: Pointer to global memory with gradient norm previously calculated
- * @param oril: Pointer to global memory with gradient orientation previously calculated
- * @param keypoints_start : index start for keypoints
- * @param keypoints_end: end index for keypoints
- * @param grad_width: integer number of columns of the gradient
- * @param grad_height: integer num of lines of the gradient
+ * :param keypoints: Pointer to global memory with current keypoints vector
+ * :param descriptor: Pointer to global memory with the output SIFT descriptor, cast to uint8
+ * //:param tmp_descriptor: Pointer to shared memory with temporary computed float descriptors
+ * :param grad: Pointer to global memory with gradient norm previously calculated
+ * :param oril: Pointer to global memory with gradient orientation previously calculated
+ * :param keypoints_start : index start for keypoints
+ * :param keypoints_end: end index for keypoints
+ * :param grad_width: integer number of columns of the gradient
+ * :param grad_height: integer num of lines of the gradient
  *
  *
  */

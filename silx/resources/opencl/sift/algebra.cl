@@ -4,13 +4,13 @@ typedef float4 keypoint;
 /**
  * \brief Linear combination of two matrices
  *
- * @param u: Pointer to global memory with the input data of the first matrix
- * @param a: float scalar which multiplies the first matrix
- * @param v: Pointer to global memory with the input data of the second matrix
- * @param b: float scalar which multiplies the second matrix
- * @param w: Pointer to global memory with the output data
- * @param width: integer, number of columns the matrices
- * @param height: integer, number of lines of the matrices
+ * :param u: Pointer to global memory with the input data of the first matrix
+ * :param a: float scalar which multiplies the first matrix
+ * :param v: Pointer to global memory with the input data of the second matrix
+ * :param b: float scalar which multiplies the second matrix
+ * :param w: Pointer to global memory with the output data
+ * :param width: integer, number of columns the matrices
+ * :param height: integer, number of lines of the matrices
  *
  * Nota: updated to have coalesced access on dim[0]
  */
@@ -44,11 +44,11 @@ __kernel void combine(
  *		(initially we had (peak,r,c,sigma), but at this stage peak is not useful anymore)
  *
  *
- * @param keypoints: Pointer to global memory with the keypoints
- * @param output: Pointer to global memory with the output
- * @param counter: Pointer to global memory with the shared counter in the output
- * @param start_keypoint: start compaction at this index. counter should be equal to start at the begining.
- * @param end_keypoint: index of last keypoints
+ * :param keypoints: Pointer to global memory with the keypoints
+ * :param output: Pointer to global memory with the output
+ * :param counter: Pointer to global memory with the shared counter in the output
+ * :param start_keypoint: start compaction at this index. counter should be equal to start at the begining.
+ * :param end_keypoint: index of last keypoints
  *
  */
 

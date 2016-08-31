@@ -82,9 +82,9 @@ def shrink_cython(img, xs, ys):
 
 def binning(input_img, binsize):
     """
-    @param input_img: input ndarray
-    @param binsize: int or 2-tuple representing the size of the binning
-    @return: binned input ndarray
+    :param input_img: input ndarray
+    :param binsize: int or 2-tuple representing the size of the binning
+    :return: binned input ndarray
 
     TODO: Not used here
     """

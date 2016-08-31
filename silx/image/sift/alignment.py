@@ -86,14 +86,14 @@ class LinearAlign(object):
         """
         Constructor of the class
 
-        @param image: reference image on which other image should be aligned
-        @param devicetype: Kind of preferred devce
-        @param profile:collect profiling information ?
-        @param device: 2-tuple of integer. see clinfo
-        @param max_workgroup_size: set to 1 for macOSX on CPU
-        @param ROI: Region of interest: to be implemented
-        @param extra: extra space around the image, can be an integer, or a 2 tuple in YX convention: TODO!
-        @param init_sigma: bluring width, you should have good reasons to modify the 1.6 default value...
+        :param image: reference image on which other image should be aligned
+        :param devicetype: Kind of preferred devce
+        :param profile:collect profiling information ?
+        :param device: 2-tuple of integer. see clinfo
+        :param max_workgroup_size: set to 1 for macOSX on CPU
+        :param ROI: Region of interest: to be implemented
+        :param extra: extra space around the image, can be an integer, or a 2 tuple in YX convention: TODO!
+        :param init_sigma: bluring width, you should have good reasons to modify the 1.6 default value...
         """
         self.profile = bool(profile)
         self.events = []
@@ -238,10 +238,10 @@ class LinearAlign(object):
         """
         Align image on reference image
 
-        @param img: numpy array containing the image to align to reference
-        @param return_all: return in addition ot the image, keypoints, matching keypoints, and transformations as a dict
-        @param reltive: update reference keypoints with those from current image to perform relative alignment
-        @return: aligned image or all informations
+        :param img: numpy array containing the image to align to reference
+        :param return_all: return in addition ot the image, keypoints, matching keypoints, and transformations as a dict
+        :param reltive: update reference keypoints with those from current image to perform relative alignment
+        :return: aligned image or all informations
         """
         logger.debug("ref_keypoints: %s" % self.ref_kp.size)
         if self.RGB:

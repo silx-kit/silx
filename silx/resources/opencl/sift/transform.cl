@@ -6,16 +6,16 @@
  *
  *                = [matrix, offset]
  *
- * @param image: Pointer to global memory with the input image
- * @param output: Pointer to global memory with the outpu image
- * @param matrix: "float4" struct for the transformation matrix
- * @param offset: "float2" struct for the offset vector
- * @param image_width Image width
- * @param image_height Image height
- * @param output_width Output width, can differ from image width
- * @param output_height Ouput height, can differ from image height
- * @param fill: Default value to fill the image with
- * @param mode: Interpolation mode. 0 = no interpolation, 1 = bilinear interpolation
+ * :param image: Pointer to global memory with the input image
+ * :param output: Pointer to global memory with the outpu image
+ * :param matrix: "float4" struct for the transformation matrix
+ * :param offset: "float2" struct for the offset vector
+ * :param image_width Image width
+ * :param image_height Image height
+ * :param output_width Output width, can differ from image width
+ * :param output_height Ouput height, can differ from image height
+ * :param fill: Default value to fill the image with
+ * :param mode: Interpolation mode. 0 = no interpolation, 1 = bilinear interpolation
  *
  */
 

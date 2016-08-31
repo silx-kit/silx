@@ -35,11 +35,11 @@ typedef float4 keypoint;
  *
  * The gradient is computed using central differences in the interior and first differences at the boundaries.
  *
- * @param igray: Pointer to global memory with the input data of the grayscale image
- * @param grad: Pointer to global memory with the output norm of the gradient
- * @param ori: Pointer to global memory with the output orientation of the gradient
- * @param width: integer number of columns of the input image
- * @param height: integer number of lines of the input image
+ * :param igray: Pointer to global memory with the input data of the grayscale image
+ * :param grad: Pointer to global memory with the output norm of the gradient
+ * :param ori: Pointer to global memory with the output orientation of the gradient
+ * :param width: integer number of columns of the input image
+ * :param height: integer number of lines of the input image
  */
 
 
@@ -90,19 +90,19 @@ __kernel void compute_gradient_orientation(
  *	-The output have to be Memset to (-1,-1,-1,-1)
  *	-This kernel must not be launched with s = 0 or s = nb_of_dogs (=4 for SIFT)
  *
- * @param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
- * @param border_dist: integer, distance between inner image and borders (SIFT takes 5)
- * @param peak_thresh: float, threshold (SIFT takes 255.0 * 0.04 / 3.0)
- * @param output: Pointer to global memory output *filled with (-1,-1,-1,-1)* by default for invalid keypoints
- * @param octsize: initially 1 then twiced at each new octave
- * @param EdgeThresh0: initial upper limit of the curvatures ratio, to test if the point is on an edge
- * @param EdgeThresh: upper limit of the curvatures ratio, to test if the point is on an edge
- * @param counter: pointer to the current position in keypoints vector -- shared between threads
- * @param nb_keypoints: Maximum number of keypoints: size of the keypoints vector
- * @param scale: the scale in the DoG, i.e the index of the current DoG (this is not the std !)
- * @param total_width: integer number of columns of ALL the (contiguous) DOGs. We have total_height = height
- * @param width: integer number of columns of a DOG.
- * @param height: integer number of lines of a DOG
+ * :param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
+ * :param border_dist: integer, distance between inner image and borders (SIFT takes 5)
+ * :param peak_thresh: float, threshold (SIFT takes 255.0 * 0.04 / 3.0)
+ * :param output: Pointer to global memory output *filled with (-1,-1,-1,-1)* by default for invalid keypoints
+ * :param octsize: initially 1 then twiced at each new octave
+ * :param EdgeThresh0: initial upper limit of the curvatures ratio, to test if the point is on an edge
+ * :param EdgeThresh: upper limit of the curvatures ratio, to test if the point is on an edge
+ * :param counter: pointer to the current position in keypoints vector -- shared between threads
+ * :param nb_keypoints: Maximum number of keypoints: size of the keypoints vector
+ * :param scale: the scale in the DoG, i.e the index of the current DoG (this is not the std !)
+ * :param total_width: integer number of columns of ALL the (contiguous) DOGs. We have total_height = height
+ * :param width: integer number of columns of a DOG.
+ * :param height: integer number of lines of a DOG
 
 */
 
@@ -222,13 +222,13 @@ __kernel void local_maxmin(
  *  	 Note that we take the value (-1,-1,-1) for invalid keypoints. This creates "holes" in the vector.
     NOTE: the keypoints vector is not compacted yet
  *
- * @param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
- * @param keypoints: Pointer to global memory with current keypoints vector. It will be modified with the interpolated points
- * @param actual_nb_keypoints: actual number of keypoints previously found, i.e previous "counter" final value
- * @param peak_thresh: we are not counting the interpolated values if below the threshold (par.PeakThresh = 255.0*0.04/3.0)
- * @param InitSigma: float "par.InitSigma" in SIFT (1.6 by default)
- * @param width: integer number of columns of the DoG
- * @param height: integer number of lines of the DoG
+ * :param DOGS: Pointer to global memory with ALL the coutiguously pre-allocated Differences of Gaussians
+ * :param keypoints: Pointer to global memory with current keypoints vector. It will be modified with the interpolated points
+ * :param actual_nb_keypoints: actual number of keypoints previously found, i.e previous "counter" final value
+ * :param peak_thresh: we are not counting the interpolated values if below the threshold (par.PeakThresh = 255.0*0.04/3.0)
+ * :param InitSigma: float "par.InitSigma" in SIFT (1.6 by default)
+ * :param width: integer number of columns of the DoG
+ * :param height: integer number of lines of the DoG
  */
 
 

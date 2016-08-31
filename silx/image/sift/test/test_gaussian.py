@@ -31,7 +31,7 @@ Test suite for all preprocessing kernels.
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
@@ -80,8 +80,8 @@ def gaussian_cpu(sigma, size=None):
     Calculate a 1D gaussian using numpy.
     This is the same as scipy.signal.gaussian
 
-    @param sigma: width of the gaussian
-    @param size: can be calculated as 1 + 2 * 4sigma
+    :param sigma: width of the gaussian
+    :param size: can be calculated as 1 + 2 * 4sigma
     """
     t0 = time.time()
     if not size:
@@ -100,8 +100,8 @@ def gaussian_gpu_v1(sigma, size=None):
     Calculate a 1D gaussian using pyopencl.
     This is the same as scipy.signal.gaussian
 
-    @param sigma: width of the gaussian
-    @param size: can be calculated as 1 + 2 * 4sigma
+    :param sigma: width of the gaussian
+    :param size: can be calculated as 1 + 2 * 4sigma
     """
     if not size:
         size = int(1 + 8 * sigma)
@@ -129,8 +129,8 @@ def gaussian_gpu_v2(sigma, size=None):
     This is the same as scipy.signal.gaussian.
     Only one kernel to
 
-    @param sigma: width of the gaussian
-    @param size: can be calculated as 1 + 2 * 4sigma
+    :param sigma: width of the gaussian
+    :param size: can be calculated as 1 + 2 * 4sigma
     """
     if not size:
         size = int(1 + 8 * sigma)

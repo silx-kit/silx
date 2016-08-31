@@ -96,23 +96,29 @@ def is_maxmin(dog_prev, dog, dog_next, val, i0, j0, octsize, EdgeThresh0, EdgeTh
     ismax = 0
     ismin = 0
     res = 0
-    if (val > 0.0): ismax = 1
-    else: ismin = 1
+    if (val > 0.0):
+        ismax = 1
+    else:
+        ismin = 1
     for j in range(j0 - 1, j0 + 1 + 1):
         for i in range(i0 - 1, i0 + 1 + 1):
             if (ismax == 1):
-                if (dog_prev[i, j] > val or dog[i, j] > val or dog_next[i, j] > val): ismax = 0
+                if (dog_prev[i, j] > val or dog[i, j] > val or dog_next[i, j] > val):
+                    ismax = 0
             if (ismin == 1):
-                if (dog_prev[i, j] < val or dog[i, j] < val or dog_next[i, j] < val): ismin = 0
+                if (dog_prev[i, j] < val or dog[i, j] < val or dog_next[i, j] < val):
+                    ismin = 0
 
-    if (ismax == 1): res = 1
-    if (ismin == 1): res = -1
+    if (ismax == 1):
+        res = 1
+    if (ismin == 1):
+        res = -1
 
     # keypoint refinement: eliminating points at edges
     H00 = dog[i0 - 1, j0] - 2.0 * dog[i0, j0] + dog[i0 + 1, j0]
     H11 = dog[i0, j0 - 1] - 2.0 * dog[i0, j0] + dog[i0, j0 + 1]
     H01 = ((dog[i0 + 1, j0 + 1] - dog[i0 + 1, j0 - 1])
-        - (dog[i0 - 1, j0 + 1] - dog[i0 - 1, j0 - 1])) / 4.0
+           - (dog[i0 - 1, j0 + 1] - dog[i0 - 1, j0 - 1])) / 4.0
 
     det = H00 * H11 - H01 * H01
     trace = H00 + H11
@@ -134,7 +140,8 @@ def my_interp_keypoint(DOGS, s, r, c, movesRemain, peakthresh, width, height):
      WARNING: replace "1.6" by "InitSigma" if InitSigma has not its default value
      The recursive calls were replaced by a loop.
     '''
-    if (r == -1): return (-1, -1, -1, -1)
+    if (r == -1):
+        return (-1, -1, -1, -1)
     dog_prev = DOGS[s - 1]
     dog = DOGS[s]
     dog_next = DOGS[s + 1]
@@ -157,11 +164,10 @@ def my_interp_keypoint(DOGS, s, r, c, movesRemain, peakthresh, width, height):
             newc -= 1
 
         # loop test
-        if (movesRemain > 0  and  (newr != r or newc != c)):
+        if (movesRemain > 0) and (newr != r or newc != c):
             movesRemain -= 1
         else:
             loop = 0
-
 
     if (abs(x[0]) < 1.5 and abs(x[1]) < 1.5 and abs(x[2]) < 1.5 and abs(peakval) > peakthresh):
         ki = numpy.zeros(4, dtype=numpy.float32)
@@ -193,12 +199,11 @@ def fit_quadratic(dog_prev, dog, dog_next, r, c):
     H[0][1] = H[1][0] = ((dog_next[r + 1, c] - dog_next[r - 1, c])
                          - (dog_prev[r + 1, c] - dog_prev[r - 1, c])) / 4.0
 
-
     H[0][2] = H[2][0] = ((dog_next[r, c + 1] - dog_next[r, c - 1])
-                     - (dog_prev[r, c + 1] - dog_prev[r, c - 1])) / 4.0
+                         - (dog_prev[r, c + 1] - dog_prev[r, c - 1])) / 4.0
 
     H[1][2] = H[2][1] = ((dog[r + 1, c + 1] - dog[r + 1, c - 1])
-                     - (dog[r - 1, c + 1] - dog[r - 1, c - 1])) / 4.0
+                         - (dog[r - 1, c + 1] - dog[r - 1, c - 1])) / 4.0
 
     x = -numpy.dot(numpy.linalg.inv(H), g)  # extremum position
     peakval = dog[r, c] + 0.5 * (x[0] * g[0] + x[1] * g[1] + x[2] * g[2])
@@ -206,12 +211,8 @@ def fit_quadratic(dog_prev, dog, dog_next, r, c):
     return x, peakval
 
 
-
-
-
-
-
-def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad, ori, octsize, orisigma):
+def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad,
+                   ori, octsize, orisigma):
     '''
     Python implementation of orientation assignment
     '''
@@ -239,7 +240,7 @@ def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad
                     gval = grad[r, c]
                     distsq = (r - k[1]) * (r - k[1]) + (c - k[2]) * (c - k[2])
 
-                    if (gval > 0.0  and  distsq < radius2 + 0.5):
+                    if (gval > 0.0) and (distsq < radius2 + 0.5):
                         weight = numpy.exp(-distsq / sigma2)
                         angle = ori[r, c]
                         mybin = numpy.int32((36 * (angle + numpy.pi + 0.001) / (2.0 * numpy.pi)))
@@ -275,7 +276,10 @@ def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad
             keypoints[index] = k
 
             k2 = numpy.zeros(4, dtype=numpy.float32)
-            k2[0] = k[0]; k2[1] = k[1]; k2[2] = k[2]; k2[3] = 0.0
+            k2[0] = k[0]
+            k2[1] = k[1]
+            k2[2] = k[2]
+            k2[3] = 0.0
             for i in range(0, 36):
                 if i == 0:
                     prev = 35
@@ -285,16 +289,16 @@ def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad
                     next = 0
                 else:
                     next = i + 1
-                if (hist[i] > hist[prev]  and  hist[i] > hist[next]  and hist[i] >= 0.8 * maxval and i != argmax):
+                if (hist[i] > hist[prev] and hist[i] > hist[next] and hist[i] >= 0.8 * maxval and i != argmax):
                     if (hist[i] < 0.0):
                         hist[prev] = -hist[prev]
                         hist[i] = -hist[i]
                         hist[next] = -hist[next]
-                    if (hist[i] >= hist[prev]  and  hist[i] >= hist[next]):
+                    if (hist[i] >= hist[prev] and hist[i] >= hist[next]):
                         interp = 0.5 * (hist[prev] - hist[next]) / (hist[prev] - 2.0 * hist[i] + hist[next])
 
                     angle = 2.0 * numpy.pi * (i + 0.5 + interp) / 36 - numpy.pi
-                    if (angle >= -numpy.pi  and  angle <= numpy.pi):
+                    if (angle >= -numpy.pi and angle <= numpy.pi):
                         k2[3] = angle
                         if (counter < nb_keypoints):
                             keypoints[counter] = k2
@@ -310,12 +314,13 @@ def smooth_histogram(hist):
     prev = hist[35]
     for i in range(0, 36):
         temp = hist[i]
-        if (i + 1 == 36): idx = 0
-        else: idx = i + 1
+        if (i + 1 == 36):
+            idx = 0
+        else:
+            idx = i + 1
         hist[i] = (prev + hist[i] + hist[idx]) / 3.0
         prev = temp
     return hist
-
 
 
 def my_descriptor(keypoints, grad, orim, octsize, keypoints_start, keypoints_end):
@@ -336,13 +341,16 @@ def my_descriptor(keypoints, grad, orim, octsize, keypoints_start, keypoints_end
                                 - numpy.array([k[1] / octsize - irow, k[0] / octsize - icol])) / spacing + 1.5
 
                     if (rx > -1.0 and rx < 4.0 and cx > -1.0 and cx < 4.0
-                         and (irow + i) >= 0  and (irow + i) < grad.shape[0] and (icol + j) >= 0 and (icol + j) < grad.shape[1]):
+                       and (irow + i) >= 0 and (irow + i) < grad.shape[0]
+                       and (icol + j) >= 0 and (icol + j) < grad.shape[1]):
 
                         mag = grad[int(irow + i), int(icol + j)] * numpy.exp(-((rx - 1.5) ** 2 + (cx - 1.5) ** 2) / 8.0)
                         ori = orim[int(irow + i), int(icol + j)] - k[3]
 
-                        while (ori > 2.0 * numpy.pi): ori -= 2.0 * numpy.pi
-                        while (ori < 0.0): ori += 2.0 * numpy.pi
+                        while (ori > 2.0 * numpy.pi):
+                            ori -= 2.0 * numpy.pi
+                        while (ori < 0.0):
+                            ori += 2.0 * numpy.pi
 
                         oval = 8 * ori / (2.0 * numpy.pi)
 
@@ -351,7 +359,8 @@ def my_descriptor(keypoints, grad, orim, octsize, keypoints_start, keypoints_end
                         oi = int(oval if (oval >= 0.0) else oval - 1.0)
                         rfrac, cfrac, ofrac = rx - ri, cx - ci, oval - oi
 
-                        if (ri >= -1  and  ri < 4  and oi >= 0  and  oi <= 8  and rfrac >= 0.0 and rfrac <= 1.0):
+                        if (ri >= -1 and ri < 4 and oi >= 0 and oi <= 8
+                           and rfrac >= 0.0 and rfrac <= 1.0):
                             for r in range(0, 2):
                                 rindex = ri + r
                                 if (rindex >= 0 and rindex < 4):
@@ -362,7 +371,8 @@ def my_descriptor(keypoints, grad, orim, octsize, keypoints_start, keypoints_end
                                             cweight = rweight * (1.0 - cfrac if (c == 0) else cfrac)
                                             for orr in range(0, 2):
                                                 oindex = oi + orr
-                                                if (oindex >= 8): oindex = 0
+                                                if (oindex >= 8):
+                                                    oindex = 0
                                                 descriptors[index][rindex][cindex][oindex] += cweight * (1.0 - ofrac if (orr == 0) else ofrac)
                                         # end "valid cindex"
                                 # end "valid rindex"
@@ -374,7 +384,6 @@ def my_descriptor(keypoints, grad, orim, octsize, keypoints_start, keypoints_end
 
     # unwrap and normalize the 128-vector
     descriptors = descriptors.reshape(keypoints_end - keypoints_start, 128)
-
 
     for i in range(0, keypoints_end - keypoints_start):
         descriptors[i] = normalize(descriptors[i])
@@ -473,8 +482,8 @@ def descriptors_compare(ref, res):
     for descriptor in ref:
         for descriptor2 in res:
             delta = abs(descriptor - descriptor2).sum()
-            if delta == 0: match += 1
-
+            if delta == 0:
+                match += 1
     return match, nulldesc
 
 
@@ -504,25 +513,6 @@ def my_compact(keypoints, nbkeypoints):
     output[:length, 3] = keypoints[idx, 3]
     return output, length
 
-'''
-
-
-  function KahanSum(input)
-    var sum = 0.0
-    var c = 0.0
-    for i = 1 to input.length do
-        y = input[i] - c
-        t = sum + y
-        c = (t - sum) - y
-        sum = t
-    return sum
-
-
-
-'''
-
-
-
 
 def norm_L1(dset1, dset2):
     """Checks the similarity of two vectors of vectors:
@@ -542,16 +532,20 @@ def norm_L1(dset1, dset2):
     return d.min(axis=-1).max()
 
 
+'''
+
+
+  function KahanSum(input)
+    var sum = 0.0
+    var c = 0.0
+    for i = 1 to input.length do
+        y = input[i] - c
+        t = sum + y
+        c = (t - sum) - y
+        sum = t
+    return sum
 
 
 
-
-
-
-
-
-
-
-
-
+'''
 

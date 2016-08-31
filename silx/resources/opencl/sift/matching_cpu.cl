@@ -35,14 +35,14 @@ typedef struct t_keypoint {
  *
  *  "Slow version", should work on CPU
  *
- * @param keypoints1 Pointer to global memory with the first list of keypoints
- * @param keypoints: Pointer to global memory with the second list of keypoints
- * @param matchings: Pointer to global memory with the output pair of matchings (keypoint1, keypoint2)
- * @param counter: Pointer to global memory with the resulting number of matchings
- * @param max_nb_match: Absolute size limit for the resulting list of pairs
- * @param ratio_th: threshold for distances ; two descriptors whose distance is below this will not be considered as near. Default for sift.cpp implementation is 0.73*0.73 for L1 distance
- * @param size1: end index for processing list 1
- * @param size2: end index for processing list 2
+ * :param keypoints1 Pointer to global memory with the first list of keypoints
+ * :param keypoints: Pointer to global memory with the second list of keypoints
+ * :param matchings: Pointer to global memory with the output pair of matchings (keypoint1, keypoint2)
+ * :param counter: Pointer to global memory with the resulting number of matchings
+ * :param max_nb_match: Absolute size limit for the resulting list of pairs
+ * :param ratio_th: threshold for distances ; two descriptors whose distance is below this will not be considered as near. Default for sift.cpp implementation is 0.73*0.73 for L1 distance
+ * :param size1: end index for processing list 1
+ * :param size2: end index for processing list 2
  *
  * NOTE: a keypoint is (x,y,s,angle,[descriptors])
  *
@@ -116,17 +116,17 @@ __kernel void matching(
  *
  *  This version should work on CPU.
  *
- * @param keypoints1 Pointer to global memory with the first list of keypoints
- * @param keypoints: Pointer to global memory with the second list of keypoints
- * @param valid: Pointer to global memory with the region of interest (binary picture)
- * @param roi_width: Width of the Region Of Interest
- * @param roi_height: Height of the Region Of Interest
- * @param matchings: Pointer to global memory with the output pair of matchings (keypoint1, keypoint2)
- * @param counter: Pointer to global memory with the resulting number of matchings
- * @param max_nb_match: Absolute size limit for the resulting list of pairs
- * @param ratio_th: threshold for distances ; two descriptors whose distance is below this will not be considered as near. Default for sift.cpp implementation is 0.73*0.73 for L1 distance
- * @param size1: end index for processing list 1
- * @param size2: end index for processing list 2
+ * :param keypoints1 Pointer to global memory with the first list of keypoints
+ * :param keypoints: Pointer to global memory with the second list of keypoints
+ * :param valid: Pointer to global memory with the region of interest (binary picture)
+ * :param roi_width: Width of the Region Of Interest
+ * :param roi_height: Height of the Region Of Interest
+ * :param matchings: Pointer to global memory with the output pair of matchings (keypoint1, keypoint2)
+ * :param counter: Pointer to global memory with the resulting number of matchings
+ * :param max_nb_match: Absolute size limit for the resulting list of pairs
+ * :param ratio_th: threshold for distances ; two descriptors whose distance is below this will not be considered as near. Default for sift.cpp implementation is 0.73*0.73 for L1 distance
+ * :param size1: end index for processing list 1
+ * :param size2: end index for processing list 2
  *
  * NOTE: a keypoint is (x,y,s,angle,[descriptors])
  *

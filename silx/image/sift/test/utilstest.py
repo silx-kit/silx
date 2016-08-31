@@ -31,7 +31,7 @@ Test suite for all OpenCL preprocessing kernels.
 
 from __future__ import division
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
@@ -167,10 +167,11 @@ class UtilsTest(object):
     @classmethod
     def getimage(cls, imagename):
         """
-        Downloads the requested image from Forge.EPN-campus.eu
-        @param: name of the image.
+        Downloads the requested image from Internet. DEPRECATED
+        
+        :param imagename: name of the image.
         For the RedMine forge, the filename contains a directory name that is removed
-        @return: full path of the locally saved file
+        :return: full path of the locally saved file
         """
         baseimage = os.path.basename(imagename)
         logger.info("UtilsTest.getimage('%s')" % baseimage)
@@ -229,6 +230,7 @@ def recursive_delete(strDirname):
         for name in dirs:
             os.rmdir(os.path.join(root, name))
     os.rmdir(strDirname)
+
 
 def getLogger(filename=__file__):
     """

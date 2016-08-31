@@ -34,16 +34,16 @@ typedef float4 keypoint;
  * 			-At this stage, a keypoint is: (peak,r,c,sigma)
  			 After this function, it will be (c,r,sigma,angle)
  *
- * @param keypoints: Pointer to global memory with current keypoints vector.
- * @param grad: Pointer to global memory with gradient norm previously calculated
- * @param ori: Pointer to global memory with gradient orientation previously calculated
- * @param counter: Pointer to global memory with actual number of keypoints previously found
- * @param hist: Pointer to shared memory with histogram (36 values per thread)
- * @param octsize: initially 1 then twiced at each octave
- * @param OriSigma : a SIFT parameter, default is 1.5. Warning : it is not "InitSigma".
- * @param nb_keypoints : maximum number of keypoints
- * @param grad_width: integer number of columns of the gradient
- * @param grad_height: integer num of lines of the gradient
+ * :param keypoints: Pointer to global memory with current keypoints vector.
+ * :param grad: Pointer to global memory with gradient norm previously calculated
+ * :param ori: Pointer to global memory with gradient orientation previously calculated
+ * :param counter: Pointer to global memory with actual number of keypoints previously found
+ * :param hist: Pointer to shared memory with histogram (36 values per thread)
+ * :param octsize: initially 1 then twiced at each octave
+ * :param OriSigma : a SIFT parameter, default is 1.5. Warning : it is not "InitSigma".
+ * :param nb_keypoints : maximum number of keypoints
+ * :param grad_width: integer number of columns of the gradient
+ * :param grad_height: integer num of lines of the gradient
  */
 
 

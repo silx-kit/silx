@@ -46,15 +46,15 @@ typedef float4 keypoint;
  *		Additionally, a third dimension in the workgroup (size 8) enables coalesced memory access and more paralellization.
  *
  *
- * @param keypoints: Pointer to global memory with current keypoints vector
- * @param descriptor: Pointer to global memory with the output SIFT descriptor, cast to uint8
- * @param grad: Pointer to global memory with gradient norm previously calculated
- * @param orim: Pointer to global memory with gradient orientation previously calculated
- * @param octsize: the size of the current octave (1, 2, 4, 8...)
- * @param keypoints_start : index start for keypoints
- * @param keypoints_end: end index for keypoints
- * @param grad_width: integer number of columns of the gradient
- * @param grad_height: integer num of lines of the gradient
+ * :param keypoints: Pointer to global memory with current keypoints vector
+ * :param descriptor: Pointer to global memory with the output SIFT descriptor, cast to uint8
+ * :param grad: Pointer to global memory with gradient norm previously calculated
+ * :param orim: Pointer to global memory with gradient orientation previously calculated
+ * :param octsize: the size of the current octave (1, 2, 4, 8...)
+ * :param keypoints_start : index start for keypoints
+ * :param keypoints_end: end index for keypoints
+ * :param grad_width: integer number of columns of the gradient
+ * :param grad_height: integer num of lines of the gradient
 
 
 -par.MagFactor = 3 //"1.5 sigma"

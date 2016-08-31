@@ -54,8 +54,8 @@ def kernel_size(sigma, odd=False, cutoff=4):
     """
     Calculate the optimal kernel size for a convolution with sigma
 
-    @param sigma: width of the gaussian
-    @param odd: enforce the kernel to be odd (more precise ?)
+    :param sigma: width of the gaussian
+    :param odd: enforce the kernel to be odd (more precise ?)
     """
     size = int(ceil(2 * cutoff * sigma + 1))
     if odd and size % 2 == 0:
@@ -67,8 +67,8 @@ def sizeof(shape, dtype="uint8"):
     """
     Calculate the number of bytes needed to allocate for a given structure
 
-    @param shape: size or tuple of sizes
-    @param dtype: data type
+    :param shape: size or tuple of sizes
+    :param dtype: data type
     """
     itemsize = numpy.dtype(dtype).itemsize
     cnt = 1

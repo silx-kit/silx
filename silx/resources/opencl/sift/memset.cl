@@ -50,9 +50,9 @@ typedef struct t_keypoint {
 /**
  * \brief Fills a float-array with the given value.
  *
- * @param array:         Pointer to global memory with the data as float array
- * @param value:         Value used for filling
- * @param SIZE:          Size if the array
+ * :param array:         Pointer to global memory with the data as float array
+ * :param value:         Value used for filling
+ * :param SIZE:          Size if the array
  */
 
 
@@ -70,9 +70,9 @@ memset_float( __global float *array,
 /**
  * \brief Fills a int-array with the given value.
  *
- * @param array:         Pointer to global memory with the data as float array
- * @param value:         Value used for filling
- * @param SIZE:          Size if the array
+ * :param array:         Pointer to global memory with the data as float array
+ * :param value:         Value used for filling
+ * :param SIZE:          Size if the array
  */
 
 
@@ -90,9 +90,9 @@ memset_int( __global int *array,
 /**
  * \brief Fills an array of keypoints with the given value.
  *
- * @param array:         Pointer to global memory with the data as float array
- * @param value:         Value used for filling
- * @param SIZE:          Size if the array
+ * :param array:         Pointer to global memory with the data as float array
+ * :param value:         Value used for filling
+ * :param SIZE:          Size if the array
  */
 
 
