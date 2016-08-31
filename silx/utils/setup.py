@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,25 +22,17 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
-__authors__ = ["T. Vincent"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "31/08/2016"
+__date__ = "24/08/2016"
+
 
 from numpy.distutils.misc_util import Configuration
 
 
 def configuration(parent_package='', top_path=None):
-    config = Configuration('silx', parent_package, top_path)
-    config.add_subpackage('gui')
-    config.add_subpackage('io')
-    config.add_subpackage('math')
-    config.add_subpackage('image')
-    config.add_subpackage('opencl')
-    config.add_subpackage('resources')
+    config = Configuration('utils', parent_package, top_path)
     config.add_subpackage('test')
-    config.add_subpackage('third_party')
-    config.add_subpackage('utils')
 
     return config
 

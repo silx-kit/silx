@@ -34,16 +34,12 @@ import os
 import tempfile
 
 try:
-    import h5py
+    from ..octaveh5 import Octaveh5
 except ImportError:
-    h5py_missing = True
-else:
-    h5py_missing = False
-
-from ..octaveh5 import Octaveh5
+    Octaveh5 = None
 
 
-@unittest.skipIf(h5py_missing, "Could not import h5py")
+@unittest.skipIf(Octaveh5 is None, "Could not import h5py")
 class TestOctaveH5(unittest.TestCase):
     @staticmethod
     def _get_struct_FT():
