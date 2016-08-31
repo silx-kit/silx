@@ -31,23 +31,23 @@ Test suite for alignment module
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2016"
+__date__ = "31/08/2016"
 
-import time
-import os
+import unittest
 import logging
 import numpy
-import pyopencl
-import pyopencl.array
-import scipy
-import scipy.misc
-import scipy.ndimage
-import sys
-import unittest
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc
+    import scipy.ndimage
+
 from silx.opencl import ocl
 if ocl:
     import pyopencl
@@ -79,7 +79,9 @@ class TestLinalign(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        self.lena = scipy.misc.lena().astype(numpy.float32)
+        if scipy and ocl is None:
+            return
+        self.lena = scipy.misc.ascent().astype(numpy.float32)
         self.shape = self.lena.shape
         self.extra = (10, 11)
 #        self.img = scipy.ndimage.shift(self.lena, (7, 5))
@@ -88,6 +90,10 @@ class TestLinalign(unittest.TestCase):
         self.img = scipy.ndimage.affine_transform(self.lena, [[1.1, -0.1], [0.05, 0.9]], [7, 5])
         self.align = LinearAlign(self.lena, context=self.ctx)
 
+    def tearDown(self):
+        self.img = self.lena = None
+
+    @unittest.skipIf(scipy and ocl is None, "scipy or pyopencl are missing")
     def test_align(self):
         """
         tests the combine (linear combination) kernel

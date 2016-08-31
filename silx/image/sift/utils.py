@@ -28,7 +28,7 @@
 
 from __future__ import division
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
@@ -89,7 +89,7 @@ def _gcd(a, b):
 
 def matching_correction(matching):
     '''
-    Given the matching between two list of keypoints, 
+    Given the matching between two list of keypoints,
     return the linear transformation to correct kp2 with respect to kp1
     '''
     N = matching.shape[0]
@@ -143,7 +143,7 @@ def bin2RGB(img):
 
 
 def get_opencl_code(name):
-    """Read the kernel source code  and return it. 
+    """Read the kernel source code  and return it.
 
     :param str name: Filename of the kernel source,
     :return: Corresponding surce code

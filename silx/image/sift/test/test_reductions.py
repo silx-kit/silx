@@ -31,25 +31,28 @@ Test suite for all reductionsessing kernels.
 
 from __future__ import division
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "31/08/2016"
 
+import unittest
 import time
-import os
 import logging
 import math
 import numpy
-import scipy, scipy.misc
-import sys
-import unittest
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc
 from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
 
-from ..utils import calc_size, get_opencl_code
+from ..utils import get_opencl_code
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +85,16 @@ class test_reductions(unittest.TestCase):
     def tearDown(self):
         self.program = None
 
+
+    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
 
+    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
 
+    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min(self, val_max=1.0, val_min=0.0, shape=((512, 512)), data=None):
         """
         Test global_max_min kernel

@@ -31,18 +31,22 @@ Test suite for all preprocessing kernels.
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
 import time
-import os
 import logging
 import numpy
-import scipy, scipy.misc
-import sys
+try:
+    import scipy
+except:
+    scipy = None
+else:
+    import scipy.misc
+
 import math
 from silx.opencl import ocl
 if ocl:
@@ -118,14 +122,15 @@ class test_preproc(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(test_preproc, cls).setUpClass()
-        cls.ctx = ocl.create_context()
-        if logger.getEffectiveLevel() <= logging.INFO:
-            cls.PROFILE = True
-            cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-            import pylab
-        else:
-            cls.PROFILE = False
-            cls.queue = pyopencl.CommandQueue(cls.ctx)
+        if ocl:
+            cls.ctx = ocl.create_context()
+            if logger.getEffectiveLevel() <= logging.INFO:
+                cls.PROFILE = True
+                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                import pylab
+            else:
+                cls.PROFILE = False
+                cls.queue = pyopencl.CommandQueue(cls.ctx)
 
     @classmethod
     def tearDownClass(cls):
@@ -134,6 +139,8 @@ class test_preproc(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
+        if ocl and scipy is None:
+            return
         self.input = numpy.ascontiguousarray(scipy.misc.lena()[:510, :511])
         self.gpudata = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         kernel_src = get_opencl_code("preprocess")
@@ -161,6 +168,7 @@ class test_preproc(unittest.TestCase):
         self.buffers_max = None
         self.buffers_min = None
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_uint8(self):
         """
         tests the uint8 kernel
@@ -201,6 +209,7 @@ class test_preproc(unittest.TestCase):
 
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_uint16(self):
         """
         tests the uint16 kernel
@@ -238,6 +247,7 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_int32(self):
         """
         tests the int32 kernel
@@ -275,6 +285,7 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_int64(self):
         """
         tests the int64 kernel
@@ -311,6 +322,7 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_rgb(self):
         """
         tests the int64 kernel
@@ -350,6 +362,7 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_shrink(self):
         """
         Test shrinking kernel
@@ -391,6 +404,7 @@ class test_preproc(unittest.TestCase):
             raw_input("enter")
         self.assert_(delta < 1e-6, "delta=%s" % delta)
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_bin(self):
         """
         Test binning kernel

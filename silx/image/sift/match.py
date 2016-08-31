@@ -32,11 +32,11 @@ Contains a class for creating a matching plan, allocating arrays, compiling kern
 
 from __future__ import division, print_function, with_statement
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2016"
+__date__ = "31/08/2016"
 __status__ = "beta"
 import os
 import logging
@@ -79,7 +79,7 @@ class MatchPlan(object):
         :param devicetype: can be CPU or GPU
         :param profile: set to true to activate profiling information collection
         :param device: 2-tuple of integer, see clinfo
-        :param max_workgroup_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128). 
+        :param max_workgroup_size: CPU on MacOS, limit to 1. None by default to use default ones (max=128).
         :param roi: Region Of Interest: TODO
         :param context: Use an external context (discard devicetype and device options)
         """

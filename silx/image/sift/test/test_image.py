@@ -31,25 +31,24 @@ Test suite for image kernels
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2016"
+__date__ = "31/08/2016"
 
 import time
-import os
 import logging
 import numpy
-import scipy, scipy.misc
-import sys
-import math
+
 from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
+
 import unittest
 from ..utils import calc_size, get_opencl_code
 from .test_image_setup import my_gradient, my_local_maxmin, my_interp_keypoint, interpolation_setup, local_maxmin_setup
+from .test_image_functions import norm_L1
 logger = logging.getLogger(__name__)
 
 PRINT_KEYPOINTS = False
@@ -88,7 +87,6 @@ class TestImage(unittest.TestCase):
         """
         tests the gradient kernel (norm and orientation)
         """
-
         border_dist, peakthresh, EdgeThresh, EdgeThresh0, octsize, scale, nb_keypoints, width, height, DOGS, g = local_maxmin_setup()
         self.mat = numpy.ascontiguousarray(g[1])
         self.height, self.width = numpy.int32(self.mat.shape)
@@ -232,8 +230,10 @@ class TestImage(unittest.TestCase):
             # logger.info("Ref:")
             # logger.info(ref[0:32,:]
 
-        delta = abs(ref2 - res2).max()
-        self.assert_(delta < 1e-4, "delta=%s" % (delta))
+        self.assert_(abs(len(ref2) / len(res2) - 1) < 0.2, "the number of keypoint is almost the same")
+
+        delta = norm_L1(ref2, res2)
+        self.assert_(delta < 0.15, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
 
         if self.PROFILE:

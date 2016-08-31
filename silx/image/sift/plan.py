@@ -39,14 +39,14 @@ University of British Columbia does not require a license for its use for
 non-commercial research applications.
 
 
-This algorithm is patented: U.S. Patent 6,711,293: 
-"Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image", 
+This algorithm is patented: U.S. Patent 6,711,293:
+"Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image",
 David Lowe's patent for the SIFT algorithm, March 23, 2004
 """
 
 from __future__ import division, print_function, with_statement
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
@@ -70,8 +70,8 @@ logger = logging.getLogger("sift.plan")
 class SiftPlan(object):
     """
     This class implements a way to calculate SIFT keypoints.
-    
-    
+
+
     How to calculate a set of SIFT keypoint on an image:
 
     siftp = sift.SiftPlan(img.shape,img.dtype,devicetype="GPU")
@@ -79,8 +79,8 @@ class SiftPlan(object):
 
     kp is a nx132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint
 
-    This SIFT algorithm is patented: U.S. Patent 6,711,293: 
-    "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image", 
+    This SIFT algorithm is patented: U.S. Patent 6,711,293:
+    "Method and apparatus for identifying scale invariant features in an image and use of same for locating an object in an image",
     """
     kernels = {"convolution": 1024,  # key: name value max local workgroup size
                "preprocess": 1024,
@@ -430,9 +430,9 @@ class SiftPlan(object):
 
     def keypoints(self, image):
         """Calculates the keypoints of the image
-        
+
         :param image: ndimage of 2D (or 3D if RGB)
-        :return: vector of keypoint (1D numpy array) 
+        :return: vector of keypoint (1D numpy array)
         """
         self.reset_timer()
         with self._sem:

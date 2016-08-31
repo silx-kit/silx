@@ -31,23 +31,26 @@ Test suite for image kernels
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2016"
-
-import time
-import os
-import logging
-import sys
-import numpy
-import pyopencl, pyopencl.array
-import scipy, scipy.misc, scipy.ndimage, pylab
+__date__ = "31/08/2016"
 
 import unittest
-from test_image_functions import *  # for Python implementation of tested functions
-from test_image_setup import *
+import time
+import logging
+import numpy
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc, scipy.ndimage
+
+# for Python implementation of tested functions
+# from test_image_functions import
+# from test_image_setup import
 from ..utils import calc_size, get_opencl_code
 from silx.opencl import ocl
 if ocl:
@@ -95,12 +98,12 @@ class TestMatching(unittest.TestCase):
     def tearDown(self):
         self.mat = None
         self.program = None
-
+    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_matching(self):
         '''
         tests keypoints matching kernel
         '''
-        image = scipy.misc.lena().astype(numpy.float32)
+        image = scipy.misc.ascent().astype(numpy.float32)
         try:
             import feature
         except:
@@ -148,11 +151,10 @@ class TestMatching(unittest.TestCase):
             res_sort = res[numpy.argsort(res[:, 1])]
     #        ref_sort = ref[numpy.argsort(ref[:,1])]
 
-            print(res[0:20])
-            print("")
+            logger.info("%s", res[0:20])
     #        print ref_sort[0:20]
-            print("C++ Matching took %.3f ms" % (1000.0 * (t1_matching - t0_matching)))
-            print("OpenCL: %d match / C++ : %d match" % (cnt, siftmatch.shape[0]))
+            logger.info("C++ Matching took %.3f ms" , 1000.0 * (t1_matching - t0_matching))
+            logger.info("OpenCL: %d match / C++ : %d match" , cnt, siftmatch.shape[0])
 
 
             # sort to compare added keypoints

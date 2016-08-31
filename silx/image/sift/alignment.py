@@ -31,11 +31,11 @@ Contains classes for image alignment on a reference images.
 
 from __future__ import division, print_function, with_statement
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "25/08/2016"
+__date__ = "31/08/2016"
 __status__ = "beta"
 
 import os

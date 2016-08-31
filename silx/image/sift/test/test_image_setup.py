@@ -25,17 +25,25 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
+'''
+Unit tests become more and more difficult as we progress in the global SIFT algorithm
+For a better code visibility, the setups required by kernels will be put here
+'''
+from __future__ import division, print_function
+
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
+__contact__ = "jerome.kieffer@esrf.eu"
+__license__ = "MIT"
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "31/08/2016"
+
 import numpy
 import scipy.ndimage
 import scipy.misc
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
-from .test_algebra import my_compact, my_combine
+from .test_algebra import my_compact
 from math import ceil
-'''
-Unit tests become more and more difficult as we progress in the global SIFT algorithm
-For a better code visibility, the setups required by kernels will be put here
-'''
 
 
 def my_blur(img, sigma):

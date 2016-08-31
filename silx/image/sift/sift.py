@@ -29,16 +29,16 @@
 """
 Module SIFT: Scale Invariant Feature Transform ...
 
-used to align feature on images 
+used to align feature on images
 """
 
 from __future__ import division, print_function, with_statement
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "31/08/2016"
 __status__ = "beta"
 
 from .param import par

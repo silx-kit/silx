@@ -31,18 +31,22 @@ Test suite for all preprocessing kernels.
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
 import time
-import os
 import logging
 import numpy
 
-import scipy, scipy.misc, scipy.ndimage
+try:
+    import scipy
+except:
+    scipy = None
+else:
+    import scipy.misc, scipy.ndimage
 
 import unittest
 from silx.opencl import ocl
@@ -82,7 +86,9 @@ class test_convol(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        self.input = scipy.misc.lena().astype(numpy.float32)
+        if scipy and ocl is None:
+            return
+        self.input = scipy.misc.ascent().astype(numpy.float32)
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)
@@ -102,7 +108,9 @@ class test_convol(unittest.TestCase):
         self.input = None
 #        self.gpudata.release()
         self.program = None
+        self.gpu_in = self.gpu_tmp = self.gpu_out = None
 
+    @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_hor(self):
         """
         tests the convolution kernel
@@ -142,6 +150,7 @@ class test_convol(unittest.TestCase):
                 fig.show()
                 raw_input("enter")
 
+    @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_vert(self):
         """
         tests the convolution kernel
@@ -185,6 +194,7 @@ class test_convol(unittest.TestCase):
                 fig.show()
                 raw_input("enter")
 
+    @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol(self):
         """
         tests the convolution kernel

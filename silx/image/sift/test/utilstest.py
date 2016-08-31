@@ -35,9 +35,13 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "19/07/2016"
+__date__ = "31/08/2016"
 
-import os, imp, sys, subprocess, threading
+import os
+import imp
+import sys
+import subprocess
+import threading
 import distutils.util
 import logging
 try:  # Python3
@@ -47,26 +51,10 @@ except ImportError:  # Python2
 # import urllib2
 # import bz2
 # import gzip
-# import numpy
+import numpy
 import shutil
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("utilstest")
-
-from optparse import OptionParser
-
-parser = OptionParser(usage="Tests for SIFT_PyOCL")
-parser.add_option("-D", "--device", dest="device", help="destination device, can be a string like CPU, GPU or a 2-tuple of integer",
-                  default="GPU")
-parser.add_option("-d", "--debug", dest="debug", help="run in debugging mode, requires matplotlib to show graphs",
-                  default=False, action="store_true")
-parser.add_option("-i", "--info", dest="info", help="run in more verbose mode but without graphs",
-                  default=False, action="store_true")
-parser.add_option("-f", "--force", dest="force", help="force the build of the library",
-                  default=False, action="store_true")
-parser.add_option("-r", "--really-force", dest="remove",
-                  help="remove existing build and force the build of the library",
-                  default=False, action="store_true")
-options, args = parser.parse_args()
 
 def copy(infile, outfile):
     "link or copy file according to the OS"
@@ -232,8 +220,8 @@ def recursive_delete(strDirname):
     assuming there are no symbolic links.
     CAUTION:  This is dangerous!  For example, if top == '/', it
     could delete all your disk files.
-    @param strDirname: top directory to delete
-    @type strDirname: string
+    :param strDirname: top directory to delete
+    :type strDirname: string
     """
     for root, dirs, files in os.walk(strDirname, topdown=False):
         for name in files:
@@ -248,23 +236,8 @@ def getLogger(filename=__file__):
     """
     basename = os.path.basename(os.path.abspath(filename))
     basename = os.path.splitext(basename)[0]
-    force_build = False
-    force_remove = False
-    level = logging.WARN
-    if options.debug:
-        level = logging.DEBUG
-    elif options.info:
-        level = logging.INFO
-    if options.force:
-        force_build = True
-    if options.remove:
-        force_remove = True
-        force_build = True
     mylogger = logging.getLogger(basename)
-    mylogger.setLevel(level)
+    mylogger.setLevel(logging.root.level)
     mylogger.debug("tests loaded from file: %s" % basename)
-    if force_build:
-        UtilsTest.forceBuild(force_remove)
-    else:
-        UtilsTest.deep_reload()
     return mylogger
+

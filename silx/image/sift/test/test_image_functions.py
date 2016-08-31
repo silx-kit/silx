@@ -28,7 +28,14 @@
 """
 Python implementation of a few functions
 """
-from __future__ import print_function, division
+from __future__ import division, print_function
+
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
+__contact__ = "jerome.kieffer@esrf.eu"
+__license__ = "MIT"
+__copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
+__date__ = "31/08/2016"
+
 import numpy
 
 
@@ -124,7 +131,7 @@ def my_interp_keypoint(DOGS, s, r, c, movesRemain, peakthresh, width, height):
     ''''
      A Python implementation of SIFT "InterpKeyPoints"
      (s,r,c) : coords of the processed keypoint in the scale space
-     WARNING: replace "1.6" by "InitSigma" if InitSigma has not its default value 
+     WARNING: replace "1.6" by "InitSigma" if InitSigma has not its default value
      The recursive calls were replaced by a loop.
     '''
     if (r == -1): return (-1, -1, -1, -1)
@@ -246,10 +253,14 @@ def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad
             maxval = hist.max()
             argmax = hist.argmax()
 
-            if argmax == 0: prev = 35
-            else: prev = argmax - 1
-            if argmax == 35: next = 0
-            else: next = argmax + 1
+            if argmax == 0:
+                prev = 35
+            else:
+                prev = argmax - 1
+            if argmax == 35:
+                next = 0
+            else:
+                next = argmax + 1
             if (maxval < 0.0):
                 hist[prev] = -hist[prev]
                 maxval = -maxval
@@ -266,17 +277,21 @@ def my_orientation(keypoints, nb_keypoints, keypoints_start, keypoints_end, grad
             k2 = numpy.zeros(4, dtype=numpy.float32)
             k2[0] = k[0]; k2[1] = k[1]; k2[2] = k[2]; k2[3] = 0.0
             for i in range(0, 36):
-                if i == 0: prev = 35
-                else: prev = i - 1
-                if i == 35: next = 0
-                else: next = i + 1
+                if i == 0:
+                    prev = 35
+                else:
+                    prev = i - 1
+                if i == 35:
+                    next = 0
+                else:
+                    next = i + 1
                 if (hist[i] > hist[prev]  and  hist[i] > hist[next]  and hist[i] >= 0.8 * maxval and i != argmax):
                     if (hist[i] < 0.0):
                         hist[prev] = -hist[prev]
                         hist[i] = -hist[i]
                         hist[next] = -hist[next]
                     if (hist[i] >= hist[prev]  and  hist[i] >= hist[next]):
-                         interp = 0.5 * (hist[prev] - hist[next]) / (hist[prev] - 2.0 * hist[i] + hist[next])
+                        interp = 0.5 * (hist[prev] - hist[next]) / (hist[prev] - 2.0 * hist[i] + hist[next])
 
                     angle = 2.0 * numpy.pi * (i + 0.5 + interp) / 36 - numpy.pi
                     if (angle >= -numpy.pi  and  angle <= numpy.pi):
@@ -489,25 +504,42 @@ def my_compact(keypoints, nbkeypoints):
     output[:length, 3] = keypoints[idx, 3]
     return output, length
 
-'''    
-    
-    
+'''
+
+
   function KahanSum(input)
     var sum = 0.0
     var c = 0.0
     for i = 1 to input.length do
-        y = input[i] - c  
+        y = input[i] - c
         t = sum + y
         c = (t - sum) - y
         sum = t
-    return sum  
-    
+    return sum
 
-    
+
+
 '''
 
 
 
+
+def norm_L1(dset1, dset2):
+    """Checks the similarity of two vectors of vectors:
+
+    S = max_along_dim0_for_i_in_dset1(min along_dim0_for_j_in_dset2(sum_for_k_in_dim1(abs(dset1[i,k]-dset2[j,k]))))
+    :return: Similarity S
+    """
+    if len(dset2) > len(dset1):
+        dset2, dset1 = dset1, dset2
+    d1 = dset1[numpy.newaxis, ...]
+    d2 = dset2[:, numpy.newaxis, ...]
+    # numpy.save("file", d1 - d2)
+    # d = abs(d2 - d1).sum(axis=-1)
+    # print(d.shape)
+    # print(d)
+    d = abs(d2 - d1).min(axis=-1)
+    return d.min(axis=-1).max()
 
 
 

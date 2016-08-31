@@ -24,7 +24,7 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "19/07/2016"
+__date__ = "31/08/2016"
 
 import unittest
 from . import test_gaussian
@@ -35,6 +35,8 @@ from . import test_algebra
 from . import test_image
 from . import test_keypoints
 from . import test_matching
+from . import test_align
+from . import test_transform
 
 
 def suite():
@@ -47,4 +49,7 @@ def suite():
     testSuite.addTest(test_image.suite())
     testSuite.addTest(test_keypoints.suite())
     testSuite.addTest(test_matching.suite())
+    testSuite.addTests(test_align.suite())
+    testSuite.addTests(test_transform.suite())
+
     return testSuite

@@ -1,5 +1,5 @@
 # coding: utf-8
-# /*##########################################################################
+###########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,11 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+#############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+from __future__ import division
+
+__contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
+__authors__ = ["J. Kieffer"]
+__date__ = "31/08/2016"
 
 from numpy.distutils.misc_util import Configuration
 

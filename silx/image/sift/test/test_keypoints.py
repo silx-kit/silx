@@ -31,26 +31,27 @@ Test suite for image kernels
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
-
-import os
-import time
-import logging
-import sys
-import numpy
-import pyopencl
-import pyopencl.array
-import scipy
-import scipy.misc
-import scipy.ndimage
+__date__ = "31/08/2016"
 
 import unittest
-from .test_image_functions import *  # for Python implementation of tested functions
-from .test_image_setup import *
+import time
+import logging
+import numpy
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc
+    import scipy.ndimage
+
+# for Python implementation of tested functions
+from .test_image_functions import my_compact, my_orientation, keypoints_compare, my_descriptor, descriptors_compare
+from .test_image_setup import orientation_setup, descriptor_setup
 from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
@@ -113,6 +114,8 @@ class ParameterisedTestCase(unittest.TestCase):
 class test_keypoints(ParameterisedTestCase):
     def setUp(self):
         self.abort = False
+        if scipy and ocl is None:
+            return
         for kernel_file in self.param:
             if "cpu" in kernel_file:
                 self.USE_CPU = True
@@ -141,6 +144,7 @@ class test_keypoints(ParameterisedTestCase):
         self.mat = None
         self.program = None
 
+    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_orientation(self):
         '''
         #tests keypoints orientation assignment kernel
@@ -224,6 +228,7 @@ class test_keypoints(ParameterisedTestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Orientation assignment took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
+    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_descriptor(self):
         '''
         #tests keypoints descriptors creation kernel
@@ -312,10 +317,10 @@ class test_keypoints(ParameterisedTestCase):
 
 
         '''
-            For now, the descriptor kernel is not precise enough to get exactly the same descriptors values 
+            For now, the descriptor kernel is not precise enough to get exactly the same descriptors values
         (we have several difference of 1, but it is OK for the SIFT matching).
             Use descriptors_compare(ref,res) to count how many descriptors are exactly the same.
-        
+
         #sort to compare added keypoints
         delta = abs(res_sort-ref_sort).max()
         self.assert_(delta <= 1, "delta=%s" % (delta))

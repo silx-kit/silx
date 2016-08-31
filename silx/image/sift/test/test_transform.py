@@ -31,27 +31,33 @@ Test suite for transformation kernel
 
 from __future__ import division, print_function
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
+import unittest
 import time
-import os
 import logging
 import numpy
-
-import scipy
-import scipy.misc
-import scipy.ndimage
-import sys
-import unittest
-from sift.opencl import ocl
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc
+    import scipy.ndimage
+from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
-from .test_image_functions import *  # for Python implementation of tested functions
-from .test_image_setup import *
+# for Python implementation of tested functions
+# from .test_image_functions import
+# from .test_image_setup import
 from ..utils import calc_size, get_opencl_code
 from ..plan import SiftPlan
 from ..match import MatchPlan
@@ -59,7 +65,8 @@ logger = logging.getLogger(__file__)
 
 SHOW_FIGURES = False
 IMAGE_RESHAPE = True
-USE_LENA = False
+USE_LENA = True
+DEVICETYPE = "ALL"
 
 
 class test_transform(unittest.TestCase):
@@ -93,7 +100,7 @@ class test_transform(unittest.TestCase):
     def image_reshape(self, img, output_height, output_width, image_height, image_width):
         '''
         Reshape the image to get a bigger image with the input image in the center
-        
+
         '''
         image3 = numpy.zeros((output_height, output_width), dtype=numpy.float32)
         d1 = (output_width - image_width) / 2
@@ -108,10 +115,10 @@ class test_transform(unittest.TestCase):
         Computes keypoints for two images and try to align image2 on image1
         '''
         # computing keypoints matching
-        s = SiftPlan(template=image, devicetype="gpu")
+        s = SiftPlan(template=image, devicetype=DEVICETYPE)
         kp1 = s.keypoints(image)
         kp2 = s.keypoints(image2)  # image2 and image must have the same size
-        m = MatchPlan(devicetype="GPU")
+        m = MatchPlan(devicetype=DEVICETYPE)
         matching = m.match(kp2, kp1)
         N = matching.shape[0]
         # solving normals equations for least square fit
@@ -132,6 +139,7 @@ class test_transform(unittest.TestCase):
         MSE = numpy.linalg.norm(y - numpy.dot(X, sol)) ** 2 / N  # value of the sum of residuals at "sol"
         return sol, MSE
 
+    @unittest.skipIf(scipy and ocl is None, "scipy or ocl missing")
     def test_transform(self):
         '''
         tests transform kernel
@@ -139,9 +147,8 @@ class test_transform(unittest.TestCase):
 
         if (USE_LENA):
             # original image
-            image = scipy.misc.lena().astype(numpy.float32)
+            image = scipy.misc.ascent().astype(numpy.float32)
             image = numpy.ascontiguousarray(image[0:512, 0:512])
-            image_height, image_width = image.shape
             # transformation
             angle = 1.9  # numpy.pi/5.0
     #        matrix = numpy.array([[numpy.cos(angle),-numpy.sin(angle)],[numpy.sin(angle),numpy.cos(angle)]],dtype=numpy.float32)
@@ -158,8 +165,8 @@ class test_transform(unittest.TestCase):
             image = scipy.misc.imread("/home/paleo/Titanium/test/frame0.png")
             image2 = scipy.misc.imread("/home/paleo/Titanium/test/frame1.png")
             offset_value = numpy.array([0.0, 0.0], dtype=numpy.float32)
-            image_height, image_width = image.shape
-            image2_height, image2_width = image2.shape
+        image_height, image_width = image.shape
+        image2_height, image2_width = image2.shape
 
         fill_value = numpy.float32(0.0)
         mode = numpy.int32(1)
@@ -186,15 +193,15 @@ class test_transform(unittest.TestCase):
 
         wg = 8, 8
         shape = calc_size((output_width, output_height), wg)
-        gpu_image = pyopencl.array.to_device(queue, image2)
-        gpu_output = pyopencl.array.empty(queue, (output_height, output_width), dtype=numpy.float32, order="C")
-        gpu_matrix = pyopencl.array.to_device(queue, matrix_for_gpu)
-        gpu_offset = pyopencl.array.to_device(queue, offset_value)
+        gpu_image = pyopencl.array.to_device(self.queue, image2)
+        gpu_output = pyopencl.array.empty(self.queue, (output_height, output_width), dtype=numpy.float32, order="C")
+        gpu_matrix = pyopencl.array.to_device(self.queue, matrix_for_gpu)
+        gpu_offset = pyopencl.array.to_device(self.queue, offset_value)
         image_height, image_width = numpy.int32((image_height, image_width))
         output_height, output_width = numpy.int32((output_height, output_width))
 
         t0 = time.time()
-        k1 = self.program.transform(queue, shape, wg,
+        k1 = self.program.transform(self.queue, shape, wg,
                 gpu_image.data, gpu_output.data, gpu_matrix.data, gpu_offset.data,
                 image_width, image_height, output_width, output_height, fill_value, mode)
         res = gpu_output.get()
@@ -222,8 +229,9 @@ class test_transform(unittest.TestCase):
 #        logger.info(res[at_0,at_1]
 #        logger.info(ref[at_0,at_1]
 
-        SHOW_FIGURES = True
+#         SHOW_FIGURES = True
         if SHOW_FIGURES:
+            import pylab
             fig = pylab.figure()
             sp1 = fig.add_subplot(221, title="Input image")
             sp1.imshow(image, interpolation="nearest")
@@ -238,7 +246,7 @@ class test_transform(unittest.TestCase):
 #            sh3 = sp3.imshow(delta[:,:], interpolation="nearest")
 #            cbar = fig.colorbar(sh3)
             fig.show()
-            raw_input("enter")
+            six.moves.input("enter")
 
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))

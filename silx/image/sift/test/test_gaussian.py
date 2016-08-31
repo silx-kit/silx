@@ -35,37 +35,44 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
 import time
 import numpy
 import unittest
 import logging
 from silx.opencl import ocl
-import scipy, scipy.misc
-if ocl:
-    import pyopencl, pyopencl.array
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc, scipy.ndimage
+
 from ..utils import get_opencl_code
-print(__name__, __file__)
 logger = logging.getLogger(__file__)
 
-ctx = ocl.create_context()
+if ocl:
+    import pyopencl, pyopencl.array
+    ctx = ocl.create_context()
 
-if logger.getEffectiveLevel() <= logging.INFO:
-    PROFILE = True
-    queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
-else:
-    PROFILE = False
-    queue = pyopencl.CommandQueue(ctx)
+    if logger.getEffectiveLevel() <= logging.INFO:
+        PROFILE = True
+        queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+        import pylab
+    else:
+        PROFILE = False
+        queue = pyopencl.CommandQueue(ctx)
 
-kernels = {"preprocess": 8,
-           "gaussian": 512}
+    kernels = {"preprocess": 8,
+               "gaussian": 512}
 
-for kernel in list(kernels.keys()):
-    kernel_src = get_opencl_code(kernel)
-    program = pyopencl.Program(ctx, kernel_src).build("-D WORKGROUP=%s" % kernels[kernel])
-    kernels[kernel] = program
+    for kernel in list(kernels.keys()):
+        kernel_src = get_opencl_code(kernel)
+        program = pyopencl.Program(ctx, kernel_src).build("-D WORKGROUP=%s" % kernels[kernel])
+        kernels[kernel] = program
+
+
 
 
 def gaussian_cpu(sigma, size=None):
@@ -151,6 +158,7 @@ def show(ref, res, delta):
 
 class test_gaussian_v1(unittest.TestCase):
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_odd(self):
         """
         test odd kernel size
@@ -164,6 +172,7 @@ class test_gaussian_v1(unittest.TestCase):
             show (ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_even(self):
         """
         test odd kernel size
@@ -180,6 +189,7 @@ class test_gaussian_v1(unittest.TestCase):
 
 class test_gaussian_v2(unittest.TestCase):
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_odd(self):
         """
         test odd kernel size
@@ -193,6 +203,7 @@ class test_gaussian_v2(unittest.TestCase):
             show (ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
+    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_even(self):
         """
         test odd kernel size

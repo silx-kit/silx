@@ -35,15 +35,11 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
 import time
 import logging
 import numpy
-
-import scipy
-import scipy.misc
-import scipy.ndimage
 
 import unittest
 from silx.opencl import ocl
