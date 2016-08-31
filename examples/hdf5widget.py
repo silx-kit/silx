@@ -163,6 +163,28 @@ def get_hdf5_with_100000_datasets():
     return tmp.name
 
 
+class CreateFileRunnable(qt.QRunnable):
+
+    def __init__(self, button, function):
+        super(CreateFileRunnable, self).__init__()
+        self.button = button
+        self.function = function
+        class _Signals(qt.QObject):
+            finished = qt.Signal(object)
+        self.signals = _Signals()
+
+    @property
+    def finished(self):
+        return self.signals.finished
+
+    def run(self):
+        self.filename = self.function()
+        self.finished.emit(self)
+
+    def autoDelete(self):
+        return True
+
+
 class Hdf5TreeViewExample(qt.QMainWindow):
     """
     This window show an example of use of a Hdf5TreeView.
@@ -181,6 +203,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         qt.QMainWindow.__init__(self)
         self.setWindowTitle("Silx HDF5 widget example")
 
+        self.__asyncload = False
         self.__treeview = hdf5widget.Hdf5TreeView()
         """Silx HDF5 TreeView"""
         self.__text = qt.QTextEdit(self)
@@ -245,6 +268,22 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         text += "</html>"
         self.__text.setHtml(text)
 
+    def useAsyncLoad(self, useAsync):
+        self.__asyncload = useAsync
+
+    def __loadFile(self, button, filename_generator):
+        button.setEnabled(False)
+        runnable = CreateFileRunnable(button, filename_generator)
+        runnable.finished.connect(self.__fileLoaded)
+        qt.QThreadPool.globalInstance().start(runnable)
+
+    def __fileLoaded(self, worker):
+        worker.button.setEnabled(True)
+        if self.__asyncload:
+            self.__treeview.model().insertFileAsync(worker.filename)
+        else:
+            self.__treeview.model().insertFile(worker.filename)
+
     def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
         panel = qt.QWidget(parent)
@@ -254,25 +293,30 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         content.setLayout(qt.QVBoxLayout())
         panel.layout().addWidget(content)
 
-        button = qt.QPushButton("Append h5 file containing all types")
-        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_all_types()))
-        content.layout().addWidget(button)
+        button1 = qt.QPushButton("Append h5 file containing all types")
+        button1.clicked.connect(lambda: self.__loadFile(button1, get_hdf5_with_all_types))
+        content.layout().addWidget(button1)
 
-        button = qt.QPushButton("Append h5 file containing all links")
-        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_all_links()))
-        content.layout().addWidget(button)
+        button2 = qt.QPushButton("Append h5 file containing all links")
+        button2.clicked.connect(lambda: self.__loadFile(button2, get_hdf5_with_all_links))
+        content.layout().addWidget(button2)
 
-        button = qt.QPushButton("Append h5 file containing 1000 datasets")
-        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_1000_datasets()))
-        content.layout().addWidget(button)
+        button3 = qt.QPushButton("Append h5 file containing 1000 datasets")
+        button3.clicked.connect(lambda: self.__loadFile(button3, get_hdf5_with_1000_datasets))
+        content.layout().addWidget(button3)
 
-        button = qt.QPushButton("Append h5 file containing 10000 datasets")
-        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_10000_datasets()))
-        content.layout().addWidget(button)
+        button4 = qt.QPushButton("Append h5 file containing 10000 datasets")
+        button4.clicked.connect(lambda: self.__loadFile(button4, get_hdf5_with_10000_datasets))
+        content.layout().addWidget(button4)
 
-        button = qt.QPushButton("Append h5 file containing 100000 datasets")
-        button.clicked.connect(lambda: treeview.model().appendFile(get_hdf5_with_100000_datasets()))
-        content.layout().addWidget(button)
+        button5 = qt.QPushButton("Append h5 file containing 100000 datasets")
+        button5.clicked.connect(lambda: self.__loadFile(button5, get_hdf5_with_100000_datasets))
+        content.layout().addWidget(button5)
+
+        asyncload = qt.QCheckBox("Async load", content)
+        asyncload.setChecked(self.__asyncload)
+        asyncload.toggled.connect(lambda: self.useAsyncLoad(asyncload.isChecked()))
+        content.layout().addWidget(asyncload)
 
         option = qt.QGroupBox("Tree options", panel)
         option.setLayout(qt.QVBoxLayout())

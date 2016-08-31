@@ -46,7 +46,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "31/08/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -70,6 +70,68 @@ def load_file_as_h5py(filename):
         from ..io import spech5
         h5file = spech5.SpecH5(filename)
     return h5file
+
+
+class LoadingItemRunnable(qt.QRunnable):
+    """Runner to process item loading from a file"""
+
+    def __init__(self, filename, item):
+        """Constructor
+
+        :param LoadingItemWorker worker: Object holding data and signals
+        """
+        super(LoadingItemRunnable, self).__init__()
+        self.filename = filename
+        self.oldItem = item
+        class _Signals(qt.QObject):
+            itemReady = qt.Signal(object, object, object)
+        self.signals = _Signals()
+
+    def setFile(self, filename, item):
+        self.filenames.append((filename, item))
+
+    @property
+    def itemReady(self):
+        return self.signals.itemReady
+
+    def __loadItemTree(self, oldItem, h5obj):
+        """Create an item tree used by the GUI from an h5py object.
+
+        :param Hdf5Node oldItem: The current item displayed the GUI
+        :param h5py.File h5obj: The h5py object to display in the GUI
+        :rtpye: Hdf5Node
+        """
+        if hasattr(h5obj, "h5py_class"):
+            class_ = h5obj.h5py_class
+        else:
+            class_ = h5obj.__class__
+
+        if class_ == h5py.File:
+            text = os.path.basename(h5obj.filename)
+        else:
+            filename = os.path.basename(h5obj.file.filename)
+            path = h5obj.name
+            text = "%s::%s" % (filename, path)
+        item = Hdf5Item(text=text, obj=h5obj, parent=oldItem.parent, populateAll=True)
+        return item
+
+    @qt.Slot()
+    def run(self):
+        """Process the file loading. The worker is used as holder
+        of the data and the signal. The result is sent as a signal.
+        """
+        try:
+            h5file = load_file_as_h5py(self.filename)
+            newItem = self.__loadItemTree(self.oldItem, h5file)
+            error = None
+        except IOError as e:
+            # Should be logged
+            error = e
+            newItem = None
+        self.itemReady.emit(self.oldItem, newItem, error)
+
+    def autoDelete(self):
+        return True
 
 
 def htmlFromDict(input):
@@ -105,7 +167,7 @@ class Hdf5Node(object):
     It provides link to the childs and to the parents, and a link to an
     external object.
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, populateAll=False):
         """
         :param text str: text displayed
         :param object obj: Pointer to h5py data. See the `obj` attribute.
@@ -113,6 +175,9 @@ class Hdf5Node(object):
         """
         self.__child = None
         self.__parent = parent
+        if populateAll:
+            self.__child = []
+            self._populateChild(populateAll=True)
 
     @property
     def parent(self):
@@ -288,20 +353,51 @@ class Hdf5BrokenLinkItem(Hdf5Node):
         return None
 
 
+class Hdf5LoadingItem(Hdf5Node):
+
+    def __init__(self, text, parent, animatedIcon):
+        Hdf5Node.__init__(self, parent)
+        self.__text = text
+        self.__animatedIcon = animatedIcon
+        self.__animatedIcon.register(self)
+
+    @property
+    def obj(self):
+        return None
+
+    def dataName(self, role):
+        if role == qt.Qt.DecorationRole:
+            return self.__animatedIcon.currentIcon()
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return self.__text
+        return None
+
+    def dataDescription(self, role):
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return "Loading..."
+        return None
+
+
 class Hdf5Item(Hdf5Node):
     """Subclass of :class:`qt.QStandardItem` to represent an HDF5-like
     item (dataset, file, group or link) as an element of a HDF5-like
     tree structure.
     """
 
-    def __init__(self, text, obj, parent):
+    def __init__(self, text, obj, parent, populateAll=False):
         """
         :param text str: text displayed
         :param obj object: Pointer to h5py data. See the `obj` attribute.
         """
-        Hdf5Node.__init__(self, parent)
         self.__obj = obj
         self.__text = text
+        Hdf5Node.__init__(self, parent, populateAll=populateAll)
 
     @property
     def obj(self):
@@ -319,7 +415,7 @@ class Hdf5Item(Hdf5Node):
             return len(self.__obj)
         return 0
 
-    def _populateChild(self):
+    def _populateChild(self, populateAll=False):
         """Recurse through an HDF5 structure to append groups an datasets
         into the tree model.
         :param h5item: Parent :class:`Hdf5Item` or
@@ -342,7 +438,7 @@ class Hdf5Item(Hdf5Node):
                         link = self.__obj.get(child_gr_ds_name, getlink=True)
                         item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, parent=self)
                     else:
-                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds, parent=self)
+                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds, parent=self, populateAll=populateAll)
                 if item is not None:
                     self.appendChild(item)
 
@@ -526,6 +622,37 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__fileDropEnabled = True
         self.__fileMoveEnabled = True
 
+        self.__animatedIcon = icons.getWaitIcon()
+        self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
+
+    def __updateLoadingItems(self, icon):
+        for i in range(self.__root.childCount()):
+            item = self.__root.child(i)
+            if isinstance(item, Hdf5LoadingItem):
+                index1 = self.index(i, 0, qt.QModelIndex())
+                index2 = self.index(i, self.columnCount(None) - 1, qt.QModelIndex())
+                self.dataChanged.emit(index1, index2)
+
+    def __itemReady(self, oldItem, newItem, error):
+        """Called at the end of a concurent file loading, when the loading
+        item is ready. AN error is defined if an exception occured when
+        loading the newItem .
+
+        :param Hdf5Node oldItem: current displayed item
+        :param Hdf5Node newItem: item loaded, or None if error is defined
+        :param Exception error: An exception, or None if newItem is defined
+        """
+        row = self.__root.indexOfChild(oldItem)
+        rootIndex = qt.QModelIndex()
+        self.beginRemoveRows(rootIndex, row, row)
+        self.__root.deleteChild(row)
+        self.endRemoveRows()
+        if newItem is not None:
+            self.beginInsertRows(rootIndex, row, row)
+            self.__root.insertChild(row, newItem)
+            self.endInsertRows()
+        # FIXME the error must be displayed
+
     def isFileDropEnabled(self):
         return self.__fileDropEnabled
 
@@ -616,7 +743,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             messages = []
             for url in mimedata.urls():
                 try:
-                    self.insertFile(url.toLocalFile(), row)
+                    self.insertFileAsync(url.toLocalFile(), row)
                     row += 1
                 except IOError as e:
                     messages.append(e.args[0])
@@ -663,8 +790,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         return True
 
     def index(self, row, column, parent):
-        node = self.nodeFromIndex(parent)
-        return self.createIndex(row, column, node.child(row))
+        try:
+            node = self.nodeFromIndex(parent)
+            return self.createIndex(row, column, node.child(row))
+        except IndexError:
+            return qt.QModelIndex()
 
     def data(self, index, role):
         node = self.nodeFromIndex(index)
@@ -739,6 +869,20 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if row == -1:
             row = self.__root.childCount()
         self.insertNode(row, Hdf5Item(text=text, obj=h5pyObject, parent=self.__root))
+
+    def insertFileAsync(self, filename, row=-1):
+        if not os.path.isfile(filename):
+            raise IOError("Filename '%s' must be a file path" % filename)
+
+        # create temporary item
+        text = os.path.basename(filename)
+        item = Hdf5LoadingItem(text=text, parent=self.__root, animatedIcon=self.__animatedIcon)
+        self.insertNode(row, item)
+
+        # start loading the real one
+        runnable = LoadingItemRunnable(filename, item)
+        runnable.itemReady.connect(self.__itemReady)
+        qt.QThreadPool.globalInstance().start(runnable)
 
     def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
