@@ -38,8 +38,13 @@ __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "31/08/2016"
 
 import numpy
-import scipy.ndimage
-import scipy.misc
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.ndimage
+    import scipy.misc
 from .test_image_functions import my_gradient, normalize_image, shrink, my_local_maxmin, \
     my_interp_keypoint, my_descriptor, my_orientation
 from .test_algebra import my_compact
@@ -47,6 +52,8 @@ from math import ceil
 
 
 def my_blur(img, sigma):
+    if not scipy:
+        return
     ksize = int(ceil(8 * sigma + 1))
     if (ksize % 2 == 0):
         ksize += 1
@@ -58,6 +65,9 @@ def my_blur(img, sigma):
 
 
 def local_maxmin_setup():
+    if not scipy:
+        return
+
     border_dist = numpy.int32(5)  # SIFT
     peakthresh = numpy.float32(255.0 * 0.04 / 3.0)  # SIFT uses 255.0 * 0.04 / 3.0
     EdgeThresh = numpy.float32(0.06)  # SIFT
@@ -67,7 +77,7 @@ def local_maxmin_setup():
     nb_keypoints = 1000  # constant size !
     doubleimsize = 0  # par.DoubleImSize = 0 by default
 
-    l2 = scipy.misc.lena().astype(numpy.float32)  # [100:250,100:250] #use a part of the image to fasten tests
+    l2 = scipy.misc.ascent().astype(numpy.float32)  # [100:250,100:250] #use a part of the image to fasten tests
     l2 = numpy.ascontiguousarray(l2[0:507, 0:209]);
     # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp
