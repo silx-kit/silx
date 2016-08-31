@@ -37,7 +37,6 @@ import numpy
 import logging
 from silx.gui import qt
 from silx.gui import hdf5widget
-import pprint
 import html
 import h5py
 import tempfile
