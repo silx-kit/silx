@@ -29,13 +29,14 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "01/09/2016"
 
 
 import logging
 import weakref
 from . import qt
 from ..resources import resource_filename
+from ..utils import weakref as silxweakref
 
 
 _logger = logging.getLogger(__name__)
@@ -48,6 +49,97 @@ _cached_icons = weakref.WeakValueDictionary()
 
 _supported_formats = None
 """Order of file format extension to check"""
+
+
+
+class AnimatedIcon(qt.QObject):
+    """Store a looping QMovie to provide icons for each frames.
+    Provides an event with the new icon everytime the movie frame
+    is updated."""
+
+    def __init__(self, filename, parent=None):
+        """Constructor
+
+        :param str filename: An icon name to an animated format
+        :param qt.QObject parent: Parent of the QObject
+        :raises: ValueError when name is not known
+        """
+        qt.QObject.__init__(self, parent)
+
+        qfile = getQFile(filename)
+        self.__movie = qt.QMovie(qfile.fileName(), qt.QByteArray(), parent)
+        self.__movie.setCacheMode(qt.QMovie.CacheAll)
+        self.__movie.frameChanged.connect(self.__frameChanged)
+
+        self.__targets = silxweakref.WeakList()
+        self.__currentIcon = None
+        self.__cacheIcons = {}
+
+        self.__movie.jumpToFrame(0)
+        self.__updateIconAtFrame(0)
+
+    iconChanged = qt.Signal(qt.QIcon)
+    """Signal sent with a QIcon everytime the animation changed."""
+
+    def __frameChanged(self, frameId):
+        """Callback everytime the QMovie frame change
+        :param int frameId: Current frame id
+        """
+        self.__updateIconAtFrame(frameId)
+
+    def __updateIconAtFrame(self, frameId):
+        """
+        Update the current stored QIcon
+
+        :param int frameId: Current frame id
+        """
+        if frameId in self.__cacheIcons:
+            self.__currentIcon = self.__cacheIcons[frameId]
+        else:
+            self.__currentIcon = qt.QIcon(self.__movie.currentPixmap())
+            self.__cacheIcons[frameId] = self.__currentIcon
+        self.iconChanged.emit(self.__currentIcon)
+
+    def register(self, obj):
+        """Register an object to the AnimatedIcon.
+        If no object are registred, the animation is paused.
+        Object are stored in a weaked list.
+
+        :param object obj: An object
+        """
+        if obj not in self.__targets:
+            self.__targets.append(obj)
+        self.__updateMovie()
+
+    def unregister(self, obj):
+        """Remove the object from the registration.
+        If no object are registred the animation is paused.
+
+        :param object obj: A registered object
+        """
+        if obj in self.__targets:
+            self.__targets.remove(obj)
+        self.__updateMovie()
+
+    def isRegistered(self, obj):
+        """Returns true if the object is registred in the AnimatedIcon.
+
+        :param object obj: An object
+        """
+        return obj in self.__targets
+
+    def __updateMovie(self):
+        """Update the movie play according to internal stat of the
+        AnimatedIcon."""
+        # FIXME it should take care of the item count of the registred list
+        self.__movie.setPaused(len(self.__targets) == 0)
+
+    def currentIcon(self):
+        """Returns the icon of the current frame.
+
+        :rtype: qt.QIcon
+        """
+        return self.__currentIcon
 
 
 def getQIcon(name):
@@ -93,7 +185,7 @@ def getQFile(name):
     if _supported_formats is None:
         _supported_formats = []
         supported_formats = qt.supportedImageFormats()
-        order = ["svg", "png", "jpg"]
+        order = ["mng", "gif", "svg", "png", "jpg"]
         for format in order:
             if format in supported_formats:
                 _supported_formats.append(format)
