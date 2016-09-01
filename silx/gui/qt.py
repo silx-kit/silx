@@ -52,7 +52,7 @@ provides the namespace of PyQt5 over PyQt4 and PySide.
 
 __authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "31/08/2016"
 
 
 import logging
@@ -135,6 +135,8 @@ if BINDING == 'PyQt4':
 
     Property = pyqtProperty
 
+    Slot = pyqtSlot
+
 elif BINDING == 'PySide':
     _logger.debug('Using PySide bindings')
 
@@ -182,6 +184,8 @@ elif BINDING == 'PyQt5':
     Signal = pyqtSignal
 
     Property = pyqtProperty
+
+    Slot = pyqtSlot
 
 else:
     raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
