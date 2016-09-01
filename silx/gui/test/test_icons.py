@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "01/09/2016"
 
 
 import unittest
@@ -73,10 +73,33 @@ class TestIcons(testutils.TestCaseQt):
         icon2_id = str(icon2.__repr__())
         self.assertNotEquals(icon1_id, icon2_id)
 
+
+class TestAnimatedIcons(testutils.TestCaseQt):
+    """Test to check that icons module."""
+
+    def testProcessWorking(self):
+        icon = icons.getWaitIcon()
+        self.assertIsNotNone(icon)
+
+    def testProcessWorkingCache(self):
+        icon1 = icons.getWaitIcon()
+        icon2 = icons.getWaitIcon()
+        self.assertIs(icon1, icon2)
+
+    def testIconExists(self):
+        icon = icons.AnimatedIcon("process-working")
+        self.assertIsNotNone(icon)
+
+    def testIconNotExists(self):
+        self.assertRaises(ValueError, icons.AnimatedIcon, "not-exists")
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestIcons))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestAnimatedIcons))
     return test_suite
 
 

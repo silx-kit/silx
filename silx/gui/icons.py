@@ -51,6 +51,20 @@ _supported_formats = None
 """Order of file format extension to check"""
 
 
+_process_working = None
+"""Cache an AnimatedIcon for working process"""
+
+
+def getWaitIcon():
+    """Returns a cached version of the waiting AnimatedIcon.
+
+    :rtype: AnimatedIcon
+    """
+    global _process_working
+    if _process_working is None:
+        _process_working = AnimatedIcon("process-working")
+    return _process_working
+
 
 class AnimatedIcon(qt.QObject):
     """Store a looping QMovie to provide icons for each frames.
