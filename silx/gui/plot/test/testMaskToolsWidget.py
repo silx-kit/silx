@@ -90,10 +90,7 @@ class TestMaskToolsWidget(TestCaseQt):
         self.mouseMove(plot, pos=pos0)
         self.mousePress(plot, qt.Qt.LeftButton, pos=pos0)
         self.mouseMove(plot, pos=pos1)
-        self.qWait(100)  # Needed for interaction to work
         self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos1)
-
-        self.qapp.processEvents()
 
     def _drawPolygon(self):
         """Draw a star polygon in the plot"""
@@ -111,7 +108,6 @@ class TestMaskToolsWidget(TestCaseQt):
             self.mouseMove(plot, pos=pos)
             btn = qt.Qt.LeftButton if pos != star[-1] else qt.Qt.RightButton
             self.mouseClick(plot, btn, pos=pos)
-        self.qapp.processEvents()
 
     def _drawPencil(self):
         """Draw a star polygon in the plot"""
@@ -129,10 +125,8 @@ class TestMaskToolsWidget(TestCaseQt):
         self.mousePress(plot, qt.Qt.LeftButton, pos=star[0])
         for pos in star:
             self.mouseMove(plot, pos=pos)
-            self.qWait(100)  # Needed for interaction to work
         self.mouseRelease(
             plot, qt.Qt.LeftButton, pos=star[-1])
-        self.qapp.processEvents()
 
     def testWithAnImage(self):
         """Plot with an image: test MaskToolsWidget interactions"""

@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "29/08/2016"
 
 
 import unittest
@@ -37,6 +37,9 @@ class Dummy(object):
     """Dummy class to use it as geanie pig"""
     def inc(self, a):
         return a + 1
+
+    def __lt__(self, other):
+         return True
 
 
 def dummy_inc(a):
@@ -180,6 +183,12 @@ class TestWeakList(unittest.TestCase):
     def testGetItem(self):
         self.assertIs(self.object1, self.list[0])
 
+    def testGetItemSlice(self):
+        objects = self.list[:]
+        self.assertEquals(len(objects), 2)
+        self.assertIs(self.object1, objects[0])
+        self.assertIs(self.object2, objects[1])
+
     def testIter(self):
         obj_list = list(self.list)
         self.assertEquals(len(obj_list), 2)
@@ -190,15 +199,28 @@ class TestWeakList(unittest.TestCase):
 
     def testSetItem(self):
         obj = Dummy()
-        self.list[0] = Dummy()
+        self.list[0] = obj
         self.assertIsNot(self.object1, self.list[0])
         obj = None
         self.assertEquals(len(self.list), 1)
+
+    def testSetItemSlice(self):
+        obj = Dummy()
+        self.list[:] = [obj, obj]
+        self.assertEquals(len(self.list), 2)
+        self.assertIs(obj, self.list[0])
+        self.assertIs(obj, self.list[1])
+        obj = None
+        self.assertEquals(len(self.list), 0)
 
     def testDelItem(self):
         del self.list[0]
         self.assertEquals(len(self.list), 1)
         self.assertIs(self.object2, self.list[0])
+
+    def testDelItemSlice(self):
+        del self.list[:]
+        self.assertEquals(len(self.list), 0)
 
     def testContains(self):
         self.assertIn(self.object1, self.list)
@@ -270,7 +292,23 @@ class TestWeakList(unittest.TestCase):
         self.assertIs(self.list[0], self.object2)
         self.assertIs(self.list[1], self.object1)
 
-    def sort(self, cmp=None, key=None, reverse=False):
+    def testReverted(self):
+        new_list = reversed(self.list)
+        self.assertEquals(len(new_list), 2)
+        self.assertIs(self.list[1], self.object2)
+        self.assertIs(self.list[0], self.object1)
+        self.assertIs(new_list[0], self.object2)
+        self.assertIs(new_list[1], self.object1)
+        self.object1 = None
+        self.assertEquals(len(new_list), 1)
+
+    def testStr(self):
+        self.assertNotEquals(self.list.__str__(), "[]")
+
+    def testRepr(self):
+        self.assertNotEquals(self.list.__repr__(), "[]")
+
+    def testSort(self, cmp=None, key=None, reverse=False):
         # only a coverage
         self.list.sort()
         self.assertEquals(len(self.list), 2)
