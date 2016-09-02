@@ -35,9 +35,14 @@ import numpy
 import logging
 from silx.gui import qt
 from silx.gui import hdf5widget
+from silx.gui.widgets.WaitingPushButton import WaitingPushButton
 import html
 import h5py
 import tempfile
+
+
+_logger = logging.getLogger(__name__)
+"""Module logger"""
 
 
 _file_cache = {}
@@ -161,26 +166,93 @@ def get_hdf5_with_100000_datasets():
     return tmp.name
 
 
-class CreateFileRunnable(qt.QRunnable):
+class ThreadRunnableWrapper(qt.QRunnable):
+    """Wrapper of a callable into a QRunnable which provide QObject signals a
+    la QThread (`started` and `finished`)"""
 
-    def __init__(self, button, function):
-        super(CreateFileRunnable, self).__init__()
-        self.button = button
-        self.function = function
+    def __init__(self, callable):
+        super(ThreadRunnableWrapper, self).__init__()
         class _Signals(qt.QObject):
-            finished = qt.Signal(object)
-        self.signals = _Signals()
+            finished = qt.Signal()
+            started = qt.Signal()
+        self.__signals = _Signals()
+        self.__callable = callable
+
+    @property
+    def started(self):
+        return self.__signals.started
 
     @property
     def finished(self):
-        return self.signals.finished
+        return self.__signals.finished
 
     def run(self):
-        self.filename = self.function()
-        self.finished.emit(self)
+        self.started.emit()
+        try:
+            self.__callable()
+        except:
+            _logger.error("Error while executing callable %s.%s.", self.__callable.__module__, self.__callable.__name__, exc_info=True)
+        finally:
+            self.finished.emit()
 
     def autoDelete(self):
+        """Returns true to asks the QThreadPool to manage the life cycle of
+        this QRunner """
         return True
+
+
+class ThreadPoolPushButton(WaitingPushButton):
+
+    def __init__(self, text):
+        super(ThreadPoolPushButton, self).__init__(text)
+        self.__callable = None
+
+    @qt.Slot()
+    def executeCallable(self):
+        """Execute the defined callable in QThreadPool. If callable is not
+        defined, nothing append.
+        """
+        if self.__callable is None:
+            return None
+        runner = self.__createRunner(self.__callable)
+        qt.QThreadPool.globalInstance().start(runner)
+
+    def __createRunner(self, callable):
+        """Create a QRunnable from a callable object.
+
+        :param callable callable: A callable Python object defining `__call__`
+        :rtpye: qt.QRunnable
+        """
+        runnable = ThreadRunnableWrapper(callable)
+        runnable.started.connect(self.wait)
+        runnable.finished.connect(self.stopWaiting)
+        return runnable
+
+    def setCallable(self, callable):
+        """Define a callable which will be executed on QThreadPool everytine
+        the button is clicked. If you need result, you can create a callable
+        object inheriting from a QObject and emitting signals.
+
+        :param callable callable: A callable Python object defining `__call__`
+        """
+        if self.__callable is not None and callable is None:
+            self.clicked.disconnect(self.executeCallable)
+        elif self.__callable is None and callable is not None:
+            self.clicked.connect(self.executeCallable)
+        self.__callable = callable
+
+
+class CreateFileCallable(qt.QObject):
+
+    finished = qt.Signal(str)
+
+    def __init__(self, function):
+        super(CreateFileCallable, self).__init__()
+        self.__function = function
+
+    def __call__(self):
+        filename = self.__function()
+        self.finished.emit(filename)
 
 
 class Hdf5TreeViewExample(qt.QMainWindow):
@@ -278,16 +350,15 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
     def __loadFile(self, button, filename_generator):
         button.setEnabled(False)
-        runnable = CreateFileRunnable(button, filename_generator)
-        runnable.finished.connect(self.__fileLoaded)
+        runnable = CreateFileCallable(filename_generator, self.__fileCreated)
+        runnable.finished.connect()
         qt.QThreadPool.globalInstance().start(runnable)
 
-    def __fileLoaded(self, worker):
-        worker.button.setEnabled(True)
+    def __fileCreated(self, filename):
         if self.__asyncload:
-            self.__treeview.model().insertFileAsync(worker.filename)
+            self.__treeview.model().insertFileAsync(filename)
         else:
-            self.__treeview.model().insertFile(worker.filename)
+            self.__treeview.model().insertFile(filename)
 
     def customContextMenu(self, treeview, selectedObjects):
         hasDataset = False
@@ -320,24 +391,34 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         content.setLayout(qt.QVBoxLayout())
         panel.layout().addWidget(content)
 
-        button1 = qt.QPushButton("Append h5 file containing all types")
-        button1.clicked.connect(lambda: self.__loadFile(button1, get_hdf5_with_all_types))
+        button1 = ThreadPoolPushButton("Append h5 file containing all types")
+        callable = CreateFileCallable(get_hdf5_with_all_types)
+        callable.finished.connect(self.__fileCreated)
+        button1.setCallable(callable)
         content.layout().addWidget(button1)
 
-        button2 = qt.QPushButton("Append h5 file containing all links")
-        button2.clicked.connect(lambda: self.__loadFile(button2, get_hdf5_with_all_links))
+        button2 = ThreadPoolPushButton("Append h5 file containing all links")
+        callable = CreateFileCallable(get_hdf5_with_all_links)
+        callable.finished.connect(self.__fileCreated)
+        button2.setCallable(callable)
         content.layout().addWidget(button2)
 
-        button3 = qt.QPushButton("Append h5 file containing 1000 datasets")
-        button3.clicked.connect(lambda: self.__loadFile(button3, get_hdf5_with_1000_datasets))
+        button3 = ThreadPoolPushButton("Append h5 file containing 1000 datasets")
+        callable = CreateFileCallable(get_hdf5_with_1000_datasets)
+        callable.finished.connect(self.__fileCreated)
+        button3.setCallable(callable)
         content.layout().addWidget(button3)
 
-        button4 = qt.QPushButton("Append h5 file containing 10000 datasets")
-        button4.clicked.connect(lambda: self.__loadFile(button4, get_hdf5_with_10000_datasets))
+        button4 = ThreadPoolPushButton("Append h5 file containing 10000 datasets")
+        callable = CreateFileCallable(get_hdf5_with_10000_datasets)
+        callable.finished.connect(self.__fileCreated)
+        button4.setCallable(callable)
         content.layout().addWidget(button4)
 
-        button5 = qt.QPushButton("Append h5 file containing 100000 datasets")
-        button5.clicked.connect(lambda: self.__loadFile(button5, get_hdf5_with_100000_datasets))
+        button5 = ThreadPoolPushButton("Append h5 file containing 100000 datasets")
+        callable = CreateFileCallable(get_hdf5_with_100000_datasets)
+        callable.finished.connect(self.__fileCreated)
+        button5.setCallable(callable)
         content.layout().addWidget(button5)
 
         asyncload = qt.QCheckBox("Async load", content)
