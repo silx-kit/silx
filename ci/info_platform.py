@@ -3,7 +3,7 @@
 """Print information about python."""
 
 __authors__ = ["Jérôme Kieffer"]
-__date__ = "08/12/2015"
+__date__ = "02/09/2016"
 __license__ = "MIT"
 
 
@@ -30,3 +30,13 @@ else:
     print("      include %s" % numpy.get_include())
     print("      options %s" % numpy.get_printoptions())
 print("")
+try:
+    import pyopencl
+except Exception as error:
+    print("Unable to import pyopencl: %s" % error)
+else:
+    print("PyOpenCL platform:")
+    for p in pyopencl.get_platforms():
+        print("  %s" % p)
+        for d in p.get_devices():
+            print("    %s" % d)
