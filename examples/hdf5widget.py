@@ -40,6 +40,11 @@ import html
 import h5py
 import tempfile
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 
 _logger = logging.getLogger(__name__)
 """Module logger"""
@@ -161,6 +166,55 @@ def get_hdf5_with_100000_datasets():
     for i in range(100000):
         g.create_dataset("dataset%i" % i, data=numpy.int64(10))
     h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_edf_with_all_types():
+    global _file_cache
+    ID = "alltypesedf"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".edf", delete=True)
+
+    header = fabio.fabioimage.OrderedDict()
+    header["integer"] = "10"
+    header["float"] = "10.5"
+    header["string"] = "Hi!"
+    header["integer_list"] = "10 20 50"
+    header["float_list"] = "1.1 3.14 500.12"
+    header["motor_pos"] = "10 2.5 a1"
+    header["motor_mne"] = "integer_position float_position named_position"
+
+    data = numpy.array([[10, 50],[50, 10]])
+    fabiofile = fabio.edfimage.EdfImage(data, header)
+    fabiofile.write(tmp.name)
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+def get_edf_with_100000_frames():
+    global _file_cache
+    ID = "frame100000"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".edf", delete=True)
+
+    fabiofile = None
+    for framre_id in range(100000):
+        data = numpy.array([[framre_id, 50],[50, 10]])
+        if fabiofile is None:
+            header = fabio.fabioimage.OrderedDict()
+            header["nb_frames"] = "100000"
+            fabiofile = fabio.edfimage.EdfImage(data, header)
+        else:
+            header = fabio.fabioimage.OrderedDict()
+            header["frame_nb"] = framre_id
+            fabiofile.appendFrame(fabio.edfimage.Frame(data, header, framre_id))
+    fabiofile.write(tmp.name)
 
     _file_cache[ID] = tmp
     return tmp.name
@@ -425,6 +479,25 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         asyncload.setChecked(self.__asyncload)
         asyncload.toggled.connect(lambda: self.useAsyncLoad(asyncload.isChecked()))
         content.layout().addWidget(asyncload)
+
+        if fabio is not None:
+            content = qt.QGroupBox("Create EDF", panel)
+            content.setLayout(qt.QVBoxLayout())
+            panel.layout().addWidget(content)
+
+            button = ThreadPoolPushButton("Containing all types")
+            callable = CreateFileCallable(get_edf_with_all_types)
+            callable.finished.connect(self.__fileCreated)
+            button.setCallable(callable)
+            content.layout().addWidget(button)
+
+            button = ThreadPoolPushButton("Containing 100000 frames")
+            callable = CreateFileCallable(get_edf_with_100000_frames)
+            callable.finished.connect(self.__fileCreated)
+            button.setCallable(callable)
+            content.layout().addWidget(button)
+
+            content.layout().addStretch(1)
 
         option = qt.QGroupBox("Tree options", panel)
         option.setLayout(qt.QVBoxLayout())
