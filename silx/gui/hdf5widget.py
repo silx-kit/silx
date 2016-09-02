@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "31/08/2016"
+__date__ = "02/09/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -335,11 +335,11 @@ class Hdf5BrokenLinkItem(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__message is None:
                 if isinstance(self.obj, h5py.ExternalLink):
-                    message = "External link broken. Path %s::%s does not exist" % (self.object.filename, self.object.path)
-                elif isinstance(self.object, h5py.SoftLink):
-                    message = "Soft link broken. Path %s does not exist" % (self.object.path)
+                    message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
+                elif isinstance(self.obj, h5py.SoftLink):
+                    message = "Soft link broken. Path %s does not exist" % (self.obj.path)
                 else:
-                    name = self.object.__class__.__name__.split(".")[-1].capitalize()
+                    name = self.obj.__class__.__name__.split(".")[-1].capitalize()
                     message = "%s broken" % (name)
             else:
                 message = self.__message
