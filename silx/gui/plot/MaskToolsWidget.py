@@ -481,6 +481,32 @@ class MaskToolsWidget(qt.QWidget):
 
     def _initMaskGroupBox(self):
         """Init general mask operation widgets"""
+        def _initDisplayWidget():
+            widget = qt.QWidget(self)
+            return widget
+
+        def _initMaskButtons():
+            widget = qt.QWidget(self)
+            return widget
+
+        def _initTransmparencyWidget():
+            transparencyWidget = qt.QWidget(self)
+            grid = qt.QGridLayout()
+            grid.setContentsMargins(0, 0, 0, 0)
+            self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
+            self.transparencySlider.setRange(3, 10)
+            self.transparencySlider.setValue(5)
+            self.transparencySlider.setToolTip(
+                'Set the transparency of the mask display')
+            self.transparencySlider.valueChanged.connect(self._updateColors)
+            grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
+            grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
+            grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>', parent=transparencyWidget), 1, 1)
+            grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>', parent=transparencyWidget), 1, 3)
+            transparencyWidget.setLayout(grid)
+            return transparencyWidget
+
+        # Mask level 
         self.levelSpinBox = qt.QSpinBox()
         self.levelSpinBox.setRange(1, 255)
         self.levelSpinBox.setToolTip(
@@ -489,22 +515,10 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
+        # Transarency
+        self.transparencyWidget = _initTransmparencyWidget()
 
-        grid = qt.QGridLayout()
-        grid.setContentsMargins(0, 0, 0, 0)
-        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal)
-        self.transparencySlider.setRange(3, 10)
-        self.transparencySlider.setValue(5)
-        self.transparencySlider.setToolTip(
-            'Set the transparency of the mask display')
-        self.transparencySlider.valueChanged.connect(self._updateColors)
-        grid.addWidget(qt.QLabel('Display:'), 0, 0)
-        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
-        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>'), 1, 1)
-        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>'), 1, 3)
-        transparencyWidget = qt.QWidget()
-        transparencyWidget.setLayout(grid)
-
+        # Buttons group
         invertBtn = qt.QPushButton('Invert')
         invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
         invertBtn.setToolTip('Invert current mask <b>%s</b>' %
@@ -546,15 +560,15 @@ class MaskToolsWidget(qt.QWidget):
         saveBtn = qt.QPushButton('Save...')
         saveBtn.clicked.connect(self._saveMask)
 
-        loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
+        self.loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self.levelWidget)
-        layout.addWidget(transparencyWidget)
+        layout.addWidget(self.transparencyWidget)
         layout.addWidget(invertClearWidget)
         layout.addWidget(undoRedoWidget)
         layout.addWidget(self.clearAllBtn)
-        layout.addWidget(loadSaveWidget)
+        layout.addWidget(self.loadSaveWidget)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
@@ -610,12 +624,12 @@ class MaskToolsWidget(qt.QWidget):
 
         self.browseAction.setChecked(True)
 
-        drawButtons = []
+        self.drawButtons = {}
         for action in self.drawActionGroup.actions():
             btn = qt.QToolButton()
             btn.setDefaultAction(action)
-            drawButtons.append(btn)
-        container = self._hboxWidget(*drawButtons)
+            self.drawButtons[action.text()] = btn
+        container = self._hboxWidget(*self.drawButtons.values())
         layout.addWidget(container)
 
         # Mask/Unmask radio buttons
@@ -748,9 +762,9 @@ class MaskToolsWidget(qt.QWidget):
 
         layout.addStretch(1)
 
-        thresholdGroup = qt.QGroupBox('Threshold')
-        thresholdGroup.setLayout(layout)
-        return thresholdGroup
+        self.thresholdGroup = qt.QGroupBox('Threshold')
+        self.thresholdGroup.setLayout(layout)
+        return self.thresholdGroup
 
     # Handle mask refresh on the plot
 
