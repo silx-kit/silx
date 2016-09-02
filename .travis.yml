@@ -61,7 +61,6 @@ install:
     #TODO: cleanup after https://github.com/h5py/h5py/issues/731 is fixed 
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ numpy --upgrade
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py --no-index
-    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
     # Print Python info
     - python ./ci/info_platform.py
     - pip list
@@ -101,6 +100,10 @@ script:
 
     # Install h5py for silx.io tests
     - pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py
+
+    #Install optional dependencies for running test
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy 
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
 
     # Install GUI dependencies
     - if [ "$WITH_QT_TEST" == "True" ];
