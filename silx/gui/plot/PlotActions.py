@@ -727,7 +727,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension
