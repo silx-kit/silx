@@ -324,7 +324,12 @@ class Mask(qt.QObject):
 class MaskToolsWidget(qt.QWidget):
     """Widget with tools for drawing mask on an image in a PlotWidget."""
 
+    _maxLevelNumber = 255
+
     def __init__(self, plot, parent=None):
+        self._defaultColors = numpy.ndarray((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
+        self._overlayColors = numpy.ndarray((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
+
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
@@ -332,9 +337,10 @@ class MaskToolsWidget(qt.QWidget):
             'name': None,
             'normalization': 'linear',
             'autoscale': False,
-            'vmin': 0, 'vmax': 255,
+            'vmin': 0, 'vmax': self._maxLevelNumber,
             'colors': None}
-        self._overlayColor = rgba('gray')  # Color of the mask
+        self._defaultOverlayColor = rgba('gray')  # Color of the mask
+        self._defaultColors[:]=True
         self._setMaskColors(1, 0.5)
 
         self._doMask = None  # Store mask/unmask state while interacting
@@ -508,7 +514,7 @@ class MaskToolsWidget(qt.QWidget):
 
         # Mask level 
         self.levelSpinBox = qt.QSpinBox()
-        self.levelSpinBox.setRange(1, 255)
+        self.levelSpinBox.setRange(1, self._maxLevelNumber)
         self.levelSpinBox.setToolTip(
             'Choose which mask level is edited.\n'
             'A mask can have up to 255 non-overlapping levels.')
@@ -821,7 +827,7 @@ class MaskToolsWidget(qt.QWidget):
                 self._activeImageChangedAfterCare)
         else:
             colormap = activeImage[4]['colormap']
-            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -856,7 +862,7 @@ class MaskToolsWidget(qt.QWidget):
             self.setEnabled(True)
 
             colormap = activeImage[4]['colormap']
-            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -986,12 +992,17 @@ class MaskToolsWidget(qt.QWidget):
         :param int level: The mask level to highlight
         :param float alpha: Alpha level of mask in [0., 1.]
         """
-        assert level > 0 and level < 256
+        assert level > 0 and level <= self._maxLevelNumber
 
-        colors = numpy.empty((256, 4), dtype=numpy.float32)
-
+        colors = numpy.empty((self._maxLevelNumber+1, 4), dtype=numpy.float32)
+        
         # Set color
-        colors[:, :3] = self._overlayColor[:3]
+        colors[:, :3] = self._defaultOverlayColor[:3]
+
+        # check if some colors has been directly set by the user
+        for iVal in numpy.arange(0, 255) :
+            if self._defaultColors[iVal] == False :
+                colors[iVal, :3] = self._overlayColors[iVal]
 
         # Set alpha
         colors[:, -1] = alpha / 2.
@@ -1003,6 +1014,24 @@ class MaskToolsWidget(qt.QWidget):
         colors[0] = (0., 0., 0., 0.)
 
         self._colormap['colors'] = colors
+
+    def setMaskColors(self, rgb, level=None):
+        """Set the masks color
+        :param rgb: The rgb color
+        :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
+        """
+        if level is None:
+            self._overlayColors = rgb
+            self._defaultColors[:] = False
+        else:
+            self._overlayColors[level] = rgb
+            self._defaultColors[level] = False
+
+        self._updateColors()
+        
+    def getMaskColors(self):
+        """masks colors getter"""
+        return self._overlayColors
 
     def _updateColors(self, *args):
         """Rebuild mask colormap when selected level or transparency change"""
