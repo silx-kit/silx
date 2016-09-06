@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "06/09/2016"
 
 import logging
 from .. import qt
@@ -71,11 +71,13 @@ class _Wrapper(qt.QRunnable):
 
 class ThreadPoolPushButton(WaitingPushButton):
     """
-    ThreadPoolPushButton provide a simple push button to execute
+    ThreadPoolPushButton provides a simple push button to execute
     a threaded task with user feedback when the task is running.
 
     The task can be defined with the method `setCallable`. It takes a python
     function and arguments as parameters.
+
+    WARNING: This task is run in a separate thread.
 
     Everytime the button is pushed a new runner is created to execute the
     function with defined arguments. An animated waiting icon is displayed
@@ -125,14 +127,19 @@ class ThreadPoolPushButton(WaitingPushButton):
 
     succeeded = qt.Signal(object)
     """Signal emitted when the callable exit with a success.
-    The parameter of the signal is the exception."""
+
+    The parameter of the signal is the result returned by the callable.
+    """
 
     failed = qt.Signal(object)
-    """Signal emitted when the callable exit with a fail.
-    The parameter of the signal is the exception."""
+    """Signal emitted when the callable raises an exception.
+
+    The parameter of the signal is the raised exception.
+    """
 
     def __runnerStarted(self):
         """Called when a runner is started.
+
         Count the number of executed tasks to change the state of the widget.
         """
         self.__runnerCount += 1
@@ -141,6 +148,7 @@ class ThreadPoolPushButton(WaitingPushButton):
 
     def __runnerFinished(self):
         """Called when a runner is finished.
+
         Count the number of executed tasks to change the state of the widget.
         """
         self.__runnerCount -= 1
@@ -149,13 +157,15 @@ class ThreadPoolPushButton(WaitingPushButton):
 
     @qt.Slot()
     def executeCallable(self):
-        """Execute the defined callable in QThreadPool. If callable is not
-        defined, nothing append. If a callable is defined, it will be started
+        """Execute the defined callable in QThreadPool.
+
+        If callable is not defined, nothing append.
+        If a callable is defined, it will be started
         as a new thread using the `QThreadPool` system. At start of the thread
         the `started` will be emitted. When the callable returns a result it
-        is emmitted by the `succeeded` signal. If the callable fail, the signal
+        is emitted by the `succeeded` signal. If the callable fail, the signal
         `failed` is emitted with the resulting exception. Then the `finished`
-        signal is called.
+        signal is emitted.
         """
         if self.__callable is None:
             return None
@@ -175,9 +185,12 @@ class ThreadPoolPushButton(WaitingPushButton):
         return runnable
 
     def setCallable(self, function, *args, **kwargs):
-        """Define a callable which will be executed on QThreadPool everytine
-        the button is clicked. If you need result, you can create a callable
-        object inheriting from a QObject and emitting signals.
+        """Define a callable which will be executed on QThreadPool everytime
+        the button is clicked.
+
+        To retrieve the results, connect to the `succeeded` signal.
+
+        WARNING: The callable will be called in a separate thread.
 
         :param callable function: A callable Python object
         :param list args: List of arguments to call the function.
