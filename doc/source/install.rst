@@ -206,14 +206,14 @@ The easy way to install *silx* on Mac OS X, is::
 
 This should work without issues, as binary wheels of *silx* are provided on
 PyPi.
-The tricky part is to install the optional dependencies.
 
-Until recently, the `h5py` developers provided Mac OS X wheels.
-Therefore, the easiest way to install `h5py` on this system is to get an older version using pip::
+Wheels are available for *h5py* on Mac OS X, so you can install it with::
 
-    pip install h5py==2.5.0
-    
-If you require `h5py` version `2.6.0` or newer, you will need to compile it as well as it's dependencies (mainly HDF5) yourself.
+    pip install h5py
+
+If at the time of your installation a new version of *h5py* has been released but
+the corresponding Mac OS X wheel is not ready, you should install the latest version including
+a wheel: ``pip install h5py==2.6.0``
 
 A PyQt5 wheel is now available for Python 3.5 on Mac OS X: https://pypi.python.org/simple/pyqt5/.
 Download it and install it with::

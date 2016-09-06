@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "05/08/2016"
+__date__ = "30/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -703,7 +703,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header["D"])
+            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
         else:
             logger1.warn("No #D line in header. " +
                          "Using current system time for start_time.")
@@ -1154,6 +1154,9 @@ class SpecH5(SpecH5Group):
         self._sf = SpecFile(filename)
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
+        if len(self) == 0:
+            # SpecFile library do not raise exception for non specfiles
+            raise IOError("Empty specfile. Not a valid spec format.")
 
     def keys(self):
         """

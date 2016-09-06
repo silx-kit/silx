@@ -1,6 +1,7 @@
 # coding: utf-8
-#/*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# /*##########################################################################
+#
+# Copyright (c) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +21,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
-
+# ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/04/2016"
+__date__ = "24/08/2016"
+
 
 import unittest
-
-from .test_specfile import suite as test_specfile_suite
-from .test_specfilewrapper import suite as test_specfilewrapper_suite
-from .test_dictdump import suite as test_dictdump_suite
-from .test_spech5 import suite as test_spech5_suite
-from .test_spectoh5 import suite as test_spectoh5_suite
-from .test_octaveh5 import suite as test_octaveh5_suite
-from .test_utils import suite as test_utils_suite
-
+from .test_weakref import suite as test_weakref_suite
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_dictdump_suite())
-    test_suite.addTest(test_specfile_suite())
-    test_suite.addTest(test_specfilewrapper_suite())
-    test_suite.addTest(test_spech5_suite())
-    test_suite.addTest(test_spectoh5_suite())
-    test_suite.addTest(test_octaveh5_suite())
-    test_suite.addTest(test_utils_suite())
+    test_suite.addTest(test_weakref_suite())
     return test_suite
