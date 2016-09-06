@@ -393,7 +393,7 @@ class MaskToolsWidget(qt.QWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
-        if mask.shape == self._data.shape:
+        if self._data.shape == (0, 0) or mask.shape == self._data.shape:
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
             return mask.shape
