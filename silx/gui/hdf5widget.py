@@ -247,8 +247,7 @@ class Hdf5Node(object):
         return self.__child.index(child)
 
     def hasChildren(self):
-        """Override method to be able to generate chrildren on demand.
-        The result is computed from the HDF5 model.
+        """Returns existance of children.
 
         :rtype: bool
         """
@@ -308,96 +307,6 @@ class Hdf5Node(object):
         return None
 
 
-class Hdf5BrokenLinkItem(Hdf5Node):
-    """Subclass of :class:`qt.QStandardItem` to represent a broken link
-    in HDF5 tree structure.
-    """
-
-    def __init__(self, text, obj=None, message=None, parent=None):
-        """Constructor
-
-        :param text str: Text displayed by the item
-        :param obj h5py link: HDF5 object containing link informations
-        :param message str: Message to display as description
-        """
-        super(Hdf5BrokenLinkItem, self).__init__(parent)
-        self.__text = text
-        self.__obj = obj
-        self.__message = message
-
-    @property
-    def obj(self):
-        return self.__obj
-
-    def _getH5pyClass(self):
-        if hasattr(self.__obj, "h5py_class"):
-            class_ = self.__obj.h5py_class
-        else:
-            class_ = self.__obj.__class__
-        return class_
-
-    def _expectedChildCount(self):
-        return 0
-
-    def dataName(self, role):
-        if role == qt.Qt.DecorationRole:
-            style = qt.QApplication.style()
-            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
-            return icon
-        if role == qt.Qt.TextAlignmentRole:
-            return qt.Qt.AlignTop | qt.Qt.AlignLeft
-        if role == qt.Qt.DisplayRole:
-            return self.__text
-        if role == qt.Qt.ToolTipRole:
-            input = {}
-            if isinstance(self.obj, h5py.ExternalLink):
-                input["linked path"] = self.obj.path
-                input["linked file"] = self.obj.filename
-            elif isinstance(self.obj, h5py.SoftLink):
-                input["linked path"] = self.obj.path
-            return htmlFromDict(input)
-        return None
-
-    def dataDescription(self, role):
-        if role == qt.Qt.DecorationRole:
-            return None
-        if role == qt.Qt.TextAlignmentRole:
-            return qt.Qt.AlignTop | qt.Qt.AlignLeft
-        if role == qt.Qt.DisplayRole:
-            if self.__message is None:
-                if isinstance(self.obj, h5py.ExternalLink):
-                    message = "External link broken. Path %s::%s does not exist" % (self.obj.filename, self.obj.path)
-                elif isinstance(self.obj, h5py.SoftLink):
-                    message = "Soft link broken. Path %s does not exist" % (self.obj.path)
-                else:
-                    name = self.obj.__class__.__name__.split(".")[-1].capitalize()
-                    message = "%s broken" % (name)
-            else:
-                message = self.__message
-            return self.__message
-        return None
-
-    def dataNode(self, role):
-        if role == qt.Qt.DecorationRole:
-            return None
-        if role == qt.Qt.TextAlignmentRole:
-            return qt.Qt.AlignTop | qt.Qt.AlignLeft
-        if role == qt.Qt.DisplayRole:
-            class_ = self._getH5pyClass()
-            return class_.__name__.split(".")[-1]
-
-
-            class_ = self._getH5pyClass()
-            text = class_.__name__.split(".")[-1]
-            return text
-        if role == qt.Qt.ToolTipRole:
-
-            item = qt.QStandardItem(text)
-            item.setToolTip("Class name: %s" % self.__class__)
-            return text
-        return None
-
-
 class Hdf5LoadingItem(Hdf5Node):
 
     def __init__(self, text, parent, animatedIcon):
@@ -435,30 +344,81 @@ class Hdf5Item(Hdf5Node):
     tree structure.
     """
 
-    def __init__(self, text, obj, parent, populateAll=False):
+    def __init__(self, text, obj, parent, key=None, h5pyClass=None, isBroken=False, populateAll=False):
         """
         :param text str: text displayed
         :param obj object: Pointer to h5py data. See the `obj` attribute.
         """
         self.__obj = obj
+        self.__key = key
+        self.__h5pyClass = h5pyClass
+        self.__isBroken = isBroken
+        self.__error = None
         self.__text = text
         Hdf5Node.__init__(self, parent, populateAll=populateAll)
 
     @property
     def obj(self):
+        if self.__key:
+            self.__initH5pyObject()
         return self.__obj
 
-    def _getH5pyClass(self):
-        if hasattr(self.__obj, "h5py_class"):
-            class_ = self.__obj.h5py_class
-        else:
-            class_ = self.__obj.__class__
-        return class_
+    @property
+    def h5pyClass(self):
+        if self.__h5pyClass is None:
+            if hasattr(self.obj, "h5py_class"):
+                self.__h5pyClass = self.obj.h5py_class
+            else:
+                self.__h5pyClass = self.obj.__class__
+        return self.__h5pyClass
+
+    def isBroken(self):
+        return self.__isBroken
 
     def _expectedChildCount(self):
         if self.isGroupObj():
-            return len(self.__obj)
+            return len(self.obj)
         return 0
+
+    def __initH5pyObject(self):
+        parent_obj = self.parent.obj
+
+        try:
+            object = parent_obj.get(self.__key)
+        except RuntimeError as e:
+            _logger.debug("Internal h5py error", exc_info=True)
+            self.__obj = parent_obj.get(self.__key, getlink=True)
+            self.__error = e.args[0]
+            self.__isBroken = True
+        else:
+            if object is None:
+                # that's a broken link
+                self.__obj = parent_obj.get(self.__key, getlink=True)
+
+                # TODO monkeypatch file (ask that in h5py for consistancy)
+                if not hasattr(self.__obj, "name"):
+                    parent_name = parent_obj.name
+                    if parent_name == "/":
+                        self.__obj.name = "/" + self.__key
+                    else:
+                        self.__obj.name = parent_name + "/" + self.__key
+                # TODO monkeypatch file (ask that in h5py for consistancy)
+                if not hasattr(self.__obj, "file"):
+                    self.__obj.file = parent_obj.file
+
+                if isinstance(self.__obj, h5py.ExternalLink):
+                    message = "External link broken. Path %s::%s does not exist" % (self.__obj.filename, self.__obj.path)
+                elif isinstance(self.__obj, h5py.SoftLink):
+                    message = "Soft link broken. Path %s does not exist" % (self.__obj.path)
+                else:
+                    name = self.obj.__class__.__name__.split(".")[-1].capitalize()
+                    message = "%s broken" % (name)
+                self.__error = message
+                self.__isBroken = True
+            else:
+                self.__obj = object
+
+        self.__key = None
 
     def _populateChild(self, populateAll=False):
         """Recurse through an HDF5 structure to append groups an datasets
@@ -470,31 +430,32 @@ class Hdf5Item(Hdf5Node):
             spech5.SpecH5Dataset)
         """
         if self.isGroupObj():
-            for child_gr_ds_name in self.__obj:
+            for name in self.obj:
                 try:
-                    child_gr_ds = self.__obj.get(child_gr_ds_name)
-                except RuntimeError as e:
+                    class_ = self.obj.get(name, getclass=True)
+                    has_error = False
+                except Exception as e:
                     _logger.error("Internal h5py error", exc_info=True)
-                    link = self.__obj.get(child_gr_ds_name, getlink=True)
-                    item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, message=e.args[0], parent=self)
-                else:
-                    if child_gr_ds is None:
-                        # that's a broken link
-                        link = self.__obj.get(child_gr_ds_name, getlink=True)
-                        item = Hdf5BrokenLinkItem(text=child_gr_ds_name, obj=link, parent=self)
-                    else:
-                        item = Hdf5Item(text=child_gr_ds_name, obj=child_gr_ds, parent=self, populateAll=populateAll)
-                if item is not None:
-                    self.appendChild(item)
+                    class_ = self.obj.get(name, getclass=True, getlink=True)
+                    has_error = True
+                item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, isBroken=has_error)
+                self.appendChild(item)
 
     def isGroupObj(self):
         """Is the hdf5 obj contains sub group or datasets"""
-        class_ = self._getH5pyClass()
-        return issubclass(class_, h5py.Group)
+        return issubclass(self.h5pyClass, h5py.Group)
+
+    def hasChildren(self):
+        if not self.isGroupObj():
+            return False
+        return Hdf5Node.hasChildren(self)
 
     def _getDefaultIcon(self):
         style = qt.QApplication.style()
-        class_ = self._getH5pyClass()
+        if self.__isBroken:
+            icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
+            return icon
+        class_ = self.h5pyClass
         if issubclass(class_, h5py.File):
             return style.standardIcon(qt.QStyle.SP_FileIcon)
         elif issubclass(class_, h5py.Group):
@@ -504,11 +465,11 @@ class Hdf5Item(Hdf5Node):
         elif issubclass(class_, h5py.ExternalLink):
             return style.standardIcon(qt.QStyle.SP_FileLinkIcon)
         elif issubclass(class_, h5py.Dataset):
-            if len(self.__obj.shape) < 4:
-                name = "item-%ddim" % len(self.__obj.shape)
+            if len(self.obj.shape) < 4:
+                name = "item-%ddim" % len(self.obj.shape)
             else:
                 name = "item-ndim"
-            if str(self.__obj.dtype) == "object":
+            if str(self.obj.dtype) == "object":
                 name = "item-object"
             icon = icons.getQIcon(name)
             return icon
@@ -516,18 +477,27 @@ class Hdf5Item(Hdf5Node):
 
     def _getDefaultTooltip(self):
         """Set the default tooltip"""
-        class_ = self._getH5pyClass()
-        attrs = dict(self.__obj.attrs)
+        if self.__error is not None:
+            return self.__error
+        class_ = self.h5pyClass
+
+        attrs = {}
         if issubclass(class_, h5py.Dataset):
-            if self.__obj.shape == ():
+            attrs = dict(self.obj.attrs)
+            if self.obj.shape == ():
                 attrs["shape"] = "scalar"
             else:
-                attrs["shape"] = self.__obj.shape
-            attrs["dtype"] = self.__obj.dtype
-            if self.__obj.shape == ():
-                attrs["value"] = self.__obj.value
+                attrs["shape"] = self.obj.shape
+            attrs["dtype"] = self.obj.dtype
+            if self.obj.shape == ():
+                attrs["value"] = self.obj.value
             else:
                 attrs["value"] = "..."
+        elif isinstance(self.obj, h5py.ExternalLink):
+            attrs["linked path"] = self.obj.path
+            attrs["linked file"] = self.obj.filename
+        elif isinstance(self.obj, h5py.SoftLink):
+            attrs["linked path"] = self.obj.path
 
         if len(attrs) > 0:
             tooltip = htmlFromDict(attrs)
@@ -555,9 +525,11 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            class_ = self._getH5pyClass()
+            if self.__error is not None:
+                return ""
+            class_ = self.h5pyClass
             if issubclass(class_, h5py.Dataset):
-                if self.__obj.dtype.type == numpy.string_:
+                if self.obj.dtype.type == numpy.string_:
                     text = "string"
                 else:
                     text = str(self.obj.dtype)
@@ -574,10 +546,12 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            class_ = self._getH5pyClass()
+            if self.__error is not None:
+                return ""
+            class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
                 return None
-            shape = [str(i) for i in self.__obj.shape]
+            shape = [str(i) for i in self.obj.shape]
             text = u" \u00D7 ".join(shape)
             return text
         return None
@@ -589,15 +563,17 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            class_ = self._getH5pyClass()
+            if self.__error is not None:
+                return ""
+            class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
-                return None
+                return ""
 
-            numpy_object = self.__obj.value
+            numpy_object = self.obj.value
 
-            if self.__obj.dtype.type == numpy.object_:
+            if self.obj.dtype.type == numpy.object_:
                 text = str(numpy_object)
-            elif self.__obj.dtype.type == numpy.string_:
+            elif self.obj.dtype.type == numpy.string_:
                 text = str(numpy_object)
             else:
                 size = 1
@@ -618,16 +594,20 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            if "desc" in self.__obj.attrs:
-                text = self.__obj.attrs["desc"]
+            if self.__isBroken:
+                return self.__error
+            if "desc" in self.obj.attrs:
+                text = self.obj.attrs["desc"]
             else:
                 return None
             return text
         if role == qt.Qt.ToolTipRole:
-            if "desc" in self.__obj.attrs:
-                text = self.__obj.attrs["desc"]
+            if self.__error is not None:
+                return self.__error
+            if "desc" in self.obj.attrs:
+                text = self.obj.attrs["desc"]
             else:
-                return None
+                return ""
             return "Description: %s" % text
         return None
 
@@ -638,11 +618,11 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.TextAlignmentRole:
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
-            class_ = self._getH5pyClass()
+            class_ = self.h5pyClass
             text = class_.__name__.split(".")[-1]
             return text
         if role == qt.Qt.ToolTipRole:
-            class_ = self._getH5pyClass()
+            class_ = self.h5pyClass
             return "Class name: %s" % self.__class__
         return None
 
@@ -861,6 +841,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def columnCount(self, parent):
         return len(self.header_labels)
+
+    def hasChildren(self, parent):
+        node = self.nodeFromIndex(parent)
+        if node is None:
+            return 0
+        return node.hasChildren()
 
     def rowCount(self, parent):
         node = self.nodeFromIndex(parent)
@@ -1167,8 +1153,8 @@ class Hdf5TreeView(qt.QTreeView):
             if item is None:
                 continue
             if isinstance(item, Hdf5Item):
-                result.append(item.obj)
-            if not ignoreBrokenLinks and isinstance(item, Hdf5BrokenLinkItem):
+                if ignoreBrokenLinks and item.isBroken():
+                    continue
                 result.append(item.obj)
         return result
 
