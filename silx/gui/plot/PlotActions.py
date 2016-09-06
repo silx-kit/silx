@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "05/09/2016"
 
 
 from collections import OrderedDict
@@ -727,7 +727,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension
