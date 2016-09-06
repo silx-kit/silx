@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "02/09/2016"
+__date__ = "06/09/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -84,6 +84,37 @@ def load_file_as_h5py(filename):
         _logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
 
     raise IOError("Format of filename '%s' is not supported" % filename)
+
+
+class Hdf5ContextMenuEvent(object):
+    """Hold information provided to context menu callbacks."""
+
+    def __init__(self, source, menu, hoveredObject):
+        self.__source = source
+        self.__menu = menu
+        self.__hoveredObject = hoveredObject
+
+    def source(self):
+        """Source of the event
+
+        :rtype: Hdf5TreeView
+        """
+        return self.__source
+
+    def menu(self):
+        """Menu which will be displayed
+
+        :rtype: qt.QMenu
+        """
+        return self.__menu
+
+    def hoveredObject(self):
+        """Item content overed by the mouse when the context menu was
+        requested
+
+        :rtype: h5py.File or h5py.Dataset or h5py.Group
+        """
+        return self.__menu
 
 
 class LoadingItemRunnable(qt.QRunnable):
@@ -1069,10 +1100,17 @@ class Hdf5TreeView(qt.QTreeView):
         selected_objects = self.selectedH5pyObjects(ignoreBrokenLinks=True)
         actions = []
 
+        menu = qt.QMenu(self)
+
+        hovered_index = self.indexAt(pos)
+        hovered_node = self.model().nodeFromIndex(hovered_index)
+        hovered_object = hovered_node.obj
+
+        event = Hdf5ContextMenuEvent(self, menu, hovered_object)
+
         for callback in self.__context_menu_callbacks:
             try:
-                new_actions = callback(self, selected_objects)
-                actions.extend(new_actions)
+                callback(event)
             except KeyboardInterrupt:
                 raise
             except:
@@ -1080,8 +1118,7 @@ class Hdf5TreeView(qt.QTreeView):
                 _logger.error("Error while calling callback", exc_info=True)
                 pass
 
-        if len(actions) > 0:
-            menu = qt.QMenu(self)
+        if len(menu.children()) > 0:
             for action in actions:
                 menu.addAction(action)
             menu.popup(self.viewport().mapToGlobal(pos))

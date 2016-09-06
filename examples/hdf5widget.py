@@ -270,9 +270,9 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         self.__treeview.addContextMenuCallback(self.customContextMenu)
         # lamba function will never be called cause we store it as weakref
-        self.__treeview.addContextMenuCallback(lambda: None)
+        self.__treeview.addContextMenuCallback(lambda event: None)
         # you have to store it first
-        self.__store_lambda = lambda x, y: self.anotherCustomContextMenu(x, y)
+        self.__store_lambda = lambda event: self.anotherCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
 
     def displayEvent(self, eventName, index):
@@ -319,27 +319,45 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         else:
             self.__treeview.model().insertFile(filename)
 
-    def customContextMenu(self, treeview, selectedObjects):
+    def customContextMenu(self, event):
+        """Called to populate the context menu
+
+        :param silx.gui.hdf5widget.Hdf5ContextMenuEvent event: Event
+            containing expected information to populate the context menu
+        """
+        selectedObjects = event.source().selectedH5pyObjects()
+        menu = event.menu()
+
         hasDataset = False
         for object in selectedObjects:
             if hasattr(object, "value"):
                 hasDataset = True
                 break
 
-        if hasDataset:
-            action = qt.QAction("Do something on the datasets", treeview)
-            return [action]
-        else:
-            return []
+        if len(menu.children()):
+            menu.addSeparator()
 
-    def anotherCustomContextMenu(self, treeview, selectedObjects):
-        actions = []
+        if hasDataset:
+            action = qt.QAction("Do something on the datasets", event.source())
+            menu.addAction(action)
+
+    def anotherCustomContextMenu(self, event):
+        """Called to populate the context menu
+
+        :param silx.gui.hdf5widget.Hdf5ContextMenuEvent event: Event
+            containing expected information to populate the context menu
+        """
+        selectedObjects = event.source().selectedH5pyObjects()
+        menu = event.menu()
+
+        if len(menu.children()):
+            menu.addSeparator()
+
         for object in selectedObjects:
             if hasattr(object, "filename"):
                 filename = os.path.basename(object.filename)
-                action = qt.QAction("Do something on %s" % filename, treeview)
-                actions.append(action)
-        return actions
+                action = qt.QAction("Do something on %s" % filename, event.source())
+                menu.addAction(action)
 
     def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
