@@ -25,7 +25,7 @@
 parameter results and associated constraints."""
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__date__ = "06/09/2016"
 
 import sys
 from collections import OrderedDict
@@ -235,25 +235,26 @@ class Parameters(qt.QTableWidget):
         """
         return self.parameters[param]['fields'].index(field)
 
-    def fillfromfit(self, fitparameterslist):
-        """Fill table with values from a ``FitManager.paramlist`` list
-        of dictionaries.
+    def fillfromfit(self, fitresults):
+        """Fill table with values from a  list of dictionaries
+        (see :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
 
-        :param fitparameterslist: List of parameters as recorded
+        :param fitresults: List of parameters as recorded
              in the ``paramlist`` attribute of a :class:`FitManager` object
-        :type fitparameterslist: list[dict]
+        :type fitresults: list[dict]
         """
-        self.setRowCount(len(fitparameterslist))
+        self.setRowCount(len(fitresults))
 
         # Reinitialize and fill self.parameters
         self.parameters = OrderedDict()
-        for (line, param) in enumerate(fitparameterslist):
+        for (line, param) in enumerate(fitresults):
             self.newparameterline(param['name'], line)
 
-        for param in fitparameterslist:
+        for param in fitresults:
             name = param['name']
             code = str(param['code'])
             if code not in self.code_options:
+                # convert code from int to descriptive string
                 code = self.code_options[int(code)]
             val1 = param['cons1']
             val2 = param['cons2']
@@ -623,7 +624,7 @@ class Parameters(qt.QTableWidget):
         """This function updates values in a line of the table
 
         :param name: Name of the parameter (serves as unique identifier for
-                     a line.
+                     a line).
         :param code: Constraint code *FREE, FIXED, POSITIVE, DELTA, FACTOR,
                      SUM, QUOTED, IGNORE*
         :param val1: Constraint 1 (can be the index or name of another
@@ -639,7 +640,7 @@ class Parameters(qt.QTableWidget):
                       of several consecutive parameters)
         :param xmin:
         :param xmax:
-        :param relatedto: Same as val1, index or name of another fit parameter
+        :param relatedto: Index or name of another fit parameter
                           to which this parameter is related to (constraints)
         :param cons1: similar meaning to ``val1``, but is always a number
         :param cons2: similar meaning to ``val2``, but is always a number
@@ -658,6 +659,7 @@ class Parameters(qt.QTableWidget):
             index = self.parameters[name]['code_item'].findText(code)
             self.parameters[name]['code_item'].setCurrentIndex(index)
         else:
+            # set code to previous value, used later for setting val1 val2
             code = self.parameters[name]['code']
 
         # val1 and sigma have special formats
@@ -710,7 +712,7 @@ class Parameters(qt.QTableWidget):
         elif code in ['DELTA', 'SUM', 'FACTOR']:
             # For these codes, val1 is the fit parameter name on which the
             # constraint depends
-            if (val1 is not None and val1 in paramlist) or val1 is None:
+            if val1 is not None and val1 in paramlist:
                 self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
 
             elif val1 is not None:
@@ -719,6 +721,11 @@ class Parameters(qt.QTableWidget):
                     self.parameters[name]['relatedto'] = paramlist[int(val1)]
                 except ValueError:
                     self.parameters[name]['relatedto'] = self.parameters[name]["val1"]
+
+            elif relatedto is not None:
+                # code changed, val1 not specified but relatedto specified:
+                # set val1 to relatedto (pre-fill best guess)
+                self.parameters[name]["val1"] = relatedto
 
             # update fields "delta", "sum" or "factor"
             key = code.lower()
