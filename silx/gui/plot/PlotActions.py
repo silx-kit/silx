@@ -596,9 +596,17 @@ class SaveAction(_PlotAction):
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
 
+        # If curve has no associated label, get the default from the plot
+        xlabel = curve[4]['xlabel']
+        if xlabel is None:
+            xlabel = self.plot.getGraphXLabel()
+        ylabel = curve[4]['ylabel']
+        if ylabel is None:
+            ylabel = self.plot.getGraphYLabel()
+
         try:
             save1D(filename, curve[0], curve[1],
-                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
