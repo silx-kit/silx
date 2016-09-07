@@ -301,8 +301,8 @@ class FitManager(object):
         :param name: String with the name describing the function
         :param theory: :class:`FitTheory` object, defining a fit function and
             associated information (estimation function, description…).
-             If this parameter is provided, all other parameters, except for
-             ``name``, are ignored.
+            If this parameter is provided, all other parameters, except for
+            ``name``, are ignored.
         :type theory: :class:`silx.math.fit.fittheory.FitTheory`
         :param function function: Mandatory argument if ``theory`` is not provided.
             See documentation for :attr:`silx.math.fit.fittheory.FitTheory.function`.

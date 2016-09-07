@@ -83,3 +83,4 @@ API
 
 .. autoclass:: FitWidget
    :members: __init__, setData
+
