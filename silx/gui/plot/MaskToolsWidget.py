@@ -884,7 +884,7 @@ class MaskToolsWidget(qt.QWidget):
         if effectiveMaskShape is None:
             return False
         elif mask.shape != effectiveMaskShape:
-            result = 'Mask was resized from %s to %s' % (
+            return 'Mask was resized from %s to %s' % (
                 str(mask.shape), str(effectiveMaskShape))
         else:
             return True

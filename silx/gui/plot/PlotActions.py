@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "05/09/2016"
 
 
 from collections import OrderedDict
@@ -199,9 +199,8 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip=
-                'Enable x-axis auto-scale when checked.\n'
-                'If unchecked, x-axis does not change when reseting zoom.',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -223,9 +222,8 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip=
-                'Enable y-axis auto-scale when checked.\n'
-                'If unchecked, y-axis does not change when reseting zoom.',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -598,9 +596,17 @@ class SaveAction(_PlotAction):
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
 
+        # If curve has no associated label, get the default from the plot
+        xlabel = curve[4]['xlabel']
+        if xlabel is None:
+            xlabel = self.plot.getGraphXLabel()
+        ylabel = curve[4]['ylabel']
+        if ylabel is None:
+            ylabel = self.plot.getGraphYLabel()
+
         try:
             save1D(filename, curve[0], curve[1],
-                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -727,7 +733,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension

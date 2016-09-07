@@ -442,8 +442,8 @@ class SelectPolygon(Select):
                       (x - offset, y + offset),
                       (x + offset, y + offset),
                       (x + offset, y - offset)]
-            points = [self.machine.plot.pixelToData(x, y, check=False)
-                      for x, y in points]
+            points = [self.machine.plot.pixelToData(xpix, ypix, check=False)
+                      for xpix, ypix in points]
             self.machine.setSelectionArea(points, fill=None,
                                           color=self.machine.color,
                                           name='first_point')

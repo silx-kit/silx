@@ -37,7 +37,7 @@ import logging
 
 from . import Plot
 
-from .. import icons, qt
+from .. import qt
 
 
 _logger = logging.getLogger(__name__)
