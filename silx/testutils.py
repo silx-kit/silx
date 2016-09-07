@@ -137,8 +137,8 @@ class TestLogging(logging.Handler):
     def __enter__(self):
         """Context (i.e., with) support"""
         self.records = []  # Reset recorded LogRecords
-        self.logger.propagate = False
         self.logger.addHandler(self)
+        self.logger.propagate = False
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Context (i.e., with) support"""

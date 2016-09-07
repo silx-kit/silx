@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "11/05/2016"
+__date__ = "01/09/2016"
 __license__ = "MIT"
 
 
@@ -472,6 +472,9 @@ setup_kwargs.update(
                     package_data={'silx.resources': [
                         # Add here all resources files
                         'gui/icons/*.png',
+                        'gui/icons/*.svg',
+                        'gui/icons/*.mng',
+                        'gui/icons/*.gif',
                         ]},
                     zip_safe=False,
                     )

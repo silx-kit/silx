@@ -33,7 +33,7 @@ import doctest
 import numpy
 import unittest
 
-from silx.testutils import ParametricTestCase, test_logging
+from silx.testutils import ParametricTestCase, TestLogging
 from silx.gui.testutils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
@@ -75,8 +75,9 @@ class TestPositionInfo(TestCaseQt):
         self.plot = PlotWindow()
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
-        self.mouseMove(self.plot)  # Move to center
+        self.mouseMove(self.plot, pos=(1, 1))
         self.qapp.processEvents()
+        self.qWait(100)
 
     def tearDown(self):
         self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
@@ -85,7 +86,7 @@ class TestPositionInfo(TestCaseQt):
 
         super(TestPositionInfo, self).tearDown()
 
-    def _test(self, positionWidget, converterNames):
+    def _test(self, positionWidget, converterNames, **kwargs):
         """General test of PositionInfo.
 
         - Add it to a toolbar and
@@ -101,10 +102,11 @@ class TestPositionInfo(TestCaseQt):
         for index, name in enumerate(converterNames):
             self.assertEqual(converters[index][0], name)
 
-        # Move mouse away from center
-        xCenter, yCenter = self.plot.width() // 2, self.plot.height() // 2
-        self.mouseMove(self.plot, pos=(xCenter + 1, yCenter + 1))
-        self.qapp.processEvents()
+        with TestLogging(PlotTools.__name__, **kwargs):
+            # Move mouse to center
+            self.mouseMove(self.plot)
+            self.qapp.processEvents()
+            self.qWait(100)
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
@@ -119,7 +121,6 @@ class TestPositionInfo(TestCaseQt):
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
-    @test_logging(PlotTools.__name__, error=2)
     def testFailingConverters(self):
         """Test PositionInfo with failing custom converters"""
         def raiseException(x, y):
@@ -127,7 +128,7 @@ class TestPositionInfo(TestCaseQt):
 
         positionWidget = PlotTools.PositionInfo(
             self.plot, converters=[('Exception', raiseException)])
-        self._test(positionWidget, ['Exception'])
+        self._test(positionWidget, ['Exception'], error=2)
 
 
 class TestProfileToolBar(TestCaseQt, ParametricTestCase):

@@ -98,6 +98,11 @@ class TestCaseQt(unittest.TestCase):
     alive at the end of the test.
     With PySide, this test is not run for now as it seems PySide
     is leaking widgets internally.
+
+    All keyboard and mouse event simulation methods call qWait(20) after
+    simulating the event (as QTest does on Mac OSX).
+    This was introduced to fix issues with continuous integration tests
+    running with Xvfb on Linux.
     """
 
     DEFAULT_TIMEOUT_WAIT = 100
@@ -173,48 +178,48 @@ class TestCaseQt(unittest.TestCase):
     QTest = property(lambda self: QTest,
                      doc="""The Qt QTest class from the used Qt binding.""")
 
-    @staticmethod
-    def keyClick(widget, key, modifier=qt.Qt.NoModifier, delay=-1):
+    def keyClick(self, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
         """Simulate clicking a key.
 
         See QTest.keyClick for details.
         """
         QTest.keyClick(widget, key, modifier, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def keyClicks(widget, sequence, modifier=qt.Qt.NoModifier, delay=-1):
+    def keyClicks(self, widget, sequence, modifier=qt.Qt.NoModifier, delay=-1):
         """Simulate clicking a sequence of keys.
 
         See QTest.keyClick for details.
         """
         QTest.keyClicks(widget, sequence, modifier, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def keyEvent(action, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
+    def keyEvent(self, action, widget, key,
+                 modifier=qt.Qt.NoModifier, delay=-1):
         """Sends a Qt key event.
 
         See QTest.keyEvent for details.
         """
         QTest.keyEvent(action, widget, key, modifier, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def keyPress(widget, key, modifier=qt.Qt.NoModifier, delay=-1):
+    def keyPress(self, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
         """Sends a Qt key press event.
 
         See QTest.keyPress for details.
         """
         QTest.keyPress(widget, key, modifier, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def keyRelease(widget, key, modifier=qt.Qt.NoModifier, delay=-1):
+    def keyRelease(self, widget, key, modifier=qt.Qt.NoModifier, delay=-1):
         """Sends a Qt key release event.
 
         See QTest.keyRelease for details.
         """
         QTest.keyRelease(widget, key, modifier, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def mouseClick(widget, button, modifier=None, pos=None, delay=-1):
+    def mouseClick(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate clicking a mouse button.
 
         See QTest.mouseClick for details.
@@ -223,9 +228,9 @@ class TestCaseQt(unittest.TestCase):
             modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseClick(widget, button, modifier, pos, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def mouseDClick(widget, button, modifier=None, pos=None, delay=-1):
+    def mouseDClick(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate double clicking a mouse button.
 
         See QTest.mouseDClick for details.
@@ -234,18 +239,18 @@ class TestCaseQt(unittest.TestCase):
             modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseDClick(widget, button, modifier, pos, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def mouseMove(widget, pos=None, delay=-1):
+    def mouseMove(self, widget, pos=None, delay=-1):
         """Simulate moving the mouse.
 
         See QTest.mouseMove for details.
         """
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseMove(widget, pos, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def mousePress(widget, button, modifier=None, pos=None, delay=-1):
+    def mousePress(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate pressing a mouse button.
 
         See QTest.mousePress for details.
@@ -254,9 +259,9 @@ class TestCaseQt(unittest.TestCase):
             modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mousePress(widget, button, modifier, pos, delay)
+        self.qWait(20)
 
-    @staticmethod
-    def mouseRelease(widget, button, modifier=None, pos=None, delay=-1):
+    def mouseRelease(self, widget, button, modifier=None, pos=None, delay=-1):
         """Simulate releasing a mouse button.
 
         See QTest.mouseRelease for details.
@@ -265,6 +270,7 @@ class TestCaseQt(unittest.TestCase):
             modifier = qt.Qt.KeyboardModifiers()
         pos = qt.QPoint(pos[0], pos[1]) if pos is not None else qt.QPoint()
         QTest.mouseRelease(widget, button, modifier, pos, delay)
+        self.qWait(20)
 
     def qSleep(self, ms):
         """Sleep for ms milliseconds, blocking the execution of the test.
@@ -306,12 +312,12 @@ class TestCaseQt(unittest.TestCase):
 
 
 def getQToolButtonFromAction(action):
-    """Return a visible QToolButton corresponding to a QAction.
+    """Return a QToolButton corresponding to a QAction.
 
     :param QAction action: The QAction from which to get QToolButton.
-    :return: A visible QToolButton associated to action or None.
+    :return: A QToolButton associated to action or None.
     """
     for widget in action.associatedWidgets():
-        if isinstance(widget, qt.QToolButton) and widget.isVisible():
+        if isinstance(widget, qt.QToolButton):
             return widget
     return None

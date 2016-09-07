@@ -25,4 +25,5 @@ How-to:
 .. toctree::
    :maxdepth: 1
 
+   plot/getting_started.rst
    designer.rst

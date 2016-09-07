@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "30/08/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -213,7 +213,10 @@ instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9
 
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^/]+)$")
+# info/ + calibration, channel, preset_time, live_time, elapsed_time (not data)
+measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^d/][^/]+)$")
+# info/data
+measurement_mca_info_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/data$")
 
 
 def _bulk_match(string_, list_of_patterns):
@@ -306,6 +309,7 @@ def is_link_to_dataset(name):
     """
     list_of_link_patterns = (
         measurement_mca_data_pattern, measurement_mca_info_dataset_pattern,
+        measurement_mca_info_data_pattern
     )
     return _bulk_match(name, list_of_link_patterns)
 
@@ -363,12 +367,20 @@ def _get_attrs_dict(name):
         measurement_mca_data_pattern:
             {"interpretation": "spectrum", },
         measurement_mca_info_pattern:
-            {"NX_class": "NXdetector", }
+            {"NX_class": "NXdetector", },
+        measurement_mca_info_dataset_pattern:
+            {},
+        measurement_mca_info_data_pattern:
+            {"interpretation": "spectrum"},
     }
 
     for pattern in pattern_attrs:
         if pattern.match(name):
             return pattern_attrs[pattern]
+
+    logger1.warning("%s not a known pattern, assigning empty dict to attrs",
+                    name)
+    return {}
 
 
 def _get_scan_key_in_name(item_name):
@@ -691,7 +703,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header["D"])
+            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
         else:
             logger1.warn("No #D line in header. " +
                          "Using current system time for start_time.")
@@ -768,28 +780,39 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
 
+    # /1.1/measurement/mca_0/data -> /1.1/instrument/mca_0/data
     if measurement_mca_data_pattern.match(name):
         m = measurement_mca_data_pattern.match(name)
         analyser_index = int(m.group(1))
         array_like = _demultiplex_mca(scan, analyser_index)
 
-    elif measurement_mca_info_dataset_pattern:
+    # /1.1/measurement/mca_0/info/X -> /1.1/instrument/mca_0/X
+    # X: calibration, channels, preset_time, live_time, elapsed_time
+    elif measurement_mca_info_dataset_pattern.match(name):
         m = measurement_mca_info_dataset_pattern.match(name)
-
         mca_hdr_type = m.group(1)
+
         if mca_hdr_type == "calibration":
             array_like = scan.mca.calibration
+
         elif mca_hdr_type == "channels":
             array_like = scan.mca.channels
+
         elif "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
             (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
-            if instrument_mca_preset_t_pattern.match(name):
+            if mca_hdr_type == "preset_time":
                 array_like = preset_time
-            elif instrument_mca_live_t_pattern.match(name):
+            elif mca_hdr_type == "live_time":
                 array_like = live_time
-            elif instrument_mca_elapsed_t_pattern.match(name):
+            elif mca_hdr_type == "elapsed_time":
                 array_like = elapsed_time
+
+    # /1.1/measurement/mca_0/info/data -> /1.1/instrument/mca_0/data
+    elif measurement_mca_info_data_pattern.match(name):
+        m = measurement_mca_info_data_pattern.match(name)
+        analyser_index = int(m.group(1))
+        array_like = _demultiplex_mca(scan, analyser_index)
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -995,7 +1018,7 @@ class SpecH5Group(object):
         if instrument_mca_group_pattern.match(self.name):
             ret = static_items["scan/instrument/mca"]
             if "CTIME" in self._scan.mca_header_dict:
-                ret += ["preset_time", "elapsed_time", "live_time"]
+                return ret + [u"preset_time", u"elapsed_time", u"live_time"]
             return ret
 
         # number of data columns must be equal to number of labels
@@ -1131,6 +1154,9 @@ class SpecH5(SpecH5Group):
         self._sf = SpecFile(filename)
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
+        if len(self) == 0:
+            # SpecFile library do not raise exception for non specfiles
+            raise IOError("Empty specfile. Not a valid spec format.")
 
     def keys(self):
         """
