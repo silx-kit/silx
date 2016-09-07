@@ -103,7 +103,7 @@ class TestFitWidget(TestCaseQt):
         fw.show()
         self.qWaitForWindowExposed(fw)
 
-        # self.mouseClick(fw.guiconfig.ConfigureButton, qt.Qt.LeftButton)
+        # self.mouseClick(fw.guiConfig.ConfigureButton, qt.Qt.LeftButton)
         # todo: figure out how to click fw.guiconfigdialog.ok to close dialog
 
 def suite():

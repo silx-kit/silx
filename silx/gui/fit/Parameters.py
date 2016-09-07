@@ -157,12 +157,12 @@ class Parameters(qt.QTableWidget):
         paramlist = paramlist if paramlist is not None else []
         self.parameters = OrderedDict()
         for line, param in enumerate(paramlist):
-            self.newparameterline(param, line)
+            self.newParameterLine(param, line)
 
         # connect signal
         self.cellChanged[int, int].connect(self.onCellChanged)
 
-    def newparameterline(self, param, line):
+    def newParameterLine(self, param, line):
         """Add a line to the :class:`QTableWidget`.
 
         Each line represents one of the fit parameters for one of
@@ -206,15 +206,15 @@ class Parameters(qt.QTableWidget):
                                              ('name', param),
                                              ('xmin', None),
                                              ('xmax', None)))
-        self.set_read_write(param, 'estimation')
-        self.set_read_only(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
+        self.setReadWrite(param, 'estimation')
+        self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
 
         # Constraint codes
         a = []
         for option in self.code_options:
             a.append(option)
 
-        code_column_index = self.column_index_by_field(param, 'code')
+        code_column_index = self.columnIndexByField(param, 'code')
         cellWidget = self.cellWidget(line, code_column_index)
         if cellWidget is None:
             cellWidget = QComboTableItem(self, row=line,
@@ -226,7 +226,7 @@ class Parameters(qt.QTableWidget):
         self.parameters[param]['relatedto_item'] = None
         self.__configuring = False
 
-    def column_index_by_field(self, param, field):
+    def columnIndexByField(self, param, field):
         """
 
         :param param: Name of the fit parameter
@@ -235,7 +235,7 @@ class Parameters(qt.QTableWidget):
         """
         return self.parameters[param]['fields'].index(field)
 
-    def fillfromfit(self, fitresults):
+    def fillFromFit(self, fitresults):
         """Fill table with values from a  list of dictionaries
         (see :attr:`silx.math.fit.fitmanager.FitManager.fit_results`)
 
@@ -248,7 +248,7 @@ class Parameters(qt.QTableWidget):
         # Reinitialize and fill self.parameters
         self.parameters = OrderedDict()
         for (line, param) in enumerate(fitresults):
-            self.newparameterline(param['name'], line)
+            self.newParameterLine(param['name'], line)
 
         for param in fitresults:
             name = param['name']
@@ -266,26 +266,26 @@ class Parameters(qt.QTableWidget):
             xmin = param.get('xmin')
             xmax = param.get('xmax')
 
-            self.configure_line(name=name,
-                                code=code,
-                                val1=val1, val2=val2,
-                                estimation=estimation,
-                                fitresult=fitresult,
-                                sigma=sigma,
-                                group=group,
-                                xmin=xmin, xmax=xmax)
+            self.configureLine(name=name,
+                               code=code,
+                               val1=val1, val2=val2,
+                               estimation=estimation,
+                               fitresult=fitresult,
+                               sigma=sigma,
+                               group=group,
+                               xmin=xmin, xmax=xmax)
 
     def getConfiguration(self):
         """Return ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
-        return {'parameters': self.getfitresults()}
+        return {'parameters': self.getFitResults()}
 
     def setConfiguration(self, ddict):
         """Fill table with values from a ``FitManager.paramlist`` dictionary
         encapsulated in another dictionary"""
-        self.fillfromfit(ddict['parameters'])
+        self.fillFromFit(ddict['parameters'])
 
-    def getfitresults(self):
+    def getFitResults(self):
         """Return fit parameters as a list of dictionaries in the format used
         by :class:`FitManager` (attribute ``paramlist``).
         """
@@ -293,7 +293,7 @@ class Parameters(qt.QTableWidget):
         for param in self.parameters:
             fitparam = {}
             name = param
-            estimation, [code, cons1, cons2] = self.get_estimation_constraints(name)
+            estimation, [code, cons1, cons2] = self.getEstimationConstraints(name)
             buf = str(self.parameters[param]['fitresult'])
             xmin = self.parameters[param]['xmin']
             xmax = self.parameters[param]['xmax']
@@ -327,7 +327,7 @@ class Parameters(qt.QTableWidget):
     def onCellChanged(self, row, col):
         """Slot called when ``cellChanged`` signal is emitted.
         Checks the validity of the new text in the cell, then calls
-        :meth:`configure_line` to update the internal ``self.parameters``
+        :meth:`configureLine` to update the internal ``self.parameters``
         dictionary.
 
         :param row: Row number of the changed cell (0-based index)
@@ -355,7 +355,7 @@ class Parameters(qt.QTableWidget):
             newvalue = widget.currentText()
         if self.validate(param, field, oldvalue, newvalue):
             paramdict = {"name": param, field: newvalue}
-            self.configure_line(**paramdict)
+            self.configureLine(**paramdict)
         else:
             if field == 'code':
                 # New code not valid, try restoring the old one
@@ -367,7 +367,7 @@ class Parameters(qt.QTableWidget):
                     self.__configuring = False
             else:
                 paramdict = {"name": param, field: oldvalue}
-                self.configure_line(**paramdict)
+                self.configureLine(**paramdict)
 
     def validate(self, param, field, oldvalue, newvalue):
         """Check validity of ``newvalue`` when a cell's value is modified.
@@ -379,10 +379,10 @@ class Parameters(qt.QTableWidget):
         :return: True if new cell value is valid, else False
         """
         if field == 'code':
-            return self.set_code_value(param, oldvalue, newvalue)
-            # FIXME: validate() shouldn't have side effects. Move this bit to configure_line()?
+            return self.setCodeValue(param, oldvalue, newvalue)
+            # FIXME: validate() shouldn't have side effects. Move this bit to configureLine()?
         if field == 'val1' and str(self.parameters[param]['code']) in ['DELTA', 'FACTOR', 'SUM']:
-            _, candidates = self.get_related_candidates(param)
+            _, candidates = self.getRelatedCandidates(param)
             # We expect val1 to be a fit parameter name
             if str(newvalue) in candidates:
                 return True
@@ -397,7 +397,7 @@ class Parameters(qt.QTableWidget):
                 return False
         return True
 
-    def set_code_value(self, param, oldvalue, newvalue):
+    def setCodeValue(self, param, oldvalue, newvalue):
         """Update 'code' and 'relatedto' fields when code cell is
         changed.
 
@@ -408,21 +408,21 @@ class Parameters(qt.QTableWidget):
         """
 
         if str(newvalue) in ['FREE', 'POSITIVE', 'QUOTED', 'FIXED']:
-            self.configure_line(name=param,
-                                code=newvalue)
+            self.configureLine(name=param,
+                               code=newvalue)
             if str(oldvalue) == 'IGNORE':
-                self.free_rest_of_group(param)
+                self.freeRestOfGroup(param)
             return True
         elif str(newvalue) in ['FACTOR', 'DELTA', 'SUM']:
             # I should check here that some parameter is set
-            best, candidates = self.get_related_candidates(param)
+            best, candidates = self.getRelatedCandidates(param)
             if len(candidates) == 0:
                 return False
-            self.configure_line(name=param,
-                                code=newvalue,
-                                relatedto=best)
+            self.configureLine(name=param,
+                               code=newvalue,
+                               relatedto=best)
             if str(oldvalue) == 'IGNORE':
-                self.free_rest_of_group(param)
+                self.freeRestOfGroup(param)
             return True
 
         elif str(newvalue) == 'IGNORE':
@@ -436,8 +436,8 @@ class Parameters(qt.QTableWidget):
             # print candidates
             # I should check here if there is any relation to them
             for param in candidates:
-                self.configure_line(name=param,
-                                    code=newvalue)
+                self.configureLine(name=param,
+                                   code=newvalue)
             return True
         elif str(newvalue) == 'ADD':
             group = int(float(str(self.parameters[param]['group'])))
@@ -451,13 +451,13 @@ class Parameters(qt.QTableWidget):
                     i += 1
             if (group == 0) and (i == 1):   # FIXME: why +1?
                 i += 1
-            self.add_group(i, group)
+            self.addGroup(i, group)
             return False
         elif str(newvalue) == 'SHOW':
-            print(self.get_estimation_constraints(param))
+            print(self.getEstimationConstraints(param))
             return False
 
-    def add_group(self, newg, gtype):
+    def addGroup(self, newg, gtype):
         """Add a fit parameter group with the same fit parameters as an
         existing group.
 
@@ -480,16 +480,16 @@ class Parameters(qt.QTableWidget):
                 xmin = self.parameters[param]['xmin']
                 xmax = self.parameters[param]['xmax']
 
-        # Add new parameters (one table line per parameter) and configure_line each
+        # Add new parameters (one table line per parameter) and configureLine each
         # one by updating xmin and xmax to the same values as group `gtype`
         line = len(list(self.parameters))
         for param in newparam:
-            self.newparameterline(param, line)
+            self.newParameterLine(param, line)
             line += 1
         for param in newparam:
-            self.configure_line(name=param, group=newg, xmin=xmin, xmax=xmax)
+            self.configureLine(name=param, group=newg, xmin=xmin, xmax=xmax)
 
-    def free_rest_of_group(self, workparam):
+    def freeRestOfGroup(self, workparam):
         """Set ``code`` to ``"FREE"`` for all fit parameters belonging to
         the same group as ``workparam``. This is done when the entire group
         of parameters was previously ignored and one of them has his code
@@ -502,14 +502,14 @@ class Parameters(qt.QTableWidget):
             for param in self.parameters:
                 if param != workparam and\
                         group == int(float(str(self.parameters[param]['group']))):
-                    self.configure_line(name=param,
-                                        code='FREE',
-                                        cons1=0,
-                                        cons2=0,
-                                        val1='',
-                                        val2='')
+                    self.configureLine(name=param,
+                                       code='FREE',
+                                       cons1=0,
+                                       cons2=0,
+                                       val1='',
+                                       val2='')
 
-    def get_related_candidates(self, workparam):
+    def getRelatedCandidates(self, workparam):
         """If fit parameter ``workparam`` has a constraint that involves other
         fit parameters, find possible candidates and try to guess which one
         is the most likely.
@@ -542,7 +542,7 @@ class Parameters(qt.QTableWidget):
         # take the first
         return candidates[0], candidates
 
-    def set_read_only(self, parameter, fields):
+    def setReadOnly(self, parameter, fields):
         """Make table cells read-only by setting it's flags and omitting
         flag ``qt.Qt.ItemIsEditable``
 
@@ -552,9 +552,9 @@ class Parameters(qt.QTableWidget):
         :type fields: str or list[str]
         """
         editflags = qt.Qt.ItemIsSelectable | qt.Qt.ItemIsEnabled
-        self.set_field(parameter, fields, editflags)
+        self.setField(parameter, fields, editflags)
 
-    def set_read_write(self, parameter, fields):
+    def setReadWrite(self, parameter, fields):
         """Make table cells read-write by setting it's flags including
         flag ``qt.Qt.ItemIsEditable``
 
@@ -566,9 +566,9 @@ class Parameters(qt.QTableWidget):
         editflags = qt.Qt.ItemIsSelectable |\
             qt.Qt.ItemIsEnabled |\
             qt.Qt.ItemIsEditable
-        self.set_field(parameter, fields, editflags)
+        self.setField(parameter, fields, editflags)
 
-    def set_field(self, parameter, fields, edit_flags):
+    def setField(self, parameter, fields, edit_flags):
         """Set text and flags in a table cell.
 
         :param parameter: Fit parameter names identifying the rows
@@ -601,7 +601,7 @@ class Parameters(qt.QTableWidget):
         for param in paramlist:
             row = list(self.parameters.keys()).index(param)
             for field in fieldlist:
-                col = self.column_index_by_field(param, field)
+                col = self.columnIndexByField(param, field)
                 if field != 'code':
                     key = field + "_item"
                     item = self.item(row, col)
@@ -617,10 +617,10 @@ class Parameters(qt.QTableWidget):
         # Restore previous _configuring flag
         self.__configuring = _oldvalue
 
-    def configure_line(self, name, code=None, val1=None, val2=None,
-                       sigma=None, estimation=None, fitresult=None,
-                       group=None, xmin=None, xmax=None, relatedto=None,
-                       cons1=None, cons2=None):
+    def configureLine(self, name, code=None, val1=None, val2=None,
+                      sigma=None, estimation=None, fitresult=None,
+                      group=None, xmin=None, xmax=None, relatedto=None,
+                      cons1=None, cons2=None):
         """This function updates values in a line of the table
 
         :param name: Name of the parameter (serves as unique identifier for
@@ -666,17 +666,17 @@ class Parameters(qt.QTableWidget):
         if val1 is not None:
             fmt = None if self.parameters[name]['code'] in\
                           ['DELTA', 'FACTOR', 'SUM'] else "%8g"
-            self._update_field(name, "val1", val1, fmat=fmt)
+            self._updateField(name, "val1", val1, fmat=fmt)
 
         if sigma is not None:
-            self._update_field(name, "sigma", sigma, fmat="%6.3g")
+            self._updateField(name, "sigma", sigma, fmat="%6.3g")
 
         # other fields are formatted as "%8g"
         keys_params = (("val2", val2), ("estimation", estimation),
                        ("fitresult", fitresult))
         for key, value in keys_params:
             if value is not None:
-                self._update_field(name, key, value, fmat="%8g")
+                self._updateField(name, key, value, fmat="%8g")
 
         # the rest of the parameters are treated as strings and don't need
         # validation
@@ -752,9 +752,9 @@ class Parameters(qt.QTableWidget):
             self.parameters[name]['cons1'] = 0
             self.parameters[name]['cons2'] = 0
 
-        self._update_cell_rw_flags(name, code)
+        self._updateCellRWFlags(name, code)
 
-    def _update_field(self, name, field, value, fmat=None):
+    def _updateField(self, name, field, value, fmat=None):
         """Update field in ``self.parameters`` dictionary, if the new value
         is valid.
 
@@ -776,7 +776,7 @@ class Parameters(qt.QTableWidget):
                 self.validate(name, field, oldvalue, newvalue) else\
                 oldvalue
 
-    def _update_cell_rw_flags(self, name, code=None):
+    def _updateCellRWFlags(self, name, code=None):
         """Set read-only or read-write flags in a row,
         depending on the constraint code
 
@@ -786,13 +786,13 @@ class Parameters(qt.QTableWidget):
         :return:
         """
         if code in ['FREE', 'POSITIVE', 'IGNORE', 'FIXED']:
-            self.set_read_write(name, 'estimation')
-            self.set_read_only(name, ['fitresult', 'sigma', 'val1', 'val2'])
+            self.setReadWrite(name, 'estimation')
+            self.setReadOnly(name, ['fitresult', 'sigma', 'val1', 'val2'])
         else:
-            self.set_read_write(name, ['estimation', 'val1', 'val2'])
-            self.set_read_only(name, ['fitresult', 'sigma'])
+            self.setReadWrite(name, ['estimation', 'val1', 'val2'])
+            self.setReadOnly(name, ['fitresult', 'sigma'])
 
-    def get_estimation_constraints(self, param):
+    def getEstimationConstraints(self, param):
         """
         Return tuple ``(estimation, constraints)`` where ``estimation`` is the
         value in the ``estimate`` field and ``constraints`` are the relevant
@@ -831,9 +831,9 @@ def main(args):
                              'Restrains', 'Min/Parame', 'Max/Factor/Delta/'],
                      paramlist=['Height', 'Position', 'FWHM'])
     tab.showGrid()
-    tab.configure_line(name='Height', estimation='1234', group=0)
-    tab.configure_line(name='Position', code='FIXED', group=1)
-    tab.configure_line(name='FWHM', group=1)
+    tab.configureLine(name='Height', estimation='1234', group=0)
+    tab.configureLine(name='Position', code='FIXED', group=1)
+    tab.configureLine(name='FWHM', group=1)
 
     y = numpy.loadtxt(os.path.join(PyMcaDataDir.PYMCA_DATA_DIR,
                       "XRFSpectrum.mca"))    # FIXME
@@ -854,7 +854,7 @@ def main(args):
     fit.setbackground('Linear')
     fit.estimate()
     fit.runfit()
-    tab.fillfromfit(fit.fit_results)
+    tab.fillFromFit(fit.fit_results)
     tab.show()
     app.exec_()
 

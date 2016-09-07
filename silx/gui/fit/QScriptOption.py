@@ -234,7 +234,7 @@ class QScriptOption(TabSheets):
             name = sheet['notetitle']
             a = FieldSheet(fields=sheet['fields'])
             self.sheets[name] = a
-            a.setdefaults(self.default)
+            a.setDefaults(self.default)
             self.tabWidget.addTab(self.sheets[name], str(name))
             if QTVERSION < '4.2.0':
                 i = self.tabWidget.indexOf(self.sheets[name])
@@ -357,17 +357,17 @@ class FieldSheet(qt.QWidget):
         """
         result = {}
         for field in self.fields:
-            result.update(field.getvalue())
+            result.update(field.getValue())
         return result
 
-    def setdefaults(self, default_dict):
+    def setDefaults(self, default_dict):
         """Set all fields with values from a dictionary.
 
         :param default_dict: Dictionary of values to be updated in fields with
             matching keys.
         """
         for field in self.fields:
-            field.setdefaults(default_dict)
+            field.setDefaults(default_dict)
 
 
 class Label(qt.QWidget):
@@ -405,15 +405,15 @@ class MyLabel(Label):
         if text is not None:
             self.TextLabel.setText(text)
 
-    def getvalue(self):
+    def getValue(self):
         """return empty dict"""
         return {}
 
-    def setvalue(self):
+    def setValue(self):
         """pass"""
         pass
 
-    def setdefaults(self, default_dict):  # noqa
+    def setDefaults(self, default_dict):  # noqa
         """pass"""
         pass
 
@@ -437,8 +437,8 @@ class EntryField(qt.QWidget):
 class MyEntryField(EntryField):
     """Entry field with a QLineEdit (:attr:`Entry`), a QLabel
     (:attr:`TextLabel`), and 3 methods to interact with
-    :class:`FieldSheet`: :meth:`getvalue`, :meth:`setvalue` and
-    :meth:`setdefaults`
+    :class:`FieldSheet`: :meth:`getValue`, :meth:`setValue` and
+    :meth:`setDefaults`
 
     These methods can be used to get or set the internal dictionary
     storing user input from the entry field."""
@@ -463,15 +463,15 @@ class MyEntryField(EntryField):
             self.internal_dict[keys] = None
         if text is not None:
             self.TextLabel.setText(text)
-        self.Entry.textChanged[str].connect(self.setvalue)
+        self.Entry.textChanged[str].connect(self.setValue)
 
         self._data_type = data_type
 
-    def getvalue(self):
+    def getValue(self):
         """Return :attr:`internal_dict`"""
         return self.internal_dict
 
-    def setvalue(self, value):
+    def setValue(self, value):
         """Update all values in :attr:`internal_dict` with ``value``"""
         for key in self.internal_dict.keys():
             str_value = str(value)    # probably redundant
@@ -489,14 +489,14 @@ class MyEntryField(EntryField):
             else:
                 self.internal_dict[key] = str_value
 
-    def setdefaults(self, default_dict):
+    def setDefaults(self, default_dict):
         """Update values in :attr:`internal_dict` with values in
         ``default_dict`` if keys match, then update the entry
         value with each value."""
         for key in list(self.internal_dict.keys()):
             if key in default_dict:
                 self.internal_dict[key] = default_dict[key]
-                # This will probably trigger setvalue which updates all
+                # This will probably trigger setValue which updates all
                 # values to the same value, so at the end I expect all
                 # values to be equal to the las one. Do we really want this?
                 self.Entry.setText(str(default_dict[key]))
@@ -519,8 +519,8 @@ class CheckField(qt.QWidget):
 
 class MyCheckField(CheckField):
     """Check field with a QCheckBox (:attr:`CheckBox`) and 3 methods to
-    interact with :class:`FieldSheet`: :meth:`getvalue`, :meth:`setvalue` and
-    :meth:`setdefaults`
+    interact with :class:`FieldSheet`: :meth:`getValue`, :meth:`setValue` and
+    :meth:`setDefaults`
 
     These methods can be used to get or set the internal dictionary
     storing user input from the entry field."""
@@ -542,13 +542,13 @@ class MyCheckField(CheckField):
             self.internal_dict[keys] = 0
         if text is not None:
             self.CheckBox.setText(text)
-        self.CheckBox.stateChanged[int].connect(self.setvalue)
+        self.CheckBox.stateChanged[int].connect(self.setValue)
 
-    def getvalue(self):
+    def getValue(self):
         """Return :attr:`internal_dict`"""
         return self.internal_dict
 
-    def setvalue(self, value):
+    def setValue(self, value):
         """Update all values in :attr:`internal_dict` with 0 if the checkbox
         has been un-ticked or 1 if it has been ticked"""
         if value:
@@ -558,7 +558,7 @@ class MyCheckField(CheckField):
         for key in self.internal_dict.keys():
             self.internal_dict[key] = val
 
-    def setdefaults(self, default_dict):
+    def setDefaults(self, default_dict):
         """Update values in :attr:`internal_dict` with values in
         ``ddict`` if keys match, then update the checkbox
         with each value.
@@ -575,65 +575,6 @@ class MyCheckField(CheckField):
                 else:
                     self.CheckBox.setChecked(0)
                     self.internal_dict[key] = 0
-#
-# # FIXME: deactivated, does not work (pyqt3?)
-# class RadioField(qt.QWidget):
-#     def __init__(self,parent = None,
-#                  keys=(), params = ()):
-#             qt.QWidget.__init__(self,parent)
-#             RadioFieldLayout = qt.QHBoxLayout(self)
-#             RadioFieldLayout.setContentsMargins(11, 11, 11, 11)
-#             RadioFieldLayout.setSpacing(6)
-#
-#             self.RadioFieldBox = qt.QButtonGroup(self)
-#             self.RadioFieldBox.setColumnLayout(0,qt.Qt.Vertical)
-#             self.RadioFieldBox.layout().setSpacing(6)
-#             self.RadioFieldBox.layout().setContentsMargins(11, 11, 11, 11)
-#             RadioFieldBoxLayout = qt.QVBoxLayout(self.RadioFieldBox.layout())
-#             RadioFieldBoxLayout.setAlignment(qt.Qt.AlignTop)
-#             Layout1 = qt.QVBoxLayout(None, 0, 6, "Layout1")
-#
-#             self.internal_dict={}
-#             if type(keys) == _tuple_type:
-#                 for key in keys:
-#                     self.internal_dict[key]=1
-#             else:
-#                 self.internal_dict[keys]=1
-#             self.RadioButton=[]
-#             i=0
-#             for text in params:
-#                 self.RadioButton.append(qt.QRadioButton(self.RadioFieldBox,
-#                                                         "RadioButton"+"%d" % i))
-#                 self.RadioButton[-1].setSizePolicy(qt.QSizePolicy(1,1,0,0,
-#                                 self.RadioButton[-1].sizePolicy().hasHeightForWidth()))
-#                 self.RadioButton[-1].setText(str(text))
-#                 Layout1.addWidget(self.RadioButton[-1])
-#                 i=i+1
-#
-#             RadioFieldBoxLayout.addLayout(Layout1)
-#             RadioFieldLayout.addWidget(self.RadioFieldBox)
-#             self.RadioButton[0].setChecked(1)
-#             self.RadioFieldBox.clicked[int].connect(self.setvalue)
-#
-#     def getvalue(self):
-#         return self.internal_dict
-#
-#     def setvalue(self,value):
-#         if value:
-#             val=1
-#         else:
-#             val=0
-#         for key in self.internal_dict.keys():
-#             self.internal_dict[key]=val
-#         return
-#
-#     def setdefaults(self, ddict):
-#         for key in list(self.internal_dict.keys()):
-#             if key in ddict:
-#                 self.internal_dict[key]=ddict[key]
-#                 i=int(ddict[key])
-#                 self.RadioButton[i].setChecked(1)
-#         return
 
 
 def test():

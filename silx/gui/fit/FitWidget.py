@@ -38,6 +38,7 @@ be user defined, or by default are loaded from
 import logging
 import sys
 import traceback
+import warnings
 
 from silx.math.fit import fittheories
 from silx.math.fit import fitmanager, functions
@@ -98,54 +99,54 @@ class FitWidget(qt.QWidget):
         self.setWindowTitle(title)
         layout = qt.QVBoxLayout(self)
 
-        self.fitmanager = self._set_fitmanager(fitmngr)
+        self.fitmanager = self._setFitManager(fitmngr)
         """Instance of :class:`FitManager`. If no theories are defined,
         we import the default ones from :mod:`silx.math.fit.fittheories`."""
 
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
-        self.fitconfig = self.fitmanager.fitconfig
+        self.fitConfig = self.fitmanager.fitconfig
 
-        self.guiconfig = None
+        self.guiConfig = None
         """Configuration widget at the top of FitWidget, to select
         fit function, background function, and open an advanced
         configuration dialog."""
 
-        self.guiparameters = ParametersTab(self)
+        self.guiParameters = ParametersTab(self)
         """Table widget for display of fit parameters and constraints"""
-        # self.guiparameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
+        # self.guiParameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
             # todo:
             #     - separate theory selection from config
             #     - replace config with FitTheory.configWidget (if provided)
 
-            self.guiconfig = FitConfigWidget(self)
+            self.guiConfig = FitConfigWidget(self)
 
-            # self.guiconfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
-            # self.guiconfig.WeightCheckBox.stateChanged[
+            # self.guiConfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
+            # self.guiConfig.WeightCheckBox.stateChanged[
             #     int].connect(self.weightevent)
-            self.guiconfig.AutoFWHMCheckBox.stateChanged[
-                int].connect(self.autofwhmevent)
-            # self.guiconfig.AutoScalingCheckBox.stateChanged[
+            self.guiConfig.AutoFWHMCheckBox.stateChanged[
+                int].connect(self.autoFwhmEvent)
+            # self.guiConfig.AutoScalingCheckBox.stateChanged[
             #     int].connect(self.autoscaleevent)
-            self.guiconfig.ConfigureButton.clicked.connect(
+            self.guiConfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
-            self.guiconfig.BkgComBox.activated[str].connect(self.bkgevent)
-            self.guiconfig.FunComBox.activated[str].connect(self.funevent)
-            layout.addWidget(self.guiconfig)
+            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
+            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            layout.addWidget(self.guiConfig)
 
             for theory_name in self.fitmanager.bgtheories:
-                self.guiconfig.BkgComBox.addItem(theory_name)
-                self.guiconfig.BkgComBox.setItemData(
-                    self.guiconfig.BkgComBox.findText(theory_name),
+                self.guiConfig.BkgComBox.addItem(theory_name)
+                self.guiConfig.BkgComBox.setItemData(
+                    self.guiConfig.BkgComBox.findText(theory_name),
                     self.fitmanager.bgtheories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
             for theory_name in self.fitmanager.theories:
-                self.guiconfig.FunComBox.addItem(theory_name)
-                self.guiconfig.FunComBox.setItemData(
-                    self.guiconfig.FunComBox.findText(theory_name),
+                self.guiConfig.FunComBox.addItem(theory_name)
+                self.guiConfig.FunComBox.setItemData(
+                    self.guiConfig.FunComBox.findText(theory_name),
                     self.fitmanager.theories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
@@ -156,47 +157,42 @@ class FitWidget(qt.QWidget):
                 configuration = fitmngr.configure()
                 if fitmngr.selectedtheory is None:
                     # take the first one by default
-                    self.guiconfig.FunComBox.setCurrentIndex(1)
-                    self.funevent(list(self.fitmanager.theories.keys())[0])
+                    self.guiConfig.FunComBox.setCurrentIndex(1)
+                    self.funEvent(list(self.fitmanager.theories.keys())[0])
                 else:
-                    self.funevent(fitmngr.selectedtheory)
+                    self.funEvent(fitmngr.selectedtheory)
                 if fitmngr.selectedbg is None:
-                    self.guiconfig.BkgComBox.setCurrentIndex(0)
-                    self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
+                    self.guiConfig.BkgComBox.setCurrentIndex(0)
+                    self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
                 else:
-                    self.bkgevent(fitmngr.selectedbg)
+                    self.bkgEvent(fitmngr.selectedbg)
             else:
                 # Default FitManager and fittheories used:
                 #    - activate first fit theory (gauss)
                 #    - activate first bg theory (no bg)
                 configuration = {}
-                self.guiconfig.BkgComBox.setCurrentIndex(0)
-                self.guiconfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
-                self.funevent(list(self.fitmanager.theories.keys())[0])
-                self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
+                self.guiConfig.BkgComBox.setCurrentIndex(0)
+                self.guiConfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
+                self.funEvent(list(self.fitmanager.theories.keys())[0])
+                self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
             configuration.update(self.configure())
 
-            # if configuration['McaMode']:
-            #     self.guiconfig.MCACheckBox.setChecked(1)
-            # else:
-            #     self.guiconfig.MCACheckBox.setChecked(0)
-
             # if configuration['WeightFlag']:
-            #     self.guiconfig.WeightCheckBox.setChecked(1)
+            #     self.guiConfig.WeightCheckBox.setChecked(1)
             # else:
-            #     self.guiconfig.WeightCheckBox.setChecked(0)
+            #     self.guiConfig.WeightCheckBox.setChecked(0)
 
             if configuration['AutoFwhm']:
-                self.guiconfig.AutoFWHMCheckBox.setChecked(1)
+                self.guiConfig.AutoFWHMCheckBox.setChecked(1)
             else:
-                self.guiconfig.AutoFWHMCheckBox.setChecked(0)
+                self.guiConfig.AutoFWHMCheckBox.setChecked(0)
 
             # if configuration['AutoScaling']:
-            #     self.guiconfig.AutoScalingCheckBox.setChecked(1)
+            #     self.guiConfig.AutoScalingCheckBox.setChecked(1)
             # else:
-            #     self.guiconfig.AutoScalingCheckBox.setChecked(0)
+            #     self.guiConfig.AutoScalingCheckBox.setChecked(0)
 
-        layout.addWidget(self.guiparameters)
+        layout.addWidget(self.guiParameters)
 
         if enablestatus:
             self.guistatus = FitStatusLines(self)
@@ -207,14 +203,14 @@ class FitWidget(qt.QWidget):
             self.guibuttons = FitActionsButtons(self)
             """Widget with estimate, start fit and dismiss buttons"""
             self.guibuttons.EstimateButton.clicked.connect(self.estimate)
-            self.guibuttons.StartfitButton.clicked.connect(self.startfit)
+            self.guibuttons.StartFitButton.clicked.connect(self.startFit)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
             layout.addWidget(self.guibuttons)
 
     # def updateGui(self, configuration=None):
     #     self.__configureGui(configuration)
 
-    def _set_fitmanager(self, fitinstance):
+    def _setFitManager(self, fitinstance):
         """Initialize a :class:`FitManager` instance, to be assigned to
         :attr:`fitmanager`"""
         if isinstance(fitinstance, fitmanager.FitManager):
@@ -229,6 +225,11 @@ class FitWidget(qt.QWidget):
         return fitmngr
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
+        warnings.warn("Method renamed to setData",
+                      DeprecationWarning)
+        self.setData(x, y, sigmay, xmin, xmax)
+
+    def setData(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data to be fitted.
 
         :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
@@ -278,44 +279,44 @@ class FitWidget(qt.QWidget):
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
                     self.fitmanager.selectedtheory)
-            self.guiconfig.FunComBox.setCurrentIndex(i)
-            self.funevent(self.fitmanager.selectedtheory)
+            self.guiConfig.FunComBox.setCurrentIndex(i)
+            self.funEvent(self.fitmanager.selectedtheory)
         except ValueError:
             _logger.error("Function not in list %s",
                           self.fitmanager.selectedtheory)
-            self.funevent(list(self.fitmanager.theories.keys())[0])
+            self.funEvent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
             i = list(self.fitmanager.bgtheories.keys()
                      ).index(self.fitmanager.selectedbg)
-            self.guiconfig.BkgComBox.setCurrentIndex(i)
+            self.guiConfig.BkgComBox.setCurrentIndex(i)
         except ValueError:
             _logger.error("Background not in list %s",
                           self.fitmanager.selectedbg)
-            self.bkgevent(list(self.fitmanager.bgtheories.keys())[0])
+            self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
 
         # and all the rest
         # if configuration['McaMode']:
-        #     self.guiconfig.MCACheckBox.setChecked(1)
+        #     self.guiConfig.MCACheckBox.setChecked(1)
         # else:
-        #     self.guiconfig.MCACheckBox.setChecked(0)
+        #     self.guiConfig.MCACheckBox.setChecked(0)
 
         # if configuration['WeightFlag']:
-        #     self.guiconfig.WeightCheckBox.setChecked(1)
+        #     self.guiConfig.WeightCheckBox.setChecked(1)
         # else:
-        #     self.guiconfig.WeightCheckBox.setChecked(0)
+        #     self.guiConfig.WeightCheckBox.setChecked(0)
 
         if configuration['AutoFwhm']:
-            self.guiconfig.AutoFWHMCheckBox.setChecked(1)
+            self.guiConfig.AutoFWHMCheckBox.setChecked(1)
         else:
-            self.guiconfig.AutoFWHMCheckBox.setChecked(0)
+            self.guiConfig.AutoFWHMCheckBox.setChecked(0)
 
         # if configuration['AutoScaling']:
-        #     self.guiconfig.AutoScalingCheckBox.setChecked(1)
+        #     self.guiConfig.AutoScalingCheckBox.setChecked(1)
         # else:
-        #     self.guiconfig.AutoScalingCheckBox.setChecked(0)
+        #     self.guiConfig.AutoScalingCheckBox.setChecked(0)
         # update the Gui
-        self.__initialparameters()
+        self.__initialParameters()
 
     def configureDialog(self, oldconfiguration):
         """Display a dialog, allowing the user to define fit configuration
@@ -449,7 +450,7 @@ class FitWidget(qt.QWidget):
             theory_name = self.fitmanager.selectedtheory
             estimation_function = self.fitmanager.theories[theory_name].estimate
             if estimation_function is not None:
-                self.fitmanager.estimate(callback=self.fitstatus)
+                self.fitmanager.estimate(callback=self.fitStatus)
             else:
                 msg = qt.QMessageBox(self)
                 msg.setIcon(qt.QMessageBox.Information)
@@ -467,28 +468,30 @@ class FitWidget(qt.QWidget):
             msg.exec_()
             return
 
-        self.guiparameters.fillfromfit(
+        self.guiParameters.fillFromFit(
             self.fitmanager.fit_results, view='Fit')
-        self.guiparameters.removeallviews(keep='Fit')
+        self.guiParameters.removeAllViews(keep='Fit')
         ddict = {
             'event': 'EstimateFinished',
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
-    # related to MCA
-    # def __forward(self, ddict):
-    #     self._emitSignal(ddict)
 
     def startfit(self):
+        warnings.warn("Method renamed to startFit",
+                      DeprecationWarning)
+        self.startFit()
+
+    def startFit(self):
         """Run fit, then emit :attr:`sigFitWidgetSignal` with a dictionary
         containing a status
         message *'FitFinished'* and a list of fit parameters results
         in the format defined in
         :attr:`silx.math.fit.fitmanager.FitManager.fit_results`
         """
-        self.fitmanager.fit_results = self.guiparameters.getfitresults()
+        self.fitmanager.fit_results = self.guiParameters.getFitResults()
         try:
-            self.fitmanager.runfit(callback=self.fitstatus)
+            self.fitmanager.runfit(callback=self.fitStatus)
         except:  # noqa (we want to catch and report all errors)
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
@@ -496,9 +499,9 @@ class FitWidget(qt.QWidget):
             msg.exec_()
             return
 
-        self.guiparameters.fillfromfit(
+        self.guiParameters.fillFromFit(
             self.fitmanager.fit_results, view='Fit')
-        self.guiparameters.removeallviews(keep='Fit')
+        self.guiParameters.removeAllViews(keep='Fit')
         ddict = {
             'event': 'FitFinished',
             'data': self.fitmanager.fit_results
@@ -506,21 +509,21 @@ class FitWidget(qt.QWidget):
         self._emitSignal(ddict)
         return
 
-    def autofwhmevent(self, item):
-        """Set :attr:`fitmanager"fitconfig['AutoFwhm']`"""
+    def autoFwhmEvent(self, item):
+        """Set :attr:`fitmanager.fitconfig['AutoFwhm']`"""
         if int(item):
             self.configure(AutoFwhm=True)
         else:
             self.configure(AutoFwhm=False)
 
     # def autoscaleevent(self, item):
-    #     """Set :attr:`fitmanager"fitconfig['AutoScaling']`"""
+    #     """Set :attr:`fitmanager"fitConfig['AutoScaling']`"""
     #     if int(item):
     #         self.configure(AutoScaling=True)
     #     else:
     #         self.configure(AutoScaling=False)
 
-    def bkgevent(self, bgtheory):
+    def bkgEvent(self, bgtheory):
         """Select background theory, then reinitialize parameters"""
         bgtheory = str(bgtheory)
         if bgtheory in self.fitmanager.bgtheories:
@@ -532,9 +535,9 @@ class FitWidget(qt.QWidget):
                 "theories are: " + ", ".join(self.fitmanager.bgtheories)
             )
             return
-        self.__initialparameters()
+        self.__initialParameters()
 
-    def funevent(self, theoryname):
+    def funEvent(self, theoryname):
         """Select a fit theory to be used for fitting. If this theory exists
         in :attr:`fitmanager`, use it. Then, reinitialize table.
 
@@ -561,24 +564,24 @@ class FitWidget(qt.QWidget):
                     return
                 else:
                     # empty the ComboBox
-                    while self.guiconfig.FunComBox.count() > 1:
-                        self.guiconfig.FunComBox.removeItem(1)
+                    while self.guiConfig.FunComBox.count() > 1:
+                        self.guiConfig.FunComBox.removeItem(1)
                     # and fill it again
                     for key in self.fitmanager.theories:
-                        self.guiconfig.FunComBox.addItem(str(key))
+                        self.guiConfig.FunComBox.addItem(str(key))
 
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
                     self.fitmanager.selectedtheory)
-            self.guiconfig.FunComBox.setCurrentIndex(i)
-        self.__initialparameters()
+            self.guiConfig.FunComBox.setCurrentIndex(i)
+        self.__initialParameters()
 
-    def __initialparameters(self):
+    def __initialParameters(self):
         """Fill the fit parameters names with names of the parameters of
         the selected background theory and the selected fit theory.
         Initialize :attr:`fitmanager.fit_results` with these names, and
         initialize the table with them. This creates a view called "Fit"
-        in :attr:`guiparameters`"""
+        in :attr:`guiParameters`"""
         self.fitmanager.parameter_names = []
         self.fitmanager.fit_results = []
         for pname in self.fitmanager.bgtheories[self.fitmanager.selectedbg].parameters:
@@ -607,15 +610,11 @@ class FitWidget(qt.QWidget):
                                                'sigma': 0.0,
                                                'xmin': None,
                                                'xmax': None})
-        # if self.fitmanager.fitconfig['McaMode']:
-        #     self.guiparameters.fillfromfit(
-        #         self.fitmanager.fit_results, view='Region 1')
-        #     self.guiparameters.removeallviews(keep='Region 1')
-        # else:
-        self.guiparameters.fillfromfit(
+
+        self.guiParameters.fillFromFit(
             self.fitmanager.fit_results, view='Fit')
 
-    def fitstatus(self, data):
+    def fitStatus(self, data):
         """Set *status* and *chisq* in status bar"""
         if 'chisq' in data:
             if data['chisq'] is None:
@@ -650,6 +649,6 @@ if __name__ == "__main__":
 
     a = qt.QApplication(sys.argv)
     w = FitWidget()
-    w.setdata(x=x, y=y)
+    w.setData(x=x, y=y)
     w.show()
     a.exec_()

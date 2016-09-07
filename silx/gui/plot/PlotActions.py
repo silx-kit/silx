@@ -979,7 +979,7 @@ class FitAction(_PlotAction):
         # open a window with a FitWidget
         mw = qt.QMainWindow(self.plot)
         self.fit_widget = FitWidget(parent=mw)
-        self.fit_widget.setdata(self.x, self.y)
+        self.fit_widget.setData(self.x, self.y)
         self.fit_widget.show()
         mw.setWindowTitle("Fitting " + self.legend)
         mw.setCentralWidget(self.fit_widget)

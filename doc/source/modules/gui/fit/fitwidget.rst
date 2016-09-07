@@ -32,7 +32,7 @@ Usage example
     a = qt.QApplication([])
     a.lastWindowClosed.connect(a.quit)
     w = FitWidget(enableconfig=1, enablestatus=1, enablebuttons=1)
-    w.setdata(x=x, y=y)
+    w.setData(x=x, y=y)
     w.show()
     a.exec_()
 
@@ -63,7 +63,7 @@ The following example shows how to define a custom fit function.
 
     # we need to create a custom fit manager and add our theory
     myfitmngr = FitManager()
-    myfitmngr.setdata(x, y)
+    myfitmngr.setData(x, y)
     myfitmngr.addtheory("my linear function",
                         function=linearfun,
                         parameters=["a", "b"])
@@ -82,4 +82,4 @@ API
 .. currentmodule:: silx.gui.fit.FitWidget
 
 .. autoclass:: FitWidget
-   :members: __init__, setdata
+   :members: __init__, setData

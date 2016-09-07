@@ -42,7 +42,7 @@ class FitActionsButtons(qt.QWidget):
     The buttons can be accessed as public attributes::
 
         - ``EstimateButton``
-        - ``StartfitButton``
+        - ``StartFitButton``
         - ``DismissButton``
 
     You will typically need to access these attributes to connect the buttons
@@ -51,7 +51,7 @@ class FitActionsButtons(qt.QWidget):
 
         >>> fit_actions_buttons = FitActionsButtons()
         >>> fit_actions_buttons.EstimateButton.clicked.connect(estimate)
-        >>> fit_actions_buttons.StartfitButton.clicked.connect(runfit)
+        >>> fit_actions_buttons.StartFitButton.clicked.connect(runfit)
         >>> fit_actions_buttons.DismissButton.clicked.connect(dismiss)
 
     """
@@ -76,9 +76,9 @@ class FitActionsButtons(qt.QWidget):
                                 qt.QSizePolicy.Minimum)
         layout.addItem(spacer)
 
-        self.StartfitButton = qt.QPushButton(self)
-        self.StartfitButton.setText("Start Fit")
-        layout.addWidget(self.StartfitButton)
+        self.StartFitButton = qt.QPushButton(self)
+        self.StartFitButton.setText("Start Fit")
+        layout.addWidget(self.StartFitButton)
         spacer_2 = qt.QSpacerItem(20, 20,
                                   qt.QSizePolicy.Expanding,
                                   qt.QSizePolicy.Minimum)
@@ -212,12 +212,6 @@ class FitConfigWidget(qt.QWidget):
 
         # layout6.addWidget(self.WeightCheckBox, 0, 0)
 
-        # self.MCACheckBox = qt.QCheckBox(self)
-        # self.MCACheckBox.setText("MCA Mode")
-
-        # layout6.addWidget(self.MCACheckBox, 1, 0)
-        # layout9.addLayout(layout6)
-
         layout6_2 = qt.QGridLayout(None)
         layout6_2.setContentsMargins(0, 0, 0, 0)
         layout6_2.setSpacing(6)
@@ -255,186 +249,6 @@ class FitConfigWidget(qt.QWidget):
         layout5.addWidget(self.ConfigureButton, 0, 0)
         layout9.addLayout(layout5)
         fitconfigguilayout.addLayout(layout9)
-
-#
-# class McaTable(qt.QTableWidget):
-#     """This widget provides a table to input or display complex data,
-#     such as fit configuration parameters together with estimation values
-#     and final results of fitting.
-#
-#     """
-#     sigMcaTableSignal = qt.pyqtSignal(object)
-#
-#     def __init__(self, labels=None, *args):
-#         """
-#
-#         :param labels: List of labels used as column headers in the table
-#             and
-#         :param args: All arguments, besides ``label``, are used for
-#             initializing the base class ``QTableWidget``
-#         """
-#         qt.QTableWidget.__init__(self, *args)
-#         self.setRowCount(1)
-#         self.setColumnCount(1)
-#
-#         self.code_options = ["FREE", "POSITIVE", "QUOTED",
-#                              "FIXED", "FACTOR", "DELTA", "SUM", "IGNORE", "ADD", "SHOW"]
-#
-#         if labels is not None:
-#             self.labels = labels
-#         else:
-#             self.labels = ['Position', 'Fit Area', 'MCA Area', 'Sigma',
-#                            'Fwhm', 'Chisq', 'Region', 'XBegin', 'XEnd']
-#
-#         self.setColumnCount(len(self.labels))
-#         for i, label in enumerate(self.labels):
-#             item = self.horizontalHeaderItem(i)
-#             if item is None:
-#                 item = qt.QTableWidgetItem(label,
-#                                            qt.QTableWidgetItem.Type)
-#                 self.setHorizontalHeaderItem(i, item)
-#             item.setText(label)
-#             self.resizeColumnToContents(i)
-#
-#         self.regionlist = []
-#         self.regiondict = {}
-#
-#         self.cellClicked[int, int].connect(self.__myslot)
-#         self.itemSelectionChanged[()].connect(self.__myslot)
-#
-#     def fillfrommca(self, mcaresult, diag=1):
-#         line0 = 0
-#         region = 0
-#         alreadyforced = False
-#         for result in mcaresult:
-#             region += 1
-#             if result['chisq'] is not None:
-#                 chisq = "%6.2f" % (result['chisq'])
-#             else:
-#                 chisq = "Fit Error"
-#             if 1:
-#                 xbegin = "%6g" % (result['xbegin'])
-#                 xend = "%6g" % (result['xend'])
-#                 fitlabel, fitpars, fitsigmas = self.__getfitpar(result)
-#                 if QTVERSION < '4.0.0':
-#                     qt.QHeader.setLabel(
-#                         self.horizontalHeader(), 1, "Fit " + fitlabel)
-#                 else:
-#                     item = self.horizontalHeaderItem(1)
-#                     item.setText("Fit " + fitlabel)
-#                 i = 0
-#                 for (pos, area, sigma, fwhm) in result['mca_areas']:
-#                     line0 += 1
-#                     if QTVERSION < '4.0.0':
-#                         nlines = self.numRows()
-#                         if line0 > nlines:
-#                             self.setNumRows(line0)
-#                     else:
-#                         nlines = self.rowCount()
-#                         if line0 > nlines:
-#                             self.setRowCount(line0)
-#                     line = line0 - 1
-#                     pos = "%6g" % pos
-#                     fitpar = "%6g" % fitpars[i]
-#                     if fitlabel == 'Area':
-#                         sigma = max(sigma, fitsigmas[i])
-#                     areastr = "%6g" % area
-#                     sigmastr = "%6.3g" % sigma
-#                     fwhm = "%6g" % fwhm
-#                     tregion = "%6g" % region
-#                     fields = [pos, fitpar, areastr, sigmastr,
-#                               fwhm, chisq, tregion, xbegin, xend]
-#                     col = 0
-#                     color = None
-#                     if fitlabel == 'Area':
-#                         if diag:
-#                             if abs(fitpars[i] - area) > (3.0 * sigma):
-#                                 color = qt.QColor(255, 182, 193)
-#                     for field in fields:
-#                         key = self.item(line, col)
-#                         if key is None:
-#                             key = qt.QTableWidgetItem(field)
-#                             self.setItem(line, col, key)
-#                         else:
-#                             item.setText(field)
-#                         if color is not None:
-#                             # function introduced in Qt 4.2.0
-#                             if QTVERSION >= '4.2.0':
-#                                 item.setBackground(qt.QBrush(color))
-#                         item.setFlags(qt.Qt.ItemIsSelectable |
-#                                       qt.Qt.ItemIsEnabled)
-#                         col += 1
-#                     if color is not None:
-#                         if not alreadyforced:
-#                             alreadyforced = True
-#                             self.scrollToItem(self.item(line, 0))
-#                     i += 1
-#
-#         for i in range(len(self.labels)):
-#             self.resizeColumnToContents(i)
-#         ndict = {}
-#         ndict['event'] = 'McaTableFilled'
-#         self.sigMcaTableSignal.emit(ndict)
-#
-#     def __getfitpar(self, result):
-#         if result['fitconfig']['fittheory'].find("Area") != -1:
-#             fitlabel = 'Area'
-#         elif result['fitconfig']['fittheory'].find("Hypermet") != -1:
-#             fitlabel = 'Area'
-#         else:
-#             fitlabel = 'Height'
-#         values = []
-#         sigmavalues = []
-#         for param in result['paramlist']:
-#             if param['name'].find('ST_Area') != -1:
-#                 # value and sigmavalue known via fitlabel
-#                 values[-1] = value * (1.0 + param['fitresult'])
-#                 # just an approximation
-#                 sigmavalues[-1] = sigmavalue * (1.0 + param['fitresult'])
-#             elif param['name'].find('LT_Area') != -1:
-#                 pass
-#             elif param['name'].find(fitlabel) != -1:
-#                 value = param['fitresult']
-#                 sigmavalue = param['sigma']
-#                 values.append(value)
-#                 sigmavalues.append(sigmavalue)
-#         return fitlabel, values, sigmavalues
-#
-#     def __myslot(self, *var):
-#         """Emit a signal with a dictionary containing the data in the active
-#         row of the table.
-#
-#         The dictionary contains also special fields:
-#
-#            - 'event': string 'McaTableClicked' or 'McaTableRowHeaderClicked'
-#            - 'row': 0-based row index (integer)
-#            - 'col': 0-based column index (integer)
-#            - 'labelslist': list of all labels (:attr:`labels`) which are
-#              the keys to the remaining dictionary items.
-#
-#         The table values are stored as strings."""
-#         ddict = {}
-#         if len(var) == 0:
-#             # selection changed event
-#             # get the current selection
-#             ddict['event'] = 'McaTableClicked'
-#             row_idx = self.currentRow()
-#         else:
-#             # Header click
-#             ddict['event'] = 'McaTableRowHeaderClicked'
-#             row_idx = var[0]
-#         ccol = self.currentColumn()
-#         ddict['row'] = row_idx
-#         ddict['col'] = ccol
-#         ddict['labelslist'] = self.labels
-#         if row_idx >= 0:
-#             for col_idx, label in enumerate(self.labels):
-#                 text = str(self.item(row_idx, col_idx).text())
-#                 try:
-#                     ddict[label] = float(text)
-#                 except:
-#                     ddict[label] = text
-#         self.sigMcaTableSignal.emit(ddict)
 
 
 class ParametersTab(qt.QTabWidget):
@@ -480,14 +294,14 @@ class ParametersTab(qt.QTabWidget):
         # Show first fit result in a tab in our widget
         w = ParametersTab()
         w.show()
-        w.fillfromfit(fit.fit_results, view='Gaussians')
+        w.fillFromFit(fit.fit_results, view='Gaussians')
 
         # new synthetic data
         y2 = functions.sum_splitgauss(x,
                                   100, 400, 100, 40,
                                   10, 600, 50, 500,
                                   80, 850, 10, 50)
-        fit.setdata(x=x, y=y2)
+        fit.setData(x=x, y=y2)
 
         # Define new theory
         fit.addtheory(theory="Asymetric gaussian",
@@ -501,11 +315,10 @@ class ParametersTab(qt.QTabWidget):
         fit.runfit()
 
         # Show first fit result in another tab in our widget
-        w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
+        w.fillFromFit(fit.fit_results, view='Asymetric gaussians')
         a.exec_()
 
     """
-    # sigMultiParametersSignal = qt.pyqtSignal(object)   # mca related
 
     def __init__(self, parent=None, name="FitParameters"):
         """
@@ -531,7 +344,7 @@ class ParametersTab(qt.QTabWidget):
         # self.mcatable = None  # Fixme: probably not used
         self.setContentsMargins(10, 10, 10, 10)
 
-    def setview(self, view=None, fitresults=None):
+    def setView(self, view=None, fitresults=None):
         """Add or update a table. Fill it with data from a fit
 
         :param view: Tab name to be added or updated. If ``None``, use the
@@ -559,12 +372,12 @@ class ParametersTab(qt.QTabWidget):
             self.addTab(table, str(view))
 
         if fitresults is not None:
-            table.fillfromfit(fitresults)
+            table.fillFromFit(fitresults)
 
         self.setCurrentWidget(self.views[view])
         self.latest_view = view
 
-    def renameview(self, oldname=None, newname=None):
+    def renameView(self, oldname=None, newname=None):
         """Rename a view (tab)
 
         :param oldname: Name of the view to be renamed
@@ -573,22 +386,22 @@ class ParametersTab(qt.QTabWidget):
         if newname is not None:
             if newname not in self.views.keys():
                 if oldname in self.views.keys():
-                    parameterlist = self.tables[oldname].getfitresults()
-                    self.setview(view=newname, fitresults=parameterlist)
-                    self.removeview(oldname)
+                    parameterlist = self.tables[oldname].getFitResults()
+                    self.setView(view=newname, fitresults=parameterlist)
+                    self.removeView(oldname)
                     error = 0
         return error
 
-    def fillfromfit(self, fitparameterslist, view=None):
-        """Update a view with data from a fit (alias for :meth:`setview`)
+    def fillFromFit(self, fitparameterslist, view=None):
+        """Update a view with data from a fit (alias for :meth:`setView`)
 
         :param view: Tab name to be added or updated (default: latest view)
         :param fitparameterslist: Fit data to be added to the table
         """
-        self.setview(view=view, fitresults=fitparameterslist)
+        self.setView(view=view, fitresults=fitparameterslist)
 
-    def getfitresults(self, name=None):
-        """Call :meth:`getfitresults` for the
+    def getFitResults(self, name=None):
+        """Call :meth:`getFitResults` for the
         :class:`silx.gui.fit.parameters.Parameters` corresponding to the
         latest table or to the named table (if ``name`` is not
         ``None``). This return a list of dictionaries in the format used by
@@ -599,9 +412,9 @@ class ParametersTab(qt.QTabWidget):
         """
         if name is None:
             name = self.latest_view
-        return self.tables[name].getfitresults()
+        return self.tables[name].getFitResults()
 
-    def removeview(self, name):
+    def removeView(self, name):
         """Remove a view by name.
 
         :param name: View name.
@@ -614,38 +427,14 @@ class ParametersTab(qt.QTabWidget):
             del self.tables[name]
             del self.views[name]
 
-    def removeallviews(self, keep=None):
+    def removeAllViews(self, keep=None):
         """Remove all views, except the one specified (argument
         ``keep``)
 
         :param keep: Name of the view to be kept."""
         for view in self.tables:
             if view != keep:
-                self.removeview(view)
-
-    # def fillfrommca(self, mcaresult):
-    #     self.removeallviews()
-    #     region = 0
-    #
-    #     for result in mcaresult:
-    #         region = region + 1
-    #         self.fillfromfit(result['paramlist'],
-    #                          view='Region %d' % region)
-    #     name = 'MCA'
-    #     if name in self.tables:
-    #         table = self.tables[name]
-    #     else:
-    #         self.tables[name] = McaTable(self)
-    #         table = self.tables[name]
-    #         self.views[name] = table
-    #         self.addTab(table, str(name))
-    #         table.sigMcaTableSignal.connect(self.__forward)
-    #     table.fillfrommca(mcaresult)
-    #     self.setview(name=name)
-    #     return
-    #
-    # def __forward(self, ddict):
-    #     self.sigMultiParametersSignal.emit(ddict)
+                self.removeView(view)
 
     def getHTMLtext(self, name=None):
         """Return the table data as HTML
@@ -721,7 +510,7 @@ class ParametersTab(qt.QTabWidget):
         text += "</nobr>"
         return text
 
-    def gettext(self, name=None):
+    def getText(self, name=None):
         """Return the table data as CSV formatted text, using tabulation
         characters as separators.
 
@@ -782,7 +571,7 @@ def test():
 
     w = ParametersTab()
     w.show()
-    w.fillfromfit(fit.fit_results, view='Gaussians')
+    w.fillFromFit(fit.fit_results, view='Gaussians')
 
     y2 = functions.sum_splitgauss(x,
                                   100, 400, 100, 40,
@@ -801,7 +590,7 @@ def test():
     fit.estimate()
     fit.runfit()
 
-    w.fillfromfit(fit.fit_results, view='Asymetric gaussians')
+    w.fillFromFit(fit.fit_results, view='Asymetric gaussians')
 
     # Plot
     pw = PlotWindow(control=True)
