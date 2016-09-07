@@ -44,6 +44,7 @@ This module deals with:
 from collections import OrderedDict
 import logging
 import numpy
+from numpy.linalg.linalg import LinAlgError
 import os
 import sys
 
@@ -442,7 +443,12 @@ class FitManager(object):
         bg_params, bg_constraints = self.estimate_bkg(xwork, ywork)
 
         # estimate the function
-        fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
+        try:
+            fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
+        except LinAlgError:
+            self.state = 'Estimate failed'
+            callback(data={'status': self.state})
+            raise
 
         # build the names
         self.parameter_names = []
@@ -761,13 +767,19 @@ class FitManager(object):
             ywork = self.squarefilter(
                     self.ydata, self.fit_results[0]['estimation'])
 
-        params, covariance_matrix, infodict = leastsq(
-                self.fitfunction,  # bg + actual model function
-                self.xdata, ywork, param_val,
-                sigma=self.sigmay,
-                constraints=param_constraints,
-                model_deriv=self.theories[self.selectedtheory].derivative,
-                full_output=True)
+        print("running leastsq fit with initial params: " + str(param_val)) # fixme: debugging
+        try:
+            params, covariance_matrix, infodict = leastsq(
+                    self.fitfunction,  # bg + actual model function
+                    self.xdata, ywork, param_val,
+                    sigma=self.sigmay,
+                    constraints=param_constraints,
+                    model_deriv=self.theories[self.selectedtheory].derivative,
+                    full_output=True)
+        except LinAlgError:
+            self.state = 'Fit failed'
+            callback(data={'status': self.state})
+            raise
 
         sigmas = infodict['uncertainties']
 
