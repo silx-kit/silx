@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "06/09/2016"
 
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         to be saved.
     :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
         If ``None``, filetype is detected from file name extension
-        (``.dat, .csv, .txt, .npy``)
+        (``.dat, .csv, .txt, .npy``).
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels
     :param fmt: Format string for data. You can specify a short format
@@ -119,11 +119,29 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
+        else:
+            raise IOError("File type unspecified and could not be " +
+                          "inferred from file extension (not in " +
+                          "txt, dat, csv, npy)")
     else:
         filetype = filetype.lower()
 
     if filetype not in available_formats:
         raise IOError("File type %s is not supported" % (filetype))
+
+    # default column headers
+    if xlabel is None:
+        xlabel = "x"
+    if ylabels is None:
+        if len(numpy.array(y).shape) > 1:
+            ylabels = ["y%d" % i for i in range(len(y))]
+        else:
+            ylabels = ["y"]
+    elif isinstance(ylabels, (list, tuple)):
+        # if ylabels is provided as a list, every element must
+        # be a string
+        ylabels = [ylabels[i] if ylabels[i] is not None else "y%d" % i
+                   for i in range(len(ylabels))]
 
     if filetype.lower() == "spec":
         y_array = numpy.asarray(y)

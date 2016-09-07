@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/04/2016"
+__date__ = "05/09/2016"
 
 
 from collections import OrderedDict
@@ -201,9 +201,8 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip=
-                'Enable x-axis auto-scale when checked.\n'
-                'If unchecked, x-axis does not change when reseting zoom.',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -225,9 +224,8 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip=
-                'Enable y-axis auto-scale when checked.\n'
-                'If unchecked, y-axis does not change when reseting zoom.',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -502,35 +500,35 @@ class SaveAction(_PlotAction):
     """
     # TODO find a way to make the filter list selectable and extensible
 
-    SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
+    SNAPSHOT_FILTERS = ('Plot Snapshot PNG (*.png)', 'Plot Snapshot JPEG (*.jpg)')
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
     CURVE_FILTERS_TXT = OrderedDict((
-        ('Curve as Raw ASCII *.txt',
+        ('Curve as Raw ASCII (*.txt)',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ";"-separated CSV *.csv',
+        ('Curve as ";"-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
-        ('Curve as ","-separated CSV *.csv',
+        ('Curve as ","-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
-        ('Curve as tab-separated CSV *.csv',
+        ('Curve as tab-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        ('Curve as OMNIC CSV *.csv',
+        ('Curve as OMNIC CSV (*.csv)',
          {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
-        ('Curve as SpecFile *.dat',
+        ('Curve as SpecFile (*.dat)',
          {'fmt': '%.7g', 'delimiter': '', 'header': False})
     ))
 
-    CURVE_FILTER_NPY = 'Curve as NumPy binary file *.npy'
+    CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile *.dat", )
+    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
-    IMAGE_FILTER_EDF = 'Image as EDF *.edf'
-    IMAGE_FILTER_TIFF = 'Image as TIFF *.tif'
-    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
+    IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
+    IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file (*.npy)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
 
     def __init__(self, plot, parent=None):
@@ -600,9 +598,17 @@ class SaveAction(_PlotAction):
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
 
+        # If curve has no associated label, get the default from the plot
+        xlabel = curve[4]['xlabel']
+        if xlabel is None:
+            xlabel = self.plot.getGraphXLabel()
+        ylabel = curve[4]['ylabel']
+        if ylabel is None:
+            ylabel = self.plot.getGraphYLabel()
+
         try:
             save1D(filename, curve[0], curve[1],
-                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -729,7 +735,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension

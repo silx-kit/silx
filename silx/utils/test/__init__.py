@@ -22,25 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+__authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "24/08/2016"
 
 
-from numpy.distutils.misc_util import Configuration
+import unittest
+from .test_weakref import suite as test_weakref_suite
 
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('gui', parent_package, top_path)
-    config.add_subpackage('plot')
-    config.add_subpackage('fit')
-    config.add_subpackage('widgets')
-    config.add_subpackage('test')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(test_weakref_suite())
+    return test_suite

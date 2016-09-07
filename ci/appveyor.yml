@@ -80,7 +80,7 @@ test_script:
     # Install Qt binding and matplotlib
     # Install PyQt4 from www.silx.org and PyQt5/PySide from pypi
     - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ %QT_BINDINGS%"
-    - "pip install matplotlib"
+    - "pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ matplotlib"
 
     # Install h5py for silx.io tests
     - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py"
