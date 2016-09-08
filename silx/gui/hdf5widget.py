@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/09/2016"
+__date__ = "08/09/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -629,18 +629,45 @@ class Hdf5Item(Hdf5Node):
 
 class Hdf5TreeModel(qt.QAbstractItemModel):
 
+    NAME_COLUMN = 0
+    """Column id containing HDF5 node names"""
+
+    TYPE_COLUMN = 1
+    """Column id containing HDF5 dataset types"""
+
+    SHAPE_COLUMN = 2
+    """Column id containing HDF5 dataset shapes"""
+
+    VALUE_COLUMN = 3
+    """Column id containing HDF5 dataset values"""
+
+    DESCRIPTION_COLUMN = 4
+    """Column id containing HDF5 node description/title/message"""
+
+    NODE_COLUMN = 5
+    """Column id containing HDF5 node type"""
+
+    COLUMN_IDS = [
+        NAME_COLUMN,
+        TYPE_COLUMN,
+        SHAPE_COLUMN,
+        VALUE_COLUMN,
+        DESCRIPTION_COLUMN,
+        NODE_COLUMN,
+    ]
+    """List of logical columns available"""
+
     def __init__(self, parent=None):
         super(Hdf5TreeModel, self).__init__(parent)
 
         self.treeView = parent
-        self.header_labels = [
-            'Name',
-            'Type',
-            'Shape',
-            'Value',
-            'Description',
-            'Node',
-        ]
+        self.header_labels = [None] * 6
+        self.header_labels[self.NAME_COLUMN] = 'Name'
+        self.header_labels[self.TYPE_COLUMN] = 'Type'
+        self.header_labels[self.SHAPE_COLUMN] = 'Shape'
+        self.header_labels[self.VALUE_COLUMN] = 'Value'
+        self.header_labels[self.DESCRIPTION_COLUMN] = 'Description'
+        self.header_labels[self.NODE_COLUMN] = 'Node'
 
         # Create items
         self.__root = Hdf5Node()
@@ -824,17 +851,17 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def data(self, index, role):
         node = self.nodeFromIndex(index)
 
-        if index.column() == 0:
+        if index.column() == self.NAME_COLUMN:
             return node.dataName(role)
-        elif index.column() == 1:
+        elif index.column() == self.TYPE_COLUMN:
             return node.dataType(role)
-        elif index.column() == 2:
+        elif index.column() == self.SHAPE_COLUMN:
             return node.dataShape(role)
-        elif index.column() == 3:
+        elif index.column() == self.VALUE_COLUMN:
             return node.dataValue(role)
-        elif index.column() == 4:
+        elif index.column() == self.DESCRIPTION_COLUMN:
             return node.dataDescription(role)
-        elif index.column() == 5:
+        elif index.column() == self.NODE_COLUMN:
             return node.dataNode(role)
         else:
             return None
@@ -1056,6 +1083,21 @@ class Hdf5HeaderView(qt.QHeaderView):
                 menu.addAction(action)
 
             menu.popup(self.viewport().mapToGlobal(pos))
+
+    def setSections(self, logicalIndexes):
+        """
+        Defines order of visible sections by logical indexes.
+
+        Use `Hdf5TreeModel.NAME_COLUMN` to set the list.
+
+        :param list logicalIndexes: List of logical indexes to display
+        """
+        for pos, column_id in enumerate(logicalIndexes):
+            current_pos = self.visualIndex(column_id)
+            self.moveSection(current_pos, pos)
+            self.setSectionHidden(column_id, False)
+        for column_id in set(self.model().COLUMN_IDS) - set(logicalIndexes):
+            self.setSectionHidden(column_id, True)
 
 
 class Hdf5TreeView(qt.QTreeView):
