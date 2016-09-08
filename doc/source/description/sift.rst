@@ -125,7 +125,7 @@ SIFT keypoints computation
 
 The keypoints are detected in several steps according to Lowe's paper_ :
 
-.. _paper: "http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf"
+.. _paper: http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
 
 * Keypoints detection: local extrema are detected in the *scale-space* :math:`(x, y, s)`.
   Every pixel is compared to its neighborhood in the image itself,
@@ -305,7 +305,6 @@ You should not modify these values unless you know what you are doing.
 Some parameters require to understand several aspects of the algorithm,
 explained in Lowe's original paper.
 
-.. _paper: www.cs.ubc.ca/~lowe/papers/ijcv04.pdf
 .. _ASIFT: http://www.ipol.im/pub/art/2011/my-asift
 
 
