@@ -780,7 +780,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         return False
 
-    def headerData(self, section, orientation, role):
+    def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
             return self.header_labels[section]
         return None
@@ -956,6 +956,7 @@ class Hdf5HeaderView(qt.QHeaderView):
         self.setStretchLastSection(True)
 
         self.__auto_resize = True
+        self.__hide_columns_popup = True
 
     def setModel(self, model):
         """Override model to configure view when a model is expected
@@ -1007,13 +1008,34 @@ class Hdf5HeaderView(qt.QHeaderView):
     autoResizeColumns = qt.Property(bool, hasAutoResizeColumns, setAutoResizeColumns)
     """Property to enable/disable auto-resize."""
 
+    def setEnableHideColumnsPopup(self, enablePopup):
+        """Enable/disable a popup to allow to hide/show each column of the
+        model.
+
+        :param bool enablePopup: Enable/disable popup to hide/show columns
+        """
+        self.__hide_columns_popup = enablePopup
+
+    def hasHideColumnsPopup(self):
+        """Is popup to hide/show columns is enabled.
+
+        :rtype: bool
+        """
+        return self.__hide_columns_popup
+
+    enableHideColumnsPopup = qt.Property(bool, hasHideColumnsPopup, setAutoResizeColumns)
+    """Property to enable/disable popup allowing to hide/show columns."""
+
     def __createContextMenu(self, pos):
         """Callback to create and display a context menu
 
         :param pos qt.QPoint: Requested position for the context menu
         """
+        if not self.__hide_columns_popup:
+            return
+
         model = self.model()
-        if model.columnCount() > 1:
+        if model.columnCount(None) > 1:
             menu = qt.QMenu(self)
             menu.setTitle("Display/hide columns")
 
@@ -1021,7 +1043,7 @@ class Hdf5HeaderView(qt.QHeaderView):
             action.setEnabled(False)
             menu.addAction(action)
 
-            for column in range(model.columnCount()):
+            for column in range(model.columnCount(None)):
                 if column == 0:
                     # skip the main column
                     continue
