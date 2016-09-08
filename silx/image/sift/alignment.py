@@ -35,10 +35,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "08/09/2016"
 __status__ = "beta"
 
-import os
 import gc
 import sys
 from threading import Semaphore

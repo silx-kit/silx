@@ -36,7 +36,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "08/09/2016"
 __status__ = "beta"
 import os
 import logging
@@ -209,11 +209,15 @@ class MatchPlan(object):
         """
         assert len(nkp1.shape) == 1  # Nota: nkp1.ndim is not valid for gpu_arrays
         assert len(nkp2.shape) == 1
-        assert type(nkp1) in [numpy.core.records.recarray, pyopencl.array.Array]
-        assert type(nkp2) in [numpy.core.records.recarray, pyopencl.array.Array]
+        valid_types = (numpy.ndarray, numpy.core.records.recarray, pyopencl.array.Array)
+        assert isinstance(nkp1, valid_types)
+        assert isinstance(nkp2, valid_types)
         result = None
         with self._sem:
-            if type(nkp1) == numpy.core.records.recarray:
+            if isinstance(nkp1, pyopencl.array.Array):
+
+                kpt1_gpu = nkp1
+            else:
                 if nkp1.size > self.buffers["Kp_1"].size:
                     logger.warning("increasing size of keypoint vector 1 to %i" % nkp1.size)
                     self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (nkp1.size,), dtype=self.dtype_kp)
@@ -222,9 +226,10 @@ class MatchPlan(object):
                 evt1 = pyopencl.enqueue_copy(self.queue, kpt1_gpu.data, nkp1)
                 if self.profile:
                     self.events.append(("copy H->D KP_1", evt1))
+
+            if isinstance(nkp2, pyopencl.array.Array):
+                kpt2_gpu = nkp2
             else:
-                kpt1_gpu = nkp1
-            if type(nkp2) == numpy.core.records.recarray:
                 if nkp2.size > self.buffers["Kp_2"].size:
                     logger.warning("increasing size of keypoint vector 2 to %i" % nkp2.size)
                     self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (nkp2.size,), dtype=self.dtype_kp)
@@ -233,8 +238,7 @@ class MatchPlan(object):
                 evt2 = pyopencl.enqueue_copy(self.queue, kpt2_gpu.data, nkp2)
                 if self.profile:
                     self.events.append(("copy H->D KP_2", evt2))
-            else:
-                kpt2_gpu = nkp2
+
             if min(kpt1_gpu.size, kpt2_gpu.size) > self.buffers["match"].shape[0]:
                 self.kpsize = min(kpt1_gpu.size, kpt2_gpu.size)
                 self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)

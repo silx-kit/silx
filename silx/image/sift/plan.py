@@ -444,14 +444,14 @@ class SiftPlan(object):
             t0 = time.time()
 
             if image.dtype == numpy.float32:
-                if type(image) == pyopencl.array.Array:
+                if isinstance(image, pyopencl.array.Array):
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image.data)
                 else:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image)
                 if self.profile:
                     self.events.append(("copy H->D", evt))
             elif (len(image.shape) == 3) and (image.dtype == numpy.uint8) and (self.RGB):
-                if type(image) == pyopencl.array.Array:
+                if isinstance(image, pyopencl.array.Array):
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image.data)
                 else:
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image)
@@ -459,7 +459,8 @@ class SiftPlan(object):
                     self.events.append(("copy H->D", evt))
 
                 evt = self.programs["preprocess"].rgb_to_float(self.queue, self.procsize[0], self.wgsize[0],
-                                                             self.buffers["raw"].data, self.buffers[0].data, *self.scales[0])
+                                                               self.buffers["raw"].data, self.buffers[0].data,
+                                                               *self.scales[0])
                 if self.profile:
                     self.events.append(("RGB -> float", evt))
 
