@@ -767,7 +767,6 @@ class FitManager(object):
             ywork = self.squarefilter(
                     self.ydata, self.fit_results[0]['estimation'])
 
-        print("running leastsq fit with initial params: " + str(param_val)) # fixme: debugging
         try:
             params, covariance_matrix, infodict = leastsq(
                     self.fitfunction,  # bg + actual model function

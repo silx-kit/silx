@@ -879,10 +879,8 @@ class FitTheories(object):
             Parameters to be estimated for each slit are:
             *height, position, fwhm, beamfwhm* .
         """
-        largestup, cons = self.estimate_stepup(
-            x, y, None)
-        largestdown, cons = self.estimate_stepdown(
-            x, y, None)
+        largestup, cons = self.estimate_stepup(x, y)
+        largestdown, cons = self.estimate_stepdown(x, y)
         fwhm = numpy.fabs(largestdown[1] - largestup[1])
         beamfwhm = 0.5 * (largestup[2] + largestdown[1])
         beamfwhm = min(beamfwhm, fwhm / 10.0)
