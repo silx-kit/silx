@@ -425,11 +425,6 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         option.setLayout(qt.QVBoxLayout())
         panel.layout().addWidget(option)
 
-        autosize = qt.QCheckBox("Auto-size headers", option)
-        autosize.setChecked(treeview.header().hasAutoResizeColumns())
-        autosize.toggled.connect(lambda: treeview.header().setAutoResizeColumns(autosize.isChecked()))
-        option.layout().addWidget(autosize)
-
         multiselection = qt.QCheckBox("Multi-selection", option)
         multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
         switch_selection = lambda: treeview.setSelectionMode(
@@ -447,6 +442,32 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         filemove.setChecked(treeview.model().isFileMoveEnabled())
         filemove.toggled.connect(lambda: treeview.model().setFileMoveEnabled(filedrop.isChecked()))
         option.layout().addWidget(filemove)
+
+        option.layout().addStretch(1)
+
+        option = qt.QGroupBox("Header options", panel)
+        option.setLayout(qt.QVBoxLayout())
+        panel.layout().addWidget(option)
+
+        autosize = qt.QCheckBox("Auto-size headers", option)
+        autosize.setChecked(treeview.header().hasAutoResizeColumns())
+        autosize.toggled.connect(lambda: treeview.header().setAutoResizeColumns(autosize.isChecked()))
+        option.layout().addWidget(autosize)
+
+        columnpopup = qt.QCheckBox("Popup to hide/show columns", option)
+        columnpopup.setChecked(treeview.header().hasHideColumnsPopup())
+        columnpopup.toggled.connect(lambda: treeview.header().setEnableHideColumnsPopup(columnpopup.isChecked()))
+        option.layout().addWidget(columnpopup)
+
+        define_columns = qt.QComboBox()
+        define_columns.addItem("Default columns", treeview.model().COLUMN_IDS)
+        define_columns.addItem("Only name and Value", [treeview.model().NAME_COLUMN, treeview.model().VALUE_COLUMN])
+        define_columns.activated.connect(lambda index: treeview.header().setSections(define_columns.itemData(index)))
+        option.layout().addWidget(define_columns)
+
+        option.layout().addStretch(1)
+
+        panel.layout().addStretch(1)
 
         return panel
 
