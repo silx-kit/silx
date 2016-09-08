@@ -308,7 +308,7 @@ class MatchPlan(object):
         """Defines the region of interest
 
         :param roi: region of interest as 2D numpy array with non zero where
-        valid pixels are.
+                    valid pixels are
         """
         with self._sem:
             self.roi = numpy.ascontiguousarray(roi, numpy.int8)
