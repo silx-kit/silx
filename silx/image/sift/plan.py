@@ -72,10 +72,10 @@ class SiftPlan(object):
     This class implements a way to calculate SIFT keypoints.
 
 
-    How to calculate a set of SIFT keypoint on an image:
+    How to calculate a set of SIFT keypoint on an image::
 
-    siftp = sift.SiftPlan(img.shape,img.dtype,devicetype="GPU")
-    kp = siftp.keypoints(img)
+        siftp = sift.SiftPlan(img.shape,img.dtype,devicetype="GPU")
+        kp = siftp.keypoints(img)
 
     kp is a nx132 array. the second dimension is composed of x,y, scale and angle as well as 128 floats describing the keypoint
 
