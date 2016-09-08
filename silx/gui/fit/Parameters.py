@@ -105,35 +105,28 @@ class Parameters(qt.QTableWidget):
     :param paramlist: List of fit parameters to be displayed for each fitted
         peak.
     :type paramlist: list[str] or None
-    :param allowBackgroundAdd: Enable or disable (default behavior) selecting
-        "ADD" in the combobox located in the constraints column.
-    :type allowBackgroundAdd: boolean
     """
-    def __init__(self, parent=None, allowBackgroundAdd=False, labels=None,
-                 paramlist=None):
+    def __init__(self, parent=None, paramlist=None):
         qt.QTableWidget.__init__(self, parent)
-        self._allowBackgroundAdd = allowBackgroundAdd
-        self.setRowCount(1)
-        self.setColumnCount(1)
-        # Default column headers
-        tooltips = None
-        if labels is None:
-            labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
-                      'Constraints', 'Min/Parame', 'Max/Factor/Delta']
-            tooltips = ["Fit parameter name",
-                        "Estimated value for fit parameter. You can edit this column.",
-                        "Actual value for parameter, after fit",
-                        "Uncertainty (same unit as the parameter)",
-                        "Constraint to be applied to the parameter for fit",
-                        "First parameter for constraint (name of another param or min value)",
-                        "Second parameter for constraint (max value, or factor/delta)"]
 
-        self.code_options = ["FREE", "POSITIVE", "QUOTED", "FIXED",
-                             "FACTOR", "DELTA", "SUM", "IGNORE", "ADD"]
-        """Possible values in the combo boxes in the 'Constraints' column.
-        """
+        labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
+                  'Constraints', 'Min/Parame', 'Max/Factor/Delta']
+        tooltips = ["Fit parameter name",
+                    "Estimated value for fit parameter. You can edit this column.",
+                    "Actual value for parameter, after fit",
+                    "Uncertainty (same unit as the parameter)",
+                    "Constraint to be applied to the parameter for fit",
+                    "First parameter for constraint (name of another param or min value)",
+                    "Second parameter for constraint (max value, or factor/delta)"]
+
+        self.columnKeys = ['name', 'estimation', 'fitresult',
+                           'sigma', 'code', 'val1', 'val2']
+        """This list assigns shorter keys to refer to columns than the
+        displayed labels."""
 
         self.__configuring = False
+
+        # column headers and associated tooltips
         self.setColumnCount(len(labels))
 
         for i, label in enumerate(labels):
@@ -147,17 +140,54 @@ class Parameters(qt.QTableWidget):
             if tooltips is not None:
                 item.setToolTip(tooltips[i])
 
-        self.resizeColumnToContents(0)
-        self.resizeColumnToContents(1)
-        self.resizeColumnToContents(3)
-        self.resizeColumnToContents(len(labels) - 1)
-        self.resizeColumnToContents(len(labels) - 2)
+        # resize columns
+        for col_key in ["name", "estimation", "sigma", "val1", "val2"]:
+            col_idx = self.columnIndexByField(col_key)
+            print(col_key, col_idx)
+            self.resizeColumnToContents(col_idx)
 
         # Initialize the table with one line per supplied parameter
         paramlist = paramlist if paramlist is not None else []
         self.parameters = OrderedDict()
+        """This attribute stores all the data in an ordered dictionary.
+        New data can be added using :meth:`newParameterLine`.
+        Existing data can be modified using :meth:`configureLine`
+
+        Keys of the dictionary are:
+
+            -  'name': parameter name
+            -  'line': line index for the parameter in the table
+            -  'estimation'
+            -  'fitresult'
+            -  'sigma'
+            -  'code': constraint code (one of the elements of
+                :attr:`code_options`)
+            -  'val1': first parameter related to constraint, formatted
+                as a string, as typed in the table
+            -  'val2': second parameter related to constraint, formatted
+                as a string, as typed in the table
+            -  'cons1': scalar representation of 'val1'
+                (e.g. when val1 is the name of a fit parameter, cons1
+                will be the line index of this parameter)
+            -  'cons2': scalar representation of 'val2'
+            -  'vmin': equal to 'val1' when 'code' is "QUOTED"
+            -  'vmax': equal to 'val2' when 'code' is "QUOTED"
+            -  'relatedto': name of related parameter when this parameter
+                is constrained to another parameter (same as 'val1')
+            -  'factor': same as 'val2' when 'code' is 'FACTOR'
+            -  'delta': same as 'val2' when 'code' is 'DELTA'
+            -  'sum': same as 'val2' when 'code' is 'SUM'
+            -  'group': group index for the parameter
+            -  'xmin': data range minimum
+            -  'xmax': data range maximum
+        """
         for line, param in enumerate(paramlist):
             self.newParameterLine(param, line)
+
+        self.code_options = ["FREE", "POSITIVE", "QUOTED", "FIXED",
+                             "FACTOR", "DELTA", "SUM", "IGNORE", "ADD"]
+        """Possible values in the combo boxes in the 'Constraints' column.
+        """
 
         # connect signal
         self.cellChanged[int, int].connect(self.onCellChanged)
@@ -181,31 +211,24 @@ class Parameters(qt.QTableWidget):
 
         # default configuration for fit parameters
         self.parameters[param] = OrderedDict((('line', line),
-                                              ('fields', ['name',
-                                                          'estimation',
-                                                          'fitresult',
-                                                          'sigma',
-                                                          'code',
-                                                          'val1',
-                                                          'val2']),
-                                             ('estimation', '0'),
-                                             ('fitresult', ''),
-                                             ('sigma', ''),
-                                             ('code', 'FREE'),
-                                             ('val1', ''),
-                                             ('val2', ''),
-                                             ('cons1', 0),
-                                             ('cons2', 0),
-                                             ('vmin', '0'),
-                                             ('vmax', '1'),
-                                             ('relatedto', ''),
-                                             ('factor', '1.0'),
-                                             ('delta', '0.0'),
-                                             ('sum', '0.0'),
-                                             ('group', ''),
-                                             ('name', param),
-                                             ('xmin', None),
-                                             ('xmax', None)))
+                                              ('estimation', '0'),
+                                              ('fitresult', ''),
+                                              ('sigma', ''),
+                                              ('code', 'FREE'),
+                                              ('val1', ''),
+                                              ('val2', ''),
+                                              ('cons1', 0),
+                                              ('cons2', 0),
+                                              ('vmin', '0'),
+                                              ('vmax', '1'),
+                                              ('relatedto', ''),
+                                              ('factor', '1.0'),
+                                              ('delta', '0.0'),
+                                              ('sum', '0.0'),
+                                              ('group', ''),
+                                              ('name', param),
+                                              ('xmin', None),
+                                              ('xmax', None)))
         self.setReadWrite(param, 'estimation')
         self.setReadOnly(param, ['name', 'fitresult', 'sigma', 'val1', 'val2'])
 
@@ -214,7 +237,7 @@ class Parameters(qt.QTableWidget):
         for option in self.code_options:
             a.append(option)
 
-        code_column_index = self.columnIndexByField(param, 'code')
+        code_column_index = self.columnIndexByField('code')
         cellWidget = self.cellWidget(line, code_column_index)
         if cellWidget is None:
             cellWidget = QComboTableItem(self, row=line,
@@ -226,14 +249,13 @@ class Parameters(qt.QTableWidget):
         self.parameters[param]['relatedto_item'] = None
         self.__configuring = False
 
-    def columnIndexByField(self, param, field):
+    def columnIndexByField(self, field):
         """
 
-        :param param: Name of the fit parameter
-        :param field: Field name
-        :return: Column index of this field
+        :param field: Field name (column key)
+        :return: Index of the column with this field name
         """
-        return self.parameters[param]['fields'].index(field)
+        return self.columnKeys.index(field)
 
     def fillFromFit(self, fitresults):
         """Fill table with values from a  list of dictionaries
@@ -333,7 +355,7 @@ class Parameters(qt.QTableWidget):
         :param row: Row number of the changed cell (0-based index)
         :param col: Column number of the changed cell (0-based index)
         """
-        if (col != 4) and (col != -1):
+        if (col != self.columnIndexByField("code")) and (col != -1):
             if row != self.currentRow():
                 return
             if col != self.currentColumn():
@@ -341,7 +363,7 @@ class Parameters(qt.QTableWidget):
         if self.__configuring:
             return
         param = list(self.parameters)[row]
-        field = self.parameters[param]['fields'][col]
+        field = self.columnKeys[col]
         oldvalue = self.parameters[param][field]
         if col != 4:
             item = self.item(row, col)
@@ -442,9 +464,8 @@ class Parameters(qt.QTableWidget):
         elif str(newvalue) == 'ADD':
             group = int(float(str(self.parameters[param]['group'])))
             if group == 0:
-                if not self._allowBackgroundAdd:
-                    # One cannot add a background group
-                    return False
+                # One cannot add a background group
+                return False
             i = 0
             for param in self.parameters:
                 if i <= int(float(str(self.parameters[param]['group']))):
@@ -601,7 +622,7 @@ class Parameters(qt.QTableWidget):
         for param in paramlist:
             row = list(self.parameters.keys()).index(param)
             for field in fieldlist:
-                col = self.columnIndexByField(param, field)
+                col = self.columnIndexByField(field)
                 if field != 'code':
                     key = field + "_item"
                     item = self.item(row, col)
