@@ -359,6 +359,14 @@ class Hdf5TreeViewExample(qt.QMainWindow):
                 action = qt.QAction("Do something on %s" % filename, event.source())
                 menu.addAction(action)
 
+    def __hdf5ComboChanged(self, index):
+        function = self.__hdf5Combo.itemData(index)
+        self.__createHdf5Button.setCallable(function)
+
+    def __edfComboChanged(self, index):
+        function = self.__edfCombo.itemData(index)
+        self.__createEdfButton.setCallable(function)
+
     def createTreeViewConfigurationPanel(self, parent, treeview):
         """Create a configuration panel to allow to play with widget states"""
         panel = qt.QWidget(parent)
@@ -368,50 +376,48 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         content.setLayout(qt.QVBoxLayout())
         panel.layout().addWidget(content)
 
-        button = ThreadPoolPushButton("Containing all types")
-        button.setCallable(get_hdf5_with_all_types)
+        combo = qt.QComboBox()
+        combo.addItem("Containing all types", get_hdf5_with_all_types)
+        combo.addItem("Containing all links", get_hdf5_with_all_links)
+        combo.addItem("Containing 1000 datasets", get_hdf5_with_1000_datasets)
+        combo.addItem("Containing 10000 datasets", get_hdf5_with_10000_datasets)
+        combo.addItem("Containing 100000 datasets", get_hdf5_with_100000_datasets)
+        combo.activated.connect(self.__hdf5ComboChanged)
+        content.layout().addWidget(combo)
+
+        button = ThreadPoolPushButton("Create")
+        button.setCallable(combo.itemData(combo.currentIndex()))
         button.succeeded.connect(self.__fileCreated)
         content.layout().addWidget(button)
 
-        button = ThreadPoolPushButton("Containing all links")
-        button.setCallable(get_hdf5_with_all_links)
-        button.succeeded.connect(self.__fileCreated)
-        content.layout().addWidget(button)
-
-        button = ThreadPoolPushButton("Containing 1000 datasets")
-        button.setCallable(get_hdf5_with_1000_datasets)
-        button.succeeded.connect(self.__fileCreated)
-        content.layout().addWidget(button)
-
-        button = ThreadPoolPushButton("Containing 10000 datasets")
-        button.setCallable(get_hdf5_with_10000_datasets)
-        button.succeeded.connect(self.__fileCreated)
-        content.layout().addWidget(button)
-
-        button = ThreadPoolPushButton("Containing 100000 datasets")
-        button.setCallable(get_hdf5_with_100000_datasets)
-        button.succeeded.connect(self.__fileCreated)
-        content.layout().addWidget(button)
+        self.__hdf5Combo = combo
+        self.__createHdf5Button = button
 
         asyncload = qt.QCheckBox("Async load", content)
         asyncload.setChecked(self.__asyncload)
         asyncload.toggled.connect(lambda: self.useAsyncLoad(asyncload.isChecked()))
         content.layout().addWidget(asyncload)
 
+        content.layout().addStretch(1)
+
         if fabio is not None:
             content = qt.QGroupBox("Create EDF", panel)
             content.setLayout(qt.QVBoxLayout())
             panel.layout().addWidget(content)
 
-            button = ThreadPoolPushButton("Containing all types")
-            button.setCallable(get_edf_with_all_types)
+            combo = qt.QComboBox()
+            combo.addItem("Containing all types", get_edf_with_all_types)
+            combo.addItem("Containing 100000 datasets", get_edf_with_100000_frames)
+            combo.activated.connect(self.__edfComboChanged)
+            content.layout().addWidget(combo)
+
+            button = ThreadPoolPushButton("Create")
+            button.setCallable(combo.itemData(combo.currentIndex()))
             button.succeeded.connect(self.__fileCreated)
             content.layout().addWidget(button)
 
-            button = ThreadPoolPushButton("Containing 100000 frames")
-            button.setCallable(get_edf_with_100000_frames)
-            button.succeeded.connect(self.__fileCreated)
-            content.layout().addWidget(button)
+            self.__edfCombo = combo
+            self.__createEdfButton = button
 
             content.layout().addStretch(1)
 
