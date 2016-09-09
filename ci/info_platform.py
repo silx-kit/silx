@@ -3,7 +3,7 @@
 """Print information about python."""
 
 __authors__ = ["Jérôme Kieffer"]
-__date__ = "02/09/2016"
+__date__ = "09/09/2016"
 __license__ = "MIT"
 
 
@@ -39,4 +39,4 @@ else:
     for p in pyopencl.get_platforms():
         print("  %s" % p)
         for d in p.get_devices():
-            print("    %s" % d)
+            print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
