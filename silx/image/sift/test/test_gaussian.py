@@ -70,7 +70,7 @@ if ocl:
     device = ctx.devices[0]
     device_id = device.platform.get_device().index(0)
     platform_id = pyopencl.get_platforms().index(device.platform)
-    maxwg = ocl.platfors[platform_id].devices[device_id].work_group_size
+    maxwg = ocl.platfors[platform_id].devices[device_id].max_work_group_size
 
     for kernel in list(kernel.keys()):
         if kernels[kernel] < maxwg:

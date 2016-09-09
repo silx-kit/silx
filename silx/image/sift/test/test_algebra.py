@@ -100,7 +100,7 @@ class TestAlgebra(unittest.TestCase):
         device_id = device.platform.get_device().index(0)
         platform_id = pyopencl.get_platforms().index(device.platform)
         wg = self.wg[0] * self.wg[1]
-        maxwg = ocl.platfors[platform_id].devices[device_id].work_group_size
+        maxwg = ocl.platfors[platform_id].devices[device_id].max_work_group_size
         if maxwg < wg:
             self.wg = (1, maxwg)
 
