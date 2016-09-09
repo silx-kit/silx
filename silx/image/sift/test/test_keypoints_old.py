@@ -85,7 +85,7 @@ logger.info("working on %s" % ctx.devices[0].name)
 For Python implementation of tested functions, see "test_image_functions.py"
 '''
 
-
+@unittest.skip("deprected")
 class test_keypoints(unittest.TestCase):
     def setUp(self):
         if scipy and ocl is None:

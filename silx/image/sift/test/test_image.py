@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 PRINT_KEYPOINTS = False
 
-
+@unittest.skipUnless(ocl, "OpenCL missing")
 class TestImage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

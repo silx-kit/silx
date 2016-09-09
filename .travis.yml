@@ -104,6 +104,7 @@ script:
     #Install optional dependencies for running test
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy 
     - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
+    - pip install mako 
 
     # Install GUI dependencies
     - if [ "$WITH_QT_TEST" == "True" ];

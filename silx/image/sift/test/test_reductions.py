@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import unittest
 import time
@@ -57,11 +57,12 @@ from ..utils import get_opencl_code
 logger = logging.getLogger(__name__)
 
 
-class test_reductions(unittest.TestCase):
+@unittest.skipUnless(scipy and ocl, "scipy or ocl missing")
+class TestReduction(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(test_reductions, cls).setUpClass()
+        super(TestReduction, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -74,7 +75,7 @@ class test_reductions(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(test_reductions, cls).tearDownClass()
+        super(TestReduction, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -85,16 +86,12 @@ class test_reductions(unittest.TestCase):
     def tearDown(self):
         self.program = None
 
-
-    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
 
-    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
 
-    @unittest.skipIf(scipy and ocl is None, "Scipy or ocl missing")
     def test_max_min(self, val_max=1.0, val_min=0.0, shape=((512, 512)), data=None):
         """
         Test global_max_min kernel
@@ -153,8 +150,8 @@ class test_reductions(unittest.TestCase):
 def suite():
     testSuite = unittest.TestSuite()
     if ocl:
-        testSuite.addTest(test_reductions("test_max_min_rnd"))
-        testSuite.addTest(test_reductions("test_max_min"))
-        testSuite.addTest(test_reductions("test_max_min_rnd_big"))
+        testSuite.addTest(TestReduction("test_max_min_rnd"))
+        testSuite.addTest(TestReduction("test_max_min"))
+        testSuite.addTest(TestReduction("test_max_min_rnd_big"))
 
     return testSuite

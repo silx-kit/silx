@@ -117,11 +117,12 @@ def binning(input_img, binsize):
     return out
 
 
-class test_preproc(unittest.TestCase):
+@unittest.skipUnless(scipy and ocl, "no scipy or ocl")
+class TestPreproc(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(test_preproc, cls).setUpClass()
+        super(TestPreproc, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -134,12 +135,12 @@ class test_preproc(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(test_preproc, cls).tearDownClass()
+        super(TestPreproc, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
     def setUp(self):
-        if ocl and scipy is None:
+        if not (ocl and scipy) :
             return
         try:
             testdata = scipy.misc.ascent()
@@ -173,7 +174,6 @@ class test_preproc(unittest.TestCase):
         self.buffers_max = None
         self.buffers_min = None
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_uint8(self):
         """
         tests the uint8 kernel
@@ -214,7 +214,6 @@ class test_preproc(unittest.TestCase):
 
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_uint16(self):
         """
         tests the uint16 kernel
@@ -252,7 +251,6 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_int32(self):
         """
         tests the int32 kernel
@@ -290,7 +288,6 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_int64(self):
         """
         tests the int64 kernel
@@ -327,7 +324,6 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_rgb(self):
         """
         tests the int64 kernel
@@ -367,7 +363,6 @@ class test_preproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_shrink(self):
         """
         Test shrinking kernel
@@ -409,7 +404,6 @@ class test_preproc(unittest.TestCase):
             raw_input("enter")
         self.assert_(delta < 1e-6, "delta=%s" % delta)
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy missing")
     def test_bin(self):
         """
         Test binning kernel
@@ -454,11 +448,11 @@ class test_preproc(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_preproc("test_uint8"))
-    testSuite.addTest(test_preproc("test_uint16"))
-    testSuite.addTest(test_preproc("test_int32"))
-    testSuite.addTest(test_preproc("test_int64"))
-    testSuite.addTest(test_preproc("test_rgb"))
-    testSuite.addTest(test_preproc("test_shrink"))
-    testSuite.addTest(test_preproc("test_bin"))
+    testSuite.addTest(TestPreproc("test_uint8"))
+    testSuite.addTest(TestPreproc("test_uint16"))
+    testSuite.addTest(TestPreproc("test_int32"))
+    testSuite.addTest(TestPreproc("test_int64"))
+    testSuite.addTest(TestPreproc("test_rgb"))
+    testSuite.addTest(TestPreproc("test_shrink"))
+    testSuite.addTest(TestPreproc("test_bin"))
     return testSuite

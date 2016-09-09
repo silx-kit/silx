@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import unittest
 import time
@@ -69,10 +69,10 @@ USE_LENA = True
 DEVICETYPE = "ALL"
 
 
-class test_transform(unittest.TestCase):
+class TestTransform(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(test_transform, cls).setUpClass()
+        super(TestTransform, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -85,7 +85,7 @@ class test_transform(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(test_transform, cls).tearDownClass()
+        super(TestTransform, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -255,6 +255,6 @@ class test_transform(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_transform("test_transform"))
+    testSuite.addTest(TestTransform("test_transform"))
     return testSuite
 

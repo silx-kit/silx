@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import time
 import numpy
@@ -71,8 +71,6 @@ if ocl:
         kernel_src = get_opencl_code(kernel)
         program = pyopencl.Program(ctx, kernel_src).build("-D WORKGROUP=%s" % kernels[kernel])
         kernels[kernel] = program
-
-
 
 
 def gaussian_cpu(sigma, size=None):
@@ -156,9 +154,9 @@ def show(ref, res, delta):
     raw_input("enter")
 
 
+@unittest.skipUnless(ocl and scipy, "ocl or scipy is missing")
 class test_gaussian_v1(unittest.TestCase):
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_odd(self):
         """
         test odd kernel size
@@ -169,10 +167,9 @@ class test_gaussian_v1(unittest.TestCase):
         res = gaussian_gpu_v1(sigma, size)
         delta = ref - res
         if PROFILE:
-            show (ref, res, delta)
+            show(ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_even(self):
         """
         test odd kernel size
@@ -183,13 +180,13 @@ class test_gaussian_v1(unittest.TestCase):
         res = gaussian_gpu_v1(sigma, size)
         delta = ref - res
         if PROFILE:
-            show (ref, res, delta)
+            show(ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
 
+@unittest.skipUnless(ocl and scipy, "ocl or scipy is missing")
 class test_gaussian_v2(unittest.TestCase):
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_odd(self):
         """
         test odd kernel size
@@ -200,10 +197,9 @@ class test_gaussian_v2(unittest.TestCase):
         res = gaussian_gpu_v2(sigma, size)
         delta = ref - res
         if PROFILE:
-            show (ref, res, delta)
+            show(ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
-    @unittest.skipIf(ocl and scipy is None, "ocl or scipy is None")
     def test_even(self):
         """
         test odd kernel size
@@ -214,7 +210,7 @@ class test_gaussian_v2(unittest.TestCase):
         res = gaussian_gpu_v2(sigma, size)
         delta = ref - res
         if PROFILE:
-            show (ref, res, delta)
+            show(ref, res, delta)
         self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
 
 

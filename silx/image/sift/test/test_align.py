@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import unittest
 import logging
@@ -93,7 +93,7 @@ class TestLinalign(unittest.TestCase):
     def tearDown(self):
         self.img = self.lena = None
 
-    @unittest.skipIf(scipy and ocl is None, "scipy or pyopencl are missing")
+    @unittest.skipUnless(scipy and ocl, "scipy or pyopencl are missing")
     def test_align(self):
         """
         tests the combine (linear combination) kernel

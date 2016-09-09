@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import unittest
 import time
@@ -68,7 +68,7 @@ USE_CPP_SIFT = True  # use reference cplusplus implementation for descriptors co
 For Python implementation of tested functions, see "test_image_functions.py"
 '''
 
-
+@unittest.skipUnless(scipy and ocl, "no scipy or ocl")
 class TestMatching(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -98,7 +98,7 @@ class TestMatching(unittest.TestCase):
     def tearDown(self):
         self.mat = None
         self.program = None
-    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
+
     def test_matching(self):
         '''
         tests keypoints matching kernel

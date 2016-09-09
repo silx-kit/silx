@@ -110,7 +110,7 @@ class ParameterisedTestCase(unittest.TestCase):
             suite.addTest(testcase_klass(name, param=param))
         return suite
 
-
+@unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
 class test_keypoints(ParameterisedTestCase):
     def setUp(self):
         self.abort = False
@@ -151,7 +151,6 @@ class test_keypoints(ParameterisedTestCase):
         self.program = None
         self.testdata = None
 
-    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_orientation(self):
         '''
         #tests keypoints orientation assignment kernel
@@ -235,7 +234,6 @@ class test_keypoints(ParameterisedTestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Orientation assignment took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
-    @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_descriptor(self):
         '''
         #tests keypoints descriptors creation kernel

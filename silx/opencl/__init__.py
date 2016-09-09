@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "18/07/2016"
+__date__ = "09/09/2016"
 __status__ = "stable"
 
 import os
@@ -423,3 +423,5 @@ def allocate_cl_buffers(buffers, device=None, context=None):
         raise MemoryError(error)
 
     return mem
+
+ocl = None

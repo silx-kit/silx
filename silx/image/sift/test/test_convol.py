@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import time
 import logging
@@ -65,6 +65,7 @@ def my_blur(img, kernel):
     return scipy.ndimage.filters.convolve1d(tmp1, kernel, axis=0, mode="reflect")
 
 
+@unittest.skipUnless(scipy and ocl, "scipy or opencl not available")
 class test_convol(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -110,7 +111,6 @@ class test_convol(unittest.TestCase):
         self.program = None
         self.gpu_in = self.gpu_tmp = self.gpu_out = None
 
-    @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_hor(self):
         """
         tests the convolution kernel
@@ -194,7 +194,6 @@ class test_convol(unittest.TestCase):
                 fig.show()
                 raw_input("enter")
 
-    @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol(self):
         """
         tests the convolution kernel

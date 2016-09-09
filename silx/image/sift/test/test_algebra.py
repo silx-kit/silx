@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import time
 import logging
@@ -71,6 +71,7 @@ def my_compact(keypoints, nbkeypoints):
     return output, length
 
 
+@unittest.skipUnless(ocl, "PyOpenCl is missing")
 class test_algebra(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
