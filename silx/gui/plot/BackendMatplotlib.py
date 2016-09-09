@@ -425,8 +425,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             self.ax.add_patch(item)
 
         elif shape in ('polygon', 'polylines'):
-            xView.shape = 1, -1
-            yView.shape = 1, -1
+            xView = xView.reshape(1, -1)
+            yView = yView.reshape(1, -1)
             item = Polygon(numpy.vstack((xView, yView)).T,
                            closed=(shape == 'polygon'),
                            fill=False,
