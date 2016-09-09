@@ -97,7 +97,7 @@ class TestAlgebra(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
         device = self.ctx.devices[0]
-        device_id = device.platform.get_device().index(0)
+        device_id = device.platform.get_devices().index(device)
         platform_id = pyopencl.get_platforms().index(device.platform)
         wg = self.wg[0] * self.wg[1]
         maxwg = ocl.platfors[platform_id].devices[device_id].max_work_group_size
