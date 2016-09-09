@@ -423,5 +423,3 @@ def allocate_cl_buffers(buffers, device=None, context=None):
         raise MemoryError(error)
 
     return mem
-
-ocl = None
