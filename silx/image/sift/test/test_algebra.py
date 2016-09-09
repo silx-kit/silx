@@ -72,10 +72,10 @@ def my_compact(keypoints, nbkeypoints):
 
 
 @unittest.skipUnless(ocl, "PyOpenCl is missing")
-class test_algebra(unittest.TestCase):
+class TestAlgebra(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(test_algebra, cls).setUpClass()
+        super(TestAlgebra, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -88,7 +88,7 @@ class test_algebra(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(test_algebra, cls).tearDownClass()
+        super(TestAlgebra, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -96,6 +96,13 @@ class test_algebra(unittest.TestCase):
         kernel_src = get_opencl_code("algebra.cl")
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
+        device = self.ctx.devices[0]
+        device_id = device.platform.get_device().index(0)
+        platform_id = pyopencl.get_platforms().index(device.platform)
+        wg = self.wg[0] * self.wg[1]
+        maxwg = ocl.platfors[platform_id].devices[device_id].work_group_size
+        if maxwg < wg:
+            self.wg = (1, maxwg)
 
     def tearDown(self):
         self.mat1 = None
@@ -183,6 +190,6 @@ class test_algebra(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_algebra("test_combine"))
-    testSuite.addTest(test_algebra("test_compact"))
+    testSuite.addTest(TestAlgebra("test_combine"))
+    testSuite.addTest(TestAlgebra("test_compact"))
     return testSuite

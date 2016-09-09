@@ -67,6 +67,15 @@ if ocl:
     kernels = {"preprocess": 8,
                "gaussian": 512}
 
+    device = ctx.devices[0]
+    device_id = device.platform.get_device().index(0)
+    platform_id = pyopencl.get_platforms().index(device.platform)
+    maxwg = ocl.platfors[platform_id].devices[device_id].work_group_size
+
+    for kernel in list(kernel.keys()):
+        if kernels[kernel] < maxwg:
+            kernels[kernel] = maxwg
+
     for kernel in list(kernels.keys()):
         kernel_src = get_opencl_code(kernel)
         program = pyopencl.Program(ctx, kernel_src).build("-D WORKGROUP=%s" % kernels[kernel])
