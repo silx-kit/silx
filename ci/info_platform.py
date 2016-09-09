@@ -40,3 +40,14 @@ else:
         print("  %s" % p)
         for d in p.get_devices():
             print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
+try:
+    from silx.opencl import ocl
+except Exception:
+    print("Unable to import silx")
+else:
+    print("PyOpenCL platform as seen by silx:")
+    if ocl:
+        for p in ocl.platforms:
+            print("  %s:" % p)
+            for d in p.devices:
+                print("    %s max_workgroup_size is %s" % (d, d.max_work_group_size))
