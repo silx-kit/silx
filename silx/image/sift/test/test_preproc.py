@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import time
 import logging
@@ -141,7 +141,12 @@ class test_preproc(unittest.TestCase):
     def setUp(self):
         if ocl and scipy is None:
             return
-        self.input = numpy.ascontiguousarray(scipy.misc.lena()[:510, :511])
+        try:
+            testdata = scipy.misc.ascent()
+        except:
+            # for very old version of scipy
+            testdata = scipy.misc.lena()
+        self.input = numpy.ascontiguousarray(testdata[:510, :511])
         self.gpudata = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         kernel_src = get_opencl_code("preprocess")
         reduct_src = get_opencl_code("reductions")

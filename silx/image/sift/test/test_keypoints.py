@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import unittest
 import time
@@ -116,6 +116,12 @@ class test_keypoints(ParameterisedTestCase):
         self.abort = False
         if scipy and ocl is None:
             return
+        try:
+            self.testdata = scipy.misc.ascent()
+        except:
+            # for very old versions of scipy
+            self.testdata = scipy.misc.lena()
+
         for kernel_file in self.param:
             if "cpu" in kernel_file:
                 self.USE_CPU = True
@@ -143,6 +149,7 @@ class test_keypoints(ParameterisedTestCase):
     def tearDown(self):
         self.mat = None
         self.program = None
+        self.testdata = None
 
     @unittest.skipIf(scipy and ocl is None, "no scipy or ocl")
     def test_orientation(self):
@@ -188,7 +195,7 @@ class test_keypoints(ParameterisedTestCase):
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()
-            ref2 = sc.sift(scipy.misc.lena())  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
+            ref2 = sc.sift(self.testdata)  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
             ref = ref2.angle
             kp_ref = numpy.empty((ref2.size, 4), dtype=numpy.float32)
             kp_ref[:, 0] = ref2.x
@@ -285,7 +292,7 @@ class test_keypoints(ParameterisedTestCase):
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()
-            ref2 = sc.sift(scipy.misc.lena())  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
+            ref2 = sc.sift(self.testdata)  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
             ref = ref2.desc
             ref_sort = ref
         else:

@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "09/09/2016"
 
 import time
 import logging
@@ -144,9 +144,9 @@ class TestImage(unittest.TestCase):
 
         t0 = time.time()
         k1 = self.program.local_maxmin(self.queue, self.shape, self.wg,
-        	self.gpu_dogs.data, self.output.data,
-       		border_dist, peakthresh, octsize, EdgeThresh0, EdgeThresh,
-       		self.counter.data, nb_keypoints, self.s, width, height)
+        	                           self.gpu_dogs.data, self.output.data,
+       		                           border_dist, peakthresh, octsize, EdgeThresh0, EdgeThresh,
+       		                           self.counter.data, nb_keypoints, self.s, width, height)
 
         res = self.output.get()
         self.keypoints1 = self.output  # for further use
@@ -154,7 +154,7 @@ class TestImage(unittest.TestCase):
 
         t1 = time.time()
         ref, actual_nb_keypoints2 = my_local_maxmin(DOGS, peakthresh, border_dist, octsize,
-        	EdgeThresh0, EdgeThresh, nb_keypoints, self.s, width, height)
+        	                                        EdgeThresh0, EdgeThresh, nb_keypoints, self.s, width, height)
         t2 = time.time()
 
         # we have to sort the arrays, for peaks orders is unknown for GPU

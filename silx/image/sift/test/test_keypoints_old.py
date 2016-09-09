@@ -40,16 +40,21 @@ __license__ = "MIT"
 
 import time
 import os
-import logging
 # import sys
-# import numpy
+import numpy
 
-import pyopencl
-import pyopencl.array
+from silx.opencl import ocl
+if ocl:
+    import pyopencl, pyopencl.array
 
-import scipy
-import scipy.misc
-import scipy.ndimage
+try:
+    import scipy
+except ImportError:
+    scipy = None
+else:
+    import scipy.misc
+    import scipy.ndimage
+
 # import pylab
 
 import unittest
@@ -83,6 +88,13 @@ For Python implementation of tested functions, see "test_image_functions.py"
 
 class test_keypoints(unittest.TestCase):
     def setUp(self):
+        if scipy and ocl is None:
+            return
+        try:
+            self.testdata = scipy.misc.ascent()
+        except:
+            # for very old versions of scipy
+            self.testdata = scipy.misc.lena()  # deprecated
 
         kernel_file = "keypoints_cpu.cl" if USE_CPU else "keypoints_gpu1.cl"
         kernel_path = os.path.join(os.path.dirname(os.path.abspath(sift.__file__)), kernel_file)
@@ -93,6 +105,7 @@ class test_keypoints(unittest.TestCase):
     def tearDown(self):
         self.mat = None
         self.program = None
+        self.testdata = None
 
     def test_orientation(self):
         '''
@@ -135,7 +148,7 @@ class test_keypoints(unittest.TestCase):
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()
-            ref2 = sc.sift(scipy.misc.lena())  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
+            ref2 = sc.sift(self.testdata)  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
             ref = ref2.angle
             kp_ref = numpy.empty((ref2.size, 4), dtype=numpy.float32)
             kp_ref[:, 0] = ref2.x
@@ -220,7 +233,7 @@ class test_keypoints(unittest.TestCase):
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()
-            ref2 = sc.sift(scipy.misc.lena())  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
+            ref2 = sc.sift(self.testdata)  # ref2.x, ref2.y, ref2.scale, ref2.angle, ref2.desc --- ref2[numpy.argsort(ref2.y)]).desc
             ref = ref2.desc
             ref_sort = ref
         else:
