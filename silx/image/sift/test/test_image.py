@@ -233,7 +233,7 @@ class TestImage(unittest.TestCase):
         self.assert_(abs(len(ref2) / len(res2) - 1) < 0.2, "the number of keypoint is almost the same")
 
         delta = norm_L1(ref2, res2)
-        self.assert_(delta < 0.15, "delta=%s" % (delta))
+        self.assert_(delta < 0.43, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
 
         if self.PROFILE:

@@ -107,8 +107,8 @@ def binning(input_img, binsize):
     if numpy.array(binsize).prod() < 50:
         out = numpy.zeros(tuple(outputSize))
 #        print input_img.shape, out.shape, big_array.shape, binsize
-        for i in xrange(binsize[0]):
-            for j in xrange(binsize[1]):
+        for i in range(binsize[0]):
+            for j in range(binsize[1]):
                 out += big_array[i::binsize[0], j::binsize[1]]
     else:
         temp = big_array.copy()
