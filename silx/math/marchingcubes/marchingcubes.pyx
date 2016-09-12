@@ -179,7 +179,8 @@ cdef class MarchingCubes:
     def indices(self):
         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
         """
-        return numpy.array(self.c_mc.indices).reshape(-1, 3)
+        return numpy.array(self.c_mc.indices,
+                           dtype=numpy.uint32).reshape(-1, 3)
 
 
 def marchingcubes(data, level, invert_normals=True):
@@ -200,6 +201,5 @@ def marchingcubes(data, level, invert_normals=True):
     :rtype: 3-tuple of numpy.ndarray
     """
     mcubes = MarchingCubes(level)
-    mcubes.iso_level = level
     mcubes.invert_normals = invert_normals
     return mcubes.process(data)
