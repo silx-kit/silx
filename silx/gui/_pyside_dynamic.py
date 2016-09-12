@@ -1,5 +1,7 @@
-#!/usr/bin/python2
 # -*- coding: utf-8 -*-
+
+# Taken from: https://gist.github.com/cpbotha/1b42a20c8f3eb9bb7cb8
+
 # Copyright (c) 2011 Sebastian Wiesner <lunaryorn@gmail.com>
 # Modifications by Charl Botha <cpbotha@vxlabs.com>
 # * customWidgets support (registerCustomWidget() causes segfault in
