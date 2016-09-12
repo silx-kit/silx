@@ -131,6 +131,8 @@ if BINDING == 'PyQt4':
     else:
         HAS_SVG = True
 
+    from PyQt4.uic import loadUi  # noqa
+
     Signal = pyqtSignal
 
     Property = pyqtProperty
@@ -158,6 +160,9 @@ elif BINDING == 'PySide':
     else:
         HAS_SVG = True
 
+    # Import loadUi wrapper for PySide
+    from ._pyside_dynamic import loadUi  # noqa
+
 elif BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')
 
@@ -180,6 +185,8 @@ elif BINDING == 'PyQt5':
         HAS_SVG = False
     else:
         HAS_SVG = True
+
+    from PyQt5.uic import loadUi  # noqa
 
     Signal = pyqtSignal
 
