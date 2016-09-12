@@ -66,9 +66,10 @@ class UiLoader(QUiLoader):
         instance of the top-level class in the user interface to load, or a
         subclass thereof.
 
-        ``customWidgets`` is a dictionary mapping from class name to class object
-        for widgets that you've promoted in the Qt Designer interface. Usually,
-        this should be done by calling registerCustomWidget on the QUiLoader, but
+        ``customWidgets`` is a dictionary mapping from class name to class
+        object for widgets that you've promoted in the Qt Designer
+        interface. Usually, this should be done by calling
+        registerCustomWidget on the QUiLoader, but
         with PySide 1.1.2 on Ubuntu 12.04 x86_64 this causes a segfault.
 
         ``parent`` is the parent object of this loader.
@@ -95,15 +96,18 @@ class UiLoader(QUiLoader):
                 widget = QUiLoader.createWidget(self, class_name, parent, name)
 
             else:
-                # if not in the list of availableWidgets, must be a custom widget
+                # if not in the list of availableWidgets,
+                # must be a custom widget
                 # this will raise KeyError if the user has not supplied the
                 # relevant class_name in the dictionary, or TypeError, if
                 # customWidgets is None
                 try:
                     widget = self.customWidgets[class_name](parent)
 
-                except (TypeError, KeyError) as e:
-                    raise Exception('No custom widget ' + class_name + ' found in customWidgets param of UiLoader __init__.')
+                except (TypeError, KeyError):
+                    raise Exception('No custom widget ' + class_name +
+                                    ' found in customWidgets param of' +
+                                    'UiLoader __init__.')
 
             if self.baseinstance:
                 # set an attribute for the new child widget on the base
@@ -112,7 +116,7 @@ class UiLoader(QUiLoader):
 
                 # this outputs the various widget names, e.g.
                 # sampleGraphicsView, dockWidget, samplesTableView etc.
-                #print(name)
+                # print(name)
 
             return widget
 
@@ -185,4 +189,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
