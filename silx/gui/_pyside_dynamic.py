@@ -38,6 +38,7 @@
 from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
+import logger
 import os
 import sys
 
@@ -45,7 +46,8 @@ from PySide.QtCore import Slot, QMetaObject
 from PySide.QtUiTools import QUiLoader
 from PySide.QtGui import QApplication, QMainWindow, QMessageBox
 
-SCRIPT_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+
+_logger = logging.getLogger(__name__)
 
 
 class UiLoader(QUiLoader):
@@ -123,8 +125,7 @@ class UiLoader(QUiLoader):
             return widget
 
 
-def loadUi(uifile, baseinstance=None, customWidgets=None,
-           workingDirectory=None):
+def loadUi(uifile, baseinstance=None, package=None, resource_suffix=None):
     """
     Dynamically load a user interface from the given ``uifile``.
 
@@ -139,55 +140,21 @@ def loadUi(uifile, baseinstance=None, customWidgets=None,
     cannot load a ``QMainWindow`` UI file with a plain
     :class:`~PySide.QtGui.QWidget` as ``baseinstance``.
 
-    ``customWidgets`` is a dictionary mapping from class name to class object
-    for widgets that you've promoted in the Qt Designer interface. Usually,
-    this should be done by calling registerCustomWidget on the QUiLoader, but
-    with PySide 1.1.2 on Ubuntu 12.04 x86_64 this causes a segfault.
-
     :method:`~PySide.QtCore.QMetaObject.connectSlotsByName()` is called on the
     created user interface, so you can implemented your slots according to its
     conventions in your widget class.
 
-    Return ``baseinstance``, if ``baseinstance`` is not ``None``.  Otherwise
+    Return ``baseinstance``, if ``baseinstance`` is not ``None``. Otherwise
     return the newly created instance of the user interface.
     """
+    if package is not None:
+        _logger.warning(
+            "loadUi package parameter not implemented with PySide")
+    if resource_suffix is not None:
+        _logger.warning(
+            "loadUi resource_suffix parameter not implemented with PySide")
 
-    loader = UiLoader(baseinstance, customWidgets)
-
-    if workingDirectory is not None:
-        loader.setWorkingDirectory(workingDirectory)
-
+    loader = UiLoader(baseinstance)
     widget = loader.load(uifile)
     QMetaObject.connectSlotsByName(widget)
     return widget
-
-
-class MainWindow(QMainWindow):
-
-    def __init__(self, parent=None):
-        QMainWindow.__init__(self, parent)
-        loadUi(os.path.join(SCRIPT_DIRECTORY, 'mainwindow.ui'), self)
-
-    @Slot(bool)
-    def on_clickMe_clicked(self, is_checked):
-        if is_checked:
-            message = self.trUtf8(b'I am checked now.')
-        else:
-            message = self.trUtf8(b'I am unchecked now.')
-        QMessageBox.information(self, self.trUtf8(b'You clicked me'), message)
-
-    @Slot()
-    def on_actionHello_triggered(self):
-        QMessageBox.information(self, self.trUtf8(b'Hello world'),
-                                self.trUtf8(b'Greetings to the world.'))
-
-
-def main():
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    app.exec_()
-
-
-if __name__ == '__main__':
-    main()
