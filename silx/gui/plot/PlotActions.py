@@ -939,7 +939,7 @@ class PanWithArrowKeysAction(_PlotAction):
     def __init__(self, plot, parent=None):
 
         super(PanWithArrowKeysAction, self).__init__(
-            plot, icon='arrow_keys', text='Pan with arrow keys',
+            plot, icon='arrow-keys', text='Pan with arrow keys',
             tooltip='Enable pan with arrow keys when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
