@@ -831,7 +831,7 @@ class FitTheories(object):
         data_amplitude = max(y_minus_bg) - min(y_minus_bg)
 
         # use parameters from largest gaussian found
-        if fittedpar:
+        if len(fittedpar):
             npeaks = len(fittedpar) // 3
             largest_index = 0
             largest = [data_amplitude,
@@ -952,19 +952,23 @@ class FitTheories(object):
         if max(y_deriv) > 0:
             y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
 
-        # temporarily disable strip bg removal in config, then estimate
-        # gaussian params of the derivative, then restore bg config
+        # temporarily disable strip bg removal in config,
+        # estimate fwhm of derivative peak, then estimate
+        # gaussian params of the derivative, then restore  config
         config_rm_strip_bg = self.config.get("StripBackgroundFlag")
-        self.configure(StripBackgroundFlag=False)
+        auto_fwhm = self.config.get("AutoFwhm")
+        self.configure(StripBackgroundFlag=False,
+                       AutoFwhm=True)
         fittedpar, cons = self.estimate_height_position_fwhm(
                               x[cutoff:-cutoff], y_deriv)
-        self.configure(StripBackgroundFlag=config_rm_strip_bg)
+        self.configure(StripBackgroundFlag=config_rm_strip_bg,
+                       AutoFwhm=auto_fwhm)
 
         # for height, use the data amplitude after removing the background
         data_amplitude = max(y_minus_bg) - min(y_minus_bg)
 
         # find params of the largest gaussian found
-        if fittedpar:
+        if len(fittedpar):
             npeaks = len(fittedpar) // 3
             largest_index = 0
             largest = [data_amplitude,
