@@ -816,7 +816,6 @@ class FitTheories(object):
                                  crappyfilter,
                                  mode="valid")
 
-
         # make the derivative's peak have the same amplitude as the step
         if max(y_deriv) > 0:
             y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
@@ -829,18 +828,27 @@ class FitTheories(object):
                                  x[cutoff:-cutoff], y_deriv)
         self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
-        npeaks = len(fittedpar) // 3
-        largest_index = 0
-        largest = [fittedpar[3 * largest_index],
-                   fittedpar[3 * largest_index + 1],
-                   fittedpar[3 * largest_index + 2]]
-        for i in range(npeaks):
-            if fittedpar[3 * i] > largest[0]:
-                largest_index = i
-                largest = [fittedpar[3 * largest_index],
-                           fittedpar[3 * largest_index + 1],
-                           fittedpar[3 * largest_index + 2]]
-        largest[0] = max(y) - min(y)
+        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+
+        # use parameters from largest gaussian found
+        if fittedpar:
+            npeaks = len(fittedpar) // 3
+            largest_index = 0
+            largest = [data_amplitude,
+                       fittedpar[3 * largest_index + 1],
+                       fittedpar[3 * largest_index + 2]]
+            for i in range(npeaks):
+                if fittedpar[3 * i] > largest[0]:
+                    largest_index = i
+                    largest = [data_amplitude,
+                               fittedpar[3 * largest_index + 1],
+                               fittedpar[3 * largest_index + 2]]
+        else:
+            # no peak was found
+            largest = [data_amplitude,                               # height
+                       x[len(x)//2],                                 # center: middle of x range
+                       self.config["FwhmPoints"] * (x[1] - x[0])]    # fwhm: default value
+
         # Setup constrains
         newcons = numpy.zeros((3, 3), numpy.float)
         if not self.config['NoConstraintsFlag']:
@@ -952,19 +960,29 @@ class FitTheories(object):
                               x[cutoff:-cutoff], y_deriv)
         self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
-        npeaks = len(fittedpar) // 3
-        largest_index = 0
-        largest = [fittedpar[3 * largest_index],
-                   fittedpar[3 * largest_index + 1],
-                   fittedpar[3 * largest_index + 2]]
+        # for height, use the data amplitude after removing the background
+        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+
+        # find params of the largest gaussian found
+        if fittedpar:
+            npeaks = len(fittedpar) // 3
+            largest_index = 0
+            largest = [data_amplitude,
+                       fittedpar[3 * largest_index + 1],
+                       fittedpar[3 * largest_index + 2]]
+            for i in range(npeaks):
+                if fittedpar[3 * i] > largest[0]:
+                    largest_index = i
+                    largest = [fittedpar[3 * largest_index],
+                               fittedpar[3 * largest_index + 1],
+                               fittedpar[3 * largest_index + 2]]
+        else:
+            # no peak was found
+            largest = [data_amplitude,                               # height
+                       x[len(x)//2],                                 # center: middle of x range
+                       self.config["FwhmPoints"] * (x[1] - x[0])]    # fwhm: default value
+
         newcons = numpy.zeros((3, 3), numpy.float)
-        for i in range(npeaks):
-            if fittedpar[3 * i] > largest[0]:
-                largest_index = i
-                largest = [fittedpar[3 * largest_index],
-                           fittedpar[3 * largest_index + 1],
-                           fittedpar[3 * largest_index + 2]]
-        largest[0] = max(y_minus_bg) - min(y_minus_bg)
         # Setup constrains
         if not self.config['NoConstraintsFlag']:
                 # Setup height constraints
