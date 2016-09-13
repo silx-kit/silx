@@ -34,12 +34,9 @@
 extern const int MCTriangleTable[256][16];
 extern const unsigned int MCEdgeIndexToCoordOffsets[12][4];
 
-/*TODOS: 
- * subsampling
- * store a bit mask of value<level for each slice?
- * Retrieve value0 and value in process_edge
- * proof-read normals + combine/simplify code?
- */
+#define DEPTH_IDX 0
+#define HEIGHT_IDX 1
+#define WIDTH_IDX 2
 
 /** Class Marching cubes
  *
@@ -125,7 +122,14 @@ public:
     unsigned int depth; /**< Number of images currently processed */
     unsigned int height; /**< Images height in pixels */
     unsigned int width; /**< Images width in pixels */
-    FloatType iso_level; /**< Iso level to use */
+
+    /** Sampling of the data (depth, height, width)
+     *
+     * Default: 1, 1, 1
+     */
+    unsigned int sampling[3];
+
+    FloatType isolevel; /**< Iso level to use */
     bool invert_normals; /**< True to inverse gradient as normals */
 
 private:
@@ -209,8 +213,11 @@ MarchingCubes<FloatType>::MarchingCubes(FloatType level)
     this->reset();
     this->height = 0;
     this->width = 0;
-    this->iso_level = level;
+    this->isolevel = level;
     this->invert_normals = true;
+    this->sampling[0] = 1;
+    this->sampling[1] = 1;
+    this->sampling[2] = 1;
 }
 
 template <typename FloatType>
@@ -250,18 +257,23 @@ MarchingCubes<FloatType>::process(FloatType * data,
                                   unsigned int height,
                                   unsigned int width)
 {
-    unsigned int size = height * width;
+    unsigned int size = height * width * this->sampling[DEPTH_IDX];
+
+    /* number of slices minus - 1 to process */
+    const unsigned int nb_slices = (depth - 1) / this->sampling[DEPTH_IDX];
 
     this->reset();
     this->set_slice_size(height, width);
 
-    for (unsigned int index=0; index < depth - 1; index++) {
+    for (unsigned int index=0; index < nb_slices; index++) {
         FloatType * slice0 = data + (index * size);
         FloatType * slice1 = slice0 + size;
 
         this->process_slice(slice0, slice1);
     }
     this->finish_process();
+
+    this->depth = depth;
 }
 
 
@@ -296,25 +308,25 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
     this->edge_indices = new std::map<unsigned int, unsigned int>();
 
     /* Loop over slice to add vertices */
-    for (row=0; row < this->height; row++) {
+    for (row=0; row < this->height; row += this->sampling[HEIGHT_IDX]) {
         unsigned int line_index = row * this->width;
 
-        for (col=0; col < this->width; col++) {
+        for (col=0; col < this->width; col += this->sampling[WIDTH_IDX]) {
             unsigned int item_index = line_index + col;
 
             FloatType value0 = slice1[item_index];
 
             /* Test forward edges and add vertices in the current slice plane */
-            if (col < (width - 1)) {
-                FloatType value = slice1[item_index + 1];
+            if (col < (width - this->sampling[WIDTH_IDX])) {
+                FloatType value = slice1[item_index + this->sampling[WIDTH_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 0,
                                    slice0, slice1, 0);
             }
 
-            if (row < (height - 1)) {
+            if (row < (height - this->sampling[HEIGHT_IDX])) {
                 /* Value from next line*/
-                FloatType value = slice1[item_index + this->width];
+                FloatType value = slice1[item_index + this->width * this->sampling[HEIGHT_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 1,
                                    slice0, slice1, 0);
@@ -325,7 +337,9 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
                 FloatType value = slice0[item_index];
 
                 /* Expect forward edge, so pass: previous, current */
-                this->process_edge(value, value0, this->depth - 1, row, col, 2,
+                this->process_edge(value, value0,
+                                   this->depth - this->sampling[DEPTH_IDX],
+                                   row, col, 2,
                                    0, slice0, slice1);
             }
             
@@ -333,8 +347,8 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
     }
 
     /* Loop over cubes to add triangle indices */
-    for (row=0; row < this->height - 1; row++) {
-        for (col=0; col < this->width - 1; col++) {
+    for (row=0; row < this->height - this->sampling[HEIGHT_IDX]; row += this->sampling[HEIGHT_IDX]) {
+        for (col=0; col < this->width - this->sampling[WIDTH_IDX]; col += this->sampling[WIDTH_IDX]) {
             unsigned char code = this->get_cell_code(slice0, slice1,
                                                      row, col);
 
@@ -348,14 +362,14 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
                     MCEdgeIndexToCoordOffsets[*edgeIndexPtr];
 
                 unsigned int edge_index = this->edge_index(
-                        this->depth - 1 + offsets[0],
-                        row + offsets[1],
-                        col + offsets[2],
+                        this->depth - this->sampling[DEPTH_IDX] + offsets[DEPTH_IDX] * this->sampling[DEPTH_IDX],
+                        row + offsets[HEIGHT_IDX] * this->sampling[HEIGHT_IDX],
+                        col + offsets[WIDTH_IDX] * this->sampling[WIDTH_IDX],
                         offsets[3]);
 
                 /* Add vertex index to the list of indices */
                 std::map<unsigned int, unsigned int>::iterator it, end;
-                if (offsets[0] == 0 && offsets[3] != 2) {
+                if (offsets[DEPTH_IDX] == 0 && offsets[3] != 2) {
                     it = previous_edge_indices->find(edge_index);
                     end = previous_edge_indices->end();
                 } else {
@@ -364,7 +378,7 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
                 }
                 if (it == end) {
                     throw std::runtime_error(
-                        "Internal error cannot build triangle indices.");
+                        "Internal error: cannot build triangle indices.");
                 }
                 else {
                     this->indices.push_back(it->second);
@@ -377,7 +391,7 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
     /* Clean-up previous slice cache */
     delete previous_edge_indices;
 
-    this->depth++;
+    this->depth += this->sampling[DEPTH_IDX];
 }
 
 
@@ -392,25 +406,25 @@ MarchingCubes<FloatType>::first_slice(FloatType * slice,
     unsigned int row, col;
 
     /* Loop over slice, and add isosurface vertices in the slice plane */
-    for (row=0; row < this->height; row++) {
+    for (row=0; row < this->height; row += this->sampling[HEIGHT_IDX]) {
         unsigned int line_index = row * this->width;
 
-        for (col=0; col < this->width; col++) {
+        for (col=0; col < this->width; col += this->sampling[WIDTH_IDX]) {
             unsigned int item_index = line_index + col;
 
             /* For each point test forward edges */
             FloatType value0 = slice[item_index];
 
-            if (col < (width - 1)) {
-                FloatType value = slice[item_index + 1];
+            if (col < (width - this->sampling[WIDTH_IDX])) {
+                FloatType value = slice[item_index + this->sampling[WIDTH_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 0,
                                    0, slice, next);
             }
 
-            if (row < (height - 1)) {
+            if (row < (height - this->sampling[HEIGHT_IDX])) {
                 /* Value from next line */
-                FloatType value = slice[item_index + this->width];
+                FloatType value = slice[item_index + this->width * this->sampling[HEIGHT_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 1,
                                    0, slice, next);
@@ -418,7 +432,7 @@ MarchingCubes<FloatType>::first_slice(FloatType * slice,
         }
     }
 
-    this->depth++;
+    this->depth += this->sampling[DEPTH_IDX];
 }
 
 
@@ -446,10 +460,11 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
                                        FloatType * current,
                                        FloatType * next)
 {
-    if ((value0 <= this->iso_level) ^ (value <= this->iso_level)) {
+    if ((value0 <= this->isolevel) ^ (value <= this->isolevel)) {
+
         /* Crossing iso-surface, store it */
         FloatType offset = \
-            (this->iso_level - value0) / (value - value0);
+            (this->isolevel - value0) / (value - value0);
 
         /* Store edge to vertex index correspondance */
         unsigned int edge_index = this->edge_index(depth, row, col, direction);
@@ -457,19 +472,25 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
 
         /* Store vertex as (x, y, z) */
         if (direction == 0) {
-            this->vertices.push_back((FloatType) col + offset);
+            this->vertices.push_back(
+                (FloatType) col + offset * this->sampling[WIDTH_IDX]);
             this->vertices.push_back((FloatType) row);
             this->vertices.push_back((FloatType) depth);
         }
         else if (direction == 1) {
             this->vertices.push_back((FloatType) col);
-            this->vertices.push_back((FloatType) row + offset);
+            this->vertices.push_back(
+                (FloatType) row + offset * this->sampling[HEIGHT_IDX]);
             this->vertices.push_back((FloatType) depth);
         }
         else if (direction == 2) {
             this->vertices.push_back((FloatType) col);
             this->vertices.push_back((FloatType) row);
-            this->vertices.push_back((FloatType) depth + offset);
+            this->vertices.push_back(
+                (FloatType) depth + offset * this->sampling[DEPTH_IDX]);
+        } else {
+            throw std::runtime_error(
+                "Internal error: dimension > 3, never event.");
         }
 
         /* Store normal as (nx, ny, nz) */
@@ -485,71 +506,79 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
             slice1 = next;
         }
 
+        unsigned int row_offset = this->width * this->sampling[HEIGHT_IDX];
+
         if (direction == 0) {
             nx = value - value0;
 
             { /* ny */
-                unsigned int item, next_item;
+                unsigned int item, item_next_col;
 
                 item = row * this->width + col;
-                if (row >= this->height - 1) {
-                    item -= this->width; /* For last row, use previous row */
+                if (row >= this->height - this->sampling[HEIGHT_IDX]) {
+                    /* For last row, use previous row */
+                    item -= row_offset;
                 }
-                if (col >= this->width - 1) {
-                    item -= 1; /* For last column, use previous column */
+                if (col >= this->width - this->sampling[WIDTH_IDX]) {
+                    /* For last column, use previous column */
+                    item -= this->sampling[WIDTH_IDX];
                 }
-                next_item = item + 1;
+                item_next_col = item + this->sampling[WIDTH_IDX];
 
-                ny = ((1. - offset) * (current[item + this->width] -
+                ny = ((1. - offset) * (current[item + row_offset] -
                                        current[item]) +
-                     offset * (current[next_item + this->width] -
-                               current[next_item]));
+                     offset * (current[item_next_col + row_offset] -
+                               current[item_next_col]));
             }
 
             { /* nz */
-                unsigned int item, next_item;
+                unsigned int item, item_next_col;
 
                 item = row * this->width + col;
-                if (col >= this->width - 1) {
-                    item -= 1; /* For last column, use previous column */
+                if (col >= this->width - this->sampling[WIDTH_IDX]) {
+                    /* For last column, use previous column */
+                    item -= this->sampling[WIDTH_IDX];
                 }
-                next_item = item + 1;
+                item_next_col = item + this->sampling[WIDTH_IDX];
 
                nz = ((1. - offset) * (slice1[item] - slice0[item]) +
-                     offset * (slice1[next_item] - slice0[next_item]));
+                     offset * (slice1[item_next_col] - slice0[item_next_col]));
             }
 
         } else if (direction == 1) {
             { /* nx */
-                unsigned int item, next_item;
+                unsigned int item, item_next_row;
 
                 item = row * this->width + col;
-                if (row >= this->height - 1) {
-                    item -= this->width; /* For last row, use previous row */
+                if (row >= this->height - this->sampling[HEIGHT_IDX]) {
+                    /* For last row, use previous row */
+                    item -= row_offset;
                 }
-                if (col >= this->width - 1) {
-                    item -= 1; /* For last column, use previous column */
+                if (col >= this->width - this->sampling[WIDTH_IDX]) {
+                    /* For last column, use previous column */
+                    item -= this->sampling[WIDTH_IDX];
                 }
 
-                next_item = item + this->width;
+                item_next_row = item + row_offset;
 
-                nx = ((1. - offset) * (current[item + 1] - current[item]) +
-                      offset * (current[next_item + 1] - current[next_item]));
+                nx = ((1. - offset) * (current[item + this->sampling[WIDTH_IDX]] - current[item]) +
+                      offset * (current[item_next_row + this->sampling[WIDTH_IDX]] - current[item_next_row]));
             }
 
             ny = value - value0;
 
             { /* nz */
-                unsigned int item, next_item;
+                unsigned int item, item_next_row;
                 
                 item = row * this->width + col;
-                if (row >= this->height - 1) {
-                    item -= this->width; /* For last row, use previous row */
+                if (row >= this->height - this->sampling[HEIGHT_IDX]) {
+                    /* For last row, use previous row */
+                    item -= row_offset;
                 }
-                next_item = item + this->width;
+                item_next_row = item + row_offset;
 
                nz = ((1. - offset) * (slice1[item] - slice0[item]) +
-                     offset * (slice1[next_item] - slice0[next_item]));
+                     offset * (slice1[item_next_row] - slice0[item_next_row]));
             }
 
         } else { /* direction == 2 */
@@ -557,33 +586,40 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
             FloatType * other_slice = (previous != 0) ? previous : next;
 
             { /* nx */
-                unsigned int item;
+                unsigned int item, item_next_col;
 
                 item = row * this->width + col;
-                if (col >= this->width - 1) {
-                    item -= 1; /* For last column, use previous column */
+                if (col >= this->width - this->sampling[WIDTH_IDX]) {
+                    /* For last column, use previous column */
+                    item -= this->sampling[WIDTH_IDX];
                 }
+                item_next_col = item + this->sampling[WIDTH_IDX];
 
-                nx = ((1. - offset) * (current[item + 1] - current[item]) +
-                      offset * (other_slice[item + 1] - other_slice[item]));
+                nx = ((1. - offset) * (current[item_next_col] - current[item]) +
+                      offset * (other_slice[item_next_col] - other_slice[item]));
             }
 
             { /* ny */
-                unsigned int item;
+                unsigned int item, item_next_row;
 
                 item = row * this->width + col;
-                if (row >= this->height - 1) {
-                    item -= this->width; /* For last row, use previous row */
+                if (row >= this->height - this->sampling[HEIGHT_IDX]) {
+                    /* For last row, use previous row */
+                    item -= row_offset;
                 }
+                item_next_row = item + row_offset;
 
-                ny = ((1. - offset) * (current[item + this->width] -
-                                       current[item]) +
-                      offset * (other_slice[item + this->width] -
-                               other_slice[item]));
+                ny = ((1. - offset) * (current[item_next_row] - current[item]) +
+                      offset * (other_slice[item_next_row] - other_slice[item]));
             }
 
             nz = value - value0;
         }
+
+        /* apply sampling scaling */
+        nx /= (FloatType) this->sampling[2];
+        ny /= (FloatType) this->sampling[1];
+        nz /= (FloatType) this->sampling[0];
 
         /* normalisation */
         FloatType norm = sqrt(nx * nx + ny * ny + nz * nz);
@@ -611,34 +647,34 @@ MarchingCubes<FloatType>::get_cell_code(FloatType * slice1,
                                         unsigned int col)
 {
     unsigned int item = row * this->width + col;
-    unsigned int item_next_row = item + this->width;
+    unsigned int item_next_row = item + this->width * this->sampling[HEIGHT_IDX];
     unsigned char code = 0;
 
     /* First slice */
-    if (slice1[item] <= this->iso_level) {
+    if (slice1[item] <= this->isolevel) {
         code |= 1 << 0;
     }
-    if (slice1[item + 1] <= this->iso_level) {
+    if (slice1[item + this->sampling[WIDTH_IDX]] <= this->isolevel) {
         code |= 1 << 1;
     }
-    if (slice1[item_next_row + 1] <= this->iso_level) {
+    if (slice1[item_next_row + this->sampling[WIDTH_IDX]] <= this->isolevel) {
         code |= 1 << 2;
     }
-    if (slice1[item_next_row] <= this->iso_level) {
+    if (slice1[item_next_row] <= this->isolevel) {
         code |= 1 << 3;
     }
 
     /* Second slice */
-    if (slice2[item] <= this->iso_level) {
+    if (slice2[item] <= this->isolevel) {
         code |= 1 << 4;
     }
-    if (slice2[item + 1] <= this->iso_level) {
+    if (slice2[item + this->sampling[WIDTH_IDX]] <= this->isolevel) {
         code |= 1 << 5;
     }
-    if (slice2[item_next_row + 1] <= this->iso_level) {
+    if (slice2[item_next_row + this->sampling[WIDTH_IDX]] <= this->isolevel) {
         code |= 1 << 6;
     }
-    if (slice2[item_next_row] <= this->iso_level) {
+    if (slice2[item_next_row] <= this->isolevel) {
         code |= 1 << 7;
     }
 

@@ -31,10 +31,12 @@ import unittest
 
 import numpy
 
+from silx.testutils import ParametricTestCase
+
 from silx.math import marchingcubes
 
 
-class TestMarchingCubes(unittest.TestCase):
+class TestMarchingCubes(ParametricTestCase):
     """Tests of marching cubes"""
 
     def assertAllClose(self, array1, array2, msg=None,
@@ -104,6 +106,51 @@ class TestMarchingCubes(unittest.TestCase):
         vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
         self.assertAllClose(normals[:, 0], 0.)
         self.assertEqual(len(indices), 2)
+
+    def test_sampling(self):
+        """Test different sampling, comparing to reference without sampling"""
+        isolevel = 0.5
+        size = 9
+        chessboard = numpy.zeros((size, size, size), dtype=numpy.float32)
+        chessboard.reshape(-1)[::2] = 1  # OK as long as dimensions are odd
+
+        ref_result = marchingcubes.MarchingCubes(chessboard, isolevel)
+
+        samplings = [
+            (2, 1, 1),
+            (1, 2, 1),
+            (1, 1, 2),
+            (2, 2, 2),
+            (3, 3, 3),
+            (1, 3, 1),
+            (1, 1, 3),
+        ]
+
+        for sampling in samplings:
+            with self.subTest(sampling=sampling):
+                sampling = numpy.array(sampling)
+
+                data = 1e6 * numpy.ones(
+                    sampling * size, dtype=numpy.float32)
+                # Copy ref chessboard in data according to sampling
+                data[::sampling[0], ::sampling[1], ::sampling[2]] = chessboard
+
+                result = marchingcubes.MarchingCubes(data, isolevel,
+                                                     sampling=sampling)
+                # Compare vertices normalized with shape
+                self.assertAllClose(
+                    ref_result.vertices / tuple(reversed(ref_result.shape)),
+                    result.vertices / tuple(reversed(result.shape)),
+                    atol=0., rtol=0.)
+
+                # Compare normals
+                # This comparison only works for normals aligned with axes
+                # otherwise non uniform sampling would make different normals
+                self.assertAllClose(ref_result.normals, result.normals,
+                                    atol=0., rtol=0.)
+
+                self.assertAllClose(ref_result.indices, result.indices,
+                                    atol=0., rtol=0.)
 
 
 test_cases = (TestMarchingCubes,)

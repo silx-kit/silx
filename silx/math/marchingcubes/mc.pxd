@@ -43,7 +43,8 @@ cdef extern from "mc.hpp":
         unsigned int depth
         unsigned int height
         unsigned int width
-        FloatType iso_level
+        unsigned int sampling[3]
+        FloatType isolevel
         bool invert_normals
         std_vector[FloatType] vertices
         std_vector[FloatType] normals

@@ -24,11 +24,8 @@
 # ###########################################################################*/
 """This module provides marching cubes implementation.
 
-It provides:
-
-- :func:`marchingcubes` function to compute an isosurface from a 3D dataset.
-- :class:`MarchingCubes` class allowing to build an isosurface from data
-  provided slice by slice.
+It provides a :class:`MarchingCubes` class allowing to build an isosurface
+from data provided as a 3D data set or slice by slice.
 """
 
 __authors__ = ["T. Vincent"]
@@ -82,15 +79,22 @@ cdef class MarchingCubes:
     :param isolevel: The value for which to generate the isosurface
     :param bool invert_normals:
         True (default) for normals oriented in direction of gradient descent 
+    :param sampling: Sampling along each dimension (depth, height, width)
     """
     cdef mc.MarchingCubes[float] * c_mc  # Pointer to the C++ instance
 
-    def __cinit__(self, data=None, isolevel=None, invert_normals=True):
+    def __cinit__(self, data=None, isolevel=None,
+                  invert_normals=True, sampling=(1, 1, 1)):
         assert isolevel is not None
-        cdef c_isolevel = isolevel
+
+        cdef float c_isolevel = isolevel
 
         self.c_mc = new mc.MarchingCubes[float](c_isolevel)
         self.c_mc.invert_normals = invert_normals
+        self.c_mc.sampling[0] = sampling[0]
+        self.c_mc.sampling[1] = sampling[1]
+        self.c_mc.sampling[2] = sampling[2]
+
         if data is not None:
             self.process(data)
 
@@ -163,26 +167,28 @@ cdef class MarchingCubes:
 
     @property
     def shape(self):
-        """The shape of the processed scalar field (3-tuple of float)."""
+        """The shape of the processed scalar field (depth, height, width)."""
         return self.c_mc.depth, self.c_mc.height, self.c_mc.width
 
-    def _get_iso_level(self):
-        return self.c_mc.iso_level
+    @property
+    def sampling(self):
+        """The sampling over each dimension (depth, height, width).
 
-    def _set_iso_level(self, level):
-        self.c_mc.iso_level = level
+        Default: 1, 1, 1
+        """
+        return (self.c_mc.sampling[0],
+                self.c_mc.sampling[1],
+                self.c_mc.sampling[2])
 
-    isolevel = property(_get_iso_level, _set_iso_level, doc=
-        "The iso-level at which to generate the isosurface")
+    @property
+    def isolevel(self):
+        """The iso-level at which to generate the isosurface"""
+        return self.c_mc.isolevel
 
-    def _get_invert_normals(self):
+    @property
+    def invert_normals(self):
+        """True to use gradient descent as normals."""
         return self.c_mc.invert_normals
-
-    def _set_invert_normals(self, invert_normals):
-        self.c_mc.invert_normals = bool(invert_normals)
-
-    invert_normals = property(_get_invert_normals, _set_invert_normals, doc=
-        "True to use gradient descent as normals.")
 
     @property
     def vertices(self):
