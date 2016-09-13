@@ -76,7 +76,8 @@ cdef class MarchingCubes:
     >>> triangle_indices = mc.indices  # Array of indices of vertices
 
     :param data: 3D dataset of float32 or None
-    :param isolevel: The value for which to generate the isosurface
+    :type data: numpy.ndarray of float32 of dimension 3
+    :param float isolevel: The value for which to generate the isosurface
     :param bool invert_normals:
         True (default) for normals oriented in direction of gradient descent 
     :param sampling: Sampling along each dimension (depth, height, width)
@@ -85,12 +86,8 @@ cdef class MarchingCubes:
 
     def __cinit__(self, data=None, isolevel=None,
                   invert_normals=True, sampling=(1, 1, 1)):
-        assert isolevel is not None
-
-        cdef float c_isolevel = isolevel
-
-        self.c_mc = new mc.MarchingCubes[float, float](c_isolevel)
-        self.c_mc.invert_normals = invert_normals
+        self.c_mc = new mc.MarchingCubes[float, float](isolevel)
+        self.c_mc.invert_normals = bool(invert_normals)
         self.c_mc.sampling[0] = sampling[0]
         self.c_mc.sampling[1] = sampling[1]
         self.c_mc.sampling[2] = sampling[2]
