@@ -56,11 +56,19 @@ if FALSE:
 
 
 cdef class MarchingCubes:
-    """Wrap C++ marching cubes implementation.
+    """Compute isosurface using marching cubes algorithm.
+
+    Lorensen, W. E. and Cline, H. E. Marching cubes: A high resolution 3D
+    surface construction algorithm. Computer Graphics, 21, 4 (July 1987).
+    ACM, 163-169.
+
+    Example with a 3D data set:
+
+    >>> v, n, i = MarchingCubes(data, isolevel=1.)
 
     Example of code for processing a list of images:
 
-    >>> mc = MarchingCubes(1.)  # Create marching cube object with iso-level=1
+    >>> mc = MarchingCubes(isolevel=1.)  # Create object with iso-level=1
     >>> previous_image = images[0]
     >>> for image in images[1:]:
     ...     mc.process_image(previous_image, image)  # Process one slice
@@ -70,18 +78,38 @@ cdef class MarchingCubes:
     >>> normals = mc.normals  # Array of vertices normal
     >>> triangle_indices = mc.indices  # Array of indices of vertices
 
-    :param level: The value for which to generate the isosurface.
+    :param data: 3D dataset of float32 or None
+    :param isolevel: The value for which to generate the isosurface
     :param bool invert_normals:
         True (default) for normals oriented in direction of gradient descent 
     """
     cdef mc.MarchingCubes[float] * c_mc  # Pointer to the C++ instance
 
-    def __cinit__(self, float level, invert_normals=True):
-        self.c_mc = new mc.MarchingCubes[float](level)
+    def __cinit__(self, data=None, isolevel=None, invert_normals=True):
+        assert isolevel is not None
+        cdef c_isolevel = isolevel
+
+        self.c_mc = new mc.MarchingCubes[float](c_isolevel)
         self.c_mc.invert_normals = invert_normals
+        if data is not None:
+            self.process(data)
 
     def __dealloc__(self):
         del self.c_mc
+
+    def __getitem__(self, key):
+        """Allows to unpack object as a single liner:
+
+        vertices, normals, indices = MarchingCubes(...)
+        """
+        if key == 0:
+            return self.vertices
+        elif key == 1:
+            return self.normals
+        elif key == 2:
+            return self.indices
+        else:
+            raise IndexError("Index out of range")
 
     def process(self, cnumpy.ndarray[cnumpy.float32_t, ndim=3, mode='c'] data):
         """process(data)
@@ -100,15 +128,6 @@ cdef class MarchingCubes:
         width = data.shape[2]
 
         self.c_mc.process(&c_data[0], depth, height, width)
-
-        # Copy/convert vector to numpy
-        vertices = self.vertices
-        normals = self.normals
-        indices = self.indices
-
-        self.c_mc.reset()
-
-        return vertices, normals, indices
 
     def process_slice(self,
             cnumpy.ndarray[cnumpy.float32_t, ndim=2, mode='c'] slice0,
@@ -153,7 +172,7 @@ cdef class MarchingCubes:
     def _set_iso_level(self, level):
         self.c_mc.iso_level = level
 
-    iso_level = property(_get_iso_level, _set_iso_level, doc=
+    isolevel = property(_get_iso_level, _set_iso_level, doc=
         "The iso-level at which to generate the isosurface")
 
     def _get_invert_normals(self):
@@ -181,25 +200,3 @@ cdef class MarchingCubes:
         """
         return numpy.array(self.c_mc.indices,
                            dtype=numpy.uint32).reshape(-1, 3)
-
-
-def marchingcubes(data, level, invert_normals=True):
-    """marchingcubes(data, level, invert_normals=True)
-
-    Compute isosurface using marching cubes algorithm.
-
-    Lorensen, W. E. and Cline, H. E. Marching cubes: A high resolution 3D
-    surface construction algorithm. Computer Graphics, 21, 4 (July 1987).
-    ACM, 163-169.
-
-    :param data: 3D dataset of float32
-    :param level: The value for which to generate the isosurface
-    :param bool invert_normals:
-        True (default) for normals oriented in direction of gradient descent 
-    :return: Array of vertices (x, y, z), array of normals (nx, ny, nz) and
-             array of triangle indices.
-    :rtype: 3-tuple of numpy.ndarray
-    """
-    mcubes = MarchingCubes(level)
-    mcubes.invert_normals = invert_normals
-    return mcubes.process(data)

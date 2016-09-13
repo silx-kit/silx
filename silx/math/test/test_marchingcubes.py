@@ -54,7 +54,12 @@ class TestMarchingCubes(unittest.TestCase):
         # No isosurface
         cube_zero = numpy.zeros((2, 2, 2), dtype=numpy.float32)
 
-        vertices, normals, indices = marchingcubes.marchingcubes(cube_zero, 1.)
+        result = marchingcubes.MarchingCubes(cube_zero, 1.)
+        self.assertEqual(result.shape, cube_zero.shape)
+        self.assertEqual(result.isolevel, 1.)
+        self.assertEqual(result.invert_normals, True)
+
+        vertices, normals, indices = result
         self.assertEqual(len(vertices), 0)
         self.assertEqual(len(normals), 0)
         self.assertEqual(len(indices), 0)
@@ -64,7 +69,7 @@ class TestMarchingCubes(unittest.TestCase):
             (((0., 0.), (0., 0.)),
              ((1., 1.), (1., 1.))), dtype=numpy.float32)
         level = 0.5
-        vertices, normals, indices = marchingcubes.marchingcubes(
+        vertices, normals, indices = marchingcubes.MarchingCubes(
             cube, level, invert_normals=False)
         self.assertAllClose(vertices[:, 2], level)
         self.assertAllClose(normals, (0., 0., 1.))
@@ -75,7 +80,7 @@ class TestMarchingCubes(unittest.TestCase):
             (((0., 0.), (1., 1.)),
              ((0., 0.), (1., 1.))), dtype=numpy.float32)
         level = 0.2
-        vertices, normals, indices = marchingcubes.marchingcubes(cube, level)
+        vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
         self.assertAllClose(vertices[:, 1], level)
         self.assertAllClose(normals, (0., -1., 0.))
         self.assertEqual(len(indices), 2)
@@ -85,7 +90,7 @@ class TestMarchingCubes(unittest.TestCase):
             (((0., 1.), (0., 1.)),
              ((0., 1.), (0., 1.))), dtype=numpy.float32)
         level = 0.9
-        vertices, normals, indices = marchingcubes.marchingcubes(
+        vertices, normals, indices = marchingcubes.MarchingCubes(
             cube, level, invert_normals=False)
         self.assertAllClose(vertices[:, 0], level)
         self.assertAllClose(normals, (1., 0., 0.))
@@ -96,7 +101,7 @@ class TestMarchingCubes(unittest.TestCase):
             (((0., 0.), (0., 0.)),
              ((0., 0.), (1., 1.))), dtype=numpy.float32)
         level = 0.5
-        vertices, normals, indices = marchingcubes.marchingcubes(cube, level)
+        vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
         self.assertAllClose(normals[:, 0], 0.)
         self.assertEqual(len(indices), 2)
 

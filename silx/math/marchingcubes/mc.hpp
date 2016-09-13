@@ -612,20 +612,6 @@ MarchingCubes<FloatType>::get_cell_code(FloatType * slice1,
 {
     unsigned int item = row * this->width + col;
     unsigned int item_next_row = item + this->width;
-
-    return (
-        /* First slice */
-        ((slice1[item] <= this->iso_level) ?              1<<0 : 0) |
-        ((slice1[item + 1] <= this->iso_level) ?          1<<1 : 0) |
-        ((slice1[item_next_row + 1] <= this->iso_level) ? 1<<2 : 0) |
-        ((slice1[item_next_row] <= this->iso_level) ?     1<<3 : 0) |
-        /* Second slice */
-        ((slice2[item] <= this->iso_level) ?              1<<4 : 0) |
-        ((slice2[item + 1] <= this->iso_level) ?          1<<5 : 0) |
-        ((slice2[item_next_row + 1] <= this->iso_level) ? 1<<6 : 0) |
-        ((slice2[item_next_row] <= this->iso_level) ?     1<<7 : 0));
-
-#if 0 /*Alternative implementation */
     unsigned char code = 0;
 
     /* First slice */
@@ -635,10 +621,10 @@ MarchingCubes<FloatType>::get_cell_code(FloatType * slice1,
     if (slice1[item + 1] <= this->iso_level) {
         code |= 1 << 1;
     }
-    if (slice1[item_next_line + 1] <= this->iso_level) {
+    if (slice1[item_next_row + 1] <= this->iso_level) {
         code |= 1 << 2;
     }
-    if (slice1[item_next_line] <= this->iso_level) {
+    if (slice1[item_next_row] <= this->iso_level) {
         code |= 1 << 3;
     }
 
@@ -649,15 +635,14 @@ MarchingCubes<FloatType>::get_cell_code(FloatType * slice1,
     if (slice2[item + 1] <= this->iso_level) {
         code |= 1 << 5;
     }
-    if (slice2[item_next_line + 1] <= this->iso_level) {
+    if (slice2[item_next_row + 1] <= this->iso_level) {
         code |= 1 << 6;
     }
-    if (slice2[item_next_line] <= this->iso_level) {
+    if (slice2[item_next_row] <= this->iso_level) {
         code |= 1 << 7;
     }
 
     return code;
-#endif
 }
 
 #endif /*__mc_HPP__*/
