@@ -47,7 +47,7 @@ except ImportError as e:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "08/09/2016"
+__date__ = "13/09/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ class LoadingItemRunnable(qt.QRunnable):
 def htmlFromDict(input):
     """Generate a readable HTML from a dictionary
 
-    :param input dict: A Dictionary
+    :param dict input: A Dictionary
     :rtype: str
     """
     result = "<html><ul>"
@@ -214,9 +214,11 @@ class Hdf5Node(object):
     """
     def __init__(self, parent=None, populateAll=False):
         """
-        :param text str: text displayed
-        :param object obj: Pointer to h5py data. See the `obj` attribute.
-        :param Hdf5Node parent: Parent of the node, else None
+        Constructor
+
+        :param Hdf5Node parent: Parent of the node, if exists, else None
+        :param bool populateAll: If true, populate all the tree node. Else
+            everything is lazy loaded.
         """
         self.__child = None
         self.__parent = parent
@@ -226,90 +228,174 @@ class Hdf5Node(object):
 
     @property
     def parent(self):
+        """Parent of the node, or None if the node is a root
+
+        :rtype: Hdf5Node
+        """
         return self.__parent
 
     def setParent(self, parent):
+        """Redefine the parent of the node.
+
+        It does not set the node as the children of the new parent.
+
+        :param Hdf5Node parent: The new parent
+        """
         self.__parent = parent
 
     def appendChild(self, child):
+        """Append a child to the node.
+
+        It does not update the parent of the child.
+
+        :param Hdf5Node child: Child to append to the node.
+        """
         self.__initChild()
         self.__child.append(child)
 
-    def deleteChild(self, index):
+    def removeChildAtIndex(self, index):
+        """Remove a child at an index of the children list.
+
+        The child is removed and returned.
+
+        :param int index: Index in the child list.
+        :rtype: Hdf5Node
+        :raises: IndexError if list is empty or index is out of range.
+        """
+        self.__initChild()
         return self.__child.pop(index)
 
     def insertChild(self, index, child):
+        """
+        Insert a child at a specific index of the child list.
+
+        It does not update the parent of the child.
+
+        :param int index: Index in the child list.
+        :param Hdf5Node child: Child to insert in the child list.
+        """
         self.__initChild()
         self.__child.insert(index, child)
 
     def indexOfChild(self, child):
+        """
+        Returns the index of the child in the child list of this node.
+
+        :param Hdf5Node child: Child to find
+        :raises: ValueError if the value is not present.
+        """
         self.__initChild()
         return self.__child.index(child)
 
     def hasChildren(self):
-        """Returns existance of children.
+        """Returns true if the node contains children.
 
         :rtype: bool
         """
         return self.childCount() > 0
 
     def childCount(self):
+        """Returns the number of child in this node.
+
+        :rtype: int
+        """
         if self.__child is not None:
             return len(self.__child)
         return self._expectedChildCount()
 
     def child(self, index):
-        """Override method to be able to generate chrildren on demand."""
+        """Return the child at an expected index.
+
+        :param int index: Index of the child in the child list of the node
+        :rtype: Hdf5Node
+        """
         self.__initChild()
         return self.__child[index]
 
     def __initChild(self):
+        """Init the child of the node in case the list was lazy loaded."""
         if self.__child is None:
             self.__child = []
             self._populateChild()
 
     def _expectedChildCount(self):
+        """Returns the expected count of children
+
+        :rtype: int
+        """
         return 0
 
-    def _populateChild(self):
+    def _populateChild(self, populateAll=False):
         """Recurse through an HDF5 structure to append groups an datasets
         into the tree model.
-        :param h5item: Parent :class:`Hdf5Item` or
-            :class:`Hdf5ItemModel` object
-        :param gr_or_ds: h5py or spech5 object (h5py.File, h5py.Group,
-            h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
-            spech5.SpecH5Dataset)
+
+        Overwrite it to implement the initialisation of child of the node.
         """
         pass
 
     def dataName(self, role):
-        """Data for the name column"""
+        """Data for the name column
+
+        Overwrite it to implement the content of the 'name' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
     def dataType(self, role):
-        """Data for the type column"""
+        """Data for the type column
+
+        Overwrite it to implement the content of the 'type' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
     def dataShape(self, role):
-        """Data for the shape column"""
+        """Data for the shape column
+
+        Overwrite it to implement the content of the 'shape' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
     def dataValue(self, role):
-        """Data for the value column"""
+        """Data for the value column
+
+        Overwrite it to implement the content of the 'value' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
     def dataDescription(self, role):
-        """Data for the description column"""
+        """Data for the description column
+
+        Overwrite it to implement the content of the 'description' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
     def dataNode(self, role):
-        """Data for the node column"""
+        """Data for the node column
+
+        Overwrite it to implement the content of the 'node' column.
+
+        :rtype: qt.QVariant
+        """
         return None
 
 
 class Hdf5LoadingItem(Hdf5Node):
+    """Item displayed when an Hdf5Node is loading.
+
+    At the end of the loading this item is replaced by the loaded one.
+    """
 
     def __init__(self, text, parent, animatedIcon):
+        """Constructor"""
         Hdf5Node.__init__(self, parent)
         self.__text = text
         self.__animatedIcon = animatedIcon
@@ -346,8 +432,8 @@ class Hdf5Item(Hdf5Node):
 
     def __init__(self, text, obj, parent, key=None, h5pyClass=None, isBroken=False, populateAll=False):
         """
-        :param text str: text displayed
-        :param obj object: Pointer to h5py data. See the `obj` attribute.
+        :param str text: text displayed
+        :param object obj: Pointer to h5py data. See the `obj` attribute.
         """
         self.__obj = obj
         self.__key = key
@@ -365,6 +451,14 @@ class Hdf5Item(Hdf5Node):
 
     @property
     def h5pyClass(self):
+        """Returns the class of the stored object.
+
+        When the object is in lazy loading, this method should be able to
+        return the type of the futrue loaded object. It allows to delay the
+        real load of the object.
+
+        :rtype: h5py.File or h5py.Dataset or h5py.Group
+        """
         if self.__h5pyClass is None:
             if hasattr(self.obj, "h5py_class"):
                 self.__h5pyClass = self.obj.h5py_class
@@ -372,7 +466,23 @@ class Hdf5Item(Hdf5Node):
                 self.__h5pyClass = self.obj.__class__
         return self.__h5pyClass
 
-    def isBroken(self):
+    def isGroupObj(self):
+        """Returns true if the stored HDF5 object is a group (contains sub
+        groups or datasets).
+
+        :rtype: bool
+        """
+        return issubclass(self.h5pyClass, h5py.Group)
+
+    def isBrokenObj(self):
+        """Returns true if the stored HDF5 object is broken.
+
+        The stored object is then an h5py link (external or not) which point
+        to nowhere (tbhe external file is not here, the expected dataset is
+        still not on the file...)
+
+        :rtype: bool
+        """
         return self.__isBroken
 
     def _expectedChildCount(self):
@@ -381,6 +491,8 @@ class Hdf5Item(Hdf5Node):
         return 0
 
     def __initH5pyObject(self):
+        """Lazy load of the HDF5 node. It is reached from the parent node
+        with the key of the node."""
         parent_obj = self.parent.obj
 
         try:
@@ -421,14 +533,6 @@ class Hdf5Item(Hdf5Node):
         self.__key = None
 
     def _populateChild(self, populateAll=False):
-        """Recurse through an HDF5 structure to append groups an datasets
-        into the tree model.
-        :param h5item: Parent :class:`Hdf5Item` or
-            :class:`Hdf5ItemModel` object
-        :param gr_or_ds: h5py or spech5 object (h5py.File, h5py.Group,
-            h5py.Dataset, spech5.SpecH5, spech5.SpecH5Group,
-            spech5.SpecH5Dataset)
-        """
         if self.isGroupObj():
             for name in self.obj:
                 try:
@@ -441,16 +545,20 @@ class Hdf5Item(Hdf5Node):
                 item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, isBroken=has_error)
                 self.appendChild(item)
 
-    def isGroupObj(self):
-        """Is the hdf5 obj contains sub group or datasets"""
-        return issubclass(self.h5pyClass, h5py.Group)
-
     def hasChildren(self):
+        """Retuens true of this node have chrild.
+
+        :rtype: bool
+        """
         if not self.isGroupObj():
             return False
         return Hdf5Node.hasChildren(self)
 
     def _getDefaultIcon(self):
+        """Returns the icon displayed by the main column.
+
+        :rtype: qt.QIcon
+        """
         style = qt.QApplication.style()
         if self.__isBroken:
             icon = style.standardIcon(qt.QStyle.SP_MessageBoxCritical)
@@ -476,7 +584,10 @@ class Hdf5Item(Hdf5Node):
         return None
 
     def _getDefaultTooltip(self):
-        """Set the default tooltip"""
+        """Returns the default tooltip
+
+        :rtype: str
+        """
         if self.__error is not None:
             return self.__error
         class_ = self.h5pyClass
@@ -628,6 +739,11 @@ class Hdf5Item(Hdf5Node):
 
 
 class Hdf5TreeModel(qt.QAbstractItemModel):
+    """Tree model storing a list of `h5py.File` like objects.
+
+    The main column display the h5py.File list and there hierarchy. Other
+    columns dipslay information on node hierarchy.
+    """
 
     NAME_COLUMN = 0
     """Column id containing HDF5 node names"""
@@ -697,7 +813,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         row = self.__root.indexOfChild(oldItem)
         rootIndex = qt.QModelIndex()
         self.beginRemoveRows(rootIndex, row, row)
-        self.__root.deleteChild(row)
+        self.__root.removeChildAtIndex(row)
         self.endRemoveRows()
         if newItem is not None:
             self.beginInsertRows(rootIndex, row, row)
@@ -833,9 +949,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if sourceNode is destinationNode and sourceRow < destinationRow:
             item = sourceNode.child(sourceRow)
             destinationNode.insertChild(destinationRow, item)
-            sourceNode.deleteChild(sourceRow)
+            sourceNode.removeChildAtIndex(sourceRow)
         else:
-            item = sourceNode.deleteChild(sourceRow)
+            item = sourceNode.removeChildAtIndex(sourceRow)
             destinationNode.insertChild(destinationRow, item)
 
         self.endMoveRows()
@@ -1217,7 +1333,7 @@ class Hdf5TreeView(qt.QTreeView):
             if item is None:
                 continue
             if isinstance(item, Hdf5Item):
-                if ignoreBrokenLinks and item.isBroken():
+                if ignoreBrokenLinks and item.isBrokenObj():
                     continue
                 result.append(item.obj)
         return result
