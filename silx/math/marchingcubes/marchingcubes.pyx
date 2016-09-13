@@ -192,12 +192,18 @@ cdef class MarchingCubes:
 
     @property
     def vertices(self):
-        """Vertices currently computed (ndarray of dim NbVertices x 3)"""
+        """Vertices currently computed (ndarray of dim NbVertices x 3)
+
+        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
+        """
         return numpy.array(self.c_mc.vertices).reshape(-1, 3)
 
     @property
     def normals(self):
-        """Normals currently computed (ndarray of dim NbVertices x 3)"""
+        """Normals currently computed (ndarray of dim NbVertices x 3)
+
+        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
+        """
         return numpy.array(self.c_mc.normals).reshape(-1, 3)
     
     @property

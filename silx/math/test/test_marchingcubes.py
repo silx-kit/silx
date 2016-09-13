@@ -23,6 +23,8 @@
 # ############################################################################*/
 """Tests of the marchingcubes module"""
 
+from __future__ import division
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "07/09/2016"
@@ -73,8 +75,8 @@ class TestMarchingCubes(ParametricTestCase):
         level = 0.5
         vertices, normals, indices = marchingcubes.MarchingCubes(
             cube, level, invert_normals=False)
-        self.assertAllClose(vertices[:, 2], level)
-        self.assertAllClose(normals, (0., 0., 1.))
+        self.assertAllClose(vertices[:, 0], level)
+        self.assertAllClose(normals, (1., 0., 0.))
         self.assertEqual(len(indices), 2)
 
         # isosurface perpendicular to Y
@@ -94,8 +96,8 @@ class TestMarchingCubes(ParametricTestCase):
         level = 0.9
         vertices, normals, indices = marchingcubes.MarchingCubes(
             cube, level, invert_normals=False)
-        self.assertAllClose(vertices[:, 0], level)
-        self.assertAllClose(normals, (1., 0., 0.))
+        self.assertAllClose(vertices[:, 2], level)
+        self.assertAllClose(normals, (0., 0., 1.))
         self.assertEqual(len(indices), 2)
 
         # isosurface normal in Y, Z
@@ -104,7 +106,7 @@ class TestMarchingCubes(ParametricTestCase):
              ((0., 0.), (1., 1.))), dtype=numpy.float32)
         level = 0.5
         vertices, normals, indices = marchingcubes.MarchingCubes(cube, level)
-        self.assertAllClose(normals[:, 0], 0.)
+        self.assertAllClose(normals[:, 2], 0.)
         self.assertEqual(len(indices), 2)
 
     def test_sampling(self):
@@ -139,8 +141,8 @@ class TestMarchingCubes(ParametricTestCase):
                                                      sampling=sampling)
                 # Compare vertices normalized with shape
                 self.assertAllClose(
-                    ref_result.vertices / tuple(reversed(ref_result.shape)),
-                    result.vertices / tuple(reversed(result.shape)),
+                    ref_result.vertices / ref_result.shape,
+                    result.vertices / result.shape,
                     atol=0., rtol=0.)
 
                 # Compare normals
