@@ -106,7 +106,7 @@ long seek(long begin_index,
     max_cfac = MIN(max_gfactor, ((end_index - begin_index - 2) / 2) - 1);
     for (cfac=0; cfac < max_cfac; cfac++) {
         nr_factor++;
-        cfac2 = cfac * cfac;
+        cfac2 = (cfac+1) * (cfac+1);
         gfactor[cfac] = (sigma2 - cfac2) * exp(-cfac2/(sigma2*2.0)) / sigma4;
 
         if ((gfactor[cfac] < lowthreshold)
