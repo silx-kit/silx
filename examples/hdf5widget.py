@@ -34,7 +34,7 @@ import sys
 import numpy
 import logging
 from silx.gui import qt
-from silx.gui import hdf5widget
+import silx.gui.hdf5
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 import html
 import h5py
@@ -239,7 +239,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.setWindowTitle("Silx HDF5 widget example")
 
         self.__asyncload = False
-        self.__treeview = hdf5widget.Hdf5TreeView()
+        self.__treeview = silx.gui.hdf5.Hdf5TreeView()
         """Silx HDF5 TreeView"""
         self.__text = qt.QTextEdit(self)
         """Widget displaying information"""
@@ -322,7 +322,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
     def customContextMenu(self, event):
         """Called to populate the context menu
 
-        :param silx.gui.hdf5widget.Hdf5ContextMenuEvent event: Event
+        :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
             containing expected information to populate the context menu
         """
         selectedObjects = event.source().selectedH5pyObjects()
@@ -344,7 +344,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
     def anotherCustomContextMenu(self, event):
         """Called to populate the context menu
 
-        :param silx.gui.hdf5widget.Hdf5ContextMenuEvent event: Event
+        :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
             containing expected information to populate the context menu
         """
         selectedObjects = event.source().selectedH5pyObjects()
