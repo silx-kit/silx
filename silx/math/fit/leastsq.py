@@ -131,7 +131,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         A variable used in determining a suitable parameter variation when
         calculating the numerical derivatives (for model_deriv=None). 
         Normally the actual step length will be sqrt(epsfcn)*x
-        Original Gefit module was using epsfcn 1.0e-10 while default value
+        Original Gefit module was using epsfcn 1.0e-5 while default value
         is now numpy.finfo(numpy.float).eps as in scipy
     :type epsfcn: *optional*, float
 
