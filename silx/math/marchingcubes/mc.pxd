@@ -27,16 +27,16 @@ from libcpp.vector cimport vector as std_vector
 from libcpp cimport bool
 
 cdef extern from "mc.hpp":
-    cdef cppclass MarchingCubes[FloatType]:
-        MarchingCubes(FloatType level) except +
-        void process(FloatType * data,
+    cdef cppclass MarchingCubes[FloatIn, FloatOut]:
+        MarchingCubes(FloatIn level) except +
+        void process(FloatIn * data,
                      unsigned int depth,
                      unsigned int height,
                      unsigned int width) except +
         void set_slice_size(unsigned int height,
                             unsigned int width)
-        void process_slice(FloatType * slice0,
-                           FloatType * slice1) except +
+        void process_slice(FloatIn * slice0,
+                           FloatIn * slice1) except +
         void finish_process()
         void reset()
 
@@ -44,8 +44,8 @@ cdef extern from "mc.hpp":
         unsigned int height
         unsigned int width
         unsigned int sampling[3]
-        FloatType isolevel
+        FloatIn isolevel
         bool invert_normals
-        std_vector[FloatType] vertices
-        std_vector[FloatType] normals
+        std_vector[FloatOut] vertices
+        std_vector[FloatOut] normals
         std_vector[unsigned int] indices

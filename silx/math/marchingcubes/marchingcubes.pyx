@@ -81,7 +81,7 @@ cdef class MarchingCubes:
         True (default) for normals oriented in direction of gradient descent 
     :param sampling: Sampling along each dimension (depth, height, width)
     """
-    cdef mc.MarchingCubes[float] * c_mc  # Pointer to the C++ instance
+    cdef mc.MarchingCubes[float, float] * c_mc  # Pointer to the C++ instance
 
     def __cinit__(self, data=None, isolevel=None,
                   invert_normals=True, sampling=(1, 1, 1)):
@@ -89,7 +89,7 @@ cdef class MarchingCubes:
 
         cdef float c_isolevel = isolevel
 
-        self.c_mc = new mc.MarchingCubes[float](c_isolevel)
+        self.c_mc = new mc.MarchingCubes[float, float](c_isolevel)
         self.c_mc.invert_normals = invert_normals
         self.c_mc.sampling[0] = sampling[0]
         self.c_mc.sampling[1] = sampling[1]

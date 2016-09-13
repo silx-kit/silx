@@ -45,14 +45,14 @@ extern const unsigned int MCEdgeIndexToCoordOffsets[12][4];
  *
  * Dimension convention used is (depth, height, width) (i.e., not x, y, z).
  */
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 class MarchingCubes {
 public:
     /** Create a marching cube object.
      *
      * @param level Level at which to build the isosurface
      */
-    MarchingCubes(FloatType level);
+    MarchingCubes(FloatIn level);
 
     ~MarchingCubes();
 
@@ -64,7 +64,7 @@ public:
      * @param width The 3rd dimension of the data set
      *              (tightly packed in memory)
      */
-    void process(FloatType * data,
+    void process(FloatIn * data,
                  unsigned int depth,
                  unsigned int height,
                  unsigned int width);
@@ -100,8 +100,8 @@ public:
      * @param slice0 Pointer to the nth slice data
      * @param slice1 Pointer to the (n+1)th slice of data
      */
-    void process_slice(FloatType * slice0,
-                       FloatType * slice1);
+    void process_slice(FloatIn * slice0,
+                       FloatIn * slice1);
 
     /** Clear marching cube processing internal cache. */
     void finish_process();
@@ -110,13 +110,13 @@ public:
     void reset();
 
     /** Vertices of the isosurface (x, y, z) */
-    std::vector<FloatType> vertices;
+    std::vector<FloatOut> vertices;
 
     /** Approximation of normals at the vertices (nx, ny, nz)
      *
      * Current implementation provides coarse (but fast) normals computation
      */
-    std::vector<FloatType> normals;
+    std::vector<FloatOut> normals;
 
     /** Triangle indices */
     std::vector<unsigned int> indices;
@@ -131,7 +131,7 @@ public:
      */
     unsigned int sampling[3];
 
-    FloatType isolevel; /**< Iso level to use */
+    FloatIn isolevel; /**< Iso level to use */
     bool invert_normals; /**< True to inverse gradient as normals */
 
 private:
@@ -143,8 +143,8 @@ private:
      * @param slice The first slice of the data
      * @param next The second slice
      */
-    void first_slice(FloatType * slice,
-                     FloatType * next);
+    void first_slice(FloatIn * slice,
+                     FloatIn * next);
 
     /** Process an edge
      *
@@ -158,15 +158,15 @@ private:
      * @param current
      * @param next
      */
-    void process_edge(FloatType value0,
-                      FloatType value,
+    void process_edge(FloatIn value0,
+                      FloatIn value,
                       unsigned int depth,
                       unsigned int row,
                       unsigned int col,
                       unsigned int direction,
-                      FloatType * previous,
-                      FloatType * current,
-                      FloatType * next);
+                      FloatIn * previous,
+                      FloatIn * current,
+                      FloatIn * next);
 
     /** Return the bit mask of cube corners <= the iso-value.
      *
@@ -176,8 +176,8 @@ private:
      * @param col Column of the cube to consider
      * @return The bit mask of cube corners <= the iso-value
      */
-    unsigned char get_cell_code(FloatType * slice1,
-                                FloatType * slice2,
+    unsigned char get_cell_code(FloatIn * slice1,
+                                FloatIn * slice2,
                                 unsigned int row,
                                 unsigned int col);
 
@@ -208,8 +208,8 @@ private:
 
 /* Implementation */
 
-template <typename FloatType>
-MarchingCubes<FloatType>::MarchingCubes(FloatType level)
+template <typename FloatIn, typename FloatOut>
+MarchingCubes<FloatIn, FloatOut>::MarchingCubes(FloatIn level)
 {
     this->edge_indices = 0;
     this->reset();
@@ -222,14 +222,14 @@ MarchingCubes<FloatType>::MarchingCubes(FloatType level)
     this->sampling[2] = 1;
 }
 
-template <typename FloatType>
-MarchingCubes<FloatType>::~MarchingCubes()
+template <typename FloatIn, typename FloatOut>
+MarchingCubes<FloatIn, FloatOut>::~MarchingCubes()
 {
 }
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::reset()
+MarchingCubes<FloatIn, FloatOut>::reset()
 {
     this->depth = 0;
     this->vertices.clear();
@@ -241,9 +241,9 @@ MarchingCubes<FloatType>::reset()
     }
 }
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::finish_process()
+MarchingCubes<FloatIn, FloatOut>::finish_process()
 {
     if (this->edge_indices != 0) {
         delete this->edge_indices;
@@ -252,12 +252,12 @@ MarchingCubes<FloatType>::finish_process()
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::process(FloatType * data,
-                                  unsigned int depth,
-                                  unsigned int height,
-                                  unsigned int width)
+MarchingCubes<FloatIn, FloatOut>::process(FloatIn * data,
+                                          unsigned int depth,
+                                          unsigned int height,
+                                          unsigned int width)
 {
     unsigned int size = height * width * this->sampling[DEPTH_IDX];
 
@@ -268,8 +268,8 @@ MarchingCubes<FloatType>::process(FloatType * data,
     this->set_slice_size(height, width);
 
     for (unsigned int index=0; index < nb_slices; index++) {
-        FloatType * slice0 = data + (index * size);
-        FloatType * slice1 = slice0 + size;
+        FloatIn * slice0 = data + (index * size);
+        FloatIn * slice1 = slice0 + size;
 
         this->process_slice(slice0, slice1);
     }
@@ -279,10 +279,10 @@ MarchingCubes<FloatType>::process(FloatType * data,
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::set_slice_size(unsigned int height,
-                                         unsigned int width)
+MarchingCubes<FloatIn, FloatOut>::set_slice_size(unsigned int height,
+                                                 unsigned int width)
 {
     this->reset();
     this->height = height;
@@ -290,10 +290,10 @@ MarchingCubes<FloatType>::set_slice_size(unsigned int height,
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::process_slice(FloatType * slice0,
-                                        FloatType * slice1)
+MarchingCubes<FloatIn, FloatOut>::process_slice(FloatIn * slice0,
+                                                FloatIn * slice1)
 {
     unsigned int row, col;
 
@@ -316,11 +316,11 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
         for (col=0; col < this->width; col += this->sampling[WIDTH_IDX]) {
             unsigned int item_index = line_index + col;
 
-            FloatType value0 = slice1[item_index];
+            FloatIn value0 = slice1[item_index];
 
             /* Test forward edges and add vertices in the current slice plane */
             if (col < (width - this->sampling[WIDTH_IDX])) {
-                FloatType value = slice1[item_index + this->sampling[WIDTH_IDX]];
+                FloatIn value = slice1[item_index + this->sampling[WIDTH_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 0,
                                    slice0, slice1, 0);
@@ -328,7 +328,7 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
 
             if (row < (height - this->sampling[HEIGHT_IDX])) {
                 /* Value from next line*/
-                FloatType value = slice1[item_index + this->width * this->sampling[HEIGHT_IDX]];
+                FloatIn value = slice1[item_index + this->width * this->sampling[HEIGHT_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 1,
                                    slice0, slice1, 0);
@@ -336,7 +336,7 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
 
             /* Test backward edges and add vertices in z direction */
             {
-                FloatType value = slice0[item_index];
+                FloatIn value = slice0[item_index];
 
                 /* Expect forward edge, so pass: previous, current */
                 this->process_edge(value, value0,
@@ -397,10 +397,10 @@ MarchingCubes<FloatType>::process_slice(FloatType * slice0,
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatType>::first_slice(FloatType * slice,
-                                      FloatType * next)
+MarchingCubes<FloatIn, FloatOut>::first_slice(FloatIn * slice,
+                                              FloatIn * next)
 {
     /* Init cache for this slice */
     this->edge_indices = new std::map<unsigned int, unsigned int>();
@@ -415,10 +415,10 @@ MarchingCubes<FloatType>::first_slice(FloatType * slice,
             unsigned int item_index = line_index + col;
 
             /* For each point test forward edges */
-            FloatType value0 = slice[item_index];
+            FloatIn value0 = slice[item_index];
 
             if (col < (width - this->sampling[WIDTH_IDX])) {
-                FloatType value = slice[item_index + this->sampling[WIDTH_IDX]];
+                FloatIn value = slice[item_index + this->sampling[WIDTH_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 0,
                                    0, slice, next);
@@ -426,7 +426,7 @@ MarchingCubes<FloatType>::first_slice(FloatType * slice,
 
             if (row < (height - this->sampling[HEIGHT_IDX])) {
                 /* Value from next line */
-                FloatType value = slice[item_index + this->width * this->sampling[HEIGHT_IDX]];
+                FloatIn value = slice[item_index + this->width * this->sampling[HEIGHT_IDX]];
 
                 this->process_edge(value0, value, this->depth, row, col, 1,
                                    0, slice, next);
@@ -438,35 +438,34 @@ MarchingCubes<FloatType>::first_slice(FloatType * slice,
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 inline unsigned int
-MarchingCubes<FloatType>::edge_index(unsigned int depth,
-                                     unsigned int row,
-                                     unsigned int col,
-                                     unsigned int direction)
+MarchingCubes<FloatIn, FloatOut>::edge_index(unsigned int depth,
+                                             unsigned int row,
+                                             unsigned int col,
+                                             unsigned int direction)
 {
     return ((depth * (this->height + 1) + row) *
             (this->width + 1) + col) * 3 + direction;
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 inline void
-MarchingCubes<FloatType>::process_edge(FloatType value0,
-                                       FloatType value,
-                                       unsigned int depth,
-                                       unsigned int row,
-                                       unsigned int col,
-                                       unsigned int direction,
-                                       FloatType * previous,
-                                       FloatType * current,
-                                       FloatType * next)
+MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
+                                               FloatIn value,
+                                               unsigned int depth,
+                                               unsigned int row,
+                                               unsigned int col,
+                                               unsigned int direction,
+                                               FloatIn * previous,
+                                               FloatIn * current,
+                                               FloatIn * next)
 {
     if ((value0 <= this->isolevel) ^ (value <= this->isolevel)) {
 
         /* Crossing iso-surface, store it */
-        FloatType offset = \
-            (this->isolevel - value0) / (value - value0);
+        FloatIn offset = (this->isolevel - value0) / (value - value0);
 
         /* Store edge to vertex index correspondance */
         unsigned int edge_index = this->edge_index(depth, row, col, direction);
@@ -474,31 +473,31 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
 
         /* Store vertex as (z, y, x) */
         if (direction == 0) {
-            this->vertices.push_back((FloatType) depth);
-            this->vertices.push_back((FloatType) row);
+            this->vertices.push_back((FloatOut) depth);
+            this->vertices.push_back((FloatOut) row);
             this->vertices.push_back(
-                (FloatType) col + offset * this->sampling[WIDTH_IDX]);
+                (FloatOut) col + offset * this->sampling[WIDTH_IDX]);
         }
         else if (direction == 1) {
-            this->vertices.push_back((FloatType) depth);
+            this->vertices.push_back((FloatOut) depth);
             this->vertices.push_back(
-                (FloatType) row + offset * this->sampling[HEIGHT_IDX]);
-            this->vertices.push_back((FloatType) col);
+                (FloatOut) row + offset * this->sampling[HEIGHT_IDX]);
+            this->vertices.push_back((FloatOut) col);
         }
         else if (direction == 2) {
             this->vertices.push_back(
-                (FloatType) depth + offset * this->sampling[DEPTH_IDX]);
-            this->vertices.push_back((FloatType) row);
-            this->vertices.push_back((FloatType) col);
+                (FloatOut) depth + offset * this->sampling[DEPTH_IDX]);
+            this->vertices.push_back((FloatOut) row);
+            this->vertices.push_back((FloatOut) col);
         } else {
             throw std::runtime_error(
                 "Internal error: dimension > 3, never event.");
         }
 
         /* Store normal as (nz, ny, nx) */
-        FloatType nz, ny, nx;
-        FloatType * slice0;
-        FloatType * slice1;
+        FloatOut nz, ny, nx;
+        FloatIn * slice0;
+        FloatIn * slice1;
 
         if (previous != 0) {
             slice0 = previous;
@@ -585,7 +584,7 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
 
         } else { /* direction == 2 */
             /* Previous should always be 0, only here in case this changes */
-            FloatType * other_slice = (previous != 0) ? previous : next;
+            FloatIn * other_slice = (previous != 0) ? previous : next;
 
             nz = value - value0;
 
@@ -619,12 +618,12 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
         }
 
         /* apply sampling scaling */
-        nz /= (FloatType) this->sampling[0];
-        ny /= (FloatType) this->sampling[1];
-        nx /= (FloatType) this->sampling[2];
+        nz /= (FloatOut) this->sampling[0];
+        ny /= (FloatOut) this->sampling[1];
+        nx /= (FloatOut) this->sampling[2];
 
         /* normalisation */
-        FloatType norm = sqrt(nz * nz + ny * ny + nx * nx);
+        FloatOut norm = sqrt(nz * nz + ny * ny + nx * nx);
         if (this->invert_normals) { /* Normal inversion */
             norm *= -1.;
         }
@@ -641,12 +640,12 @@ MarchingCubes<FloatType>::process_edge(FloatType value0,
 }
 
 
-template <typename FloatType>
+template <typename FloatIn, typename FloatOut>
 inline unsigned char
-MarchingCubes<FloatType>::get_cell_code(FloatType * slice1,
-                                        FloatType * slice2,
-                                        unsigned int row,
-                                        unsigned int col)
+MarchingCubes<FloatIn, FloatOut>::get_cell_code(FloatIn * slice1,
+                                                FloatIn * slice2,
+                                                unsigned int row,
+                                                unsigned int col)
 {
     unsigned int item = row * this->width + col;
     unsigned int item_next_row = item + this->width * this->sampling[HEIGHT_IDX];
