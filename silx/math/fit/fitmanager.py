@@ -774,7 +774,7 @@ class FitManager(object):
                     sigma=self.sigmay,
                     constraints=param_constraints,
                     model_deriv=self.theories[self.selectedtheory].derivative,
-                    full_output=True)
+                    full_output=True, left_derivative=True)
         except LinAlgError:
             self.state = 'Fit failed'
             callback(data={'status': self.state})
