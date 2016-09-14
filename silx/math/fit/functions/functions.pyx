@@ -149,6 +149,10 @@ def sum_gauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No gaussian parameters specified. " +
+                         "At least 3 parameters are required.")
+
     # ensure float64 (double) type and 1D contiguous data layout in memory
     x_c = numpy.array(x,
                       copy=False,
@@ -194,6 +198,10 @@ def sum_agauss(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No gaussian parameters specified. " +
+                         "At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -243,6 +251,10 @@ def sum_fastagauss(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No gaussian parameters specified. " +
+                         "At least 3 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -268,7 +280,7 @@ def sum_fastagauss(x, *params):
 def sum_splitgauss(x, *params):
     """sum_splitgauss(x, *params) -> numpy.ndarray
 
-    Return a sum of gaussian functions defined by *(area, centroid, fwhm)*,
+    Return a sum of gaussian functions defined by *(area, centroid, fwhm1, fwhm2)*,
     where:
 
         - *height* is the peak amplitude
@@ -289,6 +301,10 @@ def sum_splitgauss(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No gaussian parameters specified. " +
+                         "At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -339,6 +355,9 @@ def sum_apvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 4 parameters are required.")
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -387,6 +406,10 @@ def sum_pvoigt(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -441,6 +464,10 @@ def sum_splitpvoigt(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 5 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -486,6 +513,10 @@ def sum_lorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 3 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -530,6 +561,10 @@ def sum_alorentz(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -577,6 +612,10 @@ def sum_splitlorentz(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 4 parameters are required.")
+
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -623,6 +662,9 @@ def sum_stepdown(x, *params):
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 3 parameters are required.")
     x_c = numpy.array(x,
                       copy=False,
                       dtype=numpy.float64,
@@ -669,6 +711,10 @@ def sum_stepup(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 3 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -718,6 +764,10 @@ def sum_slit(x, *params):
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 4 parameters are required.")
 
     x_c = numpy.array(x,
                       copy=False,
@@ -788,6 +838,10 @@ def sum_ahypermet(x, *params,
         double[::1] x_c
         double[::1] params_c
         double[::1] y_c
+
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 8 parameters are required.")
 
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
@@ -873,6 +927,10 @@ def sum_fastahypermet(x, *params,
         double[::1] params_c
         double[::1] y_c
 
+    if not len(params):
+        raise IndexError("No parameters specified. " +
+                         "At least 8 parameters are required.")
+
     # Sum binary flags to activate various terms of the equation
     tail_flags = 1 if gaussian_term else 0
     if st_term:
@@ -947,6 +1005,11 @@ def periodic_gauss(x, *pars):
     :param pars: *(npeaks, delta, height, centroid, fwhm)*
     :return: Sum of ``npeaks`` gaussians
     """
+
+    if not len(pars):
+        raise IndexError("No parameters specified. " +
+                         "At least 5 parameters are required.")
+
     newpars = numpy.zeros((pars[0], 3), numpy.float)
     for i in range(int(pars[0])):
         newpars[i, 0] = pars[2]
