@@ -81,7 +81,8 @@ class FitManager(object):
     :param sensitivity: Sensitivity value used for by peak detection
         algorithm. To be detected, a peak must have an amplitude greater
         than ``σn * sensitivity`` (where ``σn`` is an estimated value of
-        the standard deviation of the noise).
+        the standard deviation of the noise). Thus, the number of detected
+        peaks increases if you set a *lower* sensitivity value.
     """
     # TODO: document following attributes
     # Data attributes:
@@ -724,6 +725,10 @@ class FitManager(object):
             msg += "Available theories: %s\n" % self.theories.keys()
             raise KeyError(msg)
 
+        # run configure to apply our fitconfig to the selected theory
+        # through its custom config function
+        self.configure(**self.fitconfig)
+
     def runfit(self, callback=None):
         """Run the actual fitting and fill :attr:`fit_results` with fit results.
 
@@ -1171,15 +1176,18 @@ def test():
     x = numpy.arange(1000).astype(numpy.float)
 
     p = [1000, 100., 250,
-         255, 700., 45,
+         255, 690., 45,
          1500, 800.5, 95]
     y = 2.65 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
-    fit = FitManager()
+    fit = FitManager(auto_fwhm=True,
+                     sensitivity=0.25)
+    # more sensitivity necessary to resolve
+    # overlapping peaks at x=690 and x=800.5
     fit.setdata(x=x, y=y)
     fit.loadtheories(fittheories)
-    fit.settheory('gauss')
+    fit.settheory('Gaussians')
     fit.setbackground('Linear')
     fit.estimate()
     fit.runfit()
@@ -1195,6 +1203,7 @@ def test():
     # Plot
     constant, slope = dummy_list[:2]
     p1 = dummy_list[2:]
+    print(p1)
     y2 = slope * x + constant + sum_gauss(x, *p1)
 
     try:
