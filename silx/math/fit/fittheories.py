@@ -26,6 +26,18 @@
 estimation functions in a format that can be imported into a
 :class:`silx.math.fit.FitManager` instance.
 
+These functions are well suited for fitting multiple gaussian shaped peaks
+typically found in spectroscopy data. The estimation functions are designed
+to detect how many peaks are present in the data, and provide an initial
+estimate for their height, their center location and their full-width
+at half maximum (fwhm).
+
+The limitation of this estimation algorithms is that only gaussians having a
+similar fwhm can be detected by the peak search algorithm.
+This *search fwhm* can be defined by the user, if
+he knows the characteristics of his data, or can be automatically estimated
+based on the fwhm of the largest peak in the data.
+
 The source code of this module can serve as template for defining your own
 fit functions.
 

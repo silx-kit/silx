@@ -48,7 +48,7 @@ def peak_search(y, fwhm, sensitivity=3.5,
                 debug=False, relevance_info=False):
     """peak_search(y, fwhm, sensitivity=3.5, begin_index=None, end_index=None, debug=False, relevance_info=False)
 
-    Find peaks in the data.
+    Find peaks in a curve.
 
     :param y: Data array
     :type y: numpy.ndarray
@@ -131,7 +131,6 @@ def peak_search(y, fwhm, sensitivity=3.5,
     if not relevance_info:
         return peaks
     else:
-        # FIXME: maybe don't zip, return tuple (peaks, relevances)?
         return list(zip(peaks, relevances))
 
 
