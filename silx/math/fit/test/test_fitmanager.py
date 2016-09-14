@@ -51,8 +51,8 @@ def myesti(x, y):
     "Initial parameters for iterative fit (a, b, c) = (1, 1, 1)"
     return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
-def myconfig(d=1.):
-    "This function cam modify CONFIG"
+def myconfig(d=1., **kw):
+    "This function can modify CONFIG"
     CONFIG["d"] = d
     return CONFIG
 
@@ -273,7 +273,7 @@ class TestFitmanager(unittest.TestCase):
             Constraints all set to 0 (FREE)"""
             return (1., 1., 1.), ((0, 0, 0), (0, 0, 0), (0, 0, 0))
 
-        def myconfig(d_=1.):
+        def myconfig(d_=1., **kw):
             """This function can modify CONFIG"""
             CONFIG["d"] = d_
             return CONFIG
