@@ -94,7 +94,7 @@ DEFAULT_CONFIG = {'NoConstraintsFlag': False,
                   'QuotedEtaFlag': False,  # force 0 < eta < 1
                   'Yscaling': 1.0,
                   'FwhmPoints': 8,
-                  'AutoFwhm': False,
+                  'AutoFwhm': True,
                   'Sensitivity': 2.5,
                   'ForcePeakPresence': False,
                   # Hypermet
