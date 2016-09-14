@@ -123,7 +123,7 @@ class TestFitmanager(unittest.TestCase):
         x = numpy.arange(1000).astype(numpy.float)
 
         p = [1000, 100., 250,
-             255, 700., 45,
+             255, 650., 45,
              1500, 800.5, 95]
         linear_bg = 2.65 * x + 13
         y = linear_bg + sum_gauss(x, *p)
