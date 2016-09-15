@@ -792,7 +792,7 @@ class FitManager(object):
                 param['fitresult'] = params[i]
                 param['sigma'] = sigmas[i]
 
-        self.chisq = infodict["chisq"]
+        self.chisq = infodict["reduced_chisq"]
         self.state = 'Ready'
 
         if callback is not None:

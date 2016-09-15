@@ -644,7 +644,7 @@ if __name__ == "__main__":
          750, 700., 30.0,
          1234, 900., 29.5,
          302, 1100., 30.5,
-         75, 1300., 210.]
+         75, 1300., 21.]
     y = functions.sum_gauss(x, *p) + constant_bg
 
     a = qt.QApplication(sys.argv)

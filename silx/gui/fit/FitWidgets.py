@@ -127,7 +127,7 @@ class FitStatusLines(qt.QWidget):
         layout.addWidget(self.StatusLine)
 
         self.ChisqLabel = qt.QLabel(self)
-        self.ChisqLabel.setText("Chisq:")
+        self.ChisqLabel.setText("Reduced chisq:")
         layout.addWidget(self.ChisqLabel)
 
         self.ChisqLine = qt.QLineEdit(self)
