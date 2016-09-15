@@ -32,7 +32,7 @@ to detect how many peaks are present in the data, and provide an initial
 estimate for their height, their center location and their full-width
 at half maximum (fwhm).
 
-The limitation of this estimation algorithms is that only gaussians having a
+The limitation of these estimation algorithms is that only gaussians having a
 similar fwhm can be detected by the peak search algorithm.
 This *search fwhm* can be defined by the user, if
 he knows the characteristics of his data, or can be automatically estimated
@@ -266,12 +266,15 @@ class FitTheories(object):
         search_sens = float(self.config['Sensitivity'])
 
         if search_fwhm < 3:
+            _logger.warning("Setting peak fwhm to 3 (lower limit)")
             search_fwhm = 3
             self.config['FwhmPoints'] = 3
 
-        # if search_sens < 1:
-        #     search_sens = 1
-        #     self.config['Sensitivity'] = 1
+        if search_sens < 1:
+            _logger.warning("Setting peak search sensitivity to 1. " +
+                            "(lower limit to filter out noise peaks)")
+            search_sens = 1
+            self.config['Sensitivity'] = 1
 
         npoints = len(y)
 

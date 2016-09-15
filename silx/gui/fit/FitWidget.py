@@ -383,13 +383,17 @@ class FitWidget(qt.QWidget):
                            'name': 'FwhmPoints',
                            'text': 'Fwhm Points: ',
                            'data type': "int",
-                           'tooltip': "Number of data points for fwhm (used by" +
-                                      " peak detection algorithm"},
+                           'tooltip': "Number of data points for typical peak fwhm, used by " +
+                                      " peak detection algorithm to filter out noise. "
+                                      "Lower limit: 3"},
                           {'widget type': "EntryField",
                            'name': 'Sensitivity',
                            'text': 'Sensitivity: ',
                            'data type': "float",
-                           'tooltip': "Sensitivity parameter for the peak detection algorithm"},
+                           'tooltip': "Sensitivity parameter for the peak detection algorithm." +
+                                      " Peaks must have an amplitude larger than sensitivity " +
+                                      " times the standard deviation f the noise. " +
+                                      "The enforced lower limit is 1."},
                           {'widget type': "EntryField",
                            'name': 'Yscaling',
                            'data type': "float",
