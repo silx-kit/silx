@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/09/2016"
+__date__ = "15/09/2016"
 
 import logging
 from .. import qt
@@ -41,11 +41,11 @@ class _Wrapper(qt.QRunnable):
     """Wrapper to allow to call a function into a `QThreadPool` and
     sending signals during the life cycle of the object"""
 
-    def __init__(self, signalHolder, callable, args, kwargs):
+    def __init__(self, signalHolder, function, args, kwargs):
         """Constructor"""
         super(_Wrapper, self).__init__()
         self.__signalHolder = signalHolder
-        self.__callable = callable
+        self.__callable = function
         self.__args = args
         self.__kwargs = kwargs
 

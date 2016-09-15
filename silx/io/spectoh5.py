@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module provides functions to convert a SpecFile into a HDF5 file.
 
 Read the documentation of :mod:`silx.io.spech5` for information on the
@@ -68,7 +68,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/08/2016"
+__date__ = "15/09/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -195,7 +195,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             # add HDF5 attributes
             for key in obj.attrs:
                 if overwrite_data or key not in grp.attrs:
-                    grp.attrs.create(key,  numpy.string_(obj.attrs[key]))
+                    grp.attrs.create(key, numpy.string_(obj.attrs[key]))
 
             # link:
             # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
@@ -211,7 +211,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     root_grp = h5f[h5path]
     for key in sfh5.attrs:
         if overwrite_data or key not in root_grp.attrs:
-            root_grp.attrs.create(key,  numpy.string_(sfh5.attrs[key]))
+            root_grp.attrs.create(key, numpy.string_(sfh5.attrs[key]))
 
     # Close file if it was opened in this function
     if not isinstance(h5file, h5py.File):

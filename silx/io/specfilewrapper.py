@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*#########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module provides a backward compatibility layer with the legacy
 specfile wrapper.
 
@@ -50,7 +50,7 @@ from silx.io.specfile import SpecFile, Scan
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/07/2016"
+__date__ = "15/09/2016"
 
 
 def _format_number_list(number_list):

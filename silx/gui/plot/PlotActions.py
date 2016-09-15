@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "15/09/2016"
 
 
 from collections import OrderedDict
@@ -125,7 +125,7 @@ class ResetZoomAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
-            plot,  icon='zoom-original', text='Reset Zoom',
+            plot, icon='zoom-original', text='Reset Zoom',
             tooltip='Auto-scale the graph',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -160,7 +160,7 @@ class ZoomInAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomInAction, self).__init__(
-            plot,  icon='zoom-in', text='Zoom In',
+            plot, icon='zoom-in', text='Zoom In',
             tooltip='Zoom in the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -179,14 +179,14 @@ class ZoomOutAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomOutAction, self).__init__(
-            plot,  icon='zoom-out', text='Zoom Out',
+            plot, icon='zoom-out', text='Zoom Out',
             tooltip='Zoom out the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.ZoomOut)
 
     def _actionTriggered(self, checked=False):
-        _applyZoomToPlot(self.plot, 1./1.1)
+        _applyZoomToPlot(self.plot, 1. / 1.1)
 
 
 class XAxisAutoScaleAction(_PlotAction):

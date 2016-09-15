@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/03/2016"
+__date__ = "15/09/2016"
 
 
 import unittest
@@ -555,7 +555,7 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
             ('x<0, y>0', -arange, arange),
             ('some negative x and y', arange - 500, arange - 500),
             ('x<0, y<0', -arange, -arange),
-            ]
+        ]
 
         for name, xData, yData in tests:
             with self.subTest(name):

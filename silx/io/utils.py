@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """ I/O utility functions"""
 
 import numpy
@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/09/2016"
+__date__ = "15/09/2016"
 
 
 logger = logging.getLogger(__name__)

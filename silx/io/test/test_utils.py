@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for utils module"""
 
 
@@ -44,7 +44,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/09/2016"
+__date__ = "15/09/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -79,6 +79,7 @@ expected_csv2 = r"""x;y0;y1
 2;5\.00;8\.00e\+00
 3;6\.00;9\.00e\+00
 """
+
 
 class TestSave(unittest.TestCase):
     """Test saving curves as SpecFile:
@@ -241,7 +242,6 @@ class TestH5Ls(unittest.TestCase):
         self.assertMatchAnyStringInList(
                 r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
                 lines)
-
 
 
 def suite():

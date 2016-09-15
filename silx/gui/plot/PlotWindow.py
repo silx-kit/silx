@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/03/2016"
+__date__ = "15/09/2016"
 
 import collections
 import logging
@@ -283,12 +283,12 @@ class PlotWindow(PlotWidget):
     def consoleDockWidget(self):
         """DockWidget with IPython console (lazy-loaded)."""
         if not hasattr(self, '_consoleDockWidget'):
-            vars = {"plt": self}
+            available_vars = {"plt": self}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             if IPythonDockWidget is not None:
                 self._consoleDockWidget = IPythonDockWidget(
-                    available_vars=vars,
+                    available_vars=available_vars,
                     custom_banner=banner,
                     parent=self)
                 self._consoleDockWidget.hide()

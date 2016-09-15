@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/04/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -146,7 +146,7 @@ class PositionInfo(qt.QWidget):
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
-        return [(name, func) for lineEdit, name, func in self._fields]
+        return [(name, func) for _lineEdit, name, func in self._fields]
 
     def _plotEvent(self, event):
         """Handle events from the Plot.
@@ -164,7 +164,7 @@ class PositionInfo(qt.QWidget):
 
                 activeCurve = self.plot.getActiveCurve()
                 if activeCurve:
-                    xData, yData, legend, info, params = activeCurve[0:5]
+                    xData, yData, _legend, _info, params = activeCurve[0:5]
                     if params['symbol']:  # Only handled if symbols on curve
                         closestIndex = numpy.argmin(
                             pow(xData - x, 2) + pow(yData - y, 2))
@@ -616,7 +616,7 @@ class ProfileToolBar(qt.QToolBar):
                                 axis=axis, dtype=numpy.float32)
 
         # Profile including out of bound area
-        profile = numpy.zeros(profileLength,  dtype=numpy.float32)
+        profile = numpy.zeros(profileLength, dtype=numpy.float32)
 
         # Place imgProfile in full profile
         offset = - min(0, profileRange[0])
@@ -782,7 +782,7 @@ class ProfileToolBar(qt.QToolBar):
                           legend=self._POLYGON_LEGEND,
                           color=self.overlayColor,
                           shape='polygon', fill=True,
-                          replace=False, z=zActiveImage+1)
+                          replace=False, z=zActiveImage + 1)
 
         if self._ownProfileWindow and not self.profileWindow.isVisible():
             # If profile window was created in this widget,
