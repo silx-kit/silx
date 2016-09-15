@@ -1007,6 +1007,18 @@ class MaskToolsWidget(qt.QWidget):
 
         self._colormap['colors'] = colors
 
+    def resetMaskColors(self, level=None):
+        """Reset the mask color at the given level to be defaultColors
+
+        :param level: the index of the mask for which we want to reset the color. If none we will reset color for all masks.
+        """
+        if level is None:
+            self._defaultColors[level] = None
+        else:
+            self._defaultColors[:] = None
+
+        self._updateColors()
+
     def setMaskColors(self, rgb, level=None):
         """Set the masks color
 
