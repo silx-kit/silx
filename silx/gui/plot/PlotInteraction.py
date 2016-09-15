@@ -492,17 +492,14 @@ class SelectPolygon(Select):
                 firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                # checking if the position is close to the first point
+                # if yes : closing the "loop"
                 if (dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
                     self.machine.resetSelectionArea()
 
-                    dataPos = self.machine.plot.pixelToData(x, y)
-                    assert dataPos is not None
-                    self.points[-1] = dataPos
-                    if self.points[-2] == self.points[-1]:
-                        self.points.pop()
-
-                    self.points.append(self.points[0])
+                    self.points[-1] = self.points[0]
 
                     eventDict = prepareDrawingSignal('drawingFinished',
                                                      'polygon',
@@ -514,12 +511,20 @@ class SelectPolygon(Select):
             elif btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
 
-                dataPos = self.machine.plot.pixelToData(x, y)
-                assert dataPos is not None
-                self.points[-1] = dataPos
-                if self.points[-2] == self.points[-1]:
-                    self.points.pop()
-                self.points.append(self.points[0])
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                    self.points[-1] = self.points[0]
+                else:
+                    dataPos = self.machine.plot.pixelToData(x, y)
+                    assert dataPos is not None
+                    self.points[-1] = dataPos
+                    if self.points[-2] == self.points[-1]:
+                        self.points.pop()
+                    self.points.append(self.points[0])
 
                 eventDict = prepareDrawingSignal('drawingFinished',
                                                  'polygon',
