@@ -304,19 +304,23 @@ class FieldSheet(qt.QWidget):
                  or "EntryField"*
 
               - ``"name"``: name/key used to retrieve the user data in the
-                 widget's internal dict
+                 widget's internal dict (not relevant for *Label* widgets
 
               - ``"text"`` is the text displayed in a label in the field widget
 
               - ``"tooltip"`` is a tooltip text displayed when the mouse cursor
-                hovers the widget
+                hovers the widget (optional)
 
               - ``"data type"`` describes the type of data: *"int"*, *"float"*,
-                *"bool"* or *"str"* (default).
+                *"bool"* or *"str"* (default). Only relevant for entry widgets.
 
-            ``tooltip`` is optional for all widgets.
-            ``name`` is not relevant for *Label* widgets, which don't store data.
-            ``data type`` is only relevant for *Entry* widgets
+              - ``min_value`` can be defined if data type is *"int"* or
+                *"float"*, to limit the possible value range in an
+                entry widget
+
+              - ``max_value`` can be defined if data type is *"int"* or
+                *"float"*, to limit the possible value range in an
+                entry widget
         """
         qt.QWidget.__init__(self, parent)
         layout = qt.QVBoxLayout(self)
@@ -332,6 +336,8 @@ class FieldSheet(qt.QWidget):
             text = field["text"]
             tooltip = field.get("tooltip")
             data_type = field.get("data type")
+            min_value = field.get("min value")
+            max_value = field.get("max value")
 
 
             myfield = None
@@ -341,7 +347,9 @@ class FieldSheet(qt.QWidget):
                 myfield = MyCheckField(self, keys=key, text=text)
             elif fieldtype == "EntryField":
                 myfield = MyEntryField(self, keys=key, text=text,
-                                       data_type=data_type)
+                                       data_type=data_type,
+                                       min_value=min_value,
+                                       max_value=max_value)
             # elif fieldtype == "RadioField":
             #     myfield = RadioField(self, keys=key, params=parameters)
 
@@ -357,6 +365,7 @@ class FieldSheet(qt.QWidget):
         """
         result = {}
         for field in self.fields:
+
             result.update(field.getValue())
         return result
 
@@ -368,6 +377,8 @@ class FieldSheet(qt.QWidget):
         """
         for field in self.fields:
             field.setDefaults(default_dict)
+
+
 
 
 class Label(qt.QWidget):
@@ -445,13 +456,18 @@ class MyEntryField(EntryField):
 
     def __init__(self, parent=None,
                  keys=(), text=None,
-                 data_type=None):
+                 data_type=None, min_value=None,
+                 max_value=None):
         """
 
         :param parent: Parent widget
         :param keys: Keys of :attr:`internal_dict`
         :param str text: Text to be displayed in the label.
-        :param str data_type: Text to be displayed in the label.
+        :param str data_type: *str*, *int*, *float* or *bool*
+        :param str min_value: Minimum acceptable value, if
+            data_type is *int* or *float*
+        :param str max_value: Maximum acceptable value, if
+            data_type is *int* or *float*
         """
         EntryField.__init__(self, parent)
         self.internal_dict = {}
@@ -467,8 +483,15 @@ class MyEntryField(EntryField):
 
         self._data_type = data_type
 
+        self._min_value = min_value
+        self._max_value = max_value
+        if min_value is not None and max_value is not None:
+            if min_value > max_value:
+                raise ValueError("min_value must be lower than max_value")
+
     def getValue(self):
         """Return :attr:`internal_dict`"""
+        self.setValueInRange()
         return self.internal_dict
 
     def setValue(self, value):
@@ -488,6 +511,31 @@ class MyEntryField(EntryField):
                     self.internal_dict[key] = True
             else:
                 self.internal_dict[key] = str_value
+
+    def setValueInRange(self):
+        """Ensure the value is in the allowed range.
+        Display warning dialog and enforce minimum and maximum"""
+        for key in self.internal_dict.keys():
+            if self._min_value is not None:
+                if self._min_value > self.internal_dict[key]:
+                    msg = qt.QMessageBox()
+                    msg.setIcon(qt.QMessageBox.Warning)
+                    msg.setText("%s value lower than allowed minimum" % key)
+                    msg.setInformativeText("Setting %s=%s" % (key, str(self._min_value)))
+                    msg.exec_()
+                    # update QLineEdit, which triggers setValue for all keys
+                    self.Entry.setText(str(self._min_value))
+                    return
+
+            if self._max_value is not None:
+                if self._max_value < self.internal_dict[key]:
+                    msg = qt.QMessageBox()
+                    msg.setIcon(qt.QMessageBox.Warning)
+                    msg.setText("%s value higher than allowed maximum" % key)
+                    msg.setInformativeText("Setting %s=%s" % (key, str(self._max_value)))
+                    msg.exec_()
+                    self.Entry.setText(str(self._max_value))
+                    return
 
     def setDefaults(self, default_dict):
         """Update values in :attr:`internal_dict` with values in
