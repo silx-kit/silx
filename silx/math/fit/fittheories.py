@@ -95,7 +95,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "01/07/2016"
+__date__ = "15/09/2016"
 
 
 DEFAULT_CONFIG = {'NoConstraintsFlag': False,
@@ -269,9 +269,9 @@ class FitTheories(object):
             search_fwhm = 3
             self.config['FwhmPoints'] = 3
 
-        if search_sens < 1:
-            search_sens = 1
-            self.config['Sensitivity'] = 1
+        # if search_sens < 1:
+        #     search_sens = 1
+        #     self.config['Sensitivity'] = 1
 
         npoints = len(y)
 
