@@ -467,10 +467,22 @@ class SelectPolygon(Select):
             if btn == LEFT_BTN:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
-                self.points[-1] = dataPos
                 self.updateSelectionArea()
-                if self.points[-2] != self.points[-1]:
+
+                # checking that the new points isnt the same (within range)
+                # of the previous one
+                # This has to be done because sometimes the mouse release event
+                # is caught right after entering the Select state (i.e : press
+                # in Idle state, but with a slightly different position that
+                # the mouse press. So we had the two first vertices that were
+                # almost identical.
+                dx = abs(self.points[-2][0] - dataPos[0])
+                dy = abs(self.points[-2][1] - dataPos[1])
+                if(dx >= self.machine.DRAG_THRESHOLD_DIST and
+                   dy >= self.machine.DRAG_THRESHOLD_DIST):
                     self.points.append(dataPos)
+                else:
+                    self.points[-1] = dataPos
 
                 return True
 
