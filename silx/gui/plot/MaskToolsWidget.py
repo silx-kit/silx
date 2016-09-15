@@ -485,32 +485,26 @@ class MaskToolsWidget(qt.QWidget):
         widget.setLayout(layout)
         return widget
 
+    def _initTransmparencyWidget(self):
+        """ Init the mask transparency widget """
+        transparencyWidget = qt.QWidget(self)
+        grid = qt.QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
+        self.transparencySlider.setRange(3, 10)
+        self.transparencySlider.setValue(5)
+        self.transparencySlider.setToolTip(
+            'Set the transparency of the mask display')
+        self.transparencySlider.valueChanged.connect(self._updateColors)
+        grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
+        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
+        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>', parent=transparencyWidget), 1, 1)
+        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>', parent=transparencyWidget), 1, 3)
+        transparencyWidget.setLayout(grid)
+        return transparencyWidget
+
     def _initMaskGroupBox(self):
         """Init general mask operation widgets"""
-        def _initDisplayWidget():
-            widget = qt.QWidget(self)
-            return widget
-
-        def _initMaskButtons():
-            widget = qt.QWidget(self)
-            return widget
-
-        def _initTransmparencyWidget():
-            transparencyWidget = qt.QWidget(self)
-            grid = qt.QGridLayout()
-            grid.setContentsMargins(0, 0, 0, 0)
-            self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
-            self.transparencySlider.setRange(3, 10)
-            self.transparencySlider.setValue(5)
-            self.transparencySlider.setToolTip(
-                'Set the transparency of the mask display')
-            self.transparencySlider.valueChanged.connect(self._updateColors)
-            grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
-            grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
-            grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>', parent=transparencyWidget), 1, 1)
-            grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>', parent=transparencyWidget), 1, 3)
-            transparencyWidget.setLayout(grid)
-            return transparencyWidget
 
         # Mask level 
         self.levelSpinBox = qt.QSpinBox()
@@ -522,7 +516,7 @@ class MaskToolsWidget(qt.QWidget):
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
         # Transarency
-        self.transparencyWidget = _initTransmparencyWidget()
+        self.transparencyWidget = self._initTransmparencyWidget()
 
         # Buttons group
         invertBtn = qt.QPushButton('Invert')
@@ -1000,9 +994,7 @@ class MaskToolsWidget(qt.QWidget):
         colors[:, :3] = self._defaultOverlayColor[:3]
 
         # check if some colors has been directly set by the user
-        for iVal in numpy.arange(0, 255) :
-            if self._defaultColors[iVal] == False :
-                colors[iVal, :3] = self._overlayColors[iVal]
+        colors[self._defaultColors==False, :3] = self._overlayColors[self._defaultColors==False, :3]
 
         # Set alpha
         colors[:, -1] = alpha / 2.
@@ -1017,6 +1009,7 @@ class MaskToolsWidget(qt.QWidget):
 
     def setMaskColors(self, rgb, level=None):
         """Set the masks color
+
         :param rgb: The rgb color
         :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
         """
