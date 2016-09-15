@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "15/09/2016"
 
 
 import os
@@ -164,6 +164,15 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         self.__animatedIcon = icons.getWaitIcon()
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
+
+        # store used icons to avoid to avoid the cache to release it
+        self.__icons = []
+        self.__icons.append(icons.getQIcon("item-0dim"))
+        self.__icons.append(icons.getQIcon("item-1dim"))
+        self.__icons.append(icons.getQIcon("item-2dim"))
+        self.__icons.append(icons.getQIcon("item-3dim"))
+        self.__icons.append(icons.getQIcon("item-ndim"))
+        self.__icons.append(icons.getQIcon("item-object"))
 
     def __updateLoadingItems(self, icon):
         for i in range(self.__root.childCount()):
