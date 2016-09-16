@@ -515,7 +515,7 @@ class MaskToolsWidget(qt.QWidget):
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
         # Transarency
-        self.transparencyWidget = self._initTransmparencyWidget()
+        self.transparencyWidget = self._initTransparencyWidget()
 
         # Buttons group
         invertBtn = qt.QPushButton('Invert')
