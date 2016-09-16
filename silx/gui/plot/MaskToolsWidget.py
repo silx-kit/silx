@@ -327,8 +327,8 @@ class MaskToolsWidget(qt.QWidget):
     _maxLevelNumber = 255
 
     def __init__(self, plot, parent=None):
-        self._defaultColors = numpy.ndarray((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
-        self._overlayColors = numpy.ndarray((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
+        self._defaultColors = numpy.ones((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
+        self._overlayColors = numpy.zeros((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
 
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
@@ -340,7 +340,6 @@ class MaskToolsWidget(qt.QWidget):
             'vmin': 0, 'vmax': self._maxLevelNumber,
             'colors': None}
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
-        self._defaultColors[:]=True
         self._setMaskColors(1, 0.5)
 
         self._doMask = None  # Store mask/unmask state while interacting
@@ -485,7 +484,7 @@ class MaskToolsWidget(qt.QWidget):
         widget.setLayout(layout)
         return widget
 
-    def _initTransmparencyWidget(self):
+    def _initTransparencyWidget(self):
         """ Init the mask transparency widget """
         transparencyWidget = qt.QWidget(self)
         grid = qt.QGridLayout()
@@ -1013,9 +1012,9 @@ class MaskToolsWidget(qt.QWidget):
         :param level: the index of the mask for which we want to reset the color. If none we will reset color for all masks.
         """
         if level is None:
-            self._defaultColors[level] = None
+            self._defaultColors[level] = True
         else:
-            self._defaultColors[:] = None
+            self._defaultColors[:] = True
 
         self._updateColors()
 
@@ -1026,7 +1025,7 @@ class MaskToolsWidget(qt.QWidget):
         :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
         """
         if level is None:
-            self._overlayColors = rgb
+            self._overlayColors[:] = rgb
             self._defaultColors[:] = False
         else:
             self._overlayColors[level] = rgb
