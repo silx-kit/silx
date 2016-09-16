@@ -28,7 +28,6 @@ __author__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/09/2016"
 
-
 import numpy as np
 from silx.gui import qt, icons
 
@@ -52,12 +51,28 @@ class RoiItemBase(qt.QObject):
         self._finished = False
         self._connected = False
         self._editing = False
+        self._visible = True
 
         if not name:
             uuid = str(id(self))
             name = '{0}_{1}'.format(self.__class__.__name__, uuid)
 
         self._name = name
+
+    def setVisible(self, visible):
+        self._visible = visible
+        if not visible:
+            self._disconnect()
+            self._remove()
+        else:
+            self._connect()
+            self._draw(drawAnchors=self._editing)
+
+    def _remove(self, anchors=True, shape=True):
+        if anchors:
+            {self._plot.removeMarker(item) for item in self._anchors}
+        if shape:
+            self._plot.removeItem(self._name)
 
     def _interactiveModeChanged(self, source):
         if source is not self or source is not self.parent():
@@ -169,7 +184,7 @@ class RoiItemBase(qt.QObject):
             self._draw()
         else:
             self._disconnect()
-            {self._plot.removeMarker(item) for item in self._anchors}
+            self._remove(shape=False)
             self.editStopped()
             self._draw(drawAnchors=False)
 
@@ -355,48 +370,109 @@ class ImageRoiManager(qt.QObject):
 
         self._plot = plot
 
-        self._actionGroup = actionGroup = qt.QActionGroup(self)
+        self._multipleSelection = False
+        self._roiVisible = True
 
-        # TODO : set the initial state of the actions
-        # depending on the drawing mode?
-        self._actions = {}
-        for shape, icon, klass in zip(self.shapes, self.icons, self.classes):
-            action = qt.QAction(icons.getQIcon(icon), shape, None)
-            action.setCheckable(True)
-            action.setChecked(False)
-            self._actions[shape] = (action, klass)
-            actionGroup.addAction(action)
-
-        actionGroup.triggered.connect(self._actionTriggered,
-                                      qt.Qt.QueuedConnection)
-
-        self._plot.sigInteractiveModeChanged.connect(
-            self._interactiveModeChanged, qt.Qt.QueuedConnection)
+        self._roiActions = None
+        self._optionActions = None
+        self._roiActionGroup = None
 
         self._currentShape = None
 
         self._rois = {}
 
-    def _actionTriggered(self, action):
+        self._plot.sigInteractiveModeChanged.connect(
+            self._interactiveModeChanged, qt.Qt.QueuedConnection)
 
+    def _createRoiActions(self):
+
+        if self._roiActions:
+            return self._roiActions
+
+        # roi shapes
+        self._roiActionGroup = roiActionGroup = qt.QActionGroup(self)
+
+        self._roiActions = roiActions = {}
+        for shape, icon, klass in zip(self.shapes, self.icons, self.classes):
+            action = qt.QAction(icons.getQIcon(icon), shape, None)
+            action.setCheckable(True)
+            roiActions[shape] = (action, klass)
+            roiActionGroup.addAction(action)
+            if shape == self._currentShape:
+                action.setChecked(True)
+            else:
+                action.setChecked(False)
+
+        roiActionGroup.triggered.connect(self._roiActionTriggered,
+                                         qt.Qt.QueuedConnection)
+
+        return roiActions
+
+    def _createOptionActions(self):
+
+        if self._optionActions:
+            return self._optionActions
+
+        # options
+        self._optionActions = optionActions = {}
+
+        action = qt.QAction(u'\u2685', None)
+        action.setCheckable(True)
+        action.setChecked(self._multipleSelection)
+        action.setToolTip('Single/Multiple ROI selection')
+        action.setText(u'\u2682' if self._multipleSelection else u'\u2680')
+        action.triggered.connect(self.allowMultipleSelections)
+        optionActions['multiple'] = action
+
+        action = qt.QAction(u'\U0001F440', None)
+        action.setCheckable(True)
+        action.setChecked(self._roiVisible)
+        action.setToolTip('Show/Hide ROI(s)')
+        action.triggered.connect(self.showRois)
+        optionActions['show'] = action
+
+        return optionActions
+
+    def showRois(self, show):
+        self._roiVisible = show
+        if self._optionActions:
+            action = self._optionActions['show']
+            action.setText(u'\U0001F440' if show else u'\u2012')
+            if self.sender() != action:
+                action.setChecked(show)
+        {roi.setVisible(show) for roi in self._rois.values()}
+
+    def allowMultipleSelections(self, allow):
+        self._multipleSelection = allow
+        if self._optionActions:
+            action = self._optionActions['multiple']
+            action.setText(u'\u2682' if allow else u'\u2680')
+            if self.sender() != action:
+                action.setChecked(allow)
+
+    def _optionActionTriggered(self, action):
+        print action.text(), action.isChecked()
+
+    def _roiActionTriggered(self, action):
         if not action.isChecked():
             return
 
         shape, klass = [(shape, klass) for shape, (act, klass)
-                        in self._actions.items() if act == action][0]
+                        in self._roiActions.items() if act == action][0]
 
-        # zoom mode, no need to listen to the plot signals anymore
-        # because for now the rois can only be toggled through this
-        # class (but later... who knows)
+        self._currentShape = shape
         if shape == 'zoom':
-            self._currentShape = None
             self._plot.setInteractiveMode('zoom', source=self)
         elif shape == 'edit':
             self._plot.setInteractiveMode('zoom', source=self)
             {item.edit(True) for item in self._rois.values()}
         else:
-            {item.edit(False) for item in self._rois.values()}
-            self._currentShape = shape
+            if not self._multipleSelection:
+                {roi.setVisible(False) for roi in self._rois.values()}
+                self._rois = {}
+            else:
+                {item.edit(False) for item in self._rois.values()}
+                self.showRois(True)
             item = klass(self._plot, self)
             item.sigRoiFinished.connect(self._roiDrawingFinished,
                                         qt.Qt.QueuedConnection)
@@ -406,7 +482,9 @@ class ImageRoiManager(qt.QObject):
     def _roiDrawingFinished(self, name):
         item = self._rois[name]
         item.sigRoiFinished.disconnect(self._roiDrawingFinished)
-        self._actions['edit'][0].setChecked(True)
+        if self._roiActions:
+            self._roiActions['edit'][0].setChecked(True)
+        self._currentShape = 'edit'
         self._plot.setInteractiveMode('zoom', source=self)
         {item.edit(True) for item in self._rois.values()}
 
@@ -417,42 +495,37 @@ class ImageRoiManager(qt.QObject):
         if source in self._rois.values():
             pass
         elif source is not self:
-            if self._currentShape is not None:
-                action = self._actions[self._currentShape][0]
-                action.setChecked(False)
-                self._currentShape = None
             mode = self._plot.getInteractiveMode()
             if mode['mode'] == 'zoom':
-                self._actions['zoom'][0].setChecked(True)
-            else:
-                self._actions['zoom'][0].setChecked(False)
+                self._currentShape = 'zoom'
+                if self._roiActions:
+                    self._roiActions['zoom'][0].setChecked(True)
+            elif self._currentShape is not None and self._roiActions:
+                self._roiActions[self._currentShape][0].setChecked(False)
+                self._currentShape = None
 
-    roiActions = property(lambda self: (self._actions[name][0]
+    roiActions = property(lambda self: (self._createRoiActions()[name][0]
                                         for name in self.shapes))
+
+    @property
+    def optionActions(self):
+        actions = self._createOptionActions()
+        return [actions[k] for k in sorted(actions.keys())]
+
+    def toolBar(self):
+        roiActions = self.roiActions
+        optionActions = self.optionActions
+
+        toolBar = qt.QToolBar('Roi')
+        toolBar.addWidget(qt.QLabel('Roi'))
+        {toolBar.addAction(action) for action in roiActions}
+
+        toolBar.addSeparator()
+
+        {toolBar.addAction(action) for action in optionActions}
+
+        return toolBar
 
 
 if __name__ == '__main__':
-    from silx.gui.plot import ImageView, PlotWindow
-
-    data = np.ones((100, 200))
-    data[0::5, 0::5] = 0
-
-    app = qt.QApplication([])
-    if 0:
-        plotWin = PlotWindow()
-        plotWin.addImage(data)
-    else:
-        plotWin = ImageView.ImageView()
-        plotWin.setImage(data)
-
-    plotWin.setKeepDataAspectRatio(True)
-    plotWin.setAttribute(qt.Qt.WA_DeleteOnClose)
-    plotWin.setActiveCurveHandling(False)
-
-    roiManager = ImageRoiManager(plotWin)
-    toolBar = qt.QToolBar('Selection')
-    toolBar.addWidget(qt.QLabel('Roi'))
-    {toolBar.addAction(action) for action in roiManager.roiActions}
-    plotWin.addToolBar(toolBar)
-    plotWin.show()
-    app.exec_()
+    pass
