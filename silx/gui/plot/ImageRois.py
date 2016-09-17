@@ -33,7 +33,9 @@ from silx.gui import qt, icons
 
 
 class RoiItemBase(qt.QObject):
-    sigRoiFinished = qt.Signal(str)
+    sigRoiDrawingFinished = qt.Signal(str)
+    sigRoiEdited = qt.Signal(str)
+    sigRoiEditingFinished = qt.Signal(str)
 
     shape = None
 
@@ -98,6 +100,7 @@ class RoiItemBase(qt.QObject):
                 y = event['y']
                 self.setAnchorData(label, (x, y))
                 self.anchorMoved(label, x, y, idx)
+                self.sigRoiEdited.emit(self._name)
                 self._draw()
 
     def registerAnchor(self, anchor, point, idx=-1):
@@ -187,6 +190,7 @@ class RoiItemBase(qt.QObject):
             self._remove(shape=False)
             self.editStopped()
             self._draw(drawAnchors=False)
+            self.sigRoiEditingFinished.emit(self._name)
 
         self._editing = enable
 
@@ -194,7 +198,7 @@ class RoiItemBase(qt.QObject):
         self.drawFinished(event)
         self._draw(drawAnchors=False)
         self._finished = True
-        self.sigRoiFinished.emit(self.name)
+        self.sigRoiDrawingFinished.emit(self.name)
         self._disconnect()
 
     def _cancel(self):
@@ -358,8 +362,9 @@ class RectRoiItem(RoiItemBase):
 
 class ImageRoiManager(qt.QObject):
     sigRoiAdded = qt.Signal(str)
-    sigRoiMoved = qt.Signal(str, object)
-    sigRoiDeleted = qt.Signal(str)
+    sigRoiEdited = qt.Signal(str)
+    sigRoiRemoved = qt.Signal(str)
+    sigRoiEditingFinished = qt.Signal(str)
 
     shapes = ('zoom', 'edit', 'rectangle', 'polygon',)
     icons = ('normal', 'crosshair', 'shape-rectangle', 'shape-polygon',)
@@ -450,9 +455,6 @@ class ImageRoiManager(qt.QObject):
             if self.sender() != action:
                 action.setChecked(allow)
 
-    def _optionActionTriggered(self, action):
-        print action.text(), action.isChecked()
-
     def _roiActionTriggered(self, action):
         if not action.isChecked():
             return
@@ -468,29 +470,41 @@ class ImageRoiManager(qt.QObject):
             {item.edit(True) for item in self._rois.values()}
         else:
             if not self._multipleSelection:
-                {roi.setVisible(False) for roi in self._rois.values()}
+                for roi in self._rois.values():
+                    roi.setVisible(False)
+                    self.sigRoiRemoved.emit(roi.name)
                 self._rois = {}
             else:
                 {item.edit(False) for item in self._rois.values()}
                 self.showRois(True)
             item = klass(self._plot, self)
-            item.sigRoiFinished.connect(self._roiDrawingFinished,
-                                        qt.Qt.QueuedConnection)
+            item.sigRoiDrawingFinished.connect(self._roiDrawingFinished,
+                                               qt.Qt.QueuedConnection)
             self._rois[item.name] = item
             item.start()
 
     def _roiDrawingFinished(self, name):
         item = self._rois[name]
-        item.sigRoiFinished.disconnect(self._roiDrawingFinished)
+        item.sigRoiDrawingFinished.disconnect(self._roiDrawingFinished)
         if self._roiActions:
             self._roiActions['edit'][0].setChecked(True)
         self._currentShape = 'edit'
         self._plot.setInteractiveMode('zoom', source=self)
-        {item.edit(True) for item in self._rois.values()}
+        item.edit(True)
+        self.sigRoiAdded.emit(item.name)
+        item.sigRoiEdited.connect(self._roiEdited)
+        item.sigRoiEditingFinished.connect(self._roiEditingFinished)
+        # {item.edit(True) for item in self._rois.values()}
+
+    def _roiEdited(self, name):
+        self.sigRoiEdited.emit(name)
+
+    def _roiEditingFinished(self, name):
+        self.sigRoiEditingFinished.emit(name)
 
     def _interactiveModeChanged(self, source):
         """Handle plot interactive mode changed:
-        If changed from elsewhere, disable tool
+        If changed from elsewhere, disable tool.
         """
         if source in self._rois.values():
             pass
