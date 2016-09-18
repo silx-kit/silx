@@ -22,14 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Functions to prepare events to be sent to Plot callback."""
+"""Roi items."""
+
+import numpy as np
+from silx.gui import qt, icons
 
 __author__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/09/2016"
-
-import numpy as np
-from silx.gui import qt, icons
 
 
 class RoiItemBase(qt.QObject):
@@ -366,14 +366,18 @@ class ImageRoiManager(qt.QObject):
     sigRoiRemoved = qt.Signal(str)
     sigRoiEditingFinished = qt.Signal(str)
 
-    shapes = ('zoom', 'edit', 'rectangle', 'polygon',)
-    icons = ('normal', 'crosshair', 'shape-rectangle', 'shape-polygon',)
-    classes = (None, None, RectRoiItem, PolygonRoiItem,)
+    roiShapes = ('rectangle', 'polygon',)
+    roiIcons = ('shape-rectangle', 'shape-polygon',)
+    roiClasses = (RectRoiItem, PolygonRoiItem,)
 
     def __init__(self, plot, parent=None):
         super(ImageRoiManager, self).__init__(parent=parent)
 
         self._plot = plot
+
+        self._shapes = ('zoom', 'edit') + self.roiShapes
+        self._icons = ('normal', 'crosshair') + self.roiIcons
+        self._classes = (None, None) + self.roiClasses
 
         self._multipleSelection = False
         self._roiVisible = True
@@ -398,7 +402,10 @@ class ImageRoiManager(qt.QObject):
         self._roiActionGroup = roiActionGroup = qt.QActionGroup(self)
 
         self._roiActions = roiActions = {}
-        for shape, icon, klass in zip(self.shapes, self.icons, self.classes):
+
+        for shape, icon, klass in zip(self._shapes,
+                                      self._icons,
+                                      self._classes):
             action = qt.QAction(icons.getQIcon(icon), shape, None)
             action.setCheckable(True)
             roiActions[shape] = (action, klass)
@@ -492,10 +499,6 @@ class ImageRoiManager(qt.QObject):
         else:
             if not self._multipleSelection:
                 self.clear()
-                #for roi in self._rois.values():
-                    #roi.setVisible(False)
-                    #self.sigRoiRemoved.emit(roi.name)
-                #self._rois = {}
             else:
                 {item.edit(False) for item in self._rois.values()}
                 self.showRois(True)
@@ -541,16 +544,46 @@ class ImageRoiManager(qt.QObject):
                 self._currentShape = None
 
     roiActions = property(lambda self: (self._createRoiActions()[name][0]
-                                        for name in self.shapes))
+                                        for name in self._shapes))
 
     @property
     def optionActions(self):
         actions = self._createOptionActions()
         return [actions[k] for k in sorted(actions.keys())]
 
-    def toolBar(self):
-        roiActions = self.roiActions
-        optionActions = self.optionActions
+    def toolBar(self,
+                options=None,
+                shapes=None):
+        """
+        shapes : list
+        """
+        if shapes is not None:
+            # this wont work if shape is a string and not an array
+            diff = set(shapes) - set(self.roiShapes)
+            if len(diff) > 0:
+                raise ValueError('Unknown shape(s) {0}.'.format(diff))
+            shapes = [shape for shape in self._shapes
+                      if shape in shapes]
+        else:
+            shapes = self._shapes
+
+        optionActions = self._createOptionActions()
+        # TODO : find a better way to ensure that the order of
+        # actions returned is always the same
+        optionNames = sorted(optionActions.keys())
+        if options is not None:
+            # this wont work if shape is a string and not an array
+            diff = set(options) - set(optionNames)
+            if len(diff) > 0:
+                raise ValueError('Unknown options(s) {0}.'.format(diff))
+            options = [option for option in optionNames
+                       if option in options]
+        else:
+            options = optionNames
+
+        roiActions = [self._createRoiActions()[name][0]
+                      for name in shapes]
+        optionActions = [optionActions[option] for option in options]
 
         toolBar = qt.QToolBar('Roi')
         toolBar.addWidget(qt.QLabel('Roi'))
