@@ -438,7 +438,28 @@ class ImageRoiManager(qt.QObject):
 
         return optionActions
 
+    def clear(self, name=None):
+        if name is None:
+            for roi in self._rois.values():
+                roi.setVisible(False)
+                self.sigRoiRemoved.emit(roi.name)
+            self._rois = {}
+        else:
+            try:
+                roi = self._rois.pop(name)
+                roi.setVisible(False)
+                self.sigRoiRemoved.emit(roi.name)
+            except KeyError:
+                # TODO : to raise or not to raise?
+                pass
+
+    rois = property(lambda self: self._rois.keys())
+
     def showRois(self, show):
+        # TODO : name param to tell that we only want to toggle
+        # one specific ROI
+        # TODO : exclusive param to tell that we want to show only
+        # one given roi (w/ name param)
         self._roiVisible = show
         if self._optionActions:
             action = self._optionActions['show']
@@ -470,10 +491,11 @@ class ImageRoiManager(qt.QObject):
             {item.edit(True) for item in self._rois.values()}
         else:
             if not self._multipleSelection:
-                for roi in self._rois.values():
-                    roi.setVisible(False)
-                    self.sigRoiRemoved.emit(roi.name)
-                self._rois = {}
+                self.clear()
+                #for roi in self._rois.values():
+                    #roi.setVisible(False)
+                    #self.sigRoiRemoved.emit(roi.name)
+                #self._rois = {}
             else:
                 {item.edit(False) for item in self._rois.values()}
                 self.showRois(True)
