@@ -562,6 +562,14 @@ class ImageRoiManager(qt.QObject):
 
         return toolBar
 
+    def roiCoords(self, name):
+        try:
+            item = self._rois[name]
+        except KeyError:
+            raise ValueError('Unknown roi {0}.'.format(name))
+
+        return (item.xData(), item.yData())
+
 
 if __name__ == '__main__':
     pass
