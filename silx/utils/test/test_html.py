@@ -37,12 +37,17 @@ class TestHtml(unittest.TestCase):
     """Tests for html module."""
 
     def testLtGt(self):
-        result = html.escape("<html>")
-        self.assertEquals("&lt;html&gt;", result)
+        result = html.escape("<html>'\"")
+        self.assertEquals("&lt;html&gt;&apos;&quot;", result)
 
     def testLtAmpGt(self):
+        # '&' have to be escaped first
         result = html.escape("<&>")
         self.assertEquals("&lt;&amp;&gt;", result)
+
+    def testNoQuotes(self):
+        result = html.escape("\"m&m's\"", quote=False)
+        self.assertEquals("\"m&amp;m's\"", result)
 
 
 def suite():

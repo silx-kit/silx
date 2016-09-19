@@ -30,7 +30,7 @@ __license__ = "MIT"
 __date__ = "19/09/2016"
 
 
-def escape(string):
+def escape(string, quote=True):
     """Returns a string where HTML metacharacters are properly escaped.
 
     Compatibility layer to avoid incompatibilities between Python versions,
@@ -47,10 +47,14 @@ def escape(string):
         `PySide`.
 
     :param str string: Human readable string.
+    :param bool quote: Escape quote and double quotes (default behaviour).
     :returns: Valid HTML syntax to display the input string.
     :rtype: str
     """
     string = string.replace("&", "&amp;")
     string = string.replace("<", "&lt;")
     string = string.replace(">", "&gt;")
+    if quote:
+        string = string.replace("'", "&apos;")
+        string = string.replace("\"", "&quot;")
     return string
