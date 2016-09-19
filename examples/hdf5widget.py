@@ -259,7 +259,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         # append all files to the tree
         for file_name in filenames:
-            self.__treeview.model().appendFile(file_name)
+            self.__treeview.findHdf5TreeModel().appendFile(file_name)
 
         self.__treeview.activated.connect(lambda index: self.displayEvent("activated", index))
         self.__treeview.clicked.connect(lambda index: self.displayEvent("clicked", index))
@@ -314,9 +314,9 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
     def __fileCreated(self, filename):
         if self.__asyncload:
-            self.__treeview.model().insertFileAsync(filename)
+            self.__treeview.findHdf5TreeModel().insertFileAsync(filename)
         else:
-            self.__treeview.model().insertFile(filename)
+            self.__treeview.findHdf5TreeModel().insertFile(filename)
 
     def customContextMenu(self, event):
         """Called to populate the context menu
@@ -424,6 +424,11 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         option.setLayout(qt.QVBoxLayout())
         panel.layout().addWidget(option)
 
+        sorting = qt.QCheckBox("Enable sorting", option)
+        sorting.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
+        sorting.toggled.connect(lambda: treeview.setSortingEnabled(sorting.isChecked()))
+        option.layout().addWidget(sorting)
+
         multiselection = qt.QCheckBox("Multi-selection", option)
         multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
         switch_selection = lambda: treeview.setSelectionMode(
@@ -433,13 +438,13 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         option.layout().addWidget(multiselection)
 
         filedrop = qt.QCheckBox("Drop external file", option)
-        filedrop.setChecked(treeview.model().isFileDropEnabled())
-        filedrop.toggled.connect(lambda: treeview.model().setFileDropEnabled(filedrop.isChecked()))
+        filedrop.setChecked(treeview.findHdf5TreeModel().isFileDropEnabled())
+        filedrop.toggled.connect(lambda: treeview.findHdf5TreeModel().setFileDropEnabled(filedrop.isChecked()))
         option.layout().addWidget(filedrop)
 
         filemove = qt.QCheckBox("Reorder files", option)
-        filemove.setChecked(treeview.model().isFileMoveEnabled())
-        filemove.toggled.connect(lambda: treeview.model().setFileMoveEnabled(filedrop.isChecked()))
+        filemove.setChecked(treeview.findHdf5TreeModel().isFileMoveEnabled())
+        filemove.toggled.connect(lambda: treeview.findHdf5TreeModel().setFileMoveEnabled(filedrop.isChecked()))
         option.layout().addWidget(filemove)
 
         option.layout().addStretch(1)
@@ -459,8 +464,8 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         option.layout().addWidget(columnpopup)
 
         define_columns = qt.QComboBox()
-        define_columns.addItem("Default columns", treeview.model().COLUMN_IDS)
-        define_columns.addItem("Only name and Value", [treeview.model().NAME_COLUMN, treeview.model().VALUE_COLUMN])
+        define_columns.addItem("Default columns", treeview.findHdf5TreeModel().COLUMN_IDS)
+        define_columns.addItem("Only name and Value", [treeview.findHdf5TreeModel().NAME_COLUMN, treeview.findHdf5TreeModel().VALUE_COLUMN])
         define_columns.activated.connect(lambda index: treeview.header().setSections(define_columns.itemData(index)))
         option.layout().addWidget(define_columns)
 

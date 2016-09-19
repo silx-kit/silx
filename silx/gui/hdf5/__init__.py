@@ -33,5 +33,6 @@ __date__ = "13/09/2016"
 
 from .Hdf5TreeView import Hdf5TreeView  # noqa
 from ._utils import Hdf5ContextMenuEvent  # noqa
+from .Hdf5TreeModel import Hdf5TreeModel  # noqa
 
 __all__ = ['Hdf5TreeView', 'Hdf5ContextMenuEvent']

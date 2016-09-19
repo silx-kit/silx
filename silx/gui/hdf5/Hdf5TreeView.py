@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "19/09/2016"
 
 
 import logging
@@ -91,7 +91,7 @@ class Hdf5TreeView(qt.QTreeView):
         menu = qt.QMenu(self)
 
         hovered_index = self.indexAt(pos)
-        hovered_node = self.model().nodeFromIndex(hovered_index)
+        hovered_node = self.model().data(hovered_index, Hdf5TreeModel.H5PY_ITEM_ROLE)
         hovered_object = hovered_node.obj
 
         event = _utils.Hdf5ContextMenuEvent(self, menu, hovered_object)
@@ -127,15 +127,35 @@ class Hdf5TreeView(qt.QTreeView):
         """Unregister a context menu callback"""
         self.__context_menu_callbacks.remove(callback)
 
+    def findHdf5TreeModel(self):
+        """Find the Hdf5TreeModel from the stack of model filters.
+
+        :returns: A Hdf5TreeModel, else None
+        :rtype: Hdf5TreeModel
+        """
+        model = self.model()
+        while model is not None:
+            if isinstance(model, qt.QAbstractProxyModel):
+                model = model.sourceModel()
+            break
+        if model is None:
+            return None
+        if isinstance(model, Hdf5TreeModel):
+            return model
+        else:
+            return None
+
     def dragEnterEvent(self, event):
-        if self.model().isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+        model = self.findHdf5TreeModel()
+        if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
             self.setState(qt.QAbstractItemView.DraggingState)
             event.accept()
         else:
             qt.QTreeView.dragEnterEvent(self, event)
 
     def dragMoveEvent(self, event):
-        if self.model().isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
+        model = self.findHdf5TreeModel()
+        if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
             event.setDropAction(qt.Qt.LinkAction)
             event.accept()
         else:
@@ -151,7 +171,7 @@ class Hdf5TreeView(qt.QTreeView):
         for index in self.selectedIndexes():
             if index.column() != 0:
                 continue
-            item = self.model().nodeFromIndex(index)
+            item = self.model().data(index, Hdf5TreeModel.H5PY_ITEM_ROLE)
             if item is None:
                 continue
             if isinstance(item, Hdf5Item):

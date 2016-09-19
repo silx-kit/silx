@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "19/09/2016"
 
 
 import os
@@ -116,6 +116,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     The main column display the h5py.File list and there hierarchy. Other
     columns dipslay information on node hierarchy.
     """
+
+    H5PY_ITEM_ROLE = qt.Qt.UserRole
+    """Role to reach h5py item from an item index"""
+
+    H5PY_OBJECT_ROLE = qt.Qt.UserRole + 1
+    """Role to reach h5py object from an item index"""
 
     NAME_COLUMN = 0
     """Column id containing HDF5 node names"""
@@ -347,6 +353,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def data(self, index, role):
         node = self.nodeFromIndex(index)
+
+        if role == self.H5PY_ITEM_ROLE:
+            return node
+
+        if role == self.H5PY_OBJECT_ROLE:
+            return node.obj
 
         if index.column() == self.NAME_COLUMN:
             return node.dataName(role)
