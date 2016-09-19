@@ -51,7 +51,7 @@ def escape(string, quote=True):
     :returns: Valid HTML syntax to display the input string.
     :rtype: str
     """
-    string = string.replace("&", "&amp;")
+    string = string.replace("&", "&amp;")  # must be done first
     string = string.replace("<", "&lt;")
     string = string.replace(">", "&gt;")
     if quote:
