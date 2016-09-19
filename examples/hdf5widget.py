@@ -328,8 +328,8 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         menu = event.menu()
 
         hasDataset = False
-        for object in selectedObjects:
-            if hasattr(object, "value"):
+        for obj in selectedObjects:
+            if hasattr(obj, "value"):
                 hasDataset = True
                 break
 
@@ -352,9 +352,9 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         if len(menu.children()):
             menu.addSeparator()
 
-        for object in selectedObjects:
-            if hasattr(object, "filename"):
-                filename = os.path.basename(object.filename)
+        for obj in selectedObjects:
+            if hasattr(obj, "filename"):
+                filename = os.path.basename(obj.filename)
                 action = qt.QAction("Do something on %s" % filename, event.source())
                 menu.addAction(action)
 
