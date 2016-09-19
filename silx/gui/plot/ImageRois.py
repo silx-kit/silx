@@ -556,14 +556,14 @@ class ImageRoiManager(qt.QObject):
                 shapes=None):
         """
         shapes : list
+        options : list
         """
         if shapes is not None:
             # this wont work if shape is a string and not an array
             diff = set(shapes) - set(self.roiShapes)
             if len(diff) > 0:
                 raise ValueError('Unknown shape(s) {0}.'.format(diff))
-            shapes = [shape for shape in self._shapes
-                      if shape in shapes]
+            shapes = set(self._shapes) - (set(self.roiShapes) - set(shapes))
         else:
             shapes = self._shapes
 
