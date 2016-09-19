@@ -33,6 +33,7 @@ from .. import qt
 from ...utils import weakref as silxweakref
 from .Hdf5TreeModel import Hdf5TreeModel
 from .Hdf5HeaderView import Hdf5HeaderView
+from .NexusSortFilterProxyModel import NexusSortFilterProxyModel
 from .Hdf5Item import Hdf5Item
 from . import _utils
 
@@ -45,8 +46,9 @@ class Hdf5TreeView(qt.QTreeView):
     It provids columns width auto-resizing and additional
     signals.
 
-    The default model is `Hdf5TreeModel` and the default header is
-    `Hdf5HeaderView`.
+    The default model is a `NexusSortFilterProxyModel` sourcing
+    a `Hdf5TreeModel`. The `Hdf5TreeModel` is reachable using
+    `findHdf5TreeModel`. The default header is `Hdf5HeaderView`.
 
     Context menu is managed by the `setContextMenuPolicy` with the value
     CustomContextMenu. This policy must not be changed, else context menus
@@ -61,7 +63,12 @@ class Hdf5TreeView(qt.QTreeView):
         :param parent qt.QWidget: The parent widget
         """
         qt.QTreeView.__init__(self, parent)
-        self.setModel(Hdf5TreeModel())
+
+        model = Hdf5TreeModel(self)
+        proxy_model = NexusSortFilterProxyModel(self)
+        proxy_model.setSourceModel(model)
+        self.setModel(proxy_model)
+
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         # optimise the rendering
