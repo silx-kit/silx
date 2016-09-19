@@ -26,7 +26,7 @@
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -138,7 +138,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if (len(color) == 4 and
                 type(color[3]) in [type(1), numpy.uint8, numpy.int8]):
-            color = numpy.array(color, dtype=numpy.float)/255.
+            color = numpy.array(color, dtype=numpy.float) / 255.
 
         if yaxis == "right":
             axes = self.ax2
@@ -291,7 +291,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 imageClass = AxesImage
             image = imageClass(self.ax,
-                               label="__IMAGE__"+legend,
+                               label="__IMAGE__" + legend,
                                interpolation='nearest',
                                picker=picker,
                                zorder=z)

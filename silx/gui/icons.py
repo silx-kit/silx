@@ -29,7 +29,7 @@ Use :func:`getQIcon` to create Qt QIcon from the name identifying an icon.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -200,17 +200,17 @@ def getQFile(name):
         _supported_formats = []
         supported_formats = qt.supportedImageFormats()
         order = ["mng", "gif", "svg", "png", "jpg"]
-        for format in order:
-            if format in supported_formats:
-                _supported_formats.append(format)
+        for format_ in order:
+            if format_ in supported_formats:
+                _supported_formats.append(format_)
         if len(_supported_formats) == 0:
             _logger.error("No format supported for icons")
         else:
             _logger.debug("Format %s supported", ", ".join(_supported_formats))
 
-    for format in _supported_formats:
-        format = str(format)
-        filename = resource_filename('gui/icons/%s.%s' % (name, format))
+    for format_ in _supported_formats:
+        format_ = str(format_)
+        filename = resource_filename('gui/icons/%s.%s' % (name, format_))
         qfile = qt.QFile(filename)
         if qfile.exists():
             return qfile

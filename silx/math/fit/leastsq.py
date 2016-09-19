@@ -34,7 +34,7 @@ This module is a refactored version of PyMca Gefit.py module.
 """
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "02/05/2016"
+__date__ = "15/09/2016"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
@@ -427,8 +427,8 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 fittedpar = newpar.__copy__()
                 lastdeltachi = 100 * (absdeltachi / (chisq + (chisq == 0)))
                 if iteration_counter < 2:
-                  # ignore any limit, the fit *has* to be improved
-                  pass
+                    # ignore any limit, the fit *has* to be improved
+                    pass
                 elif (lastdeltachi) < deltachi:
                     iiter = 0
                 elif absdeltachi < numpy.sqrt(epsfcn):
@@ -437,7 +437,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 chisq0 = chisq
                 flambda = flambda / 10.0
                 last_evaluation = yfit
-            iiter = iiter -1
+            iiter = iiter - 1
     # this is the covariance matrix of the actually fitted parameters
     cov0 = inv(alpha0)
     if constraints is None:

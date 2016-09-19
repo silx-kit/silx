@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "18/08/2016"
+__date__ = "15/09/2016"
 
 
 import sys
@@ -72,7 +72,7 @@ LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
 cwd = os.getcwd()
 os.chdir(home)
 build = subprocess.Popen([sys.executable, "setup.py", "build"],
-                shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
+                         shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
 logger.info("Build process ended with rc= %s", build.wait())
 os.chdir(cwd)
 
