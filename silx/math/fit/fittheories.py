@@ -313,9 +313,9 @@ class FitTheories(object):
                     index_largest_peak = peak_index
                 peak_index += 1
 
-            # Make arrays 2D and substract background
-            xw = numpy.resize(x, (npoints, 1))
-            yw = numpy.resize(y - bg, (npoints, 1))
+            # Subtract background
+            xw = x
+            yw = y - bg
 
             cons = numpy.zeros((len(param), 3), numpy.float)
 
