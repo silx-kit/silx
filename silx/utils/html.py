@@ -22,18 +22,35 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Utils function relative to HTML
+"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/09/2016"
 
 
-import unittest
-from .test_weakref import suite as test_weakref_suite
-from .test_html import suite as test_html_suite
+def escape(string):
+    """Returns a string where HTML metacharacters are properly escaped.
 
+    Compatibility layer to avoid incompatibilities between Python versions,
+    Qt versions and Qt bindings.
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref_suite())
-    test_suite.addTest(test_html_suite())
-    return test_suite
+    >>> import silx.utils.html
+    >>> silx.utils.html.escape("<html>")
+    >>> "&lt;html&gt;"
+
+    .. note:: Since Python 3.3 you can use the `html` module. For previous
+        version, it is provided by `sgi` module.
+    .. note:: Qt4 provides it with `Qt.escape` while Qt5 provide it with
+        `QString.toHtmlEscaped`. But `QString` is not exposed by `PyQt` or
+        `PySide`.
+
+    :param str string: Human readable string.
+    :returns: Valid HTML syntax to display the input string.
+    :rtype: str
+    """
+    string = string.replace("&", "&amp;")
+    string = string.replace("<", "&lt;")
+    string = string.replace(">", "&gt;")
+    return string
