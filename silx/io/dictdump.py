@@ -48,7 +48,7 @@ __date__ = "15/09/2016"
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)    # noqa
 
 
 def _prepare_hdf5_dataset(array_like):

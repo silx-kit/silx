@@ -131,7 +131,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         A variable used in determining a suitable parameter variation when
         calculating the numerical derivatives (for model_deriv=None). 
         Normally the actual step length will be sqrt(epsfcn)*x
-        Original Gefit module was using epsfcn 1.0e-10 while default value
+        Original Gefit module was using epsfcn 1.0e-5 while default value
         is now numpy.finfo(numpy.float).eps as in scipy
     :type epsfcn: *optional*, float
 
@@ -404,7 +404,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                             txt += "A = %g B = %g"  % (A, B)
                             raise ValueError("Invalid parameter limits")
                     newpar[free_index[i]] = pwork [0] [i]
-                newpar = numpy.array(_get_parameters(newpar,constraints))
+                newpar = numpy.array(_get_parameters(newpar, constraints))
             workpar = numpy.take(newpar, noigno)
             yfit = model(x, *workpar)
             if last_evaluation is None:
@@ -446,7 +446,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         # yet another call needed with all the parameters being free
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x,y, weight, constraints=None,
+                                                 x, y, weight, constraints=None,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
@@ -577,7 +577,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     #nr0, nc = data.shape
     n_param = len(parameters)
     if constraints is None:
-        derivfactor = numpy.ones((n_param,))
+        derivfactor = numpy.ones((n_param, ))
         n_free = n_param
         noigno = numpy.arange(n_param)
         free_index = noigno * 1
@@ -621,9 +621,9 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                     print("Limits are %f and %f" % (pmin, pmax))
                     print("Parameter will be kept at its starting value")
     fitparam = numpy.array(fitparam, numpy.float)
-    alpha = numpy.zeros((n_free, n_free),numpy.float)
+    alpha = numpy.zeros((n_free, n_free), numpy.float)
     beta = numpy.zeros((1, n_free), numpy.float)
-    #delta = (fitparam + numpy.equal(fitparam,0.0)) * 0.00001
+    #delta = (fitparam + numpy.equal(fitparam, 0.0)) * 0.00001
     delta = (fitparam + numpy.equal(fitparam, 0.0)) * numpy.sqrt(epsfcn)
     nr  = y.size
     ##############
@@ -647,14 +647,14 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             #pwork = parameters.__copy__()
             pwork[free_index[i]] = fitparam [i] + delta [i]
             newpar = _get_parameters(pwork.tolist(), constraints)
-            newpar = numpy.take(newpar,noigno)
+            newpar = numpy.take(newpar, noigno)
             f1 = model(x, *newpar)
             f1.shape = -1
             function_calls += 1
             if left_derivative:
                 pwork[free_index[i]] = fitparam [i] - delta [i]
                 newpar = _get_parameters(pwork.tolist(), constraints)
-                newpar=numpy.take(newpar,noigno)
+                newpar=numpy.take(newpar, noigno)
                 f2 = model(x, *newpar)
                 function_calls += 1
                 help0 = (f1 - f2) / (2.0 * delta[i])
@@ -663,9 +663,9 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             help0 = help0 * derivfactor[i]
             pwork[free_index[i]] = fitparam [i]
             #removed I resize outside the loop:
-            #help0 = numpy.resize(help0,(1,nr))
+            #help0 = numpy.resize(help0, (1, nr))
         else:
-            help0 = model_deriv(x, pwork,free_index[i])
+            help0 = model_deriv(x, pwork, free_index[i])
             help0 = help0 * derivfactor[i]
 
         if i == 0:
@@ -674,14 +674,14 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
             deriv = numpy.concatenate((deriv, help0), 0)
 
     #line added to resize outside the loop
-    deriv = numpy.resize(deriv,(n_free,nr))
+    deriv = numpy.resize(deriv, (n_free, nr))
     if last_evaluation is None:
         if constraints is None:
             yfit = model(x, *fitparam)
             yfit.shape = -1
         else:
             newpar = _get_parameters(pwork.tolist(), constraints)
-            newpar = numpy.take(newpar,noigno)
+            newpar = numpy.take(newpar, noigno)
             yfit = model(x, *newpar)
             yfit.shape = -1
         function_calls += 1
@@ -690,7 +690,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
     deltay = y - yfit
     help0 = weight * deltay
     for i in range(n_free):
-        derivi = numpy.resize(deriv[i,:], (1, nr))
+        derivi = numpy.resize(deriv[i, :], (1, nr))
         help1 = numpy.resize(numpy.sum((help0 * derivi), 1), (1, 1))
         if i == 0:
             beta = help1
@@ -700,7 +700,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         if i == 0:
             alpha = help1
         else:
-            alpha = numpy.concatenate((alpha, help1),1)
+            alpha = numpy.concatenate((alpha, help1), 1)
     chisq = (help0 * deltay).sum()
     if full_output:
         ddict = {}
@@ -849,10 +849,10 @@ def main(argv=None):
                                                  check_finite=True)
     etime = time.time()
     sigmapars = numpy.sqrt(numpy.diag(cov))
-    print("Took ",etime - stime, "seconds")
-    print("Function calls  = ",ddict["nfev"])
-    print("chi square  = ",ddict["chisq"])
-    print("Fitted pars = ",fittedpar)
+    print("Took ", etime - stime, "seconds")
+    print("Function calls  = ", ddict["nfev"])
+    print("chi square  = ", ddict["chisq"])
+    print("Fitted pars = ", fittedpar)
     print("Sigma pars  = ", sigmapars)
     try:
         from scipy.optimize import curve_fit as cfit
@@ -868,7 +868,7 @@ def main(argv=None):
                                       parameters,
                                       sigma=sy)
         etime = time.time()
-        print("Scipy Took ",etime - stime, "seconds")
+        print("Scipy Took ", etime - stime, "seconds")
         print("Counter = ", counter)
         print("scipy = ", scipy_fittedpar)
         print("Sigma = ", numpy.sqrt(numpy.diag(scipy_cov)))

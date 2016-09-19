@@ -46,7 +46,7 @@ __date__ = "15/09/2016"
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
@@ -338,7 +338,7 @@ def h5ls(h5group, lvl=0):
         logger.error("h5ls requires h5py")
         raise h5py_import_error
 
-    repr = ''
+    h5repr = ''
     if isinstance(h5group, (h5py.File, h5py.Group)):
         h5f = h5group
     elif isinstance(h5group, string_types):
@@ -348,15 +348,15 @@ def h5ls(h5group, lvl=0):
 
     for key in h5f.keys():
         if hasattr(h5f[key], 'keys'):
-            repr += '\t' * lvl + '+' + key
-            repr += '\n'
-            repr += h5ls(h5f[key], lvl + 1)
+            h5repr += '\t' * lvl + '+' + key
+            h5repr += '\n'
+            h5repr += h5ls(h5f[key], lvl + 1)
         else:
-            repr += '\t' * lvl
-            repr += str(h5f[key])
-            repr += '\n'
+            h5repr += '\t' * lvl
+            h5repr += str(h5f[key])
+            h5repr += '\n'
 
     if isinstance(h5group, string_types):
         h5f.close()
 
-    return repr
+    return h5repr

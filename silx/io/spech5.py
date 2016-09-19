@@ -169,7 +169,7 @@ __date__ = "15/09/2016"
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 # Static subitems: all groups and datasets that are present in any
 # scan (excludes list of scans, data columns, list of mca devices,
@@ -241,7 +241,7 @@ def is_group(name):
         - ``is_group("spam")`` returns ``False`` because :literal:`\"spam\"`
           is not at all a valid group name.
         - ``is_group("/1.2/instrument/positioners/xyz")`` returns ``False``
-          because this key would point to a motor position, which is a
+          because this key would point to a motor position, which is a
           dataset and not a group.
     """
     group_patterns = (
