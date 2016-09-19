@@ -436,7 +436,7 @@ class ParametersTab(qt.QTabWidget):
             if view != keep:
                 self.removeView(view)
 
-    def getHTMLtext(self, name=None):
+    def getHtmlText(self, name=None):
         """Return the table data as HTML
 
         :param name: View name."""
