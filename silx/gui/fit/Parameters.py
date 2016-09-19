@@ -143,7 +143,6 @@ class Parameters(qt.QTableWidget):
         # resize columns
         for col_key in ["name", "estimation", "sigma", "val1", "val2"]:
             col_idx = self.columnIndexByField(col_key)
-            print(col_key, col_idx)
             self.resizeColumnToContents(col_idx)
 
         # Initialize the table with one line per supplied parameter
