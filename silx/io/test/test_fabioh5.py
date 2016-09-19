@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,17 +20,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for fabioh5 wrapper"""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/08/2016"
+__date__ = "21/09/2016"
 
 import logging
 import numpy
-import os
-import sys
 import unittest
 
 _logger = logging.getLogger(__name__)

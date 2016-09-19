@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module provides functions to read fabio images as an HDF5 file.
 
     >>> import silx.io.fabioh5
@@ -89,6 +89,7 @@ class Node(object):
     def name(self):
         return self.__name
 
+
 class Group(Node):
     """Class which mimick a sinple h5py group."""
 
@@ -130,10 +131,10 @@ class Group(Node):
             node = self.__items[name]
 
         if getclass:
-            object = node.__class__
+            obj = node.__class__
         else:
-            object = node
-        return object
+            obj = node
+        return obj
 
     def __len__(self):
         """Number of members attached to this group"""
@@ -272,10 +273,10 @@ class EdfMetadataGroup(MetadataGroup):
 
     def _create_mnemonic_group(self, header, base_key):
         mnemonic_values_key = base_key + "_mne"
-        mnemonic_values =  header.get(mnemonic_values_key, "")
+        mnemonic_values = header.get(mnemonic_values_key, "")
         mnemonic_values = mnemonic_values.split()
         pos_values_key = base_key + "_pos"
-        pos_values =  header.get(pos_values_key, "")
+        pos_values = header.get(pos_values_key, "")
         pos_values = pos_values.split()
 
         group = Group(base_key, self)
@@ -295,6 +296,7 @@ class EdfMetadataGroup(MetadataGroup):
             group.add_node(dataset)
 
         return group
+
 
 class FrameGroup(Group):
     """Class which contains all frames from a fabio image.
