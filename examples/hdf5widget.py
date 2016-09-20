@@ -35,6 +35,7 @@ import numpy
 import logging
 from silx.gui import qt
 import silx.gui.hdf5
+import silx.utils.html
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 import h5py
 import tempfile
@@ -277,7 +278,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
     def displayEvent(self, eventName, index):
 
         def formatKey(name, value):
-            name, value = qt.Qt.escape(str(name)), qt.Qt.escape(str(value))
+            name, value = silx.utils.html.escape(str(name)), silx.utils.html.escape(str(value))
             return "<li><b>%s</b>: %s</li>" % (name, value)
 
         text = "<html>"
