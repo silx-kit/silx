@@ -51,38 +51,13 @@ else:
 
 from ..utils import get_opencl_code
 logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
 
 if ocl:
     import pyopencl, pyopencl.array
-    ctx = ocl.create_context()
-
-    if logger.getEffectiveLevel() <= logging.INFO:
-        PROFILE = True
-        queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-        import pylab
-    else:
-        PROFILE = False
-        queue = pyopencl.CommandQueue(ctx)
-
-    kernels = {"preprocess": 8,
-               "gaussian": 512}
-
-    device = ctx.devices[0]
-    device_id = device.platform.get_devices().index(device)
-    platform_id = pyopencl.get_platforms().index(device.platform)
-    maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-
-    for kernel in list(kernels.keys()):
-        if kernels[kernel] < maxwg:
-            kernels[kernel] = maxwg
-
-    for kernel in list(kernels.keys()):
-        kernel_src = get_opencl_code(kernel)
-        program = pyopencl.Program(ctx, kernel_src).build("-D WORKGROUP=%s" % kernels[kernel])
-        kernels[kernel] = program
 
 
-def gaussian_cpu(sigma, size=None):
+def gaussian_cpu(sigma, size=None, PROFILE=False):
     """
     Calculate a 1D gaussian using numpy.
     This is the same as scipy.signal.gaussian
@@ -102,131 +77,152 @@ def gaussian_cpu(sigma, size=None):
     return g
 
 
-def gaussian_gpu_v1(sigma, size=None):
-    """
-    Calculate a 1D gaussian using pyopencl.
-    This is the same as scipy.signal.gaussian
-
-    :param sigma: width of the gaussian
-    :param size: can be calculated as 1 + 2 * 4sigma
-    """
-    if not size:
-        size = int(1 + 8 * sigma)
-    g_gpu = pyopencl.array.empty(queue, size, dtype=numpy.float32, order="C")
-    t0 = time.time()
-    evt1 = kernels["preprocess"].gaussian(queue, (size,), (1,),
-                                          g_gpu.data,  # __global     float     *data,
-                                          numpy.float32(sigma),  # const        float     sigma,
-                                          numpy.int32(size))  # const        int     SIZE
-    sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.float32, queue=queue)
-    evt2 = kernels["preprocess"].divide_cst(queue, (size,), (1,),
-                                            g_gpu.data,  # __global     float     *data,
-                                            sum_data.data,  # const        float     sigma,
-                                            numpy.int32(size))  # const        int     SIZE
-    g = g_gpu.get()
-    if PROFILE:
-        logger.info("execution time: %.3fms; Kernel took %.3fms and %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start)))
-
-    return g
-
-
-def gaussian_gpu_v2(sigma, size=None):
-    """
-    Calculate a 1D gaussian using pyopencl.
-    This is the same as scipy.signal.gaussian.
-    Only one kernel to
-
-    :param sigma: width of the gaussian
-    :param size: can be calculated as 1 + 2 * 4sigma
-    """
-    if not size:
-        size = int(1 + 8 * sigma)
-    g_gpu = pyopencl.array.empty(queue, size, dtype=numpy.float32, order="C")
-    t0 = time.time()
-    evt = kernels["gaussian"].gaussian(queue, (64,), (64,),
-                                       g_gpu.data,  # __global     float     *data,
-                                       numpy.float32(sigma),  # const        float     sigma,
-                                       numpy.int32(size))  # const        int     SIZE
-    g = g_gpu.get()
-    if PROFILE:
-        logger.info("execution time: %.3fms; Kernel took %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start)))
-    return g
-
-
-def show(ref, res, delta):
-    pylab.ion()
-    pylab.plot(ref, label="ref")
-    pylab.plot(res, label="res")
-    pylab.plot(delta, label="delta")
-    pylab.legend()
-    pylab.show()
-    raw_input("enter")
-
-
 @unittest.skipUnless(ocl and scipy, "ocl or scipy is missing")
-class test_gaussian_v1(unittest.TestCase):
+class TestGaussian(unittest.TestCase):
 
-    def test_odd(self):
+    @classmethod
+    def setUpClass(cls):
+        super(TestGaussian, cls).setUpClass()
+        cls.ctx = ocl.create_context()
+
+        if logger.getEffectiveLevel() <= logging.INFO:
+            cls.PROFILE = True
+            cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+            import pylab
+        else:
+            cls.PROFILE = False
+            cls.queue = pyopencl.CommandQueue(cls.ctx)
+
+        cls.kernels = {"preprocess": 8,
+                       "gaussian": 512}
+
+        device = cls.ctx.devices[0]
+        device_id = device.platform.get_devices().index(device)
+        platform_id = pyopencl.get_platforms().index(device.platform)
+        maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+        logger.warning("max_work_group_size: %s on (%s, %s)", maxwg, platform_id, device_id)
+        for kernel in list(cls.kernels.keys()):
+            if cls.kernels[kernel] < maxwg:
+                logger.warning("%s Limiting workgroup size to %s", kernel, maxwg)
+                cls.kernels[kernel] = maxwg
+        cls.max_wg = maxwg
+
+        for kernel in list(cls.kernels.keys()):
+            kernel_src = get_opencl_code(kernel)
+            program = pyopencl.Program(cls.ctx, kernel_src).build("-D WORKGROUP=%s" % cls.kernels[kernel])
+            cls.kernels[kernel] = program
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestGaussian, cls).tearDownClass()
+        cls.ctx = cls.kernels = cls.queue = None
+
+    @classmethod
+    def gaussian_gpu_v1(cls, sigma, size=None):
+        """
+        Calculate a 1D gaussian using pyopencl.
+        This is the same as scipy.signal.gaussian
+    
+        :param sigma: width of the gaussian
+        :param size: can be calculated as 1 + 2 * 4sigma
+        """
+        if not size:
+            size = int(1 + 8 * sigma)
+        g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
+        t0 = time.time()
+        evt1 = cls.kernels["preprocess"].gaussian(cls.queue, (size,), (1,),
+                                                  g_gpu.data,  # __global     float     *data,
+                                                  numpy.float32(sigma),  # const        float     sigma,
+                                                  numpy.int32(size))  # const        int     SIZE
+        sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.float32, queue=cls.queue)
+        evt2 = cls.kernels["preprocess"].divide_cst(cls.queue, (size,), (1,),
+                                                    g_gpu.data,  # __global     float     *data,
+                                                    sum_data.data,  # const        float     sigma,
+                                                    numpy.int32(size))  # const        int     SIZE
+        g = g_gpu.get()
+        if cls.PROFILE:
+            logger.info("execution time: %.3fms; Kernel took %.3fms and %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start)))
+
+        return g
+
+    @classmethod
+    def gaussian_gpu_v2(cls, sigma, size=None):
+        """
+        Calculate a 1D gaussian using pyopencl.
+        This is the same as scipy.signal.gaussian.
+        Only one kernel to
+    
+        :param sigma: width of the gaussian
+        :param size: can be calculated as 1 + 2 * 4sigma
+        """
+        if not size:
+            size = int(1 + 8 * sigma)
+        g_gpu = pyopencl.array.empty(cls.queue, size, dtype=numpy.float32, order="C")
+        t0 = time.time()
+        evt = cls.kernels["gaussian"].gaussian(cls.queue, (64,), (64,),
+                                               g_gpu.data,  # __global     float     *data,
+                                               numpy.float32(sigma),  # const        float     sigma,
+                                               numpy.int32(size))  # const        int     SIZE
+        g = g_gpu.get()
+        if cls.PROFILE:
+            logger.info("execution time: %.3fms; Kernel took %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start)))
+        return g
+
+    def test_v1_odd(self):
         """
         test odd kernel size
         """
         sigma = 3.0
         size = 27
         ref = gaussian_cpu(sigma, size)
-        res = gaussian_gpu_v1(sigma, size)
+        res = self.gaussian_gpu_v1(sigma, size)
         delta = ref - res
-        if PROFILE:
-            show(ref, res, delta)
-        self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
+        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
 
-    def test_even(self):
+    def test_v1_even(self):
         """
         test odd kernel size
         """
         sigma = 3.0
         size = 28
         ref = gaussian_cpu(sigma, size)
-        res = gaussian_gpu_v1(sigma, size)
+        res = self.gaussian_gpu_v1(sigma, size)
         delta = ref - res
-        if PROFILE:
-            show(ref, res, delta)
-        self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
+        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
 
-
-@unittest.skipUnless(ocl and scipy, "ocl or scipy is missing")
-class test_gaussian_v2(unittest.TestCase):
-
-    def test_odd(self):
+    def test_v2_odd(self):
         """
         test odd kernel size
         """
         sigma = 3.0
         size = 27
         ref = gaussian_cpu(sigma, size)
-        res = gaussian_gpu_v2(sigma, size)
+        if self.max_wg < size:
+            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+            return
+        res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
-        if PROFILE:
-            show(ref, res, delta)
-        self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
+        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
 
-    def test_even(self):
+    def test_v2_even(self):
         """
         test odd kernel size
         """
         sigma = 3.0
         size = 28
         ref = gaussian_cpu(sigma, size)
-        res = gaussian_gpu_v2(sigma, size)
+        if self.max_wg < size:
+            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+            return
+        res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
-        if PROFILE:
-            show(ref, res, delta)
-        self.assert_(abs(ref - res).max() < 1e-6, "gaussian are the same ")
+        self.assert_(abs(delta).max() < 1e-6, "gaussian are the same ")
 
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_gaussian_v1("test_odd"))
-    testSuite.addTest(test_gaussian_v1("test_even"))
-    testSuite.addTest(test_gaussian_v2("test_odd"))
-    testSuite.addTest(test_gaussian_v2("test_even"))
+    testSuite.addTest(TestGaussian("test_v1_odd"))
+    testSuite.addTest(TestGaussian("test_v1_even"))
+    testSuite.addTest(TestGaussian("test_v2_odd"))
+    testSuite.addTest(TestGaussian("test_v2_even"))
     return testSuite
