@@ -29,6 +29,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <assert.h>
 
 
 extern const int MCTriangleTable[256][16];
@@ -52,30 +53,30 @@ public:
      *
      * @param level Level at which to build the isosurface
      */
-    MarchingCubes(FloatIn level);
+    MarchingCubes(const FloatIn level);
 
     ~MarchingCubes();
 
     /** Process a 3D scalar field
      *
      * @param data Pointer to the data set
-     * @param depth The 1st of the data set
+     * @param depth The 1st dimension of the data set
      * @param height The 2nd dimension of the data set
      * @param width The 3rd dimension of the data set
      *              (tightly packed in memory)
      */
-    void process(FloatIn * data,
-                 unsigned int depth,
-                 unsigned int height,
-                 unsigned int width);
+    void process(const FloatIn * data,
+                 const unsigned int depth,
+                 const unsigned int height,
+                 const unsigned int width);
 
     /** Init dimension of slices
      *
      * @param height Height in pixels of the slices
      * @param width Width in pixels of the slices
      */
-    void set_slice_size(unsigned int height,
-                        unsigned int width);
+    void set_slice_size(const unsigned int height,
+                        const unsigned int width);
 
     /** Process a slice (i.e., an image)
      *
@@ -100,8 +101,8 @@ public:
      * @param slice0 Pointer to the nth slice data
      * @param slice1 Pointer to the (n+1)th slice of data
      */
-    void process_slice(FloatIn * slice0,
-                       FloatIn * slice1);
+    void process_slice(const FloatIn * slice0,
+                       const FloatIn * slice1);
 
     /** Clear marching cube processing internal cache. */
     void finish_process();
@@ -143,8 +144,8 @@ private:
      * @param slice The first slice of the data
      * @param next The second slice
      */
-    void first_slice(FloatIn * slice,
-                     FloatIn * next);
+    void first_slice(const FloatIn * slice,
+                     const FloatIn * next);
 
     /** Process an edge
      *
@@ -158,15 +159,15 @@ private:
      * @param current
      * @param next
      */
-    void process_edge(FloatIn value0,
-                      FloatIn value,
-                      unsigned int depth,
-                      unsigned int row,
-                      unsigned int col,
-                      unsigned int direction,
-                      FloatIn * previous,
-                      FloatIn * current,
-                      FloatIn * next);
+    void process_edge(const FloatIn value0,
+                      const FloatIn value,
+                      const unsigned int depth,
+                      const unsigned int row,
+                      const unsigned int col,
+                      const unsigned int direction,
+                      const FloatIn * previous,
+                      const FloatIn * current,
+                      const FloatIn * next);
 
     /** Return the bit mask of cube corners <= the iso-value.
      *
@@ -176,10 +177,10 @@ private:
      * @param col Column of the cube to consider
      * @return The bit mask of cube corners <= the iso-value
      */
-    unsigned char get_cell_code(FloatIn * slice1,
-                                FloatIn * slice2,
-                                unsigned int row,
-                                unsigned int col);
+    unsigned char get_cell_code(const FloatIn * slice1,
+                                const FloatIn * slice2,
+                                const unsigned int row,
+                                const unsigned int col);
 
     /** Compute an edge index from position and edge direction.
      *
@@ -189,10 +190,10 @@ private:
      * @param direction 0 for x, 1 for y, 2 for z
      * @return The (4D) index of the edge
      */
-    unsigned int edge_index(unsigned int depth,
-                            unsigned int row,
-                            unsigned int col,
-                            unsigned int direction);
+    unsigned int edge_index(const unsigned int depth,
+                            const unsigned int row,
+                            const unsigned int col,
+                            const unsigned int direction);
 
     /** For each dimension, a map from edge index to vertex index
      *
@@ -209,7 +210,7 @@ private:
 /* Implementation */
 
 template <typename FloatIn, typename FloatOut>
-MarchingCubes<FloatIn, FloatOut>::MarchingCubes(FloatIn level)
+MarchingCubes<FloatIn, FloatOut>::MarchingCubes(const FloatIn level)
 {
     this->edge_indices = 0;
     this->reset();
@@ -254,11 +255,12 @@ MarchingCubes<FloatIn, FloatOut>::finish_process()
 
 template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatIn, FloatOut>::process(FloatIn * data,
-                                          unsigned int depth,
-                                          unsigned int height,
-                                          unsigned int width)
+MarchingCubes<FloatIn, FloatOut>::process(const FloatIn * data,
+                                          const unsigned int depth,
+                                          const unsigned int height,
+                                          const unsigned int width)
 {
+    assert(data != NULL);
     unsigned int size = height * width * this->sampling[DEPTH_IDX];
 
     /* number of slices minus - 1 to process */
@@ -268,8 +270,8 @@ MarchingCubes<FloatIn, FloatOut>::process(FloatIn * data,
     this->set_slice_size(height, width);
 
     for (unsigned int index=0; index < nb_slices; index++) {
-        FloatIn * slice0 = data + (index * size);
-        FloatIn * slice1 = slice0 + size;
+        const FloatIn * slice0 = data + (index * size);
+        const FloatIn * slice1 = slice0 + size;
 
         this->process_slice(slice0, slice1);
     }
@@ -281,8 +283,8 @@ MarchingCubes<FloatIn, FloatOut>::process(FloatIn * data,
 
 template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatIn, FloatOut>::set_slice_size(unsigned int height,
-                                                 unsigned int width)
+MarchingCubes<FloatIn, FloatOut>::set_slice_size(const unsigned int height,
+                                                 const unsigned int width)
 {
     this->reset();
     this->height = height;
@@ -292,9 +294,11 @@ MarchingCubes<FloatIn, FloatOut>::set_slice_size(unsigned int height,
 
 template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatIn, FloatOut>::process_slice(FloatIn * slice0,
-                                                FloatIn * slice1)
+MarchingCubes<FloatIn, FloatOut>::process_slice(const FloatIn * slice0,
+                                                const FloatIn * slice1)
 {
+    assert(slice0 != NULL);
+    assert(slice1 != NULL);
     unsigned int row, col;
 
     if (this->edge_indices == 0) {
@@ -399,9 +403,11 @@ MarchingCubes<FloatIn, FloatOut>::process_slice(FloatIn * slice0,
 
 template <typename FloatIn, typename FloatOut>
 void
-MarchingCubes<FloatIn, FloatOut>::first_slice(FloatIn * slice,
-                                              FloatIn * next)
+MarchingCubes<FloatIn, FloatOut>::first_slice(const FloatIn * slice,
+                                              const FloatIn * next)
 {
+    assert(slice != NULL);
+    assert(next != NULL);
     /* Init cache for this slice */
     this->edge_indices = new std::map<unsigned int, unsigned int>();
 
@@ -440,10 +446,10 @@ MarchingCubes<FloatIn, FloatOut>::first_slice(FloatIn * slice,
 
 template <typename FloatIn, typename FloatOut>
 inline unsigned int
-MarchingCubes<FloatIn, FloatOut>::edge_index(unsigned int depth,
-                                             unsigned int row,
-                                             unsigned int col,
-                                             unsigned int direction)
+MarchingCubes<FloatIn, FloatOut>::edge_index(const unsigned int depth,
+                                             const unsigned int row,
+                                             const unsigned int col,
+                                             const unsigned int direction)
 {
     return ((depth * (this->height + 1) + row) *
             (this->width + 1) + col) * 3 + direction;
@@ -452,16 +458,20 @@ MarchingCubes<FloatIn, FloatOut>::edge_index(unsigned int depth,
 
 template <typename FloatIn, typename FloatOut>
 inline void
-MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
-                                               FloatIn value,
-                                               unsigned int depth,
-                                               unsigned int row,
-                                               unsigned int col,
-                                               unsigned int direction,
-                                               FloatIn * previous,
-                                               FloatIn * current,
-                                               FloatIn * next)
+MarchingCubes<FloatIn, FloatOut>::process_edge(const FloatIn value0,
+                                               const FloatIn value,
+                                               const unsigned int depth,
+                                               const unsigned int row,
+                                               const unsigned int col,
+                                               const unsigned int direction,
+                                               const FloatIn * previous,
+                                               const FloatIn * current,
+                                               const FloatIn * next)
 {
+    assert(previous != NULL);
+    assert(current != NULL);
+    assert(next != NULL);
+
     if ((value0 <= this->isolevel) ^ (value <= this->isolevel)) {
 
         /* Crossing iso-surface, store it */
@@ -496,16 +506,8 @@ MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
 
         /* Store normal as (nz, ny, nx) */
         FloatOut nz, ny, nx;
-        FloatIn * slice0;
-        FloatIn * slice1;
-
-        if (previous != 0) {
-            slice0 = previous;
-            slice1 = current;
-        } else { /* next != 0 */
-            slice0 = current;
-            slice1 = next;
-        }
+        const FloatIn * slice0 = (previous != 0) ? previous : current;
+        const FloatIn * slice1 = (previous != 0) ? current : next;
 
         unsigned int row_offset = this->width * this->sampling[HEIGHT_IDX];
 
@@ -583,8 +585,9 @@ MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
             }
 
         } else { /* direction == 2 */
+            assert(direction == 2);
             /* Previous should always be 0, only here in case this changes */
-            FloatIn * other_slice = (previous != 0) ? previous : next;
+            const FloatIn * other_slice = (previous != 0) ? previous : next;
 
             nz = value - value0;
 
@@ -603,14 +606,14 @@ MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
             }
 
             { /* nx */
-                unsigned int item, item_next_col;
+                unsigned int item;
 
                 item = row * this->width + col;
                 if (col >= this->width - this->sampling[WIDTH_IDX]) {
                     /* For last column, use previous column */
                     item -= this->sampling[WIDTH_IDX];
                 }
-                item_next_col = item + this->sampling[WIDTH_IDX];
+                const unsigned int item_next_col = item + this->sampling[WIDTH_IDX];
 
                 nx = ((1. - offset) * (current[item_next_col] - current[item]) +
                       offset * (other_slice[item_next_col] - other_slice[item]));
@@ -642,11 +645,13 @@ MarchingCubes<FloatIn, FloatOut>::process_edge(FloatIn value0,
 
 template <typename FloatIn, typename FloatOut>
 inline unsigned char
-MarchingCubes<FloatIn, FloatOut>::get_cell_code(FloatIn * slice1,
-                                                FloatIn * slice2,
-                                                unsigned int row,
-                                                unsigned int col)
+MarchingCubes<FloatIn, FloatOut>::get_cell_code(const FloatIn * slice1,
+                                                const FloatIn * slice2,
+                                                const unsigned int row,
+                                                const unsigned int col)
 {
+    assert(slice1 != NULL);
+    assert(slice2 != NULL);
     unsigned int item = row * this->width + col;
     unsigned int item_next_row = item + this->width * this->sampling[HEIGHT_IDX];
     unsigned char code = 0;
