@@ -28,6 +28,9 @@
 /** Gives edge index of triangles vertices for each of the 256 possible cubes.
  *
  * Table taken from http://paulbourke.net/geometry/polygonise/
+ * Author: Cory Bloyd
+ * Originially this code is public domain,
+ * relicensed here as MIT to provide a license.
  *
  * The cube index is a bit mask of cube corners <= isoValue.
  * See vertexOffset for the place of each corner in the bit mask.

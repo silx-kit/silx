@@ -55,13 +55,19 @@ if FALSE:
 cdef class MarchingCubes:
     """Compute isosurface using marching cubes algorithm.
 
+    It builds a surface from a 3D scalar dataset as a 3D contour at a
+    given value.
+    The resulting surface is not topologically correct.
+
+    See: http://paulbourke.net/geometry/polygonise/
+
     Lorensen, W. E. and Cline, H. E. Marching cubes: A high resolution 3D
     surface construction algorithm. Computer Graphics, 21, 4 (July 1987).
     ACM, 163-169.
 
     Example with a 3D data set:
 
-    >>> v, n, i = MarchingCubes(data, isolevel=1.)
+    >>> vertices, normals, indices = MarchingCubes(data, isolevel=1.)
 
     Example of code for processing a list of images:
 
