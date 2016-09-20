@@ -24,6 +24,8 @@
 # ###########################################################################*/
 """Roi items."""
 
+from collections import OrderedDict
+
 import numpy as np
 from silx.gui import qt, icons
 
@@ -34,9 +36,9 @@ __date__ = "01/09/2016"
 
 class RoiItemBase(qt.QObject):
     sigRoiDrawingStarted = qt.Signal(str)
-    sigRoiDrawingFinished = qt.Signal(str)
+    sigRoiDrawingFinished = qt.Signal(object)
     sigRoiDrawingCanceled = qt.Signal(str)
-    sigRoiMoved = qt.Signal(str)
+    sigRoiMoved = qt.Signal(object)
 
     shape = None
 
@@ -47,7 +49,7 @@ class RoiItemBase(qt.QObject):
         super(RoiItemBase, self).__init__(parent=parent)
 
         self._plot = plot
-        self._anchors = []
+        self._handles = []
         self._points = {}
         self._kwargs = []
 
@@ -56,6 +58,9 @@ class RoiItemBase(qt.QObject):
         self._connected = False
         self._editing = False
         self._visible = True
+
+        self._xData = []
+        self._yData = []
 
         if not name:
             uuid = str(id(self))
@@ -70,11 +75,11 @@ class RoiItemBase(qt.QObject):
             self._remove()
         else:
             self._connect()
-            self._draw(drawAnchors=self._editing)
+            self._draw(drawHandles=self._editing)
 
-    def _remove(self, anchors=True, shape=True):
-        if anchors:
-            {self._plot.removeMarker(item) for item in self._anchors}
+    def _remove(self, handles=True, shape=True):
+        if handles:
+            {self._plot.removeMarker(item) for item in self._handles}
         if shape:
             self._plot.removeItem(self._name)
 
@@ -90,40 +95,41 @@ class RoiItemBase(qt.QObject):
         elif (evType == 'drawingProgress' and
                 event['parameters']['label'] == self._name):
             if not self._startNotified:
-                self.drawStarted()
+                self._drawStarted()
                 # TODO : this is a temporary workaround
                 # until we can get a mouse click event
                 self.sigRoiDrawingStarted.emit(self.name)
                 self._startNotified = True
-            self.sigRoiMoved.emit(self._name)
+            self._drawEvent(event)
+            self._emitDataEvent(self.sigRoiMoved)
         elif evType == 'markerMoving':
             label = event['label']
             try:
-                idx = self._anchors.index(label)
+                idx = self._handles.index(label)
             except ValueError:
                 idx = None
             else:
                 x = event['x']
                 y = event['y']
-                self.setAnchorData(label, (x, y))
-                self.anchorMoved(label, x, y, idx)
-                self.sigRoiMoved.emit(self._name)
+                self._setHandleData(label, (x, y))
+                self._handleMoved(label, x, y, idx)
+                self._emitDataEvent(self.sigRoiMoved)
                 self._draw()
 
-    def registerAnchor(self, anchor, point, idx=-1):
-        if anchor in self._anchors:
+    def _registerHandle(self, handle, point, idx=-1):
+        if handle in self._handles:
             return
-        if idx is not None and idx >= 0 and idx < len(self._anchors):
-            self._anchors.insert(anchor, idx)
+        if idx is not None and idx >= 0 and idx < len(self._handles):
+            self._handles.insert(handle, idx)
         else:
-            self._anchors.append(anchor)
-            idx = len(self._anchors)
-        self._points[anchor] = point
+            self._handles.append(handle)
+            idx = len(self._handles)
+        self._points[handle] = point
         return idx
 
-    def unregisterAnchor(self, label):
+    def _unregisterHandle(self, label):
         try:
-            self._anchors.remove(label)
+            self._handles.remove(label)
         except ValueError:
             pass
 
@@ -145,30 +151,30 @@ class RoiItemBase(qt.QObject):
             self._interactiveModeChanged)
         self._connected = False
 
-    def _draw(self, drawAnchors=True, excludes=()):
+    def _draw(self, drawHandles=True, excludes=()):
 
-        if drawAnchors:
+        if drawHandles:
             if excludes is not None and len(excludes) > 0:
-                draw_legends = set(self._anchors) - set(excludes)
+                draw_legends = set(self._handles) - set(excludes)
             else:
-                draw_legends = self._anchors
+                draw_legends = self._handles
 
-            for i_anchor, anchor in enumerate(draw_legends):
-                item = self._plot.addMarker(self._points[anchor][0],
-                                            self._points[anchor][1],
-                                            legend=anchor,
+            for i_handle, handle in enumerate(draw_legends):
+                item = self._plot.addMarker(self._points[handle][0],
+                                            self._points[handle][1],
+                                            legend=handle,
                                             draggable=True,
                                             symbol='x')
-                assert item == anchor
+                assert item == handle
 
-        item = self._plot.addItem(self.xData(),
-                                  self.yData(),
+        item = self._plot.addItem(self.xData,
+                                  self.yData,
                                   shape=self.shape,
                                   legend=self._name,
                                   overlay=True)
         assert item == self._name
 
-    def setAnchorData(self, name, point):
+    def _setHandleData(self, name, point):
         self._points[name] = point
 
     def start(self):
@@ -191,22 +197,28 @@ class RoiItemBase(qt.QObject):
 
         if enable:
             self._connect()
-            self.editStarted()
+            self._editStarted()
             self._draw()
         else:
             self._disconnect()
             self._remove(shape=False)
-            self.editStopped()
-            self._draw(drawAnchors=False)
+            self._editStopped()
+            self._draw(drawHandles=False)
 
         self._editing = enable
 
     def _finish(self, event):
-        self.drawFinished(event)
-        self._draw(drawAnchors=False)
+        self._drawFinished(event)
+        self._draw(drawHandles=False)
         self._finished = True
-        self.sigRoiDrawingFinished.emit(self.name)
+        self._emitDataEvent(self.sigRoiDrawingFinished)
         self._disconnect()
+
+    def _emitDataEvent(self, signal):
+        signal.emit({'name': self._name,
+                     'shape': self.shape,
+                     'xdata': self._xData,
+                     'ydata': self._yData})
 
     def stop(self):
         """
@@ -216,42 +228,68 @@ class RoiItemBase(qt.QObject):
         """
         if not self._finished:
             self._disconnect()
-            self.drawCanceled()
+            self._drawCanceled()
             if self._startNotified:
                 self.sigRoiDrawingCanceled.emit(self.name)
             return
         if self._editing:
             self.edit(False)
 
-    def drawStarted(self):
+    xData = property(lambda self: self._xData[:])
+    yData = property(lambda self: self._yData[:])
+
+    def _drawEvent(self, event):
+        """
+        This method updates the _xData and _yData members with data found
+        in the event object. The default implementation just uses the
+        xdata and ydata fields from the event dictionary.
+        This method should be overridden if necessary.
+        """
+        self._xData = event['xdata'].reshape(-1)
+        self._yData = event['ydata'].reshape(-1)
+
+    def _handleMoved(self, label, x, y, idx):
+        """
+        Called when one of the registered handle has moved.
+        To be overridden if necessary
+        """
         pass
 
-    def drawFinished(self, event):
+    def _drawStarted(self):
+        """
+        To be overridden if necessary
+        """
         pass
 
-    def drawCanceled(self):
+    def _drawFinished(self, event):
+        """
+        To be overridden if necessary
+        """
         pass
 
-    def editStarted(self):
+    def _drawCanceled(self):
+        """
+        To be overridden if necessary
+        """
         pass
 
-    def editStopped(self):
+    def _editStarted(self):
+        """
+        To be overridden if necessary
+        """
         pass
 
-    def anchorMoved(self, label, x, y, idx):
+    def _editStopped(self):
+        """
+        To be overridden if necessary
+        """
         pass
-
-    def xData(self):
-        return []
-
-    def yData(self):
-        return []
 
 
 class PolygonRoiItem(RoiItemBase):
     shape = 'polygon'
 
-    def drawFinished(self, event):
+    def _drawFinished(self, event):
         self._xData = event['xdata'].reshape(-1)
         self._yData = event['ydata'].reshape(-1)
         points = event['points']
@@ -259,30 +297,22 @@ class PolygonRoiItem(RoiItemBase):
 
         # len(points) - 1 because the first and last points are the same!
         vertices = ['V{0}_{1}'.format(idx, uuid)
-                    for idx in range(len(points - 1))]
-        map(self.registerAnchor, vertices, points)
+                    for idx in range(len(points) - 1)]
+        map(self._registerHandle, vertices, points[:-1])
 
-    def anchorMoved(self, label, x, y, idx):
+    def _handleMoved(self, label, x, y, idx):
         self._xData[idx] = x
         self._yData[idx] = y
         self._xData[-1] = self._xData[0]
         self._yData[-1] = self._yData[0]
 
-    def xData(self):
-        return self._xData[:]
-
-    def yData(self):
-        return self._yData[:]
-
 
 class RectRoiItem(RoiItemBase):
     shape = 'rectangle'
 
-    def drawFinished(self, event):
-        self._left = event['x']
-        self._bottom = event['y']
-        self._right = self._left + event['width']
-        self._top = self._bottom + event['height']
+    def _drawFinished(self, event):
+        self._drawEvent(event)
+        self._updateSides()
 
         # initial coordinates of the rect, in that order :
         # bottom left, top left, top right, bottom right
@@ -299,55 +329,43 @@ class RectRoiItem(RoiItemBase):
 
         self._corners = corners
         self._rubber = rubber
-        self._xcoords = xcoords
-        self._ycoords = ycoords
+        self._xData = xcoords
+        self._yData = ycoords
         self._opposites = opposites
         self._center = center
 
-        # note that the order of the anchors is preserved
-        # (this is the index sent to the anchorMoved method)
+        # note that the order of the handles is preserved
+        # (this is the index sent to the handleMoved method)
         # since we re registering the corners first,
-        # we will be able to use the index given to the anchorMoved
-        # function to get data in the _xcoords, ycoords, ... arrays.
+        # we will be able to use the index given to the handleMoved
+        # function to get data in the _xData, _yData, ... arrays.
         # this only works because we re not adding or removing vertices
         # when editing
-        {self.registerAnchor(corner, (xcoords[i], ycoords[i]))
+        {self._registerHandle(corner, (xcoords[i], ycoords[i]))
          for i, corner in enumerate(corners)}
-        self.registerAnchor(center, self.center)
+        self._registerHandle(center, self._centerPos())
 
-    left = property(lambda self: self._left)
-    right = property(lambda self: self._right)
-    bottom = property(lambda self: self._bottom)
-    top = property(lambda self: self._top)
-
-    @property
-    def center(self):
-        xcoord = self.left + (self.right - self.left) / 2.
-        ycoord = self.bottom + (self.top - self.bottom) / 2.
+    def _centerPos(self):
+        xcoord = self._left + (self._right - self._left) / 2.
+        ycoord = self._bottom + (self._top - self._bottom) / 2.
         return [xcoord, ycoord]
 
-    def xData(self):
-        return self._xcoords[:]
-
-    def yData(self):
-        return self._ycoords[:]
-
-    def anchorMoved(self, name, x, y, index):
+    def _handleMoved(self, name, x, y, index):
         if name == self._center:
             # center moved
-            c_x, c_y = self.center
-            self._xcoords += x - c_x
-            self._ycoords += y - c_y
-            {self.setAnchorData(corner,
-                                (self._xcoords[i], self._ycoords[i]))
+            c_x, c_y = self._centerPos()
+            self._xData += x - c_x
+            self._yData += y - c_y
+            {self._setHandleData(corner,
+                                 (self._xData[i], self._yData[i]))
              for i, corner in enumerate(self._corners)}
         else:
             # see the comment about the index value
             # (in the finished method)
             h_op, v_op = self._opposites[index]
 
-            v_op_x = self._xcoords[v_op]
-            h_op_y = self._xcoords[h_op]
+            v_op_x = self._xData[v_op]
+            h_op_y = self._xData[h_op]
 
             newLeft = min(x, v_op_x)
             newRight = max(x, v_op_x)
@@ -355,39 +373,58 @@ class RectRoiItem(RoiItemBase):
             newTop = max(y, h_op_y)
 
             if newLeft != v_op_x:
-                self._xcoords[v_op] = newLeft
+                self._xData[v_op] = newLeft
             if newRight != v_op_x:
-                self._xcoords[v_op] = newRight
+                self._xData[v_op] = newRight
             if newBottom != h_op_y:
-                self._ycoords[h_op] = newBottom
+                self._yData[h_op] = newBottom
             if newTop != h_op_y:
-                self._ycoords[h_op] = newTop
+                self._yData[h_op] = newTop
 
-            self._xcoords[index] = x
-            self._ycoords[index] = y
+            self._xData[index] = x
+            self._yData[index] = y
 
-            self.setAnchorData(self._center, self.center)
-            {self.setAnchorData(self._corners[i],
-                                (self._xcoords[i], self._ycoords[i]))
+            self._setHandleData(self._center, self._centerPos())
+            {self._setHandleData(self._corners[i],
+                                 (self._xData[i], self._yData[i]))
              for i in (v_op, h_op)}
 
+        self._updateSides()
+
+    def _updateSides(self):
         # caching positions
-        self._left = min(self._xcoords[1:3])
-        self._right = max(self._xcoords[1:3])
-        self._bottom = min(self._ycoords[0:2])
-        self._top = max(self._ycoords[0:2])
+        self._left = min(self._xData[1:3])
+        self._right = max(self._xData[1:3])
+        self._bottom = min(self._yData[0:2])
+        self._top = max(self._yData[0:2])
+
+    def _drawEvent(self, event):
+        left = event['x']
+        bottom = event['y']
+        right = left + event['width']
+        top = bottom + event['height']
+        self._xData = np.array([left, left, right, right])
+        self._yData = np.array([bottom, top, top, bottom])
 
 
 class ImageRoiManager(qt.QObject):
+    """
+    Developpers doc : to add a new ROI simply append the necessary values to
+    these three members
+    """
+
     roiShapes = ('rectangle', 'polygon',)
     roiIcons = ('shape-rectangle', 'shape-polygon',)
     roiClasses = (RectRoiItem, PolygonRoiItem,)
 
     sigRoiDrawingStarted = qt.Signal(str)
-    sigRoiDrawingFinished = qt.Signal(str)
+    sigRoiDrawingFinished = qt.Signal(object)
     sigRoiDrawingCanceled = qt.Signal(str)
-    sigRoiMoved = qt.Signal(str)
+    sigRoiMoved = qt.Signal(object)
     sigRoiRemoved = qt.Signal(str)
+
+    assert len(roiShapes) == len(roiIcons)
+    assert len(roiShapes) == len(roiClasses)
 
     def __init__(self, plot, parent=None):
         super(ImageRoiManager, self).__init__(parent=parent)
@@ -448,7 +485,21 @@ class ImageRoiManager(qt.QObject):
             return self._optionActions
 
         # options
-        self._optionActions = optionActions = {}
+        self._optionActions = optionActions = OrderedDict()
+
+        # temporary Unicode icons until I have time to draw some icons.
+        action = qt.QAction(u'\u2200', None)
+        action.setCheckable(False)
+        action.setToolTip('Select all')
+        action.triggered.connect(self._selectAll)
+        optionActions['selectAll'] = action
+
+        # temporary Unicode icons until I have time to draw some icons.
+        action = qt.QAction(u'\u2717', None)
+        action.setCheckable(False)
+        action.setToolTip('Clear all ROIs')
+        action.triggered.connect(self._clearRois)
+        optionActions['clearAll'] = action
 
         action = qt.QAction(u'\u2685', None)
         action.setCheckable(True)
@@ -467,9 +518,16 @@ class ImageRoiManager(qt.QObject):
 
         return optionActions
 
+    def _selectAll(self, checked):
+        print self._plot.getGraphXLimits(), self._plot.getGraphYLimits()
+
+    def _clearRois(self, checked):
+        self.clear()
+
     def clear(self, name=None):
         if name is None:
             for roi in self._rois.values():
+                roi.stop()
                 roi.setVisible(False)
                 try:
                     roi.sigRoiMoved.disconnect(self._roiMoved)
@@ -480,6 +538,7 @@ class ImageRoiManager(qt.QObject):
         else:
             try:
                 roi = self._rois.pop(name)
+                roi.stop()
                 roi.setVisible(False)
                 try:
                     roi.sigRoiMoved.disconnect(self._roiMoved)
@@ -557,7 +616,7 @@ class ImageRoiManager(qt.QObject):
         item.sigRoiDrawingStarted.connect(self._roiDrawingStarted,
                                           qt.Qt.QueuedConnection)
         item.sigRoiDrawingCanceled.connect(self._roiDrawingCanceled,
-                                          qt.Qt.QueuedConnection)
+                                           qt.Qt.QueuedConnection)
         item.sigRoiMoved.connect(self.sigRoiMoved,
                                  qt.Qt.QueuedConnection)
         item.start()
@@ -576,20 +635,21 @@ class ImageRoiManager(qt.QObject):
             self.clear()
         self.sigRoiDrawingStarted.emit(name)
 
-    def _roiDrawingFinished(self, name):
+    def _roiDrawingFinished(self, event):
         # TODO : check if the sender is the same as the roiInProgress
         item = self._roiInProgress
+
+        assert item.name == event['name']
 
         self._roiInProgress = None
 
         item.sigRoiDrawingFinished.disconnect(self._roiDrawingFinished)
         item.sigRoiDrawingStarted.disconnect(self._roiDrawingStarted)
         item.sigRoiDrawingCanceled.disconnect(self._roiDrawingCanceled)
-        item.sigRoiMoved.disconnect(self.sigRoiMoved)
 
         self._rois[item.name] = item
 
-        self.sigRoiDrawingFinished.emit(item.name)
+        self.sigRoiDrawingFinished.emit(event)
 
         self._startRoi()
 
@@ -617,8 +677,7 @@ class ImageRoiManager(qt.QObject):
 
     @property
     def optionActions(self):
-        actions = self._createOptionActions()
-        return [actions[k] for k in sorted(actions.keys())]
+        self._createOptionActions().values()
 
     def toolBar(self,
                 options=None,
@@ -665,11 +724,13 @@ class ImageRoiManager(qt.QObject):
         return toolBar
 
     def roiCoords(self, name):
-        try:
-            item = self._rois[name]
-        except KeyError:
-            raise ValueError('Unknown roi {0}.'.format(name))
-
+        if self._roiInProgress and self._roiInProgress.name == name:
+            item = self._roiInProgress
+        else:
+            try:
+                item = self._rois[name]
+            except KeyError:
+                raise ValueError('Unknown roi {0}.'.format(name))
         return (item.xData(), item.yData())
 
 
