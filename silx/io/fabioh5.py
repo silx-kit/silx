@@ -352,6 +352,13 @@ class File(Group):
     def filename(self):
         return self.__fabio_image.filename
 
+    def close(self):
+        """Close the object, and free up associated resources.
+
+        After calling this method, attempts to use the object may fail.
+        """
+        self.__fabio_image = None
+
 
 class Dataset(Node):
     """Class which handle a numpy data as a mimick of a h5py.Dataset.
