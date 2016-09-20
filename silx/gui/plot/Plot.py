@@ -1210,6 +1210,7 @@ class Plot(object):
                             self._colorIndex = 0
                             self._styleIndex = 0
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='curve', legend=legend)
 
@@ -1225,6 +1226,7 @@ class Plot(object):
                             self._setDirtyPlot()
                         del self._images[legend]
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='image', legend=legend)
 
