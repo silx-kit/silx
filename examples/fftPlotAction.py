@@ -49,7 +49,7 @@ from silx.gui.plot import PlotWindow
 from silx.gui.plot.PlotActions import PlotAction
 
 scriptdir = os.path.dirname(os.path.realpath(__file__))
-my_icon = os.path.join("fft.png")
+my_icon = os.path.join(scriptdir, "fft.png")
 
 
 class FftAction(PlotAction):
