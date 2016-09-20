@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import time
 import logging
@@ -66,10 +66,10 @@ def my_blur(img, kernel):
 
 
 @unittest.skipUnless(scipy and ocl, "scipy or opencl not available")
-class test_convol(unittest.TestCase):
+class TestConvol(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        super(test_convol, cls).setUpClass()
+        super(TestConvol, cls).setUpClass()
         if ocl:
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
@@ -79,10 +79,15 @@ class test_convol(unittest.TestCase):
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
-        super(test_convol, cls).tearDownClass()
+        super(TestConvol, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
 
@@ -102,7 +107,13 @@ class test_convol(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        self.wg = (256, 2)
+        if self.maxwg < 512:
+            if self.maxwg > 1:
+                self.wg = (self.maxwg // 2, 2)
+            else:
+                self.wg = (1, 1)
+        else:
+            self.wg = (256, 2)
         self.shape = calc_size((self.input.shape[1], self.input.shape[0]), self.wg)
 
     def tearDown(self):
@@ -241,7 +252,7 @@ class test_convol(unittest.TestCase):
 
 def suite():
     testSuite = unittest.TestSuite()
-    testSuite.addTest(test_convol("test_convol"))
-    testSuite.addTest(test_convol("test_convol_hor"))
-    testSuite.addTest(test_convol("test_convol_vert"))
+    testSuite.addTest(TestConvol("test_convol"))
+    testSuite.addTest(TestConvol("test_convol_hor"))
+    testSuite.addTest(TestConvol("test_convol_vert"))
     return testSuite

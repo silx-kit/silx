@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import unittest
 import time
@@ -72,6 +72,11 @@ class TestReduction(unittest.TestCase):
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -105,6 +110,10 @@ class TestReduction(unittest.TestCase):
         inp_gpu = pyopencl.array.to_device(self.queue, data)
         wg_float = min(512.0, numpy.sqrt(data.size))
         wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
+        if self.maxwg < wg:
+            logger.info("Skip test_max_min as wg=% < red_size=%s", self.maxwg, wg)
+            return
+
         size = wg * wg
         max_min_gpu = pyopencl.array.zeros(self.queue, (wg, 2), dtype=numpy.float32, order="C")
 #        max_min_gpu = pyopencl.array.empty(self.queue, (wg, 2), dtype=numpy.float32, order="C")
