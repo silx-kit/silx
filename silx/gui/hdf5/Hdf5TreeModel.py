@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/09/2016"
+__date__ = "20/09/2016"
 
 
 import os
@@ -414,6 +414,69 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def nodeFromIndex(self, index):
         return index.internalPointer() if index.isValid() else self.__root
+
+    def synchronizeIndex(self, index):
+        """
+        Synchronize a file a wn index.
+
+        Basically close it and load it again.
+
+        :param qt.QModelIndex index: Index of the item to update
+        """
+        node = self.nodeFromIndex(index)
+        if node.parent is not self.__root:
+            return
+
+        self.removeIndex(index)
+        filename = node.obj.filename
+        node.obj.close()
+        self.insertFileAsync(filename, index.row())
+
+    def synchronizeH5pyObject(self, h5pyObject):
+        """
+        Synchronize a h5py object in all the tree.
+
+        Basically close it and load it again.
+
+        :param h5py.File h5pyObject: A :class:`h5py.File` object.
+        """
+        index = 0
+        while index < self.__root.childCount():
+            item = self.__root.child(index)
+            if item.obj is h5pyObject:
+                qindex = self.index(index, 0, qt.QModelIndex())
+                self.synchronizeIndex(qindex)
+            else:
+                index += 1
+
+    def removeIndex(self, index):
+        """
+        Remove an item from the model using it's index.
+
+        :param qt.QModelIndex index: Index of the item to remove
+        """
+        node = self.nodeFromIndex(index)
+        if node.parent is not self.__root:
+            return
+        self.beginRemoveRows(qt.QModelIndex(), index.row(), index.row())
+        self.__root.removeChildAtIndex(index.row())
+        self.endRemoveRows()
+
+    def removeH5pyObject(self, h5pyObject):
+        """
+        Remove an item from the model using the holding h5py object.
+        It can remove more than one item.
+
+        :param h5py.File h5pyObject: A :class:`h5py.File` object.
+        """
+        index = 0
+        while index < self.__root.childCount():
+            item = self.__root.child(index)
+            if item.obj is h5pyObject:
+                qindex = self.index(index, 0, qt.QModelIndex())
+                self.removeIndex(qindex)
+            else:
+                index += 1
 
     def insertH5pyObject(self, h5pyObject, text=None, row=-1):
         """Append an HDF5 object from h5py to the tree.
