@@ -292,6 +292,8 @@ class Plot(object):
         self._markers = OrderedDict()
         self._items = OrderedDict()
 
+        self._dataRange = None
+
         # line types
         self._styleList = ['-', '--', '-.', ':']
 
@@ -361,6 +363,51 @@ class Plot(object):
 
         if self._autoreplot and not wasDirty:
             self._backend.postRedisplay()
+
+    def _invalidateDataRange(self):
+        """
+        Notifies this Plot instance that the range has changed and will have
+        to be recomputed.
+        """
+        self._dataRange = None
+
+    def _updateDataRange(self):
+        """
+        Recomputes the range of the data displayed on this Plot.
+        """
+        # already available
+        if self._dataRange:
+            return self._dataRange
+
+        xMin = yMin = float('inf')
+        xMax = yMax = float('-inf')
+        for curve, info in self._curves.items():
+            # using numpy's separate min and max is faster than
+            # a pure python minmax.
+            xMin = min(xMin, info['x'].min())
+            xMax = max(xMax, info['x'].max())
+            yMin = min(yMin, info['y'].min())
+            yMax = max(yMax, info['y'].max())
+
+        for image, info in self._images.items():
+            height, width = info['data'].shape
+            params = info['params']
+            origin = params['origin']
+            scale = params['scale']
+            xMin = min(xMin, origin[1])
+            yMin = min(yMin, origin[0])
+            xMax = max(xMin, origin[1] + width * scale[0])
+            yMax = max(yMin, origin[0] + height * scale[1])
+
+        self._dataRange = {'x': (xMin, xMax), 'y': (yMin, yMax)}
+
+        return self._dataRange
+
+    def getDataRange(self):
+        """
+        Returns this Plot's data range.
+        """
+        return self._updateDataRange()
 
     # Add
 
@@ -568,6 +615,8 @@ class Plot(object):
             'handle': handle, 'x': x, 'y': y, 'params': params
         }
 
+        self._invalidateDataRange()
+
         self.notify(
             'contentChanged', action='add', kind='curve', legend=legend)
 
@@ -759,6 +808,8 @@ class Plot(object):
 
         if len(self._images) == 1 or wasActive:
             self.setActiveImage(legend)
+
+        self._invalidateDataRange()
 
         self.notify(
             'contentChanged', action='add', kind='image', legend=legend)
