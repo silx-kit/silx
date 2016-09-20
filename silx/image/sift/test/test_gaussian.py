@@ -100,7 +100,7 @@ class TestGaussian(unittest.TestCase):
         device_id = device.platform.get_devices().index(device)
         platform_id = pyopencl.get_platforms().index(device.platform)
         maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-        logger.warning("max_work_group_size: %s on (%s, %s)", maxwg, platform_id, device_id)
+#         logger.warning("max_work_group_size: %s on (%s, %s)", maxwg, platform_id, device_id)
         for kernel in list(cls.kernels.keys()):
             if cls.kernels[kernel] < maxwg:
                 logger.warning("%s Limiting workgroup size to %s", kernel, maxwg)

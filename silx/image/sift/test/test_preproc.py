@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import time
 import logging
@@ -133,6 +133,12 @@ class TestPreproc(unittest.TestCase):
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
 
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+
     @classmethod
     def tearDownClass(cls):
         super(TestPreproc, cls).tearDownClass()
@@ -140,7 +146,7 @@ class TestPreproc(unittest.TestCase):
         cls.queue = None
 
     def setUp(self):
-        if not (ocl and scipy) :
+        if not (ocl and scipy):
             return
         try:
             testdata = scipy.misc.ascent()
@@ -155,7 +161,11 @@ class TestPreproc(unittest.TestCase):
         self.reduction = pyopencl.Program(self.ctx, reduct_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        self.wg = (32, 16)  # (256, 2) #(32, 16) # (2, 256)
+        if self.maxwg < 32 * 16:
+            self.wg = self.maxwg, 1
+        else:
+            self.wg = (32, 16)  # (256, 2) #(32, 16) # (2, 256)
+
         self.shape = calc_size((self.IMAGE_W, self.IMAGE_H), self.wg)
 #        print self.shape
         self.binning = (4, 2)  # Nota if wg < ouptup size weired results are expected !
@@ -178,6 +188,9 @@ class TestPreproc(unittest.TestCase):
         """
         tests the uint8 kernel
         """
+        if self.maxwg < self.red_size:
+            logger.info("Skip test_uint8 as wg=% < red_size=%s", self.maxwg, self.red_size)
+            return
         lint = self.input.astype(numpy.uint8)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -218,6 +231,9 @@ class TestPreproc(unittest.TestCase):
         """
         tests the uint16 kernel
         """
+        if self.maxwg < self.red_size:
+            logger.info("Skip test_uint16 as wg=% < red_size=%s", self.maxwg, self.red_size)
+            return
         lint = self.input.astype(numpy.uint16)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -255,6 +271,9 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int32 kernel
         """
+        if self.maxwg < self.red_size:
+            logger.info("Skip test_int32 as wg=% < red_size=%s", self.maxwg, self.red_size)
+            return
         lint = self.input.astype(numpy.int32)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -292,6 +311,9 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int64 kernel
         """
+        if self.maxwg < self.red_size:
+            logger.info("Skip test_int64 as wg=% < red_size=%s", self.maxwg, self.red_size)
+            return
         lint = self.input.astype(numpy.int64)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -328,6 +350,9 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int64 kernel
         """
+        if self.maxwg < self.red_size:
+            logger.info("Skip test_rgb as wg=% < red_size=%s", self.maxwg, self.red_size)
+            return
         lint = numpy.empty((self.input.shape[0], self.input.shape[1], 3), dtype=numpy.uint8)
         lint[:, :, 0] = self.input.astype(numpy.uint8)
         lint[:, :, 1] = self.input.astype(numpy.uint8)
