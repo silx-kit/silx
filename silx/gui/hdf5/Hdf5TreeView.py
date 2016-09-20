@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/09/2016"
+__date__ = "20/09/2016"
 
 
 import logging
@@ -99,8 +99,10 @@ class Hdf5TreeView(qt.QTreeView):
 
         hovered_index = self.indexAt(pos)
         hovered_node = self.model().data(hovered_index, Hdf5TreeModel.H5PY_ITEM_ROLE)
-        hovered_object = hovered_node.obj
+        if hovered_node is None or not isinstance(hovered_node, Hdf5Item):
+            return
 
+        hovered_object = hovered_node.obj
         event = _utils.Hdf5ContextMenuEvent(self, menu, hovered_object)
 
         for callback in self.__context_menu_callbacks:
