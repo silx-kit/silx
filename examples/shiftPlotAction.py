@@ -50,15 +50,22 @@ class ShiftUpAction(PlotAction):
                             text='Shift up',
                             tooltip='Shift active curve up by one unit',
                             triggered=self.shiftActiveCurveUp,
-                            checkable=False, parent=parent)
+                            parent=parent)
 
     def shiftActiveCurveUp(self):
+        """Get the active curve, add 1 to all y values, use this new y
+        array to replace the original curve"""
         # By inheriting from PlotAction, we get access to attribute self.plot
         # which is a reference to the PlotWindow
         activeCurve = self.plot.getActiveCurve()
 
         if activeCurve is not None:
-            # unpack curve data
+            # Unpack curve data.
+            # Each curve is represented by a tuple of 5 variables:
+            #  - x and y are the array of abscissa and ordinate values
+            #  - legend is a unique text identifying a curve
+            #  - info and params are dictionaries of additional data
+            #    (user defined, curve style and color...)
             x0, y0, legend, info, params = activeCurve
 
             # add 1 to all values in the y array
@@ -66,12 +73,13 @@ class ShiftUpAction(PlotAction):
             # (IMPORTANT: do not modify y0 directly)
             y1 = y0 + 1.0
 
-            # By re-usinq the same legend, this causes the original curve
+            # Re-using the same legend causes the original curve
             # to be replaced
             self.plot.addCurve(x0, y1, legend=legend,
                                info=info)
 
 
+# creating QApplication is mandatory in order to use qt widget
 app = qt.QApplication([])
 
 # create a PlotWindow with a new toolbar
@@ -84,10 +92,12 @@ pw.addToolBar(toolbar)
 myaction = ShiftUpAction(pw)
 toolbar.addAction(myaction)
 
-# Plot a curve with synthetic data
+# Plot a couple of curves with synthetic data
 x = [0, 1, 2, 3, 4, 5, 6]
-y = [0, 1, 0, 1, 0, 1, 0]
-pw.addCurve(x, y, legend="triangle shaped curve")
+y1 = [0, 1, 0, 1, 0, 1, 0]
+y2 = [0, 1, 2, 3, 4, 5, 6]
+pw.addCurve(x, y1, legend="triangle shaped curve")
+pw.addCurve(x, y2, legend="oblique line")
 
 pw.show()
 app.exec_()
