@@ -88,7 +88,6 @@ class TestGaussian(unittest.TestCase):
         if logger.getEffectiveLevel() <= logging.INFO:
             cls.PROFILE = True
             cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-            import pylab
         else:
             cls.PROFILE = False
             cls.queue = pyopencl.CommandQueue(cls.ctx)

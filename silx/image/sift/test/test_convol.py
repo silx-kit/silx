@@ -75,7 +75,6 @@ class TestConvol(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -83,7 +82,7 @@ class TestConvol(unittest.TestCase):
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
             cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -148,6 +147,7 @@ class TestConvol(unittest.TestCase):
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+                import pylab
                 fig = pylab.figure()
                 fig.suptitle('convolution horizontal sigma=%s delta=%s' % (sigma, delta))
                 sp1 = fig.add_subplot(221)

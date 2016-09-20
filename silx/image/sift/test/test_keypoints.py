@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import unittest
 import time
@@ -83,10 +83,14 @@ class ParameterisedTestCase(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -110,6 +114,7 @@ class ParameterisedTestCase(unittest.TestCase):
             suite.addTest(testcase_klass(name, param=param))
         return suite
 
+
 @unittest.skipUnless(ocl and scipy, "opencl or scipy missing")
 class test_keypoints(ParameterisedTestCase):
     def setUp(self):
@@ -129,6 +134,10 @@ class test_keypoints(ParameterisedTestCase):
                 self.USE_CPU = False
             if kernel_file.startswith("orient"):
                 self.wg_orient = self.param[kernel_file]
+                prod_wg = 1
+                for i in self.wg_orient:
+                    prod_wg *= i
+
                 kernel_src = get_opencl_code(kernel_file)
                 try:
                     self.program_orient = pyopencl.Program(self.ctx, kernel_src).build()
@@ -139,12 +148,19 @@ class test_keypoints(ParameterisedTestCase):
             elif kernel_file.startswith("keypoint"):
                 self.wg_keypoint = self.param[kernel_file]
                 kernel_src = get_opencl_code(kernel_file)
+                prod_wg = 1
+                for i in self.wg_keypoint:
+                    prod_wg *= i
+
                 try:
                     self.program_keypoint = pyopencl.Program(self.ctx, kernel_src).build()
                 except:
                     logger.warning("Failed to compile kernel '%s': aborting" % kernel_file)
                     self.abort = True
                     return
+            if prod_wg > self.maxwg:
+                logger.warning("max_work_group_size: %s %s needed", self.maxwg, prod_wg)
+                self.abort = True
 
     def tearDown(self):
         self.mat = None
@@ -169,6 +185,8 @@ class test_keypoints(ParameterisedTestCase):
 #        else:
 #            wg = 128, #FIXME : have to choose it for histograms #wg = max(self.wg),
         wg = self.wg_orient
+
+
         shape = keypoints.shape[0] * wg[0],  # shape = calc_size(keypoints.shape, self.wg)
 
         gpu_keypoints = pyopencl.array.to_device(self.queue, keypoints)
