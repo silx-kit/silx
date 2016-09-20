@@ -72,7 +72,7 @@ if ocl:
     platform_id = pyopencl.get_platforms().index(device.platform)
     maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
 
-    for kernel in list(kernel.keys()):
+    for kernel in list(kernels.keys()):
         if kernels[kernel] < maxwg:
             kernels[kernel] = maxwg
 

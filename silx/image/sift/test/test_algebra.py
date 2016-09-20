@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import time
 import logging
@@ -100,7 +100,7 @@ class TestAlgebra(unittest.TestCase):
         device_id = device.platform.get_devices().index(device)
         platform_id = pyopencl.get_platforms().index(device.platform)
         wg = self.wg[0] * self.wg[1]
-        maxwg = ocl.platfors[platform_id].devices[device_id].max_work_group_size
+        maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
         if maxwg < wg:
             self.wg = (1, maxwg)
 
