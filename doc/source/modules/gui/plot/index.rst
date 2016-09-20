@@ -71,6 +71,7 @@ Public modules
    plotwindow.rst
    imageview.rst
    plot.rst
+   plotactions.rst
 
 Internals
 ---------
