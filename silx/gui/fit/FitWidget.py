@@ -119,17 +119,9 @@ class FitWidget(qt.QWidget):
         if enableconfig:
             # todo:
             #     - separate theory selection from config
-            #     - replace config with FitTheory.configWidget (if provided)
 
             self.guiConfig = FitConfigWidget(self)
 
-            # self.guiConfig.MCACheckBox.stateChanged[int].connect(self.mcaevent)
-            # self.guiConfig.WeightCheckBox.stateChanged[
-            #     int].connect(self.weightevent)
-            self.guiConfig.AutoFWHMCheckBox.stateChanged[
-                int].connect(self.autoFwhmEvent)
-            # self.guiConfig.AutoScalingCheckBox.stateChanged[
-            #     int].connect(self.autoscaleevent)
             self.guiConfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
             self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
@@ -177,21 +169,6 @@ class FitWidget(qt.QWidget):
                 self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
             configuration.update(self.configure())
 
-            # if configuration['WeightFlag']:
-            #     self.guiConfig.WeightCheckBox.setChecked(1)
-            # else:
-            #     self.guiConfig.WeightCheckBox.setChecked(0)
-
-            if configuration['AutoFwhm']:
-                self.guiConfig.AutoFWHMCheckBox.setChecked(1)
-            else:
-                self.guiConfig.AutoFWHMCheckBox.setChecked(0)
-
-            # if configuration['AutoScaling']:
-            #     self.guiConfig.AutoScalingCheckBox.setChecked(1)
-            # else:
-            #     self.guiConfig.AutoScalingCheckBox.setChecked(0)
-
         layout.addWidget(self.guiParameters)
 
         if enablestatus:
@@ -206,9 +183,6 @@ class FitWidget(qt.QWidget):
             self.guibuttons.StartFitButton.clicked.connect(self.startFit)
             self.guibuttons.DismissButton.clicked.connect(self.dismiss)
             layout.addWidget(self.guibuttons)
-
-    # def updateGui(self, configuration=None):
-    #     self.__configureGui(configuration)
 
     def _setFitManager(self, fitinstance):
         """Initialize a :class:`FitManager` instance, to be assigned to
@@ -295,26 +269,6 @@ class FitWidget(qt.QWidget):
                           self.fitmanager.selectedbg)
             self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
 
-        # and all the rest
-        # if configuration['McaMode']:
-        #     self.guiConfig.MCACheckBox.setChecked(1)
-        # else:
-        #     self.guiConfig.MCACheckBox.setChecked(0)
-
-        # if configuration['WeightFlag']:
-        #     self.guiConfig.WeightCheckBox.setChecked(1)
-        # else:
-        #     self.guiConfig.WeightCheckBox.setChecked(0)
-
-        if configuration['AutoFwhm']:
-            self.guiConfig.AutoFWHMCheckBox.setChecked(1)
-        else:
-            self.guiConfig.AutoFWHMCheckBox.setChecked(0)
-
-        # if configuration['AutoScaling']:
-        #     self.guiConfig.AutoScalingCheckBox.setChecked(1)
-        # else:
-        #     self.guiConfig.AutoScalingCheckBox.setChecked(0)
         # update the Gui
         self.__initialParameters()
 
@@ -322,6 +276,7 @@ class FitWidget(qt.QWidget):
         """Display a dialog, allowing the user to define fit configuration
         parameters:
 
+            - ``AutoFwhm``
             - ``PositiveHeightAreaFlag``
             - ``QuotedPositionFlag``
             - ``PositiveFwhmFlag``
@@ -338,7 +293,7 @@ class FitWidget(qt.QWidget):
             - ``StripThresholdFactor``
 
         :return: User defined parameters in a dictionary"""
-        # this method can be overwritten for custom
+        # this method can be overwritten
         # it should give back a new dictionary
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
@@ -379,6 +334,11 @@ class FitWidget(qt.QWidget):
 
             sheet2 = {'notetitle': 'Search',
                       'fields': (
+                          {'name': 'AutoFwhm',
+                           'widget type': 'CheckField',
+                           'text': 'Automatic FWHM estimation',
+                           'tooltip': 'Automatically Compute FwhmPoints ' +
+                                      'based on the largest peak in data'},
                           {'widget type': "EntryField",
                            'name': 'FwhmPoints',
                            'text': 'Fwhm Points: ',
@@ -482,7 +442,6 @@ class FitWidget(qt.QWidget):
             'data': self.fitmanager.fit_results}
         self._emitSignal(ddict)
 
-
     def startfit(self):
         warnings.warn("Method renamed to startFit",
                       DeprecationWarning)
@@ -514,20 +473,6 @@ class FitWidget(qt.QWidget):
         }
         self._emitSignal(ddict)
         return
-
-    def autoFwhmEvent(self, item):
-        """Set :attr:`fitmanager.fitconfig['AutoFwhm']`"""
-        if int(item):
-            self.configure(AutoFwhm=True)
-        else:
-            self.configure(AutoFwhm=False)
-
-    # def autoscaleevent(self, item):
-    #     """Set :attr:`fitmanager"fitConfig['AutoScaling']`"""
-    #     if int(item):
-    #         self.configure(AutoScaling=True)
-    #     else:
-    #         self.configure(AutoScaling=False)
 
     def bkgEvent(self, bgtheory):
         """Select background theory, then reinitialize parameters"""

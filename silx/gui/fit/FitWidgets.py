@@ -138,22 +138,18 @@ class FitStatusLines(qt.QWidget):
 
 
 class FitConfigWidget(qt.QWidget):
-    """Widget with 2 ``QComboBox``, 4 ``QCheckBox`` and 2 ``QPushButtons``.
+    """Widget whose purpose is to select a fit theory and a background
+    theory, load a new fit theory definition file and open and provide
+    a "Configure" button to open an advanced configuration dialog.
 
-    The purpose of this widget, as it is used in
-    :class:`silx.gui.fit.FitWidget.FitWidget`, is to offer an interface
-    to quickly modify the main parameters prior to running a fitting:
+    This is used in :class:`silx.gui.fit.FitWidget.FitWidget`, to offer
+    an interface to quickly modify the main parameters prior to running a fit:
 
       - select a fitting function through :attr:`FunComBox`
       - select a background function through :attr:`BkgComBox`
-      - enable automatic estimation of peaks' full-width at half maximum
-        through :attr:`AutoFWHMCheckBox`
       - open a dialog for modifying advanced parameters through
         :attr:`ConfigureButton`
     """
-    # recently removed feature:
-    #   - enable auto-scaling through :attr:`AutoScalingCheckBox`
-
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
 
@@ -203,45 +199,9 @@ class FitConfigWidget(qt.QWidget):
                                 qt.QSizePolicy.Minimum)
         layout9.addItem(spacer)
 
-        # layout6 = qt.QGridLayout(None)
-        # layout6.setContentsMargins(0, 0, 0, 0)
-        # layout6.setSpacing(6)
-
-        # self.WeightCheckBox = qt.QCheckBox(self)
-        # self.WeightCheckBox.setText("Weight")
-
-        # layout6.addWidget(self.WeightCheckBox, 0, 0)
-
-        layout6_2 = qt.QGridLayout(None)
-        layout6_2.setContentsMargins(0, 0, 0, 0)
-        layout6_2.setSpacing(6)
-
-        self.AutoFWHMCheckBox = qt.QCheckBox(self)
-        self.AutoFWHMCheckBox.setText("Auto FWHM")
-        self.AutoFWHMCheckBox.setToolTip(
-                "Ignore configuration parameter Fwhm Points, compute value" +
-                " from data."
-        )
-
-        layout6_2.addWidget(self.AutoFWHMCheckBox, 0, 0)
-
-        # self.AutoScalingCheckBox = qt.QCheckBox(self)
-        # self.AutoScalingCheckBox.setText("Auto Scaling")
-        #
-        # layout6_2.addWidget(self.AutoScalingCheckBox, 1, 0)
-        layout9.addLayout(layout6_2)
-        spacer_2 = qt.QSpacerItem(20, 20, qt.QSizePolicy.Expanding,
-                                  qt.QSizePolicy.Minimum)
-        layout9.addItem(spacer_2)
-
         layout5 = qt.QGridLayout(None)
         layout5.setContentsMargins(0, 0, 0, 0)
         layout5.setSpacing(6)
-
-        # self.PrintPushButton = qt.QPushButton(self)
-        # self.PrintPushButton.setText("Print")
-        #
-        # layout5.addWidget(self.PrintPushButton, 1, 0)
 
         self.ConfigureButton = qt.QPushButton(self)
         self.ConfigureButton.setText("Configure")
@@ -341,7 +301,7 @@ class ParametersTab(qt.QTabWidget):
         """Dictionary of :class:`silx.gui.fit.parameters.Parameters` objects.
         These objects store fit results
         """
-        # self.mcatable = None  # Fixme: probably not used
+
         self.setContentsMargins(10, 10, 10, 10)
 
     def setView(self, view=None, fitresults=None):
