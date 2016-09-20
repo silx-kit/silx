@@ -272,7 +272,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         # lamba function will never be called cause we store it as weakref
         self.__treeview.addContextMenuCallback(lambda event: None)
         # you have to store it first
-        self.__store_lambda = lambda event: self.anotherCustomContextMenu(event)
+        self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
 
     def displayEvent(self, eventName, index):
@@ -341,7 +341,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             action = qt.QAction("Do something on the datasets", event.source())
             menu.addAction(action)
 
-    def anotherCustomContextMenu(self, event):
+    def closeAndSyncCustomContextMenu(self, event):
         """Called to populate the context menu
 
         :param silx.gui.hdf5.Hdf5ContextMenuEvent event: Event
@@ -356,7 +356,11 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         for obj in selectedObjects:
             if hasattr(obj, "filename"):
                 filename = os.path.basename(obj.filename)
-                action = qt.QAction("Do something on %s" % filename, event.source())
+                action = qt.QAction("Remove %s" % filename, event.source())
+                action.activated.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(obj))
+                menu.addAction(action)
+                action = qt.QAction("Synchronize %s" % filename, event.source())
+                action.activated.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(obj))
                 menu.addAction(action)
 
     def __hdf5ComboChanged(self, index):
