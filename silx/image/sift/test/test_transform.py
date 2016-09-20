@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import unittest
 import time
@@ -78,10 +78,14 @@ class TestTransform(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -103,8 +107,8 @@ class TestTransform(unittest.TestCase):
 
         '''
         image3 = numpy.zeros((output_height, output_width), dtype=numpy.float32)
-        d1 = (output_width - image_width) / 2
-        d0 = (output_height - image_height) / 2
+        d1 = (output_width - image_width) // 2
+        d0 = (output_height - image_height) // 2
         image3[d0:-d0, d1:-d1] = numpy.copy(img)
         image = image3
         image_height, image_width = output_height, output_width
@@ -183,7 +187,6 @@ class TestTransform(unittest.TestCase):
         sol, MSE = self.matching_correction(image, image2)
         logger.info(sol)
 
-
         correction_matrix = numpy.zeros((2, 2), dtype=numpy.float32)
         correction_matrix[0] = sol[0:2, 0]
         correction_matrix[1] = sol[3:5, 0]
@@ -192,6 +195,9 @@ class TestTransform(unittest.TestCase):
         offset_value[1] = sol[5, 0]
 
         wg = 8, 8
+        if self.maxwg < 64:
+            logger.warning("Max workgroup size is %s, < (8,8)", self.maxwg)
+            return
         shape = calc_size((output_width, output_height), wg)
         gpu_image = pyopencl.array.to_device(self.queue, image2)
         gpu_output = pyopencl.array.empty(self.queue, (output_height, output_width), dtype=numpy.float32, order="C")
@@ -202,8 +208,8 @@ class TestTransform(unittest.TestCase):
 
         t0 = time.time()
         k1 = self.program.transform(self.queue, shape, wg,
-                gpu_image.data, gpu_output.data, gpu_matrix.data, gpu_offset.data,
-                image_width, image_height, output_width, output_height, fill_value, mode)
+                                    gpu_image.data, gpu_output.data, gpu_matrix.data, gpu_offset.data,
+                                    image_width, image_height, output_width, output_height, fill_value, mode)
         res = gpu_output.get()
         t1 = time.time()
 #        logger.info(res[0,0]
@@ -222,31 +228,12 @@ class TestTransform(unittest.TestCase):
 #        delta_mse_res = ((res-image)**2).sum()/image.size
 #        delta_mse_ref = ((ref-image)**2).sum()/image.size
         at_0, at_1 = delta_arg / output_width, delta_arg % output_width
-        print("Max error: %f at (%d, %d)" % (delta_max, at_0, at_1))
+        logger.info("Max error: %f at (%d, %d)", delta_max, at_0, at_1)
 #        print("Mean Squared Error Res/Original : %f" %(delta_mse_res))
 #        print("Mean Squared Error Ref/Original: %f" %(delta_mse_ref))
-        print("minimal MSE according to least squares : %f" % MSE)
+        logger.info("minimal MSE according to least squares : %f", MSE)
 #        logger.info(res[at_0,at_1]
 #        logger.info(ref[at_0,at_1]
-
-#         SHOW_FIGURES = True
-        if SHOW_FIGURES:
-            import pylab
-            fig = pylab.figure()
-            sp1 = fig.add_subplot(221, title="Input image")
-            sp1.imshow(image, interpolation="nearest")
-            sp2 = fig.add_subplot(222, title="Image after deformation")
-            sp2.imshow(image2, interpolation="nearest")
-            sp2 = fig.add_subplot(223, title="Corrected image (OpenCL)")
-            sp2.imshow(res, interpolation="nearest")
-            sp2 = fig.add_subplot(224, title="Corrected image (Scipy)")
-            sp2.imshow(ref, interpolation="nearest")
-#            sp2.imshow(ref, interpolation="nearest")
-#            sp3 = fig.add_subplot(223,title="delta (max = %f)" %delta_max)
-#            sh3 = sp3.imshow(delta[:,:], interpolation="nearest")
-#            cbar = fig.colorbar(sh3)
-            fig.show()
-            six.moves.input("enter")
 
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms.", 1000.0 * (t2 - t1), 1000.0 * (t1 - t0))

@@ -81,10 +81,14 @@ class TestAlgebra(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -96,13 +100,8 @@ class TestAlgebra(unittest.TestCase):
         kernel_src = get_opencl_code("algebra.cl")
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
-        device = self.ctx.devices[0]
-        device_id = device.platform.get_devices().index(device)
-        platform_id = pyopencl.get_platforms().index(device.platform)
-        wg = self.wg[0] * self.wg[1]
-        maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-        if maxwg < wg:
-            self.wg = (1, maxwg)
+        if self.maxwg < self.wg[0] * self.wg[1]:
+            self.wg = (1, self.maxwg)
 
     def tearDown(self):
         self.mat1 = None

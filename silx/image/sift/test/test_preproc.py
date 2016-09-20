@@ -128,7 +128,6 @@ class TestPreproc(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -137,7 +136,7 @@ class TestPreproc(unittest.TestCase):
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
             cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-            logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -411,22 +410,6 @@ class TestPreproc(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Shrinking  took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-            fig = pylab.figure()
-            fig.suptitle('Shrinking by %s,%s' % self.binning)
-            sp1 = fig.add_subplot(221)
-            sp1.imshow(lint, interpolation="nearest")
-            sp1.set_title("Input")
-            sp2 = fig.add_subplot(222)
-            sp2.imshow(ref, interpolation="nearest")
-            sp2.set_title("Reference")
-            sp3 = fig.add_subplot(223)
-            sp3.imshow(ref - res, interpolation="nearest")
-            sp3.set_title("Delta= %s" % delta)
-            sp4 = fig.add_subplot(224)
-            sp4.imshow(res, interpolation="nearest")
-            sp4.set_title("GPU")
-            fig.show()
-            raw_input("enter")
         self.assert_(delta < 1e-6, "delta=%s" % delta)
 
     def test_bin(self):
@@ -452,22 +435,6 @@ class TestPreproc(unittest.TestCase):
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Binning took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-            fig = pylab.figure()
-            fig.suptitle('Binning by %s,%s' % self.binning)
-            sp1 = fig.add_subplot(221)
-            sp1.imshow(lint, interpolation="nearest")
-            sp1.set_title("Input")
-            sp2 = fig.add_subplot(222)
-            sp2.imshow(ref, interpolation="nearest")
-            sp2.set_title("Reference")
-            sp3 = fig.add_subplot(223)
-            sp3.imshow(ref - res, interpolation="nearest")
-            sp3.set_title("Delta= %s" % delta)
-            sp4 = fig.add_subplot(224)
-            sp4.imshow(res, interpolation="nearest")
-            sp4.set_title("GPU")
-            fig.show()
-            raw_input("enter")
         self.assert_(delta < 1e-6, "delta=%s" % delta)
 
 
