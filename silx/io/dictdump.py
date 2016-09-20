@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module offers a set of functions to dump a python dictionary indexed
 by text strings to following file formats: `HDF5, INI, JSON`
 """
@@ -44,11 +44,11 @@ from .configdict import ConfigDict
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/05/2016"
+__date__ = "15/09/2016"
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)    # noqa
 
 
 def _prepare_hdf5_dataset(array_like):
@@ -155,8 +155,8 @@ def dicttoh5(treedict, h5file, h5path='/',
                      overwrite_data=overwrite_data,
                      create_dataset_args=create_dataset_args)
 
-        elif treedict[key] is None or (isinstance(treedict[key], dict)
-             and not len(treedict[key])):
+        elif treedict[key] is None or (isinstance(treedict[key], dict) and
+                                       not len(treedict[key])):
             # Create empty group
             h5f.create_group(h5path + key)
 
@@ -182,7 +182,7 @@ def h5todict(h5file, path="/"):
     .. note:: This function requires `h5py <http://www.h5py.org/>`_ to be
         installed.
 
-    .. note:: If you write a dictionary to a HDF5 file with 
+    .. note:: If you write a dictionary to a HDF5 file with
         :func:`dicttoh5` and then read it back with :func:`h5todict`, data
         types are not preserved. All values are cast to numpy arrays before
         being written to file, and they are read back as numpy arrays (or
@@ -211,10 +211,10 @@ def h5todict(h5file, path="/"):
     return ddict
 
 
-def dicttojson(dict, jsonfile, indent=None, mode="w"):
-    """Serialize ``dict`` as a JSON formatted stream to ``jsonfile``.
+def dicttojson(ddict, jsonfile, indent=None, mode="w"):
+    """Serialize ``ddict`` as a JSON formatted stream to ``jsonfile``.
 
-    :param dict: Dictionary (or any object compatible with ``json.dump``).
+    :param ddict: Dictionary (or any object compatible with ``json.dump``).
     :param jsonfile: JSON file name or file-like object.
         If a file name is provided, the function opens the file in the
         specified mode and closes it again.
@@ -229,7 +229,7 @@ def dicttojson(dict, jsonfile, indent=None, mode="w"):
     else:
         jsonf = jsonfile
 
-    json.dump(dict, jsonf, indent=indent)
+    json.dump(ddict, jsonf, indent=indent)
 
     if not hasattr(jsonfile, "write"):
         jsonf.close()
@@ -321,4 +321,3 @@ def load(ffile, fmat=None):
         return ConfigDict(filelist=[fname])
     else:
         raise IOError("Unknown format " + fmat)
-

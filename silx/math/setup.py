@@ -70,7 +70,6 @@ def configuration(parent_package='', top_path=None):
                          language='c')
     # =====================================
     # =====================================
-
     return config
 
 

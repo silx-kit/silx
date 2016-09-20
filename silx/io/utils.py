@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """ I/O utility functions"""
 
 import numpy
@@ -41,12 +41,12 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "15/09/2016"
 
 
 logger = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
@@ -67,7 +67,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         to be saved.
     :param filetype: Filetype: ``"spec", "csv", "txt", "ndarray"``.
         If ``None``, filetype is detected from file name extension
-        (``.dat, .csv, .txt, .npy``)
+        (``.dat, .csv, .txt, .npy``).
     :param xlabel: Abscissa label
     :param ylabels: List of `y` labels
     :param fmt: Format string for data. You can specify a short format
@@ -119,11 +119,29 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         fileext = os.path.splitext(outfname)[1]
         if fileext in exttypes:
             filetype = exttypes[fileext]
+        else:
+            raise IOError("File type unspecified and could not be " +
+                          "inferred from file extension (not in " +
+                          "txt, dat, csv, npy)")
     else:
         filetype = filetype.lower()
 
     if filetype not in available_formats:
         raise IOError("File type %s is not supported" % (filetype))
+
+    # default column headers
+    if xlabel is None:
+        xlabel = "x"
+    if ylabels is None:
+        if len(numpy.array(y).shape) > 1:
+            ylabels = ["y%d" % i for i in range(len(y))]
+        else:
+            ylabels = ["y"]
+    elif isinstance(ylabels, (list, tuple)):
+        # if ylabels is provided as a list, every element must
+        # be a string
+        ylabels = [ylabels[i] if ylabels[i] is not None else "y%d" % i
+                   for i in range(len(ylabels))]
 
     if filetype.lower() == "spec":
         y_array = numpy.asarray(y)
@@ -320,7 +338,7 @@ def h5ls(h5group, lvl=0):
         logger.error("h5ls requires h5py")
         raise h5py_import_error
 
-    repr = ''
+    h5repr = ''
     if isinstance(h5group, (h5py.File, h5py.Group)):
         h5f = h5group
     elif isinstance(h5group, string_types):
@@ -330,15 +348,15 @@ def h5ls(h5group, lvl=0):
 
     for key in h5f.keys():
         if hasattr(h5f[key], 'keys'):
-            repr += '\t' * lvl + '+' + key
-            repr += '\n'
-            repr += h5ls(h5f[key], lvl + 1)
+            h5repr += '\t' * lvl + '+' + key
+            h5repr += '\n'
+            h5repr += h5ls(h5f[key], lvl + 1)
         else:
-            repr += '\t' * lvl
-            repr += str(h5f[key])
-            repr += '\n'
+            h5repr += '\t' * lvl
+            h5repr += str(h5f[key])
+            h5repr += '\n'
 
     if isinstance(h5group, string_types):
         h5f.close()
 
-    return repr
+    return h5repr

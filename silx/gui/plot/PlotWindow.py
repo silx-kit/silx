@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/03/2016"
+__date__ = "15/09/2016"
 
 import collections
 import logging
@@ -73,6 +73,7 @@ class PlotWindow(PlotWidget):
     - copyAction: Copy plot snapshot to clipboard
     - saveAction: Save plot
     - printAction: Print plot
+    - fitAction: Fit selected curve
 
     Initialiser parameters:
 
@@ -100,6 +101,7 @@ class PlotWindow(PlotWidget):
                      to customize the displayed values.
                      See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool roi: Toggle visibilty of ROI action.
+    :param bool fit: Toggle visibilty of fit action.
     """
 
     def __init__(self, parent=None, backend=None,
@@ -107,7 +109,8 @@ class PlotWindow(PlotWidget):
                  curveStyle=True, colormap=True,
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
-                 control=False, position=False, roi=True, mask=True):
+                 control=False, position=False,
+                 roi=True, mask=True, fit=False):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -179,6 +182,9 @@ class PlotWindow(PlotWidget):
 
         self.printAction = self.group.addAction(PrintAction(self))
         self.printAction.setVisible(print_)
+
+        self.fitAction = self.group.addAction(FitAction(self))
+        self.fitAction.setVisible(fit)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -283,12 +289,12 @@ class PlotWindow(PlotWidget):
     def consoleDockWidget(self):
         """DockWidget with IPython console (lazy-loaded)."""
         if not hasattr(self, '_consoleDockWidget'):
-            vars = {"plt": self}
+            available_vars = {"plt": self}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
             if IPythonDockWidget is not None:
                 self._consoleDockWidget = IPythonDockWidget(
-                    available_vars=vars,
+                    available_vars=available_vars,
                     custom_banner=banner,
                     parent=self)
                 self._consoleDockWidget.hide()
@@ -391,7 +397,7 @@ class Plot1D(PlotWindow):
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
-                                     roi=True, mask=False)
+                                     roi=True, mask=False, fit=True)
         if parent is None:
             self.setWindowTitle('Plot1D')
         self.setGraphXLabel('X')

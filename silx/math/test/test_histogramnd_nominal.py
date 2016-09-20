@@ -915,9 +915,10 @@ class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
 test_cases = (Test_chistogram_nominal_1d,
               Test_chistogram_nominal_2d,
               Test_chistogram_nominal_3d,
-              Test_Histogramnd_nominal_1d,)
-              #Test_Histogramnd_nominal_2d,
-              #Test_Histogramnd_nominal_3d)
+              Test_Histogramnd_nominal_1d,
+              # Test_Histogramnd_nominal_2d,
+              # Test_Histogramnd_nominal_3d
+              )
 
 
 def suite():

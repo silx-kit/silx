@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "15/09/2016"
 
 
 import unittest
@@ -68,7 +68,7 @@ class TestIcons(testutils.TestCaseQt):
         icon1_id = str(icon1.__repr__())
         icon1 = None
         # alloc another thing in case the old icon1 object is reused
-        icon3 = icons.getQIcon("colormap")
+        _icon3 = icons.getQIcon("colormap")
         icon2 = icons.getQIcon("crop")
         icon2_id = str(icon2.__repr__())
         self.assertNotEquals(icon1_id, icon2_id)

@@ -48,7 +48,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "15/09/2016"
 
 
 from collections import OrderedDict
@@ -72,7 +72,9 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
+from ..fit.FitWidget import FitWidget
 from silx.io.utils import save1D, savespec
+
 
 
 _logger = logging.getLogger(__name__)
@@ -125,7 +127,7 @@ class ResetZoomAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
-            plot,  icon='zoom-original', text='Reset Zoom',
+            plot, icon='zoom-original', text='Reset Zoom',
             tooltip='Auto-scale the graph',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -160,7 +162,7 @@ class ZoomInAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomInAction, self).__init__(
-            plot,  icon='zoom-in', text='Zoom In',
+            plot, icon='zoom-in', text='Zoom In',
             tooltip='Zoom in the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -179,14 +181,14 @@ class ZoomOutAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomOutAction, self).__init__(
-            plot,  icon='zoom-out', text='Zoom Out',
+            plot, icon='zoom-out', text='Zoom Out',
             tooltip='Zoom out the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.ZoomOut)
 
     def _actionTriggered(self, checked=False):
-        _applyZoomToPlot(self.plot, 1./1.1)
+        _applyZoomToPlot(self.plot, 1. / 1.1)
 
 
 class XAxisAutoScaleAction(_PlotAction):
@@ -199,9 +201,8 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip=
-                'Enable x-axis auto-scale when checked.\n'
-                'If unchecked, x-axis does not change when reseting zoom.',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -223,9 +224,8 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip=
-                'Enable y-axis auto-scale when checked.\n'
-                'If unchecked, y-axis does not change when reseting zoom.',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -598,9 +598,17 @@ class SaveAction(_PlotAction):
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
 
+        # If curve has no associated label, get the default from the plot
+        xlabel = curve[4]['xlabel']
+        if xlabel is None:
+            xlabel = self.plot.getGraphXLabel()
+        ylabel = curve[4]['ylabel']
+        if ylabel is None:
+            ylabel = self.plot.getGraphYLabel()
+
         try:
             save1D(filename, curve[0], curve[1],
-                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -727,7 +735,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension
@@ -931,7 +939,7 @@ class PanWithArrowKeysAction(_PlotAction):
     def __init__(self, plot, parent=None):
 
         super(PanWithArrowKeysAction, self).__init__(
-            plot, icon='arrow_keys', text='Pan with arrow keys',
+            plot, icon='arrow-keys', text='Pan with arrow keys',
             tooltip='Enable pan with arrow keys when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -940,3 +948,51 @@ class PanWithArrowKeysAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setPanWithArrowKeys(checked)
+
+
+class FitAction(_PlotAction):
+    """QAction to open a :class:`FitWidget` and set its data to the
+    active curve if any, or to the first curve..
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        super(FitAction, self).__init__(
+            plot, icon='math-fit', text='Fit curve',
+            tooltip='Open a fit dialog',
+            triggered=self._openFitWindow,
+            checkable=False, parent=parent)
+
+    def _openFitWindow(self):
+        curve = self.plot.getActiveCurve()
+        if curve is None:
+            # curves = self.plot.getAllCurves()
+            # if not curves:
+            #     self._errorMessage("No curve to be fitted")
+            #     return False
+            # curve = curves[0]
+            self._errorMessage("No selected curve to be fitted")
+            return False
+        self.x, self.y, self.legend = curve[0:3]
+
+        # open a window with a FitWidget
+        mw = qt.QMainWindow(self.plot)
+        self.fit_widget = FitWidget(parent=mw)
+        self.fit_widget.setData(self.x, self.y)
+        self.fit_widget.show()
+        mw.setWindowTitle("Fitting " + self.legend)
+        mw.setCentralWidget(self.fit_widget)
+        self.fit_widget.guibuttons.DismissButton.clicked.connect(mw.close)
+        self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
+        mw.show()
+
+    def handle_signal(self, ddict):
+        if ddict["event"] == "EstimateFinished":
+            pass
+        if ddict["event"] == "FitFinished":
+            y_fit = self.fit_widget.fitmanager.gendata()
+            self.plot.addCurve(self.x, y_fit, "Fit <%s>" % self.legend)
+
+
+

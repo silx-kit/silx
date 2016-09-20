@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "15/09/2016"
 
 
 import math
@@ -116,7 +116,7 @@ class _ZoomOnWheel(ClickOrDrag, _PlotInteraction):
     """
     class ZoomIdle(ClickOrDrag.Idle):
         def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1./1.1
+            scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
     def __init__(self, plot):
@@ -238,7 +238,7 @@ class Zoom(_ZoomOnWheel):
         super(Zoom, self).__init__(plot)
 
     def _areaWithAspectRatio(self, x0, y0, x1, y1):
-        plotLeft, plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
+        _plotLeft, _plotTop, plotW, plotH = self.plot.getPlotBoundsInPixels()
 
         areaX0, areaY0, areaX1, areaY1 = x0, y0, x1, y1
 
@@ -405,7 +405,7 @@ class Select(StateMachine, _PlotInteraction):
         StateMachine.__init__(self, states, state)
 
     def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1./1.1
+        scaleF = 1.1 if angle > 0 else 1. / 1.1
         applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
@@ -442,8 +442,8 @@ class SelectPolygon(Select):
                       (x - offset, y + offset),
                       (x + offset, y + offset),
                       (x + offset, y - offset)]
-            points = [self.machine.plot.pixelToData(x, y, check=False)
-                      for x, y in points]
+            points = [self.machine.plot.pixelToData(xpix, ypix, check=False)
+                      for xpix, ypix in points]
             self.machine.setSelectionArea(points, fill=None,
                                           color=self.machine.color,
                                           name='first_point')
@@ -467,10 +467,22 @@ class SelectPolygon(Select):
             if btn == LEFT_BTN:
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
-                self.points[-1] = dataPos
                 self.updateSelectionArea()
-                if self.points[-2] != self.points[-1]:
+
+                # checking that the new points isnt the same (within range)
+                # of the previous one
+                # This has to be done because sometimes the mouse release event
+                # is caught right after entering the Select state (i.e : press
+                # in Idle state, but with a slightly different position that
+                # the mouse press. So we had the two first vertices that were
+                # almost identical.
+                dx = abs(self.points[-2][0] - dataPos[0])
+                dy = abs(self.points[-2][1] - dataPos[1])
+                if(dx >= self.machine.DRAG_THRESHOLD_DIST and
+                   dy >= self.machine.DRAG_THRESHOLD_DIST):
                     self.points.append(dataPos)
+                else:
+                    self.points[-1] = dataPos
 
                 return True
 
@@ -492,17 +504,14 @@ class SelectPolygon(Select):
                 firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                # checking if the position is close to the first point
+                # if yes : closing the "loop"
                 if (dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
                     self.machine.resetSelectionArea()
 
-                    dataPos = self.machine.plot.pixelToData(x, y)
-                    assert dataPos is not None
-                    self.points[-1] = dataPos
-                    if self.points[-2] == self.points[-1]:
-                        self.points.pop()
-
-                    self.points.append(self.points[0])
+                    self.points[-1] = self.points[0]
 
                     eventDict = prepareDrawingSignal('drawingFinished',
                                                      'polygon',
@@ -514,12 +523,20 @@ class SelectPolygon(Select):
             elif btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
 
-                dataPos = self.machine.plot.pixelToData(x, y)
-                assert dataPos is not None
-                self.points[-1] = dataPos
-                if self.points[-2] == self.points[-1]:
-                    self.points.pop()
-                self.points.append(self.points[0])
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                    self.points[-1] = self.points[0]
+                else:
+                    dataPos = self.machine.plot.pixelToData(x, y)
+                    assert dataPos is not None
+                    self.points[-1] = dataPos
+                    if self.points[-2] == self.points[-1]:
+                        self.points.pop()
+                    self.points.append(self.points[0])
 
                 eventDict = prepareDrawingSignal('drawingFinished',
                                                  'polygon',
@@ -726,7 +743,7 @@ class SelectHLine(Select1Point):
 
         Supports non-orthogonal axes.
         """
-        left, top, width, height = self.plot.getPlotBoundsInPixels()
+        left, _top, width, _height = self.plot.getPlotBoundsInPixels()
 
         dataPos1 = self.plot.pixelToData(left, y, check=False)
         dataPos2 = self.plot.pixelToData(left + width, y, check=False)
@@ -762,7 +779,7 @@ class SelectVLine(Select1Point):
 
         Supports non-orthogonal axes.
         """
-        left, top, width, height = self.plot.getPlotBoundsInPixels()
+        _left, top, _width, height = self.plot.getPlotBoundsInPixels()
 
         dataPos1 = self.plot.pixelToData(x, top, check=False)
         dataPos2 = self.plot.pixelToData(x, top + height, check=False)
@@ -807,7 +824,7 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
         self.parameters = parameters
 
     def onWheel(self, x, y, angle):
-        scaleF = 1.1 if angle > 0 else 1./1.1
+        scaleF = 1.1 if angle > 0 else 1. / 1.1
         applyZoomToPlot(self.plot, scaleF, (x, y))
 
     @property
@@ -863,7 +880,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             self._hoverMarker = None
 
         def onWheel(self, x, y, angle):
-            scaleF = 1.1 if angle > 0 else 1./1.1
+            scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
 
         def onPress(self, x, y, btn):

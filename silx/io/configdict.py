@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """
 This module handles read and write operations to INI files, with data type
 preservation and support for nesting subsections to any depth.
@@ -86,7 +86,7 @@ Classes:
 
 __author__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/05/2016"
+__date__ = "15/09/2016"
 
 from collections import OrderedDict
 import numpy
@@ -98,7 +98,7 @@ else:
     import configparser
 
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 
 def _boolean(sstr):

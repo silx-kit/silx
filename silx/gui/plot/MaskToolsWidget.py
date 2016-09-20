@@ -324,7 +324,12 @@ class Mask(qt.QObject):
 class MaskToolsWidget(qt.QWidget):
     """Widget with tools for drawing mask on an image in a PlotWidget."""
 
+    _maxLevelNumber = 255
+
     def __init__(self, plot, parent=None):
+        self._defaultColors = numpy.ones((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
+        self._overlayColors = numpy.zeros((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
+
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
 
@@ -332,9 +337,9 @@ class MaskToolsWidget(qt.QWidget):
             'name': None,
             'normalization': 'linear',
             'autoscale': False,
-            'vmin': 0, 'vmax': 255,
+            'vmin': 0, 'vmax': self._maxLevelNumber,
             'colors': None}
-        self._overlayColor = rgba('gray')  # Color of the mask
+        self._defaultOverlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, 0.5)
 
         self._doMask = None  # Store mask/unmask state while interacting
@@ -387,7 +392,7 @@ class MaskToolsWidget(qt.QWidget):
             _logger.error('Not an image, shape: %d', len(mask.shape))
             return None
 
-        if mask.shape == self._data.shape:
+        if self._data.shape == (0, 0) or mask.shape == self._data.shape:
             self._mask.setMask(mask, copy=copy)
             self._mask.commit()
             return mask.shape
@@ -479,32 +484,40 @@ class MaskToolsWidget(qt.QWidget):
         widget.setLayout(layout)
         return widget
 
+    def _initTransparencyWidget(self):
+        """ Init the mask transparency widget """
+        transparencyWidget = qt.QWidget(self)
+        grid = qt.QGridLayout()
+        grid.setContentsMargins(0, 0, 0, 0)
+        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
+        self.transparencySlider.setRange(3, 10)
+        self.transparencySlider.setValue(5)
+        self.transparencySlider.setToolTip(
+            'Set the transparency of the mask display')
+        self.transparencySlider.valueChanged.connect(self._updateColors)
+        grid.addWidget(qt.QLabel('Display:', parent=transparencyWidget), 0, 0)
+        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
+        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>', parent=transparencyWidget), 1, 1)
+        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>', parent=transparencyWidget), 1, 3)
+        transparencyWidget.setLayout(grid)
+        return transparencyWidget
+
     def _initMaskGroupBox(self):
         """Init general mask operation widgets"""
+
+        # Mask level 
         self.levelSpinBox = qt.QSpinBox()
-        self.levelSpinBox.setRange(1, 255)
+        self.levelSpinBox.setRange(1, self._maxLevelNumber)
         self.levelSpinBox.setToolTip(
             'Choose which mask level is edited.\n'
             'A mask can have up to 255 non-overlapping levels.')
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
+        # Transarency
+        self.transparencyWidget = self._initTransparencyWidget()
 
-        grid = qt.QGridLayout()
-        grid.setContentsMargins(0, 0, 0, 0)
-        self.transparencySlider = qt.QSlider(qt.Qt.Horizontal)
-        self.transparencySlider.setRange(3, 10)
-        self.transparencySlider.setValue(5)
-        self.transparencySlider.setToolTip(
-            'Set the transparency of the mask display')
-        self.transparencySlider.valueChanged.connect(self._updateColors)
-        grid.addWidget(qt.QLabel('Display:'), 0, 0)
-        grid.addWidget(self.transparencySlider, 0, 1, 1, 3)
-        grid.addWidget(qt.QLabel('<small><b>Transparent</b></small>'), 1, 1)
-        grid.addWidget(qt.QLabel('<small><b>Opaque</b></small>'), 1, 3)
-        transparencyWidget = qt.QWidget()
-        transparencyWidget.setLayout(grid)
-
+        # Buttons group
         invertBtn = qt.QPushButton('Invert')
         invertBtn.setShortcut(qt.Qt.CTRL + qt.Qt.Key_I)
         invertBtn.setToolTip('Invert current mask <b>%s</b>' %
@@ -546,15 +559,15 @@ class MaskToolsWidget(qt.QWidget):
         saveBtn = qt.QPushButton('Save...')
         saveBtn.clicked.connect(self._saveMask)
 
-        loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
+        self.loadSaveWidget = self._hboxWidget(loadBtn, saveBtn, stretch=False)
 
         layout = qt.QVBoxLayout()
         layout.addWidget(self.levelWidget)
-        layout.addWidget(transparencyWidget)
+        layout.addWidget(self.transparencyWidget)
         layout.addWidget(invertClearWidget)
         layout.addWidget(undoRedoWidget)
         layout.addWidget(self.clearAllBtn)
-        layout.addWidget(loadSaveWidget)
+        layout.addWidget(self.loadSaveWidget)
         layout.addStretch(1)
 
         maskGroup = qt.QGroupBox('Mask')
@@ -610,12 +623,12 @@ class MaskToolsWidget(qt.QWidget):
 
         self.browseAction.setChecked(True)
 
-        drawButtons = []
+        self.drawButtons = {}
         for action in self.drawActionGroup.actions():
             btn = qt.QToolButton()
             btn.setDefaultAction(action)
-            drawButtons.append(btn)
-        container = self._hboxWidget(*drawButtons)
+            self.drawButtons[action.text()] = btn
+        container = self._hboxWidget(*self.drawButtons.values())
         layout.addWidget(container)
 
         # Mask/Unmask radio buttons
@@ -748,9 +761,9 @@ class MaskToolsWidget(qt.QWidget):
 
         layout.addStretch(1)
 
-        thresholdGroup = qt.QGroupBox('Threshold')
-        thresholdGroup.setLayout(layout)
-        return thresholdGroup
+        self.thresholdGroup = qt.QGroupBox('Threshold')
+        self.thresholdGroup.setLayout(layout)
+        return self.thresholdGroup
 
     # Handle mask refresh on the plot
 
@@ -807,7 +820,7 @@ class MaskToolsWidget(qt.QWidget):
                 self._activeImageChangedAfterCare)
         else:
             colormap = activeImage[4]['colormap']
-            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -842,7 +855,7 @@ class MaskToolsWidget(qt.QWidget):
             self.setEnabled(True)
 
             colormap = activeImage[4]['colormap']
-            self._overlayColor = rgba(cursorColorForColormap(colormap['name']))
+            self._defaultOverlayColor = rgba(cursorColorForColormap(colormap['name']))
             self._setMaskColors(self.levelSpinBox.value(),
                                 self.transparencySlider.value() /
                                 self.transparencySlider.maximum())
@@ -884,7 +897,7 @@ class MaskToolsWidget(qt.QWidget):
         if effectiveMaskShape is None:
             return False
         elif mask.shape != effectiveMaskShape:
-            result = 'Mask was resized from %s to %s' % (
+            return 'Mask was resized from %s to %s' % (
                 str(mask.shape), str(effectiveMaskShape))
         else:
             return True
@@ -972,12 +985,15 @@ class MaskToolsWidget(qt.QWidget):
         :param int level: The mask level to highlight
         :param float alpha: Alpha level of mask in [0., 1.]
         """
-        assert level > 0 and level < 256
+        assert level > 0 and level <= self._maxLevelNumber
 
-        colors = numpy.empty((256, 4), dtype=numpy.float32)
-
+        colors = numpy.empty((self._maxLevelNumber+1, 4), dtype=numpy.float32)
+        
         # Set color
-        colors[:, :3] = self._overlayColor[:3]
+        colors[:, :3] = self._defaultOverlayColor[:3]
+
+        # check if some colors has been directly set by the user
+        colors[self._defaultColors==False, :3] = self._overlayColors[self._defaultColors==False, :3]
 
         # Set alpha
         colors[:, -1] = alpha / 2.
@@ -989,6 +1005,37 @@ class MaskToolsWidget(qt.QWidget):
         colors[0] = (0., 0., 0., 0.)
 
         self._colormap['colors'] = colors
+
+    def resetMaskColors(self, level=None):
+        """Reset the mask color at the given level to be defaultColors
+
+        :param level: the index of the mask for which we want to reset the color. If none we will reset color for all masks.
+        """
+        if level is None:
+            self._defaultColors[level] = True
+        else:
+            self._defaultColors[:] = True
+
+        self._updateColors()
+
+    def setMaskColors(self, rgb, level=None):
+        """Set the masks color
+
+        :param rgb: The rgb color
+        :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
+        """
+        if level is None:
+            self._overlayColors[:] = rgb
+            self._defaultColors[:] = False
+        else:
+            self._overlayColors[level] = rgb
+            self._defaultColors[level] = False
+
+        self._updateColors()
+        
+    def getMaskColors(self):
+        """masks colors getter"""
+        return self._overlayColors
 
     def _updateColors(self, *args):
         """Rebuild mask colormap when selected level or transparency change"""

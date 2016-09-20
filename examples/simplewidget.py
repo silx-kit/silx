@@ -31,11 +31,12 @@ It shows the following widgets:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "05/09/2016"
 
 import sys
 from silx.gui import qt
 from silx.gui.widgets.WaitingPushButton import WaitingPushButton
+from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
 
 
 class SimpleWidgetExample(qt.QMainWindow):
@@ -48,8 +49,13 @@ class SimpleWidgetExample(qt.QMainWindow):
 
         main_panel = qt.QWidget(self)
         main_panel.setLayout(qt.QVBoxLayout())
+
+        main_panel.layout().addWidget(qt.QLabel("WaitingPushButton"))
         main_panel.layout().addWidget(self.createWaitingPushButton())
         main_panel.layout().addWidget(self.createWaitingPushButton2())
+
+        main_panel.layout().addWidget(qt.QLabel("ThreadPoolPushButton"))
+        main_panel.layout().addWidget(self.createThreadPoolPushButton())
 
         self.setCentralWidget(main_panel)
 
@@ -62,6 +68,24 @@ class SimpleWidgetExample(qt.QMainWindow):
         widget = WaitingPushButton("Push me")
         widget.setDisabledWhenWaiting(False)
         widget.clicked.connect(widget.swapWaiting)
+        return widget
+
+    def printResult(self, result):
+        print(result)
+
+    def printError(self, result):
+        print("Error")
+        print(result)
+
+    def takesTimeToComputePow(self, a, b):
+        qt.QThread.sleep(2)
+        return a ** b
+
+    def createThreadPoolPushButton(self):
+        widget = ThreadPoolPushButton("Compute 2^16")
+        widget.setCallable(self.takesTimeToComputePow, 2, 16)
+        widget.succeeded.connect(self.printResult)
+        widget.failed.connect(self.printError)
         return widget
 
 

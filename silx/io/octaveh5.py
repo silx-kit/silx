@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """
 Python h5 module and octave h5 module have differente ways to deal with
 h5 files.
@@ -63,7 +63,7 @@ except ImportError as e:
 
 __authors__ = ["C. Nemoz", "H. Payno"]
 __license__ = "MIT"
-__date__ = "25/05/2016"
+__date__ = "15/09/2016"
 
 class Octaveh5():
     """

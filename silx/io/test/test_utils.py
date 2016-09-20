@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """Tests for utils module"""
 
 
@@ -44,7 +44,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "15/09/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -74,13 +74,20 @@ expected_csv = r"""Abscissa;Ordinate1;Ordinate2
 3;6\.00;9\.00e\+00
 """
 
+expected_csv2 = r"""x;y0;y1
+1;4\.00;7\.00e\+00
+2;5\.00;8\.00e\+00
+3;6\.00;9\.00e\+00
+"""
+
+
 class TestSave(unittest.TestCase):
     """Test saving curves as SpecFile:
     """
     def setUp(self):
         self.tempdir = tempfile.mkdtemp()
         self.spec_fname = os.path.join(self.tempdir, "savespec.dat")
-        self.csv_fname = os.path.join(self.tempdir, "savecsv.dat")
+        self.csv_fname = os.path.join(self.tempdir, "savecsv.csv")
         self.npy_fname = os.path.join(self.tempdir, "savenpy.npy")
 
         self.x = [1, 2, 3]
@@ -167,6 +174,18 @@ class TestSave(unittest.TestCase):
         specf.close()
         self.assertRegexpMatches(actual_spec, expected_spec2)
 
+    def test_save_csv_no_labels(self):
+        """Save csv using save(), with autoheader=True but
+        xlabel=None and ylabels=None
+        This is a non-regression test for bug #223"""
+        save1D(self.csv_fname, self.x, self.y,
+               autoheader=True, fmt=["%d", "%.2f", "%.2e"])
+
+        csvf = open(self.csv_fname)
+        actual_csv = csvf.read()
+        csvf.close()
+        self.assertRegexpMatches(actual_csv, expected_csv2)
+
 
 def assert_match_any_string_in_list(test, pattern, list_of_strings):
     for string_ in list_of_strings:
@@ -223,7 +242,6 @@ class TestH5Ls(unittest.TestCase):
         self.assertMatchAnyStringInList(
                 r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
                 lines)
-
 
 
 def suite():

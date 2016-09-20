@@ -26,7 +26,7 @@
 
 __authors__ = ["V.A. Sole", "T. VINCENT"]
 __license__ = "MIT"
-__date__ = "22/02/2016"
+__date__ = "15/09/2016"
 
 
 import numpy
@@ -104,7 +104,7 @@ _COLORMAP_CURSOR_COLORS = {
     'magma': 'white',
     'inferno': 'white',
     'plasma': 'white',
-    }
+}
 
 
 def cursorColorForColormap(colormapName):

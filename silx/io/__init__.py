@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "15/09/2016"
 
 
 import logging

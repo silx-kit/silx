@@ -22,10 +22,9 @@
 #
 # ############################################################################*/
 
-__authors__ = ["D. Naudet", "V.A. Sole"]
+__authors__ = ["D. Naudet", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "26/05/2016"
 
 from .histogram import Histogramnd  # noqa
 from .histogram import HistogramndLut  # noqa
-from .fit import leastsq  # noqa

@@ -24,13 +24,16 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "19/09/2016"
 
 
 import unittest
 from .test_weakref import suite as test_weakref_suite
+from .test_html import suite as test_html_suite
+
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_weakref_suite())
+    test_suite.addTest(test_html_suite())
     return test_suite

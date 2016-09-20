@@ -182,9 +182,9 @@ class LegendIcon(qt.QWidget):
         ratio = float(self.width()) / scale
         painter.scale(scale,
                       scale)
-        symbolOffset = qt.QPointF(.5*(ratio-1.), 0.)
+        symbolOffset = qt.QPointF(.5 * (ratio - 1.), 0.)
         # Determine and scale offset
-        offset = qt.QPointF(float(rect.left())/scale, float(rect.top())/scale)
+        offset = qt.QPointF(float(rect.left()) / scale, float(rect.top()) / scale)
         # Draw BG rectangle (for debugging)
         # bottomRight = qt.QPointF(
         #    float(rect.right())/scale,
@@ -219,7 +219,7 @@ class LegendIcon(qt.QWidget):
             )
             symbolPen = qt.QPen(
                 self.symbolOutlineBrush,  # Brush
-                1./self.height(),         # Width
+                1. / self.height(),       # Width
                 qt.Qt.SolidLine           # Style
             )
             llist.append((symbolPath,
@@ -371,7 +371,7 @@ class LegendModel(qt.QAbstractListModel):
         count = len(llist)
         super(LegendModel, self).beginInsertRows(modelIndex,
                                                  row,
-                                                 row+count)
+                                                 row + count)
         head = self.legendList[0:row]
         tail = self.legendList[row:]
         new = []
@@ -423,8 +423,8 @@ class LegendModel(qt.QAbstractListModel):
             return False
         super(LegendModel, self).beginRemoveRows(modelIndex,
                                                  row,
-                                                 row+count)
-        del(self.legendList[row:row+count])
+                                                 row + count)
+        del(self.legendList[row:row + count])
         super(LegendModel, self).endRemoveRows()
         return True
 
@@ -471,13 +471,6 @@ class LegendListItemWidget(qt.QItemDelegate):
         :param QModelIndex modelIndex:
         """
         painter.save()
-        # Rect geometry
-        width = option.rect.width()
-        height = option.rect.height()
-        left = option.rect.left()
-        top = option.rect.top()
-        rect = qt.QRect(qt.QPoint(left, top),
-                        qt.QSize(width, height))
         rect = option.rect
 
         # Calculate the icon rectangle
@@ -973,7 +966,7 @@ class LegendsDockWidget(qt.QDockWidget):
         :param str oldLegend: The legend of the curve to be change
         :param str newLegend: The new legend of the curve
         """
-        x, y, legend, info, params = self.plot.getCurve(oldLegend)[0:5]
+        x, y, _legend, _info, params = self.plot.getCurve(oldLegend)[0:5]
         self.plot.remove(oldLegend, kind='curve')
         self.plot.addCurve(x, y, legend=newLegend, resetzoom=False, **params)
 
@@ -1005,7 +998,7 @@ class LegendsDockWidget(qt.QDockWidget):
 
         elif ddict['event'] in ["mapToRight", "mapToLeft"]:
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
             params = params.copy()
             if ddict['event'] == "mapToRight":
                 params['yaxis'] = "right"
@@ -1015,14 +1008,14 @@ class LegendsDockWidget(qt.QDockWidget):
 
         elif ddict['event'] == "togglePoints":
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
             params = params.copy()
             params['symbol'] = ddict['symbol'] if ddict['points'] else ''
             self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
 
         elif ddict['event'] == "toggleLine":
             legend = ddict['legend']
-            x, y, legend, info, params = self.plot.getCurve(legend)[0:5]
+            x, y, legend, _info, params = self.plot.getCurve(legend)[0:5]
             params = params.copy()
             params['linestyle'] = ddict['linestyle'] if ddict['line'] else ''
             self.plot.addCurve(x, y, legend=legend, resetzoom=False, **params)
@@ -1035,7 +1028,7 @@ class LegendsDockWidget(qt.QDockWidget):
         """
         legendList = []
         curves = self.plot.getAllCurves(withhidden=True)
-        for x, y, legend, info, params in curves:
+        for x, y, legend, _info, params in curves:
             # Use active color if curve is active
             if legend == self.plot.getActiveCurve(just_legend=True):
                 color = self.plot.getActiveCurveColor()
