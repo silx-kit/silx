@@ -1229,6 +1229,13 @@ class SpecH5(SpecH5Group):
         """
         return self._sf.keys()
 
+    def close(self):
+        """Close the object, and free up associated resources.
+
+        After calling this method, attempts to use the object may fail.
+        """
+        self._sf = None
+
     def __repr__(self):
         return '<SpecH5 "%s" (%d members)>' % (self.filename, len(self))
 
