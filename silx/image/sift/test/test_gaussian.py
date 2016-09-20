@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "20/09/2016"
 
 import time
 import numpy
@@ -70,7 +70,7 @@ if ocl:
     device = ctx.devices[0]
     device_id = device.platform.get_devices().index(device)
     platform_id = pyopencl.get_platforms().index(device.platform)
-    maxwg = ocl.platfors[platform_id].devices[device_id].max_work_group_size
+    maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
 
     for kernel in list(kernel.keys()):
         if kernels[kernel] < maxwg:
