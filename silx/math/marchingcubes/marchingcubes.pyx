@@ -85,7 +85,7 @@ cdef class MarchingCubes:
     :type data: numpy.ndarray of float32 of dimension 3
     :param float isolevel: The value for which to generate the isosurface
     :param bool invert_normals:
-        True (default) for normals oriented in direction of gradient descent 
+        True (default) for normals oriented in direction of gradient descent
     :param sampling: Sampling along each dimension (depth, height, width)
     """
     cdef mc.MarchingCubes[float, float] * c_mc  # Pointer to the C++ instance
@@ -208,7 +208,7 @@ cdef class MarchingCubes:
         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
         """
         return numpy.array(self.c_mc.normals).reshape(-1, 3)
-    
+
     @property
     def indices(self):
         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
