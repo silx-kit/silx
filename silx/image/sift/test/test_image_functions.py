@@ -34,7 +34,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "20/09/2016"
 
 import numpy
 
@@ -183,9 +183,10 @@ def my_interp_keypoint(DOGS, s, r, c, movesRemain, peakthresh, width, height):
 
 def fit_quadratic(dog_prev, dog, dog_next, r, c):
     '''
-    quadratic interpolation arround the keypoint (s,r,c)
+    quadratic interpolation around the keypoint (s,r,c)
     '''
-
+    r = int(round(r))
+    c = int(round(c))
     # gradient
     g = numpy.zeros(3, dtype=numpy.float32)
     g[0] = (dog_next[r, c] - dog_prev[r, c]) / 2.0
