@@ -22,18 +22,40 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
+"""Tests for html module"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/09/2016"
 
 
 import unittest
-from .test_weakref import suite as test_weakref_suite
-from .test_html import suite as test_html_suite
+from .. import html
+
+
+class TestHtml(unittest.TestCase):
+    """Tests for html module."""
+
+    def testLtGt(self):
+        result = html.escape("<html>'\"")
+        self.assertEquals("&lt;html&gt;&apos;&quot;", result)
+
+    def testLtAmpGt(self):
+        # '&' have to be escaped first
+        result = html.escape("<&>")
+        self.assertEquals("&lt;&amp;&gt;", result)
+
+    def testNoQuotes(self):
+        result = html.escape("\"m&m's\"", quote=False)
+        self.assertEquals("\"m&amp;m's\"", result)
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref_suite())
-    test_suite.addTest(test_html_suite())
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestHtml))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')
