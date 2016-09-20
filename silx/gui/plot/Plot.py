@@ -292,7 +292,7 @@ class Plot(object):
         self._markers = OrderedDict()
         self._items = OrderedDict()
 
-        self._dataRange = None
+        self._dataRange = False
 
         # line types
         self._styleList = ['-', '--', '-.', ':']
@@ -369,14 +369,14 @@ class Plot(object):
         Notifies this Plot instance that the range has changed and will have
         to be recomputed.
         """
-        self._dataRange = None
+        self._dataRange = False
 
     def _updateDataRange(self):
         """
         Recomputes the range of the data displayed on this Plot.
         """
         # already available
-        if self._dataRange:
+        if self._dataRange is not False:
             return self._dataRange
 
         xMin = yMin = float('inf')
@@ -399,13 +399,20 @@ class Plot(object):
             xMax = max(xMin, origin[1] + width * scale[0])
             yMax = max(yMin, origin[0] + height * scale[1])
 
-        self._dataRange = {'x': (xMin, xMax), 'y': (yMin, yMax)}
+        if xMin == float('inf'):
+            self._dataRange = None
+        else:
+            self._dataRange = ((xMin, xMax), (yMin, yMax))
 
         return self._dataRange
 
     def getDataRange(self):
         """
         Returns this Plot's data range.
+
+        :return: a tuple (xRange, yRange), or None, if there is no curve nor
+            image.
+        :rtype: tuple or None
         """
         return self._updateDataRange()
 
