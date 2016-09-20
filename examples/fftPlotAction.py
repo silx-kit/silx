@@ -37,19 +37,19 @@ This example illustrates:
 See shiftPlotAction.py for a simpler example with more basic comments.
 
 """
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "20/09/2016"
+
 import numpy
+import os
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot.PlotActions import PlotAction
 
-# download or copy any icon and save it as fft.png next to this script
-# (for example https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Fourier_d'un_carr%C3%A9.svg/64px-Fourier_d'un_carr%C3%A9.svg.png)
-my_icon = "fft.png"
+scriptdir = os.path.dirname(os.path.realpath(__file__))
+my_icon = os.path.join("fft.png")
 
 
 class FftAction(PlotAction):
