@@ -198,7 +198,7 @@ __license__ = "MIT"
 __date__ = "23/02/2016"
 
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -235,6 +235,13 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['darkMagenta'],
               _COLORDICT['darkYellow'],
               _COLORDICT['darkBrown']]
+
+
+"""
+Object returned when requesting the data range.
+"""
+_PlotDataRange = namedtuple('PlotDataRange',
+                            ['x', 'y', 'yright'])
 
 
 class Plot(object):
@@ -379,30 +386,40 @@ class Plot(object):
         if self._dataRange is not False:
             return self._dataRange
 
-        xMin = yMin = float('inf')
-        xMax = yMax = float('-inf')
+        xMin = yMinLeft = yMinRight = float('nan')
+        xMax = yMaxLeft = yMaxRight = float('nan')
+
         for curve, info in self._curves.items():
             # using numpy's separate min and max is faster than
             # a pure python minmax.
-            xMin = min(xMin, info['x'].min())
-            xMax = max(xMax, info['x'].max())
-            yMin = min(yMin, info['y'].min())
-            yMax = max(yMax, info['y'].max())
+            xMin = numpy.nanmin([xMin, info['xmin']])
+            xMax = numpy.nanmax([xMax, info['xmax']])
+            if info['params']['yaxis'] == 'left':
+                yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+            else:
+                yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         for image, info in self._images.items():
             height, width = info['data'].shape
             params = info['params']
             origin = params['origin']
             scale = params['scale']
-            xMin = min(xMin, origin[0])
-            yMin = min(yMin, origin[1])
-            xMax = max(xMin, origin[0] + width * scale[0])
-            yMax = max(yMin, origin[1] + height * scale[1])
+            xMin = numpy.nanmin([xMin, origin[0]])
+            xMax = numpy.nanmax([xMax, origin[0] + width * scale[0]])
+            yMinLeft = numpy.nanmin([yMinLeft, origin[1]])
+            yMaxLeft = numpy.nanmax([yMaxLeft, origin[1] + height * scale[1]])
 
-        if xMin == float('inf'):
-            self._dataRange = None
-        else:
-            self._dataRange = ((xMin, xMax), (yMin, yMax))
+        lGetRange = (lambda x, y:
+                     None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
+        xRange = lGetRange(xMin, xMax)
+        yLeftRange = lGetRange(yMinLeft, yMaxLeft)
+        yRightRange = lGetRange(yMinRight, yMaxRight)
+
+        self._dataRange = _PlotDataRange(x=xRange,
+                                         y=yLeftRange,
+                                         yright=yRightRange)
 
         return self._dataRange
 
@@ -410,9 +427,10 @@ class Plot(object):
         """
         Returns this Plot's data range.
 
-        :return: a tuple (xRange, yRange), or None, if there is no curve nor
-            image.
-        :rtype: tuple or None
+        :return: a namedtuple with the following members :
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
+        :rtype: namedtuple
         """
         return self._updateDataRange()
 
@@ -618,8 +636,15 @@ class Plot(object):
         else:
             handle = None  # The curve has no points or is hidden
 
+        # caching the min and max values for the getDataRange method.
+        xMin = numpy.nanmin(x)
+        xMax = numpy.nanmax(x)
+        yMin = numpy.nanmin(y)
+        yMax = numpy.nanmax(y)
+
         self._curves[legend] = {
-            'handle': handle, 'x': x, 'y': y, 'params': params
+            'handle': handle, 'x': x, 'y': y, 'params': params,
+            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
         }
 
         self._invalidateDataRange()
