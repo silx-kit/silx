@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "21/09/2016"
 
 import time
 import logging
@@ -53,6 +53,7 @@ logger = logging.getLogger(__name__)
 
 PRINT_KEYPOINTS = False
 
+
 @unittest.skipUnless(ocl, "OpenCL missing")
 class TestImage(unittest.TestCase):
     @classmethod
@@ -63,10 +64,13 @@ class TestImage(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
+            device = cls.ctx.devices[0]
+            device_id = device.platform.get_devices().index(device)
+            platform_id = pyopencl.get_platforms().index(device.platform)
+            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
 
     @classmethod
     def tearDownClass(cls):
@@ -111,13 +115,6 @@ class TestImage(unittest.TestCase):
             logger.info(res_norm[-rmax, cmin:cmax])
             logger.info("")
             logger.info(ref_norm[-rmax, cmin:cmax])
-            fig = pylab.figure()
-            sp1 = fig.add_subplot(121)
-            sp1.imshow(res_norm, interpolation="nearest")
-            sp2 = fig.add_subplot(122)
-            sp2.imshow(ref_norm, interpolation="nearest")
-            fig.show()
-            raw_input("enter")
 
         self.assert_(delta_norm < 1e-4, "delta_norm=%s" % (delta_norm))
         self.assert_(delta_ori < 1e-4, "delta_ori=%s" % (delta_ori))
@@ -229,6 +226,10 @@ class TestImage(unittest.TestCase):
             logger.info(res[0:actual_nb_keypoints])  # [0:10,:]
             # logger.info("Ref:")
             # logger.info(ref[0:32,:]
+
+        if self.maxwg < self.wg[0] * self.wg[1]:
+            logger.info("Not testing result as the WG is too little %s", self.maxwg)
+            return
 
         self.assert_(abs(len(ref2) / len(res2) - 1) < 0.2, "the number of keypoint is almost the same")
 
