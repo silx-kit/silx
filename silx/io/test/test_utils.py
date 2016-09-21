@@ -31,7 +31,7 @@ import shutil
 import tempfile
 import unittest
 
-from ..utils import savespec, save1D, load
+from .. import utils
 
 try:
     import h5py
@@ -105,7 +105,7 @@ class TestSave(unittest.TestCase):
         shutil.rmtree(self.tempdir)
 
     def test_save_csv(self):
-        save1D(self.csv_fname, self.x, self.y,
+        utils.save1D(self.csv_fname, self.x, self.y,
                xlabel=self.xlab, ylabels=self.ylabs,
                filetype="csv", fmt=["%d", "%.2f", "%.2e"],
                csvdelim=";", autoheader=True)
@@ -120,7 +120,7 @@ class TestSave(unittest.TestCase):
         """npy file is saved with numpy.save after building a numpy array
         and converting it to a named record array"""
         npyf = open(self.npy_fname, "wb")
-        save1D(npyf, self.x, self.y,
+        utils.save1D(npyf, self.x, self.y,
                xlabel=self.xlab, ylabels=self.ylabs)
         npyf.close()
 
@@ -134,7 +134,7 @@ class TestSave(unittest.TestCase):
 
     def test_savespec_filename(self):
         """Save SpecFile using savespec()"""
-        savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
+        utils.savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
                  ylabel=self.ylabs[0], fmt=["%d", "%.2f"], close_file=True,
                  scan_number=1)
 
@@ -148,12 +148,12 @@ class TestSave(unittest.TestCase):
         """Save SpecFile using savespec(), passing a file handle"""
         # first savespec: open, write file header, save y[0] as scan 1,
         #                 return file handle
-        specf = savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
+        specf = utils.savespec(self.spec_fname, self.x, self.y[0], xlabel=self.xlab,
                          ylabel=self.ylabs[0], fmt=["%d", "%.2f"],
                          close_file=False)
 
         # second savespec: save y[1] as scan 2, close file
-        savespec(specf, self.x, self.y[1], xlabel=self.xlab,
+        utils.savespec(specf, self.x, self.y[1], xlabel=self.xlab,
                  ylabel=self.ylabs[1], fmt=["%d", "%.2f"],
                  write_file_header=False, close_file=True,
                  scan_number=2)
@@ -166,7 +166,7 @@ class TestSave(unittest.TestCase):
 
     def test_save_spec(self):
         """Save SpecFile using save()"""
-        save1D(self.spec_fname, self.x, self.y, xlabel=self.xlab,
+        utils.save1D(self.spec_fname, self.x, self.y, xlabel=self.xlab,
                ylabels=self.ylabs, filetype="spec", fmt=["%d", "%.2f"])
 
         specf = open(self.spec_fname)
@@ -178,7 +178,7 @@ class TestSave(unittest.TestCase):
         """Save csv using save(), with autoheader=True but
         xlabel=None and ylabels=None
         This is a non-regression test for bug #223"""
-        save1D(self.csv_fname, self.x, self.y,
+        utils.save1D(self.csv_fname, self.x, self.y,
                autoheader=True, fmt=["%d", "%.2f", "%.2e"])
 
         csvf = open(self.csv_fname)
@@ -260,7 +260,7 @@ class TestLoad(unittest.TestCase):
         h5.close()
 
         # load it
-        f = load(tmp.name)
+        f = utils.load(tmp.name)
         self.assertIsNotNone(f)
         self.assertIsInstance(f, h5py.File)
 
@@ -272,7 +272,7 @@ class TestLoad(unittest.TestCase):
                        fmt=["%d", "%.2f"], close_file=True, scan_number=1)
 
         # load it
-        f = load(tmp.name)
+        f = utils.load(tmp.name)
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
 
@@ -283,11 +283,11 @@ class TestLoad(unittest.TestCase):
         tmp.close()
 
         # load it
-        self.assertRaises(IOError, load, tmp.name)
+        self.assertRaises(IOError, utils.load, tmp.name)
 
     def testNotExists(self):
         # load it
-        self.assertRaises(IOError, load, "#$.")
+        self.assertRaises(IOError, utils.load, "#$.")
 
 
 def suite():
