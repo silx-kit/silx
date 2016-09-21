@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "21/09/2016"
 
 import unittest
 import time
@@ -85,6 +85,7 @@ class TestTransform(unittest.TestCase):
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
             cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+
 #             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
 
     @classmethod
@@ -119,7 +120,7 @@ class TestTransform(unittest.TestCase):
         Computes keypoints for two images and try to align image2 on image1
         '''
         # computing keypoints matching
-        s = SiftPlan(template=image, devicetype=DEVICETYPE)
+        s = SiftPlan(template=image, devicetype=DEVICETYPE, max_workgroup_size=self.maxwg)
         kp1 = s.keypoints(image)
         kp2 = s.keypoints(image2)  # image2 and image must have the same size
         m = MatchPlan(devicetype=DEVICETYPE)
