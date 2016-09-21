@@ -176,6 +176,65 @@ def get_hdf5_with_100000_datasets():
     return tmp.name
 
 
+def get_hdf5_with_recursive_links():
+    global _file_cache
+    ID = "recursive_links"
+    if ID in _file_cache:
+        return _file_cache[ID].name
+
+    tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
+    h5 = h5py.File(tmp.name, "w")
+
+    g = h5.create_group("group")
+    g.create_dataset("dataset", data=numpy.int64(10))
+    h5.create_dataset("dataset", data=numpy.int64(10))
+
+    h5["hard_recursive_link"] = h5["/group"]
+    g["recursive"] = h5["hard_recursive_link"]
+    h5["hard_link_to_dataset"] = h5["/dataset"]
+
+    h5["soft_link_to_group"] = h5py.SoftLink("/group")
+    h5["soft_link_to_link"] = h5py.SoftLink("/soft_link_to_group")
+    h5["soft_link_to_itself"] = h5py.SoftLink("/soft_link_to_itself")
+    h5.close()
+
+    _file_cache[ID] = tmp
+    return tmp.name
+
+
+def get_hdf5_with_external_recursive_links():
+    global _file_cache
+    ID = "external_recursive_links"
+    if ID in _file_cache:
+        return _file_cache[ID][0].name
+
+    tmp1 = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp1.file.close()
+    h5_1 = h5py.File(tmp1.name, "w")
+
+    tmp2 = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp2.file.close()
+    h5_2 = h5py.File(tmp2.name, "w")
+
+    g = h5_1.create_group("group")
+    g.create_dataset("dataset", data=numpy.int64(10))
+    h5_1["soft_link_to_group"] = h5py.SoftLink("/group")
+    h5_1["external_link_to_link"] = h5py.ExternalLink(tmp2.name, "/soft_link_to_group")
+    h5_1["external_link_to_recursive_link"] = h5py.ExternalLink(tmp2.name, "/external_link_to_recursive_link")
+    h5_1.close()
+
+    g = h5_2.create_group("group")
+    g.create_dataset("dataset", data=numpy.int64(10))
+    h5_2["soft_link_to_group"] = h5py.SoftLink("/group")
+    h5_2["external_link_to_link"] = h5py.ExternalLink(tmp1.name, "/soft_link_to_group")
+    h5_2["external_link_to_recursive_link"] = h5py.ExternalLink(tmp1.name, "/external_link_to_recursive_link")
+    h5_2.close()
+
+    _file_cache[ID] = (tmp1, tmp2)
+    return tmp1.name
+
+
 def get_edf_with_all_types():
     global _file_cache
     ID = "alltypesedf"
@@ -392,6 +451,8 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         combo.addItem("Containing 1000 datasets", get_hdf5_with_1000_datasets)
         combo.addItem("Containing 10000 datasets", get_hdf5_with_10000_datasets)
         combo.addItem("Containing 100000 datasets", get_hdf5_with_100000_datasets)
+        combo.addItem("Containing recursive links", get_hdf5_with_recursive_links)
+        combo.addItem("Containing external recursive links", get_hdf5_with_external_recursive_links)
         combo.activated.connect(self.__hdf5ComboChanged)
         content.layout().addWidget(combo)
 
