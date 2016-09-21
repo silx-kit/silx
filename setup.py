@@ -473,7 +473,9 @@ setup_kwargs.update(name=PROJECT,
                         'gui/icons/*.png',
                         'gui/icons/*.svg',
                         'gui/icons/*.mng',
-                        'gui/icons/*.gif']},
+                        'gui/icons/*.gif',
+                        'opencl/sift/*.cl',
+                        ]},
                     zip_safe=False,
                     )
 
