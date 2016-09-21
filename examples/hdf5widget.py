@@ -60,6 +60,7 @@ def get_hdf5_with_all_types():
         return _file_cache[ID].name
 
     tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
     h5 = h5py.File(tmp.name, "w")
 
     g = h5.create_group("arrays")
@@ -92,6 +93,7 @@ def get_hdf5_with_all_links():
         return _file_cache[ID].name
 
     tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
     h5 = h5py.File(tmp.name, "w")
 
     g = h5.create_group("group")
@@ -124,6 +126,7 @@ def get_hdf5_with_1000_datasets():
         return _file_cache[ID].name
 
     tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
     h5 = h5py.File(tmp.name, "w")
 
     g = h5.create_group("group")
@@ -142,6 +145,7 @@ def get_hdf5_with_10000_datasets():
         return _file_cache[ID].name
 
     tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
     h5 = h5py.File(tmp.name, "w")
 
     g = h5.create_group("group")
@@ -160,6 +164,7 @@ def get_hdf5_with_100000_datasets():
         return _file_cache[ID].name
 
     tmp = tempfile.NamedTemporaryFile(prefix=ID + "_", suffix=".h5", delete=True)
+    tmp.file.close()
     h5 = h5py.File(tmp.name, "w")
 
     g = h5.create_group("group")
