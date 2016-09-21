@@ -82,22 +82,27 @@ class ShiftUpAction(PlotAction):
 # creating QApplication is mandatory in order to use qt widget
 app = qt.QApplication([])
 
-# create a PlotWindow with a new toolbar
-pw = PlotWindow()
+# create a PlotWindow
+plotwin = PlotWindow()
+# Add a new toolbar
 toolbar = qt.QToolBar("My toolbar")
-pw.addToolBar(toolbar)
+plotwin.addToolBar(toolbar)
+# Get a reference to the PlotWindow's menu bar, add a menu
+menubar = plotwin.menuBar()
+actions_menu = menubar.addMenu("Custom actions")
 
-# Create our action and add it to the toolbar.
-# Note that we provide our PlotWindow (pw) as a parameter.
-myaction = ShiftUpAction(pw)
+# Initialize our action, give it plotwin as a parameter
+myaction = ShiftUpAction(plotwin)
+# Add action to the menubar and toolbar
 toolbar.addAction(myaction)
+actions_menu.addAction(myaction)
 
 # Plot a couple of curves with synthetic data
 x = [0, 1, 2, 3, 4, 5, 6]
 y1 = [0, 1, 0, 1, 0, 1, 0]
 y2 = [0, 1, 2, 3, 4, 5, 6]
-pw.addCurve(x, y1, legend="triangle shaped curve")
-pw.addCurve(x, y2, legend="oblique line")
+plotwin.addCurve(x, y1, legend="triangle shaped curve")
+plotwin.addCurve(x, y2, legend="oblique line")
 
-pw.show()
+plotwin.show()
 app.exec_()

@@ -48,6 +48,8 @@ from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot.PlotActions import PlotAction
 
+# Custom icon
+# make sure there is a "fft.png" file saved in the same folder as this script
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 my_icon = os.path.join(scriptdir, "fft.png")
 
@@ -150,11 +152,11 @@ class FftAction(PlotAction):
 
 app = qt.QApplication([])
 
-pw = PlotWindow(control=True)
+plotwin = PlotWindow(control=True)
 toolbar = qt.QToolBar("My toolbar")
-pw.addToolBar(toolbar)
+plotwin.addToolBar(toolbar)
 
-myaction = FftAction(pw)
+myaction = FftAction(plotwin)
 toolbar.addAction(myaction)
 
 # x range: 0 -- 10 (1000 points)
@@ -170,13 +172,13 @@ y3 = numpy.zeros_like(x)
 for i in [0, 2, 4, 6, 8]:
     y3[i * len(x) / 10:(i + 1) * len(x) / 10] = 2
 
-pw.addCurve(x, y1, legend="sin")
-pw.addCurve(x, y2, legend="cos")
-pw.addCurve(x, y3, legend="square wave")
+plotwin.addCurve(x, y1, legend="sin")
+plotwin.addCurve(x, y2, legend="cos")
+plotwin.addCurve(x, y3, legend="square wave")
 
-pw.setGraphTitle("Original data")
-pw.setGraphYLabel("amplitude")
-pw.setGraphXLabel("time")
+plotwin.setGraphTitle("Original data")
+plotwin.setGraphYLabel("amplitude")
+plotwin.setGraphXLabel("time")
 
-pw.show()
+plotwin.show()
 app.exec_()
