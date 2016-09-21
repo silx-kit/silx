@@ -28,13 +28,14 @@ create a custom :class:`PlotAction` and add it to the toolbar.
 The action simply shifts the selected curve up by 1 unit by adding 1 to each
 value of y.
 """
-from silx.gui import qt
-from silx.gui.plot import PlotWindow
-from silx.gui.plot.PlotActions import PlotAction
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "20/09/2016"
+
+from silx.gui import qt
+from silx.gui.plot import PlotWindow
+from silx.gui.plot.PlotActions import PlotAction
 
 
 class ShiftUpAction(PlotAction):
