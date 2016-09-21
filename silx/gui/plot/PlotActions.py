@@ -964,16 +964,25 @@ class FitAction(_PlotAction):
             triggered=self._openFitWindow,
             checkable=False, parent=parent)
 
+    def _warningMessage(self, informativeText='', detailedText=''):
+        """Display a warning message."""
+        msg = qt.QMessageBox(self.plot)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setInformativeText(informativeText)
+        msg.setDetailedText(detailedText)
+        msg.exec_()
+
     def _openFitWindow(self):
         curve = self.plot.getActiveCurve()
         if curve is None:
-            # curves = self.plot.getAllCurves()
-            # if not curves:
-            #     self._errorMessage("No curve to be fitted")
-            #     return False
-            # curve = curves[0]
-            self._errorMessage("No selected curve to be fitted")
-            return False
+            curves = self.plot.getAllCurves()
+            if len(curves) != 1:
+                self._warningMessage(
+                        "No curve selected")
+                return
+            curve = curves[0]
+        self.xlabel = self.plot.getGraphXLabel()
+        self.ylabel = self.plot.getGraphYLabel()
         self.x, self.y, self.legend = curve[0:3]
 
         # open a window with a FitWidget
@@ -992,7 +1001,9 @@ class FitAction(_PlotAction):
             pass
         if ddict["event"] == "FitFinished":
             y_fit = self.fit_widget.fitmanager.gendata()
-            self.plot.addCurve(self.x, y_fit, "Fit <%s>" % self.legend)
+            self.plot.addCurve(self.x, y_fit,
+                               "Fit <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel)
 
 
 

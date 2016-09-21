@@ -342,8 +342,9 @@ class FitTheories(object):
 
             # run a quick iterative fit (4 iterations) to improve
             # estimations
-            fittedpar, _ = leastsq(functions.sum_gauss, xw, yw, param,
-                                   max_iter=4, constraints=cons.tolist())
+            fittedpar, _, _ = leastsq(functions.sum_gauss, xw, yw, param,
+                                      max_iter=4, constraints=cons.tolist(),
+                                      full_output=True)
 
         # set final constraints based on config parameters
         cons = numpy.zeros((len(fittedpar), 3), numpy.float)
