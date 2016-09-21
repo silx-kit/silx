@@ -70,6 +70,16 @@ def configuration(parent_package='', top_path=None):
                          language='c')
     # =====================================
     # =====================================
+
+    # marching cubes
+    mc_dir = 'marchingcubes'
+    mc_src = [os.path.join(mc_dir, srcf)
+              for srcf in ['marchingcubes.pyx', 'mc_lut.cpp']]
+    config.add_extension('marchingcubes',
+                         sources=mc_src,
+                         include_dirs=[mc_dir, numpy.get_include()],
+                         language='c++')
+
     return config
 
 

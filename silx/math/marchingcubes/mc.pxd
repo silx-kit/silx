@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +21,31 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# ############################################################################*/
+# ###########################################################################*/
 
-__authors__ = ["D. Naudet"]
-__license__ = "MIT"
-__date__ = "04/07/2016"
+from libcpp.vector cimport vector as std_vector
+from libcpp cimport bool
 
-import unittest
+cdef extern from "mc.hpp":
+    cdef cppclass MarchingCubes[FloatIn, FloatOut]:
+        MarchingCubes(FloatIn level) except +
+        void process(FloatIn * data,
+                     unsigned int depth,
+                     unsigned int height,
+                     unsigned int width) except +
+        void set_slice_size(unsigned int height,
+                            unsigned int width)
+        void process_slice(FloatIn * slice0,
+                           FloatIn * slice1) except +
+        void finish_process()
+        void reset()
 
-from .test_histogramnd_error import suite as test_histo_error
-from .test_histogramnd_nominal import suite as test_histo_nominal
-from .test_histogramnd_vs_np import suite as test_histo_vs_np
-from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from ..fit.test import suite as test_fit_suite
-from .test_marchingcubes import suite as test_marchingcubes_suite
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_histo_nominal())
-    test_suite.addTest(test_histo_error())
-    test_suite.addTest(test_histo_vs_np())
-    test_suite.addTest(test_fit_suite())
-    test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_marchingcubes_suite())
-    return test_suite
+        unsigned int depth
+        unsigned int height
+        unsigned int width
+        unsigned int sampling[3]
+        FloatIn isolevel
+        bool invert_normals
+        std_vector[FloatOut] vertices
+        std_vector[FloatOut] normals
+        std_vector[unsigned int] indices
