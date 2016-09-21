@@ -12,8 +12,8 @@ to be added to a :class:`PlotWindow` or to design their own plot window based on
 
 This documentation pages provides examples on how to do this.
 
-Simple example
---------------
+Simple example: Shift a curve
+-----------------------------
 
 The following script is a simplistic example to show the basic required steps:
 
@@ -48,13 +48,13 @@ with a new one using the modified data array.
      - After triggering the action 3 times, the selected triangle shaped curve
        is shifted up by 3 units
 
-Advanced example
-----------------
+Advanced example: Display amplitude spectrum
+--------------------------------------------
 
 This more advanced example shows additional ways of interacting with the plot, by changing
 labels, storing additional data array along with the curve data.
 
-This action is *checkable*, meaning that is has two stable states. When clicking the toolbar icon
+This action is *checkable*, meaning that is has two states. When clicking the toolbar icon
 or the menu item, it remains in a *pushed* state until it is clicked again.
 
 In one state (*un-checked*), the original data is displayed. In the other state, the amplitude
