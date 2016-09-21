@@ -41,6 +41,11 @@ else:
     h5py_missing = False
     from ..utils import h5ls
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
@@ -277,6 +282,26 @@ class TestOpen(unittest.TestCase):
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
         f.close()
+
+    def testEdf(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+        if fabio is None:
+            self.skipTest("Fabio is missing")
+
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(suffix=".edf", delete=True)
+        tmp.file.close()
+        header = fabio.fabioimage.OrderedDict()
+        header["integer"] = "10"
+        data = numpy.array([[10, 50], [50, 10]])
+        fabiofile = fabio.edfimage.EdfImage(data, header)
+        fabiofile.write(tmp.name)
+
+        # load it
+        f = utils.load(tmp.name)
+        self.assertIsNotNone(f)
+        self.assertEquals(f.h5py_class, h5py.File)
 
     def testUnsupported(self):
         # create a file
