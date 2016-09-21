@@ -68,7 +68,24 @@ class TestMarchingCubes(ParametricTestCase):
         self.assertEqual(len(normals), 0)
         self.assertEqual(len(indices), 0)
 
-        # isosurface perpendicular to Z
+        # Cube array dimensions: shape = (dim 0, dim 1, dim2)
+        #
+        #      dim 0 (Z)
+        #        ^
+        #        |
+        #      4 +------+ 5
+        #       /|     /|
+        #      / |    / |
+        #   6 +------+ 7|
+        #     |  |   |  |
+        #     |0 +---|--+ 1 -> dim 2 (X)
+        #     | /    | /
+        #     |/     |/
+        #   2 +------+ 3
+        #    /
+        #   dim 1 (Y)
+
+        # isosurface perpendicular to dim 0 (Z)
         cube = numpy.array(
             (((0., 0.), (0., 0.)),
              ((1., 1.), (1., 1.))), dtype=numpy.float32)
@@ -79,7 +96,7 @@ class TestMarchingCubes(ParametricTestCase):
         self.assertAllClose(normals, (1., 0., 0.))
         self.assertEqual(len(indices), 2)
 
-        # isosurface perpendicular to Y
+        # isosurface perpendicular to dim 1 (Y)
         cube = numpy.array(
             (((0., 0.), (1., 1.)),
              ((0., 0.), (1., 1.))), dtype=numpy.float32)
@@ -89,7 +106,7 @@ class TestMarchingCubes(ParametricTestCase):
         self.assertAllClose(normals, (0., -1., 0.))
         self.assertEqual(len(indices), 2)
 
-        # isosurface perpendicular to X
+        # isosurface perpendicular to dim 2 (X)
         cube = numpy.array(
             (((0., 1.), (0., 1.)),
              ((0., 1.), (0., 1.))), dtype=numpy.float32)
@@ -100,7 +117,7 @@ class TestMarchingCubes(ParametricTestCase):
         self.assertAllClose(normals, (0., 0., 1.))
         self.assertEqual(len(indices), 2)
 
-        # isosurface normal in Y, Z
+        # isosurface normal in dim1, dim 0 (Y, Z) plane
         cube = numpy.array(
             (((0., 0.), (0., 0.)),
              ((0., 0.), (1., 1.))), dtype=numpy.float32)

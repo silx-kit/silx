@@ -65,6 +65,27 @@ cdef class MarchingCubes:
     surface construction algorithm. Computer Graphics, 21, 4 (July 1987).
     ACM, 163-169.
 
+    Generated vertex and normal coordinates are in the same order
+    as input array, i.e., (dim 0, dim 1, dim 2).
+
+    Expected indices in memory of a (2, 2, 2) dataset:
+
+           dim 0 (depth)
+             |
+             |
+           4 +------+ 5
+            /|     /|
+           / |    / |
+        6 +------+ 7|
+          |  |   |  |
+          |0 +---|--+ 1 --- dim 2 (width)
+          | /    | /
+          |/     |/
+        2 +------+ 3
+         /
+        /
+      dim 1 (height)
+
     Example with a 3D data set:
 
     >>> vertices, normals, indices = MarchingCubes(data, isolevel=1.)
@@ -123,9 +144,12 @@ cdef class MarchingCubes:
 
         Compute an isosurface from a 3D scalar field.
 
+        This builds :attr:`vertices`, :attr:`normals` and :attr:`indices`
+        arrays.
+        Vertices and normals coordinates are in the same order as input array,
+        i.e., (dim 0, dim 1, dim 2).
+
         :param numpy.ndarray data: 3D scalar field
-        :return: Arrays of vertices, normals and triangle indices
-        :rtype: tuple of ndarray
         """
         cdef float[:] c_data = numpy.ravel(data)
         cdef unsigned int depth, height, width

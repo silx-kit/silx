@@ -44,7 +44,29 @@ extern const unsigned int MCEdgeIndexToCoordOffsets[12][4];
  * Implements the marching cube algorithm and provides an API to process
  * data image by image.
  *
- * Dimension convention used is (depth, height, width) (i.e., not x, y, z).
+ * Dimension convention used is (dim0, dim1, dim2) denoted as
+ * (depth, height, width) with dim2 (= width) being contiguous in memory.
+ *
+ * If data is provided as (depth, height, width), resulting vertices
+ * and normals will be stored as (z, y, x)
+ *
+ * Indices in memory for a single cube:
+ *
+ *      dim 0 (depth)
+ *        |
+ *        |
+ *      4 +------+ 5
+ *       /|     /|
+ *      / |    / |
+ *   6 +------+ 7|
+ *     |  |   |  |
+ *     |0 +---|--+ 1 --- dim 2 (width)
+ *     | /    | /
+ *     |/     |/
+ *   2 +------+ 3
+ *    /
+ *   /
+ * dim 1 (height)
  */
 template <typename FloatIn, typename FloatOut>
 class MarchingCubes {
@@ -656,6 +678,20 @@ MarchingCubes<FloatIn, FloatOut>::get_cell_code(const FloatIn * slice1,
     unsigned int item_next_row = item + this->width * this->sampling[HEIGHT_IDX];
     unsigned char code = 0;
 
+    /* Cube convention for cell code:
+     * WARNING: This differ from layout in memory
+     *
+     *        4 +------+ 5
+     *         /|     /|
+     *        / |    / |
+     *     7 +------+ 6|
+     *       |  |   |  |
+     *       |0 +---|--+ 1
+     *       | /    | /
+     *       |/     |/
+     *     3 +------+ 2
+     *
+     */
     /* First slice */
     if (slice1[item] <= this->isolevel) {
         code |= 1 << 0;
