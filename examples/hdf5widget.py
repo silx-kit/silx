@@ -75,7 +75,7 @@ def get_hdf5_with_all_types():
     g.create_dataset("float32", data=numpy.float32(10))
     g.create_dataset("float64", data=numpy.float64(10))
     g.create_dataset("string_", data=numpy.string_("Hi!"))
-    #g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
+    # g.create_dataset("string0",data=numpy.string0("Hi!\x00"))
 
     g.create_dataset("bool", data=True)
     g.create_dataset("bool2", data=False)
@@ -188,12 +188,13 @@ def get_edf_with_all_types():
     header["motor_pos"] = "10 2.5 a1"
     header["motor_mne"] = "integer_position float_position named_position"
 
-    data = numpy.array([[10, 50],[50, 10]])
+    data = numpy.array([[10, 50], [50, 10]])
     fabiofile = fabio.edfimage.EdfImage(data, header)
     fabiofile.write(tmp.name)
 
     _file_cache[ID] = tmp
     return tmp.name
+
 
 def get_edf_with_100000_frames():
     global _file_cache
@@ -205,7 +206,7 @@ def get_edf_with_100000_frames():
 
     fabiofile = None
     for framre_id in range(100000):
-        data = numpy.array([[framre_id, 50],[50, 10]])
+        data = numpy.array([[framre_id, 50], [50, 10]])
         if fabiofile is None:
             header = fabio.fabioimage.OrderedDict()
             header["nb_frames"] = "100000"
@@ -437,8 +438,8 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         multiselection = qt.QCheckBox("Multi-selection", option)
         multiselection.setChecked(treeview.selectionMode() == qt.QAbstractItemView.MultiSelection)
         switch_selection = lambda: treeview.setSelectionMode(
-                qt.QAbstractItemView.MultiSelection if multiselection.isChecked()
-                else qt.QAbstractItemView.SingleSelection)
+            qt.QAbstractItemView.MultiSelection if multiselection.isChecked()
+            else qt.QAbstractItemView.SingleSelection)
         multiselection.toggled.connect(switch_selection)
         option.layout().addWidget(multiselection)
 
