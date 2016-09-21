@@ -1,64 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
-
-<svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   version="1.1"
-   width="32"
-   height="32"
-   id="svg2">
-  <defs
-     id="defs4" />
-  <metadata
-     id="metadata7">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <dc:format>image/svg+xml</dc:format>
-        <dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
-      </cc:Work>
-    </rdf:RDF>
-  </metadata>
-  <g
-     transform="translate(0,-1020.3622)"
-     id="layer1">
-    <rect
-       width="18"
-       height="15.399128"
-       x="-1052.1583"
-       y="-17.565641"
-       transform="matrix(0,-1,-0.70640505,0.70780782,0,0)"
-       id="rect3918"
-       style="fill:#f7941e;fill-opacity:1;stroke:#00a651;stroke-width:1.18979752;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:0;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
-    <rect
-       width="18"
-       height="15.399128"
-       x="-1070.6426"
-       y="-43.172764"
-       transform="matrix(0,-1,-0.70640505,0.70780782,0,0)"
-       id="rect2985"
-       style="fill:none;stroke:#00a651;stroke-width:1.18979752;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:0;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
-    <rect
-       width="18"
-       height="18"
-       ry="0"
-       x="12.5"
-       y="1021.8622"
-       id="rect3761"
-       style="fill:none;stroke:#00a651;stroke-width:1;stroke-miterlimit:2;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
-    <rect
-       width="18"
-       height="18"
-       ry="0"
-       x="1.5"
-       y="1032.8622"
-       id="rect3757"
-       style="fill:none;stroke:#00a651;stroke-width:1;stroke-miterlimit:2;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
-  </g>
+<svg xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="32" width="32" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g stroke="#000" stroke-dasharray="none" transform="translate(0,-1020.3622)" stroke-dashoffset="0">
+  <rect stroke-linejoin="miter" fill-opacity="0.81569" transform="matrix(0,-1,-0.70640505,0.70780782,0,0)" height="15.399" width="18" stroke-linecap="square" stroke-miterlimit="0" y="-17.566" x="-1052.2" stroke-width="1.1898" fill="#f7941e"/>
+  <rect stroke-linejoin="miter" transform="matrix(0,-1,-0.70640505,0.70780782,0,0)" height="15.399" width="18" stroke-linecap="square" stroke-miterlimit="0" y="-43.173" x="-1070.6" stroke-width="1.1898" fill="none"/>
+  <rect ry="0" height="18" width="18" stroke-miterlimit="2" y="1021.9" x="12.5" stroke-width="1" fill="none"/>
+  <rect ry="0" height="18" width="18" stroke-miterlimit="2" y="1032.9" x="1.5" stroke-width="1" fill="none"/>
+ </g>
 </svg>
