@@ -7,5 +7,6 @@ Tutorials and cookbooks:
    :maxdepth: 1
 
    modules/gui/plot/getting_started.rst
+   modules/gui/plot/plotactions_examples.rst
    modules/gui/designer.rst
    Tutorials/Sift/sift.rst
