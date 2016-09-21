@@ -394,10 +394,10 @@ class Plot(object):
             params = info['params']
             origin = params['origin']
             scale = params['scale']
-            xMin = min(xMin, origin[1])
-            yMin = min(yMin, origin[0])
-            xMax = max(xMin, origin[1] + width * scale[0])
-            yMax = max(yMin, origin[0] + height * scale[1])
+            xMin = min(xMin, origin[0])
+            yMin = min(yMin, origin[1])
+            xMax = max(xMin, origin[0] + width * scale[0])
+            yMax = max(yMin, origin[1] + height * scale[1])
 
         if xMin == float('inf'):
             self._dataRange = None
