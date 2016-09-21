@@ -981,6 +981,8 @@ class FitAction(_PlotAction):
                         "No curve selected")
                 return
             curve = curves[0]
+        self.xlabel = self.plot.getGraphXLabel()
+        self.ylabel = self.plot.getGraphYLabel()
         self.x, self.y, self.legend = curve[0:3]
 
         # open a window with a FitWidget
@@ -999,7 +1001,9 @@ class FitAction(_PlotAction):
             pass
         if ddict["event"] == "FitFinished":
             y_fit = self.fit_widget.fitmanager.gendata()
-            self.plot.addCurve(self.x, y_fit, "Fit <%s>" % self.legend)
+            self.plot.addCurve(self.x, y_fit,
+                               "Fit <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel)
 
 
 
