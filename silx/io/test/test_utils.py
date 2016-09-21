@@ -31,7 +31,7 @@ import shutil
 import tempfile
 import unittest
 
-from ..utils import savespec, save1D
+from ..utils import savespec, save1D, load
 
 try:
     import h5py
@@ -44,7 +44,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "27/09/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -244,12 +244,60 @@ class TestH5Ls(unittest.TestCase):
                 lines)
 
 
+class TestLoad(unittest.TestCase):
+    """Test `silx.io.utils.load` function."""
+
+    def testH5(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
+        tmp.file.close()
+        h5 = h5py.File(tmp.name, "w")
+        g = h5.create_group("arrays")
+        g.create_dataset("scalar", data=10)
+        h5.close()
+
+        # load it
+        f = load(tmp.name)
+        self.assertIsNotNone(f)
+        self.assertIsInstance(f, h5py.File)
+
+    def testSpec(self):
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".dat", delete=True)
+        tmp.file.close()
+        utils.savespec(tmp.name, [1], [1.1], xlabel="x", ylabel="y",
+                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+
+        # load it
+        f = load(tmp.name)
+        self.assertIsNotNone(f)
+        self.assertEquals(f.h5py_class, h5py.File)
+
+    def testUnsupported(self):
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".txt", delete=True)
+        tmp.write("Kikoo")
+        tmp.close()
+
+        # load it
+        self.assertRaises(IOError, load, tmp.name)
+
+    def testNotExists(self):
+        # load it
+        self.assertRaises(IOError, load, "#$.")
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSave))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestLoad))
     return test_suite
 
 
