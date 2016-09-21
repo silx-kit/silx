@@ -28,9 +28,12 @@ The following QAction are available:
 
 - :class:`ColormapAction`
 - :class:`CopyAction`
+- :class:`CrosshairAction`
 - :class:`CurveStyleAction`
+- :class:`FitAction`
 - :class:`GridAction`
 - :class:`KeepAspectRatioAction`
+- :class:`PanWithArrowKeysAction`
 - :class:`PrintAction`
 - :class:`ResetZoomAction`
 - :class:`SaveAction`
@@ -1004,6 +1007,3 @@ class FitAction(PlotAction):
             self.plot.addCurve(self.x, y_fit,
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel)
-
-
-
