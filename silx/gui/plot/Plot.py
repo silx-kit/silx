@@ -198,7 +198,7 @@ __license__ = "MIT"
 __date__ = "23/02/2016"
 
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -235,6 +235,13 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['darkMagenta'],
               _COLORDICT['darkYellow'],
               _COLORDICT['darkBrown']]
+
+
+"""
+Object returned when requesting the data range.
+"""
+_PlotDataRange = namedtuple('PlotDataRange',
+                            ['x', 'y', 'yright'])
 
 
 class Plot(object):
@@ -291,6 +298,8 @@ class Plot(object):
         self._images = OrderedDict()
         self._markers = OrderedDict()
         self._items = OrderedDict()
+
+        self._dataRange = False
 
         # line types
         self._styleList = ['-', '--', '-.', ':']
@@ -361,6 +370,69 @@ class Plot(object):
 
         if self._autoreplot and not wasDirty:
             self._backend.postRedisplay()
+
+    def _invalidateDataRange(self):
+        """
+        Notifies this Plot instance that the range has changed and will have
+        to be recomputed.
+        """
+        self._dataRange = False
+
+    def _updateDataRange(self):
+        """
+        Recomputes the range of the data displayed on this Plot.
+        """
+        # already available
+        if self._dataRange is not False:
+            return self._dataRange
+
+        xMin = yMinLeft = yMinRight = float('nan')
+        xMax = yMaxLeft = yMaxRight = float('nan')
+
+        for curve, info in self._curves.items():
+            # using numpy's separate min and max is faster than
+            # a pure python minmax.
+            xMin = numpy.nanmin([xMin, info['xmin']])
+            xMax = numpy.nanmax([xMax, info['xmax']])
+            if info['params']['yaxis'] == 'left':
+                yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+            else:
+                yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+
+        for image, info in self._images.items():
+            height, width = info['data'].shape
+            params = info['params']
+            origin = params['origin']
+            scale = params['scale']
+            xMin = numpy.nanmin([xMin, origin[0]])
+            xMax = numpy.nanmax([xMax, origin[0] + width * scale[0]])
+            yMinLeft = numpy.nanmin([yMinLeft, origin[1]])
+            yMaxLeft = numpy.nanmax([yMaxLeft, origin[1] + height * scale[1]])
+
+        lGetRange = (lambda x, y:
+                     None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
+        xRange = lGetRange(xMin, xMax)
+        yLeftRange = lGetRange(yMinLeft, yMaxLeft)
+        yRightRange = lGetRange(yMinRight, yMaxRight)
+
+        self._dataRange = _PlotDataRange(x=xRange,
+                                         y=yLeftRange,
+                                         yright=yRightRange)
+
+        return self._dataRange
+
+    def getDataRange(self):
+        """
+        Returns this Plot's data range.
+
+        :return: a namedtuple with the following members :
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
+        :rtype: namedtuple
+        """
+        return self._updateDataRange()
 
     # Add
 
@@ -564,9 +636,18 @@ class Plot(object):
         else:
             handle = None  # The curve has no points or is hidden
 
+        # caching the min and max values for the getDataRange method.
+        xMin = numpy.nanmin(x)
+        xMax = numpy.nanmax(x)
+        yMin = numpy.nanmin(y)
+        yMax = numpy.nanmax(y)
+
         self._curves[legend] = {
-            'handle': handle, 'x': x, 'y': y, 'params': params
+            'handle': handle, 'x': x, 'y': y, 'params': params,
+            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
         }
+
+        self._invalidateDataRange()
 
         self.notify(
             'contentChanged', action='add', kind='curve', legend=legend)
@@ -759,6 +840,8 @@ class Plot(object):
 
         if len(self._images) == 1 or wasActive:
             self.setActiveImage(legend)
+
+        self._invalidateDataRange()
 
         self.notify(
             'contentChanged', action='add', kind='image', legend=legend)
@@ -1159,6 +1242,7 @@ class Plot(object):
                             self._colorIndex = 0
                             self._styleIndex = 0
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='curve', legend=legend)
 
@@ -1174,6 +1258,7 @@ class Plot(object):
                             self._setDirtyPlot()
                         del self._images[legend]
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='image', legend=legend)
 

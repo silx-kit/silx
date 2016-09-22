@@ -63,6 +63,85 @@ class TestPlot(unittest.TestCase):
             numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
         plot.addXMarker(10.)
 
+    def testDataRangeNoPlot(self):
+        """empty plot data range"""
+
+        plot = Plot(backend='none')
+        dataRange = plot.getDataRange()
+        self.assertIsNone(dataRange.x)
+        self.assertIsNone(dataRange.y)
+        self.assertIsNone(dataRange.yright)
+
+    def testDataRangeLeft(self):
+        """left axis range"""
+
+        plot = Plot(backend='none')
+        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
+                      legend='plot_0', yaxis='left')
+
+        dataRange = plot.getDataRange()
+        self.assertEqual(dataRange.x, (-5., 4.))
+        self.assertEqual(dataRange.y, (-7., 2.))
+        self.assertIsNone(dataRange.yright)
+
+    def testDataRangeRight(self):
+        """right axis range"""
+
+        plot = Plot(backend='none')
+        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
+                      legend='plot_0', yaxis='right')
+
+        dataRange = plot.getDataRange()
+        self.assertEqual(dataRange.x, (-5., 4.))
+        self.assertIsNone(dataRange.y)
+        self.assertEqual(dataRange.yright, (-7., 2.))
+
+    def testDataRangeImage(self):
+        """image data range"""
+
+        plot = Plot(backend='none')
+        plot.addImage(numpy.arange(100.).reshape(20, 5),
+                      origin=(-10, 25), scale=(3., 8.))
+
+        dataRange = plot.getDataRange()
+        self.assertEqual(dataRange.x, (-10., 5.))
+        self.assertEqual(dataRange.y, (25., 185.))
+        self.assertIsNone(dataRange.yright)
+
+    def testDataRangeLeftRight(self):
+        """right+left axis range"""
+
+        plot = Plot(backend='none')
+        plot.addCurve(x=numpy.arange(10) - 1., y=numpy.arange(10) - 2.,
+                      legend='plot_left', yaxis='left')
+        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
+                      legend='plot_right', yaxis='right')
+
+        dataRange = plot.getDataRange()
+        self.assertEqual(dataRange.x, (-5., 8.))
+        self.assertEqual(dataRange.y, (-2, 7.))
+        self.assertEqual(dataRange.yright, (-7., 2.))
+
+    def testDataRangeCurveImage(self):
+        """right+left+image axis range"""
+
+        # overlapping ranges :
+        # image sets x min and y max
+        # plot_left sets y min
+        # plot_right sets x max (and yright)
+        plot = Plot(backend='none')
+        plot.addImage(numpy.arange(100.).reshape(20, 5),
+                      origin=(-10, 5), scale=(3., 8.), legend='image')
+        plot.addCurve(x=numpy.arange(10) - 1., y=numpy.arange(10) - 2.,
+                      legend='plot_left', yaxis='left')
+        plot.addCurve(x=numpy.arange(10) + 5., y=numpy.arange(10) - 1.,
+                      legend='plot_right', yaxis='right')
+
+        dataRange = plot.getDataRange()
+        self.assertEqual(dataRange.x, (-10., 14.))
+        self.assertEqual(dataRange.y, (-2, 165.))
+        self.assertEqual(dataRange.yright, (-1., 8.))
+
 
 def suite():
     test_suite = unittest.TestSuite()
