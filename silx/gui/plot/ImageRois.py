@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """Roi items."""
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 import numpy as np
 from silx.gui import qt, icons
@@ -33,6 +33,10 @@ __author__ = ["D. Naudet"]
 __license__ = "MIT"
 __date__ = "01/09/2016"
 
+
+
+_RoiData = namedtuple('RoiData', ['x', 'y'])
+""" Named tuple used to return a ROI's x and y data """
 
 class RoiItemBase(qt.QObject):
     sigRoiDrawingStarted = qt.Signal(str)
@@ -723,7 +727,7 @@ class ImageRoiManager(qt.QObject):
 
         return toolBar
 
-    def roiCoords(self, name):
+    def roiData(self, name):
         if self._roiInProgress and self._roiInProgress.name == name:
             item = self._roiInProgress
         else:
@@ -731,7 +735,7 @@ class ImageRoiManager(qt.QObject):
                 item = self._rois[name]
             except KeyError:
                 raise ValueError('Unknown roi {0}.'.format(name))
-        return (item.xData(), item.yData())
+        return _RoiData(x=item.xData, y=item.yData)
 
 
 if __name__ == '__main__':
