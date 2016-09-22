@@ -807,23 +807,24 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):
-        ax = self.ax2 if "axis" == "right" else self.ax
+        ax = self.ax2 if axis == "right" else self.ax
 
         pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
     def pixelToData(self, x, y, axis, check):
-        ax = self.ax2 if "axis" == "right" else self.ax
+        ax = self.ax2 if axis == "right" else self.ax
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
 
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis=axis)
+        if check:
+            xmin, xmax = self.getGraphXLimits()
+            ymin, ymax = self.getGraphYLimits(axis=axis)
 
-        if check and (x > xmax or x < xmin or y > ymax or y < ymin):
-            return None  # (x, y) is out of plot area
+            if x > xmax or x < xmin or y > ymax or y < ymin:
+                return None  # (x, y) is out of plot area
 
         return x, y
 
