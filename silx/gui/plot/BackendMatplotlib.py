@@ -649,9 +649,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if y2min is not None and y2max is not None:
             if not self.isYAxisInverted():
-                self.ax.set_ylim(min(y2min, y2max), max(y2min, y2max))
+                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max))
             else:
-                self.ax.set_ylim(max(y2min, y2max), min(y2min, y2max))
+                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max))
 
         if not self.isYAxisInverted():
             self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax))
