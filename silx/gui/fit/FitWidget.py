@@ -45,7 +45,8 @@ from silx.math.fit import fitmanager, functions
 from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
-from .QScriptOption import QScriptOption
+from .FitConfig import getFitConfigDialog
+# from .QScriptOption import QScriptOption
 
 QTVERSION = qt.qVersion()
 
@@ -311,89 +312,7 @@ class FitWidget(qt.QWidget):
 
         else:
             # default config widget, adapted for default fit theories
-            sheet1 = {'notetitle': 'Constraints',
-                      'fields': (
-                          {'name': 'PositiveHeightAreaFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Force positive Height/Area'},
-                          {'name': 'QuotedPositionFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Force position in interval'},
-                          {'name': 'PositiveFwhmFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Force positive FWHM'},
-                          {'name': 'SameFwhmFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Force same FWHM'},
-                          {'name': 'QuotedEtaFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Force Eta between 0 and 1'},
-                          {'name': 'NoConstraintsFlag',
-                           'widget type': 'CheckField',
-                           'text': 'Ignore constraints'})}
-
-            sheet2 = {'notetitle': 'Search',
-                      'fields': (
-                          {'name': 'AutoFwhm',
-                           'widget type': 'CheckField',
-                           'text': 'Automatic FWHM estimation',
-                           'tooltip': 'Automatically Compute FwhmPoints ' +
-                                      'based on the largest peak in data'},
-                          {'widget type': "EntryField",
-                           'name': 'FwhmPoints',
-                           'text': 'Fwhm Points: ',
-                           'data type': "int",
-                           'min value': 3,
-                           'tooltip': "Number of data points for typical peak fwhm, used by " +
-                                      " peak detection algorithm to filter out noise. "
-                                      "Lower limit: 3"},
-                          {'widget type': "EntryField",
-                           'name': 'Sensitivity',
-                           'text': 'Sensitivity: ',
-                           'data type': "float",
-                           'min value': 1.,
-                           'tooltip': "Sensitivity parameter for the peak detection algorithm." +
-                                      " Peaks must have an amplitude larger than sensitivity " +
-                                      " times the standard deviation f the noise. " +
-                                      "Lower limit is 1."},
-                          {'widget type': "EntryField",
-                           'name': 'Yscaling',
-                           'data type': "float",
-                           'text': 'Y Factor: '},
-                          {'widget type': "CheckField",
-                           'name': 'ForcePeakPresence',
-                           'text': 'Force peak presence',
-                           'tooltip': "In case no peak is detected by the peak-search" +
-                                      " algorithm, put one peak at the max data location."})}
-            sheet3 = {'notetitle': 'Background',
-                      'fields': (
-                          {'widget type': "CheckField",
-                           'name': 'StripBackgroundFlag',
-                           'text': 'Subtract strip background for estimation',
-                           'tooltip': "Background filter useful when fitting narrow peaks"},
-                          {'widget type': "EntryField",
-                           'name': 'StripWidth',
-                           'text': 'Strip width (samples): ',
-                           'data type': "int",
-                           'tooltip': "Width of strip operator, in number of samples. A sample will be " +
-                                      "compared to the average of the 2 samples at a distance of " +
-                                      " + or - width samples."},
-                          {'widget type': "EntryField",
-                           'name': 'StripNIterations',
-                           'text': 'Number of iterations: ',
-                           'data type': "int",
-                           'tooltip': "Number of iterations for strip algorithm"},
-                          {'widget type': "EntryField",
-                           'name': 'StripThresholdFactor',
-                           'text': 'Strip threshold factor: ',
-                           'data type': "float",
-                           'tooltip': "If a sample is higher than the average of the two samples " +
-                                      "multiplied by this factor, it will be replaced by the average."})}
-
-            dialog_widget = QScriptOption(
-                                self, name='Fit Configuration',
-                                sheets=(sheet1, sheet2, sheet3),
-                                default=oldconfiguration)
+            dialog_widget = getFitConfigDialog(self, default=oldconfiguration)
 
         dialog_widget.show()
         dialog_widget.exec_()
@@ -401,7 +320,6 @@ class FitWidget(qt.QWidget):
             newconfiguration.update(dialog_widget.output)
         # we do not need the dialog any longer
         del dialog_widget
-
 
         return newconfiguration
 

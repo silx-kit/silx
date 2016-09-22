@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for IPython console widget"""
+"""Basic tests for :class:`FitWidget`"""
 
 import unittest
 
@@ -105,6 +105,7 @@ class TestFitWidget(TestCaseQt):
 
         # self.mouseClick(fw.guiConfig.ConfigureButton, qt.Qt.LeftButton)
         # todo: figure out how to click fw.guiconfigdialog.ok to close dialog
+
 
 def suite():
     test_suite = unittest.TestSuite()

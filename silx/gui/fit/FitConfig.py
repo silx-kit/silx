@@ -24,13 +24,14 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
+"""This module defines widgets used to build a fit configuration dialog.
 """
-"""
+from silx.gui import qt
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "21/09/2016"
 
-from silx.gui import qt
 
 class TabsDialog(qt.QDialog):
     """Dialog widget containing a QTabWidget :attr:`tabWidget`
@@ -57,9 +58,9 @@ class TabsDialog(qt.QDialog):
         # self.buttonHelp.setText("Help")
         # layout2.addWidget(self.buttonHelp)
 
-        self.buttonDefaults = qt.QPushButton(self)
-        self.buttonDefaults.setText("Defaults")
-        layout2.addWidget(self.buttonDefaults)
+        self.buttonDefault = qt.QPushButton(self)
+        self.buttonDefault.setText("Default")
+        layout2.addWidget(self.buttonDefault)
 
         spacer = qt.QSpacerItem(20, 20,
                                 qt.QSizePolicy.Expanding,
@@ -135,6 +136,18 @@ class TabsDialogData(TabsDialog):
 
         self.default = {} if default is None else default
 
+        self.buttonDefault.clicked.connect(self.setDefault)
+        # self.keyPressEvent(qt.Qt.Key_Enter).
+
+    def keyPressEvent(self, event):
+        """Redefining this method to ignore Enter key
+        (for some reason it activates buttonDefault callback which
+        resets all widgets)
+        """
+        if event.key() in [qt.Qt.Key_Enter, qt.Qt.Key_Return]:
+            return
+        TabsDialog.keyPressEvent(self, event)
+
     def accept(self):
         """When *OK* is clicked, update :attr:`output` with data from
         various widgets
@@ -156,48 +169,263 @@ class TabsDialogData(TabsDialog):
         """When the *Cancel* button is clicked, reinitialize :attr:`output`
         and quit
         """
-        self.defaults()
+        self.setDefault()
         super(TabsDialogData, self).reject()
 
-    def defaults(self):
+    def setDefault(self):
         """Reinitialize :attr:`output` with :attr:`default`
+        Call :meth:`setDefault` for each tab widget, if available.
         """
         self.output = {}
         self.output.update(self.default)
 
-# class ConstraintsPage(qt.QWidget):
-#     def __init__(self, parent=None):
-#         super(ConstraintsPage, self).__init__(parent)
-#
-#         layout =  qt.QVBoxLayout(self)
-#         # positive height
-#         # ...
-#
-#
-#     def get(self):
-#         ...
-#
-# class SearchPage(qt.QWidget):
-#     def __init__(self, parent=None):
-#         super(SearchPage, self).__init__(parent)
-#
-#         layout =  qt.QVBoxLayout(self)
-#         # fwhm points
-#         # ...
-#
-#     def get(self):
-#         ...
-#
-# class BackgroundPage(qt.QWidget):
-#     def __init__(self, parent=None):
-#         super(BackgroundPage, self).__init__(parent)
-#
-#         layout =  qt.QVBoxLayout(self)
-#         # strip width
-#         # ...
-#
-#     def get(self):
-#         ...
+        for tabWidget in self:
+            if hasattr(tabWidget, "setDefault"):
+                tabWidget.setDefault(self.output)
+
+
+class ConstraintsPage(qt.QGroupBox):
+    """Checkable QGroupBox widget filled with QCheckBox widgets,
+    to configure the fit estimation for standard fit theories.
+    """
+    def __init__(self, title="Set constraints", parent=None):
+        super(ConstraintsPage, self).__init__(title, parent)
+        self.setToolTip("Un-check to remove all constraints")
+        self.setCheckable(True)
+
+        layout = qt.QVBoxLayout(self)
+        self.setLayout(layout)
+
+        self.positiveHeightCB = qt.QCheckBox("Force positive height/area", self)
+        layout.addWidget(self.positiveHeightCB)
+
+        self.positionInIntervalCB = qt.QCheckBox("Force position in interval", self)
+        layout.addWidget(self.positionInIntervalCB)
+
+        self.positiveFwhmCB = qt.QCheckBox("Force positive FWHM", self)
+        layout.addWidget(self.positiveFwhmCB)
+
+        self.sameFwhmCB = qt.QCheckBox("Force positive FWHM for all peaks", self)
+        layout.addWidget(self.sameFwhmCB)
+
+        self.quotedEtaCB = qt.QCheckBox("Force Eta between 0 and 1", self)
+        layout.addWidget(self.quotedEtaCB)
+
+        layout.addStretch()
+
+        self.setDefault()
+
+    def setDefault(self, default_dict=None):
+        """Set default state for all widgets.
+
+        :param default_dict: If a default config dictionary is provided as
+            a parameter, its values are used as default state."""
+        if default_dict is None:
+            default_dict = {}
+        # this one uses reverse logic: if checked, NoConstraintsFlag must be False
+        self.setChecked(
+                not default_dict.get('NoConstraintsFlag', False))
+        self.positiveHeightCB.setChecked(
+                default_dict.get('PositiveHeightAreaFlag', True))
+        self.positionInIntervalCB.setChecked(
+                default_dict.get('QuotedPositionFlag', False))
+        self.positiveFwhmCB.setChecked(
+                default_dict.get('PositiveFwhmFlag', True))
+        self.sameFwhmCB.setChecked(
+                default_dict.get('SameFwhmFlag', False))
+        self.quotedEtaCB.setChecked(
+                default_dict.get('QuotedEtaFlag', False))
+
+    def get(self):
+        """Return a dictionary of constraint flags, to be processed by the
+        :meth:`configure` method of the selected fit theory."""
+        ddict = {
+            'NoConstraintsFlag': not self.isChecked(),
+            'PositiveHeightAreaFlag': self.positiveHeightCB.isChecked(),
+            'QuotedPositionFlag': self.positionInIntervalCB.isChecked(),
+            'PositiveFwhmFlag': self.positiveFwhmCB.isChecked(),
+            'SameFwhmFlag': self.sameFwhmCB.isChecked(),
+            'QuotedEtaFlag': self.quotedEtaCB.isChecked(),
+        }
+        return ddict
+
+
+class SearchPage(qt.QWidget):
+    def __init__(self, parent=None):
+        super(SearchPage, self).__init__(parent)
+        layout = qt.QVBoxLayout(self)
+
+        self.manualFwhmGB = qt.QGroupBox("Define FWHM manually", self)
+        self.manualFwhmGB.setCheckable(True)
+        layout.addWidget(self.manualFwhmGB)
+        # ------------ GroupBox ------------------------------
+        layout2 = qt.QHBoxLayout(self.manualFwhmGB)
+        self.manualFwhmGB.setLayout(layout2)
+
+        label = qt.QLabel("Fwhm Points", self.manualFwhmGB)
+        layout2.addWidget(label)
+
+        self.fwhmPointsEntry = qt.QLineEdit(self.manualFwhmGB)
+        layout2.addWidget(self.fwhmPointsEntry)
+        # ----------------------------------------------------
+
+        # ------------------- grid layout --------------------
+        gridContainerWidget = qt.QWidget(self)
+        layout3 = qt.QGridLayout(gridContainerWidget)
+        gridContainerWidget.setLayout(layout3)
+
+        for i, label_text in enumerate(["Sensitivity", "Y Scaling"]):
+            label = qt.QLabel(label_text, gridContainerWidget)
+            layout3.addWidget(label, i, 0)
+
+        self.sensitivityEntry = qt.QLineEdit(gridContainerWidget)
+        layout3.addWidget(self.sensitivityEntry, 0, 1)
+
+        self.yScalingEntry = qt.QLineEdit(gridContainerWidget)
+        layout3.addWidget(self.yScalingEntry, 1, 1)
+        # ----------------------------------------------------
+        layout.addWidget(gridContainerWidget)
+
+        self.forcePeakPresenceCB = qt.QCheckBox("Force peak presence", self)
+        layout.addWidget(self.forcePeakPresenceCB)
+
+        layout.addStretch()
+
+        self.setDefault()
+
+    def setDefault(self, default_dict=None):
+        """Set default values for all widgets.
+
+        :param default_dict: If a default config dictionary is provided as
+            a parameter, its values are used as default values."""
+        if default_dict is None:
+            default_dict = {}
+        self.manualFwhmGB.setChecked(
+                not default_dict.get('AutoFwhm', True))
+        self.fwhmPointsEntry.setText(
+                str(default_dict.get('FwhmPoints', 8)))
+        self.sensitivityEntry.setText(
+                str(default_dict.get('Sensitivity', 1.0)))
+        self.yScalingEntry.setText(
+                str(default_dict.get('Yscaling', 1.0)))
+        self.forcePeakPresenceCB.setChecked(
+                default_dict.get('ForcePeakPresence', False))
+
+    def get(self):
+        """Return a dictionary of peak search parameters, to be processed by
+        the :meth:`configure` method of the selected fit theory."""
+        ddict = {
+            'AutoFwhm': not self.manualFwhmGB.isChecked(),
+            'FwhmPoints': safe_int(self.fwhmPointsEntry.text()),
+            'Sensitivity': safe_float(self.sensitivityEntry.text()),
+            'Yscaling': safe_float(self.yScalingEntry.text()),
+            'ForcePeakPresence': self.forcePeakPresenceCB.isChecked()
+        }
+        return ddict
+
+
+class BackgroundPage(qt.QGroupBox):
+    def __init__(self,
+                 title="Subtract strip background prior to estimation",
+                 parent=None):
+        super(BackgroundPage, self).__init__(title, parent)
+        self.setCheckable(True)
+
+        layout = qt.QGridLayout(self)
+        self.setLayout(layout)
+
+        for i, label_text in enumerate(
+                ["Strip width (in samples)",
+                 "Number of iterations",
+                 "Strip threshold factor"]):
+            label = qt.QLabel(label_text)
+            layout.addWidget(label, i, 0)
+
+        self.stripWidthEntry = qt.QLineEdit(self)
+        layout.addWidget(self.stripWidthEntry, 0, 1)
+
+        self.numIterationsEntry = qt.QLineEdit(self)
+        layout.addWidget(self.numIterationsEntry, 1, 1)
+
+        self.thresholdFactorEntry = qt.QLineEdit(self)
+        layout.addWidget(self.thresholdFactorEntry, 2, 1)
+
+        layout.setRowStretch(3, 1)
+
+        self.setDefault()
+
+    def setDefault(self, default_dict=None):
+        """Set default values for all widgets.
+
+        :param default_dict: If a default config dictionary is provided as
+            a parameter, its values are used as default values."""
+        if default_dict is None:
+            default_dict = {}
+
+        self.setChecked(
+                default_dict.get('StripBackgroundFlag', True))
+
+        self.stripWidthEntry.setText(
+                str(default_dict.get('StripWidth', 1)))
+        self.numIterationsEntry.setText(
+                str(default_dict.get('StripNIterations', 5000)))
+        self.thresholdFactorEntry.setText(
+                str(default_dict.get('StripThresholdFactor', 1.0)))
+
+    def get(self):
+        """Return a dictionary of background subtraction parameters, to be
+        processed by the :meth:`configure` method of the selected fit theory.
+        """
+        ddict = {
+            'StripBackgroundFlag': self.isChecked(),
+            'StripWidth': safe_int(self.stripWidthEntry.text()),
+            'StripNIterations': safe_int(self.numIterationsEntry.text()),
+            'StripThresholdFactor': safe_float(self.thresholdFactorEntry.text())
+        }
+        return ddict
+
+
+def safe_float(string_, default=1.0):
+    """Convert a string into a float.
+    If the conversion fails, return the default value.
+    """
+    try:
+        ret = float(string_)
+    except ValueError:
+        return default
+    else:
+        return ret
+
+
+def safe_int(string_, default=1):
+    """Convert a string into a integer.
+    If the conversion fails, return the default value.
+    """
+    try:
+        ret = int(float(string_))
+    except ValueError:
+        return default
+    else:
+        return ret
+
+
+def getFitConfigDialog(parent=None, default=None, modal=True):
+    """Instantiate and return a fit configuration dialog, adapted
+    for configuring standard fit theories from
+    :mod:`silx.math.fit.fittheories`.
+
+    :return: Instance of :class:`TabsDialogData` with 3 tabs:
+        :class:`ConstraintsPage`, :class:`SearchPage` and
+        :class:`BackgroundPage`
+    """
+    tdd = TabsDialogData(parent=parent, default=default)
+    tdd.addTab(ConstraintsPage(), label="Constraints")
+    tdd.addTab(SearchPage(), label="Peak search")
+    tdd.addTab(BackgroundPage(), label="Background")
+    # apply default to newly added pages
+    tdd.setDefault()
+
+    return tdd
 
 
 def main():
@@ -206,23 +434,7 @@ def main():
     mw = qt.QMainWindow()
     mw.show()
 
-    td = TabsDialog(mw)
-    td.show()
-    td.exec_()
-    print("TabsDialog result: ", td.result())
-
-    class MyTabWidget(qt.QWidget):
-        def __init__(self, key, value):
-            qt.QWidget.__init__(self)
-            self.key = key
-            self.value = value
-
-        def get(self):
-            return {self.key: self.value}
-
-    tdd = TabsDialogData(mw, default={"a": 1})
-    tdd.addTab(MyTabWidget("b", 2), label="tab b")
-    tdd.addTab(MyTabWidget("c", 3), label="tab c")
+    tdd = getFitConfigDialog(mw, default={"a": 1})
     tdd.show()
     tdd.exec_()
     print("TabsDialogData result: ", tdd.result())
