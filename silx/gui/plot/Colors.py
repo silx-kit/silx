@@ -62,6 +62,8 @@ COLORDICT['darkMagenta'] = '#800080'
 def rgba(color, colorDict=None):
     """Convert color code '#RRGGBB' and '#RRGGBBAA' to (R, G, B, A)
 
+    It also convert RGB(A) values from uint8 to float in [0, 1]
+
     :param str code: The color code to conver
     :param dict colorDict: A dictionary of color name conversion to color code
     :returns: RGBA colors as floats in [0., 1.]
@@ -69,16 +71,25 @@ def rgba(color, colorDict=None):
     """
     if colorDict is None:
         colorDict = COLORDICT
-    if len(color) == 4:
-        r, g, b, a = color
-        if type(color[3]) in [type(1), numpy.uint8, numpy.int8]:
-            return r / 255., g / 255., b / 255., a / 255.
-        if type(color[3]) in [type(1.), numpy.float32, numpy.float64]:
-            assert r >= 0. and r <= 1.
-            assert g >= 0. and g <= 1.
-            assert b >= 0. and b <= 1.
-            assert a >= 0. and a <= 1.
-            return r, g, b, a
+
+    values = numpy.asarray(color).ravel()
+
+    if values.dtype.kind in 'iuf':  # integer or float
+        # Color is an array
+        assert len(values) in (3, 4)
+
+        # Convert from integers in [0, 255] to float in [0, 1]
+        if values.dtype.kind in 'iu':
+            values = values / 255.
+
+        # Clip to [0, 1]
+        values[values < 0.] = 0.
+        values[values > 1.] = 1.
+
+        if len(values) == 3:
+            return values[0], values[1], values[2], 1.
+        else:
+            return tuple(values)
 
     # We assume color is a string
     if not color.startswith('#'):

@@ -22,36 +22,50 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""Basic tests for Colors"""
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/02/2016"
+__date__ = "20/09/2016"
 
+
+import numpy
 
 import unittest
+from silx.testutils import ParametricTestCase
 
-from .testColormapDialog import suite as testColormapDialogSuite
-from .testColors import suite as testColorsSuite
-from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
-from .testInteraction import suite as testInteractionSuite
-from .testLegendSelector import suite as testLegendSelectorSuite
-from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
-from .testPlotTools import suite as testPlotToolsSuite
-from .testPlotWidget import suite as testPlotWidgetSuite
-from .testPlotWindow import suite as testPlotWindowSuite
-from .testPlot import suite as testPlotSuite
+from silx.gui.plot import Colors
+
+
+class TestRGBA(ParametricTestCase):
+    """Basic tests of rgba function"""
+
+    def testRGBA(self):
+        """"Test rgba function with accepted values"""
+        tests = {  # name: (colors, expected values)
+            'blue': ('blue', (0., 0., 1., 1.)),
+            '#010203': ('#010203', (1./255., 2./255., 3./255., 1.)),
+            '#01020304': ('#01020304', (1./255., 2./255., 3./255., 4./255.)),
+            '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
+                          (1/255., 1., 0., 1.)),
+            '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
+                          (1/255., 1., 0., 1/255.)),
+            '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
+            }
+
+        for name, test in tests.items():
+            color, expected = test
+            with self.subTest(msg=name):
+                result = Colors.rgba(color)
+                self.assertEqual(result, expected)
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testColorsSuite(),
-         testColormapDialogSuite(),
-         testCurvesROIWidgetSuite(),
-         testInteractionSuite(),
-         testLegendSelectorSuite(),
-         testMaskToolsWidgetSuite(),
-         testPlotSuite(),
-         testPlotToolsSuite(),
-         testPlotWidgetSuite(),
-         testPlotWindowSuite()])
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestRGBA))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

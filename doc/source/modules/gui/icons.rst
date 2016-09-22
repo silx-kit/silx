@@ -31,6 +31,20 @@ Available icons
      - crop
    * - |crosshair|
      - crosshair
+   * - |cube-back|
+     - cube-back
+   * - |cube-bottom|
+     - cube-bottom
+   * - |cube-front|
+     - cube-front
+   * - |cube-left|
+     - cube-left
+   * - |cube-right|
+     - cube-right
+   * - |cube-top|
+     - cube-top
+   * - |cube|
+     - cube
    * - |document-open|
      - document-open
    * - |document-print|
@@ -153,6 +167,8 @@ Available icons
      - sliders-on
    * - |spec|
      - spec
+   * - |test-png|
+     - test-png
    * - |view-fullscreen|
      - view-fullscreen
    * - |view-nofullscreen|
@@ -176,6 +192,13 @@ Available icons
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
 .. |crop| image:: ../../../../silx/resources/gui/icons/crop.png
 .. |crosshair| image:: ../../../../silx/resources/gui/icons/crosshair.png
+.. |cube-back| image:: ../../../../silx/resources/gui/icons/cube-back.png
+.. |cube-bottom| image:: ../../../../silx/resources/gui/icons/cube-bottom.png
+.. |cube-front| image:: ../../../../silx/resources/gui/icons/cube-front.png
+.. |cube-left| image:: ../../../../silx/resources/gui/icons/cube-left.png
+.. |cube-right| image:: ../../../../silx/resources/gui/icons/cube-right.png
+.. |cube-top| image:: ../../../../silx/resources/gui/icons/cube-top.png
+.. |cube| image:: ../../../../silx/resources/gui/icons/cube.png
 .. |document-open| image:: ../../../../silx/resources/gui/icons/document-open.png
 .. |document-print| image:: ../../../../silx/resources/gui/icons/document-print.png
 .. |document-save| image:: ../../../../silx/resources/gui/icons/document-save.png
@@ -237,6 +260,7 @@ Available icons
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
+.. |test-png| image:: ../../../../silx/resources/gui/icons/test-png.png
 .. |view-fullscreen| image:: ../../../../silx/resources/gui/icons/view-fullscreen.png
 .. |view-nofullscreen| image:: ../../../../silx/resources/gui/icons/view-nofullscreen.png
 .. |view-refresh| image:: ../../../../silx/resources/gui/icons/view-refresh.png
