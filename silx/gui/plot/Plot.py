@@ -409,14 +409,16 @@ class Plot(object):
                 yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         for image, info in self._images.items():
-            height, width = info['data'].shape
-            params = info['params']
-            origin = params['origin']
-            scale = params['scale']
-            xMin = numpy.nanmin([xMin, origin[0]])
-            xMax = numpy.nanmax([xMax, origin[0] + width * scale[0]])
-            yMinLeft = numpy.nanmin([yMinLeft, origin[1]])
-            yMaxLeft = numpy.nanmax([yMaxLeft, origin[1] + height * scale[1]])
+            if info['data'] is not None:
+                height, width = info['data'].shape[:2]
+                params = info['params']
+                origin = params['origin']
+                scale = params['scale']
+                xMin = numpy.nanmin([xMin, origin[0]])
+                xMax = numpy.nanmax([xMax, origin[0] + width * scale[0]])
+                yMinLeft = numpy.nanmin([yMinLeft, origin[1]])
+                yMaxLeft = numpy.nanmax(
+                    [yMaxLeft, origin[1] + height * scale[1]])
 
         lGetRange = (lambda x, y:
                      None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
