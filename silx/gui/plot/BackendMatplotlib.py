@@ -620,8 +620,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             y2Limits = self.getGraphYLimits(axis='right')
 
             ranges = self._plot.getDataRange()
-            xmin, xmax = (None, None) if ranges.x is None else ranges.x
-            ymin, ymax = (None, None) if ranges.y is None else ranges.y
+            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
             if ranges.yright is None:
                 ymin2, ymax2 = None, None
             else:

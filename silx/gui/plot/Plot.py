@@ -321,9 +321,16 @@ class Plot(object):
         self._yAutoScale = True
         self._grid = None
 
+        # Store default labels provided to setGraph[X|Y]Label
+        self._defaultLabels = {'x': '', 'y': '', 'yright': ''}
+        # Store currently displayed labels
+        # Current label can differ from input one with active curve handling
+        self._currentLabels = {'x': '', 'y': '', 'yright': ''}
+
         self.setGraphTitle()
         self.setGraphXLabel()
         self.setGraphYLabel()
+        self.setGraphYLabel('', axis='right')
 
         self.setDefaultColormap()  # Init default colormap
 
@@ -1500,8 +1507,9 @@ class Plot(object):
         if not self.isActiveCurveHandling():
             return
 
-        xLabel = self._xLabel
-        yLabel = self._yLabel
+        xLabel = self._defaultLabels['x']
+        yLabel = self._defaultLabels['y']
+        yRightLabel = self._defaultLabels['yright']
 
         oldActiveCurveLegend = self.getActiveCurve(just_legend=True)
         if oldActiveCurveLegend:  # Reset previous active curve
@@ -1529,14 +1537,19 @@ class Plot(object):
                 if curveParams['xlabel'] is not None:
                     xLabel = curveParams['xlabel']
                 if curveParams['ylabel'] is not None:
-                    yLabel = curveParams['ylabel']
-                # TODO y2 axis case
+                    if curveParams['yaxis'] == 'left':
+                        yLabel = curveParams['ylabel']
+                    else:
+                        yRightLabel = curveParams['ylabel']
 
         # Store current labels and update plot
-        self._currentXLabel = xLabel
+        self._currentLabels['x'] = xLabel
+        self._currentLabels['y'] = yLabel
+        self._currentLabels['yright'] = yRightLabel
+
         self._backend.setGraphXLabel(xLabel)
-        self._currentYLabel = yLabel
-        self._backend.setGraphYLabel(yLabel, axis='left')  # TODO y2 axis
+        self._backend.setGraphYLabel(yLabel, axis='left')
+        self._backend.setGraphYLabel(yRightLabel, axis='right')
 
         self._setDirtyPlot()
 
@@ -1588,8 +1601,8 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
-        xLabel = self._xLabel
-        yLabel = self._yLabel
+        xLabel = self._defaultLabels['x']
+        yLabel = self._defaultLabels['y']
 
         oldActiveImageLegend = self.getActiveImage(just_legend=True)
 
@@ -1612,9 +1625,10 @@ class Plot(object):
                     yLabel = imageParams['ylabel']
 
         # Store current labels and update plot
-        self._currentXLabel = xLabel
+        self._currentLabels['x'] = xLabel
+        self._currentLabels['y'] = yLabel
+
         self._backend.setGraphXLabel(xLabel)
-        self._currentYLabel = yLabel
         self._backend.setGraphYLabel(yLabel, axis='left')
 
         if oldActiveImageLegend is not None or self._activeImage is not None:
@@ -1847,7 +1861,7 @@ class Plot(object):
 
     def getGraphXLabel(self):
         """Return the current X axis label as a str."""
-        return self._currentXLabel
+        return self._defaultLabels['x']
 
     def setGraphXLabel(self, label="X"):
         """Set the plot X axis label.
@@ -1857,28 +1871,40 @@ class Plot(object):
 
         :param str label: The X axis label (default: 'X')
         """
-        self._xLabel = label
-        # Current label can differ from input one with active curve handling
-        self._currentXLabel = label
+        self._defaultLabels['x'] = label
+        self._currentLabels['x'] = label
         self._backend.setGraphXLabel(label)
         self._setDirtyPlot()
 
-    def getGraphYLabel(self):
-        """Return the current Y axis label as a str."""
-        return self._currentYLabel
+    def getGraphYLabel(self, axis='left'):
+        """Return the current Y axis label as a str.
 
-    def setGraphYLabel(self, label="Y"):
+        :param str axis: The Y axis for which to get the label (left or right)
+        """
+        assert axis in ('left', 'right')
+
+        return self._currentLabels['y' if axis == 'left' else 'yright']
+
+    def setGraphYLabel(self, label="Y", axis='left'):
         """Set the plot Y axis label.
 
         The provided label can be temporarily replaced by the Y label of the
         active curve if any.
 
         :param str label: The Y axis label (default: 'Y')
+        :param str axis: The Y axis for which to set the label (left or right)
         """
-        self._yLabel = label
-        # Current label can differ from input one with active curve handling
-        self._currentYLabel = label
-        self._backend.setGraphYLabel(label, axis='left')
+        assert axis in ('left', 'right')
+
+        if axis == 'left':
+            self._defaultLabels['y'] = label
+            self._currentLabels['y'] = label
+        else:
+            self._defaultLabels['yright'] = label
+            self._currentLabels['yright'] = label
+
+        print('set y label', label, axis)
+        self._backend.setGraphYLabel(label, axis=axis)
         self._setDirtyPlot()
 
     # Axes
