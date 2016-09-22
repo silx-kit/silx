@@ -399,14 +399,21 @@ class Plot(object):
         for curve, info in self._curves.items():
             # using numpy's separate min and max is faster than
             # a pure python minmax.
-            xMin = numpy.nanmin([xMin, info['xmin']])
-            xMax = numpy.nanmax([xMax, info['xmax']])
+            if info['xmin'] is not None:
+                xMin = numpy.nanmin([xMin, info['xmin']])
+            if info['xmax'] is not None:
+                xMax = numpy.nanmax([xMax, info['xmax']])
+
             if info['params']['yaxis'] == 'left':
-                yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+                if info['ymin'] is not None:
+                    yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                if info['ymax'] is not None:
+                    yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
             else:
-                yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+                if info['ymin'] is not None:
+                    yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                if info['ymax'] is not None:
+                    yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
             for image, info in self._images.items():
@@ -646,14 +653,17 @@ class Plot(object):
                                             selectable=params['selectable'],
                                             fill=params['fill'])
             self._setDirtyPlot()
-        else:
-            handle = None  # The curve has no points or is hidden
 
-        # caching the min and max values for the getDataRange method.
-        xMin = numpy.nanmin(x)
-        xMax = numpy.nanmax(x)
-        yMin = numpy.nanmin(y)
-        yMax = numpy.nanmax(y)
+            # caching the min and max values for the getDataRange method.
+            xMin = numpy.nanmin(xFiltered)
+            xMax = numpy.nanmax(xFiltered)
+            yMin = numpy.nanmin(yFiltered)
+            yMax = numpy.nanmax(yFiltered)
+
+        else:
+            # The curve has no points or is hidden
+            handle = None
+            xMin, xMax, yMin, yMax = None, None, None, None
 
         self._curves[legend] = {
             'handle': handle, 'x': x, 'y': y, 'params': params,
