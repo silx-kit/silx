@@ -725,6 +725,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setKeepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else 'auto')
+        self.ax2.set_aspect(1.0 if flag else 'auto')
 
     def setGraphGrid(self, which):
         self.ax.grid(False, which='both')  # Disable all grid first

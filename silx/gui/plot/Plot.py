@@ -1903,7 +1903,6 @@ class Plot(object):
             self._defaultLabels['yright'] = label
             self._currentLabels['yright'] = label
 
-        print('set y label', label, axis)
         self._backend.setGraphYLabel(label, axis=axis)
         self._setDirtyPlot()
 
