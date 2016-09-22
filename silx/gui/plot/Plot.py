@@ -427,7 +427,7 @@ class Plot(object):
                     xMin = numpy.nanmin([xMin] + xCoords)
                     xMax = numpy.nanmax([xMax] + xCoords)
                     # Taking care of scale might be < 0
-                    yCoords = [origin[1], origin[1] + width * scale[1]]
+                    yCoords = [origin[1], origin[1] + height * scale[1]]
                     yMinLeft = numpy.nanmin([yMinLeft] + yCoords)
                     yMaxLeft = numpy.nanmax([yMaxLeft] + yCoords)
 
