@@ -28,7 +28,6 @@ then it creates a new data array based on the curve data, and finally it replace
 with a new one using the modified data array.
 
 .. literalinclude:: ../../../../../examples/shiftPlotAction.py
-   :caption: shiftPlotAction.py
    :lines: 36-
 
 .. |imgShiftAction0| image:: img/shiftAction0.png
@@ -68,7 +67,6 @@ We are therefore, required to store the complex array of FFT data as curve metad
 in order to be able to reverse the process when the action is unchecked.
 
 .. literalinclude:: ../../../../../examples/fftPlotAction.py
-   :caption: fftPlotAction.py
    :lines: 44-
 
 .. |imgFftAction0| image:: img/fftAction0.png
