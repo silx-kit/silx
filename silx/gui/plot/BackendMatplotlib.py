@@ -228,8 +228,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         h, w = data.shape[0:2]
         xmin = origin[0]
         xmax = xmin + scale[0] * w
+        if scale[0] < 0.:
+            xmin, xmax = xmax, xmin
         ymin = origin[1]
         ymax = ymin + scale[1] * h
+        if scale[1] < 0.:
+            ymin, ymax = ymax, ymin
         extent = (xmin, xmax, ymax, ymin)
 
         picker = (selectable or draggable)

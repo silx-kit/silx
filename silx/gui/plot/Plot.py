@@ -408,17 +408,21 @@ class Plot(object):
                 yMinRight = numpy.nanmin([yMinRight, info['ymin']])
                 yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
-        for image, info in self._images.items():
-            if info['data'] is not None:
-                height, width = info['data'].shape[:2]
-                params = info['params']
-                origin = params['origin']
-                scale = params['scale']
-                xMin = numpy.nanmin([xMin, origin[0]])
-                xMax = numpy.nanmax([xMax, origin[0] + width * scale[0]])
-                yMinLeft = numpy.nanmin([yMinLeft, origin[1]])
-                yMaxLeft = numpy.nanmax(
-                    [yMaxLeft, origin[1] + height * scale[1]])
+        if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
+            for image, info in self._images.items():
+                if info['data'] is not None:
+                    height, width = info['data'].shape[:2]
+                    params = info['params']
+                    origin = params['origin']
+                    scale = params['scale']
+                    # Taking care of scale might be < 0
+                    xCoords = [origin[0], origin[0] + width * scale[0]]
+                    xMin = numpy.nanmin([xMin] + xCoords)
+                    xMax = numpy.nanmax([xMax] + xCoords)
+                    # Taking care of scale might be < 0
+                    yCoords = [origin[1], origin[1] + width * scale[1]]
+                    yMinLeft = numpy.nanmin([yMinLeft] + yCoords)
+                    yMaxLeft = numpy.nanmax([yMaxLeft] + yCoords)
 
         lGetRange = (lambda x, y:
                      None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
