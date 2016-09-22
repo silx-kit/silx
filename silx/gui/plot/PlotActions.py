@@ -28,9 +28,12 @@ The following QAction are available:
 
 - :class:`ColormapAction`
 - :class:`CopyAction`
+- :class:`CrosshairAction`
 - :class:`CurveStyleAction`
+- :class:`FitAction`
 - :class:`GridAction`
 - :class:`KeepAspectRatioAction`
+- :class:`PanWithArrowKeysAction`
 - :class:`PrintAction`
 - :class:`ResetZoomAction`
 - :class:`SaveAction`
@@ -80,7 +83,7 @@ from silx.io.utils import save1D, savespec
 _logger = logging.getLogger(__name__)
 
 
-class _PlotAction(qt.QAction):
+class PlotAction(qt.QAction):
     """Base class for QAction that operates on a PlotWidget.
 
     :param plot: :class:`.PlotWidget` instance on which to operate.
@@ -102,7 +105,7 @@ class _PlotAction(qt.QAction):
             # Try with icon as a string and load corresponding icon
             icon = icons.getQIcon(icon)
 
-        super(_PlotAction, self).__init__(icon, text, None)
+        super(PlotAction, self).__init__(icon, text, None)
 
         if tooltip is not None:
             self.setToolTip(tooltip)
@@ -118,7 +121,7 @@ class _PlotAction(qt.QAction):
         return self._plotRef()
 
 
-class ResetZoomAction(_PlotAction):
+class ResetZoomAction(PlotAction):
     """QAction controlling reset zoom on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -153,7 +156,7 @@ class ResetZoomAction(_PlotAction):
         self.plot.resetZoom()
 
 
-class ZoomInAction(_PlotAction):
+class ZoomInAction(PlotAction):
     """QAction performing a zoom-in on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -172,7 +175,7 @@ class ZoomInAction(_PlotAction):
         _applyZoomToPlot(self.plot, 1.1)
 
 
-class ZoomOutAction(_PlotAction):
+class ZoomOutAction(PlotAction):
     """QAction performing a zoom-out on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -191,7 +194,7 @@ class ZoomOutAction(_PlotAction):
         _applyZoomToPlot(self.plot, 1. / 1.1)
 
 
-class XAxisAutoScaleAction(_PlotAction):
+class XAxisAutoScaleAction(PlotAction):
     """QAction controlling X axis autoscale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -214,7 +217,7 @@ class XAxisAutoScaleAction(_PlotAction):
             self.plot.resetZoom()
 
 
-class YAxisAutoScaleAction(_PlotAction):
+class YAxisAutoScaleAction(PlotAction):
     """QAction controlling Y axis autoscale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -237,7 +240,7 @@ class YAxisAutoScaleAction(_PlotAction):
             self.plot.resetZoom()
 
 
-class XAxisLogarithmicAction(_PlotAction):
+class XAxisLogarithmicAction(PlotAction):
     """QAction controlling X axis log scale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -257,7 +260,7 @@ class XAxisLogarithmicAction(_PlotAction):
         self.plot.setXAxisLogarithmic(checked)
 
 
-class YAxisLogarithmicAction(_PlotAction):
+class YAxisLogarithmicAction(PlotAction):
     """QAction controlling Y axis log scale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -277,7 +280,7 @@ class YAxisLogarithmicAction(_PlotAction):
         self.plot.setYAxisLogarithmic(checked)
 
 
-class GridAction(_PlotAction):
+class GridAction(PlotAction):
     """QAction controlling grid mode on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -306,7 +309,7 @@ class GridAction(_PlotAction):
         self.plot.setGraphGrid(self._gridMode if checked else None)
 
 
-class CurveStyleAction(_PlotAction):
+class CurveStyleAction(PlotAction):
     """QAction controlling curve style on a :class:`.PlotWidget`.
 
     It changes the default line and markers style which updates all
@@ -335,7 +338,7 @@ class CurveStyleAction(_PlotAction):
         self.plot.setDefaultPlotPoints(newState[1])
 
 
-class ColormapAction(_PlotAction):
+class ColormapAction(PlotAction):
     """QAction opening a ColormapDialog to update the colormap.
 
     Both the active image colormap and the default colormap are updated.
@@ -413,7 +416,7 @@ class ColormapAction(_PlotAction):
                                **params)
 
 
-class KeepAspectRatioAction(_PlotAction):
+class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -452,7 +455,7 @@ class KeepAspectRatioAction(_PlotAction):
         self.plot.setKeepDataAspectRatio(not self.plot.isKeepDataAspectRatio())
 
 
-class YAxisInvertedAction(_PlotAction):
+class YAxisInvertedAction(PlotAction):
     """QAction controlling Y orientation on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -490,7 +493,7 @@ class YAxisInvertedAction(_PlotAction):
         self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
 
 
-class SaveAction(_PlotAction):
+class SaveAction(PlotAction):
     """QAction for saving Plot content.
 
     It opens a Save as... dialog.
@@ -768,7 +771,7 @@ def _plotAsPNG(plot):
     return data
 
 
-class PrintAction(_PlotAction):
+class PrintAction(PlotAction):
     """QAction for printing the plot.
 
     It opens a Print dialog.
@@ -870,7 +873,7 @@ class PrintAction(_PlotAction):
         return True
 
 
-class CopyAction(_PlotAction):
+class CopyAction(PlotAction):
     """QAction to copy :class:`.PlotWidget` content to clipboard.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -893,7 +896,7 @@ class CopyAction(_PlotAction):
         qt.QApplication.clipboard().setImage(image)
 
 
-class CrosshairAction(_PlotAction):
+class CrosshairAction(PlotAction):
     """QAction toggling crosshair cursor on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -929,7 +932,7 @@ class CrosshairAction(_PlotAction):
                                  linewidth=self.linewidth)
 
 
-class PanWithArrowKeysAction(_PlotAction):
+class PanWithArrowKeysAction(PlotAction):
     """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -950,7 +953,7 @@ class PanWithArrowKeysAction(_PlotAction):
         self.plot.setPanWithArrowKeys(checked)
 
 
-class FitAction(_PlotAction):
+class FitAction(PlotAction):
     """QAction to open a :class:`FitWidget` and set its data to the
     active curve if any, or to the first curve..
 
@@ -1004,6 +1007,3 @@ class FitAction(_PlotAction):
             self.plot.addCurve(self.x, y_fit,
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel)
-
-
-

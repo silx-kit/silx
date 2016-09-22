@@ -15,6 +15,8 @@
 
 For an introduction to the widgets of this package, see :doc:`getting_started`.
 
+For examples of custom plot actions, see :doc:`plotactions_examples`.
+
 Widgets gallery
 ---------------
 
@@ -71,6 +73,7 @@ Public modules
    plotwindow.rst
    imageview.rst
    plot.rst
+   plotactions.rst
 
 Internals
 ---------
