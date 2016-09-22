@@ -69,9 +69,9 @@ class ShiftUpAction(PlotAction):
             #    (user defined, curve style and color...)
             x0, y0, legend, info, params = activeCurve
 
-            # add 1 to all values in the y array
+            # Add 1 to all values in the y array
             # and assign the result to a new array y1
-            # (IMPORTANT: do not modify y0 directly)
+            # (do not modify y0 if you want to preserve the original curve)
             y1 = y0 + 1.0
 
             # Re-using the same legend causes the original curve

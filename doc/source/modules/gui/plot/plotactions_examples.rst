@@ -63,7 +63,7 @@ computes either the Fast Fourier Transform (FFT), or the reverse FFT.
 This example also illustrates how to store additional data, along with a curve.
 The FFT computation returns complex values, but we want to display real data, so we compute
 the amplitude spectrum. However, the inverse FFT requires  the complete FFT data as input.
-We are therefore, required to store the complex array of FFT data as curve metadata,
+We are therefore required to store the complex array of FFT data as curve metadata,
 in order to be able to reverse the process when the action is unchecked.
 
 .. literalinclude:: ../../../../../examples/fftPlotAction.py
