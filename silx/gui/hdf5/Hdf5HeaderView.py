@@ -167,7 +167,7 @@ class Hdf5HeaderView(qt.QHeaderView):
                 if column == 0:
                     # skip the main column
                     continue
-                text = model.headerData(column, qt.Qt.Horizontal)
+                text = model.headerData(column, qt.Qt.Horizontal, qt.Qt.DisplayRole)
                 action = qt.QAction("%s displayed" % text, self)
                 action.setCheckable(True)
                 action.setChecked(not self.isSectionHidden(column))

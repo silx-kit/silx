@@ -311,8 +311,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         return False
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
-        if orientation == qt.Qt.Horizontal and role == qt.Qt.DisplayRole:
-            return self.header_labels[section]
+        if orientation == qt.Qt.Horizontal:
+            if role in [qt.Qt.DisplayRole, qt.Qt.EditRole]:
+                return self.header_labels[section]
         return None
 
     def insertNode(self, row, node):
