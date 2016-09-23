@@ -155,7 +155,7 @@ class Hdf5HeaderView(qt.QHeaderView):
             return
 
         model = self.model()
-        if model.columnCount(None) > 1:
+        if model.columnCount() > 1:
             menu = qt.QMenu(self)
             menu.setTitle("Display/hide columns")
 
@@ -163,7 +163,7 @@ class Hdf5HeaderView(qt.QHeaderView):
             action.setEnabled(False)
             menu.addAction(action)
 
-            for column in range(model.columnCount(None)):
+            for column in range(model.columnCount()):
                 if column == 0:
                     # skip the main column
                     continue

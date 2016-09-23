@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/09/2016"
+__date__ = "23/09/2016"
 
 
 import os
@@ -185,7 +185,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             item = self.__root.child(i)
             if isinstance(item, Hdf5LoadingItem):
                 index1 = self.index(i, 0, qt.QModelIndex())
-                index2 = self.index(i, self.columnCount(None) - 1, qt.QModelIndex())
+                index2 = self.index(i, self.columnCount() - 1, qt.QModelIndex())
                 self.dataChanged.emit(index1, index2)
 
     def __itemReady(self, oldItem, newItem, error):
@@ -375,7 +375,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         else:
             return None
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=qt.QModelIndex()):
         return len(self.header_labels)
 
     def hasChildren(self, parent):
