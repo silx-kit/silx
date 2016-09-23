@@ -95,61 +95,61 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "21/09/2016"
 
 
-DEFAULT_CONFIG = {'NoConstraintsFlag': False,
-                  'PositiveFwhmFlag': True,
-                  'PositiveHeightAreaFlag': True,
-                  'SameFwhmFlag': False,
-                  'QuotedPositionFlag': False,  # peak not outside data range
-                  'QuotedEtaFlag': False,  # force 0 < eta < 1
-                  'Yscaling': 1.0,
-                  'FwhmPoints': 8,
-                  'AutoFwhm': True,
-                  'Sensitivity': 2.5,
-                  'ForcePeakPresence': False,
-                  # Hypermet
-                  'HypermetTails': 15,
-                  'QuotedFwhmFlag': 0,
-                  'MaxFwhm2InputRatio': 1.5,
-                  'MinFwhm2InputRatio': 0.4,
-                  # short tail parameters
-                  'MinGaussArea4ShortTail': 50000.,
-                  'InitialShortTailAreaRatio': 0.050,
-                  'MaxShortTailAreaRatio': 0.100,
-                  'MinShortTailAreaRatio': 0.0010,
-                  'InitialShortTailSlopeRatio': 0.70,
-                  'MaxShortTailSlopeRatio': 2.00,
-                  'MinShortTailSlopeRatio': 0.50,
-                  # long tail parameters
-                  'MinGaussArea4LongTail': 1000.0,
-                  'InitialLongTailAreaRatio': 0.050,
-                  'MaxLongTailAreaRatio': 0.300,
-                  'MinLongTailAreaRatio': 0.010,
-                  'InitialLongTailSlopeRatio': 20.0,
-                  'MaxLongTailSlopeRatio': 50.0,
-                  'MinLongTailSlopeRatio': 5.0,
-                  # step tail
-                  'MinGaussHeight4StepTail': 5000.,
-                  'InitialStepTailHeightRatio': 0.002,
-                  'MaxStepTailHeightRatio': 0.0100,
-                  'MinStepTailHeightRatio': 0.0001,
-                  # Hypermet constraints
-                  #   position in range [estimated position +- estimated fwhm/2]
-                  'HypermetQuotedPositionFlag': True,
-                  'DeltaPositionFwhmUnits': 0.5,
-                  'SameSlopeRatioFlag': 1,
-                  'SameAreaRatioFlag': 1,
-                  # Strip bg removal
-                  'StripBackgroundFlag': True,
-                  'StripWidth': 1,
-                  'StripNIterations': 10000,
-                  'StripThresholdFactor': 1.0
-                  }
+DEFAULT_CONFIG = {
+    'NoConstraintsFlag': False,
+    'PositiveFwhmFlag': True,
+    'PositiveHeightAreaFlag': True,
+    'SameFwhmFlag': False,
+    'QuotedPositionFlag': False,  # peak not outside data range
+    'QuotedEtaFlag': False,  # force 0 < eta < 1
+    'Yscaling': 1.0,
+    'FwhmPoints': 8,
+    'AutoFwhm': True,
+    'Sensitivity': 2.5,
+    'ForcePeakPresence': False,
+    # Hypermet
+    'HypermetTails': 15,
+    'QuotedFwhmFlag': 0,
+    'MaxFwhm2InputRatio': 1.5,
+    'MinFwhm2InputRatio': 0.4,
+    # short tail parameters
+    'MinGaussArea4ShortTail': 50000.,
+    'InitialShortTailAreaRatio': 0.050,
+    'MaxShortTailAreaRatio': 0.100,
+    'MinShortTailAreaRatio': 0.0010,
+    'InitialShortTailSlopeRatio': 0.70,
+    'MaxShortTailSlopeRatio': 2.00,
+    'MinShortTailSlopeRatio': 0.50,
+    # long tail parameters
+    'MinGaussArea4LongTail': 1000.0,
+    'InitialLongTailAreaRatio': 0.050,
+    'MaxLongTailAreaRatio': 0.300,
+    'MinLongTailAreaRatio': 0.010,
+    'InitialLongTailSlopeRatio': 20.0,
+    'MaxLongTailSlopeRatio': 50.0,
+    'MinLongTailSlopeRatio': 5.0,
+    # step tail
+    'MinGaussHeight4StepTail': 5000.,
+    'InitialStepTailHeightRatio': 0.002,
+    'MaxStepTailHeightRatio': 0.0100,
+    'MinStepTailHeightRatio': 0.0001,
+    # Hypermet constraints
+    #   position in range [estimated position +- estimated fwhm/2]
+    'HypermetQuotedPositionFlag': True,
+    'DeltaPositionFwhmUnits': 0.5,
+    'SameSlopeRatioFlag': 1,
+    'SameAreaRatioFlag': 1,
+    # Strip bg removal
+    'StripBackgroundFlag': True,
+    'StripWidth': 2,
+    'StripNIterations': 5000,
+    'StripThresholdFactor': 1.0}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
-This dictionary  is replicated as attribute :attr:`FitTheories.config`,
+This dictionary  is accessible as attribute :attr:`FitTheories.config`,
 which can be modified by configuration functions defined in
 :const:`CONFIGURE`.
 """
