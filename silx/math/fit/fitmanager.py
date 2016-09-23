@@ -451,7 +451,8 @@ class FitManager(object):
             fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
         except LinAlgError:
             self.state = 'Estimate failed'
-            callback(data={'status': self.state})
+            if callback is not None:
+                callback(data={'status': self.state})
             raise
 
         # build the names
