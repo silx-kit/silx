@@ -103,7 +103,7 @@ class Hdf5TreeView(qt.QTreeView):
         if hovered_node is None or not isinstance(hovered_node, Hdf5Item):
             return
 
-        hovered_object = hovered_node.obj
+        hovered_object = _utils.H5Node(hovered_node.obj)
         event = _utils.Hdf5ContextMenuEvent(self, menu, hovered_object)
 
         for callback in self.__context_menu_callbacks:
@@ -171,13 +171,14 @@ class Hdf5TreeView(qt.QTreeView):
         else:
             qt.QTreeView.dragMoveEvent(self, event)
 
-    def selectedH5pyObjects(self, ignoreBrokenLinks=True):
+    def selectedH5Nodes(self, ignoreBrokenLinks=True):
         """Returns selected h5py objects like `h5py.File`, `h5py.Group`,
         `h5py.Dataset` or mimicked objects.
+
         :param ignoreBrokenLinks bool: Returns objects which are not not
-            broken links.
+            broken links.\
+        :rtype: iterator(_utils.H5Node)
         """
-        result = []
         for index in self.selectedIndexes():
             if index.column() != 0:
                 continue
@@ -187,8 +188,7 @@ class Hdf5TreeView(qt.QTreeView):
             if isinstance(item, Hdf5Item):
                 if ignoreBrokenLinks and item.isBrokenObj():
                     continue
-                result.append(item.obj)
-        return result
+                yield _utils.H5Node(item.obj)
 
     def mousePressEvent(self, event):
         """Override mousePressEvent to provide a consistante compatible API

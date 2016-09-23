@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "23/09/2016"
 
 
 import os
@@ -81,6 +81,13 @@ class Hdf5ContextMenuEvent(object):
     """Hold information provided to context menu callbacks."""
 
     def __init__(self, source, menu, hoveredObject):
+        """
+        Constructor
+
+        :param QWidget source: Widget source
+        :param QMenu menu: Context menu which will be displayed
+        :param H5Node hoveredObject: Hovered H5 node
+        """
         self.__source = source
         self.__menu = menu
         self.__hoveredObject = hoveredObject
@@ -103,7 +110,7 @@ class Hdf5ContextMenuEvent(object):
         """Item content overed by the mouse when the context menu was
         requested
 
-        :rtype: h5py.File or h5py.Dataset or h5py.Group
+        :rtype: H5Node
         """
         return self.__menu
 
@@ -133,3 +140,35 @@ class Hdf5NodeMimeData(qt.QMimeData):
 
     def node(self):
         return self.__node
+
+
+class H5Node(object):
+    """Adapter over an h5py object to provide missing informations from h5py
+    nodes, like internal node path and filename (which are not provided by h5py
+    for soft and external links).
+
+    It also provide an abstraction to reach node type for mimicked h5py
+    objects.
+    """
+
+    def __init__(self, h5py_object):
+        self.__h5py_object = h5py_object
+
+    @property
+    def h5py_object(self):
+        """Returns the internal h5py node.
+
+        :rtype: h5py.File or h5py.Group or h5py.Dataset
+        """
+        return self.__h5py_object
+
+    @property
+    def ntype(self):
+        """Returns the node type, as an h5py class.
+
+        :rtype: h5py.File.__class__ or h5py.Group.__class__ or h5py.Dataset.__class__
+        """
+        if hasattr(self.__h5py_object, "h5py_class"):
+            return self.__h5py_object.h5py_class
+        else:
+            return self.__h5py_object.__class__

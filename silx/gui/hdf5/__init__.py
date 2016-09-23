@@ -28,12 +28,13 @@ HDF5 format.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/09/2016"
+__date__ = "23/09/2016"
 
 
 from .Hdf5TreeView import Hdf5TreeView  # noqa
+from ._utils import H5Node
 from ._utils import Hdf5ContextMenuEvent  # noqa
 from .NexusSortFilterProxyModel import NexusSortFilterProxyModel  # noqa
 from .Hdf5TreeModel import Hdf5TreeModel  # noqa
 
-__all__ = ['Hdf5TreeView', 'Hdf5ContextMenuEvent']
+__all__ = ['Hdf5TreeView', 'H5Node', 'Hdf5ContextMenuEvent', 'NexusSortFilterProxyModel', 'Hdf5TreeModel']
