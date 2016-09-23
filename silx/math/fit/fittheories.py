@@ -227,9 +227,9 @@ class FitTheories(object):
         StripNIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
-            strip_width = self.config.get('StripWidth', 1)
-            strip_niterations = self.config.get('StripNIterations', 10000)
-            strip_thr_factor = self.config.get('StripThresholdFactor', 1.0)
+            strip_width = self.config['StripWidth']
+            strip_niterations = self.config['StripNIterations']
+            strip_thr_factor = self.config['StripThresholdFactor']
             return strip(y, w=strip_width,
                          niterations=strip_niterations,
                          factor=strip_thr_factor)
