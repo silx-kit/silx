@@ -74,7 +74,7 @@ class TestFitConfig(TestCaseQt):
             self.assertIn(key, output)
 
         self.assertTrue(output["AutoFwhm"])
-        self.assertEqual(output["StripWidth"], 1)
+        self.assertEqual(output["StripWidth"], 2)
 
 
 def suite():
