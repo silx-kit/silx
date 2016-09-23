@@ -823,28 +823,20 @@ class FitTheories(object):
             Parameters to be estimated for each stepdown are:
             *height, centroid, fwhm* .
         """
-        bg = self.strip_bg(y)
-        y_minus_bg = y - bg
-
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
         cutoff = len(crappyfilter) // 2
-        y_deriv = numpy.convolve(y_minus_bg,
+        y_deriv = numpy.convolve(y,
                                  crappyfilter,
                                  mode="valid")
 
         # make the derivative's peak have the same amplitude as the step
         if max(y_deriv) > 0:
-            y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
+            y_deriv = y_deriv * max(y) / max(y_deriv)
 
-        # temporarily disable strip bg removal in config, then estimate
-        # gaussian params of the derivative, then restore bg config
-        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
-        self.configure(StripBackgroundFlag=False)
         fittedpar, newcons = self.estimate_height_position_fwhm(
                                  x[cutoff:-cutoff], y_deriv)
-        self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
-        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+        data_amplitude = max(y) - min(y)
 
         # use parameters from largest gaussian found
         if len(fittedpar):
@@ -960,28 +952,17 @@ class FitTheories(object):
             Parameters to be estimated for each stepup are:
             *height, centroid, fwhm* .
         """
-        y_minus_bg = y - self.strip_bg(y)
-
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
         cutoff = len(crappyfilter) // 2
-        y_deriv = numpy.convolve(y_minus_bg, crappyfilter, mode="valid")
+        y_deriv = numpy.convolve(y, crappyfilter, mode="valid")
         if max(y_deriv) > 0:
-            y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
+            y_deriv = y_deriv * max(y) / max(y_deriv)
 
-        # temporarily disable strip bg removal in config,
-        # estimate fwhm of derivative peak, then estimate
-        # gaussian params of the derivative, then restore  config
-        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
-        auto_fwhm = self.config.get("AutoFwhm")
-        self.configure(StripBackgroundFlag=False,
-                       AutoFwhm=True)
         fittedpar, cons = self.estimate_height_position_fwhm(
                               x[cutoff:-cutoff], y_deriv)
-        self.configure(StripBackgroundFlag=config_rm_strip_bg,
-                       AutoFwhm=auto_fwhm)
 
         # for height, use the data amplitude after removing the background
-        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+        data_amplitude = max(y) - min(y)
 
         # find params of the largest gaussian found
         if len(fittedpar):
