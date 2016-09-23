@@ -47,14 +47,14 @@ A scan header contains following information:
 
 Users can also define their own type of header lines in their macros.
 
-There can be scan header lines after a data block, but before the ``#S`` of the next
+There can sometimes be a block of scan header lines after a data block, but before the ``#S`` of the next
 scan.
 
 Data lines
 ++++++++++
 
 Data blocks are structured as 2D arrays. Each line contains ``#N`` values, each value
-corresponding to the label with the same position in the``#L`` scan header line.
+corresponding to the label with the same position in the ``#L`` scan header line.
 This implies that each column corresponds to one series of measurements.
 
 A column typically contains motor positions for a given positioner, a timestamp or the measurement
@@ -72,6 +72,7 @@ SPEC data files containing MCA data have additional scan header lines:
 
  - ``#@MCA`` - this indicates the number of values per line
  - ``#@CHANN`` - contains 4 values:
+
    - the number of channels per spectrum
    - the first channel number
    - the last channel number
@@ -81,7 +82,7 @@ SPEC data files containing MCA data have additional scan header lines:
 
 The actual MCA data for a single spectrum usually spans over multiple lines.
 A spectrum starts on a new line with a ``@A``, and when it span over multiple lines, all
-lines end with a continuation character ``\\``.
+lines end with a continuation character ``\``.
 
 Example of SPEC file
 ++++++++++++++++++++
