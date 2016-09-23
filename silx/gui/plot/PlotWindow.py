@@ -100,6 +100,7 @@ class PlotWindow(PlotWidget):
                      to customize the displayed values.
                      See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool roi: Toggle visibilty of ROI action.
+    :param bool mask: Toggle visibilty of mask action.
     """
 
     def __init__(self, parent=None, backend=None,
