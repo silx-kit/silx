@@ -20,7 +20,7 @@ cards and CPU, making it usable on many setups. OpenCL processes are
 handled from Python with PyOpenCL, a module to access OpenCL parallel
 computation API.
 
-This tutuorial explains the three subsequent steps:
+This tutorial explains the three subsequent steps:
 
 -  keypoint extraction
 -  Keypoint matching
