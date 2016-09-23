@@ -22,26 +22,47 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "23/09/2016"
 
 
-from numpy.distutils.misc_util import Configuration
+from .. import qt
+from .Hdf5Node import Hdf5Node
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('gui', parent_package, top_path)
-    config.add_subpackage('plot')
-    config.add_subpackage('fit')
-    config.add_subpackage('hdf5')
-    config.add_subpackage('widgets')
-    config.add_subpackage('test')
+class Hdf5LoadingItem(Hdf5Node):
+    """Item displayed when an Hdf5Node is loading.
 
-    return config
+    At the end of the loading this item is replaced by the loaded one.
+    """
 
+    def __init__(self, text, parent, animatedIcon):
+        """Constructor"""
+        Hdf5Node.__init__(self, parent)
+        self.__text = text
+        self.__animatedIcon = animatedIcon
+        self.__animatedIcon.register(self)
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+    @property
+    def obj(self):
+        return None
 
-    setup(configuration=configuration)
+    def dataName(self, role):
+        if role == qt.Qt.DecorationRole:
+            return self.__animatedIcon.currentIcon()
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return self.__text
+        return None
+
+    def dataDescription(self, role):
+        if role == qt.Qt.DecorationRole:
+            return None
+        if role == qt.Qt.TextAlignmentRole:
+            return qt.Qt.AlignTop | qt.Qt.AlignLeft
+        if role == qt.Qt.DisplayRole:
+            return "Loading..."
+        return None

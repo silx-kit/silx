@@ -73,6 +73,18 @@ Available icons
      - image-select-erase
    * - |image|
      - image
+   * - |item-0dim|
+     - item-0dim
+   * - |item-1dim|
+     - item-1dim
+   * - |item-2dim|
+     - item-2dim
+   * - |item-3dim|
+     - item-3dim
+   * - |item-ndim|
+     - item-ndim
+   * - |item-object|
+     - item-object
    * - |math-average|
      - math-average
    * - |math-derive|
@@ -213,6 +225,12 @@ Available icons
 .. |image-select-erase-rubber| image:: ../../../../silx/resources/gui/icons/image-select-erase-rubber.png
 .. |image-select-erase| image:: ../../../../silx/resources/gui/icons/image-select-erase.png
 .. |image| image:: ../../../../silx/resources/gui/icons/image.png
+.. |item-0dim| image:: ../../../../silx/resources/gui/icons/item-0dim.png
+.. |item-1dim| image:: ../../../../silx/resources/gui/icons/item-1dim.png
+.. |item-2dim| image:: ../../../../silx/resources/gui/icons/item-2dim.png
+.. |item-3dim| image:: ../../../../silx/resources/gui/icons/item-3dim.png
+.. |item-ndim| image:: ../../../../silx/resources/gui/icons/item-ndim.png
+.. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
