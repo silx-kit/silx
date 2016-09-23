@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "23/09/2016"
 
 
 import numpy
@@ -68,6 +68,10 @@ class Hdf5Item(Hdf5Node):
         if self.__key:
             self.__initH5pyObject()
         return self.__obj
+
+    @property
+    def basename(self):
+        return self.__text
 
     @property
     def h5pyClass(self):
