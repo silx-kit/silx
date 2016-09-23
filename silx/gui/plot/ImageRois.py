@@ -311,8 +311,32 @@ class PolygonRoiItem(RoiItemBase):
         self._yData[-1] = self._yData[0]
 
 
+@RoiItemClass(shape='rectangle', name='rectangle',
+              icon='shape-polygon', toolTip='Draw a polygon ROI.')
 class RectRoiItem(RoiItemBase):
     shape = 'rectangle'
+
+    pos = property(lambda self: self._left, self._bottom)
+    """
+    Coordinates of the lower left point.
+    """
+
+    width = property(lambda self: self._right - self._left)
+    """
+    Roi width.
+    """
+
+    height = property(lambda self: self._top - self._bottom)
+    """
+    Roi height.
+    """
+
+    center = property(lambda self:
+                      (self._left + (self._right - self._left) / 2.,
+                       self._bottom + (self._top - self._bottom) / 2.)
+    """
+    Center point of the rectangle.
+    """
 
     def _drawFinished(self, event):
         self._drawEvent(event)
@@ -347,17 +371,12 @@ class RectRoiItem(RoiItemBase):
         # when editing
         {self._registerHandle(corner, (xcoords[i], ycoords[i]))
          for i, corner in enumerate(corners)}
-        self._registerHandle(center, self._centerPos())
-
-    def _centerPos(self):
-        xcoord = self._left + (self._right - self._left) / 2.
-        ycoord = self._bottom + (self._top - self._bottom) / 2.
-        return [xcoord, ycoord]
+        self._registerHandle(center, self.center)
 
     def _handleMoved(self, name, x, y, index):
         if name == self._center:
             # center moved
-            c_x, c_y = self._centerPos()
+            c_x, c_y = self.center
             self._xData += x - c_x
             self._yData += y - c_y
             {self._setHandleData(corner,
@@ -388,7 +407,7 @@ class RectRoiItem(RoiItemBase):
             self._xData[index] = x
             self._yData[index] = y
 
-            self._setHandleData(self._center, self._centerPos())
+            self._setHandleData(self._center, self.center)
             {self._setHandleData(self._corners[i],
                                  (self._xData[i], self._yData[i]))
              for i in (v_op, h_op)}
