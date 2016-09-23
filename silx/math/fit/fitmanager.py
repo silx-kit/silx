@@ -104,6 +104,9 @@ class FitManager(object):
             'Sensitivity': sensitivity,
             'fitbkg': 'No Background',
             'fittheory': None,
+            'StripWidth': 2,
+            'StripNIterations': 5000,
+            'StripThresholdFactor': 1.0
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -916,7 +919,10 @@ class FitManager(object):
                 if self.fitconfig["fitbkg"] == "No Background":
                     bg = numpy.zeros_like(y)
                 else:
-                    bg = strip(y, w=1, niterations=10000, factor=1.0)
+                    bg = strip(y,
+                               w=self.fitconfig["StripWidth"],
+                               niterations=self.fitconfig["StripNIterations"],
+                               factor=self.fitconfig["StripThresholdFactor"])
                 # fitconfig can be filled by user defined config function
                 xscaling = self.fitconfig.get('Xscaling', 1.0)
                 yscaling = self.fitconfig.get('Yscaling', 1.0)
@@ -1068,7 +1074,10 @@ class FitManager(object):
         # TODO: document square filter
 
         # extract bg by applying a strip filter
-        background = strip(y, w=1, niterations=10000, factor=1.0)
+        background = strip(y,
+                           w=self.fitconfig["StripWidth"],
+                           niterations=self.fitconfig["StripNIterations"],
+                           factor=self.fitconfig["StripThresholdFactor"])
 
         npoints = len(background)
         if self.selectedbg == 'Constant':
@@ -1080,7 +1089,9 @@ class FitManager(object):
 
         elif self.selectedbg == 'Internal':
             # Internal
-            fittedpar = [1.000, 10000, 0.0]
+            fittedpar = [self.fitconfig["StripWidth"],
+                         self.fitconfig["StripNIterations"],
+                         self.fitconfig["StripThresholdFactor"]]
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
             # code = 3: FIXED
             cons[0][0] = 3
