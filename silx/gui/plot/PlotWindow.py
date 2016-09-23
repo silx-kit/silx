@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "23/09/2016"
 
 import collections
 import logging
@@ -101,6 +101,7 @@ class PlotWindow(PlotWidget):
                      to customize the displayed values.
                      See :class:`silx.gui.plot.PlotTools.PositionInfo`.
     :param bool roi: Toggle visibilty of ROI action.
+    :param bool mask: Toggle visibilty of mask action.
     :param bool fit: Toggle visibilty of fit action.
     """
 
