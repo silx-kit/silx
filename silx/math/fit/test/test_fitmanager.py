@@ -354,6 +354,7 @@ class TestFitmanager(unittest.TestCase):
             # Use one of the default fit functions
             fit.settheory(theory_name)
             fit.setbackground('Linear')
+            fit.configure(StripWidth=1, StripNIterations=10000)
             fit.estimate()
 
             params, sigmas, infodict = fit.runfit()
