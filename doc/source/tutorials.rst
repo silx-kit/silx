@@ -10,3 +10,4 @@ Tutorials and cookbooks:
    modules/gui/plot/plotactions_examples.rst
    modules/gui/designer.rst
    Tutorials/Sift/sift.rst
+   Tutorials/specfile_to_hdf5.rst
