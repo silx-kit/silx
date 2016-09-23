@@ -95,61 +95,61 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "21/09/2016"
 
 
-DEFAULT_CONFIG = {'NoConstraintsFlag': False,
-                  'PositiveFwhmFlag': True,
-                  'PositiveHeightAreaFlag': True,
-                  'SameFwhmFlag': False,
-                  'QuotedPositionFlag': False,  # peak not outside data range
-                  'QuotedEtaFlag': False,  # force 0 < eta < 1
-                  'Yscaling': 1.0,
-                  'FwhmPoints': 8,
-                  'AutoFwhm': True,
-                  'Sensitivity': 2.5,
-                  'ForcePeakPresence': False,
-                  # Hypermet
-                  'HypermetTails': 15,
-                  'QuotedFwhmFlag': 0,
-                  'MaxFwhm2InputRatio': 1.5,
-                  'MinFwhm2InputRatio': 0.4,
-                  # short tail parameters
-                  'MinGaussArea4ShortTail': 50000.,
-                  'InitialShortTailAreaRatio': 0.050,
-                  'MaxShortTailAreaRatio': 0.100,
-                  'MinShortTailAreaRatio': 0.0010,
-                  'InitialShortTailSlopeRatio': 0.70,
-                  'MaxShortTailSlopeRatio': 2.00,
-                  'MinShortTailSlopeRatio': 0.50,
-                  # long tail parameters
-                  'MinGaussArea4LongTail': 1000.0,
-                  'InitialLongTailAreaRatio': 0.050,
-                  'MaxLongTailAreaRatio': 0.300,
-                  'MinLongTailAreaRatio': 0.010,
-                  'InitialLongTailSlopeRatio': 20.0,
-                  'MaxLongTailSlopeRatio': 50.0,
-                  'MinLongTailSlopeRatio': 5.0,
-                  # step tail
-                  'MinGaussHeight4StepTail': 5000.,
-                  'InitialStepTailHeightRatio': 0.002,
-                  'MaxStepTailHeightRatio': 0.0100,
-                  'MinStepTailHeightRatio': 0.0001,
-                  # Hypermet constraints
-                  #   position in range [estimated position +- estimated fwhm/2]
-                  'HypermetQuotedPositionFlag': True,
-                  'DeltaPositionFwhmUnits': 0.5,
-                  'SameSlopeRatioFlag': 1,
-                  'SameAreaRatioFlag': 1,
-                  # Strip bg removal
-                  'StripBackgroundFlag': True,
-                  'StripWidth': 1,
-                  'StripNIterations': 10000,
-                  'StripThresholdFactor': 1.0
-                  }
+DEFAULT_CONFIG = {
+    'NoConstraintsFlag': False,
+    'PositiveFwhmFlag': True,
+    'PositiveHeightAreaFlag': True,
+    'SameFwhmFlag': False,
+    'QuotedPositionFlag': False,  # peak not outside data range
+    'QuotedEtaFlag': False,  # force 0 < eta < 1
+    'Yscaling': 1.0,
+    'FwhmPoints': 8,
+    'AutoFwhm': True,
+    'Sensitivity': 2.5,
+    'ForcePeakPresence': False,
+    # Hypermet
+    'HypermetTails': 15,
+    'QuotedFwhmFlag': 0,
+    'MaxFwhm2InputRatio': 1.5,
+    'MinFwhm2InputRatio': 0.4,
+    # short tail parameters
+    'MinGaussArea4ShortTail': 50000.,
+    'InitialShortTailAreaRatio': 0.050,
+    'MaxShortTailAreaRatio': 0.100,
+    'MinShortTailAreaRatio': 0.0010,
+    'InitialShortTailSlopeRatio': 0.70,
+    'MaxShortTailSlopeRatio': 2.00,
+    'MinShortTailSlopeRatio': 0.50,
+    # long tail parameters
+    'MinGaussArea4LongTail': 1000.0,
+    'InitialLongTailAreaRatio': 0.050,
+    'MaxLongTailAreaRatio': 0.300,
+    'MinLongTailAreaRatio': 0.010,
+    'InitialLongTailSlopeRatio': 20.0,
+    'MaxLongTailSlopeRatio': 50.0,
+    'MinLongTailSlopeRatio': 5.0,
+    # step tail
+    'MinGaussHeight4StepTail': 5000.,
+    'InitialStepTailHeightRatio': 0.002,
+    'MaxStepTailHeightRatio': 0.0100,
+    'MinStepTailHeightRatio': 0.0001,
+    # Hypermet constraints
+    #   position in range [estimated position +- estimated fwhm/2]
+    'HypermetQuotedPositionFlag': True,
+    'DeltaPositionFwhmUnits': 0.5,
+    'SameSlopeRatioFlag': 1,
+    'SameAreaRatioFlag': 1,
+    # Strip bg removal
+    'StripBackgroundFlag': True,
+    'StripWidth': 2,
+    'StripNIterations': 5000,
+    'StripThresholdFactor': 1.0}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
-This dictionary  is replicated as attribute :attr:`FitTheories.config`,
+This dictionary  is accessible as attribute :attr:`FitTheories.config`,
 which can be modified by configuration functions defined in
 :const:`CONFIGURE`.
 """
@@ -227,9 +227,9 @@ class FitTheories(object):
         StripNIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
-            strip_width = self.config.get('StripWidth', 1)
-            strip_niterations = self.config.get('StripNIterations', 10000)
-            strip_thr_factor = self.config.get('StripThresholdFactor', 1.0)
+            strip_width = self.config['StripWidth']
+            strip_niterations = self.config['StripNIterations']
+            strip_thr_factor = self.config['StripThresholdFactor']
             return strip(y, w=strip_width,
                          niterations=strip_niterations,
                          factor=strip_thr_factor)
@@ -823,28 +823,20 @@ class FitTheories(object):
             Parameters to be estimated for each stepdown are:
             *height, centroid, fwhm* .
         """
-        bg = self.strip_bg(y)
-        y_minus_bg = y - bg
-
         crappyfilter = [-0.25, -0.75, 0.0, 0.75, 0.25]
         cutoff = len(crappyfilter) // 2
-        y_deriv = numpy.convolve(y_minus_bg,
+        y_deriv = numpy.convolve(y,
                                  crappyfilter,
                                  mode="valid")
 
         # make the derivative's peak have the same amplitude as the step
         if max(y_deriv) > 0:
-            y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
+            y_deriv = y_deriv * max(y) / max(y_deriv)
 
-        # temporarily disable strip bg removal in config, then estimate
-        # gaussian params of the derivative, then restore bg config
-        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
-        self.configure(StripBackgroundFlag=False)
         fittedpar, newcons = self.estimate_height_position_fwhm(
                                  x[cutoff:-cutoff], y_deriv)
-        self.configure(StripBackgroundFlag=config_rm_strip_bg)
 
-        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+        data_amplitude = max(y) - min(y)
 
         # use parameters from largest gaussian found
         if len(fittedpar):
@@ -960,28 +952,17 @@ class FitTheories(object):
             Parameters to be estimated for each stepup are:
             *height, centroid, fwhm* .
         """
-        y_minus_bg = y - self.strip_bg(y)
-
         crappyfilter = [0.25, 0.75, 0.0, -0.75, -0.25]
         cutoff = len(crappyfilter) // 2
-        y_deriv = numpy.convolve(y_minus_bg, crappyfilter, mode="valid")
+        y_deriv = numpy.convolve(y, crappyfilter, mode="valid")
         if max(y_deriv) > 0:
-            y_deriv = y_deriv * max(y_minus_bg) / max(y_deriv)
+            y_deriv = y_deriv * max(y) / max(y_deriv)
 
-        # temporarily disable strip bg removal in config,
-        # estimate fwhm of derivative peak, then estimate
-        # gaussian params of the derivative, then restore  config
-        config_rm_strip_bg = self.config.get("StripBackgroundFlag")
-        auto_fwhm = self.config.get("AutoFwhm")
-        self.configure(StripBackgroundFlag=False,
-                       AutoFwhm=True)
         fittedpar, cons = self.estimate_height_position_fwhm(
                               x[cutoff:-cutoff], y_deriv)
-        self.configure(StripBackgroundFlag=config_rm_strip_bg,
-                       AutoFwhm=auto_fwhm)
 
         # for height, use the data amplitude after removing the background
-        data_amplitude = max(y_minus_bg) - min(y_minus_bg)
+        data_amplitude = max(y) - min(y)
 
         # find params of the largest gaussian found
         if len(fittedpar):

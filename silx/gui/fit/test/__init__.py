@@ -25,6 +25,7 @@
 import unittest
 
 from .testFitWidget import suite as testFitWidgetSuite
+from .testFitConfig import suite as testFitConfigSuite
 
 
 __authors__ = ["P. Knobel"]
@@ -35,5 +36,6 @@ __date__ = "21/07/2016"
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testFitWidgetSuite()])
+        [testFitWidgetSuite(),
+         testFitConfigSuite()])
     return test_suite

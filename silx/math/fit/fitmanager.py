@@ -104,6 +104,9 @@ class FitManager(object):
             'Sensitivity': sensitivity,
             'fitbkg': 'No Background',
             'fittheory': None,
+            'StripWidth': 2,
+            'StripNIterations': 5000,
+            'StripThresholdFactor': 1.0
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -161,11 +164,11 @@ class FitManager(object):
                                  function=self.bkg_linear,
                                  parameters=['Constant', 'Slope'],
                                  estimate=self.estimate_builtin_bkg)),
-             ('Internal', FitTheory(
+             ('Strip', FitTheory(
                                  description="Background based on strip filter\n" +
-                                             "Parameters 'Curvature', 'Iterations' and 'Constant'",
-                                 function=self.bkg_internal,
-                                 parameters=['Curvature', 'Iterations', 'Constant'],
+                                             "Parameters 'StripWidth', 'StripIterations'",
+                                 function=self.bkg_strip,
+                                 parameters=['StripWidth', 'StripIterations'],
                                  estimate=self.estimate_builtin_bkg))))
         """Dictionary of background theories.
 
@@ -268,10 +271,10 @@ class FitManager(object):
 
         # Attributes used to store internal background parameters and data,
         # to avoid costly computations when parameters stay the same
-        self._bkg_internal_oldx = numpy.array([])
-        self._bkg_internal_oldy = numpy.array([])
-        self._bkg_internal_oldpars = [0, 0]
-        self._bkg_internal_oldbkg = numpy.array([])
+        self._bkg_strip_oldx = numpy.array([])
+        self._bkg_strip_oldy = numpy.array([])
+        self._bkg_strip_oldpars = [0, 0]
+        self._bkg_strip_oldbkg = numpy.array([])
 
     ##################
     # Public methods #
@@ -448,7 +451,8 @@ class FitManager(object):
             fun_params, fun_constraints = self.estimate_fun(xwork, ywork)
         except LinAlgError:
             self.state = 'Estimate failed'
-            callback(data={'status': self.state})
+            if callback is not None:
+                callback(data={'status': self.state})
             raise
 
         # build the names
@@ -916,7 +920,10 @@ class FitManager(object):
                 if self.fitconfig["fitbkg"] == "No Background":
                     bg = numpy.zeros_like(y)
                 else:
-                    bg = strip(y, w=1, niterations=10000, factor=1.0)
+                    bg = strip(y,
+                               w=self.fitconfig["StripWidth"],
+                               niterations=self.fitconfig["StripNIterations"],
+                               factor=self.fitconfig["StripThresholdFactor"])
                 # fitconfig can be filled by user defined config function
                 xscaling = self.fitconfig.get('Xscaling', 1.0)
                 yscaling = self.fitconfig.get('Yscaling', 1.0)
@@ -946,38 +953,38 @@ class FitManager(object):
         """
         return pars[0] + pars[1] * x
 
-    def bkg_internal(self, x, *pars):
+    def bkg_strip(self, x, *pars):
         """
         Internal Background based on a strip filter
-        (:meth:`silx.math.fit.filters.strip`) and a constant value.
+        (:meth:`silx.math.fit.filters.strip`)
 
-        Parameters are *(strip_width, n_iterations, constant)*
+        Parameters are *(strip_width, n_iterations)*
 
         See http://pymca.sourceforge.net/stripbackground.html
         """
-        if self._bkg_internal_oldpars[0] == pars[0]:
-            if self._bkg_internal_oldpars[1] == pars[1]:
-                if (len(x) == len(self._bkg_internal_oldx)) & \
-                   (len(self.ydata) == len(self._bkg_internal_oldy)):
+        if self._bkg_strip_oldpars[0] == pars[0]:
+            if self._bkg_strip_oldpars[1] == pars[1]:
+                if (len(x) == len(self._bkg_strip_oldx)) & \
+                   (len(self.ydata) == len(self._bkg_strip_oldy)):
                     # same parameters
-                    if numpy.sum(self._bkg_internal_oldx == x) == len(x):
-                        if numpy.sum(self._bkg_internal_oldy == self.ydata) == len(self.ydata):
-                            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
-        self._bkg_internal_oldy = self.ydata
-        self._bkg_internal_oldx = x
-        self._bkg_internal_oldpars = pars
+                    if numpy.sum(self._bkg_strip_oldx == x) == len(x):
+                        if numpy.sum(self._bkg_strip_oldy == self.ydata) == len(self.ydata):
+                            return self._bkg_strip_oldbkg
+        self._bkg_strip_oldy = self.ydata
+        self._bkg_strip_oldx = x
+        self._bkg_strip_oldpars = pars
         idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
         yy = numpy.take(self.ydata, idx)
         nrx = numpy.shape(x)[0]
         nry = numpy.shape(yy)[0]
         if nrx == nry:
-            self._bkg_internal_oldbkg = strip(yy, pars[0], pars[1])
-            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
+            self._bkg_strip_oldbkg = strip(yy, pars[0], pars[1])
+            return self._bkg_strip_oldbkg
 
         else:
-            self._bkg_internal_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-                                              pars[0], pars[1])
-            return self._bkg_internal_oldbkg + pars[2] * numpy.ones(numpy.shape(x), numpy.float)
+            self._bkg_strip_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
+                                           pars[0], pars[1])
+            return self._bkg_strip_oldbkg
 
     def bkg_squarefilter(self, x, *pars):
         """
@@ -1049,7 +1056,7 @@ class FitManager(object):
         The return parameters and constraints depends on the selected theory:
 
             - ``'Constant'``: [min(background)], constraint FREE
-            - ``'Internal'``: [1.000, 10000, 0.0], constraint FIXED
+            - ``'Strip'``: [2.000, 5000, 0.0], constraint FIXED
             - ``'No Background'``: empty array []
             - ``'Square Filter'``:
             - ``'Linear'``: [constant, slope], constraint FREE
@@ -1068,7 +1075,10 @@ class FitManager(object):
         # TODO: document square filter
 
         # extract bg by applying a strip filter
-        background = strip(y, w=1, niterations=10000, factor=1.0)
+        background = strip(y,
+                           w=self.fitconfig["StripWidth"],
+                           niterations=self.fitconfig["StripNIterations"],
+                           factor=self.fitconfig["StripThresholdFactor"])
 
         npoints = len(background)
         if self.selectedbg == 'Constant':
@@ -1078,14 +1088,14 @@ class FitManager(object):
             # code = 0: FREE
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
 
-        elif self.selectedbg == 'Internal':
-            # Internal
-            fittedpar = [1.000, 10000, 0.0]
+        elif self.selectedbg == 'Strip':
+            # Strip
+            fittedpar = [self.fitconfig["StripWidth"],
+                         self.fitconfig["StripNIterations"]]
             cons = numpy.zeros((len(fittedpar), 3), numpy.float)
             # code = 3: FIXED
             cons[0][0] = 3
             cons[1][0] = 3
-            cons[2][0] = 3
 
         elif self.selectedbg == 'No Background':
             # None
