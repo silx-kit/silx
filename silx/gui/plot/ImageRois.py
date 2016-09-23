@@ -747,15 +747,17 @@ class ImageRoiManager(qt.QObject):
         return toolBar
 
     def roiData(self, name):
+        item = self.roiItem(name)
+        return _RoiData(x=item.xData, y=item.yData, shape=item.shape)
+
+    def roiItem(self, name):
         if self._roiInProgress and self._roiInProgress.name == name:
             item = self._roiInProgress
         else:
             try:
-                item = self._rois[name]
+                return self._rois[name]
             except KeyError:
                 raise ValueError('Unknown roi {0}.'.format(name))
-        return _RoiData(x=item.xData, y=item.yData)
-
 
 if __name__ == '__main__':
     pass
