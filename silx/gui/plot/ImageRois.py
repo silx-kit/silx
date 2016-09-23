@@ -34,9 +34,42 @@ __license__ = "MIT"
 __date__ = "01/09/2016"
 
 
+_registeredRoiItems = OrderedDict()
 
-_RoiData = namedtuple('RoiData', ['x', 'y'])
+
+def RoiItemClassDef(roiName, shape, toolTip=None, icon=None):
+    def inner(cls):
+        cls.roiName = roiName
+        cls.shape = shape
+        cls.toolTip = toolTip
+        cls.icon = icon
+        registerRoiItem(cls)
+        return cls
+
+    return inner
+
+
+_RoiData = namedtuple('RoiData', ['x', 'y', 'shape'])
 """ Named tuple used to return a ROI's x and y data """
+
+
+def registerRoiItem(klass):
+    global _registeredRoiItems
+
+    roiName = klass.roiName
+    if roiName is None:
+        raise AttributeError('Failed to register Roi class {0} roiName '
+                             'attribute is None.'.format(klass.__name__))
+
+    # TODO : some kind of checks
+    if roiName in _registeredRoiItems:
+        raise ValueError('Cannot register roi class "{0}" :'
+                         ' a ROI with the same roiName already exists.'
+                         ''.format(roiName))
+
+    # TODO : some kind of checks on the klass
+    _registeredRoiItems[roiName] = klass
+
 
 class RoiItemBase(qt.QObject):
     sigRoiDrawingStarted = qt.Signal(str)
@@ -44,7 +77,10 @@ class RoiItemBase(qt.QObject):
     sigRoiDrawingCanceled = qt.Signal(str)
     sigRoiMoved = qt.Signal(object)
 
+    roiName = None
     shape = None
+    icon = None
+    toolTip = None
 
     plot = property(lambda self: self._plot)
     name = property(lambda self: self._name)
@@ -52,6 +88,7 @@ class RoiItemBase(qt.QObject):
     def __init__(self, plot, parent, name=None):
         super(RoiItemBase, self).__init__(parent=parent)
 
+        self._manager = parent
         self._plot = plot
         self._handles = []
         self._points = {}
@@ -156,21 +193,25 @@ class RoiItemBase(qt.QObject):
         self._connected = False
 
     def _draw(self, drawHandles=True, excludes=()):
-
         if drawHandles:
             if excludes is not None and len(excludes) > 0:
                 draw_legends = set(self._handles) - set(excludes)
             else:
                 draw_legends = self._handles
+            self._drawHandles(draw_legends)
 
-            for i_handle, handle in enumerate(draw_legends):
-                item = self._plot.addMarker(self._points[handle][0],
-                                            self._points[handle][1],
-                                            legend=handle,
-                                            draggable=True,
-                                            symbol='x')
-                assert item == handle
+        self._drawShape()
 
+    def _drawHandles(self, handles):
+        for i_handle, handle in enumerate(handles):
+            item = self._plot.addMarker(self._points[handle][0],
+                                        self._points[handle][1],
+                                        legend=handle,
+                                        draggable=True,
+                                        symbol='x')
+            assert item == handle
+
+    def _drawShape(self):
         item = self._plot.addItem(self.xData,
                                   self.yData,
                                   shape=self.shape,
@@ -290,27 +331,357 @@ class RoiItemBase(qt.QObject):
         pass
 
 
-class PolygonRoiItem(RoiItemBase):
-    shape = 'polygon'
+class ImageRoiManager(qt.QObject):
+    """
+    Developpers doc : to add a new ROI simply append the necessary values to
+    these three members
+    """
 
-    def _drawFinished(self, event):
-        self._xData = event['xdata'].reshape(-1)
-        self._yData = event['ydata'].reshape(-1)
-        points = event['points']
-        uuid = str(id(self))
+    sigRoiDrawingStarted = qt.Signal(str)
+    sigRoiDrawingFinished = qt.Signal(object)
+    sigRoiDrawingCanceled = qt.Signal(str)
+    sigRoiMoved = qt.Signal(object)
+    sigRoiRemoved = qt.Signal(str)
 
-        # len(points) - 1 because the first and last points are the same!
-        vertices = ['V{0}_{1}'.format(idx, uuid)
-                    for idx in range(len(points) - 1)]
-        map(self._registerHandle, vertices, points[:-1])
+    def __init__(self, plot, parent=None):
+        super(ImageRoiManager, self).__init__(parent=parent)
 
-    def _handleMoved(self, label, x, y, idx):
-        self._xData[idx] = x
-        self._yData[idx] = y
-        self._xData[-1] = self._xData[0]
-        self._yData[-1] = self._yData[0]
+        self._plot = plot
+
+        self._klassInfos = _registeredRoiItems
+
+        self._multipleSelection = False
+        self._roiVisible = True
+        self._roiInProgress = None
+
+        self._roiActions = None
+        self._optionActions = None
+        self._roiActionGroup = None
+
+        self._currentKlass = None
+
+        self._rois = {}
+
+        self._plot.sigInteractiveModeChanged.connect(
+            self._interactiveModeChanged, qt.Qt.QueuedConnection)
+
+    def _createRoiActions(self):
+
+        if self._roiActions:
+            return self._roiActions
+
+        # roi shapes
+        self._roiActionGroup = roiActionGroup = qt.QActionGroup(self)
+
+        self._roiActions = roiActions = OrderedDict()
+
+        for name, klass in self._klassInfos.items():
+
+            try:
+                qIcon = icons.getQIcon(klass.icon)
+            except:
+                qIcon = qt.QIcon()
+
+            action = qt.QAction(qIcon, klass.roiName, None)
+            action.setCheckable(True)
+            toolTip = klass.toolTip
+            if toolTip is not None:
+                action.setToolTip(toolTip)
+            roiActions[name] = action
+            roiActionGroup.addAction(action)
+
+            if klass.roiName == self._currentKlass:
+                action.setChecked(True)
+            else:
+                action.setChecked(False)
+
+        roiActionGroup.triggered.connect(self._roiActionTriggered,
+                                         qt.Qt.QueuedConnection)
+
+        return roiActions
+
+    def _createOptionActions(self):
+
+        if self._optionActions:
+            return self._optionActions
+
+        # options
+        self._optionActions = optionActions = OrderedDict()
+
+        # temporary Unicode icons until I have time to draw some icons.
+        action = qt.QAction(u'\u2200', None)
+        action.setCheckable(False)
+        action.setToolTip('Select all [WIP]')
+        action.triggered.connect(self._selectAll)
+        action.setEnabled(False)
+        optionActions['selectAll'] = action
+
+        # temporary Unicode icons until I have time to draw some icons.
+        action = qt.QAction(u'\u2717', None)
+        action.setCheckable(False)
+        action.setToolTip('Clear all ROIs')
+        action.triggered.connect(self._clearRois)
+        optionActions['clearAll'] = action
+
+        action = qt.QAction(u'\u2685', None)
+        action.setCheckable(True)
+        action.setChecked(self._multipleSelection)
+        action.setToolTip('Single/Multiple ROI selection')
+        action.setText(u'\u2682' if self._multipleSelection else u'\u2680')
+        action.triggered.connect(self.allowMultipleSelections)
+        optionActions['multiple'] = action
+
+        action = qt.QAction(u'\U0001F440', None)
+        action.setCheckable(True)
+        action.setChecked(self._roiVisible)
+        action.setToolTip('Show/Hide ROI(s)')
+        action.triggered.connect(self.showRois)
+        optionActions['show'] = action
+
+        return optionActions
+
+    def _selectAll(self, checked):
+        print self._plot.getGraphXLimits(), self._plot.getGraphYLimits()
+
+    def _clearRois(self, checked):
+        self.clear()
+
+    def clear(self, name=None):
+        if name is None:
+            for roi in self._rois.values():
+                roi.stop()
+                roi.setVisible(False)
+                try:
+                    roi.sigRoiMoved.disconnect(self._roiMoved)
+                except:
+                    pass
+                self.sigRoiRemoved.emit(roi.name)
+            self._rois = {}
+        else:
+            try:
+                roi = self._rois.pop(name)
+                roi.stop()
+                roi.setVisible(False)
+                try:
+                    roi.sigRoiMoved.disconnect(self._roiMoved)
+                except:
+                    pass
+                self.sigRoiRemoved.emit(roi.name)
+            except KeyError:
+                # TODO : to raise or not to raise?
+                pass
+
+    rois = property(lambda self: self._rois.keys())
+
+    def showRois(self, show):
+        # TODO : name param to tell that we only want to toggle
+        # one specific ROI
+        # TODO : exclusive param to tell that we want to show only
+        # one given roi (w/ name param)
+        self._roiVisible = show
+
+        if self._optionActions:
+            action = self._optionActions['show']
+            action.setText(u'\U0001F440' if show else u'\u2012')
+            if self.sender() != action:
+                action.setChecked(show)
+
+        {roi.setVisible(show) for roi in self._rois.values()}
+
+    def allowMultipleSelections(self, allow):
+
+        self._multipleSelection = allow
+        if self._optionActions:
+            action = self._optionActions['multiple']
+            action.setText(u'\u2682' if allow else u'\u2680')
+            if self.sender() != action:
+                action.setChecked(allow)
+
+    def _roiActionTriggered(self, action):
+
+        if not action.isChecked():
+            return
+
+        name = [k for k, v in self._roiActions.items() if v == action][0]
+        self._currentKlass = name
+        self._startRoi()
+
+    def _editRois(self):
+        # TODO : should we call stop first?
+        {item.edit(True) for item in self._rois.values()}
+
+    def _startRoi(self):
+        """
+        Initialize a new roi, ready to be drawn.
+        """
+        if self._currentKlass not in self._klassInfos.keys():
+            return
+
+        self._stopRoi()
+
+        {item.edit(False) for item in self._rois.values()}
+        self.showRois(True)
+
+        klass = self._klassInfos[self._currentKlass]
+        item = klass(self._plot, self)
+
+        self._roiInProgress = item
+
+        item.sigRoiDrawingFinished.connect(self._roiDrawingFinished,
+                                           qt.Qt.QueuedConnection)
+        item.sigRoiDrawingStarted.connect(self._roiDrawingStarted,
+                                          qt.Qt.QueuedConnection)
+        item.sigRoiDrawingCanceled.connect(self._roiDrawingCanceled,
+                                           qt.Qt.QueuedConnection)
+        item.sigRoiMoved.connect(self.sigRoiMoved,
+                                 qt.Qt.QueuedConnection)
+        item.start()
+
+    def _stopRoi(self):
+        """
+        Stops the roi that was ready to be drawn, if any.
+        """
+        if self._roiInProgress is None:
+            return
+        self._roiInProgress.stop()
+        self._roiInProgress = None
+
+    def _roiDrawingStarted(self, name):
+        if not self._multipleSelection:
+            self.clear()
+        self.sigRoiDrawingStarted.emit(name)
+
+    def _roiDrawingFinished(self, event):
+        # TODO : check if the sender is the same as the roiInProgress
+        item = self._roiInProgress
+        assert item.name == event['name']
+
+        self._roiInProgress = None
+
+        item.sigRoiDrawingFinished.disconnect(self._roiDrawingFinished)
+        item.sigRoiDrawingStarted.disconnect(self._roiDrawingStarted)
+        item.sigRoiDrawingCanceled.disconnect(self._roiDrawingCanceled)
+
+        self._rois[item.name] = item
+
+        self._startRoi()
+
+        self.sigRoiDrawingFinished.emit(event)
+
+    def _roiDrawingCanceled(self, name):
+        self.sigRoiDrawingCanceled.emit(name)
+
+    def _interactiveModeChanged(self, source):
+        """Handle plot interactive mode changed:
+        If changed from elsewhere, disable tool.
+        """
+        if source in self._rois.values() or source == self._roiInProgress:
+            pass
+        elif source is not self:
+            if self._roiActions:
+                if self._currentKlass:
+                    self._roiActions[self._currentKlass].setChecked(False)
+
+                # specific code needed to update the zoom action
+                mode = self._plot.getInteractiveMode()['mode']
+                if mode == 'zoom':
+                    self._roiActions['zoom'].setChecked(True)
+
+            self._currentKlass = None
+            self._stopRoi()
+
+    roiActions = property(lambda self: self._createRoiActions().copy())
+
+    optionActions = property(lambda self: self._createOptionActions())
+
+    def toolBar(self,
+                options=None,
+                rois=None):
+        """
+        shapes : list
+        options : list
+        """
+        roiActions = self._createRoiActions()
+        if rois is not None:
+            # this wont work if shape is a string and not an array
+            diff = set(rois) - set(roiActions.keys())
+            if len(diff) > 0:
+                raise ValueError('Unknown roi(s) {0}.'.format(diff))
+        else:
+            rois = roiActions.keys()
+
+        optionActions = self._createOptionActions()
+        # TODO : find a better way to ensure that the order of
+        # actions returned is always the same
+        optionNames = sorted(optionActions.keys())
+        if options is not None:
+            # this wont work if shape is a string and not an array
+            diff = set(options) - set(optionNames)
+            if len(diff) > 0:
+                raise ValueError('Unknown options(s) {0}.'.format(diff))
+            options = [option for option in optionNames
+                       if option in options]
+        else:
+            options = optionNames
+
+        keepRoiActions = [roiActions[roi] for roi in rois]
+        keepOptionActions = [optionActions[option] for option in options]
+
+        toolBar = qt.QToolBar('Roi')
+        toolBar.addWidget(qt.QLabel('Roi'))
+        {toolBar.addAction(action) for action in keepRoiActions}
+
+        toolBar.addSeparator()
+
+        {toolBar.addAction(action) for action in keepOptionActions}
+
+        return toolBar
+
+    def roiData(self, name):
+        item = self.roiItem(name)
+        return _RoiData(x=item.xData, y=item.yData, shape=item.shape)
+
+    def roiItem(self, name):
+        if self._roiInProgress and self._roiInProgress.name == name:
+            return self._roiInProgress
+        else:
+            try:
+                return self._rois[name]
+            except KeyError:
+                raise ValueError('Unknown roi {0}.'.format(name))
 
 
+# WARNING : if you change the name of this particular item
+#  make sure to change it in ImageRoiManager::_interactiveModeChanged
+#  as well, otherwise its action button will not be properly set
+# if the zoom mode is set elsewhere.
+@RoiItemClassDef('zoom', None, icon='normal', toolTip='Zoom.')
+class _DummyZoomRoiItem(RoiItemBase):
+    def start(self):
+        self._plot.setInteractiveMode('zoom', source=self)
+
+    def stop(self):
+        pass
+
+    def edit(self):
+        pass
+
+
+@RoiItemClassDef('edit', None, icon='crosshair', toolTip='Edit ROI(s)')
+class _DummyEditRoiItem(RoiItemBase):
+    def start(self):
+        self._plot.setInteractiveMode('zoom', source=self)
+        self._manager._editRois()
+
+    def stop(self):
+        pass
+
+    def edit(self):
+        pass
+
+
+@RoiItemClassDef('rectangle', shape='rectangle',
+                 icon='shape-rectangle', toolTip='Draw a rectangle ROI.')
 class RectRoiItem(RoiItemBase):
 
     pos = property(lambda self: (self._left, self._bottom))
@@ -427,334 +798,27 @@ class RectRoiItem(RoiItemBase):
         self._yData = np.array([bottom, top, top, bottom])
 
 
-class ImageRoiManager(qt.QObject):
-    """
-    Developpers doc : to add a new ROI simply append the necessary values to
-    these three members
-    """
+@RoiItemClassDef('polygon', shape='polygon',
+                 icon='shape-polygon', toolTip='Draw a polygon ROI.')
+class PolygonRoiItem(RoiItemBase):
+
+    def _drawFinished(self, event):
+        self._xData = event['xdata'].reshape(-1)
+        self._yData = event['ydata'].reshape(-1)
+        points = event['points']
+        uuid = str(id(self))
+
+        # len(points) - 1 because the first and last points are the same!
+        vertices = ['V{0}_{1}'.format(idx, uuid)
+                    for idx in range(len(points) - 1)]
+        map(self._registerHandle, vertices, points[:-1])
+
+    def _handleMoved(self, label, x, y, idx):
+        self._xData[idx] = x
+        self._yData[idx] = y
+        self._xData[-1] = self._xData[0]
+        self._yData[-1] = self._yData[0]
 
-    roiShapes = ('rectangle', 'polygon',)
-    roiIcons = ('shape-rectangle', 'shape-polygon',)
-    roiClasses = (RectRoiItem, PolygonRoiItem,)
-
-    sigRoiDrawingStarted = qt.Signal(str)
-    sigRoiDrawingFinished = qt.Signal(object)
-    sigRoiDrawingCanceled = qt.Signal(str)
-    sigRoiMoved = qt.Signal(object)
-    sigRoiRemoved = qt.Signal(str)
-
-    assert len(roiShapes) == len(roiIcons)
-    assert len(roiShapes) == len(roiClasses)
-
-    def __init__(self, plot, parent=None):
-        super(ImageRoiManager, self).__init__(parent=parent)
-
-        self._plot = plot
-
-        self._shapes = ('zoom', 'edit') + self.roiShapes
-        self._icons = ('normal', 'crosshair') + self.roiIcons
-        self._classes = (None, None) + self.roiClasses
-
-        self._multipleSelection = False
-        self._roiVisible = True
-        self._roiInProgress = None
-
-        self._roiActions = None
-        self._optionActions = None
-        self._roiActionGroup = None
-
-        self._currentShape = None
-
-        self._rois = {}
-
-        self._plot.sigInteractiveModeChanged.connect(
-            self._interactiveModeChanged, qt.Qt.QueuedConnection)
-
-    def _createRoiActions(self):
-
-        if self._roiActions:
-            return self._roiActions
-
-        # roi shapes
-        self._roiActionGroup = roiActionGroup = qt.QActionGroup(self)
-
-        self._roiActions = roiActions = {}
-
-        for shape, icon, klass in zip(self._shapes,
-                                      self._icons,
-                                      self._classes):
-
-            action = qt.QAction(icons.getQIcon(icon), shape, None)
-            action.setCheckable(True)
-            roiActions[shape] = (action, klass)
-            roiActionGroup.addAction(action)
-
-            if shape == self._currentShape:
-                action.setChecked(True)
-            else:
-                action.setChecked(False)
-
-        roiActionGroup.triggered.connect(self._roiActionTriggered,
-                                         qt.Qt.QueuedConnection)
-
-        return roiActions
-
-    def _createOptionActions(self):
-
-        if self._optionActions:
-            return self._optionActions
-
-        # options
-        self._optionActions = optionActions = OrderedDict()
-
-        # temporary Unicode icons until I have time to draw some icons.
-        action = qt.QAction(u'\u2200', None)
-        action.setCheckable(False)
-        action.setToolTip('Select all')
-        action.triggered.connect(self._selectAll)
-        optionActions['selectAll'] = action
-
-        # temporary Unicode icons until I have time to draw some icons.
-        action = qt.QAction(u'\u2717', None)
-        action.setCheckable(False)
-        action.setToolTip('Clear all ROIs')
-        action.triggered.connect(self._clearRois)
-        optionActions['clearAll'] = action
-
-        action = qt.QAction(u'\u2685', None)
-        action.setCheckable(True)
-        action.setChecked(self._multipleSelection)
-        action.setToolTip('Single/Multiple ROI selection')
-        action.setText(u'\u2682' if self._multipleSelection else u'\u2680')
-        action.triggered.connect(self.allowMultipleSelections)
-        optionActions['multiple'] = action
-
-        action = qt.QAction(u'\U0001F440', None)
-        action.setCheckable(True)
-        action.setChecked(self._roiVisible)
-        action.setToolTip('Show/Hide ROI(s)')
-        action.triggered.connect(self.showRois)
-        optionActions['show'] = action
-
-        return optionActions
-
-    def _selectAll(self, checked):
-        print self._plot.getGraphXLimits(), self._plot.getGraphYLimits()
-
-    def _clearRois(self, checked):
-        self.clear()
-
-    def clear(self, name=None):
-        if name is None:
-            for roi in self._rois.values():
-                roi.stop()
-                roi.setVisible(False)
-                try:
-                    roi.sigRoiMoved.disconnect(self._roiMoved)
-                except:
-                    pass
-                self.sigRoiRemoved.emit(roi.name)
-            self._rois = {}
-        else:
-            try:
-                roi = self._rois.pop(name)
-                roi.stop()
-                roi.setVisible(False)
-                try:
-                    roi.sigRoiMoved.disconnect(self._roiMoved)
-                except:
-                    pass
-                self.sigRoiRemoved.emit(roi.name)
-            except KeyError:
-                # TODO : to raise or not to raise?
-                pass
-
-    rois = property(lambda self: self._rois.keys())
-
-    def showRois(self, show):
-        # TODO : name param to tell that we only want to toggle
-        # one specific ROI
-        # TODO : exclusive param to tell that we want to show only
-        # one given roi (w/ name param)
-        self._roiVisible = show
-
-        if self._optionActions:
-            action = self._optionActions['show']
-            action.setText(u'\U0001F440' if show else u'\u2012')
-            if self.sender() != action:
-                action.setChecked(show)
-
-        {roi.setVisible(show) for roi in self._rois.values()}
-
-    def allowMultipleSelections(self, allow):
-
-        self._multipleSelection = allow
-        if self._optionActions:
-            action = self._optionActions['multiple']
-            action.setText(u'\u2682' if allow else u'\u2680')
-            if self.sender() != action:
-                action.setChecked(allow)
-
-    def _roiActionTriggered(self, action):
-
-        if not action.isChecked():
-            return
-
-        shape, klass = [(shape, klass) for shape, (act, klass)
-                        in self._roiActions.items() if act == action][0]
-
-        self._currentShape = shape
-
-        if shape == 'zoom':
-            self._plot.setInteractiveMode('zoom', source=self)
-        elif shape == 'edit':
-            self._plot.setInteractiveMode('zoom', source=self)
-            {item.edit(True) for item in self._rois.values()}
-        else:
-            self._startRoi()
-
-    def _startRoi(self):
-        """
-        Initialize a new roi, ready to be drawn.
-        """
-        if self._currentShape not in self.roiShapes:
-            return
-
-        self._stopRoi()
-
-        {item.edit(False) for item in self._rois.values()}
-        self.showRois(True)
-
-        i_shape = self.roiShapes.index(self._currentShape)
-        klass = self.roiClasses[i_shape]
-        item = klass(self._plot, self)
-
-        self._roiInProgress = item
-
-        item.sigRoiDrawingFinished.connect(self._roiDrawingFinished,
-                                           qt.Qt.QueuedConnection)
-        item.sigRoiDrawingStarted.connect(self._roiDrawingStarted,
-                                          qt.Qt.QueuedConnection)
-        item.sigRoiDrawingCanceled.connect(self._roiDrawingCanceled,
-                                           qt.Qt.QueuedConnection)
-        item.sigRoiMoved.connect(self.sigRoiMoved,
-                                 qt.Qt.QueuedConnection)
-        item.start()
-
-    def _stopRoi(self):
-        """
-        Stops the roi that was ready to be drawn, if any.
-        """
-        if self._roiInProgress is None:
-            return
-        self._roiInProgress.stop()
-        self._roiInProgress = None
-
-    def _roiDrawingStarted(self, name):
-        if not self._multipleSelection:
-            self.clear()
-        self.sigRoiDrawingStarted.emit(name)
-
-    def _roiDrawingFinished(self, event):
-        # TODO : check if the sender is the same as the roiInProgress
-        item = self._roiInProgress
-
-        assert item.name == event['name']
-
-        self._roiInProgress = None
-
-        item.sigRoiDrawingFinished.disconnect(self._roiDrawingFinished)
-        item.sigRoiDrawingStarted.disconnect(self._roiDrawingStarted)
-        item.sigRoiDrawingCanceled.disconnect(self._roiDrawingCanceled)
-
-        self._rois[item.name] = item
-
-        self.sigRoiDrawingFinished.emit(event)
-
-        self._startRoi()
-
-    def _roiDrawingCanceled(self, name):
-        self.sigRoiDrawingCanceled.emit(name)
-
-    def _interactiveModeChanged(self, source):
-        """Handle plot interactive mode changed:
-        If changed from elsewhere, disable tool.
-        """
-        if source in self._rois.values() or source == self._roiInProgress:
-            pass
-        elif source is not self:
-            mode = self._plot.getInteractiveMode()
-            if mode['mode'] == 'zoom':
-                self._currentShape = 'zoom'
-                if self._roiActions:
-                    self._roiActions['zoom'][0].setChecked(True)
-            elif self._currentShape is not None and self._roiActions:
-                self._roiActions[self._currentShape][0].setChecked(False)
-                self._currentShape = None
-
-    roiActions = property(lambda self: (self._createRoiActions()[name][0]
-                                        for name in self._shapes))
-
-    @property
-    def optionActions(self):
-        self._createOptionActions().values()
-
-    def toolBar(self,
-                options=None,
-                shapes=None):
-        """
-        shapes : list
-        options : list
-        """
-        if shapes is not None:
-            # this wont work if shape is a string and not an array
-            diff = set(shapes) - set(self.roiShapes)
-            if len(diff) > 0:
-                raise ValueError('Unknown shape(s) {0}.'.format(diff))
-            shapes = set(self._shapes) - (set(self.roiShapes) - set(shapes))
-        else:
-            shapes = self._shapes
-
-        optionActions = self._createOptionActions()
-        # TODO : find a better way to ensure that the order of
-        # actions returned is always the same
-        optionNames = sorted(optionActions.keys())
-        if options is not None:
-            # this wont work if shape is a string and not an array
-            diff = set(options) - set(optionNames)
-            if len(diff) > 0:
-                raise ValueError('Unknown options(s) {0}.'.format(diff))
-            options = [option for option in optionNames
-                       if option in options]
-        else:
-            options = optionNames
-
-        roiActions = [self._createRoiActions()[name][0]
-                      for name in shapes]
-        optionActions = [optionActions[option] for option in options]
-
-        toolBar = qt.QToolBar('Roi')
-        toolBar.addWidget(qt.QLabel('Roi'))
-        {toolBar.addAction(action) for action in roiActions}
-
-        toolBar.addSeparator()
-
-        {toolBar.addAction(action) for action in optionActions}
-
-        return toolBar
-
-    def roiData(self, name):
-        item = self.roiItem(name)
-        return _RoiData(x=item.xData, y=item.yData, shape=item.shape)
-
-    def roiItem(self, name):
-        if self._roiInProgress and self._roiInProgress.name == name:
-            item = self._roiInProgress
-        else:
-            try:
-                return self._rois[name]
-            except KeyError:
-                raise ValueError('Unknown roi {0}.'.format(name))
 
 if __name__ == '__main__':
     pass
