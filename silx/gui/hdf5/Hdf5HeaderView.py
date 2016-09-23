@@ -25,10 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/09/2016"
+__date__ = "23/09/2016"
 
 
 from .. import qt
+
+QTVERSION = qt.qVersion()
 
 
 class Hdf5HeaderView(qt.QHeaderView):
@@ -50,8 +52,12 @@ class Hdf5HeaderView(qt.QHeaderView):
         self.customContextMenuRequested.connect(self.__createContextMenu)
 
         # default initialization done by QTreeView for it's own header
-        self.setClickable(True)
-        self.setMovable(True)
+        if QTVERSION < "5.0":
+            self.setClickable(True)
+            self.setMovable(True)
+        else:
+            self.setSectionsClickable(True)
+            self.setSectionsMovable(True)
         self.setDefaultAlignment(qt.Qt.AlignLeft | qt.Qt.AlignVCenter)
         self.setStretchLastSection(True)
 
@@ -71,20 +77,25 @@ class Hdf5HeaderView(qt.QHeaderView):
 
     def __updateAutoResize(self):
         """Update the view according to the state of the auto-resize"""
-        if self.__auto_resize:
-            self.setResizeMode(0, qt.QHeaderView.ResizeToContents)
-            self.setResizeMode(1, qt.QHeaderView.ResizeToContents)
-            self.setResizeMode(2, qt.QHeaderView.ResizeToContents)
-            self.setResizeMode(3, qt.QHeaderView.Interactive)
-            self.setResizeMode(4, qt.QHeaderView.Interactive)
-            self.setResizeMode(5, qt.QHeaderView.ResizeToContents)
+        if QTVERSION < "5.0":
+            setResizeMode = self.setResizeMode
         else:
-            self.setResizeMode(0, qt.QHeaderView.Interactive)
-            self.setResizeMode(1, qt.QHeaderView.Interactive)
-            self.setResizeMode(2, qt.QHeaderView.Interactive)
-            self.setResizeMode(3, qt.QHeaderView.Interactive)
-            self.setResizeMode(4, qt.QHeaderView.Interactive)
-            self.setResizeMode(5, qt.QHeaderView.Interactive)
+            setResizeMode = self.setSectionResizeMode
+
+        if self.__auto_resize:
+            setResizeMode(0, qt.QHeaderView.ResizeToContents)
+            setResizeMode(1, qt.QHeaderView.ResizeToContents)
+            setResizeMode(2, qt.QHeaderView.ResizeToContents)
+            setResizeMode(3, qt.QHeaderView.Interactive)
+            setResizeMode(4, qt.QHeaderView.Interactive)
+            setResizeMode(5, qt.QHeaderView.ResizeToContents)
+        else:
+            setResizeMode(0, qt.QHeaderView.Interactive)
+            setResizeMode(1, qt.QHeaderView.Interactive)
+            setResizeMode(2, qt.QHeaderView.Interactive)
+            setResizeMode(3, qt.QHeaderView.Interactive)
+            setResizeMode(4, qt.QHeaderView.Interactive)
+            setResizeMode(5, qt.QHeaderView.Interactive)
 
     def setAutoResizeColumns(self, autoResize):
         """Enable/disable auto-resize. When auto-resized, the header take care
