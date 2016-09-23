@@ -358,16 +358,22 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         for h5_obj in self.__treeview.selectedH5Nodes():
             text += "<h2>HDF5 object</h2>"
             text += "<ul>"
-            text += formatKey("filename", h5_obj.h5py_object.file.filename)
-            text += formatKey("basename", h5_obj.h5py_object.name.split("/")[-1])
-            text += formatKey("hdf5name", h5_obj.h5py_object.name)
-            text += formatKey("obj", type(h5_obj))
-            text += formatKey("dtype", getattr(h5_obj.h5py_object, "dtype", None))
-            text += formatKey("shape", getattr(h5_obj.h5py_object, "shape", None))
-            text += formatKey("attrs", getattr(h5_obj.h5py_object, "attrs", None))
-            if hasattr(h5_obj.h5py_object, "attrs"):
+            text += formatKey("local_filename", h5_obj.local_file.filename)
+            text += formatKey("local_basename", h5_obj.local_basename)
+            text += formatKey("local_name", h5_obj.local_name)
+            text += formatKey("real_filename", h5_obj.file.filename)
+            text += formatKey("real_basename", h5_obj.basename)
+            text += formatKey("real_name", h5_obj.name)
+
+            text += formatKey("obj", h5_obj.ntype)
+            text += formatKey("dtype", getattr(h5_obj, "dtype", None))
+            text += formatKey("shape", getattr(h5_obj, "shape", None))
+            text += formatKey("attrs", getattr(h5_obj, "attrs", None))
+            if hasattr(h5_obj, "attrs"):
                 text += "<ul>"
-                for key, value in h5_obj.h5py_object.attrs.items():
+                if len(h5_obj.attrs) == 0:
+                    text += "<li>empty</li>"
+                for key, value in h5_obj.attrs.items():
                     text += formatKey(key, value)
                 text += "</ul>"
             text += "</ul>"
@@ -395,7 +401,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
 
         hasDataset = False
         for obj in selectedObjects:
-            if hasattr(obj.h5py_object, "value"):
+            if obj.ntype is h5py.Dataset:
                 hasDataset = True
                 break
 
@@ -419,12 +425,11 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             menu.addSeparator()
 
         for obj in selectedObjects:
-            if hasattr(obj.h5py_object, "filename"):
-                filename = os.path.basename(obj.h5py_object.filename)
-                action = qt.QAction("Remove %s" % filename, event.source())
+            if obj.ntype is h5py.File:
+                action = qt.QAction("Remove %s" % obj.local_filename, event.source())
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().removeH5pyObject(obj.h5py_object))
                 menu.addAction(action)
-                action = qt.QAction("Synchronize %s" % filename, event.source())
+                action = qt.QAction("Synchronize %s" % obj.local_filename, event.source())
                 action.triggered.connect(lambda: self.__treeview.findHdf5TreeModel().synchronizeH5pyObject(obj.h5py_object))
                 menu.addAction(action)
 

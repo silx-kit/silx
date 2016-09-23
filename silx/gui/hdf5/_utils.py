@@ -151,8 +151,16 @@ class H5Node(object):
     objects.
     """
 
-    def __init__(self, h5py_object):
-        self.__h5py_object = h5py_object
+    def __init__(self, h5py_item=None):
+        """Constructor
+
+        :param Hdf5Item h5py_item: An Hdf5Item
+        """
+        self.__h5py_object = h5py_item.obj
+        self.__h5py_item = h5py_item
+
+    def __getattr__(self, name):
+        return object.__getattribute__(self.__h5py_object, name)
 
     @property
     def h5py_object(self):
@@ -172,3 +180,89 @@ class H5Node(object):
             return self.__h5py_object.h5py_class
         else:
             return self.__h5py_object.__class__
+
+    @property
+    def basename(self):
+        """Returns the basename of this h5 node. It is the last identifier of
+        the path.
+
+        :rtype: str
+        """
+        return self.__h5py_object.name.split("/")[-1]
+
+    @property
+    def local_name(self):
+        """Return the local path of this h5 node.
+
+        For links, this path is not equal to the h5py one.
+
+        :rtype: str
+        """
+        if self.__h5py_item is None:
+            raise RuntimeError("h5py_item is not defined")
+
+        result = []
+        item = self.__h5py_item
+        while item is not None:
+            if issubclass(item.h5pyClass, h5py.File):
+                break
+            result.append(item.basename)
+            item = item.parent
+        if item is None:
+            raise RuntimeError("The item does not have parent holding h5py.File")
+        if result == []:
+            return "/"
+        result.append("")
+        result.reverse()
+        return "/".join(result)
+
+    def __file_item(self):
+        """Returns the parent item holding the h5py.File object
+
+        :rtype: h5py.File
+        :raises RuntimeException: If no file are found
+        """
+        item = self.__h5py_item
+        while item is not None:
+            if issubclass(item.h5pyClass, h5py.File):
+                return item
+            item = item.parent
+        raise RuntimeError("The item does not have parent holding h5py.File")
+
+    @property
+    def local_file(self):
+        """Returns the local h5py.File object.
+
+        For path containing external links, this file is not equal to the h5py
+        one.
+
+        :rtype: h5py.File
+        :raises RuntimeException: If no file are found
+        """
+        item = self.__file_item()
+        return item.obj
+
+    @property
+    def local_filename(self):
+        """Returns the local filename of the h5 node.
+
+        For path containing external links, this path is not equal to the
+        filename provided by h5py.
+
+        :rtype: str
+        :raises RuntimeException: If no file are found
+        """
+        return self.local_file.filename
+
+    @property
+    def local_basename(self):
+        """Returns the local filename of the h5 node.
+
+        For path containing links, this basename can be different than the
+        basename provided by h5py.
+
+        :rtype: str
+        """
+        if issubclass(self.__h5py_item.h5pyClass, h5py.File):
+            return ""
+        return self.__h5py_item.basename
