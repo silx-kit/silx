@@ -366,7 +366,7 @@ class BackgroundPage(qt.QGroupBox):
                 default_dict.get('StripBackgroundFlag', True))
 
         self.stripWidthEntry.setText(
-                str(default_dict.get('StripWidth', 1)))
+                str(default_dict.get('StripWidth', 2)))
         self.numIterationsEntry.setText(
                 str(default_dict.get('StripNIterations', 5000)))
         self.thresholdFactorEntry.setText(
