@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/09/2016"
+__date__ = "23/09/2016"
 
 
 import logging
@@ -71,6 +71,7 @@ class Hdf5TreeView(qt.QTreeView):
 
         self.setHeader(Hdf5HeaderView(qt.Qt.Horizontal, self))
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        self.sortByColumn(0, qt.Qt.AscendingOrder)
         # optimise the rendering
         self.setUniformRowHeights(True)
 
