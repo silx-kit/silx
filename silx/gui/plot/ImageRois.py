@@ -311,12 +311,9 @@ class PolygonRoiItem(RoiItemBase):
         self._yData[-1] = self._yData[0]
 
 
-@RoiItemClass(shape='rectangle', name='rectangle',
-              icon='shape-polygon', toolTip='Draw a polygon ROI.')
 class RectRoiItem(RoiItemBase):
-    shape = 'rectangle'
 
-    pos = property(lambda self: self._left, self._bottom)
+    pos = property(lambda self: (self._left, self._bottom))
     """
     Coordinates of the lower left point.
     """
@@ -333,7 +330,7 @@ class RectRoiItem(RoiItemBase):
 
     center = property(lambda self:
                       (self._left + (self._right - self._left) / 2.,
-                       self._bottom + (self._top - self._bottom) / 2.)
+                       self._bottom + (self._top - self._bottom) / 2.))
     """
     Center point of the rectangle.
     """
