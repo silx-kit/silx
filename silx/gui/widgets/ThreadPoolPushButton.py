@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "26/09/2016"
 
 import logging
 from .. import qt
@@ -94,25 +94,25 @@ class ThreadPoolPushButton(WaitingPushButton):
 
     >>> # Compute a value
     >>> import math
-    >>> button = ThreadPoolPushButton("Compute 2^16")
+    >>> button = ThreadPoolPushButton(text="Compute 2^16")
     >>> button.setCallable(math.pow, 2, 16)
     >>> button.succeeded.connect(print) # python3
 
     >>> # Compute a wrong value
     >>> import math
-    >>> button = ThreadPoolPushButton("Compute sqrt(-1)")
+    >>> button = ThreadPoolPushButton(text="Compute sqrt(-1)")
     >>> button.setCallable(math.sqrt, -1)
     >>> button.failed.connect(print) # python3
     """
 
-    def __init__(self, text=None, icon=None, parent=None):
+    def __init__(self, parent=None, text=None, icon=None):
         """Constructor
 
         :param str text: Text displayed on the button
         :param qt.QIcon icon: Icon displayed on the button
         :param qt.QWidget parent: Parent of the widget
         """
-        WaitingPushButton.__init__(self, text=text, icon=icon, parent=parent)
+        WaitingPushButton.__init__(self, parent=parent, text=text, icon=icon)
         self.__callable = None
         self.__args = None
         self.__kwargs = None
