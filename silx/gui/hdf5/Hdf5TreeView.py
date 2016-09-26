@@ -166,7 +166,7 @@ class Hdf5TreeView(qt.QTreeView):
     def dragMoveEvent(self, event):
         model = self.findHdf5TreeModel()
         if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
-            event.setDropAction(qt.Qt.LinkAction)
+            event.setDropAction(qt.Qt.CopyAction)
             event.accept()
         else:
             qt.QTreeView.dragMoveEvent(self, event)
