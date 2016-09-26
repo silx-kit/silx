@@ -114,7 +114,7 @@ def dicttoh5(treedict, h5file, h5path='/',
 
     Example::
 
-        from silx.io.dicttoh5 import dictdump
+        from silx.io.dictdump import dicttoh5
 
         city_area = {
             "Europe": {
