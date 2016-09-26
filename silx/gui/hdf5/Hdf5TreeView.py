@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "26/09/2016"
 
 
 import logging
@@ -75,6 +75,7 @@ class Hdf5TreeView(qt.QTreeView):
         # optimise the rendering
         self.setUniformRowHeights(True)
 
+        self.setIconSize(qt.QSize(16, 16))
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDragDropMode(qt.QAbstractItemView.DragDrop)
