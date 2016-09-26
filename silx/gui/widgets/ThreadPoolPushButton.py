@@ -190,7 +190,7 @@ class ThreadPoolPushButton(WaitingPushButton):
         """
         self.beforeExecuting.emit()
         if self.__callable is None:
-            return None
+            return
         self.__runnerStarted()
         runner = self._createRunner(self.__callable, self.__args, self.__kwargs)
         qt.QThreadPool.globalInstance().start(runner)
