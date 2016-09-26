@@ -117,6 +117,7 @@ class ThreadPoolPushButton(WaitingPushButton):
         self.__args = None
         self.__kwargs = None
         self.__runnerCount = 0
+        self.clicked.connect(self.executeCallable)
         self.finished.connect(self.__runnerFinished)
 
     started = qt.Signal()
@@ -196,10 +197,6 @@ class ThreadPoolPushButton(WaitingPushButton):
         :param list args: List of arguments to call the function.
         :param dict kwargs: Dictionary of arguments used to call the function.
         """
-        if self.__callable is not None and function is None:
-            self.clicked.disconnect(self.executeCallable)
-        elif self.__callable is None and function is not None:
-            self.clicked.connect(self.executeCallable)
         self.__callable = function
         self.__args = args
         self.__kwargs = kwargs
