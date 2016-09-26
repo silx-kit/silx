@@ -220,9 +220,12 @@ def build_project(name, root_dir):
 
 
 from argparse import ArgumentParser
-
+epilog = """Environment variables:
+WITH_QT_TEST=False to disable graphical tests,
+SILX_OPENCL=False to disable OpenCL tests.
+"""
 parser = ArgumentParser(description='Run the tests.',
-                        epilog='To disable graphical tests, set WITH_QT_TEST environment variable to False')
+                        epilog=epilog)
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,

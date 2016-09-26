@@ -44,7 +44,7 @@ import numpy
 
 logger = logging.getLogger("silx.opencl")
 
-if os.environ.get("SILX_OPENCL") == "0":
+if os.environ.get("SILX_OPENCL") in ["0", "False"]:
     logger.warning("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
     pyopencl = None
 else:
@@ -236,7 +236,7 @@ class OpenCL(object):
                     flop_core = 1
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
-                    logger.info("For Apple's OpenCL on CPU: enforce max_work_goup_size=1")
+                    logger.info("For Apple's OpenCL on CPU: Mearuring actual valid max_work_goup_size")
                     workgroup = 1
 
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
