@@ -84,7 +84,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/07/2016"
+__date__ = "27/09/2016"
 
 import os.path
 import logging
@@ -183,32 +183,44 @@ class MCA(object):
         # Header dict
         self._header = scan.mca_header_dict
 
-        # SpecFile C library provides a function for getting calibration
-        try:
-            self.calibration = scan._specfile.mca_calibration(scan.index)
-        # default calibration in the absence of #@CALIB
-        except KeyError:
-            self.calibration = [0., 1., 0.]
+        self.calibration = []
+        """List of lists of calibration values,
+        one list of 3 floats per MCA device or a single list applying to
+        all devices """
+        self._parse_calibration()
 
+        self.channels = []
+        """List of lists of channels,
+        one list of integers per MCA device or a single list applying to
+        all devices"""
+        self._parse_channels()
+
+    def _parse_channels(self):
+        """Fill :attr:`channels`"""
         # Channels list
         if "CHANN" in self._header:
-            chann_values = self._header["CHANN"].split()
-            length, start, stop, increment = map(int, chann_values)
+            chann_lines = self._header["CHANN"].split("\n")
+            all_chann_values = [chann_line.split() for chann_line in chann_lines]
+            for one_line_chann_values in all_chann_values:
+                length, start, stop, increment = map(int, one_line_chann_values)
+                self.channels.append(list(range(start, stop + 1, increment)))
         elif len(self):
-            # Channels list
-            if "CHANN" in self._header:
-                chann_values = self._header["CHANN"].split()
-                length, start, stop, increment = map(int, chann_values)
-            else:
-                # in the absence of #@CHANN, use shape of first MCA
-                length = self[0].shape[0]
-                start, stop, increment = (0, length - 1, 1)
-        else:
-            length = None
+            # in the absence of #@CHANN, use shape of first MCA
+            length = self[0].shape[0]
+            start, stop, increment = (0, length - 1, 1)
+            self.channels.append(list(range(start, stop + 1, increment)))
 
-        self.channels = None
-        if length is not None:
-            self.channels = list(range(start, stop + 1, increment))
+    def _parse_calibration(self):
+        """Fill :attr:`calibration`"""
+        # Channels list
+        if "CALIB" in self._header:
+            calib_lines = self._header["CALIB"].split("\n")
+            all_calib_values = [calib_line.split() for calib_line in calib_lines]
+            for one_line_calib_values in all_calib_values:
+                self.calibration.append(map(float, one_line_calib_values))
+        else:
+            # in the absence of #@calib, use default
+            self.calibration.append([0., 1., 0.])
 
     def __len__(self):
         """

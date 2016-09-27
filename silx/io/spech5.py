@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "27/09/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -205,8 +205,8 @@ scan_header_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/scan
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
 instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
-instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/calibration$")
-instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/channels$")
+instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/calibration$")
+instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9])+/channels$")
 instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
 instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
 instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
@@ -214,7 +214,7 @@ instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
 # info/ + calibration, channel, preset_time, live_time, elapsed_time (not data)
-measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^d/][^/]+)$")
+measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/([^d/][^/]+)$")
 # info/data
 measurement_mca_info_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/data$")
 
@@ -489,12 +489,22 @@ def _column_label_in_scan(sf, scan_key, column_label):
     return column_label in sf[scan_key].labels
 
 
-def _parse_ctime(ctime_line):
+def _parse_ctime(ctime_lines, analyser_index=0):
     """
-    :param ctime_line: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
+    :param ctime_lines: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
+        When multiple CTIME lines are present in a scan header, this argument
+        is a concatenation of them separated by a ``\n`` character.
+    :param analyser_index: MCA device/analyser index, when multiple devices
+        are in a scan.
     :return: (preset_time, live_time, elapsed_time)
     """
-    ctime_line = ctime_line.lstrip("@CTIME ")
+    ctime_lines = ctime_lines.lstrip("@CTIME ")
+    ctimes_lines_list = ctime_lines.split("\n")
+    if len(ctimes_lines_list) == 1:
+        # single @CTIME line for all devices
+        ctime_line = ctimes_lines_list[0]
+    else:
+        ctime_line = ctimes_lines_list[analyser_index]
     if not len(ctime_line.split()) == 3:
         raise ValueError("Incorrect format for @CTIME header line " +
                          '(expected "@CTIME %f %f %f").')
@@ -739,14 +749,27 @@ def _dataset_builder(name, specfileh5, parent_group):
         array_like = _demultiplex_mca(scan, analyser_index)
 
     elif instrument_mca_calib_pattern.match(name):
-        array_like = scan.mca.calibration
+        m = instrument_mca_calib_pattern.match(name)
+        analyser_index = int(m.group(1))
+        if len(scan.mca.channels) == 1:
+            # single @CALIB line applying to multiple devices
+            analyser_index = 0
+        array_like = scan.mca.calibration[analyser_index]
 
     elif instrument_mca_chann_pattern.match(name):
-        array_like = scan.mca.channels
+        m = instrument_mca_chann_pattern.match(name)
+        analyser_index = int(m.group(1))
+        if len(scan.mca.channels) == 1:
+            # single @CHANN line applying to multiple devices
+            analyser_index = 0
+        array_like = scan.mca.channels[analyser_index]
 
-    elif "CTIME" in scan.mca_header_dict:
+    elif "CTIME" in scan.mca_header_dict and "mca_" in name:
+        m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
+        analyser_index = int(m.group(1))
+
         ctime_line = scan.mca_header_dict['CTIME']
-        (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+        (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line, analyser_index)
         if instrument_mca_preset_t_pattern.match(name):
             array_like = preset_time
         elif instrument_mca_live_t_pattern.match(name):
@@ -790,17 +813,25 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     # X: calibration, channels, preset_time, live_time, elapsed_time
     elif measurement_mca_info_dataset_pattern.match(name):
         m = measurement_mca_info_dataset_pattern.match(name)
-        mca_hdr_type = m.group(1)
+        analyser_index = int(m.group(1))
+        mca_hdr_type = m.group(2)
 
         if mca_hdr_type == "calibration":
-            array_like = scan.mca.calibration
+            if len(scan.mca.calibration) == 1:
+                # single @CALIB line for multiple devices
+                analyser_index = 0
+            array_like = scan.mca.calibration[analyser_index]
 
         elif mca_hdr_type == "channels":
-            array_like = scan.mca.channels
+            if len(scan.mca.channels) == 1:
+                # single @CHANN line for multiple devices
+                analyser_index = 0
+            array_like = scan.mca.channels[analyser_index]
 
         elif "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
-            (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+            (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line,
+                                                                  analyser_index)
             if mca_hdr_type == "preset_time":
                 array_like = preset_time
             elif mca_hdr_type == "live_time":
