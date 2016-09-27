@@ -42,7 +42,7 @@ import logging
 import numpy
 
 import unittest
-from silx.opencl import ocl
+from silx.opencl import ocl, measure_workgroup_size
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -87,7 +87,7 @@ class TestAddition(unittest.TestCase):
         self.img = self.data = None
         self.d_array_img = self.d_array_5 = self.program = None
 
-    @unittest.skipUnless(ocl, "scipy or pyopencl are missing")
+    @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_add(self):
         """
         tests the addition  kernel
@@ -110,10 +110,22 @@ class TestAddition(unittest.TestCase):
                     self.__class__.max_valid_wg = wg
                 self.assert_(good, "calculation is correct for WG=%s"%wg)
 
+    @unittest.skipUnless(ocl, "pyopencl is missing")
+    def test_measurement(self):
+        """
+        tests that all devices are working properly ...
+        """
+        for pid, platform in ocl.platforms:
+            for did, device in ocl.devices:
+                meas = measure_workgroup_size((pid,did))
+                self.assertEqual(meas, device.max_work_group_size, 
+                                 "Workgroup size for %s/%s: %s == %s"%(platform, device, meas, device.max_work_group_size))
+                
 
 def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestAddition("test_add"))
+    testSuite.addTest(TestAddition("test_measurement"))
     return testSuite
 
 
