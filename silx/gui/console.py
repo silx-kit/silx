@@ -111,6 +111,9 @@ if qtconsole is not None:
             qtconsole = None
         else:
             from qtconsole.inprocess import QtInProcessKernelManager
+    else:
+        from qtconsole.inprocess import QtInProcessKernelManager
+
 
 if qtconsole is None:
     # Import the console machinery from ipython
