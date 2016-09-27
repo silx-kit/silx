@@ -217,7 +217,7 @@ class MCA(object):
             calib_lines = self._header["CALIB"].split("\n")
             all_calib_values = [calib_line.split() for calib_line in calib_lines]
             for one_line_calib_values in all_calib_values:
-                self.calibration.append(map(float, one_line_calib_values))
+                self.calibration.append(list(map(float, one_line_calib_values)))
         else:
             # in the absence of #@calib, use default
             self.calibration.append([0., 1., 0.])

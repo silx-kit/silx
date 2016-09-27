@@ -508,7 +508,7 @@ def _parse_ctime(ctime_lines, analyser_index=0):
     if not len(ctime_line.split()) == 3:
         raise ValueError("Incorrect format for @CTIME header line " +
                          '(expected "@CTIME %f %f %f").')
-    return map(float, ctime_line.split())
+    return list(map(float, ctime_line.split()))
 
 
 def spec_date_to_iso8601(date, zone=None):
@@ -903,6 +903,9 @@ class SpecH5Group(object):
         """Attributes dictionary"""
 
         if name != "/":
+            if name not in specfileh5:
+                raise KeyError("File %s does not contain group %s" %
+                               (specfileh5, name))
             scan_key = _get_scan_key_in_name(name)
             self._scan = self.file._sf[scan_key]
 

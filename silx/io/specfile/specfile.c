@@ -1521,7 +1521,7 @@ static char __pyx_k_match_mca[] = "match_mca";
 static char __pyx_k_mca_index[] = "mca_index";
 static char __pyx_k_metaclass[] = "__metaclass__";
 static char __pyx_k_transpose[] = "transpose";
-static char __pyx_k_06_07_2016[] = "06/07/2016";
+static char __pyx_k_27_09_2016[] = "27/09/2016";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_MCA___init[] = "MCA.__init__";
 static char __pyx_k_MCA___iter[] = "MCA.__iter__";
@@ -1636,8 +1636,8 @@ static char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not Fortran
 static char __pyx_k_the_unique_scan_index_or_a_strin[] = "the unique scan index or a string 'N.M' with N being the scan";
 static char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
 static PyObject *__pyx_kp_s_;
-static PyObject *__pyx_kp_s_06_07_2016;
 static PyObject *__pyx_kp_s_2;
+static PyObject *__pyx_kp_s_27_09_2016;
 static PyObject *__pyx_kp_s_3;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_CALIB;
@@ -2702,7 +2702,7 @@ static PyObject *__pyx_pf_8specfile_3MCA_4_parse_calibration(CYTHON_UNUSED PyObj
  *             calib_lines = self._header["CALIB"].split("\n")
  *             all_calib_values = [calib_line.split() for calib_line in calib_lines]             # <<<<<<<<<<<<<<
  *             for one_line_calib_values in all_calib_values:
- *                 self.calibration.append(map(float, one_line_calib_values))
+ *                 self.calibration.append(list(map(float, one_line_calib_values)))
  */
     __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
@@ -2776,7 +2776,7 @@ static PyObject *__pyx_pf_8specfile_3MCA_4_parse_calibration(CYTHON_UNUSED PyObj
  *             calib_lines = self._header["CALIB"].split("\n")
  *             all_calib_values = [calib_line.split() for calib_line in calib_lines]
  *             for one_line_calib_values in all_calib_values:             # <<<<<<<<<<<<<<
- *                 self.calibration.append(map(float, one_line_calib_values))
+ *                 self.calibration.append(list(map(float, one_line_calib_values)))
  *         else:
  */
     __pyx_t_4 = __pyx_v_all_calib_values; __Pyx_INCREF(__pyx_t_4); __pyx_t_5 = 0;
@@ -2793,7 +2793,7 @@ static PyObject *__pyx_pf_8specfile_3MCA_4_parse_calibration(CYTHON_UNUSED PyObj
       /* "specfile.pyx":220
  *             all_calib_values = [calib_line.split() for calib_line in calib_lines]
  *             for one_line_calib_values in all_calib_values:
- *                 self.calibration.append(map(float, one_line_calib_values))             # <<<<<<<<<<<<<<
+ *                 self.calibration.append(list(map(float, one_line_calib_values)))             # <<<<<<<<<<<<<<
  *         else:
  *             # in the absence of #@calib, use default
  */
@@ -2810,6 +2810,14 @@ static PyObject *__pyx_pf_8specfile_3MCA_4_parse_calibration(CYTHON_UNUSED PyObj
       __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_map, __pyx_t_7, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_7);
+      PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_8);
+      __Pyx_GIVEREF(__pyx_t_8);
+      __pyx_t_8 = 0;
+      __pyx_t_8 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)(&PyList_Type))), __pyx_t_7, NULL); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_8);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __pyx_t_10 = __Pyx_PyObject_Append(__pyx_t_1, __pyx_t_8); if (unlikely(__pyx_t_10 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -2818,7 +2826,7 @@ static PyObject *__pyx_pf_8specfile_3MCA_4_parse_calibration(CYTHON_UNUSED PyObj
  *             calib_lines = self._header["CALIB"].split("\n")
  *             all_calib_values = [calib_line.split() for calib_line in calib_lines]
  *             for one_line_calib_values in all_calib_values:             # <<<<<<<<<<<<<<
- *                 self.calibration.append(map(float, one_line_calib_values))
+ *                 self.calibration.append(list(map(float, one_line_calib_values)))
  *         else:
  */
     }
@@ -15870,8 +15878,8 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
-  {&__pyx_kp_s_06_07_2016, __pyx_k_06_07_2016, sizeof(__pyx_k_06_07_2016), 0, 0, 1, 0},
   {&__pyx_kp_s_2, __pyx_k_2, sizeof(__pyx_k_2), 0, 0, 1, 0},
+  {&__pyx_kp_s_27_09_2016, __pyx_k_27_09_2016, sizeof(__pyx_k_27_09_2016), 0, 0, 1, 0},
   {&__pyx_kp_s_3, __pyx_k_3, sizeof(__pyx_k_3), 0, 0, 1, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_n_s_CALIB, __pyx_k_CALIB, sizeof(__pyx_k_CALIB), 0, 0, 1, 1},
@@ -16901,7 +16909,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]             # <<<<<<<<<<<<<<
  * __license__ = "MIT"
- * __date__ = "06/07/2016"
+ * __date__ = "27/09/2016"
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 85; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -16915,7 +16923,7 @@ PyMODINIT_FUNC PyInit_specfile(void)
  * 
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"             # <<<<<<<<<<<<<<
- * __date__ = "06/07/2016"
+ * __date__ = "27/09/2016"
  * 
  */
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_license, __pyx_n_s_MIT) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -16923,14 +16931,14 @@ PyMODINIT_FUNC PyInit_specfile(void)
   /* "specfile.pyx":87
  * __authors__ = ["P. Knobel"]
  * __license__ = "MIT"
- * __date__ = "06/07/2016"             # <<<<<<<<<<<<<<
+ * __date__ = "27/09/2016"             # <<<<<<<<<<<<<<
  * 
  * import os.path
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_06_07_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_date, __pyx_kp_s_27_09_2016) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 87; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "specfile.pyx":89
- * __date__ = "06/07/2016"
+ * __date__ = "27/09/2016"
  * 
  * import os.path             # <<<<<<<<<<<<<<
  * import logging
