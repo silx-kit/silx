@@ -536,6 +536,8 @@ class SelectPolygon(Select):
                 self.goto('idle')
                 return False
 
+            return False
+
         def onMove(self, x, y):
             firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                      check=False)
