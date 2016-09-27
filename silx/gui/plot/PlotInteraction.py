@@ -476,9 +476,10 @@ class SelectPolygon(Select):
                 # in Idle state, but with a slightly different position that
                 # the mouse press. So we had the two first vertices that were
                 # almost identical.
-                dx = abs(self.points[-2][0] - dataPos[0])
-                dy = abs(self.points[-2][1] - dataPos[1])
-                if(dx >= self.machine.DRAG_THRESHOLD_DIST and
+                previousPos = self.machine.plot.dataToPixel(*self.points[-2],
+                                                            check=False)
+                dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
+                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
                    dy >= self.machine.DRAG_THRESHOLD_DIST):
                     self.points.append(dataPos)
                 else:
