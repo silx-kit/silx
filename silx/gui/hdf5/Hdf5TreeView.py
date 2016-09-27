@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2016"
+__date__ = "27/09/2016"
 
 
 import logging
@@ -148,7 +148,8 @@ class Hdf5TreeView(qt.QTreeView):
         while model is not None:
             if isinstance(model, qt.QAbstractProxyModel):
                 model = model.sourceModel()
-            break
+            else:
+                break
         if model is None:
             return None
         if isinstance(model, Hdf5TreeModel):
