@@ -28,13 +28,3 @@
 .. autoclass:: Plot2D
    :show-inheritance:
    :members:
-
-:func:`plot1D` function
------------------------
-
-.. autofunction:: plot1D
-
-:func:`plot2D` function
------------------------
-
-.. autofunction:: plot2D

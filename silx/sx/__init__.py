@@ -78,8 +78,8 @@ if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
         qapp.setWindowIcon(_icons.getQIcon('silx'))
         del _icons  # clean-up namespace
 
-    from silx.gui import plot
-    from silx.gui.plot import ImageView, plot1D, plot2D, PlotWindow  # noqa
+    from silx.gui.plot import *  # noqa
+    from ._plot import plot, imshow  # noqa
 
 
 # %pylab

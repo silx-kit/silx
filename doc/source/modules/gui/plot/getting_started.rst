@@ -53,81 +53,83 @@ For more information, see `IPython, PyQt and PySide <http://ipython.org/ipython-
 From Python
 +++++++++++
 
-:mod:`silx.gui.plot` widgets are Qt widgets, a QApplication needs to be started before using those widgets.
-To start a QApplication, run:
+The :mod:`silx.sx` package is a convenient module to use silx from the console.
+It sets-up Qt and provides functions for the main features of silx.
+
+>>> from silx import sx
+
+Alternatively, you can create a QApplication before using silx widgets:
 
 >>> from silx.gui import qt  # Import Qt binding and do some set-up
 >>> qapp = qt.QApplication([])
 
 >>> from silx.gui.plot import *  # Import plot widgets and set-up matplotlib
 
-.. currentmodule:: silx.gui.plot
+.. currentmodule:: silx.sx
 
 Plot functions
 ++++++++++++++
 
-:mod:`silx.gui.plot` package provides 2 functions to plot curves and images from the (I)Python console in a widget with a set of tools:
+The :mod:`silx.sx` package provides 2 functions to plot curves and images from the (I)Python console in a widget with a set of tools:
 
-- :func:`plot1D`, and
-- :func:`plot2D`.
+- :func:`plot1d`, and
+- :func:`plot2d`.
 
 For more features, use widgets directly (see `Plot curves in a widget`_ and `Plot images in a widget`_).
 
 
-Curve: :func:`plot1D`
+Curve: :func:`plot1d`
 .....................
 
 The following examples must run with a Qt QApplication initialized (see `Use silx.gui.plot from the console`_).
 
-First import :func:`plot1D` function:
+First import :mod:`silx.sx` function:
 
->>> from silx.gui.plot import plot1D
+>>> from silx import sx
 >>> import numpy
 
 Plot a single curve given some values:
 
 >>> values = numpy.random.random(100)
->>> plot_1curve = plot1D(values, title='Random data')
+>>> plot_1curve = sx.plot1d(values, title='Random data')
 
 Plot a single curve given the x and y values:
 
 >>> angles = numpy.linspace(0, numpy.pi, 100)
 >>> sin_a = numpy.sin(angles)
->>> plot_sinus = plot1D(angles, sin_a,
-...                     xlabel='angle (radian)', ylabel='sin(a)')
+>>> plot_sinus = sx.plot1d(angles, sin_a,
+...                        xlabel='angle (radian)', ylabel='sin(a)')
 
 Plot many curves by giving a 2D array:
 
 >>> curves = numpy.random.random(10 * 100).reshape(10, 100)
->>> plot_curves = plot1D(curves)
+>>> plot_curves = sx.plot1d(curves)
 
 Plot many curves sharing the same x values:
 
 >>> angles = numpy.linspace(0, numpy.pi, 100)
 >>> values = (numpy.sin(angles), numpy.cos(angles))
->>> plot = plot1D(angles, values)
+>>> plot = sx.plot1d(angles, values)
 
-See :func:`plot1D` for details.
+See :func:`plot1d` for details.
 
 
-Image: :func:`plot2D`
+Image: :func:`plot2d`
 .....................
 
 This example plot a single image.
 
-This example must run with a Qt QApplication initialized (see `Use silx.gui.plot from the console`_).
+First, import :mod:`silx.sx`:
 
-First, import :func:`plot2D`:
-
->>> from silx.gui.plot import plot2D
+>>> from silx import sx
 >>> import numpy
 
 Then plot it:
 
 >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
->>> plot = plot2D(data, title='Random data')
+>>> plot = sx.plot2d(data, title='Random data')
 
-See :func:`plot2D` for more details.
+See :func:`plot2d` for more details.
 
 
 Use :mod:`silx.gui.plot` from a script
