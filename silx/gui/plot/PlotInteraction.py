@@ -465,6 +465,29 @@ class SelectPolygon(Select):
 
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
+                # checking if the position is close to the first point
+                # if yes : closing the "loop"
+                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                         check=False)
+                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+
+                # Only allow to close polygon after first point
+                if (len(self.points) > 2 and
+                        dx < self.machine.DRAG_THRESHOLD_DIST and
+                        dy < self.machine.DRAG_THRESHOLD_DIST):
+                    self.machine.resetSelectionArea()
+
+                    self.points[-1] = self.points[0]
+
+                    eventDict = prepareDrawingSignal('drawingFinished',
+                                                     'polygon',
+                                                     self.points,
+                                                     self.machine.parameters)
+                    self.machine.plot.notify(**eventDict)
+                    self.goto('idle')
+                    return False
+
+                # Update polygon last point not too close to previous one
                 dataPos = self.machine.plot.pixelToData(x, y)
                 assert dataPos is not None
                 self.updateSelectionArea()
@@ -486,40 +509,6 @@ class SelectPolygon(Select):
                     self.points[-1] = dataPos
 
                 return True
-
-        def onMove(self, x, y):
-            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
-                                                     check=False)
-            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                    dy < self.machine.DRAG_THRESHOLD_DIST):
-                x, y = firstPos  # Snap to first point
-
-            dataPos = self.machine.plot.pixelToData(x, y)
-            assert dataPos is not None
-            self.points[-1] = dataPos
-            self.updateSelectionArea()
-
-        def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                firstPos = self.machine.plot.dataToPixel(*self._firstPos,
-                                                         check=False)
-                dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-
-                # checking if the position is close to the first point
-                # if yes : closing the "loop"
-                if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                        dy < self.machine.DRAG_THRESHOLD_DIST):
-                    self.machine.resetSelectionArea()
-
-                    self.points[-1] = self.points[0]
-
-                    eventDict = prepareDrawingSignal('drawingFinished',
-                                                     'polygon',
-                                                     self.points,
-                                                     self.machine.parameters)
-                    self.machine.plot.notify(**eventDict)
-                    self.goto('idle')
 
             elif btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
@@ -545,6 +534,20 @@ class SelectPolygon(Select):
                                                  self.machine.parameters)
                 self.machine.plot.notify(**eventDict)
                 self.goto('idle')
+                return False
+
+        def onMove(self, x, y):
+            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                     check=False)
+            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+            if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                    dy < self.machine.DRAG_THRESHOLD_DIST):
+                x, y = firstPos  # Snap to first point
+
+            dataPos = self.machine.plot.pixelToData(x, y)
+            assert dataPos is not None
+            self.points[-1] = dataPos
+            self.updateSelectionArea()
 
     def __init__(self, plot, parameters):
         states = {
