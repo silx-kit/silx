@@ -35,6 +35,7 @@ from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
+from .testPlotInteraction import suite as testPlotInteractionSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlotWindow import suite as testPlotWindowSuite
@@ -50,6 +51,7 @@ def suite():
          testInteractionSuite(),
          testLegendSelectorSuite(),
          testMaskToolsWidgetSuite(),
+         testPlotInteractionSuite(),
          testPlotSuite(),
          testPlotToolsSuite(),
          testPlotWidgetSuite(),
