@@ -237,7 +237,7 @@ class OpenCL(object):
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
                     logger.info("For Apple's OpenCL on CPU: Mearuring actual valid max_work_goup_size")
-                    workgroup = 1
+                    workgroup = measure_workgroup_size(device)
 
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
