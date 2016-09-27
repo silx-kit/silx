@@ -81,12 +81,11 @@ class TestAddition(unittest.TestCase):
         self.data = numpy.random.random(self.shape).astype(numpy.float32)
         self.d_array_img = pyopencl.array.to_device(self.queue, self.data)
         self.d_array_5 = pyopencl.array.zeros_like(self.d_array_img)-5
-        self.d_array_result = pyopencl.array.empty_like(self.d_array_img)
         self.program = pyopencl.Program(self.ctx, get_opencl_code("addition")).build()
 
     def tearDown(self):
         self.img = self.data = None
-        self.d_array_img = self.d_array_5 = self.d_array_result = self.program = None
+        self.d_array_img = self.d_array_5 = self.program = None
 
     @unittest.skipUnless(ocl, "scipy or pyopencl are missing")
     def test_add(self):
@@ -95,16 +94,17 @@ class TestAddition(unittest.TestCase):
         """
         maxi = int(round(numpy.log2(self.shape)))
         for i in range(maxi):
+            d_array_result = pyopencl.array.empty_like(self.d_array_img)
             wg = 1 << i
             try:
                 evt = self.program.addition(self.queue, (self.shape,), (wg,),
-                       self.d_array_img.data, self.d_array_5.data, self.d_array_result.data)
+                       self.d_array_img.data, self.d_array_5.data, d_array_result.data, numpy.int32(self.shape))
                 evt.wait()
             except Exception as error:
                 print("Error %s on WG=%s"%(error, wg))
                 break
             else:
-                res = self.d_array_result.get()
+                res = d_array_result.get()
                 good = numpy.allclose(res, self.data - 5)
                 if good and wg>self.max_valid_wg:
                     self.__class__.max_valid_wg = wg
