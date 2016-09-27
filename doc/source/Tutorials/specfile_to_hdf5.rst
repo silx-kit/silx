@@ -78,7 +78,7 @@ SPEC data files containing MCA data have additional scan header lines:
    - the last channel number
    - the increment between two channel numbers
  - ``#@CALIB`` - 3 calibration values
- - ``#@CTIME``
+ - ``#@CTIME`` - 3 values: preset time, live time, elapsed time
 
 The actual MCA data for a single spectrum usually spans over multiple lines.
 A spectrum starts on a new line with a ``@A``, and when it span over multiple lines, all
@@ -125,7 +125,8 @@ Example of scan and data block, without MCA::
     29.366004  45256 0.000343 734 419 248 229 236 343 178082 664 0.00372862 0.00765939 0.0041217 0.00235285 0.00185308 0.00139262 0.00128592 0.00132523 0.00192608 1364 330
     29.36998  45258 0.00036 847 448 254 229 248 360 178342 668 0.00374561 0.00857342 0.0047493 0.00251203 0.00194009 0.00142423 0.00128405 0.00139059 0.00201859 1529 346
 
-Synthetic example of file with 3 scans. The last scan includes data of 3 multichannel analysers.
+Synthetic example of file with 3 scans. The last scan includes data of 3 multichannel analysers, sharing the
+same MCA header.
 
 ::
 
@@ -166,42 +167,31 @@ Synthetic example of file with 3 scans. The last scan includes data of 3 multich
 
     #S 1 aaaaaa
     #D Thu Feb 11 10:00:32 2016
-    #@MCADEV 1
     #@MCA %16C
     #@CHANN 20 0 19 1
-    #@CALIB 1 2 3
+    #@CALIB 1.2 2.3 3.4
     #@CTIME 123.4 234.5 345.6
-    #@MCADEV 2
-    #@MCA %16C
-    #@CHANN 20 0 19 1
-    #@CALIB 3.4 5.6 7.8
-    #@CTIME 56.4 23.4 234.5
-    #@MCADEV 3
-    #@MCA %16C
-    #@CHANN 20 0 19 1
-    #@CALIB 3.5 2.1 0.6
-    #@CTIME 13.4 34.5 34.6
     #N 3
     #L uno  duo
     1 2
     @A 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15\
     16 17 18 19
     @A 0 0 0 0 0 3 5 7 4 1 0 0 0 0 0 0\
-    0 1 0 0 
+    0 1 0 0
     @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
     0 1 0 0
     3 4
     @A 0 0 2 4 15 10 5 1 0 0 0 0 1 0 0 0\
     0 0 0 0
     @A 0 0 0 0 0 3 5 7 4 1 0 0 0 0 0 0\
-    0 1 0 0 
+    0 1 0 0
     @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
     0 1 0 0
     5 6
     @A 0 0 0 0 5 7 2 0 0 0 0 0 1 0 0 0\
     0 0 0 1
     @A 0 0 0 0 0 3 2 0 0 1 3 5 2 1 0 0\
-    0 0 0 0 
+    0 0 0 0
     @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
     1 0 4 0
 
