@@ -36,7 +36,7 @@ from ..spech5 import (SpecH5, SpecH5Group,
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "27/09/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -314,12 +314,18 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5["1.2"].attrs,
                          {"NX_class": "NXentry", })
 
+    def testMcaAbsent(self):
+        def access_absent_mca():
+            """This must raise a KeyError, because scan 1.1 has no MCA"""
+            return self.sfh5["/1.1/measurement/mca_0/"]
+        self.assertRaises(KeyError, access_absent_mca)
+
     def testMcaCalib(self):
         mca0_calib = self.sfh5["/1.2/measurement/mca_0/info/calibration"]
         mca1_calib = self.sfh5["/1.2/measurement/mca_1/info/calibration"]
         self.assertEqual(mca0_calib.tolist(),
                          [1, 2, 3])
-        # calibration is unique in a given scan and applies to all analysers
+        # calibration is unique in this scan and applies to all analysers
         self.assertEqual(mca0_calib.tolist(),
                          mca1_calib.tolist())
 
@@ -328,7 +334,7 @@ class TestSpecH5(unittest.TestCase):
         mca1_chann = self.sfh5["/1.2/measurement/mca_1/info/channels"]
         self.assertEqual(mca0_chann.tolist(),
                          [0., 1., 2.])
-        # channels is unique in a given scan and applies to all analysers
+        # @CHANN is unique in this scan and applies to all analysers
         self.assertEqual(mca0_chann.tolist(),
                          mca1_chann.tolist())
 
@@ -346,7 +352,7 @@ class TestSpecH5(unittest.TestCase):
         mca1_preset_time = self.sfh5["/1.2/instrument/mca_1/preset_time"]
         self.assertLess(mca0_preset_time - 123.4,
                         10**-5)
-        # ctime is unique in a given scan and applies to all analysers
+        # ctime is unique in a this scan and applies to all analysers
         self.assertEqual(mca0_preset_time,
                          mca1_preset_time)
 
@@ -421,12 +427,103 @@ class TestSpecH5(unittest.TestCase):
         self.assertRaises(IOError, SpecH5, tmp.name)
 
 
+sftext_multi_mca_headers = """
+#S 1 aaaaaa
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
+#@MCA %16C
+#@CHANN 3 1 3 1
+#@CALIB 5.5 6.6 7.7
+#@CTIME 10 11 12
+#N 3
+#L uno  duo
+1 2
+@A 0 1 2
+@A 10 9 8
+3 4
+@A 3.1 4 5
+@A 7 6 5
+5 6
+@A 6 7.7 8
+@A 4 3 2
+
+"""
+
+
+class TestSpecH5MultiMca(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        fd, cls.fname = tempfile.mkstemp(text=False)
+        if sys.version < '3.0':
+            os.write(fd, sftext_multi_mca_headers)
+        else:
+            os.write(fd, bytes(sftext_multi_mca_headers, 'ascii'))
+        os.close(fd)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.fname)
+
+    def setUp(self):
+        self.sfh5 = SpecH5(self.fname)
+
+    def tearDown(self):
+        # fix Win32 permission error when deleting temp file
+        del self.sfh5
+        gc.collect()
+
+    def testMcaCalib(self):
+        mca0_calib = self.sfh5["/1.1/measurement/mca_0/info/calibration"]
+        mca1_calib = self.sfh5["/1.1/measurement/mca_1/info/calibration"]
+        self.assertEqual(mca0_calib.tolist(),
+                         [1, 2, 3])
+        self.assertAlmostEqual(sum(mca1_calib.tolist()),
+                               sum([5.5, 6.6, 7.7]),
+                               places=5)
+
+    def testMcaChannels(self):
+        mca0_chann = self.sfh5["/1.1/measurement/mca_0/info/channels"]
+        mca1_chann = self.sfh5["/1.1/measurement/mca_1/info/channels"]
+        self.assertEqual(mca0_chann.tolist(),
+                         [0., 1., 2.])
+        # @CHANN is unique in this scan and applies to all analysers
+        self.assertEqual(mca1_chann.tolist(),
+                         [1., 2., 3.])
+
+    def testMcaCtime(self):
+        """Tests for #@CTIME mca header"""
+        mca0_preset_time = self.sfh5["/1.1/instrument/mca_0/preset_time"]
+        mca1_preset_time = self.sfh5["/1.1/instrument/mca_1/preset_time"]
+        self.assertLess(mca0_preset_time - 123.4,
+                        10**-5)
+        self.assertLess(mca1_preset_time - 10,
+                        10**-5)
+
+        mca0_live_time = self.sfh5["/1.1/instrument/mca_0/live_time"]
+        mca1_live_time = self.sfh5["/1.1/instrument/mca_1/live_time"]
+        self.assertLess(mca0_live_time - 234.5,
+                        10**-5)
+        self.assertLess(mca1_live_time - 11,
+                        10**-5)
+
+        mca0_elapsed_time = self.sfh5["/1.1/instrument/mca_0/elapsed_time"]
+        mca1_elapsed_time = self.sfh5["/1.1/instrument/mca_1/elapsed_time"]
+        self.assertLess(mca0_elapsed_time - 345.6,
+                        10**-5)
+        self.assertLess(mca1_elapsed_time - 12,
+                        10**-5)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecDate))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5MultiMca))
     return test_suite
 
 
