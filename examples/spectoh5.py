@@ -43,7 +43,6 @@ __date__ = "27/09/2016"
 import argparse
 from silx.io.spectoh5 import write_spec_to_h5
 
-
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('spec_path',
                     help='Path to input SPEC data file')
@@ -52,7 +51,7 @@ parser.add_argument('h5_path',
 parser.add_argument('-t', '--target-path', default="/",
                     help='Name of the group in which to save the scans ' +
                          'in the output file')
-#
+
 mode_group = parser.add_mutually_exclusive_group()
 mode_group.add_argument('-o', '--overwrite', action="store_true",
                         help='Overwrite output file if it exists, ' +

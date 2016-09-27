@@ -280,13 +280,13 @@ Accessing groups and datasets:
     scan1group = sfh5["1.1"]
     instrument_group = scan1group["instrument"]
 
-    # altenative: full path access
+    # alternative: full path access
     measurement_group = sfh5["/1.1/measurement"]
 
     # accessing a scan data column by name as a 1D numpy array
     data_array = measurement_group["Pslit HGap"]
 
-    # accessing all mca-spectra for one MCA device
+    # accessing all mca-spectra for one MCA device as a 2D array
     mca_0_spectra = measurement_group["mca_0/data"]
 
 
@@ -325,4 +325,19 @@ For example, you can access it with :mod:`h5py`:
     >>> f["/1.1/instrument/specfile/scan_header"][0].decode()
     '#S 94  ascan  del -0.5 0.5  20 1'
 
+In addition to the function :func:`silx.io.spectoh5.convert`, which is simplified
+on purpose, you can use the more flexible :func:`silx.io.spectoh5.write_spec_to_h5`.
+
+This way, you can choose to write scans into a specific HDF5 group in the output directory.
+You can also decide whether you want to overwrite an existing file, or append data to it.
+You can specify whether existing data with the same name as input data should be overwritten
+or ignored.
+
+This allows you to repeatedly transfer new content of a SPEC file to an existing HDF5 file, in between
+two scans.
+
+The following script is an example of a command line interface to :func:`write_spec_to_h5`.
+
+.. literalinclude:: ../../../examples/spectoh5.py
+   :lines: 42-
 
