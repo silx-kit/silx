@@ -73,7 +73,7 @@ Plot functions
 The :mod:`silx.sx` package provides 2 functions to plot curves and images from the (I)Python console in a widget with a set of tools:
 
 - :func:`plot1d`, and
-- :func:`plot2d`.
+- :func:`imshow`.
 
 For more features, use widgets directly (see `Plot curves in a widget`_ and `Plot images in a widget`_).
 
@@ -114,7 +114,7 @@ Plot many curves sharing the same x values:
 See :func:`plot1d` for details.
 
 
-Image: :func:`plot2d`
+Image: :func:`imshow`
 .....................
 
 This example plot a single image.
@@ -127,9 +127,9 @@ First, import :mod:`silx.sx`:
 Then plot it:
 
 >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
->>> plot = sx.plot2d(data, title='Random data')
+>>> plot = sx.imshow(data, title='Random data')
 
-See :func:`plot2d` for more details.
+See :func:`imshow` for more details.
 
 
 Use :mod:`silx.gui.plot` from a script
