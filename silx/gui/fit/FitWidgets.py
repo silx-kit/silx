@@ -114,7 +114,7 @@ class FitStatusLines(qt.QWidget):
         self.resize(535, 47)
 
         layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(11, 11, 11, 11)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
 
         self.StatusLabel = qt.QLabel(self)
@@ -156,7 +156,7 @@ class FitConfigWidget(qt.QWidget):
         self.setWindowTitle("FitConfigGUI")
 
         fitconfigguilayout = qt.QHBoxLayout(self)
-        fitconfigguilayout.setContentsMargins(11, 11, 11, 11)
+        fitconfigguilayout.setContentsMargins(0, 0, 0, 0)
         fitconfigguilayout.setSpacing(6)
 
         layout9 = qt.QHBoxLayout(None)
@@ -288,6 +288,7 @@ class ParametersTab(qt.QTabWidget):
         """
         qt.QTabWidget.__init__(self, parent)
         self.setWindowTitle(name)
+        self.setContentsMargins(0, 0, 0, 0)
 
         self.views = OrderedDict()
         """Dictionary of views. Keys are view names,

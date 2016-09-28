@@ -97,6 +97,7 @@ class FitWidget(qt.QWidget):
         if title is None:
             title = "FitWidget"
         qt.QWidget.__init__(self, parent)
+
         self.setWindowTitle(title)
         layout = qt.QVBoxLayout(self)
 
