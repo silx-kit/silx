@@ -35,6 +35,9 @@ import numpy
 
 from silx.gui.plot import Plot1D, Plot2D
 
+import matplotlib
+import matplotlib.colors
+
 
 _logger = logging.getLogger(__name__)
 
@@ -142,7 +145,7 @@ def plot2d(data=None, cmap=None, norm='linear',
     :param float vmin: The value to use for the min of the colormap
     :param float vmax: The value to use for the max of the colormap
     :param bool aspect: True to keep aspect ratio (Default: False)
-    :param origin: (ox, oy) The origin of the image in the plot
+    :param origin: (ox, oy) The coordinates of the image origin in the plot
     :type origin: 2-tuple of floats
     :param scale: (sx, sy) The scale of the image in the plot
                   (i.e., the size of the image's pixel in plot coordinates)
@@ -173,6 +176,131 @@ def plot2d(data=None, cmap=None, norm='linear',
 
     if data is not None:
         plot.addImage(data, origin=origin, scale=scale)
+
+    plot.show()
+    return plot
+
+
+# matplotlib compatible functions
+
+def plot(*args, **kwargs):
+    """matplotlib.pyplot.plot compatible function.
+
+    Some arguments are ignored.
+
+    For documentation, see:
+    http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot
+    """
+    raise NotImplementedError()
+
+
+def imshow(X,
+           cmap=None,
+           norm=None,
+           aspect=None,
+           interpolation=None,  # ignored
+           alpha=None,  # ignored
+           vmin=None,
+           vmax=None,
+           origin=None,
+           extent=None,
+           shape=None,
+           # ignored:
+           # filternorm=None,
+           # filterrad=None,
+           # imlim=None,
+           # resample=None,
+           # url=None,
+           # hold=None,
+           # data=None,
+           **kwargs):
+    """matplotlib.pyplot.imshow compatible function.
+
+    For documentation, see:
+    http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
+
+    The following arguments are ignored:
+    interpolation, alpha, filternorm, filterrad, imlim,
+    resample, url, hold, data.
+    """
+
+    # Warning for ignored arguments
+    if interpolation is not None:
+        kwargs['interpolation'] = interpolation
+    if alpha is not None:
+        kwargs['alpha'] = alpha
+    if kwargs:
+        _logger.warning(
+            'imshow ignores argument%s: %s',
+            's' if len(kwargs) > 1 else '',
+            ', '.join(arg for arg, val in kwargs.items() if val is not None))
+
+    # Handle input data
+    X = numpy.array(X, copy=True)
+    if shape is not None:  # Override data shape
+        X.shape = shape
+
+    assert X.ndim in (2, 3)  # data or RGB(A)
+    if X.ndim == 3:
+        assert X.shape[-1] in (3, 4)  # RGB(A) image
+
+    # Create widget
+    plot = Plot2D()
+    
+    # Handle aspect
+    if aspect is None:
+        aspect = matplotlib.rcParams.get('image.aspect', 'auto')
+    if aspect in ('auto', 'normal'):
+        plot.setKeepDataAspectRatio(False)
+    elif aspect == 'equal' or aspect == 1:
+        plot.setKeepDataAspectRatio(True)
+    else:
+        _logger.warning('imshow: Unhandled aspect argument: %s', str(aspect))
+
+    # convert origin to invert Y axis
+    if origin is None:
+        origin = matplotlib.rcParams.get('image.origin', 'lower')
+    if origin in ('upper', 'lower'):
+        plot.setYAxisInverted(origin == 'upper')
+    else:
+        _logger.warning('imshow: Unhandled origin argument: %s', str(origin))
+
+    # Get colormap
+    colormap = plot.getDefaultColormap()
+    if cmap is None:
+        cmap = matplotlib.rcParams.get('image.cmap', colormap['name'])
+    if hasattr(cmap, 'name'):  # Convert colormap object to str
+        cmap = cmap.name
+    colormap['name'] = cmap
+    if vmin is not None:
+        colormap['vmin'] = float(vmin)
+    if vmax is not None:
+        colormap['vmax'] = float(vmax)
+    if vmin is not None and vmax is not None:
+        colormap['autoscale'] = False
+    if norm is not None:  # This can override vmin, vmax and autoscale
+        colormap['autoscale'] = norm.scaled()
+        if norm.scaled():
+            colormap['vmin'] = norm.vmin
+            colormap['vmax'] = norm.vmax
+        if isinstance(norm, (matplotlib.colors.PowerNorm,
+                             matplotlib.colors.SymLogNorm)):
+            _logger.warning('Only supports linear and log scale')
+        is_log = (norm.startswith('log') or
+                  isinstance(norm, matplotlib.colors.LogNorm))
+        colorma['norm'] = 'log' if is_log else 'linear'
+
+    # convert extent to origin and scale
+    if extent is None:
+        img_origin = 0, 0
+        img_scale = 1., 1.
+    else:
+        left, right, bottom, top = extent
+        img_origin = left, bottom
+        img_scale = (right - left) / X.shape[1], (top - bottom) / X.shape[0]
+
+    # Add image to plot
+    plot.addImage(X, colormap=colormap, origin=img_origin, scale=img_scale)
 
     plot.show()
     return plot
