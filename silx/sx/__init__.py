@@ -47,7 +47,7 @@ except NameError:
     _get_ipython = None
 
 # Probe ipython/jupyter notebook
-if _get_ipython is not None:
+if _get_ipython is not None and _get_ipython() is not None:
 
     # Notebook detection probably fragile
     _IS_NOTEBOOK = ('parent_appname' in _get_ipython().config['IPKernelApp'] or
@@ -79,11 +79,11 @@ if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
         del _icons  # clean-up namespace
 
     from silx.gui.plot import *  # noqa
-    from ._plot import plot1d, plot2d  # noqa
+    from ._plot import plot1d, plot2d, plot, imshow  # noqa
 
 
 # %pylab
-if _get_ipython is not None:
+if _get_ipython is not None and _get_ipython() is not None:
     _get_ipython().enable_pylab(gui='inline' if _IS_NOTEBOOK else 'qt')
 
 
