@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "28/09/2016"
 
 
 import logging
@@ -47,8 +47,8 @@ _logger = logging.getLogger(__name__)
 class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
     """Try to sort items according to Nexus structure. Else sort by name."""
 
-    def __init__(self, *args, **kwargs):
-        qt.QSortFilterProxyModel.__init__(self, *args, **kwargs)
+    def __init__(self, parent=None):
+        qt.QSortFilterProxyModel.__init__(self, parent)
         self.__split = re.compile("(\\d+|\\D+)")
 
     def lessThan(self, source_left, source_right):
