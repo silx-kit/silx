@@ -966,7 +966,8 @@ class FitAction(PlotAction):
             tooltip='Open a fit dialog',
             triggered=self._getFitWindow,
             checkable=False, parent=parent)
-        self.fit_window = None
+        self.fit_windows = {}
+        self.fit_widgets = {}
 
     def _warningMessage(self, informativeText='', detailedText=''):
         """Display a warning message."""
@@ -990,27 +991,30 @@ class FitAction(PlotAction):
         self.x, self.y, self.legend = curve[0:3]
 
         # open a window with a FitWidget
-        if self.fit_window is None:
-            self.fit_window = qt.QMainWindow(self.plot)
-            self.fit_widget = FitWidget(parent=self.fit_window)
-            self.fit_window.setCentralWidget(self.fit_widget)
-            self.fit_widget.guibuttons.DismissButton.clicked.connect(self.fit_window.close)
-            self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
-            self.fit_window.show()
+        if self.fit_windows.get(self.legend) is None:
+            self.fit_windows[self.legend] = qt.QMainWindow(self.plot)
+            self.fit_widgets[self.legend] = FitWidget(parent=self.fit_windows[self.legend])
+            self.fit_windows[self.legend].setCentralWidget(
+                    self.fit_widgets[self.legend])
+            self.fit_widgets[self.legend].guibuttons.DismissButton.clicked.connect(
+                    self.fit_windows[self.legend].close)
+            self.fit_widgets[self.legend].sigFitWidgetSignal.connect(
+                    self.handle_signal)
+            self.fit_windows[self.legend].show()
         else:
-            if self.fit_window.isHidden():
-                self.fit_window.show()
-                self.fit_widget.show()
-            self.fit_window.raise_()
+            if self.fit_windows[self.legend].isHidden():
+                self.fit_windows[self.legend].show()
+                self.fit_widgets[self.legend].show()
+            self.fit_windows[self.legend].raise_()
 
-        self.fit_widget.setData(self.x, self.y)
-        self.fit_window.setWindowTitle("Fitting " + self.legend)
+        self.fit_widgets[self.legend].setData(self.x, self.y)
+        self.fit_windows[self.legend].setWindowTitle("Fitting " + self.legend)
 
     def handle_signal(self, ddict):
         if ddict["event"] == "EstimateFinished":
             pass
         if ddict["event"] == "FitFinished":
-            y_fit = self.fit_widget.fitmanager.gendata()
+            y_fit = self.fit_widgets[self.legend].fitmanager.gendata()
             self.plot.addCurve(self.x, y_fit,
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel)
