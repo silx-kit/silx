@@ -95,7 +95,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/09/2016"
+__date__ = "28/09/2016"
 
 
 DEFAULT_CONFIG = {
@@ -195,31 +195,6 @@ class FitTheories(object):
         return functions.sum_ahypermet(x, *pars,
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
-
-    def user_estimate(self, x, y, z):
-        """Interactive estimation function for gaussian parameters.
-        The user is prompted for the number of peaks and for his estimation
-        of *Height, Position, FWHM* for each gaussian peak in the data.
-
-        To conform to the estimation function signature expected by
-        :mod:`FitManager`, this function must be called with at least 3
-        and at most 5 arguments. All arguments are ignored.
-
-        :return: Tuple of estimated parameters and constraints. Parameters are
-            provided by the user. Fit constraints are set to 0 / FREE for all
-            parameters.
-        """
-        ngauss = input(' Number of Gaussians : ')
-        ngauss = int(ngauss)
-        if ngauss < 1:
-            ngauss = 1
-        newpar = []
-        for i in range(ngauss):
-            print("Defining Gaussian number %d " % (i + 1))
-            newpar.append(input('Height   = '))
-            newpar.append(input('Position = '))
-            newpar.append(input('FWHM     = '))
-        return newpar, numpy.zeros((len(newpar), 3), numpy.float)
 
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
