@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "29/09/2016"
 
 
 import os
@@ -239,13 +239,26 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         else:
             return []
 
-    def mimeData(self, index):
-        if self.__fileMoveEnabled:
-            node = self.nodeFromIndex(index[0])
-            mimeData = _utils.Hdf5NodeMimeData(node)
-            return mimeData
-        else:
+    def mimeData(self, indexes):
+        """
+        Returns an object that contains serialized items of data corresponding
+        to the list of indexes specified.
+
+        :param list(qt.QModelIndex) indexes: List of indexes
+        :rtype: qt.QMimeData
+        """
+        if not self.__fileMoveEnabled or len(indexes) == 0:
             return None
+
+        indexes = [i for i in indexes if i.column() == 0]
+        if len(indexes) > 1:
+            raise NotImplementedError("Drag of multi rows is not implemented")
+        if len(indexes) == 0:
+            raise NotImplementedError("Drag of cell is not implemented")
+
+        node = self.nodeFromIndex(indexes[0])
+        mimeData = _utils.Hdf5NodeMimeData(node)
+        return mimeData
 
     def flags(self, index):
         defaultFlags = qt.QAbstractItemModel.flags(self, index)
