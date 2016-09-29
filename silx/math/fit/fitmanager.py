@@ -704,13 +704,17 @@ class FitManager(object):
 
     def autoweight(self):
         """This method can be called to set :attr:`sigmay` equal to the
-        square root of :attr:`ydata`"""
+        square root of :attr:`ydata`
+        """
         if self.sigmay is not None:
-            _logger.warning("Refusing to overwrite existing sigmay values")
-            # should we allow that?
-            # currently one must use setdata(..., sigmay=...) to change it
-            return
+            _logger.warning("Overwriting existing sigmay values")
         self.sigmay = numpy.sqrt(self.ydata)
+
+    def noweight(self):
+        """This method can be called to set :attr:`sigmay` equal to ``None``.
+        As a result, the fit process will consider that the weights in the
+        least square problem are 1 for all samples."""
+        self.sigmay = None
 
     def settheory(self, theory):
         """Pick a theory from :attr:`theories`.

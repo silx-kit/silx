@@ -444,6 +444,9 @@ class FitWidget(qt.QWidget):
         self.configure(AutoWeightFlag=flag)
         if flag:
             self.fitmanager.autoweight()
+        else:
+            # set weights back to 1
+            self.fitmanager.noweight()
 
     def __initialParameters(self):
         """Fill the fit parameters names with names of the parameters of
