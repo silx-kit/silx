@@ -32,12 +32,15 @@ Index of background extraction functions:
     - :func:`snip2d`
     - :func:`snip3d`
 
-Smoothing function:
--------------------
+Smoothing functions:
+--------------------
 
     - :func:`savitsky_golay`
+    - :func:`smooth1d`
+    - :func:`smooth2d`
+    - :func:`smooth3d`
 
-Full documentation:
+API documentation:
 -------------------
 
 """
@@ -299,7 +302,15 @@ def smooth1d(data):
     """smooth1d(data) -> numpy.ndarray
     Simple smoothing for 1D data.
 
-    :math:`ysmoothed[i] = 0.25 * (y_(i-1) + 2 * y_i + y_(i+1))`
+    For a data array :math:`y` of length :math:`n`, the smoothed array
+    :math:`ys` is calculated as a weighted average of neighboring samples:
+
+    :math:`ys_0 = 0.75 y_0 + 0.25 y_1`
+
+    :math:`ys_i = 0.25 (y_{i-1} + 2 y_i + y_{i+1})` for :math:`0 < i < n-1`
+
+    :math:`ys_{n-1} = 0.25 y_{n-2} + 0.75 y_{n-1}`
+
 
     :param data: 1D data array
     :type data: numpy.ndarray
@@ -329,9 +340,8 @@ def smooth1d(data):
 
 def smooth2d(data):
     """smooth2d(data) -> numpy.ndarray
-    Simple smoothing for 2D data.
-
-    :func:`smooth1d` is applied along both axis
+    Simple smoothing for 2D data:
+    :func:`smooth1d` is applied succesively along both axis
 
     :param data: 2D data array
     :type data: numpy.ndarray
@@ -369,8 +379,7 @@ def smooth2d(data):
 
 def smooth3d(data):
     """smooth3d(data) -> numpy.ndarray
-    Simple smoothing for 3D data.
-
+    Simple smoothing for 3D data:
     :func:`smooth2d` is applied on each 2D slice of the data volume along all
     3 axis
 
