@@ -205,7 +205,8 @@ class PlotWindow(PlotWidget):
                     converters = position
                 else:
                     converters = None
-                self.positionWidget = PositionInfo(self, converters=converters)
+                self.positionWidget = PositionInfo(
+                    plot=self, converters=converters)
                 self.positionWidget.autoSnapToActiveCurve = True
 
                 hbox.addWidget(self.positionWidget)
@@ -230,7 +231,7 @@ class PlotWindow(PlotWidget):
     def legendsDockWidget(self):
         """DockWidget with Legend panel (lazy-loaded)."""
         if not hasattr(self, '_legendsDockWidget'):
-            self._legendsDockWidget = LegendsDockWidget(self)
+            self._legendsDockWidget = LegendsDockWidget(plot=self)
             self._legendsDockWidget.hide()
             self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
@@ -240,7 +241,7 @@ class PlotWindow(PlotWidget):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
         if not hasattr(self, '_curvesROIDockWidget'):
             self._curvesROIDockWidget = CurvesROIDockWidget(
-                self, name='Regions Of Interest')
+                plot=self, name='Regions Of Interest')
             self._curvesROIDockWidget.hide()
             self._introduceNewDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget
@@ -254,7 +255,8 @@ class PlotWindow(PlotWidget):
     def maskToolsDockWidget(self):
         """DockWidget with image mask panel (lazy-loaded)."""
         if not hasattr(self, '_maskToolsDockWidget'):
-            self._maskToolsDockWidget = MaskToolsDockWidget(self, name='Mask')
+            self._maskToolsDockWidget = MaskToolsDockWidget(
+                plot=self, name='Mask')
             self._maskToolsDockWidget.hide()
             self._introduceNewDockWidget(self._maskToolsDockWidget)
         return self._maskToolsDockWidget
@@ -433,7 +435,7 @@ class Plot2D(PlotWindow):
         self.setGraphXLabel('Columns')
         self.setGraphYLabel('Rows')
 
-        self.profile = ProfileToolBar(self)
+        self.profile = ProfileToolBar(plot=self)
         """"Profile tools attached to this plot.
 
         See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
