@@ -59,18 +59,18 @@ def load_file_as_h5py(filename):
         return h5py.File(filename)
 
     try:
-        from ..io import spech5
+        from ...io import spech5
         return spech5.SpecH5(filename)
     except ImportError:
-        _logger.debug("spech5 can't be loaded.", filename, exc_info=True)
+        _logger.debug("spech5 can't be loaded.", exc_info=True)
     except IOError:
         _logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
 
     try:
-        from silx.io import fabioh5
+        from ...io import fabioh5
         return fabioh5.File(filename)
     except ImportError:
-        _logger.debug("fabioh5 can't be loaded.", filename, exc_info=True)
+        _logger.debug("fabioh5 can't be loaded.", exc_info=True)
     except Exception:
         _logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
 

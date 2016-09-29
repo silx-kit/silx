@@ -465,49 +465,15 @@ class SelectPolygon(Select):
 
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
-                dataPos = self.machine.plot.pixelToData(x, y)
-                assert dataPos is not None
-                self.updateSelectionArea()
-
-                # checking that the new points isnt the same (within range)
-                # of the previous one
-                # This has to be done because sometimes the mouse release event
-                # is caught right after entering the Select state (i.e : press
-                # in Idle state, but with a slightly different position that
-                # the mouse press. So we had the two first vertices that were
-                # almost identical.
-                dx = abs(self.points[-2][0] - dataPos[0])
-                dy = abs(self.points[-2][1] - dataPos[1])
-                if(dx >= self.machine.DRAG_THRESHOLD_DIST and
-                   dy >= self.machine.DRAG_THRESHOLD_DIST):
-                    self.points.append(dataPos)
-                else:
-                    self.points[-1] = dataPos
-
-                return True
-
-        def onMove(self, x, y):
-            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
-                                                     check=False)
-            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
-            if (dx < self.machine.DRAG_THRESHOLD_DIST and
-                    dy < self.machine.DRAG_THRESHOLD_DIST):
-                x, y = firstPos  # Snap to first point
-
-            dataPos = self.machine.plot.pixelToData(x, y)
-            assert dataPos is not None
-            self.points[-1] = dataPos
-            self.updateSelectionArea()
-
-        def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
+                # checking if the position is close to the first point
+                # if yes : closing the "loop"
                 firstPos = self.machine.plot.dataToPixel(*self._firstPos,
                                                          check=False)
                 dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
 
-                # checking if the position is close to the first point
-                # if yes : closing the "loop"
-                if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                # Only allow to close polygon after first point
+                if (len(self.points) > 2 and
+                        dx < self.machine.DRAG_THRESHOLD_DIST and
                         dy < self.machine.DRAG_THRESHOLD_DIST):
                     self.machine.resetSelectionArea()
 
@@ -519,6 +485,30 @@ class SelectPolygon(Select):
                                                      self.machine.parameters)
                     self.machine.plot.notify(**eventDict)
                     self.goto('idle')
+                    return False
+
+                # Update polygon last point not too close to previous one
+                dataPos = self.machine.plot.pixelToData(x, y)
+                assert dataPos is not None
+                self.updateSelectionArea()
+
+                # checking that the new points isnt the same (within range)
+                # of the previous one
+                # This has to be done because sometimes the mouse release event
+                # is caught right after entering the Select state (i.e : press
+                # in Idle state, but with a slightly different position that
+                # the mouse press. So we had the two first vertices that were
+                # almost identical.
+                previousPos = self.machine.plot.dataToPixel(*self.points[-2],
+                                                            check=False)
+                dx, dy = abs(previousPos[0] - x), abs(previousPos[1] - y)
+                if(dx >= self.machine.DRAG_THRESHOLD_DIST or
+                   dy >= self.machine.DRAG_THRESHOLD_DIST):
+                    self.points.append(dataPos)
+                else:
+                    self.points[-1] = dataPos
+
+                return True
 
             elif btn == RIGHT_BTN:
                 self.machine.resetSelectionArea()
@@ -544,6 +534,22 @@ class SelectPolygon(Select):
                                                  self.machine.parameters)
                 self.machine.plot.notify(**eventDict)
                 self.goto('idle')
+                return False
+
+            return False
+
+        def onMove(self, x, y):
+            firstPos = self.machine.plot.dataToPixel(*self._firstPos,
+                                                     check=False)
+            dx, dy = abs(firstPos[0] - x), abs(firstPos[1] - y)
+            if (dx < self.machine.DRAG_THRESHOLD_DIST and
+                    dy < self.machine.DRAG_THRESHOLD_DIST):
+                x, y = firstPos  # Snap to first point
+
+            dataPos = self.machine.plot.pixelToData(x, y)
+            assert dataPos is not None
+            self.points[-1] = dataPos
+            self.updateSelectionArea()
 
     def __init__(self, plot, parameters):
         states = {

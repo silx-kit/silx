@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "26/09/2016"
 
 from .. import qt
 from .. import icons
@@ -44,7 +44,7 @@ class WaitingPushButton(qt.QPushButton):
     .. image:: /images/widget/qt/WaitingPushButton.png
     """
 
-    def __init__(self, text=None, icon=None, parent=None):
+    def __init__(self, parent=None, text=None, icon=None):
         """Constructor
 
         :param str text: Text displayed on the button

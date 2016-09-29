@@ -461,7 +461,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         combo.activated.connect(self.__hdf5ComboChanged)
         content.layout().addWidget(combo)
 
-        button = ThreadPoolPushButton("Create")
+        button = ThreadPoolPushButton(content, text="Create")
         button.setCallable(combo.itemData(combo.currentIndex()))
         button.succeeded.connect(self.__fileCreated)
         content.layout().addWidget(button)
@@ -487,7 +487,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
             combo.activated.connect(self.__edfComboChanged)
             content.layout().addWidget(combo)
 
-            button = ThreadPoolPushButton("Create")
+            button = ThreadPoolPushButton(content, text="Create")
             button.setCallable(combo.itemData(combo.currentIndex()))
             button.succeeded.connect(self.__fileCreated)
             content.layout().addWidget(button)

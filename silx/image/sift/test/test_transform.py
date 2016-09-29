@@ -68,7 +68,7 @@ IMAGE_RESHAPE = True
 USE_LENA = True
 DEVICETYPE = "ALL"
 
-
+@unittest.skipUnless(scipy and ocl, "scipy or ocl missing")
 class TestTransform(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

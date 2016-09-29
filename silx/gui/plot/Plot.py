@@ -2387,7 +2387,7 @@ class Plot(object):
             for legend in list(self._images):  # Copy has images is changed
                 image = self._images[legend]
                 self.addImage(image['data'], legend,
-                              replace=False, rezetZoom=False,
+                              replace=False, resetzoom=False,
                               pixmap=image['pixmap'], **image['params'])
 
     # Coord conversion
