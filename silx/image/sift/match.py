@@ -36,11 +36,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/09/2016"
-__status__ = "beta"
-import os
+__date__ = "29/09/2016"
+__status__ = "production"
 import logging
-import sys
 import threading
 import gc
 import numpy
@@ -87,14 +85,6 @@ class MatchPlan(object):
         :param context: Use an external context (discard devicetype and device options)
         """
         self.profile = bool(profile)
-        if max_workgroup_size:
-            self.max_workgroup_size = int(max_workgroup_size)
-            self.kernels = {}
-            for k, v in self.__class__.kernels.items():
-                self.kernels[k] = min(v, self.max_workgroup_size)
-        else:
-            self.max_workgroup_size = None
-
         self.events = []
         self.kpsize = size
         self.buffers = {}
@@ -125,19 +115,20 @@ class MatchPlan(object):
         self.debug = []
         self._sem = threading.Semaphore()
 
-        self.devicetype = ocl.platforms[self.device[0]].devices[self.device[1]].type
+        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
+
+        if max_workgroup_size:
+            self.max_workgroup_size = min(int(max_workgroup_size), ocldevice.max_work_group_size)
+        else:
+            self.max_workgroup_size = ocldevice.max_work_group_size
+        self.kernels = {}
+        for k, v in self.__class__.kernels.items():
+            self.kernels[k] = min(v, self.max_workgroup_size)
+
+        self.devicetype = ocldevice.type
         if (self.devicetype == "CPU"):
             self.USE_CPU = True
             self.matching_kernel = "matching_cpu"
-            if sys.platform == "darwin":
-                logger.warning("MacOSX computer working on CPU: limiting workgroup size to 1 !")
-                self.max_workgroup_size = 1
-                self.kernels = {}
-                for k, v in self.__class__.kernels.items():
-                    if isinstance(v, int):
-                        self.kernels[k] = 1
-                    else:
-                        self.kernels[k] = (1,) * len(v)
         else:
             self.USE_CPU = False
             self.matching_kernel = "matching_gpu"

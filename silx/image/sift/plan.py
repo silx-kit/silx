@@ -193,15 +193,6 @@ class SiftPlan(object):
         self.devicetype = ocl.platforms[self.device[0]].devices[self.device[1]].type
         if (self.devicetype == "CPU"):
             self.USE_CPU = True
-            if sys.platform == "darwin":
-                logger.warning("MacOSX computer working on CPU: limiting workgroup size to 1 !")
-                self.max_workgroup_size = 1
-                self.kernels = {}
-                for k, v in self.__class__.kernels.items():
-                    if isinstance(v, int):
-                        self.kernels[k] = 1
-                    else:
-                        self.kernels[k] = tuple([1] * len(v))
         else:
             self.USE_CPU = False
             if "HD Graphics" in ocl.platforms[self.device[0]].devices[self.device[1]].name:
