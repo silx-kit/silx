@@ -82,7 +82,7 @@ class LoadingItemRunnable(qt.QRunnable):
         else:
             class_ = h5obj.__class__
 
-        if class_ == h5py.File:
+        if class_ is h5py.File:
             text = os.path.basename(h5obj.filename)
         else:
             filename = os.path.basename(h5obj.file.filename)
@@ -504,7 +504,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             else:
                 class_ = h5pyObject.__class__
 
-            if class_ == h5py.File:
+            if class_ is h5py.File:
                 text = os.path.basename(h5pyObject.filename)
             else:
                 filename = os.path.basename(h5pyObject.file.filename)
