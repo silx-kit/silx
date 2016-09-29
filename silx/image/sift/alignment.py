@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "08/09/2016"
+__date__ = "29/09/2016"
 __status__ = "beta"
 
 import gc
@@ -89,7 +89,7 @@ class LinearAlign(object):
         :param devicetype: Kind of preferred devce
         :param profile:collect profiling information ?
         :param device: 2-tuple of integer. see clinfo
-        :param max_workgroup_size: set to 1 for macOSX on CPU
+        :param max_workgroup_size: limit the workgroup size
         :param ROI: Region of interest: to be implemented
         :param extra: extra space around the image, can be an integer, or a 2 tuple in YX convention: TODO!
         :param init_sigma: bluring width, you should have good reasons to modify the 1.6 default value...
@@ -100,13 +100,6 @@ class LinearAlign(object):
         self.ref = numpy.ascontiguousarray(image, numpy.float32)
         self.buffers = {}
         self.shape = image.shape
-        if max_workgroup_size:
-            self.max_workgroup_size = int(max_workgroup_size)
-            self.kernels = {}
-            for k, v in self.__class__.kernels.items():
-                self.kernels[k] = min(v, self.max_workgroup_size)
-        else:
-            self.max_workgroup_size = None
         if len(self.shape) == 3:
             self.RGB = True
             self.shape = self.shape[:2]
@@ -133,18 +126,17 @@ class LinearAlign(object):
             else:
                 self.device = device
             self.ctx = pyopencl.Context(devices=[pyopencl.get_platforms()[self.device[0]].get_devices()[self.device[1]]])
-        self.devicetype = ocl.platforms[self.device[0]].devices[self.device[1]].type
-        if (self.devicetype == "CPU"):
-            self.USE_CPU = True
-            if sys.platform == "darwin":
-                logger.warning("MacOSX computer working on CPU: limiting workgroup size to 1 !")
-                self.max_workgroup_size = 1
-                self.kernels = {}
-                for k, v in self.__class__.kernels.items():
-                    if isinstance(v, int):
-                        self.kernels[k] = 1
-                    else:
-                        self.kernels[k] = tuple([1 for i in v])
+        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
+        self.devicetype = ocldevice.type
+
+        if max_workgroup_size:
+            self.max_workgroup_size = min(int(max_workgroup_size), ocldevice.max_work_group_size)
+        else:
+            self.max_workgroup_size = ocldevice.max_work_group_size
+        self.kernels = {}
+        for k, v in self.__class__.kernels.items():
+            self.kernels[k] = min(v, self.max_workgroup_size)
+
         if self.RGB:
             if self.max_workgroup_size == 1:
                 self.wg = (1, 1, 1)

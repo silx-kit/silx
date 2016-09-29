@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "21/09/2016"
+__date__ = "29/09/2016"
 
 import unittest
 import time
@@ -61,14 +61,14 @@ if ocl:
 from ..utils import calc_size, get_opencl_code
 from ..plan import SiftPlan
 from ..match import MatchPlan
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 
 SHOW_FIGURES = False
 IMAGE_RESHAPE = True
 USE_LENA = True
 DEVICETYPE = "ALL"
 
-
+@unittest.skipUnless(scipy and ocl, "scipy or ocl missing")
 class TestTransform(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

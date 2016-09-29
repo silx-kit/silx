@@ -50,13 +50,14 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/09/2016"
+__date__ = "29/09/2016"
 __status__ = "beta"
 
 import time
 import math
 import logging
 import threading
+import sys
 import gc
 import numpy
 from .param import par
@@ -384,27 +385,27 @@ class SiftPlan(object):
         The processing size should be a multiple of  workgroup size.
         """
         device = self.ctx.devices[0]
-#        max_work_group_size = device.max_work_group_size        
+#        max_work_group_size = device.max_work_group_size
         max_work_item_sizes = device.max_work_item_sizes
         if self.max_workgroup_size:
             self.max_workgroup_size = min(max_work_item_sizes[0], self.max_workgroup_size)
         else:
             self.max_workgroup_size = max_work_item_sizes[0]
-        #MacOSX driver on CPU usually reports bad workgroup size: this is addressed in ocl
-        self.max_workgroup_size = min(self.max_workgroup_size, 
-                                      ocl.platforms[self.device[0]].devices[1].max_work_group_size)
+        # MacOSX driver on CPU usually reports bad workgroup size: this is addressed in ocl
+        self.max_workgroup_size = min(self.max_workgroup_size,
+                                      ocl.platforms[self.device[0]].devices[self.device[1]].max_work_group_size)
 
         self.kernels = {}
         for k, v in self.__class__.kernels.items():
             if isinstance(v, int):
                 self.kernels[k] = min(v, self.max_workgroup_size)
-            else: #probably a list
+            else:  # probably a list
                 prod = 1
                 for i in v:
                     prod *= i
                 if prod <= self.max_workgroup_size:
                     self.kernels[k] = v
-                # else it is not possible to run this kernel. 
+                # else it is not possible to run this kernel.
                 # If the kernel is not present in the dict, it should not be used.
 
         # we recalculate the shapes ...
@@ -641,19 +642,19 @@ class SiftPlan(object):
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
 
                 for i_not_used in range(3):
-                    #up to 3 attempts
+                    # up to 3 attempts
                     if (not self.USE_CPU) and (self.LOW_END == 0) and ("keypoints_gpu2" in self.kernels):
                         file_to_use = "keypoints_gpu2"
                         logger.info("Computing descriptors with newer-GPU optimized kernels")
-                        wgsize2 = self.kernels[file_to_use]    
+                        wgsize2 = self.kernels[file_to_use]
                         procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
                     elif (not self.USE_CPU) and (self.LOW_END == 1) and ("keypoints_gpu1" in self.kernels):
                         file_to_use = "keypoints_gpu1"
                         logger.info("Computing descriptors with older-GPU optimized kernels")
                         wgsize2 = self.kernels[file_to_use]
                         procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
-                    else:    
-                        #self.USE_CPU or self.LOW_END == 2, fail-safe fall-back
+                    else:
+                        # self.USE_CPU or self.LOW_END == 2, fail-safe fall-back
                         file_to_use = "keypoints_cpu"
                         logger.info("Computing descriptors with CPU optimized kernels")
                         wgsize2 = self.kernels[file_to_use],

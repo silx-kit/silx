@@ -58,11 +58,12 @@ else:
 # import pylab
 
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
+import logging
+from utilstest import UtilsTest, ctx
 from test_image_functions import *  # for Python implementation of tested functions
 from test_image_setup import *
 import sift_pyocl as sift
-logger = getLogger(__file__)
+logger = logging.getLogger(__name__)
 if logger.getEffectiveLevel() <= logging.INFO:
     PROFILE = True
     queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
