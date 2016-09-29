@@ -492,8 +492,8 @@ class SiftPlan(object):
                             error, wg1, wg2, self.max_workgroup_size)
                 #common bug on OSX when running on CPU
                 buffer_ = self.buffers[0].get()
-                self.buffers["max"].set(buffer_.max())
-                self.buffers["min"].set(buffer_.min())
+                self.buffers["max"].set(numpy.array([buffer_.max()], dtype=numpy.float32))
+                self.buffers["min"].set(numpy.array([buffer_.min()], dtype=numpy.float32))
             else:
                 if self.profile:
                     self.events.append(("max_min_stage1", k1))
