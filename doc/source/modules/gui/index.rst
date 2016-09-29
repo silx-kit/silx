@@ -15,6 +15,7 @@ Available modules:
 
    plot/index.rst
    fit/index.rst
+   hdf5/index.rst
    qt.rst
    icons.rst
    console.rst
