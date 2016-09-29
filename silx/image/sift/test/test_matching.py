@@ -57,7 +57,7 @@ from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
 
-logger = logging.getLogger(os.path.basename(__file__))
+logger = logging.getLogger(__name__)
 
 try:
     import feature

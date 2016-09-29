@@ -51,7 +51,7 @@ else:
     import scipy.misc, scipy.ndimage
 
 from ..utils import get_opencl_code
-logger = logging.getLogger(os.path.basename(__file__))
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 if ocl:

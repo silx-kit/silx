@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "29/09/2016"
 
 import unittest
 import logging
@@ -54,7 +54,7 @@ if ocl:
     import pyopencl.array
 
 from ..alignment import LinearAlign
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 PRINT_KEYPOINTS = False
 
 
