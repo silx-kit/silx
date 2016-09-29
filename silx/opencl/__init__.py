@@ -44,7 +44,9 @@ import numpy
 
 logger = logging.getLogger("silx.opencl")
 
-if os.environ.get("SILX_OPENCL") == "0":
+from .utils import get_opencl_code
+
+if os.environ.get("SILX_OPENCL") in ["0", "False"]:
     logger.warning("Use of OpenCL has been disables from environment variable: SILX_OPENCL=0")
     pyopencl = None
 else:
@@ -196,6 +198,55 @@ class Platform(object):
         return out
 
 
+def _measure_workgroup_size(device_or_context):
+    """Mesure the maximal work group size of the given device
+    
+    :param device: instance of pyopencl.Device or pyopencl.Context
+    :return: maximum size for the workgroup
+    """
+    if isinstance(device_or_context, pyopencl.Device):
+        ctx = pyopencl.Context(devices=[device_or_context])
+        device = device_or_context
+    elif  isinstance(device_or_context, pyopencl.Context):
+        ctx = device_or_context
+        device = device_or_context.devices[0]
+    shape = device.max_work_group_size
+    # get the context
+    
+    assert ctx is not None
+    queue = pyopencl.CommandQueue(ctx)
+
+    max_valid_wg = 1
+    data = numpy.random.random(shape).astype(numpy.float32)
+    d_data = pyopencl.array.to_device(queue, data)
+    d_data_1 = pyopencl.array.zeros_like(d_data) + 1
+
+    program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
+
+    maxi = int(round(numpy.log2(shape)))
+    for i in range(maxi+1):
+        d_res = pyopencl.array.empty_like(d_data)
+        wg = 1 << i
+        try:
+            evt = program.addition(queue, (shape,), (wg,),
+                   d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
+            evt.wait()
+        except Exception as error:
+            logger.warn("%s on device %s for WG=%s/%s"%(error, device.name, wg, shape))
+            program = queue = d_res = d_data_1 = d_data = None
+            break;
+        else:
+            res = d_res.get()
+            good = numpy.allclose(res, data + 1 )
+            if good:
+                if wg>max_valid_wg:
+                    max_valid_wg = wg
+            else:
+                logger.warn("ArithmeticError on %s for WG=%s/%s"%(wg, device.name, shape))
+                
+    return max_valid_wg
+
+
 class OpenCL(object):
     """
     Simple class that wraps the structure ocl_tools_extended.h
@@ -236,8 +287,8 @@ class OpenCL(object):
                     flop_core = 1
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
-                    logger.info("For Apple's OpenCL on CPU: enforce max_work_goup_size=1")
-                    workgroup = measure_workgroup_size(device)
+                    logger.warning("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
+                    workgroup = _measure_workgroup_size(device)
 
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
@@ -423,3 +474,28 @@ def allocate_cl_buffers(buffers, device=None, context=None):
         raise MemoryError(error)
 
     return mem
+
+def measure_workgroup_size(device):
+    """Measure the actual size of the workgroup
+    
+    :param device: device or context or 2-tuple with indexes
+    :return: the actual measured workgroup size
+
+    if device is "all", returns a dict with all devices with their ids as keys.
+    """
+    if (ocl is None) or (device is None) :
+        return None
+    
+    if isinstance(device, tuple) and (len(device) == 2):
+        #this is probably a tuple (platformid, deviceid)
+        device = ocl.create_context(platformid=device[0], deviceid=device[1])
+    
+    if device == "all":
+        res = {}
+        for pid, platform in enumerate(ocl.platforms):
+            for did, devices in enumerate(platform.devices):
+                tup = (pid,did)
+                res[tup] = measure_workgroup_size(tup)
+    else:
+        res = _measure_workgroup_size(device)
+    return res

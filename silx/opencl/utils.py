@@ -32,7 +32,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-06-13"
+__date__ = "27/09/2016"
 __status__ = "beta"
 
 import numpy
@@ -82,3 +82,5 @@ def get_opencl_code(name):
     with open(filename, "r") as fileobj:
         res = fileobj.read()
     return res.strip()
+
+
