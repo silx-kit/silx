@@ -35,8 +35,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "29/09/2016"
 
+import os
 import time
 import numpy
 import unittest
@@ -50,7 +51,7 @@ else:
     import scipy.misc, scipy.ndimage
 
 from ..utils import get_opencl_code
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.INFO)
 
 if ocl:
@@ -133,14 +134,14 @@ class TestGaussian(unittest.TestCase):
                                                   g_gpu.data,  # __global     float     *data,
                                                   numpy.float32(sigma),  # const        float     sigma,
                                                   numpy.int32(size))  # const        int     SIZE
-        sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.float32, queue=cls.queue)
+        sum_data = pyopencl.array.sum(g_gpu, queue=cls.queue)
         evt2 = cls.kernels["preprocess"].divide_cst(cls.queue, (size,), (1,),
                                                     g_gpu.data,  # __global     float     *data,
                                                     sum_data.data,  # const        float     sigma,
                                                     numpy.int32(size))  # const        int     SIZE
         g = g_gpu.get()
         if cls.PROFILE:
-            logger.info("execution time: %.3fms; Kernel took %.3fms and %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start)))
+            logger.debug("execution time: %.3fms; Kernel took %.3fms and %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start)))
 
         return g
 
@@ -164,7 +165,7 @@ class TestGaussian(unittest.TestCase):
                                                numpy.int32(size))  # const        int     SIZE
         g = g_gpu.get()
         if cls.PROFILE:
-            logger.info("execution time: %.3fms; Kernel took %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start)))
+            logger.debug("execution time: %.3fms; Kernel took %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start)))
         return g
 
     def test_v1_odd(self):

@@ -134,11 +134,11 @@ class TestAlgebra(unittest.TestCase):
         ref = my_combine(mat1, coeff1, mat2, coeff2)
         t2 = time.time()
         delta = abs(ref - res).max()
-        logger.info("delta=%s" % delta)
+        logger.debug("delta=%s" % delta)
         self.assert_(delta < 1e-4, "delta=%s" % (delta))
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.info("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
+            logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
     def test_compact(self):
         """
@@ -172,7 +172,8 @@ class TestAlgebra(unittest.TestCase):
         ref, count_ref = my_compact(keypoints, nbkeypoints)
         t2 = time.time()
 
-        print("Kernel counter : %s / Python counter : %s / True value : %s" % (count, count_ref, nbkeypoints - nb_ones))
+        logger.debug("Kernel counter : %s / Python counter : %s / True value : %s",
+                     count, count_ref, nbkeypoints - nb_ones)
 
         res_sort_arg = res[:, 2].argsort(axis=0)
         res_sort = res[res_sort_arg]
@@ -181,10 +182,10 @@ class TestAlgebra(unittest.TestCase):
         delta = abs((res_sort - ref_sort)).max()
         self.assert_(delta < 1e-5, "delta=%s" % (delta))
         self.assertEqual(count, count_ref, "counters are the same")
-        logger.info("delta=%s" % delta)
+        logger.debug("delta=%s", delta)
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.info("Compact operation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.",1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+            logger.debug("Compact operation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
 
 
 def suite():
