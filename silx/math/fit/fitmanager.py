@@ -62,7 +62,7 @@ _logger = logging.getLogger(__name__)
 
 class FitManager(object):
     """
-    Multi-peak fitting functions manager
+    Fit functions manager
 
     :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
         ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
@@ -72,36 +72,22 @@ class FitManager(object):
     :type y: Sequence or numpy array or None
     :param sigmay: The uncertainties in the ``ydata`` array. These are
         used as weights in the least-squares problem.
-        If ``None``, the uncertainties are assumed to be 1.
+        If ``None``, the uncertainties are assumed to be 1, unless
+        ``auto_weight`` is ``True``, in which case the square-root
+        of ``y`` is used.
     :type sigmay: Sequence or numpy array or None
-
-    :param auto_fwhm: Flag to enable or disable automatic estimation of
-        the peaks' full width at half maximum.
-    :param fwhm_points:
-    :param sensitivity: Sensitivity value used for by peak detection
-        algorithm. To be detected, a peak must have an amplitude greater
-        than ``σn * sensitivity`` (where ``σn`` is an estimated value of
-        the standard deviation of the noise). Thus, the number of detected
-        peaks increases if you set a *lower* sensitivity value.
+    :param auto_weight: If this parameter is ``True`` and ``sigmay``
+        uncertainties are not specified, the square root of ``y`` is used
+        as weights in the least-squares problem.
+    :type auto_weight: boolean
     """
-    # TODO: document following attributes
-    # Data attributes:
-    #
-    #  - :attr:`xdata0`, :attr:`ydata0` and :attr:`sigmay0` store the initial data
-    #    and uncertainties. These attributes are not modified after
-    #    initialization.
-    #  - :attr:`xdata`, :attr:`ydata` and :attr:`sigmay` store the data after
-    #    removing values where :attr:`xdata < xmin` or :attr:`xdata > xmax`.
-    #    These attributes may be modified at a latter stage by filters.
-
-    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=True, fwhm_points=8,
-                 sensitivity=2.5):
+    def __init__(self, x=None, y=None, sigmay=None, auto_weight=False):
         """
         """
         self.fitconfig = {
-            'AutoFwhm': auto_fwhm,
-            'FwhmPoints': fwhm_points,
-            'Sensitivity': sensitivity,
+            'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
+                               # we can get rid of this param (will be defined in fittheories for peak detection)
+            'AutoWeightFlag': auto_weight,
             'fitbkg': 'No Background',
             'fittheory': None,
             'StripWidth': 2,
@@ -116,10 +102,8 @@ class FitManager(object):
 
             - 'fitbkg': name of the function used for fitting a low frequency
               background signal
-            - 'AutoFwhm': Flag to enable or disable automatic estimation of
-              the peaks' full width at half maximum.
             - 'FwhmPoints': default full width at half maximum value for the
-              peaks'. Ignored if ``AutoFwhm==True``.
+              peaks'.
             - 'Sensitivity': Sensitivity parameter for the peak detection
               algorithm (:func:`silx.math.fit.peak_search`)
         """
@@ -666,7 +650,6 @@ class FitManager(object):
               removing values where ``xdata < xmin`` or ``xdata > xmax``.
               These attributes may be modified at a latter stage by filters.
 
-
         :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
             ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
         :type x: Sequence or numpy array or None
@@ -698,10 +681,14 @@ class FitManager(object):
                 self.xdata0 = numpy.array(x)
                 self.xdata = numpy.array(x)
 
-            # default weight in the least-square problem is 1.
-            if sigmay is None:
+            # default weight in the least-square problem is 1 (defined in leastsq function)
+            if sigmay is None and not self.fitconfig["AutoWeightFlag"]:
                 self.sigmay0 = None
                 self.sigmay = None
+            # if AutoWeightFlag is set, default weight are sqrt(y)
+            elif sigmay is None and self.fitconfig["AutoWeightFlag"]:
+                self.sigmay0 = numpy.sqrt(self.ydata0)
+                self.sigmay = numpy.sqrt(self.ydata)
             else:
                 self.sigmay0 = numpy.array(sigmay)
                 self.sigmay = numpy.array(sigmay)
@@ -1202,8 +1189,7 @@ def test():
     y = 2.65 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
-    fit = FitManager(auto_fwhm=True,
-                     sensitivity=0.25)
+    fit = FitManager()
     # more sensitivity necessary to resolve
     # overlapping peaks at x=690 and x=800.5
     fit.setdata(x=x, y=y)
