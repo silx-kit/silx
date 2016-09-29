@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "28/09/2016"
+__date__ = "29/09/2016"
 
 
 import logging
@@ -62,6 +62,10 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         """
         if source_left.column() != Hdf5TreeModel.NAME_COLUMN:
             return super(NexusSortFilterProxyModel, self).lessThan(source_left, source_right)
+
+        # Do not sort child of root (files)
+        if source_left.parent() == qt.QModelIndex():
+            return source_left.row() < source_right.row()
 
         left = self.sourceModel().data(source_left, Hdf5TreeModel.H5PY_ITEM_ROLE)
         right = self.sourceModel().data(source_right, Hdf5TreeModel.H5PY_ITEM_ROLE)
