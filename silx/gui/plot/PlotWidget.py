@@ -152,6 +152,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         else:
             _logger.warning("Plot backend does not support widget")
 
+        self.setFocusPolicy(qt.Qt.StrongFocus)
+        self.setFocus(qt.Qt.OtherFocusReason)
+
     def notify(self, event, **kwargs):
         """Override :meth:`Plot.notify` to send Qt signals."""
         eventDict = kwargs.copy()

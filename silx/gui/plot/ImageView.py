@@ -955,6 +955,7 @@ def main(argv=None):
         mainWindow.addToolBar(multiFrameToolbar)
 
     mainWindow.show()
+    mainWindow.setFocus(qt.Qt.OtherFocusReason)
 
     return app.exec_()
 
