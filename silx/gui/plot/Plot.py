@@ -1978,6 +1978,7 @@ class Plot(object):
                 self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setXAxisLogarithmic', state=self._logX)
@@ -2021,6 +2022,7 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setYAxisLogarithmic', state=self._logY)
