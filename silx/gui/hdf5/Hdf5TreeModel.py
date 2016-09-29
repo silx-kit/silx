@@ -267,7 +267,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             node = self.nodeFromIndex(index)
             if self.__fileMoveEnabled and node.parent is self.__root:
                 # that's a root
-                return qt.Qt.ItemIsEditable | qt.Qt.ItemIsDragEnabled | defaultFlags
+                return qt.Qt.ItemIsDragEnabled | defaultFlags
             return defaultFlags
         elif self.__fileDropEnabled or self.__fileMoveEnabled:
             return qt.Qt.ItemIsDropEnabled | defaultFlags
