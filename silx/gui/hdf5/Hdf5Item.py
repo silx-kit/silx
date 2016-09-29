@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "29/09/2016"
 
 
 import numpy
@@ -285,7 +285,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
-                return None
+                return ""
             shape = [str(i) for i in self.obj.shape]
             text = u" \u00D7 ".join(shape)
             return text
@@ -334,7 +334,7 @@ class Hdf5Item(Hdf5Node):
             if "desc" in self.obj.attrs:
                 text = self.obj.attrs["desc"]
             else:
-                return None
+                return ""
             return text
         if role == qt.Qt.ToolTipRole:
             if self.__error is not None:
