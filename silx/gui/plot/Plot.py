@@ -198,7 +198,7 @@ __license__ = "MIT"
 __date__ = "23/02/2016"
 
 
-from collections import OrderedDict, namedtuple
+from collections import Iterable, OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -706,11 +706,15 @@ class Plot(object):
         :param str ylabel: Y axis label to show when this curve is active,
                            or None to keep default axis label.
         :param origin: (origin X, origin Y) of the data.
+                       It is possible to pass a single float if both
+                       coordinates are equal.
                        Default: (0., 0.)
-        :type origin: 2-tuple of float
+        :type origin: float or 2-tuple of float
         :param scale: (scale X, scale Y) of the data.
-                       Default: (1., 1.)
-        :type scale: 2-tuple of float
+                      It is possible to pass a single float if both
+                      coordinates are equal.
+                      Default: (1., 1.)
+        :type scale: float or 2-tuple of float
         :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
@@ -743,10 +747,16 @@ class Plot(object):
         data = numpy.asarray(data)
 
         if origin is not None:
-            origin = float(origin[0]), float(origin[1])
+            if isinstance(origin, Iterable):
+                origin = float(origin[0]), float(origin[1])
+            else:  # single value origin
+                origin = float(origin), float(origin)
 
         if scale is not None:
-            scale = float(scale[0]), float(scale[1])
+            if isinstance(scale, Iterable):
+                scale = float(scale[0]), float(scale[1])
+            else:  # single value scale
+                scale = float(scale), float(scale)
 
         if z is not None:
             z = int(z)
