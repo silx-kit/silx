@@ -57,3 +57,15 @@ cdef extern from "filters.h":
                       long len_input,
                       int npoints,
                       double* output)
+
+    void smooth1d(double *data,
+                  int size)
+
+    void smooth2d(double *data,
+                  int size0,
+                  int size1)
+
+    void smooth3d(double *data,
+                  int size0,
+                  int size1,
+                  int size2)
