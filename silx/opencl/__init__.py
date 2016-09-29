@@ -198,10 +198,11 @@ class Platform(object):
         return out
 
 
-def _measure_workgroup_size(device_or_context):
+def _measure_workgroup_size(device_or_context, fast=False):
     """Mesure the maximal work group size of the given device
     
     :param device: instance of pyopencl.Device or pyopencl.Context
+    :param fast: ask the kernel the valid value, don't probe it
     :return: maximum size for the workgroup
     """
     if isinstance(device_or_context, pyopencl.Device):
@@ -222,27 +223,29 @@ def _measure_workgroup_size(device_or_context):
     d_data_1 = pyopencl.array.zeros_like(d_data) + 1
 
     program = pyopencl.Program(ctx, get_opencl_code("addition")).build()
-
-    maxi = int(round(numpy.log2(shape)))
-    for i in range(maxi+1):
-        d_res = pyopencl.array.empty_like(d_data)
-        wg = 1 << i
-        try:
-            evt = program.addition(queue, (shape,), (wg,),
-                   d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
-            evt.wait()
-        except Exception as error:
-            logger.warn("%s on device %s for WG=%s/%s"%(error, device.name, wg, shape))
-            program = queue = d_res = d_data_1 = d_data = None
-            break;
-        else:
-            res = d_res.get()
-            good = numpy.allclose(res, data + 1 )
-            if good:
-                if wg>max_valid_wg:
-                    max_valid_wg = wg
+    if fast:
+        max_valid_wg = program.addition.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+    else:
+        maxi = int(round(numpy.log2(shape)))
+        for i in range(maxi+1):
+            d_res = pyopencl.array.empty_like(d_data)
+            wg = 1 << i
+            try:
+                evt = program.addition(queue, (shape,), (wg,),
+                       d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
+                evt.wait()
+            except Exception as error:
+                logger.info("%s on device %s for WG=%s/%s"%(error, device.name, wg, shape))
+                program = queue = d_res = d_data_1 = d_data = None
+                break;
             else:
-                logger.warn("ArithmeticError on %s for WG=%s/%s"%(wg, device.name, shape))
+                res = d_res.get()
+                good = numpy.allclose(res, data + 1 )
+                if good:
+                    if wg>max_valid_wg:
+                        max_valid_wg = wg
+                else:
+                    logger.warn("ArithmeticError on %s for WG=%s/%s"%(wg, device.name, shape))
                 
     return max_valid_wg
 
@@ -288,7 +291,7 @@ class OpenCL(object):
                 workgroup = device.max_work_group_size
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
                     logger.warning("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
-                    workgroup = _measure_workgroup_size(device)
+                    workgroup = _measure_workgroup_size(device, fast=True)
 
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,

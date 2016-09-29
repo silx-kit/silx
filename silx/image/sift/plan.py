@@ -184,18 +184,18 @@ class SiftPlan(object):
             self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
         else:
             self.queue = pyopencl.CommandQueue(self.ctx)
-
+        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
         self._calc_workgroups()
         self._compile_kernels()
         self._allocate_buffers()
         self.debug = []
         self.cnt = numpy.empty(1, dtype=numpy.int32)
-        self.devicetype = ocl.platforms[self.device[0]].devices[self.device[1]].type
+        self.devicetype = ocldevice.type
         if (self.devicetype == "CPU"):
             self.USE_CPU = True
         else:
             self.USE_CPU = False
-            if "HD Graphics" in ocl.platforms[self.device[0]].devices[self.device[1]].name:
+            if "HD Graphics" in ocldevice.name:
                 self.LOW_END = 2
 
     def __del__(self):
@@ -243,7 +243,7 @@ class SiftPlan(object):
         self.memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         self.memory += 4  # keypoint index Counter
         wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
-        self.red_size = 2 ** (int(math.ceil(math.log(wg_float, 2))))
+        self.red_size = 1 << (int(math.ceil(math.log(wg_float, 2))))
         self.memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
         ########################################################################
@@ -285,8 +285,6 @@ class SiftPlan(object):
         for scale in range(par.Scales + 3):
             self.buffers[scale] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
         self.buffers["DoGs"] = pyopencl.array.empty(self.queue, (par.Scales + 2, shape[0], shape[1]), dtype=numpy.float32)
-        wg_float = min(512.0, numpy.sqrt(self.shape[0] * self.shape[1]))
-#        wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
         self.buffers["max_min"] = pyopencl.array.empty(self.queue, (self.red_size, 2), dtype=numpy.float32)  # temporary buffer for max/min reduction
         self.buffers["min"] = pyopencl.array.empty(self.queue, (1), dtype=numpy.float32)
         self.buffers["max"] = pyopencl.array.empty(self.queue, (1), dtype=numpy.float32)
@@ -318,24 +316,32 @@ class SiftPlan(object):
         """
         name = "gaussian_%s" % sigma
         size = kernel_size(sigma, True)
-        wg_size = 2 ** int(math.ceil(math.log(size) / math.log(2)))
+        wg_size = 1 << int(math.ceil(math.log(size,2)))
 
-        logger.debug("Allocating %s float for blur sigma: %s" % (size, sigma))
-        if wg_size > self.max_workgroup_size:  # compute on CPU
-            x = numpy.arange(size) - (size - 1.0) / 2.0
-            gaus = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
-            gaus /= gaus.sum(dtype=numpy.float32)
-            gaussian_gpu = pyopencl.array.to_device(self.queue, gaus)
-        else:
+        logger.info("Allocating %s float for blur sigma: %s. wg=%s max_wg=%s", size, sigma,wg_size, self.max_workgroup_size)
+        try:
             gaussian_gpu = pyopencl.array.empty(self.queue, size, dtype=numpy.float32)
             evt = self.programs["gaussian"].gaussian(self.queue, (wg_size,), (wg_size,),
                                                      gaussian_gpu.data,  # __global     float     *data,
                                                      numpy.float32(sigma),  # const        float     sigma,
                                                      numpy.int32(size))  # const        int     SIZE
+        except pyopencl.LogicError as error:
+            device = self.ctx.devices[0]
+            wg1 = self.programs["gaussian"].gaussian.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+            logger.info("%s: gaussian wg: %s < max_work_group_size: %s",
+                        error, wg1, self.max_workgroup_size)
+            #common bug on OSX when running on CPU
+            x = numpy.arange(size) - (size - 1.0) / 2.0
+            gaus = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
+            gaus /= gaus.sum(dtype=numpy.float32)
+            gaussian_gpu = pyopencl.array.to_device(self.queue, gaus)
+        else:
             if self.profile:
                 self.events.append(("gaussian %s" % sigma, evt))
-        self.buffers[name] = gaussian_gpu
 
+        self.buffers[name] = gaussian_gpu
+        return gaussian_gpu
+        
     def _free_buffers(self):
         """free all memory allocated on the device
         """
@@ -385,7 +391,6 @@ class SiftPlan(object):
         The processing size should be a multiple of  workgroup size.
         """
         device = self.ctx.devices[0]
-#        max_work_group_size = device.max_work_group_size
         max_work_item_sizes = device.max_work_item_sizes
         if self.max_workgroup_size:
             self.max_workgroup_size = min(max_work_item_sizes[0], self.max_workgroup_size)
@@ -408,11 +413,14 @@ class SiftPlan(object):
                 # else it is not possible to run this kernel.
                 # If the kernel is not present in the dict, it should not be used.
 
+        wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        self.red_size = 1 << (int(math.ceil(math.log(wg_float, 2))))
+
         # we recalculate the shapes ...
         shape = self.shape
         min_size = 2 * par.BorderDist + 2
         while min(shape) > min_size:
-            wg = (min(2 ** int(math.ceil(math.log(shape[-1], 2))), self.max_workgroup_size), 1)
+            wg = (min(1 << int(math.ceil(math.log(shape[-1], 2))), self.max_workgroup_size), 1)
             self.wgsize.append(wg)
             self.procsize.append(calc_size(shape[-1::-1], wg))
             shape = tuple(i // 2 for i in shape)
@@ -464,18 +472,32 @@ class SiftPlan(object):
                     self.events.append(("convert -> float", evt))
             else:
                 raise RuntimeError("invalid input format error")
-
-            k1 = self.programs["reductions"].max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
-                                                                   self.buffers[0].data,
-                                                                   self.buffers["max_min"].data,
-                                                                   numpy.uint32(self.shape[0] * self.shape[1]))
-            k2 = self.programs["reductions"].max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
-                                                                   self.buffers["max_min"].data,
-                                                                   self.buffers["max"].data,
-                                                                   self.buffers["min"].data)
-            if self.profile:
-                self.events.append(("max_min_stage1", k1))
-                self.events.append(("max_min_stage2", k2))
+            kernel1 = self.programs["reductions"].max_min_global_stage1
+            kernel2 = self.programs["reductions"].max_min_global_stage2
+            try:
+                logger.debug("self.red_size: %s", self.red_size)
+                k1 = kernel1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
+                               self.buffers[0].data,
+                               self.buffers["max_min"].data,
+                               numpy.uint32(self.shape[0] * self.shape[1]))
+                k2 = kernel2(self.queue, (self.red_size,), (self.red_size,),
+                               self.buffers["max_min"].data,
+                               self.buffers["max"].data,
+                               self.buffers["min"].data)
+            except pyopencl.LogicError as error:
+                device = self.ctx.devices[0]
+                wg1 = kernel1.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+                wg2 = kernel2.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
+                logger.info("%s: max_min_global_stage1 wg: %s; max_min_global_stage2 wg: %s < max_work_group_size: %s",
+                            error, wg1, wg2, self.max_workgroup_size)
+                #common bug on OSX when running on CPU
+                buffer_ = self.buffers[0].get()
+                self.buffers["max"].set(buffer_.max())
+                self.buffers["min"].set(buffer_.min())
+            else:
+                if self.profile:
+                    self.events.append(("max_min_stage1", k1))
+                    self.events.append(("max_min_stage2", k2))
             evt = self.programs["preprocess"].normalizes(self.queue, self.procsize[0], self.wgsize[0],
                                                          self.buffers[0].data,
                                                          self.buffers["min"].data,
