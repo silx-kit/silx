@@ -196,7 +196,7 @@ class TestPlotRanges(ParametricTestCase):
                 self.assertTrue(numpy.array_equal(dataRange.x, xRange),
                                 msg='{0} != {1}'.format(dataRange.x, xRange))
                 self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
                 self.assertIsNone(dataRange.yright)
 
     def testDataRangeLeftRight(self):
@@ -294,7 +294,7 @@ class TestPlotRanges(ParametricTestCase):
                 self.assertSequenceEqual(dataRange.yright, yRangeR)
 
     def testDataRangeImageNegativeScaleX(self):
-        """image data range"""
+        """image data range, negative scale"""
 
         origin = (-10, 25)
         scale = (-3., 8.)
@@ -326,45 +326,45 @@ class TestPlotRanges(ParametricTestCase):
                 self.assertTrue(numpy.array_equal(dataRange.x, xRange),
                                 msg='{0} != {1}'.format(dataRange.x, xRange))
                 self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
                 self.assertIsNone(dataRange.yright)
 
 
-def testDataRangeImageNegativeScaleY(self):
-    """image data range"""
+    def testDataRangeImageNegativeScaleY(self):
+        """image data range, negative scale"""
 
-    origin = (-10, 25)
-    scale = (-3., 8.)
-    image = numpy.arange(100.).reshape(20, 5)
+        origin = (-10, 25)
+        scale = (3., -8.)
+        image = numpy.arange(100.).reshape(20, 5)
 
-    plot = Plot(backend='none')
-    plot.addImage(image,
-                  origin=origin, scale=scale)
+        plot = Plot(backend='none')
+        plot.addImage(image,
+                      origin=origin, scale=scale)
 
-    xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
-    yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
-    yRange.sort()  # negative scale!
+        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        yRange.sort()  # negative scale!
 
-    ranges = {(False, False): (xRange, yRange),
-              (True, False): (None, None),
-              (True, True): (None, None),
-              (False, True): (None, None)}
+        ranges = {(False, False): (xRange, yRange),
+                  (True, False): (None, None),
+                  (True, True): (None, None),
+                  (False, True): (None, None)}
 
-    for logX, logY in ((False, False),
-                       (True, False),
-                       (True, True),
-                       (False, True),
-                       (False, False)):
-        with self.subTest(logX=logX, logY=logY):
-            plot.setXAxisLogarithmic(logX)
-            plot.setYAxisLogarithmic(logY)
-            dataRange = plot.getDataRange()
-            xRange, yRange = ranges[logX, logY]
-            self.assertTrue(numpy.array_equal(dataRange.x, xRange),
-                            msg='{0} != {1}'.format(dataRange.x, xRange))
-            self.assertTrue(numpy.array_equal(dataRange.y, yRange),
-                            msg='{0} != {1}'.format(dataRange.x, xRange))
-            self.assertIsNone(dataRange.yright)
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = ranges[logX, logY]
+                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
+                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertIsNone(dataRange.yright)
 
 
 def suite():
