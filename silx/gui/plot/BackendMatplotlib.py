@@ -24,6 +24,8 @@
 # ###########################################################################*/
 """Matplotlib Plot backend."""
 
+from __future__ import division
+
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
 __date__ = "15/09/2016"
@@ -206,19 +208,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                     axes.fill_between(x, 1.0e-8, y,
                                       facecolor=color, linewidth=0))
 
-        # This complies with _getDataLimits
-        artists[-1]._plot_info = {
-            'axes': yaxis,
-            # this is needed for scatter plots because I do not know
-            # how to recover the data yet, it can speed up limits too
-            'xmin': numpy.nanmin(x),
-            'xmax': numpy.nanmax(x),
-            'ymin': numpy.nanmin(y),
-            'ymax': numpy.nanmax(y),
-        }
-
-        artists[-1].axes = axes
-
         for artist in artists:
             artist.set_zorder(z)
 
@@ -239,8 +228,12 @@ class BackendMatplotlib(BackendBase.BackendBase):
         h, w = data.shape[0:2]
         xmin = origin[0]
         xmax = xmin + scale[0] * w
+        if scale[0] < 0.:
+            xmin, xmax = xmax, xmin
         ymin = origin[1]
         ymax = ymin + scale[1] * h
+        if scale[1] < 0.:
+            ymin, ymax = ymax, ymin
         extent = (xmin, xmax, ymax, ymin)
 
         picker = (selectable or draggable)
@@ -632,178 +625,52 @@ class BackendMatplotlib(BackendBase.BackendBase):
             yLimits = self.getGraphYLimits(axis='left')
             y2Limits = self.getGraphYLimits(axis='right')
 
-            xmin, xmax, ymin, ymax = self._getDataLimits('left')
-            if hasattr(self.ax2, "get_visible"):
-                if self.ax2.get_visible():
-                    xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
-                else:
-                    xmin2, xmax2, ymin2, ymax2 = None, None, None, None
+            # Get data range
+            ranges = self._plot.getDataRange()
+            xmin, xmax = (1., 100.) if ranges.x is None else ranges.x
+            ymin, ymax = (1., 100.) if ranges.y is None else ranges.y
+            if ranges.yright is None:
+                ymin2, ymax2 = None, None
             else:
-                xmin2, xmax2, ymin2, ymax2 = self._getDataLimits('right')
-
-            if (xmin2 is not None) and ((xmin2 != 0) or (xmax2 != 1)):
-                xmin = min(xmin, xmin2)
-                xmax = max(xmax, xmax2)
+                ymin2, ymax2 = ranges.yright
 
             # Add margins around data inside the plot area
-            newLimits = _utils.addMarginsToLimits(
+            newLimits = list(_utils.addMarginsToLimits(
                 dataMargins,
                 self.ax.get_xscale() == 'log',
                 self.ax.get_yscale() == 'log',
-                xmin, xmax, ymin, ymax, ymin2, ymax2)
+                xmin, xmax, ymin, ymax, ymin2, ymax2))
+
+            if self.isKeepDataAspectRatio():
+                # Compute bbox wth figure aspect ratio
+                figW, figH = self.fig.get_size_inches()
+                figureRatio = figH / figW
+
+                dataRatio = (ymax - ymin) / (xmax - xmin)
+                if dataRatio < figureRatio:
+                    # Increase y range
+                    ycenter = 0.5 * (newLimits[3] - newLimits[2])
+                    yrange = (xmax - xmin) * figureRatio
+                    newLimits[2] = ycenter - 0.5 * yrange
+                    newLimits[3] = ycenter + 0.5 * yrange
+
+                elif dataRatio > figureRatio:
+                    # Increase x range
+                    xcenter = 0.5 * (newLimits[1] - newLimits[0])
+                    xrange_ = (ymax - ymin) / figureRatio
+                    newLimits[0] = xcenter - 0.5 * xrange_
+                    newLimits[1] = xcenter + 0.5 * xrange_
 
             self.setLimits(*newLimits)
 
             if not xAuto and yAuto:
                 self.setGraphXLimits(*xLimits)
             elif xAuto and not yAuto:
-                self.setGraphYLimits(y2Limits[0], y2Limits[1], axis='right')
-                self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
-
-    def _getDataLimits(self, axesLabel='left'):
-        """Returns the bounds of the data.
-
-        :param str axesLabel: The Y axis to consider in 'left', 'right'
-        :return: The data bounds
-        :rtype: 4-tuple of float (xmin, xmax, ymin, ymax)
-        """
-        if axesLabel == 'right':
-            axes = self.ax2
-        else:
-            axes = self.ax
-        _logger.debug("CALCULATING limits %s", axes.get_label())
-        xmin = None
-
-        for line2d in axes.lines:
-            label = line2d.get_label()
-            if label.startswith("__MARKER__"):
-                # it is a marker
-                continue
-            lineXMin = None
-            if hasattr(line2d, "_plot_info"):
-                if line2d._plot_info["axes"] != axesLabel:
-                    continue
-                if "xmin" in line2d._plot_info:
-                    lineXMin = line2d._plot_info["xmin"]
-                    lineXMax = line2d._plot_info["xmax"]
-                    lineYMin = line2d._plot_info["ymin"]
-                    lineYMax = line2d._plot_info["ymax"]
-            if lineXMin is None:
-                x = line2d.get_xdata()
-                y = line2d.get_ydata()
-                if not len(x) or not len(y):
-                    continue
-                lineXMin = numpy.nanmin(x)
-                lineXMax = numpy.nanmax(x)
-                lineYMin = numpy.nanmin(y)
-                lineYMax = numpy.nanmax(y)
-            if xmin is None:
-                xmin = lineXMin
-                xmax = lineXMax
-                ymin = lineYMin
-                ymax = lineYMax
-                continue
-            xmin = min(xmin, lineXMin)
-            xmax = max(xmax, lineXMax)
-            ymin = min(ymin, lineYMin)
-            ymax = max(ymax, lineYMax)
-
-        for line2d in axes.collections:
-            label = line2d.get_label()
-            if label.startswith("__MARKER__"):
-                # it is a marker
-                continue
-            lineXMin = None
-            if hasattr(line2d, "_plot_info"):
-                if line2d._plot_info["axes"] != axesLabel:
-                    continue
-                if "xmin" in line2d._plot_info:
-                    lineXMin = line2d._plot_info["xmin"]
-                    lineXMax = line2d._plot_info["xmax"]
-                    lineYMin = line2d._plot_info["ymin"]
-                    lineYMax = line2d._plot_info["ymax"]
-            if lineXMin is None:
-                _logger.debug("CANNOT CALCULATE LIMITS")
-                continue
-            if xmin is None:
-                xmin = lineXMin
-                xmax = lineXMax
-                ymin = lineYMin
-                ymax = lineYMax
-                continue
-            xmin = min(xmin, lineXMin)
-            xmax = max(xmax, lineXMax)
-            ymin = min(ymin, lineYMin)
-            ymax = max(ymax, lineYMax)
-
-        for artist in axes.images:
-            x0, x1, y0, y1 = artist.get_extent()
-            if (xmin is None):
-                xmin = x0
-                xmax = x1
-                ymin = min(y0, y1)
-                ymax = max(y0, y1)
-            xmin = min(xmin, x0)
-            xmax = max(xmax, x1)
-            ymin = min(ymin, y0)
-            ymax = max(ymax, y1)
-
-        for artist in axes.artists:
-            label = artist.get_label()
-            if label.startswith("__IMAGE__"):
-                if hasattr(artist, 'get_image_extent'):
-                    x0, x1, y0, y1 = artist.get_image_extent()
-                else:
-                    x0, x1, y0, y1 = artist.get_extent()
-                if (xmin is None):
-                    xmin = x0
-                    xmax = x1
-                    ymin = min(y0, y1)
-                    ymax = max(y0, y1)
-                ymin = min(ymin, y0, y1)
-                ymax = max(ymax, y1, y0)
-                xmin = min(xmin, x0)
-                xmax = max(xmax, x1)
-
-        if xmin is None:
-            _logger.debug('Did not found any limits, set to default')
-            xmin = 1
-            xmax = 100
-            ymin = 1
-            ymax = 100
-            if axesLabel == 'right':
-                _logger.debug('Returning None')
-                return None, None, None, None
-
-        xSize = float(xmax - xmin)
-        ySize = float(ymax - ymin)
-        A = self.ax.get_aspect()
-        if A != 'auto':
-            figW, figH = self.fig.get_size_inches()
-            figAspect = figH / figW
-
-            dataRatio = (ySize / xSize) * A
-
-            y_expander = dataRatio - figAspect
-            # If y_expander > 0, the dy/dx viewLim ratio needs to increase
-            if abs(y_expander) < 0.005:
-                # good enough
-                pass
-            else:
-                # this works for any data ratio
-                if y_expander < 0:
-                    deltaY = xSize * (figAspect / A) - ySize
-                    yc = 0.5 * (ymin + ymax)
-                    ymin = yc - (ySize + deltaY) * 0.5
-                    ymax = yc + (ySize + deltaY) * 0.5
-                else:
-                    deltaX = ySize * (A / figAspect) - xSize
-                    xc = 0.5 * (xmin + xmax)
-                    xmin = xc - (xSize + deltaX) * 0.5
-                    xmax = xc + (xSize + deltaX) * 0.5
-        _logger.debug(
-            "CALCULATED LIMITS = %f %f %f %f", xmin, xmax, ymin, ymax)
-        return xmin, xmax, ymin, ymax
+                if y2Limits is not None:
+                    self.setGraphYLimits(
+                        y2Limits[0], y2Limits[1], axis='right')
+                if yLimits is not None:
+                    self.setGraphYLimits(yLimits[0], yLimits[1], axis='left')
 
     def setLimits(self, xmin, xmax, ymin, ymax, y2min=None, y2max=None):
         # Let matplotlib taking care of keep aspect ratio if any
@@ -812,9 +679,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         if y2min is not None and y2max is not None:
             if not self.isYAxisInverted():
-                self.ax.set_ylim(min(y2min, y2max), max(y2min, y2max))
+                self.ax2.set_ylim(min(y2min, y2max), max(y2min, y2max))
             else:
-                self.ax.set_ylim(max(y2min, y2max), min(y2min, y2max))
+                self.ax2.set_ylim(max(y2min, y2max), min(y2min, y2max))
 
         if not self.isYAxisInverted():
             self.ax.set_ylim(min(ymin, ymax), max(ymin, ymax))
@@ -888,6 +755,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
     def setKeepDataAspectRatio(self, flag):
         self.ax.set_aspect(1.0 if flag else 'auto')
+        self.ax2.set_aspect(1.0 if flag else 'auto')
 
     def setGraphGrid(self, which):
         self.ax.grid(False, which='both')  # Disable all grid first
@@ -970,23 +838,24 @@ class BackendMatplotlib(BackendBase.BackendBase):
     # Data <-> Pixel coordinates conversion
 
     def dataToPixel(self, x, y, axis):
-        ax = self.ax2 if "axis" == "right" else self.ax
+        ax = self.ax2 if axis == "right" else self.ax
 
         pixels = ax.transData.transform_point((x, y))
         xPixel, yPixel = pixels.T
         return xPixel, yPixel
 
     def pixelToData(self, x, y, axis, check):
-        ax = self.ax2 if "axis" == "right" else self.ax
+        ax = self.ax2 if axis == "right" else self.ax
 
         inv = ax.transData.inverted()
         x, y = inv.transform_point((x, y))
 
-        xmin, xmax = self.getGraphXLimits()
-        ymin, ymax = self.getGraphYLimits(axis=axis)
+        if check:
+            xmin, xmax = self.getGraphXLimits()
+            ymin, ymax = self.getGraphYLimits(axis=axis)
 
-        if check and (x > xmax or x < xmin or y > ymax or y < ymin):
-            return None  # (x, y) is out of plot area
+            if x > xmax or x < xmin or y > ymax or y < ymin:
+                return None  # (x, y) is out of plot area
 
         return x, y
 
