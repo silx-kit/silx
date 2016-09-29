@@ -86,7 +86,7 @@ import logging
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
-from silx.math.fit.filters import strip
+from silx.math.fit.filters import strip, smooth1d
 from silx.math.fit.leastsq import leastsq
 from silx.math.fit.fittheory import FitTheory
 
@@ -144,6 +144,7 @@ DEFAULT_CONFIG = {
     'SameAreaRatioFlag': 1,
     # Strip bg removal
     'StripBackgroundFlag': True,
+    'SmoothStrip': True,
     'StripWidth': 2,
     'StripNIterations': 5000,
     'StripThresholdFactor': 1.0}
@@ -202,6 +203,8 @@ class FitTheories(object):
         StripNIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
+            if self.config['SmoothStrip']:
+                y = smooth1d(y)
             strip_width = self.config['StripWidth']
             strip_niterations = self.config['StripNIterations']
             strip_thr_factor = self.config['StripThresholdFactor']

@@ -48,14 +48,14 @@ from numpy.linalg.linalg import LinAlgError
 import os
 import sys
 
-from .filters import strip
+from .filters import strip, smooth1d
 from .leastsq import leastsq
 from .fittheory import FitTheory
 
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/08/2016"
+__date__ = "29/08/2016"
 
 _logger = logging.getLogger(__name__)
 
@@ -106,7 +106,8 @@ class FitManager(object):
             'fittheory': None,
             'StripWidth': 2,
             'StripNIterations': 5000,
-            'StripThresholdFactor': 1.0
+            'StripThresholdFactor': 1.0,
+            'SmoothStrip': False
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -920,6 +921,8 @@ class FitManager(object):
                 if self.fitconfig["fitbkg"] == "No Background":
                     bg = numpy.zeros_like(y)
                 else:
+                    if self.fitconfig["SmoothStrip"]:
+                        y = smooth1d(y)
                     bg = strip(y,
                                w=self.fitconfig["StripWidth"],
                                niterations=self.fitconfig["StripNIterations"],
@@ -960,6 +963,9 @@ class FitManager(object):
 
         Parameters are *(strip_width, n_iterations)*
 
+        A 1D smoothing is applied prior to the stripping, if configuration
+        parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
+
         See http://pymca.sourceforge.net/stripbackground.html
         """
         if self._bkg_strip_oldpars[0] == pars[0]:
@@ -975,6 +981,9 @@ class FitManager(object):
         self._bkg_strip_oldpars = pars
         idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
         yy = numpy.take(self.ydata, idx)
+        if self.fitconfig["SmoothStrip"]:
+            yy = smooth1d(yy)
+
         nrx = numpy.shape(x)[0]
         nry = numpy.shape(yy)[0]
         if nrx == nry:
@@ -1075,6 +1084,8 @@ class FitManager(object):
         # TODO: document square filter
 
         # extract bg by applying a strip filter
+        if self.fitconfig["SmoothStrip"]:
+            y = smooth1d(y)
         background = strip(y,
                            w=self.fitconfig["StripWidth"],
                            niterations=self.fitconfig["StripNIterations"],

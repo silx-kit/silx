@@ -420,6 +420,41 @@ class BackgroundPage(qt.QGroupBox):
         return ddict
 
 
+class SmoothPage(qt.QWidget):
+    def __init__(self, parent=None):
+        super(SmoothPage, self).__init__(parent)
+        layout = qt.QVBoxLayout(self)
+
+        self.smoothStripCB = qt.QCheckBox("Apply smoothing prior to strip", self)
+        self.smoothStripCB.setToolTip(
+                "Apply a simple smoothing (weighted average of neighboring" +
+                " sample) before subtracting strip background in fit and " +
+                "estimate processes")
+        layout.addWidget(self.smoothStripCB)
+
+        layout.addStretch()
+
+        self.setDefault()
+
+    def setDefault(self, default_dict=None):
+        """Set default values for all widgets.
+
+        :param default_dict: If a default config dictionary is provided as
+            a parameter, its values are used as default values."""
+        if default_dict is None:
+            default_dict = {}
+        self.smoothStripCB.setChecked(
+                default_dict.get('SmoothStrip', False))
+
+    def get(self):
+        """Return a dictionary of peak search parameters, to be processed by
+        the :meth:`configure` method of the selected fit theory."""
+        ddict = {
+            'SmoothStrip': self.smoothStripCB.isChecked(),
+        }
+        return ddict
+
+
 def safe_float(string_, default=1.0):
     """Convert a string into a float.
     If the conversion fails, return the default value.
@@ -457,6 +492,7 @@ def getFitConfigDialog(parent=None, default=None, modal=True):
     tdd.addTab(ConstraintsPage(), label="Constraints")
     tdd.addTab(SearchPage(), label="Peak search")
     tdd.addTab(BackgroundPage(), label="Background")
+    tdd.addTab(SmoothPage(), label="Smoothing")
     # apply default to newly added pages
     tdd.setDefault()
 
