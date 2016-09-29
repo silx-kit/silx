@@ -99,6 +99,10 @@ def plot(*args, **kwargs):
             - '-.' dash-dot line
             - ':'  dotted line
 
+    Remark: The first curve will always be displayed in black no matter the
+    given color. This is because it is selected by default and this is shown
+    by using the black color.
+
     :param str title: The title of the Plot widget
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
@@ -145,26 +149,29 @@ def plot(*args, **kwargs):
         symbol, linestyle, color = None, None, None
 
         # Parse style
-
-        # Handle color first
-        for c in COLORDICT:
-            if style.startswith(c):
-                color = c
-                style = style[len(c):]
-
         if style:
-            # Run twice to handle inversion symbol/linestyle
-            for i in range(2):
-                # Handle linestyle
-                for line in (' ', '-', '--', '-.', ':'):
-                    if style.endswith(line):
-                        linestyle = line
-                        style = style[:-len(line)]
+            # Handle color first
+            for c in COLORDICT:
+                if style.startswith(c):
+                    color = c
+                    style = style[len(c):]
 
-                # Handle symbol
-                if style[-1] in ('o', '.', ',', '+', 'x', 'd', 's'):
-                    symbol = style[-1]
-                    style = style[:-1]
+            if style:
+                # Run twice to handle inversion symbol/linestyle
+                for i in range(2):
+                    # Handle linestyle
+                    for line in (' ', '-', '--', '-.', ':'):
+                        if style.endswith(line):
+                            linestyle = line
+                            style = style[:-len(line)]
+                            break
+
+                    # Handle symbol
+                    for marker in ('o', '.', ',', '+', 'x', 'd', 's'):
+                        if style.endswith(marker):
+                            symbol = style[-1]
+                            style = style[:-1]
+                            break
 
         plt.addCurve(x, y,
                      legend=('curve_%d' % index),

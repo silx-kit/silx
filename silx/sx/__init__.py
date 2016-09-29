@@ -79,7 +79,7 @@ if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
         del _icons  # clean-up namespace
 
     from silx.gui.plot import *  # noqa
-    from ._plot import plot1d, imshow  # noqa
+    from ._plot import plot, imshow  # noqa
 
 
 # %pylab
