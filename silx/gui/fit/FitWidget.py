@@ -52,7 +52,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/08/2016"
+__date__ = "29/09/2016"
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)
@@ -119,15 +119,13 @@ class FitWidget(qt.QWidget):
         # self.guiParameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
-            # todo:
-            #     - separate theory selection from config
-
             self.guiConfig = FitConfigWidget(self)
 
             self.guiConfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
             self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
             self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
             layout.addWidget(self.guiConfig)
 
             for theory_name in self.fitmanager.bgtheories:
@@ -144,31 +142,24 @@ class FitWidget(qt.QWidget):
                     self.fitmanager.theories[theory_name].description,
                     qt.Qt.ToolTipRole)
 
-            if fitmngr is not None:
-                # customized FitManager provided in __init__:
-                #    - activate selected fit theory (if any)
-                #    - activate selected bg theory (if any)
-                configuration = fitmngr.configure()
-                if fitmngr.selectedtheory is None:
-                    # take the first one by default
-                    self.guiConfig.FunComBox.setCurrentIndex(1)
-                    self.funEvent(list(self.fitmanager.theories.keys())[0])
-                else:
-                    self.funEvent(fitmngr.selectedtheory)
-                if fitmngr.selectedbg is None:
-                    self.guiConfig.BkgComBox.setCurrentIndex(0)
-                    self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
-                else:
-                    self.bkgEvent(fitmngr.selectedbg)
-            else:
-                # Default FitManager and fittheories used:
-                #    - activate first fit theory (gauss)
-                #    - activate first bg theory (no bg)
-                configuration = {}
-                self.guiConfig.BkgComBox.setCurrentIndex(0)
-                self.guiConfig.FunComBox.setCurrentIndex(1)  # Index 0 is "Add function"
+            #    - activate selected fit theory (if any)
+            #    - activate selected bg theory (if any)
+            configuration = self.fitmanager.configure()
+            if self.fitmanager.selectedtheory is None:
+                # take the first one by default
+                self.guiConfig.FunComBox.setCurrentIndex(1)
                 self.funEvent(list(self.fitmanager.theories.keys())[0])
+            else:
+                self.funEvent(self.fitmanager.selectedtheory)
+            if self.fitmanager.selectedbg is None:
+                self.guiConfig.BkgComBox.setCurrentIndex(0)
                 self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
+            else:
+                self.bkgEvent(self.fitmanager.selectedbg)
+
+            self.guiConfig.WeightCheckBox.setChecked(
+                    self.fitmanager.fitconfig.get("AutoWeightFlag", False))
+
             configuration.update(self.configure())
 
         layout.addWidget(self.guiParameters)
@@ -445,6 +436,14 @@ class FitWidget(qt.QWidget):
                     self.fitmanager.selectedtheory)
             self.guiConfig.FunComBox.setCurrentIndex(i)
         self.__initialParameters()
+
+    def weightEvent(self, flag):
+        """This is called when WeightCheckBox is clicked, to configure
+        AutoWeightFlag in :attr:`fitmanager.fitconfig` and compute weights
+        in the least-square problem as the square root of the data."""
+        self.configure(AutoWeightFlag=flag)
+        if flag:
+            self.fitmanager.autoweight()
 
     def __initialParameters(self):
         """Fill the fit parameters names with names of the parameters of

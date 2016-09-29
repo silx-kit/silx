@@ -702,6 +702,16 @@ class FitManager(object):
                 self.ydata = self.ydata[bool_array]
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
 
+    def autoweight(self):
+        """This method can be called to set :attr:`sigmay` equal to the
+        square root of :attr:`ydata`"""
+        if self.sigmay is not None:
+            _logger.warning("Refusing to overwrite existing sigmay values")
+            # should we allow that?
+            # currently one must use setdata(..., sigmay=...) to change it
+            return
+        self.sigmay = numpy.sqrt(self.ydata)
+
     def settheory(self, theory):
         """Pick a theory from :attr:`theories`.
 
