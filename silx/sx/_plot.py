@@ -33,21 +33,28 @@ __date__ = "27/09/2016"
 import logging
 import numpy
 
-from silx.gui.plot import Plot1D, Plot2D
+from ..gui.plot import Plot1D, Plot2D
+from ..gui.plot.Colors import COLORDICT
 
-import matplotlib
-import matplotlib.colors
+try:
+    from ..third_party import six
+except ImportError:
+    import six
 
 
 _logger = logging.getLogger(__name__)
 
 
-def plot1d(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
-    """Plot curves in a dedicated widget.
+def plot(*args, **kwargs):
+    """
+    Plot curves in a dedicated widget.
+
+    This function supports a subset of matplotlib.pyplot.plot arguments.
+    See: http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot
+
+    It opens a silx PlotWindow with its associated tools.
 
     Examples:
-
-    The following examples must run with a Qt QApplication initialized.
 
     First import :mod:`sx` function:
 
@@ -57,68 +64,116 @@ def plot1d(x_or_y=None, y=None, title='', xlabel='X', ylabel='Y'):
     Plot a single curve given some values:
 
     >>> values = numpy.random.random(100)
-    >>> plot_1curve = sx.plot1d(values, title='Random data')
+    >>> plot_1curve = sx.plot(values, title='Random data')
 
     Plot a single curve given the x and y values:
 
     >>> angles = numpy.linspace(0, numpy.pi, 100)
     >>> sin_a = numpy.sin(angles)
-    >>> plot_sinus = sx.plot1d(angles, sin_a,
-    ...                        xlabel='angle (radian)', ylabel='sin(a)')
+    >>> plot_sinus = sx.plot(angles, sin_a,
+    ...                      xlabel='angle (radian)', ylabel='sin(a)')
 
-    Plot many curves by giving a 2D array:
+    Plot many curves by giving a 2D array, provided xn, yn arrays:
 
-    >>> curves = numpy.random.random(10 * 100).reshape(10, 100)
-    >>> plot_curves = sx.plot1d(curves)
+    >>> plot_curves = sx.plot(x0, y0, x1, y1, x2, y2, ...)
 
-    Plot many curves sharing the same x values:
+    Plot curve with style giving a style string:
 
-    >>> angles = numpy.linspace(0, numpy.pi, 100)
-    >>> values = (numpy.sin(angles), numpy.cos(angles))
-    >>> plt = sx.plot1d(angles, values)
+    >>> plot_styled = sx.plot(x0, y0, 'ro-', x1, y1, 'b.')
 
-    :param x_or_y: x values or y values if y is not provided
-    :param y: y values (x_or_y) must be provided
+    Supported symbols:
+
+        - 'o' circle
+        - '.' point
+        - ',' pixel
+        - '+' cross
+        - 'x' x-cross
+        - 'd' diamond
+        - 's' square
+
+    Supported types of line:
+
+            - ' '  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+
     :param str title: The title of the Plot widget
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
     """
-    plot = Plot1D()
-    plot.setGraphTitle(title)
-    plot.setGraphXLabel(xlabel)
-    plot.setGraphYLabel(ylabel)
+    plt = Plot1D()
+    if 'title' in kwargs:
+        plt.setGraphTitle(kwargs['title'])
+    if 'xlabel' in kwargs:
+        plt.setGraphXLabel(kwargs['xlabel'])
+    if 'ylabel' in kwargs:
+        plt.setGraphYLabel(kwargs['ylabel'])
 
-    # Handle x_or_y and y arguments
-    if x_or_y is None and y is not None:
-        # Only y is provided, reorder arguments
-        x_or_y, y = y, None
+    # Parse args and store curves as (x, y, style string)
+    args = list(args)
+    curves = []
+    while args:
+        first_arg = args.pop(0)  # Process an arg
 
-    if x_or_y is not None:
-        x_or_y = numpy.array(x_or_y, copy=False)
-
-        if y is None:  # x_or_y is y and no x provided, create x values
-            y = x_or_y
-            x_or_y = numpy.arange(x_or_y.shape[-1], dtype=numpy.float32)
-
-        y = numpy.array(y, copy=False)
-        y = y.reshape(-1, y.shape[-1])  # Make it 2D array
-
-        if x_or_y.ndim == 1:
-            for index, ycurve in enumerate(y):
-                plot.addCurve(x_or_y, ycurve, legend=('curve_%d' % index))
-
+        if len(args) == 0:
+            # Last curve defined as (y,)
+            curves.append((numpy.arange(len(first_arg)), first_arg, None))
         else:
-            # Make x a 2D array as well
-            x_or_y = x_or_y.reshape(-1, x_or_y.shape[-1])
-            if x_or_y.shape[0] != y.shape[0]:
-                raise ValueError(
-                    'Not the same dimensions for x and y (%d != %d)' %
-                    (x_or_y.shape[0], y.shape[0]))
-            for index, (xcurve, ycurve) in enumerate(zip(x_or_y, y)):
-                plot.addCurve(xcurve, ycurve, legend=('curve_%d' % index))
+            second_arg = args.pop(0)
+            if isinstance(second_arg, six.string_types):
+                # curve defined as (y, style)
+                y = first_arg
+                style = second_arg
+                curves.append((numpy.arange(len(y)), y, style))
+            else:  # second_arg must be an array-like
+                x = first_arg
+                y = second_arg
+                if len(args) >= 1 and isinstance(args[0], six.string_types):
+                    # Curve defined as (x, y, style)
+                    style = args.pop(0)
+                    curves.append((x, y, style))
+                else:
+                    # Curve defined as (x, y)
+                    curves.append((x, y, None))
 
-    plot.show()
-    return plot
+    for index, curve in enumerate(curves):
+        x, y, style = curve
+
+        # Default style
+        symbol, linestyle, color = None, None, None
+
+        # Parse style
+
+        # Handle color first
+        for c in COLORDICT:
+            if style.startswith(c):
+                color = c
+                style = style[len(c):]
+
+        if style:
+            # Run twice to handle inversion symbol/linestyle
+            for i in range(2):
+                # Handle linestyle
+                for line in (' ', '-', '--', '-.', ':'):
+                    if style.endswith(line):
+                        linestyle = line
+                        style = style[:-len(line)]
+
+                # Handle symbol
+                if style[-1] in ('o', '.', ',', '+', 'x', 'd', 's'):
+                    symbol = style[-1]
+                    style = style[:-1]
+
+        plt.addCurve(x, y,
+                     legend=('curve_%d' % index),
+                     symbol=symbol,
+                     linestyle=linestyle,
+                     color=color)
+
+    plt.show()
+    return plt
 
 
 def imshow(data=None, cmap=None, norm='linear',
@@ -128,8 +183,12 @@ def imshow(data=None, cmap=None, norm='linear',
            title='', xlabel='X', ylabel='Y'):
     """Plot an image in a dedicated widget.
 
-    Example to plot an image.
-    This example must run with a Qt QApplication initialized.
+    This function supports a subset of matplotlib.pyplot.imshow arguments.
+    See: http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.imshow
+
+    It opens a silx PlotWindow with its associated tools.
+
+    Example to plot an image:
 
     >>> from silx import sx
     >>> import numpy
@@ -154,13 +213,13 @@ def imshow(data=None, cmap=None, norm='linear',
     :param str xlabel: The label of the X axis
     :param str ylabel: The label of the Y axis
     """
-    plot = Plot2D()
-    plot.setGraphTitle(title)
-    plot.setGraphXLabel(xlabel)
-    plot.setGraphYLabel(ylabel)
+    plt = Plot2D()
+    plt.setGraphTitle(title)
+    plt.setGraphXLabel(xlabel)
+    plt.setGraphYLabel(ylabel)
 
     # Update default colormap with input parameters
-    colormap = plot.getDefaultColormap()
+    colormap = plt.getDefaultColormap()
     if cmap is not None:
         colormap['name'] = cmap
     assert norm in ('linear', 'log')
@@ -171,13 +230,13 @@ def imshow(data=None, cmap=None, norm='linear',
         colormap['vmax'] = vmax
     if vmin is not None and vmax is not None:
         colormap['autoscale'] = False
-    plot.setDefaultColormap(colormap)
+    plt.setDefaultColormap(colormap)
 
     # Handle aspect
     if aspect in (None, False, 'auto', 'normal'):
-        plot.setKeepDataAspectRatio(False)
+        plt.setKeepDataAspectRatio(False)
     elif aspect in (True, 'equal') or aspect == 1:
-        plot.setKeepDataAspectRatio(True)
+        plt.setKeepDataAspectRatio(True)
     else:
         _logger.warning(
             'imshow: Unhandled aspect argument: %s', str(aspect))
@@ -189,7 +248,7 @@ def imshow(data=None, cmap=None, norm='linear',
         if data.ndim == 3:
             assert data.shape[-1] in (3, 4)  # RGB(A) image
 
-        plot.addImage(data, origin=origin, scale=scale)
+        plt.addImage(data, origin=origin, scale=scale)
 
-    plot.show()
-    return plot
+    plt.show()
+    return plt

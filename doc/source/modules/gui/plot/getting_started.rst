@@ -72,18 +72,18 @@ Plot functions
 
 The :mod:`silx.sx` package provides 2 functions to plot curves and images from the (I)Python console in a widget with a set of tools:
 
-- :func:`plot1d`, and
+- :func:`plot`, and
 - :func:`imshow`.
 
 For more features, use widgets directly (see `Plot curves in a widget`_ and `Plot images in a widget`_).
 
 
-Curve: :func:`plot1d`
-.....................
+Curve: :func:`plot`
+...................
 
 The following examples must run with a Qt QApplication initialized (see `Use silx.gui.plot from the console`_).
 
-First import :mod:`silx.sx` function:
+First import :mod:`sx` function:
 
 >>> from silx import sx
 >>> import numpy
@@ -91,27 +91,24 @@ First import :mod:`silx.sx` function:
 Plot a single curve given some values:
 
 >>> values = numpy.random.random(100)
->>> plot_1curve = sx.plot1d(values, title='Random data')
+>>> plot_1curve = sx.plot(values, title='Random data')
 
 Plot a single curve given the x and y values:
 
 >>> angles = numpy.linspace(0, numpy.pi, 100)
 >>> sin_a = numpy.sin(angles)
->>> plot_sinus = sx.plot1d(angles, sin_a,
-...                        xlabel='angle (radian)', ylabel='sin(a)')
+>>> plot_sinus = sx.plot(angles, sin_a,
+...                      xlabel='angle (radian)', ylabel='sin(a)')
 
-Plot many curves by giving a 2D array:
+Plot many curves by giving a 2D array, provided xn, yn arrays:
 
->>> curves = numpy.random.random(10 * 100).reshape(10, 100)
->>> plot_curves = sx.plot1d(curves)
+>>> plot_curves = sx.plot(x0, y0, x1, y1, x2, y2, ...)
 
-Plot many curves sharing the same x values:
+Plot curve with style giving a style string:
 
->>> angles = numpy.linspace(0, numpy.pi, 100)
->>> values = (numpy.sin(angles), numpy.cos(angles))
->>> plot = sx.plot1d(angles, values)
+>>> plot_styled = sx.plot(x0, y0, 'ro-', x1, y1, 'b.')
 
-See :func:`plot1d` for details.
+See :func:`plot` for details.
 
 
 Image: :func:`imshow`
@@ -124,10 +121,8 @@ First, import :mod:`silx.sx`:
 >>> from silx import sx
 >>> import numpy
 
-Then plot it:
-
 >>> data = numpy.random.random(1024 * 1024).reshape(1024, 1024)
->>> plot = sx.imshow(data, title='Random data')
+>>> plt = sx.imshow(data, title='Random data')
 
 See :func:`imshow` for more details.
 
