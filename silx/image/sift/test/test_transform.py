@@ -52,7 +52,7 @@ except ImportError:
 else:
     import scipy.misc
     import scipy.ndimage
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 # for Python implementation of tested functions
@@ -125,21 +125,25 @@ class TestTransform(unittest.TestCase):
         kp2 = s.keypoints(image2)  # image2 and image must have the same size
         m = MatchPlan(devicetype=DEVICETYPE)
         matching = m.match(kp2, kp1)
+#         print(numpy.isnan(matching))
         N = matching.shape[0]
         # solving normals equations for least square fit
         X = numpy.zeros((2 * N, 6))
         X[::2, 2:] = 1, 0, 0, 0
-        X[::2, 0] = matching.x[:, 0]
-        X[::2, 1] = matching.y[:, 0]
+        X[::2, 0] = matching[:, 0].x
+        X[::2, 1] = matching[:, 0].y
         X[1::2, 0:3] = 0, 0, 0
-        X[1::2, 3] = matching.x[:, 0]
-        X[1::2, 4] = matching.y[:, 0]
+        X[1::2, 3] = matching[:, 0].x
+        X[1::2, 4] = matching[:, 0].y
         X[1::2, 5] = 1
         y = numpy.zeros((2 * N, 1))
         y[::2, 0] = matching.x[:, 1]
         y[1::2, 0] = matching.y[:, 1]
         # A = numpy.dot(X.transpose(),X)
         # sol = numpy.dot(numpy.linalg.inv(A),numpy.dot(X.transpose(),y))
+#         print(X.shape, y.shape)
+#         print(X)
+#         print(y)
         sol = numpy.dot(numpy.linalg.pinv(X), y)
         MSE = numpy.linalg.norm(y - numpy.dot(X, sol)) ** 2 / N  # value of the sum of residuals at "sol"
         return sol, MSE
@@ -195,10 +199,8 @@ class TestTransform(unittest.TestCase):
         offset_value[0] = sol[2, 0]
         offset_value[1] = sol[5, 0]
 
-        wg = 8, 8
-        if self.maxwg < 64:
-            logger.warning("Max workgroup size is %s, < (8,8)", self.maxwg)
-            return
+        maxwg = kernel_workgroup_size(self.program,"transform")
+        wg = maxwg, 1
         shape = calc_size((output_width, output_height), wg)
         gpu_image = pyopencl.array.to_device(self.queue, image2)
         gpu_output = pyopencl.array.empty(self.queue, (output_height, output_width), dtype=numpy.float32, order="C")

@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "30/09/2016"
 
 import time
 import logging
@@ -126,7 +126,7 @@ class TestAlgebra(unittest.TestCase):
 
         t0 = time.time()
         try:
-            k1 = self.program.combine(self.queue, shape, self.wg,
+            k1 = self.program.combine(self.queue, shape, None,
                                       gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
                                       gpu_out.data, numpy.int32(0),
                                       width, height)

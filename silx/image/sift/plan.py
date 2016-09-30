@@ -530,10 +530,12 @@ class SiftPlan(object):
                 kp, descriptor = self._one_octave(octave)
                 logger.info("in octave %i found %i kp" % (octave, kp.shape[0]))
 
-                if kp.shape[0] > 0:
-                    keypoints.append(kp)
-                    descriptors.append(descriptor)
-                    total_size += kp.shape[0]
+                if len(kp):
+                    #sieve out coordinates with NaNs
+                    mask = numpy.where(numpy.logical_not(numpy.isnan(kp.sum(axis=-1))))
+                    keypoints.append(kp[mask])
+                    descriptors.append(descriptor[mask])
+                    total_size += len(mask[0])
 
             ########################################################################
             # Merge keypoints in central memory
