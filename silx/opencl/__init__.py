@@ -517,7 +517,7 @@ def kernel_workgroup_size(program, kernel):
     assert isinstance(program, pyopencl.Program)
     if not isinstance(kernel, pyopencl.Kernel):
         kernel_name = kernel
-        assert kernel in program.kernel_names
+        assert kernel in (k.function_name for k in program.all_kernels()), "the kernel exists"
         kernel = program.__getattr__(kernel_name)
 
     device = program.devices[0]

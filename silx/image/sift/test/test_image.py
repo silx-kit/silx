@@ -41,7 +41,7 @@ import time
 import logging
 import numpy
 
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 
@@ -116,10 +116,10 @@ class TestImage(unittest.TestCase):
             logger.info("")
             logger.info(ref_norm[-rmax, cmin:cmax])
 
-        self.assert_(delta_norm < 1e-4, "delta_norm=%s" % (delta_norm))
-        self.assert_(delta_ori < 1e-4, "delta_ori=%s" % (delta_ori))
         logger.info("delta_norm=%s" % delta_norm)
         logger.info("delta_ori=%s" % delta_ori)
+        self.assert_(delta_norm < 1e-4, "delta_norm=%s" % (delta_norm))
+        self.assert_(delta_ori < 1e-4, "delta_ori=%s" % (delta_ori))
 
         if self.PROFILE:
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
@@ -195,7 +195,8 @@ class TestImage(unittest.TestCase):
 
         # actual_nb_keypoints is the number of keypoints returned by "local_maxmin".
         # After the interpolation, it will be reduced, but we can still use it as a boundary.
-        shape = calc_size(keypoints_prev.shape, self.wg)
+        maxwg = kernel_workgroup_size(self.program,"interp_keypoint")
+        shape = calc_size((keypoints_prev.shape[0],), maxwg)
         gpu_dogs = pyopencl.array.to_device(self.queue, DOGS)
         gpu_keypoints1 = pyopencl.array.to_device(self.queue, keypoints_prev)
         # actual_nb_keypoints = numpy.int32(len((keypoints_prev[:,0])[keypoints_prev[:,1] != -1]))
@@ -203,7 +204,7 @@ class TestImage(unittest.TestCase):
         actual_nb_keypoints = numpy.int32(actual_nb_keypoints)
         InitSigma = numpy.float32(1.6)  #   warning: it must be the same in my_keypoints_interpolation
         t0 = time.time()
-        k1 = self.program.interp_keypoint(self.queue, shape, self.wg,
+        k1 = self.program.interp_keypoint(self.queue, shape, (maxwg,),
                                           gpu_dogs.data, gpu_keypoints1.data, start_keypoints, actual_nb_keypoints,
         	                              peakthresh, InitSigma, width, height)
         res = gpu_keypoints1.get()
@@ -226,13 +227,16 @@ class TestImage(unittest.TestCase):
             logger.info(res[0:actual_nb_keypoints])  # [0:10,:]
             # logger.info("Ref:")
             # logger.info(ref[0:32,:]
-
+        
+        
+#         print(maxwg, self.maxwg, self.wg[0], self.wg[1])
         if self.maxwg < self.wg[0] * self.wg[1]:
             logger.info("Not testing result as the WG is too little %s", self.maxwg)
             return
-
-        self.assert_(abs(len(ref2) / len(res2) - 1) < 0.2, "the number of keypoint is almost the same")
-
+        self.assertLess(abs(len(ref2) - len(res2))/(len(ref2) + len(res2)), 0.33, "the number of keypoint is almost the same")
+#         print(ref2)
+#         print(res2)
+        
         delta = norm_L1(ref2, res2)
         self.assert_(delta < 0.43, "delta=%s" % (delta))
         logger.info("delta=%s" % delta)
