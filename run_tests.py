@@ -242,6 +242,13 @@ parser.add_argument("-v", "--verbose", default=0,
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
+parser.add_argument("-x", "--no-gui", dest="gui", default=True,
+                    action="store_false",
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
+                    action="store_false",
+                    help="Disable the test of the OpenCL part")
+
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
                     default=(default_test_name,),
@@ -259,6 +266,11 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
 
+if not options.gui:
+    os.environ["WITH_QT_TEST"] = "False"
+
+if not options.opencl:
+    os.environ["SILX_OPENCL"]="False"
 
 if options.coverage:
     logger.info("Running test-coverage")
