@@ -47,10 +47,6 @@ except ImportError:
     scipy = None
 else:
     import scipy.misc, scipy.ndimage
-try:
-    import feature
-except:
-    feature = None
 
 
 # for Python implementation of tested functions
@@ -104,7 +100,6 @@ class TestMatching(unittest.TestCase):
         self.mat = None
         self.program = None
 
-    @unittest.skipIf(feature is None, "no feature module")
     def test_matching(self):
         '''
         tests keypoints matching kernel
