@@ -292,7 +292,9 @@ class OpenCL(object):
                 if (devtype == "CPU") and (pypl.vendor == "Apple"):
                     logger.warning("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
                     workgroup = _measure_workgroup_size(device, fast=True)
-
+                if (devtype == "GPU") and os.environ.get("GPU") == "False":
+                    #Environment variable to disable GPU devices 
+                    continue
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
                                device.max_clock_frequency, flop_core, idd, workgroup)
@@ -478,6 +480,7 @@ def allocate_cl_buffers(buffers, device=None, context=None):
 
     return mem
 
+
 def measure_workgroup_size(device):
     """Measure the actual size of the workgroup
     
@@ -502,3 +505,21 @@ def measure_workgroup_size(device):
     else:
         res = _measure_workgroup_size(device)
     return res
+
+
+def kernel_workgroup_size(program, kernel):
+    """Extract the compile time maximum workgroup size
+    
+    :param program: OpenCL program
+    :param kernel: kernel or name of the kernel
+    :return: the maximum acceptable workgroup size for the given kernel
+    """
+    assert isinstance(program, pyopencl.Program)
+    if not isinstance(kernel, pyopencl.Kernel):
+        kernel_name = kernel
+        assert kernel in program.kernel_names
+        kernel = program.__getattr__(kernel_name)
+
+    device = program.devices[0]
+    query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
+    return kernel.get_work_group_info(query_wg, device)

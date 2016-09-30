@@ -49,7 +49,7 @@ else:
     import scipy.misc, scipy.ndimage
 
 import unittest
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 from ..utils import calc_size, get_opencl_code
@@ -81,8 +81,8 @@ class TestConvol(unittest.TestCase):
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+            cls.max_wg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.max_wg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -106,9 +106,9 @@ class TestConvol(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        if self.maxwg < 512:
-            if self.maxwg > 1:
-                self.wg = (self.maxwg // 2, 2)
+        if self.max_wg < 512:
+            if self.max_wg > 1:
+                self.wg = (self.max_wg, 1)
             else:
                 self.wg = (1, 1)
         else:

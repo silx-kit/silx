@@ -42,7 +42,7 @@ import logging
 import numpy
 
 import unittest
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -101,7 +101,7 @@ class TestAlgebra(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
         if self.maxwg < self.wg[0] * self.wg[1]:
-            self.wg = (1, self.maxwg)
+            self.wg = (self.maxwg, 1)
 
     def tearDown(self):
         self.mat1 = None
@@ -125,10 +125,13 @@ class TestAlgebra(unittest.TestCase):
         shape = calc_size((width, height), self.wg)
 
         t0 = time.time()
-        k1 = self.program.combine(self.queue, shape, self.wg,
-                                  gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
-                                  gpu_out.data, numpy.int32(0),
-                                  width, height)
+        try:
+            k1 = self.program.combine(self.queue, shape, self.wg,
+                                      gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
+                                      gpu_out.data, numpy.int32(0),
+                                      width, height)
+        except pyopencl.LogicError as error:
+            logger.warning("%s in test_combine", error)
         res = gpu_out.get()
         t1 = time.time()
         ref = my_combine(mat1, coeff1, mat2, coeff2)
@@ -164,8 +167,11 @@ class TestAlgebra(unittest.TestCase):
         nbkeypoints = numpy.int32(nbkeypoints)
         startkeypoints = numpy.int32(0)
         t0 = time.time()
-        k1 = self.program.compact(self.queue, shape, wg,
-            gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
+        try:
+            k1 = self.program.compact(self.queue, shape, wg,
+                                      gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
+        except pyopencl.LogicError as error:
+            logger.warning("%s in test_combine", error)
         res = output.get()
         count = counter.get()[0]
         t1 = time.time()

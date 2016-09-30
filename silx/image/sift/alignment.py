@@ -35,14 +35,13 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/09/2016"
-__status__ = "beta"
+__date__ = "30/09/2016"
+__status__ = "production"
 
 import gc
-import sys
 from threading import Semaphore
 import numpy
-from silx.opencl import ocl, pyopencl
+from silx.opencl import ocl, pyopencl, kernel_workgroup_size
 from .utils import calc_size, matching_correction, get_opencl_code
 import logging
 logger = logging.getLogger("sift.alignment")
@@ -138,15 +137,11 @@ class LinearAlign(object):
             self.kernels[k] = min(v, self.max_workgroup_size)
 
         if self.RGB:
-            if self.max_workgroup_size == 1:
-                self.wg = (1, 1, 1)
-            else:
-                self.wg = (4, 8, 4)
+            target = (4, 8, 4)
+            self.wg = tuple(min(t, i, self.max_workgroup_size) for t, i in zip(target, self.ctx.devices[0].max_work_item_sizes))
         else:
-            if self.max_workgroup_size == 1:
-                self.wg = (1, 1)
-            else:
-                self.wg = (8, 4)
+            target = (8, 4)
+            self.wg = tuple(min(t, i, self.max_workgroup_size) for t, i in zip(target, self.ctx.devices[0].max_work_item_sizes))
 
         self.sift = SiftPlan(template=image, context=self.ctx, profile=self.profile,
                              max_workgroup_size=self.max_workgroup_size, init_sigma=init_sigma)
@@ -211,13 +206,17 @@ class LinearAlign(object):
         """
         Call the OpenCL compiler
         """
-        for kernel_file in self.kernels:
-            kernel_src = get_opencl_code(kernel_file)
+        for kernel in list(self.kernels.keys()):
+            kernel_src = get_opencl_code(kernel)
             try:
                 program = pyopencl.Program(self.ctx, kernel_src).build()
             except pyopencl.MemoryError as error:
                 raise MemoryError(error)
             self.program = program
+            for one_function in program.all_kernels():
+                workgroup_size = kernel_workgroup_size(program, one_function)
+                self.kernels[kernel+"."+one_function.function_name] = workgroup_size
+
 
     def _free_kernels(self):
         """
@@ -292,7 +291,7 @@ class LinearAlign(object):
                 outlayer += abs((distance - distance.mean()) / distance.std()) > 4
                 outlayer += abs((dangle - dangle.mean()) / dangle.std()) > 4
                 outlayer += abs((dscale - dscale.mean()) / dscale.std()) > 4
-                print(outlayer)
+#                 print(outlayer)
                 outlayersum = outlayer.sum()
                 if outlayersum > 0 and not numpy.isinf(outlayersum):
                     matching2 = matching[outlayer == 0]
@@ -333,6 +332,7 @@ class LinearAlign(object):
             else:
                 shape = self.shape[1], self.shape[0]
                 transform = self.program.transform
+#             print(kernel_workgroup_size(self.program, transform), self.wg, self.ctx.devices[0].max_work_item_sizes)
             ev = transform(self.queue, calc_size(shape, self.wg), self.wg,
                            self.buffers["input"].data,
                            self.buffers["output"].data,
