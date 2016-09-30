@@ -167,7 +167,11 @@ class MatchPlan(object):
     def _compile_kernels(self):
         """Call the OpenCL compiler
         """
-        for kernel in self.kernels:
+        device = self.ctx.devices[0]
+        query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
+        for kernel in list(self.kernels.keys()):
+            if "." in kernel: 
+                continue
             kernel_src = get_opencl_code(kernel)
 
             wg_size = self.kernels[kernel]
@@ -183,6 +187,9 @@ class MatchPlan(object):
                     logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
                     raise error
             self.programs[kernel] = program
+            for one_function in program.all_kernels():
+                workgroup_size = one_function.get_work_group_info(query_wg, device)
+                self.kernels[kernel+"."+one_function.function_name] = workgroup_size
 
     def _free_kernels(self):
         """free all kernels
@@ -234,7 +241,9 @@ class MatchPlan(object):
                 self.kpsize = min(kpt1_gpu.size, kpt2_gpu.size)
                 self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
             self._reset_output()
-            evt = self.programs[self.matching_kernel].matching(self.queue, calc_size((nkp1.size,), (self.kernels[self.matching_kernel],)), (self.kernels[self.matching_kernel],),
+            wg = self.kernels[self.matching_kernel+".matching"]
+            size = calc_size((nkp1.size,), (wg,))
+            evt = self.programs[self.matching_kernel].matching(self.queue, size, (wg,),
                                                                kpt1_gpu.data,
                                                                kpt2_gpu.data,
                                                                self.buffers["match"].data,
@@ -268,13 +277,17 @@ class MatchPlan(object):
         self._reset_output()
 
     def _reset_buffer1(self):
-        ev1 = self.programs["memset"].memset_kp(self.queue, calc_size((self.buffers["Kp_1"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
+        wg = self.kernels["memset.memset_kp"]
+        size = calc_size((self.buffers["Kp_1"].size,), (wg,))
+        ev1 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
                                                 self.buffers["Kp_1"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_1"].size))
         if self.profile:
             self.events.append(("memset Kp1", ev1))
 
     def _reset_buffer2(self):
-        ev2 = self.programs["memset"].memset_kp(self.queue, calc_size((self.buffers["Kp_2"].size,), (self.kernels["memset"],)), (self.kernels["memset"],),
+        wg = self.kernels["memset.memset_kp"]
+        size = calc_size((self.buffers["Kp_2"].size,), (wg,))
+        ev2 = self.programs["memset"].memset_kp(self.queue, size, (wg,),
                                                 self.buffers["Kp_2"].data, numpy.float32(-1.0), numpy.uint8(0), numpy.int32(self.buffers["Kp_2"].size))
         if self.profile:
             self.events.append(("memset Kp2", ev2))
