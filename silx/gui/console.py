@@ -24,7 +24,7 @@
 # ###########################################################################*/
 """This module provides an IPython console widget.
 
-This widget provide ways to push a variable - any python object - to the
+You can push variables - any python object - to the
 console's interactive namespace. This provides users with an advanced way
 of interacting with your program. For instance, if your program has a
 :class:`PlotWidget` or a :class:`PlotWindow`, you can push a reference to
@@ -77,9 +77,8 @@ _logger = logging.getLogger(__name__)
 try:
     import IPython
 except ImportError as e:
-    _logger.error("Module " + __name__ + " requires IPython")
-    raise e
-
+    raise ImportError("Failed to import IPython, required by " + __name__)
+    
 # This widget cannot be used inside an interactive IPython shell.
 # It would raise MultipleInstanceError("Multiple incompatible subclass
 # instances of InProcessInteractiveShell are being created").
@@ -109,11 +108,14 @@ if qtconsole is not None:
         try:
             from qtconsole.rich_ipython_widget import RichIPythonWidget
         except ImportError as e:
-            _logger.error("Cannot find RichIPythonWidget")
-            raise e
+            qtconsole = None
+        else:
+            from qtconsole.inprocess import QtInProcessKernelManager
+    else:
+        from qtconsole.inprocess import QtInProcessKernelManager
 
-    from qtconsole.inprocess import QtInProcessKernelManager
-else:
+
+if qtconsole is None:
     # Import the console machinery from ipython
 
     # The `has_binding` test of IPython does not find the Qt bindings
