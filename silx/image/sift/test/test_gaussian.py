@@ -37,12 +37,11 @@ __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
 __date__ = "29/09/2016"
 
-import os
 import time
 import numpy
 import unittest
 import logging
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 try:
     import scipy
 except ImportError:
@@ -197,8 +196,9 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 27
         ref = gaussian_cpu(sigma, size)
-        if self.max_wg < size:
-            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        if max_wg < size:
+            logger.warning("test_v2_odd: Skipping test of WG=%s when maximum is %s (%s)", size, max_wg, self.max_wg)
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
@@ -211,8 +211,9 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 28
         ref = gaussian_cpu(sigma, size)
-        if self.max_wg < size:
-            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        if max_wg < size:
+            logger.warning("test_v2_even: Skipping test of WG=%s when maximum is %s (%s)", size, max_wg, self.max_wg)
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res

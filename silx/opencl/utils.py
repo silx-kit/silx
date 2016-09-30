@@ -37,7 +37,7 @@ __status__ = "beta"
 
 import numpy
 from ..resources import resource_filename
-
+from math import log, ceil
 
 def calc_size(shape, blocksize):
     """
@@ -47,6 +47,15 @@ def calc_size(shape, blocksize):
         return tuple((int(i) + int(j) - 1) & ~(int(j) - 1) for i, j in zip(shape, blocksize))
     else:
         return tuple((int(i) + int(blocksize) - 1) & ~(int(blocksize) - 1) for i in shape)
+
+
+def nextpower(n):
+    """calculate the power of two
+    
+    :param n: an integer, for example 100
+    :return: another integer, 100-> 128
+    """
+    return 1<<int(ceil(log(n,2)))
 
 
 def sizeof(shape, dtype="uint8"):

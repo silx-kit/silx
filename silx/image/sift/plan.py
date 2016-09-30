@@ -60,9 +60,10 @@ import threading
 import gc
 import numpy
 from .param import par
-from silx.opencl import ocl, pyopencl
+from silx.opencl import ocl, pyopencl, kernel_workgroup_size
+from silx.opencl.utils import get_opencl_code, nextpower
 
-from .utils import calc_size, kernel_size, get_opencl_code
+from .utils import calc_size, kernel_size
 logger = logging.getLogger("sift.plan")
 
 
@@ -242,7 +243,7 @@ class SiftPlan(object):
         self.memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         self.memory += 4  # keypoint index Counter
         wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
-        self.red_size = 1 << (int(math.ceil(math.log(wg_float, 2))))
+        self.red_size = nextpower(wg_float)
         self.memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
         ########################################################################
@@ -315,7 +316,7 @@ class SiftPlan(object):
         """
         name = "gaussian_%s" % sigma
         size = kernel_size(sigma, True)
-        wg_size = 1 << int(math.ceil(math.log(size,2)))
+        wg_size = nextpower(size)
 
         logger.info("Allocating %s float for blur sigma: %s. wg=%s max_wg=%s", size, sigma,wg_size, self.max_workgroup_size)
         wg1 = self.kernels["gaussian.gaussian"]
@@ -353,9 +354,6 @@ class SiftPlan(object):
     def _compile_kernels(self):
         """Call the OpenCL compiler
         """
-        device = self.ctx.devices[0]
-        query_wg = pyopencl.kernel_work_group_info.WORK_GROUP_SIZE
-
         for kernel, wg_size in list(self.kernels.items()):
             kernel_src = get_opencl_code(kernel)
             if isinstance(wg_size, tuple):
@@ -376,7 +374,7 @@ class SiftPlan(object):
                     raise error
             self.programs[kernel] = program
             for one_function in program.all_kernels():
-                workgroup_size = one_function.get_work_group_info(query_wg, device)
+                workgroup_size = kernel_workgroup_size(program, one_function)
                 self.kernels[kernel+"."+one_function.function_name] = workgroup_size
 
 
@@ -418,13 +416,13 @@ class SiftPlan(object):
                 # If the kernel is not present in the dict, it should not be used.
 
         wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
-        self.red_size = 1 << (int(math.ceil(math.log(wg_float, 2))))
+        self.red_size = nextpower(wg_float)
 
         # we recalculate the shapes ...
         shape = self.shape
         min_size = 2 * par.BorderDist + 2
         while min(shape) > min_size:
-            wg = (min(1 << int(math.ceil(math.log(shape[-1], 2))), self.max_workgroup_size), 1)
+            wg = (min(nextpower(shape[-1]), self.max_workgroup_size), 1)
             self.wgsize.append(wg)
             self.procsize.append(calc_size(shape[-1::-1], wg))
             shape = tuple(i // 2 for i in shape)
