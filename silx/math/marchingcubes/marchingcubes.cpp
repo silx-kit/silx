@@ -1043,6 +1043,12 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject
 
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
 
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func);
+#else
+#define __Pyx_PyObject_CallNoArg(func) __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL)
+#endif
+
 static CYTHON_INLINE void __Pyx_ErrRestore(PyObject *type, PyObject *value, PyObject *tb);
 static CYTHON_INLINE void __Pyx_ErrFetch(PyObject **type, PyObject **value, PyObject **tb);
 
@@ -1553,9 +1559,9 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_14shape(struct __pyx_o
 static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_16sampling(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_18isolevel(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_20invert_normals(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26indices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22get_vertices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24get_normals(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26get_indices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static int __pyx_array_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
@@ -1649,10 +1655,8 @@ static char __pyx_k_unpack[] = "unpack";
 static char __pyx_k_xrange[] = "xrange";
 static char __pyx_k_authors[] = "__authors__";
 static char __pyx_k_fortran[] = "fortran";
-static char __pyx_k_indices[] = "indices";
 static char __pyx_k_license[] = "__license__";
 static char __pyx_k_memview[] = "memview";
-static char __pyx_k_normals[] = "normals";
 static char __pyx_k_process[] = "process";
 static char __pyx_k_reshape[] = "reshape";
 static char __pyx_k_Ellipsis[] = "Ellipsis";
@@ -1660,7 +1664,6 @@ static char __pyx_k_isolevel[] = "isolevel";
 static char __pyx_k_itemsize[] = "itemsize";
 static char __pyx_k_property[] = "property";
 static char __pyx_k_sampling[] = "sampling";
-static char __pyx_k_vertices[] = "vertices";
 static char __pyx_k_T_Vincent[] = "T. Vincent";
 static char __pyx_k_TypeError[] = "TypeError";
 static char __pyx_k_enumerate[] = "enumerate";
@@ -1669,7 +1672,10 @@ static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_MemoryError[] = "MemoryError";
+static char __pyx_k_get_indices[] = "get_indices";
+static char __pyx_k_get_normals[] = "get_normals";
 static char __pyx_k_RuntimeError[] = "RuntimeError";
+static char __pyx_k_get_vertices[] = "get_vertices";
 static char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static char __pyx_k_invert_normals[] = "invert_normals";
 static char __pyx_k_allocate_buffer[] = "allocate_buffer";
@@ -1752,10 +1758,12 @@ static PyObject *__pyx_n_s_flags;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_fortran;
 static PyObject *__pyx_n_u_fortran;
+static PyObject *__pyx_n_s_get_indices;
+static PyObject *__pyx_n_s_get_normals;
+static PyObject *__pyx_n_s_get_vertices;
 static PyObject *__pyx_kp_s_got_differing_extents_in_dimensi;
 static PyObject *__pyx_n_s_id;
 static PyObject *__pyx_n_s_import;
-static PyObject *__pyx_n_s_indices;
 static PyObject *__pyx_n_s_invert_normals;
 static PyObject *__pyx_n_s_isolevel;
 static PyObject *__pyx_n_s_itemsize;
@@ -1769,7 +1777,6 @@ static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_kp_u_ndarray_is_not_C_contiguous;
 static PyObject *__pyx_kp_u_ndarray_is_not_Fortran_contiguou;
 static PyObject *__pyx_n_s_ndim;
-static PyObject *__pyx_n_s_normals;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_n_s_obj;
 static PyObject *__pyx_n_s_pack;
@@ -1798,7 +1805,6 @@ static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
 static PyObject *__pyx_n_s_unpack;
-static PyObject *__pyx_n_s_vertices;
 static PyObject *__pyx_n_s_xrange;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
@@ -2173,6 +2179,8 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_t_2;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2182,7 +2190,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
  *         vertices, normals, indices = MarchingCubes(...)
  *         """
  *         if key == 0:             # <<<<<<<<<<<<<<
- *             return self.vertices
+ *             return self.get_vertices()
  *         elif key == 1:
  */
   __pyx_t_1 = PyObject_RichCompare(__pyx_v_key, __pyx_int_0, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 133; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2193,13 +2201,31 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
     /* "marchingcubes.pyx":134
  *         """
  *         if key == 0:
- *             return self.vertices             # <<<<<<<<<<<<<<
+ *             return self.get_vertices()             # <<<<<<<<<<<<<<
  *         elif key == 1:
- *             return self.normals
+ *             return self.get_normals()
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_vertices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_vertices); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+      }
+    }
+    if (__pyx_t_4) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    } else {
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
     __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
@@ -2207,9 +2233,9 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
 
   /* "marchingcubes.pyx":135
  *         if key == 0:
- *             return self.vertices
+ *             return self.get_vertices()
  *         elif key == 1:             # <<<<<<<<<<<<<<
- *             return self.normals
+ *             return self.get_normals()
  *         elif key == 2:
  */
   __pyx_t_1 = PyObject_RichCompare(__pyx_v_key, __pyx_int_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 135; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2218,15 +2244,33 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
   if (__pyx_t_2) {
 
     /* "marchingcubes.pyx":136
- *             return self.vertices
+ *             return self.get_vertices()
  *         elif key == 1:
- *             return self.normals             # <<<<<<<<<<<<<<
+ *             return self.get_normals()             # <<<<<<<<<<<<<<
  *         elif key == 2:
- *             return self.indices
+ *             return self.get_indices()
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_normals); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_normals); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+      }
+    }
+    if (__pyx_t_4) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    } else {
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 136; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
     __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
@@ -2234,9 +2278,9 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
 
   /* "marchingcubes.pyx":137
  *         elif key == 1:
- *             return self.normals
+ *             return self.get_normals()
  *         elif key == 2:             # <<<<<<<<<<<<<<
- *             return self.indices
+ *             return self.get_indices()
  *         else:
  */
   __pyx_t_1 = PyObject_RichCompare(__pyx_v_key, __pyx_int_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 137; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -2245,15 +2289,33 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
   if (__pyx_t_2) {
 
     /* "marchingcubes.pyx":138
- *             return self.normals
+ *             return self.get_normals()
  *         elif key == 2:
- *             return self.indices             # <<<<<<<<<<<<<<
+ *             return self.get_indices()             # <<<<<<<<<<<<<<
  *         else:
  *             raise IndexError("Index out of range")
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_indices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_indices); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_4 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
+      __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_3);
+      if (likely(__pyx_t_4)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+        __Pyx_INCREF(__pyx_t_4);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_3, function);
+      }
+    }
+    if (__pyx_t_4) {
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    } else {
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 138; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
     __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
@@ -2261,7 +2323,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
   /*else*/ {
 
     /* "marchingcubes.pyx":140
- *             return self.indices
+ *             return self.get_indices()
  *         else:
  *             raise IndexError("Index out of range")             # <<<<<<<<<<<<<<
  * 
@@ -2285,6 +2347,8 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
   __Pyx_AddTraceback("marchingcubes.MarchingCubes.__getitem__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -2303,7 +2367,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_4__getitem__(struct __
 
 /* Python wrapper */
 static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_7process(PyObject *__pyx_v_self, PyObject *__pyx_v_data); /*proto*/
-static char __pyx_doc_13marchingcubes_13MarchingCubes_6process[] = "process(data)\n\n        Compute an isosurface from a 3D scalar field.\n\n        This builds :attr:`vertices`, :attr:`normals` and :attr:`indices`\n        arrays.\n        Vertices and normals coordinates are in the same order as input array,\n        i.e., (dim 0, dim 1, dim 2).\n\n        :param numpy.ndarray data: 3D scalar field\n        ";
+static char __pyx_doc_13marchingcubes_13MarchingCubes_6process[] = "process(data)\n\n        Compute an isosurface from a 3D scalar field.\n\n        This builds vertices, normals and indices arrays.\n        Vertices and normals coordinates are in the same order as input array,\n        i.e., (dim 0, dim 1, dim 2).\n\n        :param numpy.ndarray data: 3D scalar field\n        ";
 static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_7process(PyObject *__pyx_v_self, PyObject *__pyx_v_data) {
   CYTHON_UNUSED int __pyx_lineno = 0;
   CYTHON_UNUSED const char *__pyx_filename = NULL;
@@ -2353,16 +2417,16 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
   }
   __pyx_pybuffernd_data.diminfo[0].strides = __pyx_pybuffernd_data.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_data.diminfo[0].shape = __pyx_pybuffernd_data.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_data.diminfo[1].strides = __pyx_pybuffernd_data.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_data.diminfo[1].shape = __pyx_pybuffernd_data.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_data.diminfo[2].strides = __pyx_pybuffernd_data.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_data.diminfo[2].shape = __pyx_pybuffernd_data.rcbuffer->pybuffer.shape[2];
 
-  /* "marchingcubes.pyx":154
+  /* "marchingcubes.pyx":153
  *         :param numpy.ndarray data: 3D scalar field
  *         """
  *         cdef float[:] c_data = numpy.ravel(data)             # <<<<<<<<<<<<<<
  *         cdef unsigned int depth, height, width
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ravel); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ravel); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2376,28 +2440,28 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
     }
   }
   if (!__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_data)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_data)); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2); __Pyx_GIVEREF(__pyx_t_2); __pyx_t_2 = NULL;
     __Pyx_INCREF(((PyObject *)__pyx_v_data));
     PyTuple_SET_ITEM(__pyx_t_4, 0+1, ((PyObject *)__pyx_v_data));
     __Pyx_GIVEREF(((PyObject *)__pyx_v_data));
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_float(__pyx_t_1);
-  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 154; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 153; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_c_data = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "marchingcubes.pyx":157
+  /* "marchingcubes.pyx":156
  *         cdef unsigned int depth, height, width
  * 
  *         depth = data.shape[0]             # <<<<<<<<<<<<<<
@@ -2406,7 +2470,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
  */
   __pyx_v_depth = (__pyx_v_data->dimensions[0]);
 
-  /* "marchingcubes.pyx":158
+  /* "marchingcubes.pyx":157
  * 
  *         depth = data.shape[0]
  *         height = data.shape[1]             # <<<<<<<<<<<<<<
@@ -2415,7 +2479,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
  */
   __pyx_v_height = (__pyx_v_data->dimensions[1]);
 
-  /* "marchingcubes.pyx":159
+  /* "marchingcubes.pyx":158
  *         depth = data.shape[0]
  *         height = data.shape[1]
  *         width = data.shape[2]             # <<<<<<<<<<<<<<
@@ -2424,7 +2488,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
  */
   __pyx_v_width = (__pyx_v_data->dimensions[2]);
 
-  /* "marchingcubes.pyx":161
+  /* "marchingcubes.pyx":160
  *         width = data.shape[2]
  * 
  *         self.c_mc.process(&c_data[0], depth, height, width)             # <<<<<<<<<<<<<<
@@ -2439,13 +2503,13 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
   } else if (unlikely(__pyx_t_6 >= __pyx_v_c_data.shape[0])) __pyx_t_7 = 0;
   if (unlikely(__pyx_t_7 != -1)) {
     __Pyx_RaiseBufferIndexError(__pyx_t_7);
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   try {
     __pyx_v_self->c_mc->process((&(*((float *) ( /* dim=0 */ (__pyx_v_c_data.data + __pyx_t_6 * __pyx_v_c_data.strides[0]) )))), __pyx_v_depth, __pyx_v_height, __pyx_v_width);
   } catch(...) {
     __Pyx_CppExn2PyErr();
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 160; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
   /* "marchingcubes.pyx":142
@@ -2481,7 +2545,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_6process(struct __pyx_
   return __pyx_r;
 }
 
-/* "marchingcubes.pyx":163
+/* "marchingcubes.pyx":162
  *         self.c_mc.process(&c_data[0], depth, height, width)
  * 
  *     def process_slice(self,             # <<<<<<<<<<<<<<
@@ -2521,11 +2585,11 @@ static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_9process_slice(PyObjec
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_slice1)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("process_slice", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("process_slice", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "process_slice") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "process_slice") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2538,14 +2602,14 @@ static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_9process_slice(PyObjec
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("process_slice", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("process_slice", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("marchingcubes.MarchingCubes.process_slice", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_slice0), __pyx_ptype_5numpy_ndarray, 1, "slice0", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_slice1), __pyx_ptype_5numpy_ndarray, 1, "slice1", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_slice0), __pyx_ptype_5numpy_ndarray, 1, "slice0", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_slice1), __pyx_ptype_5numpy_ndarray, 1, "slice1", 0))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_8process_slice(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self), __pyx_v_slice0, __pyx_v_slice1);
 
   /* function exit code */
@@ -2590,25 +2654,41 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_8process_slice(struct 
   __pyx_pybuffernd_slice1.rcbuffer = &__pyx_pybuffer_slice1;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_slice0.rcbuffer->pybuffer, (PyObject*)__pyx_v_slice0, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_slice0.rcbuffer->pybuffer, (PyObject*)__pyx_v_slice0, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_pybuffernd_slice0.diminfo[0].strides = __pyx_pybuffernd_slice0.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_slice0.diminfo[0].shape = __pyx_pybuffernd_slice0.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_slice0.diminfo[1].strides = __pyx_pybuffernd_slice0.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_slice0.diminfo[1].shape = __pyx_pybuffernd_slice0.rcbuffer->pybuffer.shape[1];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_slice1.rcbuffer->pybuffer, (PyObject*)__pyx_v_slice1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 163; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_slice1.rcbuffer->pybuffer, (PyObject*)__pyx_v_slice1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float32_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_pybuffernd_slice1.diminfo[0].strides = __pyx_pybuffernd_slice1.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_slice1.diminfo[0].shape = __pyx_pybuffernd_slice1.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_slice1.diminfo[1].strides = __pyx_pybuffernd_slice1.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_slice1.diminfo[1].shape = __pyx_pybuffernd_slice1.rcbuffer->pybuffer.shape[1];
 
-  /* "marchingcubes.pyx":173
+  /* "marchingcubes.pyx":172
  *         :param numpy.ndarray slice1: Slice to process.
  *         """
- *         assert slice0.shape == slice1.shape             # <<<<<<<<<<<<<<
+ *         assert slice0.shape[0] == slice1.shape[0]             # <<<<<<<<<<<<<<
+ *         assert slice0.shape[1] == slice1.shape[1]
+ * 
+ */
+  #ifndef CYTHON_WITHOUT_ASSERTIONS
+  if (unlikely(!Py_OptimizeFlag)) {
+    if (unlikely(!(((__pyx_v_slice0->dimensions[0]) == (__pyx_v_slice1->dimensions[0])) != 0))) {
+      PyErr_SetNone(PyExc_AssertionError);
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    }
+  }
+  #endif
+
+  /* "marchingcubes.pyx":173
+ *         """
+ *         assert slice0.shape[0] == slice1.shape[0]
+ *         assert slice0.shape[1] == slice1.shape[1]             # <<<<<<<<<<<<<<
  * 
  *         cdef float[:] c_slice0 = numpy.ravel(slice0)
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    if (unlikely(!((__pyx_v_slice0->dimensions == __pyx_v_slice1->dimensions) != 0))) {
+    if (unlikely(!(((__pyx_v_slice0->dimensions[1]) == (__pyx_v_slice1->dimensions[1])) != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
       {__pyx_filename = __pyx_f[0]; __pyx_lineno = 173; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
@@ -2616,7 +2696,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_8process_slice(struct 
   #endif
 
   /* "marchingcubes.pyx":175
- *         assert slice0.shape == slice1.shape
+ *         assert slice0.shape[1] == slice1.shape[1]
  * 
  *         cdef float[:] c_slice0 = numpy.ravel(slice0)             # <<<<<<<<<<<<<<
  *         cdef float[:] c_slice1 = numpy.ravel(slice1)
@@ -2791,7 +2871,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_8process_slice(struct 
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "marchingcubes.pyx":163
+  /* "marchingcubes.pyx":162
  *         self.c_mc.process(&c_data[0], depth, height, width)
  * 
  *     def process_slice(self,             # <<<<<<<<<<<<<<
@@ -3224,7 +3304,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_20invert_normals(struc
  *         """True to use gradient descent as normals."""
  *         return self.c_mc.invert_normals             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def get_vertices(self):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyBool_FromLong(__pyx_v_self->c_mc->invert_normals); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 218; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -3252,29 +3332,29 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_20invert_normals(struc
   return __pyx_r;
 }
 
-/* "marchingcubes.pyx":221
+/* "marchingcubes.pyx":220
+ *         return self.c_mc.invert_normals
  * 
- *     @property
- *     def vertices(self):             # <<<<<<<<<<<<<<
+ *     def get_vertices(self):             # <<<<<<<<<<<<<<
  *         """Vertices currently computed (ndarray of dim NbVertices x 3)
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_23vertices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_13marchingcubes_13MarchingCubes_22vertices[] = "Vertices currently computed (ndarray of dim NbVertices x 3)\n\n        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).\n        ";
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_23vertices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_23get_vertices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_13marchingcubes_13MarchingCubes_22get_vertices[] = "Vertices currently computed (ndarray of dim NbVertices x 3)\n\n        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).\n        ";
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_23get_vertices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("vertices (wrapper)", 0);
-  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_22vertices(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("get_vertices (wrapper)", 0);
+  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_22get_vertices(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22get_vertices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3285,22 +3365,22 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __py
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("vertices", 0);
+  __Pyx_RefNannySetupContext("get_vertices", 0);
 
-  /* "marchingcubes.pyx":226
+  /* "marchingcubes.pyx":225
  *         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
  *         """
  *         return numpy.array(self.c_mc.vertices).reshape(-1, 3)             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def get_normals(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_convert_vector_to_py_float(__pyx_v_self->c_mc->vertices); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_convert_vector_to_py_float(__pyx_v_self->c_mc->vertices); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -3313,35 +3393,35 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __py
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "marchingcubes.pyx":221
+  /* "marchingcubes.pyx":220
+ *         return self.c_mc.invert_normals
  * 
- *     @property
- *     def vertices(self):             # <<<<<<<<<<<<<<
+ *     def get_vertices(self):             # <<<<<<<<<<<<<<
  *         """Vertices currently computed (ndarray of dim NbVertices x 3)
  * 
  */
@@ -3353,7 +3433,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __py
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("marchingcubes.MarchingCubes.vertices", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("marchingcubes.MarchingCubes.get_vertices", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3361,29 +3441,29 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_22vertices(struct __py
   return __pyx_r;
 }
 
-/* "marchingcubes.pyx":229
+/* "marchingcubes.pyx":227
+ *         return numpy.array(self.c_mc.vertices).reshape(-1, 3)
  * 
- *     @property
- *     def normals(self):             # <<<<<<<<<<<<<<
+ *     def get_normals(self):             # <<<<<<<<<<<<<<
  *         """Normals currently computed (ndarray of dim NbVertices x 3)
  * 
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_25normals(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_13marchingcubes_13MarchingCubes_24normals[] = "Normals currently computed (ndarray of dim NbVertices x 3)\n\n        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).\n        ";
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_25normals(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_25get_normals(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_13marchingcubes_13MarchingCubes_24get_normals[] = "Normals currently computed (ndarray of dim NbVertices x 3)\n\n        Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).\n        ";
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_25get_normals(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("normals (wrapper)", 0);
-  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_24normals(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("get_normals (wrapper)", 0);
+  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_24get_normals(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24get_normals(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3394,22 +3474,22 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("normals", 0);
+  __Pyx_RefNannySetupContext("get_normals", 0);
 
-  /* "marchingcubes.pyx":234
+  /* "marchingcubes.pyx":232
  *         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
  *         """
  *         return numpy.array(self.c_mc.normals).reshape(-1, 3)             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def get_indices(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __pyx_convert_vector_to_py_float(__pyx_v_self->c_mc->normals); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __pyx_convert_vector_to_py_float(__pyx_v_self->c_mc->normals); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -3422,35 +3502,35 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx
     }
   }
   if (!__pyx_t_4) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __Pyx_GIVEREF(__pyx_t_4); __pyx_t_4 = NULL;
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "marchingcubes.pyx":229
+  /* "marchingcubes.pyx":227
+ *         return numpy.array(self.c_mc.vertices).reshape(-1, 3)
  * 
- *     @property
- *     def normals(self):             # <<<<<<<<<<<<<<
+ *     def get_normals(self):             # <<<<<<<<<<<<<<
  *         """Normals currently computed (ndarray of dim NbVertices x 3)
  * 
  */
@@ -3462,7 +3542,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("marchingcubes.MarchingCubes.normals", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("marchingcubes.MarchingCubes.get_normals", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -3470,29 +3550,29 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_24normals(struct __pyx
   return __pyx_r;
 }
 
-/* "marchingcubes.pyx":237
+/* "marchingcubes.pyx":234
+ *         return numpy.array(self.c_mc.normals).reshape(-1, 3)
  * 
- *     @property
- *     def indices(self):             # <<<<<<<<<<<<<<
+ *     def get_indices(self):             # <<<<<<<<<<<<<<
  *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
  *         """
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_27indices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static char __pyx_doc_13marchingcubes_13MarchingCubes_26indices[] = "Triangle indices currently computed (ndarray of dim NbTriangles x 3)\n        ";
-static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_27indices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_27get_indices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static char __pyx_doc_13marchingcubes_13MarchingCubes_26get_indices[] = "Triangle indices currently computed (ndarray of dim NbTriangles x 3)\n        ";
+static PyObject *__pyx_pw_13marchingcubes_13MarchingCubes_27get_indices(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("indices (wrapper)", 0);
-  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_26indices(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
+  __Pyx_RefNannySetupContext("get_indices (wrapper)", 0);
+  __pyx_r = __pyx_pf_13marchingcubes_13MarchingCubes_26get_indices(((struct __pyx_obj_13marchingcubes_MarchingCubes *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26indices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
+static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26get_indices(struct __pyx_obj_13marchingcubes_MarchingCubes *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -3503,74 +3583,74 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26indices(struct __pyx
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("indices", 0);
+  __Pyx_RefNannySetupContext("get_indices", 0);
 
-  /* "marchingcubes.pyx":240
+  /* "marchingcubes.pyx":237
  *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
  *         """
  *         return numpy.array(self.c_mc.indices,             # <<<<<<<<<<<<<<
  *                            dtype=numpy.uint32).reshape(-1, 3)
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __pyx_convert_vector_to_py_unsigned_int(__pyx_v_self->c_mc->indices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __pyx_convert_vector_to_py_unsigned_int(__pyx_v_self->c_mc->indices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "marchingcubes.pyx":241
+  /* "marchingcubes.pyx":238
  *         """
  *         return numpy.array(self.c_mc.indices,
  *                            dtype=numpy.uint32).reshape(-1, 3)             # <<<<<<<<<<<<<<
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_uint32); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "marchingcubes.pyx":240
+  /* "marchingcubes.pyx":237
  *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
  *         """
  *         return numpy.array(self.c_mc.indices,             # <<<<<<<<<<<<<<
  *                            dtype=numpy.uint32).reshape(-1, 3)
  */
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 240; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "marchingcubes.pyx":241
+  /* "marchingcubes.pyx":238
  *         """
  *         return numpy.array(self.c_mc.indices,
  *                            dtype=numpy.uint32).reshape(-1, 3)             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_reshape); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_reshape); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "marchingcubes.pyx":237
+  /* "marchingcubes.pyx":234
+ *         return numpy.array(self.c_mc.normals).reshape(-1, 3)
  * 
- *     @property
- *     def indices(self):             # <<<<<<<<<<<<<<
+ *     def get_indices(self):             # <<<<<<<<<<<<<<
  *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
  *         """
  */
@@ -3582,7 +3662,7 @@ static PyObject *__pyx_pf_13marchingcubes_13MarchingCubes_26indices(struct __pyx
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
-  __Pyx_AddTraceback("marchingcubes.MarchingCubes.indices", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("marchingcubes.MarchingCubes.get_indices", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -16387,9 +16467,9 @@ static PyMethodDef __pyx_methods_13marchingcubes_MarchingCubes[] = {
   {"sampling", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_17sampling, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_16sampling},
   {"isolevel", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_19isolevel, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_18isolevel},
   {"invert_normals", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_21invert_normals, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_20invert_normals},
-  {"vertices", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_23vertices, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_22vertices},
-  {"normals", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_25normals, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_24normals},
-  {"indices", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_27indices, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_26indices},
+  {"get_vertices", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_23get_vertices, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_22get_vertices},
+  {"get_normals", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_25get_normals, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_24get_normals},
+  {"get_indices", (PyCFunction)__pyx_pw_13marchingcubes_13MarchingCubes_27get_indices, METH_NOARGS, __pyx_doc_13marchingcubes_13MarchingCubes_26get_indices},
   {0, 0, 0, 0}
 };
 
@@ -16437,7 +16517,7 @@ static PyTypeObject __pyx_type_13marchingcubes_MarchingCubes = {
   0, /*tp_setattro*/
   0, /*tp_as_buffer*/
   Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_VERSION_TAG|Py_TPFLAGS_CHECKTYPES|Py_TPFLAGS_HAVE_NEWBUFFER|Py_TPFLAGS_BASETYPE, /*tp_flags*/
-  "Compute isosurface using marching cubes algorithm.\n\n    It builds a surface from a 3D scalar dataset as a 3D contour at a\n    given value.\n    The resulting surface is not topologically correct.\n\n    See: http://paulbourke.net/geometry/polygonise/\n\n    Lorensen, W. E. and Cline, H. E. Marching cubes: A high resolution 3D\n    surface construction algorithm. Computer Graphics, 21, 4 (July 1987).\n    ACM, 163-169.\n\n    Generated vertex and normal coordinates are in the same order\n    as input array, i.e., (dim 0, dim 1, dim 2).\n\n    Expected indices in memory of a (2, 2, 2) dataset:\n\n           dim 0 (depth)\n             |\n             |\n           4 +------+ 5\n            /|     /|\n           / |    / |\n        6 +------+ 7|\n          |  |   |  |\n          |0 +---|--+ 1 --- dim 2 (width)\n          | /    | /\n          |/     |/\n        2 +------+ 3\n         /\n        /\n      dim 1 (height)\n\n    Example with a 3D data set:\n\n    >>> vertices, normals, indices = MarchingCubes(data, isolevel=1.)\n\n    Example of code for processing a list of images:\n\n    >>> mc = MarchingCubes(isolevel=1.)  # Create object with iso-level=1\n    >>> previous_image = images[0]\n    >>> for image in images[1:]:\n    ...     mc.process_image(previous_image, image)  # Process one slice\n    ...     previous_image = image\n\n    >>> vertices = mc.vertices  # Array of vertex positions\n    >>> normals = mc.normals  # Array of vertices normal\n    >>> triangle_indices = mc.indices  # Array of indices of vertices\n\n    :param data: 3D dataset of float32 or None\n    :type data: numpy.ndarray of float32 of dimension 3\n    :param float isolevel: The value for which to generate the isosurface\n    :param bool invert_normals:\n        True (default) for normals oriented in direction of gradient descent\n    :param sampling: Sampling along each dimension (depth, height, width)\n    ", /*tp_doc*/
+  "Compute isosurface using marching cubes algorithm.\n\n    It builds a surface from a 3D scalar dataset as a 3D contour at a\n    given value.\n    The resulting surface is not topologically correct.\n\n    See: http://paulbourke.net/geometry/polygonise/\n\n    Lorensen, W. E. and Cline, H. E. Marching cubes: A high resolution 3D\n    surface construction algorithm. Computer Graphics, 21, 4 (July 1987).\n    ACM, 163-169.\n\n    Generated vertex and normal coordinates are in the same order\n    as input array, i.e., (dim 0, dim 1, dim 2).\n\n    Expected indices in memory of a (2, 2, 2) dataset:\n\n           dim 0 (depth)\n             |\n             |\n           4 +------+ 5\n            /|     /|\n           / |    / |\n        6 +------+ 7|\n          |  |   |  |\n          |0 +---|--+ 1 --- dim 2 (width)\n          | /    | /\n          |/     |/\n        2 +------+ 3\n         /\n        /\n      dim 1 (height)\n\n    Example with a 3D data set:\n\n    >>> vertices, normals, indices = MarchingCubes(data, isolevel=1.)\n\n    Example of code for processing a list of images:\n\n    >>> mc = MarchingCubes(isolevel=1.)  # Create object with iso-level=1\n    >>> previous_image = images[0]\n    >>> for image in images[1:]:\n    ...     mc.process_image(previous_image, image)  # Process one slice\n    ...     previous_image = image\n\n    >>> vertices = mc.get_vertices()  # Array of vertex positions\n    >>> normals = mc.get_normals()  # Array of normals\n    >>> triangle_indices = mc.get_indices()  # Array of indices of vertices\n\n    :param data: 3D dataset of float32 or None\n    :type data: numpy.ndarray of float32 of dimension 3\n    :param float isolevel: The value for which to generate the isosurface\n    :param bool invert_normals:\n        True (default) for normals oriented in direction of gradient descent\n    :param sampling: Sampling along each dimension (depth, height, width)\n    ", /*tp_doc*/
   0, /*tp_traverse*/
   0, /*tp_clear*/
   0, /*tp_richcompare*/
@@ -17191,10 +17271,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 0, 1, 1},
   {&__pyx_n_u_fortran, __pyx_k_fortran, sizeof(__pyx_k_fortran), 0, 1, 0, 1},
+  {&__pyx_n_s_get_indices, __pyx_k_get_indices, sizeof(__pyx_k_get_indices), 0, 0, 1, 1},
+  {&__pyx_n_s_get_normals, __pyx_k_get_normals, sizeof(__pyx_k_get_normals), 0, 0, 1, 1},
+  {&__pyx_n_s_get_vertices, __pyx_k_get_vertices, sizeof(__pyx_k_get_vertices), 0, 0, 1, 1},
   {&__pyx_kp_s_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 0, 1, 0},
   {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
-  {&__pyx_n_s_indices, __pyx_k_indices, sizeof(__pyx_k_indices), 0, 0, 1, 1},
   {&__pyx_n_s_invert_normals, __pyx_k_invert_normals, sizeof(__pyx_k_invert_normals), 0, 0, 1, 1},
   {&__pyx_n_s_isolevel, __pyx_k_isolevel, sizeof(__pyx_k_isolevel), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
@@ -17208,7 +17290,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_u_ndarray_is_not_C_contiguous, __pyx_k_ndarray_is_not_C_contiguous, sizeof(__pyx_k_ndarray_is_not_C_contiguous), 0, 1, 0, 0},
   {&__pyx_kp_u_ndarray_is_not_Fortran_contiguou, __pyx_k_ndarray_is_not_Fortran_contiguou, sizeof(__pyx_k_ndarray_is_not_Fortran_contiguou), 0, 1, 0, 0},
   {&__pyx_n_s_ndim, __pyx_k_ndim, sizeof(__pyx_k_ndim), 0, 0, 1, 1},
-  {&__pyx_n_s_normals, __pyx_k_normals, sizeof(__pyx_k_normals), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
   {&__pyx_n_s_pack, __pyx_k_pack, sizeof(__pyx_k_pack), 0, 0, 1, 1},
@@ -17237,7 +17318,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
   {&__pyx_n_s_unpack, __pyx_k_unpack, sizeof(__pyx_k_unpack), 0, 0, 1, 1},
-  {&__pyx_n_s_vertices, __pyx_k_vertices, sizeof(__pyx_k_vertices), 0, 0, 1, 1},
   {&__pyx_n_s_xrange, __pyx_k_xrange, sizeof(__pyx_k_xrange), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
@@ -17278,7 +17358,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple_);
 
   /* "marchingcubes.pyx":140
- *             return self.indices
+ *             return self.get_indices()
  *         else:
  *             raise IndexError("Index out of range")             # <<<<<<<<<<<<<<
  * 
@@ -17288,34 +17368,34 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "marchingcubes.pyx":226
+  /* "marchingcubes.pyx":225
  *         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
  *         """
  *         return numpy.array(self.c_mc.vertices).reshape(-1, 3)             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def get_normals(self):
  */
-  __pyx_tuple__3 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 226; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__3 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 225; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "marchingcubes.pyx":234
+  /* "marchingcubes.pyx":232
  *         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
  *         """
  *         return numpy.array(self.c_mc.normals).reshape(-1, 3)             # <<<<<<<<<<<<<<
  * 
- *     @property
+ *     def get_indices(self):
  */
-  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 232; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "marchingcubes.pyx":241
+  /* "marchingcubes.pyx":238
  *         """
  *         return numpy.array(self.c_mc.indices,
  *                            dtype=numpy.uint32).reshape(-1, 3)             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__5 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 241; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__5 = PyTuple_Pack(2, __pyx_int_neg_1, __pyx_int_3); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 238; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
@@ -17916,93 +17996,6 @@ PyMODINIT_FUNC PyInit_marchingcubes(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   PyType_Modified(__pyx_ptype_13marchingcubes_MarchingCubes);
 
-  /* "marchingcubes.pyx":221
- * 
- *     @property
- *     def vertices(self):             # <<<<<<<<<<<<<<
- *         """Vertices currently computed (ndarray of dim NbVertices x 3)
- * 
- */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes, __pyx_n_s_vertices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-
-  /* "marchingcubes.pyx":220
- *         return self.c_mc.invert_normals
- * 
- *     @property             # <<<<<<<<<<<<<<
- *     def vertices(self):
- *         """Vertices currently computed (ndarray of dim NbVertices x 3)
- */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 220; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes->tp_dict, __pyx_n_s_vertices, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 221; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  PyType_Modified(__pyx_ptype_13marchingcubes_MarchingCubes);
-
-  /* "marchingcubes.pyx":229
- * 
- *     @property
- *     def normals(self):             # <<<<<<<<<<<<<<
- *         """Normals currently computed (ndarray of dim NbVertices x 3)
- * 
- */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes, __pyx_n_s_normals); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-
-  /* "marchingcubes.pyx":228
- *         return numpy.array(self.c_mc.vertices).reshape(-1, 3)
- * 
- *     @property             # <<<<<<<<<<<<<<
- *     def normals(self):
- *         """Normals currently computed (ndarray of dim NbVertices x 3)
- */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 228; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes->tp_dict, __pyx_n_s_normals, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 229; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  PyType_Modified(__pyx_ptype_13marchingcubes_MarchingCubes);
-
-  /* "marchingcubes.pyx":237
- * 
- *     @property
- *     def indices(self):             # <<<<<<<<<<<<<<
- *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
- *         """
- */
-  __pyx_t_1 = __Pyx_GetNameInClass((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes, __pyx_n_s_indices); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-
-  /* "marchingcubes.pyx":236
- *         return numpy.array(self.c_mc.normals).reshape(-1, 3)
- * 
- *     @property             # <<<<<<<<<<<<<<
- *     def indices(self):
- *         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
- */
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 236; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_1);
-  __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_property, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 236; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem((PyObject *)__pyx_ptype_13marchingcubes_MarchingCubes->tp_dict, __pyx_n_s_indices, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  PyType_Modified(__pyx_ptype_13marchingcubes_MarchingCubes);
-
   /* "marchingcubes.pyx":1
  * # coding: utf-8             # <<<<<<<<<<<<<<
  * # /[inserted by cython to avoid comment start]*##########################################################################
@@ -18465,6 +18458,21 @@ static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObjec
 static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
     PyObject* args = PyTuple_Pack(1, arg);
     return (likely(args)) ? __Pyx_PyObject_Call(func, args, NULL) : NULL;
+}
+#endif
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallNoArg(PyObject *func) {
+#ifdef __Pyx_CyFunction_USED
+    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+#else
+    if (likely(PyCFunction_Check(func))) {
+#endif
+        if (likely(PyCFunction_GET_FLAGS(func) & METH_NOARGS)) {
+            return __Pyx_PyObject_CallMethO(func, NULL);
+        }
+    }
+    return __Pyx_PyObject_Call(func, __pyx_empty_tuple, NULL);
 }
 #endif
 
@@ -19932,7 +19940,7 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
 #endif
 
 
-        static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
+          static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     PyObject *empty_list = 0;
     PyObject *module = 0;
     PyObject *global_dict = 0;
