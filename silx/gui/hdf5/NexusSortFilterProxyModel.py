@@ -51,24 +51,25 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         qt.QSortFilterProxyModel.__init__(self, parent)
         self.__split = re.compile("(\\d+|\\D+)")
 
-    def lessThan(self, source_left, source_right):
+    def lessThan(self, sourceLeft, sourceRight):
         """Returns True if the value of the item referred to by the given
-        index `source_left` is less than the value of the item referred to by
-        the given index `source_right`, otherwise returns false.
+        index `sourceLeft` is less than the value of the item referred to by
+        the given index `sourceRight`, otherwise returns false.
 
-        :param qt.QModelIndex source_left:
-        :param qt.QModelIndex source_right:
+        :param qt.QModelIndex sourceLeft:
+        :param qt.QModelIndex sourceRight:
         :rtype: bool
         """
-        if source_left.column() != Hdf5TreeModel.NAME_COLUMN:
-            return super(NexusSortFilterProxyModel, self).lessThan(source_left, source_right)
+        if sourceLeft.column() != Hdf5TreeModel.NAME_COLUMN:
+            return super(NexusSortFilterProxyModel, self).lessThan(
+                sourceLeft, sourceRight)
 
         # Do not sort child of root (files)
-        if source_left.parent() == qt.QModelIndex():
-            return source_left.row() < source_right.row()
+        if sourceLeft.parent() == qt.QModelIndex():
+            return sourceLeft.row() < sourceRight.row()
 
-        left = self.sourceModel().data(source_left, Hdf5TreeModel.H5PY_ITEM_ROLE)
-        right = self.sourceModel().data(source_right, Hdf5TreeModel.H5PY_ITEM_ROLE)
+        left = self.sourceModel().data(sourceLeft, Hdf5TreeModel.H5PY_ITEM_ROLE)
+        right = self.sourceModel().data(sourceRight, Hdf5TreeModel.H5PY_ITEM_ROLE)
 
         if issubclass(left.h5pyClass, h5py.Group) and issubclass(right.h5pyClass, h5py.Group):
             less = self.childDatasetLessThan(left, right, "start_time")
@@ -78,8 +79,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
             if less is not None:
                 return less
 
-        left = self.sourceModel().data(source_left, qt.Qt.DisplayRole)
-        right = self.sourceModel().data(source_right, qt.Qt.DisplayRole)
+        left = self.sourceModel().data(sourceLeft, qt.Qt.DisplayRole)
+        right = self.sourceModel().data(sourceRight, qt.Qt.DisplayRole)
         return self.nameLessThan(left, right)
 
     def getWordsAndNumbers(self, name):
