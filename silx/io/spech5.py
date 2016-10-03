@@ -164,7 +164,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "03/10/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -1002,7 +1002,7 @@ class SpecH5Group(object):
             pass
 
         if getclass:
-            return self[name].__class__
+            return self[name].h5py_class
 
         return self[name]
 

@@ -41,7 +41,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/08/2016"
+__date__ = "03/10/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -274,10 +274,14 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(self.sfh5.get("/1.1/start_time", default=-3),
                          b"2016-02-11T09:55:20")
 
+    def testGetClass(self):
+        """Test :meth:`SpecH5Group.get`"""
+        if h5py is None:
+            self.skipTest("h5py is not available")
         self.assertIs(self.sfh5["1.1"].get("start_time", getclass=True),
-                      SpecH5Dataset)
+                      h5py.Dataset)
         self.assertIs(self.sfh5["1.1"].get("instrument", getclass=True),
-                      SpecH5Group)
+                      h5py.Group)
 
         # spech5 does not define external link, so there is no way
         # a group can *get* a SpecH5 class
