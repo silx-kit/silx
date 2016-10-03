@@ -30,6 +30,8 @@ __date__ = "02/03/2016"
 
 
 import unittest
+from functools import reduce
+from silx.testutils import ParametricTestCase
 
 import numpy
 
@@ -63,64 +65,176 @@ class TestPlot(unittest.TestCase):
             numpy.array((1., 10.)), numpy.array((10., 10.)), shape="rectangle")
         plot.addXMarker(10.)
 
+
+class TestPlotRanges(ParametricTestCase):
+    """Basic tests of Plot data ranges without backend"""
+
+    _getValidValues = {True: lambda ar: ar > 0,
+                       False: lambda ar: numpy.ones(shape=ar.shape,
+                                                    dtype=bool)}
+
+    @staticmethod
+    def _getRanges(arrays, are_logs):
+        gen = (TestPlotRanges._getValidValues[is_log](ar)
+               for (ar, is_log) in zip(arrays, are_logs))
+        indices = numpy.where(reduce(numpy.logical_and, gen))[0]
+        if len(indices) > 0:
+            ranges = [(ar[indices[0]], ar[indices[-1]]) for ar in arrays]
+        else:
+            ranges = [None] * len(arrays)
+
+        return ranges
+
+    @staticmethod
+    def _getRangesMinmax(ranges):
+        # TODO : error if None in ranges.
+        rangeMin = numpy.min([rng[0] for rng in ranges])
+        rangeMax = numpy.max([rng[1] for rng in ranges])
+        return rangeMin, rangeMax
+
     def testDataRangeNoPlot(self):
         """empty plot data range"""
 
         plot = Plot(backend='none')
-        dataRange = plot.getDataRange()
-        self.assertIsNone(dataRange.x)
-        self.assertIsNone(dataRange.y)
-        self.assertIsNone(dataRange.yright)
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                self.assertIsNone(dataRange.x)
+                self.assertIsNone(dataRange.y)
+                self.assertIsNone(dataRange.yright)
 
     def testDataRangeLeft(self):
         """left axis range"""
 
         plot = Plot(backend='none')
-        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
-                      legend='plot_0', yaxis='left')
 
-        dataRange = plot.getDataRange()
-        self.assertEqual(dataRange.x, (-5., 4.))
-        self.assertEqual(dataRange.y, (-7., 2.))
-        self.assertIsNone(dataRange.yright)
+        xData = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
+        yData = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
+
+        plot.addCurve(x=xData,
+                      y=yData,
+                      legend='plot_0',
+                      yaxis='left')
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = self._getRanges([xData, yData],
+                                                 [logX, logY])
+                self.assertSequenceEqual(dataRange.x, xRange)
+                self.assertSequenceEqual(dataRange.y, yRange)
+                self.assertIsNone(dataRange.yright)
 
     def testDataRangeRight(self):
         """right axis range"""
 
         plot = Plot(backend='none')
-        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
-                      legend='plot_0', yaxis='right')
+        xData = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
+        yData = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
+        plot.addCurve(x=xData,
+                      y=yData,
+                      legend='plot_0',
+                      yaxis='right')
 
-        dataRange = plot.getDataRange()
-        self.assertEqual(dataRange.x, (-5., 4.))
-        self.assertIsNone(dataRange.y)
-        self.assertEqual(dataRange.yright, (-7., 2.))
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = self._getRanges([xData, yData],
+                                                 [logX, logY])
+                self.assertSequenceEqual(dataRange.x, xRange)
+                self.assertIsNone(dataRange.y)
+                self.assertSequenceEqual(dataRange.yright, yRange)
 
     def testDataRangeImage(self):
         """image data range"""
 
-        plot = Plot(backend='none')
-        plot.addImage(numpy.arange(100.).reshape(20, 5),
-                      origin=(-10, 25), scale=(3., 8.))
+        origin = (-10, 25)
+        scale = (3., 8.)
+        image = numpy.arange(100.).reshape(20, 5)
 
-        dataRange = plot.getDataRange()
-        self.assertEqual(dataRange.x, (-10., 5.))
-        self.assertEqual(dataRange.y, (25., 185.))
-        self.assertIsNone(dataRange.yright)
+        plot = Plot(backend='none')
+        plot.addImage(image,
+                      origin=origin, scale=scale)
+
+        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+
+        ranges = {(False, False): (xRange, yRange),
+                  (True, False): (None, None),
+                  (True, True): (None, None),
+                  (False, True): (None, None)}
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = ranges[logX, logY]
+                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
+                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertIsNone(dataRange.yright)
 
     def testDataRangeLeftRight(self):
         """right+left axis range"""
 
         plot = Plot(backend='none')
-        plot.addCurve(x=numpy.arange(10) - 1., y=numpy.arange(10) - 2.,
-                      legend='plot_left', yaxis='left')
-        plot.addCurve(x=numpy.arange(10) - 5., y=numpy.arange(10) - 7.,
-                      legend='plot_right', yaxis='right')
 
-        dataRange = plot.getDataRange()
-        self.assertEqual(dataRange.x, (-5., 8.))
-        self.assertEqual(dataRange.y, (-2, 7.))
-        self.assertEqual(dataRange.yright, (-7., 2.))
+        xData_l = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
+        yData_l = numpy.arange(10) - 1.9  # range : -1.9 , 7.1
+        plot.addCurve(x=xData_l,
+                      y=yData_l,
+                      legend='plot_l',
+                      yaxis='left')
+
+        xData_r = numpy.arange(10) - 4.9  # range : -4.9 , 4.1
+        yData_r = numpy.arange(10) - 6.9  # range : -6.9 , 2.1
+        plot.addCurve(x=xData_r,
+                      y=yData_r,
+                      legend='plot_r',
+                      yaxis='right')
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
+                                                   [logX, logY])
+                xRangeR, yRangeR = self._getRanges([xData_r, yData_r],
+                                                   [logX, logY])
+                xRangeLR = self._getRangesMinmax([xRangeL, xRangeR])
+                self.assertSequenceEqual(dataRange.x, xRangeLR)
+                self.assertSequenceEqual(dataRange.y, yRangeL)
+                self.assertSequenceEqual(dataRange.yright, yRangeR)
 
     def testDataRangeCurveImage(self):
         """right+left+image axis range"""
@@ -130,23 +244,135 @@ class TestPlot(unittest.TestCase):
         # plot_left sets y min
         # plot_right sets x max (and yright)
         plot = Plot(backend='none')
-        plot.addImage(numpy.arange(100.).reshape(20, 5),
-                      origin=(-10, 5), scale=(3., 8.), legend='image')
-        plot.addCurve(x=numpy.arange(10) - 1., y=numpy.arange(10) - 2.,
-                      legend='plot_left', yaxis='left')
-        plot.addCurve(x=numpy.arange(10) + 5., y=numpy.arange(10) - 1.,
-                      legend='plot_right', yaxis='right')
 
-        dataRange = plot.getDataRange()
-        self.assertEqual(dataRange.x, (-10., 14.))
-        self.assertEqual(dataRange.y, (-2, 165.))
-        self.assertEqual(dataRange.yright, (-1., 8.))
+        origin = (-10, 5)
+        scale = (3., 8.)
+        image = numpy.arange(100.).reshape(20, 5)
+
+        plot.addImage(image,
+                      origin=origin, scale=scale, legend='image')
+
+        xData_l = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
+        yData_l = numpy.arange(10) - 1.9  # range : -1.9 , 7.1
+        plot.addCurve(x=xData_l,
+                      y=yData_l,
+                      legend='plot_l',
+                      yaxis='left')
+
+        xData_r = numpy.arange(10) + 4.1  # range : 4.1 , 13.1
+        yData_r = numpy.arange(10) - 0.9  # range : -0.9 , 8.1
+        plot.addCurve(x=xData_r,
+                      y=yData_r,
+                      legend='plot_r',
+                      yaxis='right')
+
+        imgXRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        imgYRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRangeL, yRangeL = self._getRanges([xData_l, yData_l],
+                                                   [logX, logY])
+                xRangeR, yRangeR = self._getRanges([xData_r, yData_r],
+                                                   [logX, logY])
+                if logX or logY:
+                    xRangeLR = self._getRangesMinmax([xRangeL, xRangeR])
+                else:
+                    xRangeLR = self._getRangesMinmax([xRangeL,
+                                                      xRangeR,
+                                                      imgXRange])
+                    yRangeL = self._getRangesMinmax([yRangeL, imgYRange])
+                self.assertSequenceEqual(dataRange.x, xRangeLR)
+                self.assertSequenceEqual(dataRange.y, yRangeL)
+                self.assertSequenceEqual(dataRange.yright, yRangeR)
+
+    def testDataRangeImageNegativeScaleX(self):
+        """image data range, negative scale"""
+
+        origin = (-10, 25)
+        scale = (-3., 8.)
+        image = numpy.arange(100.).reshape(20, 5)
+
+        plot = Plot(backend='none')
+        plot.addImage(image,
+                      origin=origin, scale=scale)
+
+        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        xRange.sort()  # negative scale!
+        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+
+        ranges = {(False, False): (xRange, yRange),
+                  (True, False): (None, None),
+                  (True, True): (None, None),
+                  (False, True): (None, None)}
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = ranges[logX, logY]
+                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
+                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertIsNone(dataRange.yright)
+
+
+    def testDataRangeImageNegativeScaleY(self):
+        """image data range, negative scale"""
+
+        origin = (-10, 25)
+        scale = (3., -8.)
+        image = numpy.arange(100.).reshape(20, 5)
+
+        plot = Plot(backend='none')
+        plot.addImage(image,
+                      origin=origin, scale=scale)
+
+        xRange = numpy.array([0., image.shape[1] * scale[0]]) + origin[0]
+        yRange = numpy.array([0., image.shape[0] * scale[1]]) + origin[1]
+        yRange.sort()  # negative scale!
+
+        ranges = {(False, False): (xRange, yRange),
+                  (True, False): (None, None),
+                  (True, True): (None, None),
+                  (False, True): (None, None)}
+
+        for logX, logY in ((False, False),
+                           (True, False),
+                           (True, True),
+                           (False, True),
+                           (False, False)):
+            with self.subTest(logX=logX, logY=logY):
+                plot.setXAxisLogarithmic(logX)
+                plot.setYAxisLogarithmic(logY)
+                dataRange = plot.getDataRange()
+                xRange, yRange = ranges[logX, logY]
+                self.assertTrue(numpy.array_equal(dataRange.x, xRange),
+                                msg='{0} != {1}'.format(dataRange.x, xRange))
+                self.assertTrue(numpy.array_equal(dataRange.y, yRange),
+                                msg='{0} != {1}'.format(dataRange.y, yRange))
+                self.assertIsNone(dataRange.yright)
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestPlot))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotRanges))
     return test_suite
 
 

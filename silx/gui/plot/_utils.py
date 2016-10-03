@@ -147,7 +147,7 @@ def applyZoomToPlot(plot, scaleF, center=None):
 
     :param plot: The plot on which to apply zoom.
     :param float scaleF: Scale factor of zoom.
-    :param center: (x, y) coords in data coordinates of the zoom center.
+    :param center: (x, y) coords in pixel coordinates of the zoom center.
     :type center: 2-tuple of float
     """
     xMin, xMax = plot.getGraphXLimits()

@@ -52,7 +52,7 @@ class TestMaskToolsWidget(TestCaseQt):
         super(TestMaskToolsWidget, self).setUp()
         self.plot = PlotWindow()
 
-        self.widget = MaskToolsWidget.MaskToolsDockWidget(self.plot, 'TEST')
+        self.widget = MaskToolsWidget.MaskToolsDockWidget(plot=self.plot, name='TEST')
         self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, self.widget)
 
         self.plot.show()

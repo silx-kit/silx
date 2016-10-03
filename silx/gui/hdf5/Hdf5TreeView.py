@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "27/09/2016"
 
 
 import logging
@@ -75,6 +75,7 @@ class Hdf5TreeView(qt.QTreeView):
         # optimise the rendering
         self.setUniformRowHeights(True)
 
+        self.setIconSize(qt.QSize(16, 16))
         self.setAcceptDrops(True)
         self.setDragEnabled(True)
         self.setDragDropMode(qt.QAbstractItemView.DragDrop)
@@ -147,7 +148,8 @@ class Hdf5TreeView(qt.QTreeView):
         while model is not None:
             if isinstance(model, qt.QAbstractProxyModel):
                 model = model.sourceModel()
-            break
+            else:
+                break
         if model is None:
             return None
         if isinstance(model, Hdf5TreeModel):
@@ -166,7 +168,7 @@ class Hdf5TreeView(qt.QTreeView):
     def dragMoveEvent(self, event):
         model = self.findHdf5TreeModel()
         if model is not None and model.isFileDropEnabled() and event.mimeData().hasFormat("text/uri-list"):
-            event.setDropAction(qt.Qt.LinkAction)
+            event.setDropAction(qt.Qt.CopyAction)
             event.accept()
         else:
             qt.QTreeView.dragMoveEvent(self, event)

@@ -48,6 +48,7 @@ except ImportError:
 else:
     import scipy.misc, scipy.ndimage
 
+
 # for Python implementation of tested functions
 # from test_image_functions import
 # from test_image_setup import

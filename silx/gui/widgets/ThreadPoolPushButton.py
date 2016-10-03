@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "27/09/2016"
 
 import logging
 from .. import qt
@@ -85,54 +85,74 @@ class ThreadPoolPushButton(WaitingPushButton):
     is requested. This behaviour can be disabled by using
     `setDisabledWhenWaiting`.
 
-    When a task is started, the widget emit a `started` signal. When the
-    task ends its result is emmitted by the `succeeded` signal, but if it fail
-    the signal `failed` is emitted with the resulting exception. At the end,
-    the `finished` signal is called.
+    When the button is clicked a `beforeExecuting` signal is sent from the
+    Qt main thread. Then the task is started in a thread pool and the following
+    signals are emitted from the thread pool. Right before calling the
+    registered callable, the widget emits a `started` signal.
+    When the task ends, its result is emitted by the `succeeded` signal, but
+    if it fails the signal `failed` is emitted with the resulting exception.
+    At the end, the `finished` signal is emitted.
 
     The task can be programatically executed by using `executeCallable`.
 
     >>> # Compute a value
     >>> import math
-    >>> button = ThreadPoolPushButton("Compute 2^16")
+    >>> button = ThreadPoolPushButton(text="Compute 2^16")
     >>> button.setCallable(math.pow, 2, 16)
     >>> button.succeeded.connect(print) # python3
 
     >>> # Compute a wrong value
     >>> import math
-    >>> button = ThreadPoolPushButton("Compute sqrt(-1)")
+    >>> button = ThreadPoolPushButton(text="Compute sqrt(-1)")
     >>> button.setCallable(math.sqrt, -1)
     >>> button.failed.connect(print) # python3
     """
 
-    def __init__(self, text=None, icon=None, parent=None):
+    def __init__(self, parent=None, text=None, icon=None):
         """Constructor
 
         :param str text: Text displayed on the button
         :param qt.QIcon icon: Icon displayed on the button
         :param qt.QWidget parent: Parent of the widget
         """
-        WaitingPushButton.__init__(self, text=text, icon=icon, parent=parent)
+        WaitingPushButton.__init__(self, parent=parent, text=text, icon=icon)
         self.__callable = None
         self.__args = None
         self.__kwargs = None
         self.__runnerCount = 0
+        self.clicked.connect(self.executeCallable)
         self.finished.connect(self.__runnerFinished)
 
+    beforeExecuting = qt.Signal()
+    """Signal emitted just before execution of the callable by the main Qt
+    thread. In synchronous mode (direct mode), it can be used to define
+    dynamically `setCallable`, or to execute something in the Qt thread before
+    the execution, or both."""
+
     started = qt.Signal()
-    """Signal emitted when the defined callable is started"""
+    """Signal emitted from the thread pool when the defined callable is
+    started.
+
+    WARNING: This signal is emitted from the thread performing the task, and
+    might be received after the registered callable has been called. If you
+    want to perform some initialisation or set the callable to run, use the
+    `beforeExecuting` signal instead.
+    """
 
     finished = qt.Signal()
-    """Signal emitted when the defined callable is finished"""
+    """Signal emitted from the thread pool when the defined callable is
+    finished"""
 
     succeeded = qt.Signal(object)
-    """Signal emitted when the callable exit with a success.
+    """Signal emitted from the thread pool when the callable exit with a
+    success.
 
     The parameter of the signal is the result returned by the callable.
     """
 
     failed = qt.Signal(object)
-    """Signal emitted when the callable raises an exception.
+    """Signal emitted emitted from the thread pool when the callable raises an
+    exception.
 
     The parameter of the signal is the raised exception.
     """
@@ -159,6 +179,7 @@ class ThreadPoolPushButton(WaitingPushButton):
     def executeCallable(self):
         """Execute the defined callable in QThreadPool.
 
+        First emit a `beforeExecuting` signal.
         If callable is not defined, nothing append.
         If a callable is defined, it will be started
         as a new thread using the `QThreadPool` system. At start of the thread
@@ -167,8 +188,9 @@ class ThreadPoolPushButton(WaitingPushButton):
         `failed` is emitted with the resulting exception. Then the `finished`
         signal is emitted.
         """
+        self.beforeExecuting.emit()
         if self.__callable is None:
-            return None
+            return
         self.__runnerStarted()
         runner = self._createRunner(self.__callable, self.__args, self.__kwargs)
         qt.QThreadPool.globalInstance().start(runner)
@@ -196,10 +218,6 @@ class ThreadPoolPushButton(WaitingPushButton):
         :param list args: List of arguments to call the function.
         :param dict kwargs: Dictionary of arguments used to call the function.
         """
-        if self.__callable is not None and function is None:
-            self.clicked.disconnect(self.executeCallable)
-        elif self.__callable is None and function is not None:
-            self.clicked.connect(self.executeCallable)
         self.__callable = function
         self.__args = args
         self.__kwargs = kwargs

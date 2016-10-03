@@ -156,8 +156,18 @@ class SiftPlan(object):
             for k, v in self.__class__.kernels.items():
                 if isinstance(v, int):
                     self.kernels[k] = min(v, self.max_workgroup_size)
-#                else:
-#                    self.kernels[k] = tuple([1 for i in v])
+                else:
+                    prod = 1
+                    for i in v:
+                        prod *= i
+                    if prod <= self.max_workgroup_size:
+                        self.kernels[k] = v
+                    else:
+                        r = prod // self.max_workgroup_size
+                        if r == 0:
+                            self.kernels[k] = tuple([1] * len(v))
+                        else:
+                            self.kernels[k] = (r,) + tuple([1] * (len(v) - 1))
         else:
             self.max_workgroup_size = None
         self.events = []

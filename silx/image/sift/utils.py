@@ -94,6 +94,22 @@ def matching_correction(matching):
     '''
     N = matching.shape[0]
     # solving normals equations for least square fit
+    #
+    # We correct for linear transformations, mapping points (x, y)
+    # to points (x', y') :
+    #
+    #   x' = a*x + b*y + c
+    #   y' = d*x + e*y + f
+    #
+    # where the parameters a, ..., f  determine the linear transformation.
+    # The equivalent matrix form is
+    #
+    #   x1  y1  1   0   0   0           a       x1'
+    #   0   0   0   x1  y1  1           b       y1'
+    #   x2  y2  1   0   0   0     x     c   =   x2'
+    #   0   0   0   x2  y2  1           d       y2'
+    #       . . . . . .                 e       .
+    #                                   f       .
     X = numpy.zeros((2 * N, 6))
     X[::2, 2:] = 1, 0, 0, 0
     X[::2, 0] = matching.x[:, 0]
@@ -105,10 +121,13 @@ def matching_correction(matching):
     y = numpy.zeros((2 * N, 1))
     y[::2, 0] = matching.x[:, 1]
     y[1::2, 0] = matching.y[:, 1]
-    A = numpy.dot(X.transpose(), X)
-    sol = numpy.dot(numpy.linalg.inv(A), numpy.dot(X.transpose(), y))
-#    sol = numpy.dot(numpy.linalg.pinv(X),y) #pseudo-inverse is slower
-#    MSE = numpy.linalg.norm(y - numpy.dot(X,sol))**2/N #Mean Squared Error, if needed
+
+    # A = numpy.dot(X.transpose(), X)
+    # sol = numpy.dot(numpy.linalg.inv(A), numpy.dot(X.transpose(), y))
+    # sol = numpy.dot(numpy.linalg.pinv(X),y) #pseudo-inverse is slower but numerically stable
+    # MSE = numpy.linalg.norm(y - numpy.dot(X,sol))**2/N #Mean Squared Error, if needed
+
+    sol, sqmse, rnk, svals = numpy.linalg.lstsq(X, y)
     return sol
 
 

@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "27/09/2016"
 
 
 logger = logging.getLogger(__name__)
@@ -159,7 +159,7 @@ def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
         # Other curves
         for i in range(1, y_array.shape[0]):
             specf = savespec(specf, x, y_array[i], xlabel, ylabels[i],
-                             fmt=fmt, scan_number=i+1, mode="w",
+                             fmt=fmt, scan_number=i + 1, mode="w",
                              write_file_header=False, close_file=False)
         # close file if we created it
         if not hasattr(fname, "write"):
@@ -360,3 +360,33 @@ def h5ls(h5group, lvl=0):
         h5f.close()
 
     return h5repr
+
+
+def load(filename):
+    """
+    Load a file as an `h5py.File`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - Spec files if `SpecFile` module is installed
+
+    :param str filename: A filename
+    :raises: IOError if the file can't be loaded as an h5py.File like object
+    :rtype: h5py.File
+    """
+    if not os.path.isfile(filename):
+        raise IOError("Filename '%s' must be a file path" % filename)
+
+    if not h5py_missing:
+        if h5py.is_hdf5(filename):
+            return h5py.File(filename)
+
+    try:
+        from . import spech5
+        return spech5.SpecH5(filename)
+    except ImportError:
+        logger.debug("spech5 can't be loaded.", exc_info=True)
+    except IOError:
+        logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
+
+    raise IOError("File '%s' can't be read as HDF5" % filename)
