@@ -1,4 +1,4 @@
-.. currentmodule:: silx.gui
+.. currentmodule:: silx.gui.hdf5
 
 Getting started with hdf5 widgets
 =================================
@@ -28,7 +28,7 @@ Custom your tree view
    # Allow the user to reorder files with drag-and-drop
    treeview.findHdf5TreeModel().setFileMoveEnabled(True)
 
-   # Only display few columns
+   # Select displayed columns
    column_ids = [treeview.findHdf5TreeModel().NAME_COLUMN]
    treeview.header().setSections(column_ids)
 
@@ -38,8 +38,8 @@ Custom your tree view
 Add a file by name
 ++++++++++++++++++
 
-The tree view use the model througt a proxy. It is better to use
-`findHdf5TreeModel`.
+The :class:`Hdf5TreeView` uses the model through a proxy.
+It is better to use :meth:`Hdf5TreeView.findHdf5TreeModel`.
 
 .. code-block:: python
 
@@ -57,13 +57,12 @@ Add a file with h5py
    # You also can add a dataset or a group
    treeview.findHdf5TreeModel().insertH5pyObject(h5["group1"])
 
-Custom the context menu
-+++++++++++++++++++++++
+Custom context menu
++++++++++++++++++++
 
-The Hdf5TreeView provides a callback API to populate the context menu. The
-callback receive a :class:`silx.gui.hdf5.Hdf5ContextMenuEvent` everytime the
-user request the context menu. The event contains :class:`silx.gui.hdf5.H5Node`
-objects which wrap h5py objects with extra-informations.
+The :class:`Hdf5TreeView` provides a callback API to populate the context menu.
+The callback receive a :class:`Hdf5ContextMenuEvent` everytime the user request the context menu.
+The event contains :class:`H5Node` objects which wrap h5py objects with extra information.
 
 .. code-block:: python
 
@@ -84,8 +83,7 @@ objects which wrap h5py objects with extra-informations.
 Capture selection
 +++++++++++++++++
 
-The widget provides default Qt events, `activated`, `clicked`,
-`doubleClicked`, `entered`, `pressed`.
+The :class:`Hdf5TreeView` widget provides default Qt events: `activated`, `clicked`, `doubleClicked`, `entered`, `pressed`.
 
 .. code-block:: python
 
@@ -115,8 +113,12 @@ The widget provides default Qt events, `activated`, `clicked`,
 Example
 -------
 
-Silx source code provide an example to play with properties of the view, the
-model and the header.
+.. toctree::
+   :hidden:
+
+   examples_hdf5widget.rst
+
+The :doc:`examples_hdf5widget` sample code provides an example of properties of the view, the model and the header.
 
 .. image:: img/Hdf5Example.png
    :height: 200px
@@ -124,14 +126,13 @@ model and the header.
    :alt: Example for HDF5TreeView features
    :align: center
 
-- https://github.com/silx-kit/silx/blob/master/examples/hdf5widget.py
+Source code: :doc:`examples_hdf5widget`.
 
-After installing silx. You can use it like that.
+After installing silx and downloading the script, you can start from the command prompt:
 
 .. code-block:: bash
 
-   python examples/hdf5widget.py <files>
+   python hdf5widget.py <files>
 
-This example support to load files added to the command line, or files dropped
-from the file system. It also provide a GUI to display few test files created
-programatically.
+This example loads files added to the command line, or files dropped from the file system.
+It also provides a GUI to display test files created programatically.
