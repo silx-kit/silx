@@ -1068,7 +1068,8 @@ class Plot(object):
         See :meth:`addMarker` for argument documentation.
         """
         if legend is None:
-            i = 0
+            legend = "Unnamed Marker"
+            i = 1
             while legend in self._markers:
                 legend = "Unnamed Marker %d" % i
                 i += 1

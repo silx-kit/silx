@@ -329,6 +329,24 @@ class TestPlotMarker(_PlotWidgetTest):
 
         self.plot.resetZoom()
 
+    def testPlotMarkerWithoutLegend(self):
+        self.plot.setGraphTitle('Markers without legend')
+        self.plot.setYAxisInverted(True)
+
+        # Markers without legend
+        self.plot.addMarker(10, 10)
+        self.plot.addMarker(10, 20)
+        self.plot.addMarker(40, 50, text='test', symbol=None)
+        self.plot.addMarker(40, 50, text='test', symbol='+')
+        self.plot.addXMarker(25)
+        self.plot.addXMarker(35)
+        self.plot.addXMarker(45, text='test')
+        self.plot.addYMarker(55)
+        self.plot.addYMarker(65)
+        self.plot.addYMarker(75, text='test')
+
+        self.plot.resetZoom()
+
 
 # TestPlotItem ################################################################
 

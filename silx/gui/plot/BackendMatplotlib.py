@@ -453,7 +453,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
                   symbol, constraint, overlay):
         legend = "__MARKER__" + legend
 
-        # TODO issues with text placement when changing limits..
         if x is not None and y is not None:
             line = self.ax.plot(x, y, label=legend,
                                 linestyle=" ",
@@ -464,12 +463,18 @@ class BackendMatplotlib(BackendBase.BackendBase):
             if text is not None:
                 xtmp, ytmp = self.ax.transData.transform_point((x, y))
                 inv = self.ax.transData.inverted()
-                xtmp, ytmp = inv.transform_point((xtmp, ytmp + 15))
-                text = " " + text
+                xtmp, ytmp = inv.transform_point((xtmp, ytmp))
+
+                if symbol is None:
+                    valign = 'baseline'
+                else:
+                    valign = 'top'
+                    text = "  " + text
+
                 line._infoText = self.ax.text(x, ytmp, text,
                                               color=color,
                                               horizontalalignment='left',
-                                              verticalalignment='top')
+                                              verticalalignment=valign)
 
         elif x is not None:
             line = self.ax.axvline(x, label=legend, color=color)
