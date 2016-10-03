@@ -136,7 +136,7 @@ class Hdf5NodeMimeData(qt.QMimeData):
     def __init__(self, node=None):
         qt.QMimeData.__init__(self)
         self.__node = node
-        self.setData(self.MIME_TYPE, "")
+        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
 
     def node(self):
         return self.__node
