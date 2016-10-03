@@ -998,9 +998,8 @@ class SpecH5Group(object):
         if name not in self:
             return default
 
-        if getlink:
-            logger1.warning("getlink is not implemented. " +
-                            "It has no effect on SpecH5Group.get()")
+        if getlink and getclass:
+            pass
 
         if getclass:
             return self[name].__class__
