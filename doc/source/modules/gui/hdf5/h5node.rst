@@ -1,6 +1,4 @@
 
-.. automodule:: silx.gui.hdf5
-
 .. currentmodule:: silx.gui.hdf5
 
 :class:`H5Node` class

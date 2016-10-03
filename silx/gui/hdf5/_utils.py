@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of utilitary class and function used by the
+"""This package provides a set of helper class and function used by the
 package `silx.gui.hdf5` package.
 """
 
@@ -110,7 +110,7 @@ class Hdf5NodeMimeData(qt.QMimeData):
 
 class H5Node(object):
     """Adapter over an h5py object to provide missing informations from h5py
-    nodes, like internal node path and filename (which are not provided by 
+    nodes, like internal node path and filename (which are not provided by
     :mod:`h5py` for soft and external links).
 
     It also provides an abstraction to reach node type for mimicked h5py
