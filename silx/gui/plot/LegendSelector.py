@@ -934,11 +934,11 @@ class LegendsDockWidget(qt.QDockWidget):
 
     It makes the link between the LegendListView widget and the PlotWindow.
 
-    :param plot: :class:`.PlotWindow` instance on which to operate
     :param parent: See :class:`QDockWidget`
+    :param plot: :class:`.PlotWindow` instance on which to operate
     """
 
-    def __init__(self, plot, parent=None):
+    def __init__(self, parent=None, plot=None):
         assert plot is not None
         self._plotRef = weakref.ref(plot)
         self._isConnected = False  # True if widget connected to plot signals

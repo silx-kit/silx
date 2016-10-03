@@ -110,12 +110,13 @@ class TestPositionInfo(TestCaseQt):
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
-        positionWidget = PlotTools.PositionInfo(self.plot)
+        positionWidget = PlotTools.PositionInfo(plot=self.plot)
         self._test(positionWidget, ('X', 'Y'))
 
     def testCustomConverters(self):
         """Test PositionInfo with custom converters"""
-        positionWidget = PlotTools.PositionInfo(self.plot, converters=[
+        positionWidget = PlotTools.PositionInfo(plot=self.plot,
+                                                converters=[
             ('Coords', lambda x, y: (int(x), int(y))),
             ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
@@ -127,7 +128,8 @@ class TestPositionInfo(TestCaseQt):
             raise RuntimeError()
 
         positionWidget = PlotTools.PositionInfo(
-            self.plot, converters=[('Exception', raiseException)])
+            plot=self.plot,
+            converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'], error=2)
 
 

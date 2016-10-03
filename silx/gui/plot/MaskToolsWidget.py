@@ -326,7 +326,7 @@ class MaskToolsWidget(qt.QWidget):
 
     _maxLevelNumber = 255
 
-    def __init__(self, plot, parent=None):
+    def __init__(self, parent=None, plot=None):
         self._defaultColors = numpy.ones((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
         self._overlayColors = numpy.zeros((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
 
@@ -1254,17 +1254,17 @@ class MaskToolsDockWidget(qt.QDockWidget):
 
     For integration in a :class:`PlotWindow`.
 
+    :param parent: See :class:`QDockWidget`
     :param plot: The PlotWidget this widget is operating on
     :paran str name: The title of this widget
-    :param parent: See :class:`QDockWidget`
     """
 
-    def __init__(self, plot, name='Mask', parent=None):
+    def __init__(self, parent=None, plot=None, name='Mask'):
         super(MaskToolsDockWidget, self).__init__(parent)
         self.setWindowTitle(name)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWidget(MaskToolsWidget(plot))
+        self.setWidget(MaskToolsWidget(plot=plot))
         self.dockLocationChanged.connect(self._dockLocationChanged)
         self.topLevelChanged.connect(self._topLevelChanged)
 

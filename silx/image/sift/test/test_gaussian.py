@@ -121,7 +121,7 @@ class TestGaussian(unittest.TestCase):
         """
         Calculate a 1D gaussian using pyopencl.
         This is the same as scipy.signal.gaussian
-    
+
         :param sigma: width of the gaussian
         :param size: can be calculated as 1 + 2 * 4sigma
         """
@@ -133,7 +133,7 @@ class TestGaussian(unittest.TestCase):
                                                   g_gpu.data,  # __global     float     *data,
                                                   numpy.float32(sigma),  # const        float     sigma,
                                                   numpy.int32(size))  # const        int     SIZE
-        sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.float32, queue=cls.queue)
+        sum_data = pyopencl.array.sum(g_gpu, dtype=numpy.dtype(numpy.float32), queue=cls.queue)
         evt2 = cls.kernels["preprocess"].divide_cst(cls.queue, (size,), (1,),
                                                     g_gpu.data,  # __global     float     *data,
                                                     sum_data.data,  # const        float     sigma,
@@ -150,7 +150,7 @@ class TestGaussian(unittest.TestCase):
         Calculate a 1D gaussian using pyopencl.
         This is the same as scipy.signal.gaussian.
         Only one kernel to
-    
+
         :param sigma: width of the gaussian
         :param size: can be calculated as 1 + 2 * 4sigma
         """

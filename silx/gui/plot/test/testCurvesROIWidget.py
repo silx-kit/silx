@@ -54,7 +54,7 @@ class TestCurvesROIWidget(TestCaseQt):
         self.plot.show()
         self.qWaitForWindowExposed(self.plot)
 
-        self.widget = CurvesROIWidget.CurvesROIDockWidget(self.plot, 'TEST')
+        self.widget = CurvesROIWidget.CurvesROIDockWidget(plot=self.plot, name='TEST')
         self.widget.show()
         self.qWaitForWindowExposed(self.widget)
 
