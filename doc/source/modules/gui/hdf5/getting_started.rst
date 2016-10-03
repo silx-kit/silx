@@ -60,9 +60,9 @@ Add a file with h5py
 Custom the context menu
 +++++++++++++++++++++++
 
-The Hdf5TreeView provides a callback API to populate context menu. The callback
-receive an :class:`silx.gui.hdf5.Hdf5ContextMenuEvent` everytime the user
-request the context menu. The event contains :class:`silx.gui.hdf5.H5Node`
+The Hdf5TreeView provides a callback API to populate the context menu. The
+callback receive a :class:`silx.gui.hdf5.Hdf5ContextMenuEvent` everytime the
+user request the context menu. The event contains :class:`silx.gui.hdf5.H5Node`
 objects which wrap h5py objects with extra-informations.
 
 .. code-block:: python
