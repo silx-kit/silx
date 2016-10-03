@@ -20,7 +20,7 @@ with a ``#F`` line.
 The metadata stored in a file header applies to all the content of the data file, until a
 new file header is encountered. There can be more than one file header, but a file with
 multiple headers can be treated as multiple SPEC files concatenated into a single one.
-File header are sometimes missing.
+File headers are sometimes missing.
 
 A file header contains general information:
 
@@ -28,7 +28,7 @@ A file header contains general information:
  - ``#E`` - epoch
  - ``#D`` - file time and date
  - ``#C`` - First comment (SPEC title, SPEC user)
- - ``#O`` - Motor names (separated by two blank spaces)
+ - ``#O`` - Motor names (separated by at least two blank spaces)
 
 The second type of header is the *scan header*. A scan header must start with a ``#S`` line
 and must be preceded by an empty line. This also applies to files without file headers: in
@@ -63,26 +63,27 @@ of a sensor.
 MCA data
 ++++++++
 
-Newer SPEC files can also contain multi-channel analysers data, in between each *normal* data line.
-A multichannel analyser records multiple values when regular sensors record a single value.
-This is typically a histogram of number of counts against frequency (*MCA spectrum*)), to analyze energy distribution
-of a nuclear process.
+Newer SPEC files can also contain multi-channel analyser data, in between each *normal* data line.
+A multichannel analyser records multiple values per single measurement.
+This is typically a histogram of number of counts against channels (*MCA spectrum*), to analyze energy distribution
+of a process.
 
 SPEC data files containing MCA data have additional scan header lines:
 
- - ``#@MCA`` - this indicates the number of values per line
+ - ``#@MCA %16C`` - a spectrum will usually extend for more than one line.
+   This indicates a number of 16 values per line.
  - ``#@CHANN`` - contains 4 values:
 
    - the number of channels per spectrum
    - the first channel number
    - the last channel number
-   - the increment between two channel numbers
- - ``#@CALIB`` - 3 calibration values
+   - the increment between two channel numbers (usually 1)
+ - ``#@CALIB`` - 3 polynomial calibration values a, b, c. ( i.e. energy = a + b * channel + c * channel ^ 2)
  - ``#@CTIME`` - 3 values: preset time, live time, elapsed time
 
 The actual MCA data for a single spectrum usually spans over multiple lines.
 A spectrum starts on a new line with a ``@A``, and when it span over multiple lines, all
-lines end with a continuation character ``\``.
+lines except the last one end with a continuation character ``\``.
 
 Example of SPEC file
 ++++++++++++++++++++
@@ -139,15 +140,12 @@ same MCA header.
     #o0 pshg mrtu mrtd
     #o2 ss1vo ss1ho ss1vg
 
-    #J0 Seconds  IA  ion.mono  Current
-    #J1 xbpmc2  idgap1  Inorm
-
     #S 1  ascan  ss1vo -4.55687 -0.556875  40 0.2
     #D Thu Feb 11 09:55:20 2016
     #T 0.2  (Seconds)
     #P0 180.005 -0.66875 0.87125
     #P1 14.74255 16.197579 12.238283
-    #N 4
+    #N 3
     #L MRTSlit UP  second column  3rd_col
     -1.23 5.89  8
     8.478100E+01  5 1.56
@@ -158,7 +156,7 @@ same MCA header.
     #D Sat 2015/03/14 03:53:50
     #P0 80.005 -1.66875 1.87125
     #P1 4.74255 6.197579 2.238283
-    #N 5
+    #N 4
     #L column0  column1  col2  col3
     0.0 0.1 0.2 0.3
     1.0 1.1 1.2 1.3
@@ -171,35 +169,23 @@ same MCA header.
     #@CHANN 20 0 19 1
     #@CALIB 1.2 2.3 3.4
     #@CTIME 123.4 234.5 345.6
-    #N 3
+    #N 2
     #L uno  duo
     1 2
     @A 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15\
     16 17 18 19
-    @A 0 0 0 0 0 3 5 7 4 1 0 0 0 0 0 0\
-    0 1 0 0
-    @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
-    0 1 0 0
     3 4
     @A 0 0 2 4 15 10 5 1 0 0 0 0 1 0 0 0\
     0 0 0 0
-    @A 0 0 0 0 0 3 5 7 4 1 0 0 0 0 0 0\
-    0 1 0 0
-    @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
-    0 1 0 0
     5 6
     @A 0 0 0 0 5 7 2 0 0 0 0 0 1 0 0 0\
     0 0 0 1
-    @A 0 0 0 0 0 3 2 0 0 1 3 5 2 1 0 0\
-    0 0 0 0
-    @A 0 0 0 0 0 1 4 10 3 1 0 0 0 0 0 0\
-    1 0 4 0
 
-Reading a SpecFile as a HDF5 file
----------------------------------
+Reading a SpecFile as an HDF5 file
+----------------------------------
 
-Intoduction to the spech5 module
-++++++++++++++++++++++++++++++++
+Introduction to the spech5 module
++++++++++++++++++++++++++++++++++
 
 The *silx* module :mod:`silx.io.spech5` can be used to expose SPEC files in a hierarchical tree structure
 and access them through an API that mimics the *h5py* Python library used to read HDF5 files.
@@ -255,10 +241,11 @@ The ``instrument`` subgroup contains following subgroups:
     - ``positioners`` - contains one dataset per motor (positioner), containing
       either the single motor position from the ``#P`` header line, or a complete 1D array
       of positions if the motor names corresponds to a data column (i.e. if the motor name
-      from the ``#O`` header line is identical to a label on the ``#L`` header line
+      from the ``#O`` header line is identical to a label on the ``#L`` header line)
     - one subgroup per MCA analyser/device containing a 2D ``data`` array with all spectra
       recorded by this analyser, as well as datasets for the various MCA metadata
-      (``#@`` header lines)
+      (``#@`` header lines). The first dimension of the ``data`` array corresponds to the number
+      of points and the second one to the spectrum length.
 
 
 In addition the the data columns, this group contains one subgroup per MCA analyser/device
@@ -277,7 +264,8 @@ Accessing groups and datasets:
     sfh5 = SpecH5("test.dat")
 
     # using SpecH5 as a regular group to access scans
-    scan1group = sfh5["1.1"]
+    scan1group = sfh5["1.1"]   # This retrieves scan 1.1
+    scan1group = sfh5[0]       # This retrieves the first scan irrespectively of its number.
     instrument_group = scan1group["instrument"]
 
     # alternative: full path access
