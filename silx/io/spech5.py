@@ -35,8 +35,8 @@ Specfile data structure exposed by this API:
           start_time = "…"
           instrument/
               specfile/
-                  file_header = ["…", "…", …]
-                  scan_header = ["…", "…", …]
+                  file_header = "…"
+                  scan_header = "…"
               positioners/
                   motor_name = value
                   …
@@ -62,8 +62,8 @@ Specfile data structure exposed by this API:
       2.1/
           …
 
-``file_header`` and ``scan_header`` are numpy arrays of fixed-length strings
-containing raw header lines relevant to the scan.
+``file_header`` and ``scan_header`` are the raw headers as they
+appear in the original file, as a string of lines separated by ``\n`` characters.
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
@@ -729,10 +729,12 @@ def _dataset_builder(name, specfileh5, parent_group):
             array_like = ""
 
     elif file_header_data_pattern.match(name):
-        array_like = _fixed_length_strings(scan.file_header)
+        # array_like = _fixed_length_strings(scan.file_header)
+        array_like = "\n".join(scan.file_header)
 
     elif scan_header_data_pattern.match(name):
-        array_like = _fixed_length_strings(scan.scan_header)
+        #array_like = _fixed_length_strings(scan.scan_header)
+        array_like = "\n".join(scan.scan_header)
 
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
@@ -1005,8 +1007,13 @@ class SpecH5Group(object):
         :type key: str
         :raise: KeyError if ``key`` is not a known member of this group.
         """
+        # accept numbers for scan indices
+        if isinstance(key, int):
+            number = self.file._sf.number(key)
+            order = self.file._sf.order(key)
+            full_key = "/%d.%d" % (number, order)
         # Relative path starting from this group (e.g "mca_0/info")
-        if not key.startswith("/"):
+        elif not key.startswith("/"):
             full_key = self.name.rstrip("/") + "/" + key
         # Absolute path called from the root group or from a parent group
         elif key.startswith(self.name):

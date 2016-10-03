@@ -237,7 +237,7 @@ is the column label as it appears on the ``#L`` header line.
 The ``instrument`` subgroup contains following subgroups:
 
     - ``specfile`` - contains two datasets, ``file_header`` and ``scan_header``,
-      containing all header lines
+      containing all header lines as a long string. Lines are delimited by the ``\n`` character.
     - ``positioners`` - contains one dataset per motor (positioner), containing
       either the single motor position from the ``#P`` header line, or a complete 1D array
       of positions if the motor names corresponds to a data column (i.e. if the motor name
