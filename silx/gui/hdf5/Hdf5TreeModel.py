@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "03/10/2016"
 
 
 import os
@@ -36,6 +36,7 @@ from .Hdf5Node import Hdf5Node
 from .Hdf5Item import Hdf5Item
 from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
+from ...io import utils
 
 _logger = logging.getLogger(__name__)
 
@@ -97,7 +98,7 @@ class LoadingItemRunnable(qt.QRunnable):
         of the data and the signal. The result is sent as a signal.
         """
         try:
-            h5file = _utils.load_file_as_h5py(self.filename)
+            h5file = utils.load(self.filename)
             newItem = self.__loadItemTree(self.oldItem, h5file)
             error = None
         except IOError as e:
@@ -534,11 +535,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param filename: file path.
         """
         try:
-            h5file = _utils.load_file_as_h5py(filename)
+            h5file = utils.load(filename)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
-            raise IOError("File '%s' can't be read as HDF5, fabio, or SpecFile" % filename)
+            raise
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)

@@ -28,10 +28,9 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "03/10/2016"
 
 
-import os
 import logging
 from .. import qt
 
@@ -42,39 +41,6 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
-
-
-def load_file_as_h5py(filename):
-    """
-    Load a file as an h5py.File object
-
-    :param str filename: A filename
-    :raises: IOError if the file can't be loaded as an h5py.File like object
-    :rtype: h5py.File
-    """
-    if not os.path.isfile(filename):
-        raise IOError("Filename '%s' must be a file path" % filename)
-
-    if h5py.is_hdf5(filename):
-        return h5py.File(filename)
-
-    try:
-        from ...io import spech5
-        return spech5.SpecH5(filename)
-    except ImportError:
-        _logger.debug("spech5 can't be loaded.", exc_info=True)
-    except IOError:
-        _logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
-
-    try:
-        from ...io import fabioh5
-        return fabioh5.File(filename)
-    except ImportError:
-        _logger.debug("fabioh5 can't be loaded.", exc_info=True)
-    except Exception:
-        _logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
-
-    raise IOError("Format of filename '%s' is not supported" % filename)
 
 
 class Hdf5ContextMenuEvent(object):
