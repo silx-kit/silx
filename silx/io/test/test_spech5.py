@@ -315,18 +315,35 @@ class TestSpecH5(unittest.TestCase):
                       h5py.Dataset)
 
     def testHeader(self):
+        file_header = self.sfh5["/1.2/instrument/specfile/file_header"]
+        scan_header = self.sfh5["/1.2/instrument/specfile/scan_header"]
+        # convert ndarray(dtype=numpy.string_) to str
+        if sys.version < '3.0':
+            file_header = str(file_header)
+            scan_header = str(scan_header)
+        else:
+            file_header = str(file_header.astype(str))
+            scan_header = str(scan_header.astype(str))
+
         # File header has 10 lines
-        self.assertEqual(len(str(self.sfh5["/1.2/instrument/specfile/file_header"]).split("\n")), 10)
+        self.assertEqual(len(file_header.split("\n")), 10)
         # 1.2 has 9 scan & mca header lines
-        self.assertEqual(len(str(self.sfh5["/1.2/instrument/specfile/scan_header"]).split("\n")), 9)
+        self.assertEqual(len(scan_header.split("\n")), 9)
+
         # line 4 of file header
         self.assertEqual(
-                str(self.sfh5["1.2/instrument/specfile/file_header"]).split("\n")[3].rstrip(),
-                b"#C imaging  User = opid17")
+                file_header.split("\n")[3],
+                "#C imaging  User = opid17")
         # line 4 of scan header
+        scan_header = self.sfh5["25.1/instrument/specfile/scan_header"]
+        if sys.version < '3.0':
+            scan_header = str(scan_header)
+        else:
+            scan_header = str(scan_header.astype(str))
+
         self.assertEqual(
-                str(self.sfh5["25.1/instrument/specfile/scan_header"]).split("\n")[3],
-                b"#P1 4.74255 6.197579 2.238283")
+                scan_header.split("\n")[3],
+                "#P1 4.74255 6.197579 2.238283")
 
     def testLinks(self):
         self.assertTrue(

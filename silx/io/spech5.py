@@ -68,7 +68,8 @@ appear in the original file, as a string of lines separated by ``\n`` characters
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
-The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``)
+The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``), unless the
+original date could not be properly decoded in the original SpecFile.
 
 All numeric datasets store values in `float32` format.
 
@@ -142,6 +143,24 @@ You can test for existence of data or groups::
     True
     >>> "spam" in sfh5["1.1"]
     False
+
+To work with text data (``title``, ``start_time``, headers...), you should convert the
+datasets into strings.
+
+With Python 2, this can be achieved using a simple cast::
+
+    >>> from silx.io.spech5 import SpecH5
+    >>> sfh5 = SpecH5("oleg.dat")
+    >>> sc = sfh5["/94.1"]
+    >>> str(sc["title"])
+    '94  ascan  del -0.5 0.5  20 1'
+
+With Python 3, you need to convert the numpy ``dtype`` from byte to unicode
+before casting to ``str``::
+
+    >>> str(sc["title"].astype(str))
+    '94  ascan  del -0.5 0.5  20 1'
+
 
 Classes
 =======
