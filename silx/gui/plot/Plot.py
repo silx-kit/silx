@@ -1702,36 +1702,61 @@ class Plot(object):
                                curve['params']['info'] or {}, curve['params']))
         return output
 
-    def getCurve(self, legend):
-        """Return the data and info of a specific curve.
+    def getCurve(self, legend=None):
+        """Get the data and info of a specific curve.
 
-        It returns None in case of not having the curve.
+        It returns None in case no matching curve is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the curve.
+            If not provided or None (the default), the active curve is returned
+            or if there is no active curve, the lastest updated curve that is
+            not hidden.
+            is returned if there are curves in the plot.
         :return: None or list [x, y, legend, parameters]
         """
-        if legend in self._curves:
+        if legend is None:
+            legend = self.getActiveCurve(just_legend=True)
+            if legend is None and self._curves:
+                # There is no active curve, but there is some curves:
+                # get one that is not hidden
+                for curveLegend in reversed(list(self._curves.keys())):
+                    if curveLegend not in self._hiddenCurves:
+                        legend = curveLegend
+                        break
+
+        if legend is not None and legend in self._curves:
             curve = self._curves[legend]
             return (curve['x'], curve['y'], legend,
                     curve['params']['info'] or {}, curve['params'])
         else:
             return None
 
-    def getImage(self, legend):
-        """Return the data and info of a specific image.
+    def getImage(self, legend=None):
+        """Get the data and info of a specific image.
 
-        It returns None in case of not having an active curve.
+        It returns None in case no matching image is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the image.
+            If not provided or None (the default), the active image is returned
+            or if there is no active image, the lastest updated image
+            is returned if there are images in the plot.
         :return: None or list [image, legend, info, pixmap, params]
         """
-        if legend in self._images:
+        if legend is None:
+            legend = self.getActiveImage(just_legend=True)
+            if legend is None and self._images:
+                # There is no active image, but there is some images: get one
+                legend = list(self._images.keys())[-1]
+
+        if legend is not None and legend in self._images:
             image = self._images[legend]
             return (image['data'], legend, image['params']['info'] or {},
                     image['pixmap'], image['params'])
