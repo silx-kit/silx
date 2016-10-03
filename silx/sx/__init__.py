@@ -95,5 +95,5 @@ del _IS_NOTEBOOK
 
 # Load some silx stuff in namespace
 from silx import *  # noqa
-from silx.io.utils import save1D  # noqa
+from silx.io.utils import load, save1D  # noqa
 from silx.math import Histogramnd, HistogramndLut  # noqa
