@@ -120,7 +120,7 @@ class TestPlotWidget(_PlotWidgetTest):
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
 
 
-class TestPlotImage(_PlotWidgetTest):
+class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
     """Basic tests for addImage"""
 
     def setUp(self):
@@ -196,6 +196,46 @@ class TestPlotImage(_PlotWidgetTest):
                            origin=(DATA_2D.shape[0], 0),
                            replace=False, resetzoom=False)
         self.plot.resetZoom()
+
+    def testImageOriginScale(self):
+        """Test of image with different origin and scale"""
+        self.plot.setGraphTitle('origin and scale')
+
+        tests = [  # (origin, scale)
+            ((10, 20), (1, 1)),
+            ((10, 20), (-1, -1)),
+            ((-10, 20), (2, 1)),
+            ((10, -20), (-1, -2)),
+            (100, 2),
+            (-100, (1, 1)),
+            ((10, 20), 2),
+            ]
+
+        for origin, scale in tests:
+            with self.subTest(origin=origin, scale=scale):
+                self.plot.addImage(DATA_2D, origin=origin, scale=scale)
+                xmin, xmax = self.plot.getGraphXLimits()
+                ymin, ymax = self.plot.getGraphYLimits()
+
+                try:
+                    ox, oy = origin
+                except TypeError:
+                    ox, oy = origin, origin
+                try:
+                    sx, sy = scale
+                except TypeError:
+                    sx, sy = scale, scale
+
+                xbounds = ox, ox + DATA_2D.shape[1] * sx
+                self.assertEqual(xmin, min(xbounds))
+                self.assertEqual(xmax, max(xbounds))
+
+                ybounds = oy, oy + DATA_2D.shape[0] * sy
+                self.assertEqual(ymin, min(ybounds))
+                self.assertEqual(ymax, max(ybounds))
+
+                self.plot.clear()
+                self.plot.resetZoom()
 
 
 class TestPlotCurve(_PlotWidgetTest):

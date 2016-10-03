@@ -499,13 +499,13 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
     It makes the link between the CurvesROIWidget and the PlotWindow.
 
+    :param parent: See :class:`QDockWidget`
     :param plot: :class:`.PlotWindow` instance on which to operate
     :param name: See :class:`QDockWidget`
-    :param parent: See :class:`QDockWidget`
     """
     sigROISignal = qt.Signal(object)
 
-    def __init__(self, plot, name=None, parent=None):
+    def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
 
         assert plot is not None
