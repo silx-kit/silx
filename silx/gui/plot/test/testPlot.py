@@ -367,12 +367,86 @@ class TestPlotRanges(ParametricTestCase):
                 self.assertIsNone(dataRange.yright)
 
 
+class TestPlotGetCurveImage(unittest.TestCase):
+    """Test of plot getCurve and getImage methods"""
+
+    def testGetCurve(self):
+        """Plot.getCurve and Plot.getActiveCurve tests"""
+
+        plot = Plot(backend='none')
+
+        # No curve
+        curve = plot.getCurve()
+        self.assertIsNone(curve)  # No curve
+
+        plot.setActiveCurveHandling(True)
+        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 0')
+        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 1')
+        plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 2')
+
+        # Active curve
+        active = plot.getActiveCurve()
+        self.assertEqual(active[2], 'curve 0')  # Test curve legend
+        curve = plot.getCurve()
+        self.assertEqual(curve[2], 'curve 0')  # Test curve legend
+
+        # No active curve and curves
+        plot.setActiveCurveHandling(False)
+        active = plot.getActiveCurve()
+        self.assertIsNone(active)  # No active curve
+        curve = plot.getCurve()
+        self.assertEqual(curve[2], 'curve 2')  # Last added curve
+
+        # Last curve hidden
+        plot.hideCurve('curve 2', True)
+        curve = plot.getCurve()
+        self.assertEqual(curve[2], 'curve 1')  # Last added curve
+
+        # All curves hidden
+        plot.hideCurve('curve 1', True)
+        plot.hideCurve('curve 0', True)
+        curve = plot.getCurve()
+        self.assertIsNone(curve)
+
+    def testGetImage(self):
+        """Plot.getImage and Plot.getActiveImage tests"""
+
+        plot = Plot(backend='none')
+
+        # No image
+        image = plot.getImage()
+        self.assertIsNone(image)
+
+        plot.addImage(((0, 1), (2, 3)), legend='image 0', replace=False)
+        plot.addImage(((0, 1), (2, 3)), legend='image 1', replace=False)
+
+        # Active image
+        active = plot.getActiveImage()
+        self.assertEqual(active[1], 'image 0')  # Test image legend
+        image = plot.getImage()
+        self.assertEqual(image[1], 'image 0')  # Test image legend
+
+        # No active image
+        plot.addImage(((0, 1), (2, 3)), legend='image 2', replace=False)
+        plot.setActiveImage(None)
+        active = plot.getActiveImage()
+        self.assertIsNone(active)
+        image = plot.getImage()
+        self.assertEqual(image[1], 'image 2')  # Test image legend
+
+        # Active image
+        plot.setActiveImage('image 1')
+        active = plot.getActiveImage()
+        self.assertEqual(active[1], 'image 1')
+        image = plot.getImage()
+        self.assertEqual(image[1], 'image 1')  # Test image legend
+
+
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlot))
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestPlotRanges))
+    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage):
+        test_suite.addTest(
+            unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite
 
 
