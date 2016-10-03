@@ -112,10 +112,10 @@ class LoadingItemRunnable(qt.QRunnable):
 
 
 class Hdf5TreeModel(qt.QAbstractItemModel):
-    """Tree model storing a list of `h5py.File` like objects.
+    """Tree model storing a list of :class:`h5py.File` like objects.
 
-    The main column display the h5py.File list and there hierarchy. Other
-    columns dipslay information on node hierarchy.
+    The main column display the :class:`h5py.File` list and there hierarchy.
+    Other columns display information on node hierarchy.
     """
 
     H5PY_ITEM_ROLE = qt.Qt.UserRole
@@ -225,7 +225,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__fileMoveEnabled = enabled
 
     fileMoveEnabled = qt.Property(bool, isFileMoveEnabled, setFileMoveEnabled)
-    """Property to enable/disable drag-and-drop to drag and drop files to
+    """Property to enable/disable drag-and-drop of files to
     change the ordering in the model."""
 
     def supportedDropActions(self):
@@ -432,7 +432,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def synchronizeIndex(self, index):
         """
-        Synchronize a file a wn index.
+        Synchronize a file a given its index.
 
         Basically close it and load it again.
 
@@ -466,7 +466,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def removeIndex(self, index):
         """
-        Remove an item from the model using it's index.
+        Remove an item from the model using its index.
 
         :param qt.QModelIndex index: Index of the item to remove
         """

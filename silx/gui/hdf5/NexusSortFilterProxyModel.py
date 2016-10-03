@@ -52,7 +52,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         self.__split = re.compile("(\\d+|\\D+)")
 
     def lessThan(self, source_left, source_right):
-        """Returns true if the value of the item referred to by the given
+        """Returns True if the value of the item referred to by the given
         index `source_left` is less than the value of the item referred to by
         the given index `source_right`, otherwise returns false.
 
@@ -84,7 +84,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def getWordsAndNumbers(self, name):
         """
-        Returns a list of splited words and integers composing the name.
+        Returns a list of words and integers composing the name.
 
         An input `"aaa10bbb50.30"` will return
         `["aaa", 10, "bbb", 50, ".", 30]`.
@@ -101,7 +101,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         return result
 
     def nameLessThan(self, left, right):
-        """Returns true if the left string is less than the right string.
+        """Returns True if the left string is less than the right string.
 
         Number composing the names are compared as integers, as result "name2"
         is smaller than "name10".
@@ -116,8 +116,9 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def childDatasetLessThan(self, left, right, childName):
         """
-        Reach the same children name of two items and compare there values.
-        Returns true if the left one is smaller than the right one.
+        Reach the same children name of two items and compare their values.
+
+        Returns True if the left one is smaller than the right one.
 
         :param Hdf5Item left: An item
         :param Hdf5Item right: An item
