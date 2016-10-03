@@ -709,15 +709,24 @@ def _dataset_builder(name, specfileh5, parent_group):
 
     elif start_time_pattern.match(name):
         if "D" in scan.scan_header_dict:
-            array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
+            try:
+                array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
+            except (IndexError, ValueError):
+                logger1.warn("Could not parse date format in scan header. " +
+                             "Using original date not converted to ISO-8601")
+                array_like = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
+            try:
+                array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
+            except (IndexError, ValueError):
+                logger1.warn("Could not parse date format in scan header. " +
+                             "Using original date not converted to ISO-8601")
+                array_like = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in header. " +
-                         "Using current system time for start_time.")
-            array_like = time.ctime(time.time())
+            logger1.warn("No #D line in header. Setting date to empty string.")
+            array_like = ""
 
     elif file_header_data_pattern.match(name):
         array_like = _fixed_length_strings(scan.file_header)
@@ -730,7 +739,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         motor_name = m.group(1)
         # if a motor is recorded as a data column, ignore its position in
         # header and return the data column instead
-        if motor_name in scan.labels:
+        if motor_name in scan.labels and scan.data.shape[0] > 0:
             array_like = scan.data_column_by_name(motor_name)
         else:
             # may return float("inf") if #P line is missing from scan hdr
@@ -1055,19 +1064,22 @@ class SpecH5Group(object):
                 return ret + [u"preset_time", u"elapsed_time", u"live_time"]
             return ret
 
-        # number of data columns must be equal to number of labels
-        assert self._scan.data.shape[0] == len(self._scan.labels)
-
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[1]
 
-        # Number of MCA spectra must be a multiple of number of data lines
-        assert number_of_MCA_spectra % number_of_data_lines == 0
-        number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-        mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
+        if not number_of_data_lines == 0:
+            # Number of MCA spectra must be a multiple of number of data lines
+            assert number_of_MCA_spectra % number_of_data_lines == 0
+            number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
+            mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
-        if measurement_group_pattern.match(self.name):
-            return self._scan.labels + mca_list
+            if measurement_group_pattern.match(self.name):
+                return self._scan.labels + mca_list
+        else:
+            mca_list = []
+            # no data: no measurement
+            if measurement_group_pattern.match(self.name):
+                return []
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
