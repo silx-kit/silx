@@ -78,7 +78,7 @@ class PositionInfo(qt.QWidget):
     >>> import numpy
     >>> from silx.gui.plot.PlotTools import PositionInfo
 
-    >>> position = PositionInfo(plot, converters=[
+    >>> position = PositionInfo(plot=plot, converters=[
     ...     ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
     ...     ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
 
@@ -95,7 +95,8 @@ class PositionInfo(qt.QWidget):
     :param parent: Parent widget
     """
 
-    def __init__(self, plot, converters=None, parent=None):
+    def __init__(self, parent=None, plot=None, converters=None):
+        assert plot is not None
         self._plotRef = weakref.ref(plot)
 
         super(PositionInfo, self).__init__(parent)
@@ -210,9 +211,9 @@ class PositionInfo(qt.QWidget):
 class LimitsToolBar(qt.QToolBar):
     """QToolBar displaying and controlling the limits of a :class:`PlotWidget`.
 
+    :param parent: See :class:`QToolBar`.
     :param plot: :class:`PlotWidget` instance on which to operate.
     :param str title: See :class:`QToolBar`.
-    :param parent: See :class:`QToolBar`.
     """
 
     class _FloatEdit(qt.QLineEdit):
@@ -231,7 +232,7 @@ class LimitsToolBar(qt.QToolBar):
         def setValue(self, value):
             self.setText('%g' % value)
 
-    def __init__(self, plot, title='Limits', parent=None):
+    def __init__(self, parent=None, plot=None, title='Limits'):
         super(LimitsToolBar, self).__init__(title, parent)
         assert plot is not None
         self._plot = plot
@@ -321,7 +322,7 @@ class ProfileToolBar(qt.QToolBar):
     >>> from silx.gui import qt
 
     >>> plot = PlotWindow()  # Create a PlotWindow
-    >>> toolBar = ProfileToolBar(plot)  # Create a profile toolbar for the plot
+    >>> toolBar = ProfileToolBar(plot=plot)  # Create a profile toolbar
     >>> plot.addToolBar(toolBar)  # Add it to plot
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
@@ -335,8 +336,8 @@ class ProfileToolBar(qt.QToolBar):
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
-    def __init__(self, plot, profileWindow=None,
-                 title='Profile Selection', parent=None):
+    def __init__(self, parent=None, plot=None, profileWindow=None,
+                 title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
         self.plot = plot

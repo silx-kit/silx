@@ -298,7 +298,7 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = ProfileToolBar(self)
+        self.profile = ProfileToolBar(plot=self)
         """"Profile tools attached to this plot.
 
         See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
@@ -800,7 +800,7 @@ class ImageViewMainWindow(ImageView):
         self.setGraphTitle('Image')
 
         # Add toolbars and status bar
-        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self))
+        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
         self.statusBar()
 

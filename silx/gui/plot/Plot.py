@@ -197,7 +197,7 @@ __license__ = "MIT"
 __date__ = "23/02/2016"
 
 
-from collections import OrderedDict, namedtuple
+from collections import Iterable, OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -728,11 +728,15 @@ class Plot(object):
         :param str ylabel: Y axis label to show when this curve is active,
                            or None to keep default axis label.
         :param origin: (origin X, origin Y) of the data.
+                       It is possible to pass a single float if both
+                       coordinates are equal.
                        Default: (0., 0.)
-        :type origin: 2-tuple of float
+        :type origin: float or 2-tuple of float
         :param scale: (scale X, scale Y) of the data.
-                       Default: (1., 1.)
-        :type scale: 2-tuple of float
+                      It is possible to pass a single float if both
+                      coordinates are equal.
+                      Default: (1., 1.)
+        :type scale: float or 2-tuple of float
         :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
@@ -765,10 +769,16 @@ class Plot(object):
         data = numpy.asarray(data)
 
         if origin is not None:
-            origin = float(origin[0]), float(origin[1])
+            if isinstance(origin, Iterable):
+                origin = float(origin[0]), float(origin[1])
+            else:  # single value origin
+                origin = float(origin), float(origin)
 
         if scale is not None:
-            scale = float(scale[0]), float(scale[1])
+            if isinstance(scale, Iterable):
+                scale = float(scale[0]), float(scale[1])
+            else:  # single value scale
+                scale = float(scale), float(scale)
 
         if z is not None:
             z = int(z)
@@ -1090,7 +1100,8 @@ class Plot(object):
         See :meth:`addMarker` for argument documentation.
         """
         if legend is None:
-            i = 0
+            legend = "Unnamed Marker 0"
+            i = 1
             while legend in self._markers:
                 legend = "Unnamed Marker %d" % i
                 i += 1
@@ -1691,36 +1702,61 @@ class Plot(object):
                                curve['params']['info'] or {}, curve['params']))
         return output
 
-    def getCurve(self, legend):
-        """Return the data and info of a specific curve.
+    def getCurve(self, legend=None):
+        """Get the data and info of a specific curve.
 
-        It returns None in case of not having the curve.
+        It returns None in case no matching curve is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the curve.
+            If not provided or None (the default), the active curve is returned
+            or if there is no active curve, the lastest updated curve that is
+            not hidden.
+            is returned if there are curves in the plot.
         :return: None or list [x, y, legend, parameters]
         """
-        if legend in self._curves:
+        if legend is None:
+            legend = self.getActiveCurve(just_legend=True)
+            if legend is None and self._curves:
+                # There is no active curve, but there is some curves:
+                # get one that is not hidden
+                for curveLegend in reversed(list(self._curves.keys())):
+                    if curveLegend not in self._hiddenCurves:
+                        legend = curveLegend
+                        break
+
+        if legend is not None and legend in self._curves:
             curve = self._curves[legend]
             return (curve['x'], curve['y'], legend,
                     curve['params']['info'] or {}, curve['params'])
         else:
             return None
 
-    def getImage(self, legend):
-        """Return the data and info of a specific image.
+    def getImage(self, legend=None):
+        """Get the data and info of a specific image.
 
-        It returns None in case of not having an active curve.
+        It returns None in case no matching image is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the image.
+            If not provided or None (the default), the active image is returned
+            or if there is no active image, the lastest updated image
+            is returned if there are images in the plot.
         :return: None or list [image, legend, info, pixmap, params]
         """
-        if legend in self._images:
+        if legend is None:
+            legend = self.getActiveImage(just_legend=True)
+            if legend is None and self._images:
+                # There is no active image, but there is some images: get one
+                legend = list(self._images.keys())[-1]
+
+        if legend is not None and legend in self._images:
             image = self._images[legend]
             return (image['data'], legend, image['params']['info'] or {},
                     image['pixmap'], image['params'])
@@ -1977,6 +2013,7 @@ class Plot(object):
                 self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setXAxisLogarithmic', state=self._logX)
@@ -2020,6 +2057,7 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setYAxisLogarithmic', state=self._logY)
