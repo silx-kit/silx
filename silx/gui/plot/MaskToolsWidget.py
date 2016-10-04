@@ -1299,7 +1299,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
         See :class:`QMainWindow`.
         """
         action = super(MaskToolsDockWidget, self).toggleViewAction()
-        action.setIcon(icons.getQIcon('image-select-brush'))
+        action.setIcon(icons.getQIcon('image-mask'))
         action.setToolTip("Display/hide mask tools")
         return action
 
