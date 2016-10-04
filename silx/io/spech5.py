@@ -71,8 +71,8 @@ The title is the content of the ``#S`` scan header line without the leading
 The start time is converted to ISO8601 format (``"2016-02-23T22:49:05Z"``),
 if the original date format is standard.
 
-Numeric datasets are stored in `float32` format, except for scalar integers
-which are stored as `int64`.
+Numeric datasets are stored in *float32* format, except for scalar integers
+which are stored as *int64*.
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
 1D numpy arrays if they are measured as scan data, or else scalars as defined
@@ -158,6 +158,7 @@ is that you should decode strings before using them in **Python 3**::
     >>> sfh5["/68.1/title"]
     b'68  ascan  tx3 -28.5 -24.5  20 0.5'
     >>> sfh5["/68.1/title"].decode()
+    '68  ascan  tx3 -28.5 -24.5  20 0.5'
 
 
 Classes
