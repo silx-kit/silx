@@ -68,10 +68,11 @@ appear in the original file, as a string of lines separated by ``\n`` characters
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
-The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``), unless the
-original date could not be properly decoded in the original SpecFile.
+The start time is converted to ISO8601 format (``"2016-02-23T22:49:05Z"``),
+if the original date format is standard.
 
-All numeric datasets store values in `float32` format.
+Numeric datasets are stored in `float32` format, except for scalar integers
+which are stored as `int64`.
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
 1D numpy arrays if they are measured as scan data, or else scalars as defined
@@ -109,7 +110,7 @@ Data and groups are accessed in :mod:`h5py` fashion::
     scan1group = sfh5["1.1"]
     instrument_group = scan1group["instrument"]
 
-    # altenative: full path access
+    # alternative: full path access
     measurement_group = sfh5["/1.1/measurement"]
 
     # accessing a scan data column by name as a 1D numpy array
@@ -144,22 +145,19 @@ You can test for existence of data or groups::
     >>> "spam" in sfh5["1.1"]
     False
 
-To work with text data (``title``, ``start_time``, headers...), you should convert the
-datasets into strings.
+Strings are stored encoded as ``numpy.string_``, as recommended by
+`the h5py documentation <http://docs.h5py.org/en/latest/strings.html>`_.
+This ensures maximum compatibility with third party software libraries,
+when saving a :class:`SpecH5` to a HDF5 file using :mod:`silx.io.spectoh5`.
 
-With Python 2, this can be achieved using a simple cast::
+The type ``numpy.string_`` is a byte-string format. The consequence of this
+is that you should decode strings before using them in **Python 3**::
 
     >>> from silx.io.spech5 import SpecH5
-    >>> sfh5 = SpecH5("oleg.dat")
-    >>> sc = sfh5["/94.1"]
-    >>> str(sc["title"])
-    '94  ascan  del -0.5 0.5  20 1'
-
-With Python 3, you need to convert the numpy ``dtype`` from byte to unicode
-before casting to ``str``::
-
-    >>> str(sc["title"].astype(str))
-    '94  ascan  del -0.5 0.5  20 1'
+    >>> sfh5 = SpecH5("31oct98.dat")
+    >>> sfh5["/68.1/title"]
+    b'68  ascan  tx3 -28.5 -24.5  20 0.5'
+    >>> sfh5["/68.1/title"].decode()
 
 
 Classes
@@ -640,65 +638,195 @@ def _fixed_length_strings(strings, length=0):
     return [s.ljust(length) for s in strings]
 
 
-class SpecH5Dataset(numpy.ndarray):
-    """Emulate :class:`h5py.Dataset` for a SpecFile object
+class SpecH5Dataset(object):
+    """Emulate :class:`h5py.Dataset` for a SpecFile object.
 
-    :param array_like: Input dataset in a type that can be digested by
-        ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
+    A :class:`SpecH5Dataset` instance is basically  a proxy for the
+    :attr:`value` attribute, with additional attributes for compatibility
+    with *h5py* datasets.
+
+    :param value: Actual dataset value
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
     :param file_: Parent :class:`SpecH5`
     :param parent: Parent :class:`SpecH5Group` which contains this dataset
-
-    This class inherits from :class:`numpy.ndarray` and adds ``name`` and
-    ``value`` attributes for HDF5 compatibility. ``value`` is a reference
-    to the class instance (``value = self``).
-
-    Data is stored in float32 format, unless it is a string.
     """
-    # For documentation on subclassing numpy.ndarray,
-    # see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
-    def __new__(cls, array_like, name, file_, parent):
-        # unicode can't be stored in hdf5, we need to use bytes
-        if isinstance(array_like, string_types):
-            array_like = numpy.string_(array_like)
+    def __init__(self, value, name, file_, parent):
+        object.__init__(self)
 
-        # Ensure our data is a numpy.ndarray
-        if not isinstance(array_like, numpy.ndarray):
-            array = numpy.array(array_like)
+        self.value = None
+        """Actual dataset, can be a *numpy array*, a *numpy.string_*,
+        a *numpy.int_* or a *numpy.float32*
+
+        All operations applied to an instance of the class use this."""
+
+        # get proper value types, to inherit from numpy
+        # attributes (dtype, shape, size)
+        if isinstance(value, string_types):
+            # use bytes for maximum compatibility
+            # (see http://docs.h5py.org/en/latest/strings.html)
+            self.value = numpy.string_(value)
+        elif isinstance(value, float):
+            # use 32 bits for float scalars
+            self.value = numpy.float32(value)
+        elif isinstance(value, int):
+            self.value = numpy.int_(value)
         else:
-            array = array_like
+            # Enforce numpy array
+            array = numpy.array(value)
+            data_kind = array.dtype.kind
 
-        data_kind = array.dtype.kind
-        # unicode: convert to byte strings
-        # (http://docs.h5py.org/en/latest/strings.html)
-        if data_kind in ["S", "U"]:
-            obj = numpy.asarray(array, dtype=numpy.string_).view(cls)
-        # enforce float32 for int, unsigned int, float
-        elif data_kind in ["i", "u", "f"]:
-            obj = numpy.asarray(array, dtype=numpy.float32).view(cls)
-        # reject boolean (b), complex (c), object (O), void/data block (V)
+            if data_kind in ["S", "U"]:
+                self.value = numpy.asarray(array, dtype=numpy.string_)
+            elif data_kind in ["f"]:
+                self.value = numpy.asarray(array, dtype=numpy.float32)
+            else:
+                self.value = array
+
+        self.name = name
+        """"Dataset name (posix path format, starting with ``/``)"""
+
+        self.parent = parent
+        """Parent :class:`SpecH5Group` object which contains this dataset"""
+
+        self.file = file_
+        """Parent :class:`SpecH5` object"""
+
+        self.attrs = _get_attrs_dict(name)
+        """Attributes dictionary"""
+
+        self.shape = self.value.shape
+        """Dataset shape, as a tuple with the length of each dimension
+        of the dataset."""
+
+        self.dtype = self.value.dtype
+        """Dataset dtype"""
+
+        self.size = self.value.size
+        """Dataset size (number of elements)"""
+
+    def __getattribute__(self, item):
+        if item in ["value", "name", "parent", "file", "attrs",
+                    "shape", "dtype", "size"]:
+            return object.__getattribute__(self, item)
+
+        return getattr(self.value, item)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __getitem__(self, item):
+        return self.value.__getitem__(item)
+
+    def __getslice__(self, i, j):
+        # deprecated but still in use for python 2.7
+        return self.__getitem__(slice(i, j, None))
+
+    def __iter__(self):
+        return self.value.__iter__()
+
+    # casting
+    def __repr__(self):
+        return self.value.__repr__()
+
+    def __float__(self):
+        return float(self.value)
+
+    def __int__(self):
+        return int(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+    def __bool__(self):
+        if self.value:
+            return True
+        return False
+
+    def __nonzero__(self):
+        # python 2
+        return self.__bool__()
+
+    def __array__(self, dtype=None):
+        if dtype is None:
+            return numpy.array(self.value)
         else:
-            raise TypeError("Unexpected data type " + data_kind +
-                            " (expected int-, string- or float-like data)")
+            return numpy.array(self.value, dtype=dtype)
 
-        obj.name = name
-        obj.value = obj
-        obj.parent = parent
-        obj.file = file_
+    # comparisons
+    def __eq__(self, other):
+        if hasattr(other, "value"):
+            return self.value == other.value
+        else:
+            return self.value == other
 
-        obj.attrs = _get_attrs_dict(name)
+    def __ne__(self, other):
+        if hasattr(other, "value"):
+            return self.value != other.value
+        else:
+            return self.value != other
 
-        return obj
+    def __lt__(self, other):
+        if hasattr(other, "value"):
+            return self.value < other.value
+        else:
+            return self.value < other
 
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self.name = getattr(obj, 'name', None)
-        self.value = getattr(obj, 'value', None)
-        self.parent = getattr(obj, 'parent', None)
-        self.file = getattr(obj, 'file', None)
-        self.attrs = getattr(obj, 'attrs', None)
+    def __le__(self, other):
+        if hasattr(other, "value"):
+            return self.value <= other.value
+        else:
+            return self.value <= other
+
+    def __gt__(self, other):
+        if hasattr(other, "value"):
+            return self.value > other.value
+        else:
+            return self.value > other
+
+    def __ge__(self, other):
+        if hasattr(other, "value"):
+            return self.value >= other.value
+        else:
+            return self.value >= other
+
+    # operations
+    def __add__(self, other):
+        return self.value + other
+
+    def __radd__(self, other):
+        return other + self.value
+
+    def __sub__(self, other):
+        return self.value - other
+
+    def __rsub__(self, other):
+        return other - self.value
+
+    def __mul__(self, other):
+        return self.value * other
+
+    def __rmul__(self, other):
+        return other * self.value
+
+    def __truediv__(self, other):
+        return self.value / other
+
+    def __rtruediv__(self, other):
+        return other / self.value
+
+    def __floordiv__(self, other):
+        return self.value // other
+
+    def __rfloordiv__(self, other):
+        return other // self.value
+
+    # unary operations
+    def __neg__(self):
+        return -self.value
+
+    def __abs__(self):
+        return abs(self.value)
 
     @property
     def h5py_class(self):

@@ -197,7 +197,7 @@ class TestSpecDate(unittest.TestCase):
 class TestSpecH5(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        fd, cls.fname = tempfile.mkstemp(text=False)
+        fd, cls.fname = tempfile.mkstemp()
         if sys.version < '3.0':
             os.write(fd, sftext)
         else:
@@ -393,13 +393,9 @@ class TestSpecH5(unittest.TestCase):
         mca0_chann = self.sfh5["/1.2/measurement/mca_0/info/channels"]
         mca1_chann = self.sfh5["/1.2/measurement/mca_1/info/channels"]
         self.assertEqual(mca0_chann.tolist(),
-                         [0., 1., 2.])
-        # @CHANN is unique in this scan and applies to all analysers
+                         [0, 1, 2])
         self.assertEqual(mca0_chann.tolist(),
                          mca1_chann.tolist())
-
-        self.assertIs(mca0_chann.dtype.type,
-                      float32)
 
     def testMcaCtime(self):
         """Tests for #@CTIME mca header"""
