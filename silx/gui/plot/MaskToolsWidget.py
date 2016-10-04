@@ -1300,6 +1300,7 @@ class MaskToolsDockWidget(qt.QDockWidget):
         """
         action = super(MaskToolsDockWidget, self).toggleViewAction()
         action.setIcon(icons.getQIcon('image-select-brush'))
+        action.setToolTip("Display/hide mask tools")
         return action
 
     def _dockLocationChanged(self, area):
