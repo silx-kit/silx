@@ -97,3 +97,4 @@ del _IS_NOTEBOOK
 from silx import *  # noqa
 from silx.io.utils import load, save1D  # noqa
 from silx.math import Histogramnd, HistogramndLut  # noqa
+from silx.math.fit import leastsq  # noqa
