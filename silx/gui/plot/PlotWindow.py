@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "04/10/2016"
 
 import collections
 import logging
@@ -320,16 +320,25 @@ class PlotWindow(PlotWidget):
             self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
 
+    def _createToolBar(self, title, parent):
+        """Create a QToolBar from the QAction of the PlotWindow.
+
+        :param str title: The title of the QMenu
+        :param qt.QWidget parent: See :class:`QToolBar`
+        """
+        toolbar = qt.QToolBar(title, parent)
+        for action in self.group.actions():
+            toolbar.addAction(action)
+        return toolbar
+
     def toolBar(self, title='Plot', parent=None):
         """Return a QToolBar from the QAction of the PlotWindow.
 
         :param str title: The title of the QMenu
-        :param parent: See :class:`QToolBar`
+        :param qt.QWidget parent: See :class:`QToolBar`
         """
         if not hasattr(self, '_toolbar'):
-            self._toolbar = qt.QToolBar(title, parent)
-            for action in self.group.actions():
-                self._toolbar.addAction(action)
+            self._toolbar = self._createToolBar(title, parent)
         return self._toolbar
 
     def menu(self, title='Plot', parent=None):
