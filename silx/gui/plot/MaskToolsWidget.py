@@ -237,8 +237,8 @@ class Mask(qt.QObject):
         :param bool mask: True to mask (default), False to unmask.
         """
         assert level > 0 and level < 256
-        selection = self._mask[max(0, row):row+height+1,
-                               max(0, col):col+width+1]
+        selection = self._mask[max(0, row):row + height + 1,
+                               max(0, col):col + width + 1]
         if mask:
             selection[:, :] = level
         else:
@@ -327,8 +327,10 @@ class MaskToolsWidget(qt.QWidget):
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
-        self._defaultColors = numpy.ones((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
-        self._overlayColors = numpy.zeros((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
+        # register if the user as force a color for the corresponding mask level
+        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
+        # overlays colors set by the user
+        self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
 
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
@@ -505,7 +507,7 @@ class MaskToolsWidget(qt.QWidget):
     def _initMaskGroupBox(self):
         """Init general mask operation widgets"""
 
-        # Mask level 
+        # Mask level
         self.levelSpinBox = qt.QSpinBox()
         self.levelSpinBox.setRange(1, self._maxLevelNumber)
         self.levelSpinBox.setToolTip(
@@ -514,7 +516,7 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
-        # Transarency
+        # Transparency
         self.transparencyWidget = self._initTransparencyWidget()
 
         # Buttons group
@@ -987,8 +989,8 @@ class MaskToolsWidget(qt.QWidget):
         """
         assert level > 0 and level <= self._maxLevelNumber
 
-        colors = numpy.empty((self._maxLevelNumber+1, 4), dtype=numpy.float32)
-        
+        colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
+
         # Set color
         colors[:, :3] = self._defaultOverlayColor[:3]
 
@@ -1032,7 +1034,7 @@ class MaskToolsWidget(qt.QWidget):
             self._defaultColors[level] = False
 
         self._updateColors()
-        
+
     def getMaskColors(self):
         """masks colors getter"""
         return self._overlayColors
