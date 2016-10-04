@@ -95,7 +95,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/09/2016"
+__date__ = "03/10/2016"
 
 
 DEFAULT_CONFIG = {
@@ -214,6 +214,33 @@ class FitTheories(object):
         else:
             return numpy.zeros_like(y)
 
+    def peak_search(self, y, fwhm, sensitivity):
+        """Search for peaks in y array, after padding the array and
+        multiplying its value by a scaling factor.
+
+        :param y: Data array
+        :param fwhm: Typical full width at half maximum for peaks,
+            in number of points. This parameter is used for smoothing the data
+            and calculating the noise.
+        :param sensitivity: Sensitivity parameter. This is a threshold factor
+            for peak detection. Only peaks larger than the standard deviation
+            of the noise multiplied by this sensitivity parameter are detected.
+        :return: List of peak indices
+        """
+        # add padding and apply scalingfactor
+        ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
+        ysearch[0:(fwhm + 1)] = ysearch[0:(fwhm+1)] * y[0] * self.config["Yscaling"]
+        ysearch[-1:-(fwhm + 1):-1] = ysearch[-1:-(fwhm + 1):-1] * y[len(y)-1] * self.config["Yscaling"]
+        ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
+
+        if len(ysearch) > 1.5 * fwhm:
+            peaks = peak_search(self.config["Yscaling"] * ysearch,
+                                fwhm=fwhm, sensitivity=sensitivity)
+            # remove padding
+            return [peak_index - fwhm for peak_index in peaks]
+        else:
+            return []
+
     def estimate_height_position_fwhm(self, x, y):
         """Estimation of *Height, Position, FWHM* of peaks, for gaussian-like
         curves.
@@ -229,10 +256,6 @@ class FitTheories(object):
             *Height, Position, FWHM*.
             Fit constraints depend on :attr:`config`.
         """
-        yscaling = self.config.get('Yscaling', 1.0)
-        if yscaling == 0:
-            yscaling = 1.0
-
         fittedpar = []
 
         bg = self.strip_bg(y)
@@ -257,17 +280,16 @@ class FitTheories(object):
         npoints = len(y)
 
         # Find indices of peaks in data array
-        if npoints > 1.5 * search_fwhm:
-            peaks = peak_search(yscaling * numpy.fabs(y),
-                                fwhm=search_fwhm,
-                                sensitivity=search_sens)
-        else:
-            peaks = []
+        peaks = self.peak_search(y,
+                                 fwhm=search_fwhm,
+                                 sensitivity=search_sens)
 
         if not len(peaks):
             forcepeak = int(float(self.config.get('ForcePeakPresence', 0)))
             if forcepeak:
                 delta = y - bg
+                # get index of global maximum
+                # (first one if several samples are equal to this value)
                 peaks = [int(numpy.nonzero(delta == delta.max())[0])]
 
         # Find index of largest peak in peaks array
