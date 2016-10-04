@@ -706,9 +706,22 @@ class SpecH5Dataset(object):
         self.size = self.value.size
         """Dataset size (number of elements)"""
 
+    @property
+    def h5py_class(self):
+        """Return h5py class which is mimicked by this class:
+        :class:`h5py.dataset`.
+
+        Accessing this attribute if :mod:`h5py` is not installed causes
+        an ``ImportError`` to be raised
+        """
+        if h5py is None:
+            raise ImportError("Cannot return h5py.Dataset class, " +
+                              "unable to import h5py module")
+        return h5py.Dataset
+
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
-                    "shape", "dtype", "size"]:
+                    "shape", "dtype", "size", "h5py_class"]:
             return object.__getattribute__(self, item)
 
         return getattr(self.value, item)
@@ -828,19 +841,6 @@ class SpecH5Dataset(object):
 
     def __abs__(self):
         return abs(self.value)
-
-    @property
-    def h5py_class(self):
-        """Return h5py class which is mimicked by this class:
-        :class:`h5py.dataset`.
-
-        Accessing this attribute if :mod:`h5py` is not installed causes
-        an ``ImportError`` to be raised
-        """
-        if h5py is None:
-            raise ImportError("Cannot return h5py.Dataset class, " +
-                              "unable to import h5py module")
-        return h5py.Dataset
 
 
 class SpecH5LinkToDataset(SpecH5Dataset):
