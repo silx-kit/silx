@@ -5,9 +5,9 @@ Getting started with HDF5 widgets
 
 Silx provides an implementation of a tree model and a tree view for HDF5 files.
 The aim of this tree is to provide a convenient read-only widget for a big
-amount of data and supporting file format often used in synchrotrons.
+amount of data and supporting file formats often used in synchrotrons.
 
-This page will provide some source code to show how to use this widget.
+This page provides some source code to show how to use this widget.
 
 Commented source code
 ---------------------
@@ -25,14 +25,14 @@ HDF5 widgets are all exposed by the package `silx.gui.hdf5`.
 Custom your tree view
 +++++++++++++++++++++
 
-The tree view can be customed to be sorted by default.
+The tree view can be customized to be sorted by default.
 
 .. code-block:: python
 
    # Sort content of files by time or name
    treeview.setSortingEnabled(True)
 
-The model can be customed to support mouse interaction.
+The model can be customized to support mouse interaction.
 A convenient method :meth:`Hdf5TreeView.findHdf5TreeModel` returns the main
 HDF5 model used through proxy models.
 
@@ -46,7 +46,7 @@ HDF5 model used through proxy models.
    # Allow the user to reorder files with drag-and-drop
    model.setFileMoveEnabled(True)
 
-The tree view is also provided with a custom header which help to custom
+The tree view is also provided with a custom header which help to choose
 visible columns.
 
 .. code-block:: python
@@ -73,7 +73,7 @@ The model can be used to add HDF5. It is internally using
 Add a file with h5py
 ++++++++++++++++++++
 
-The model internally used :mod:`h5py` object API. We can use h5py file, group
+The model internally uses :mod:`h5py` object API. We can use h5py file, group
 and dataset as it is.
 
 .. code-block:: python
@@ -108,9 +108,9 @@ Custom context menu
 +++++++++++++++++++
 
 The :class:`Hdf5TreeView` provides a callback API to populate the context menu.
-The callback receive a :class:`Hdf5ContextMenuEvent` every time the user
-request the context menu. The event contains :class:`H5Node` objects which wrap
-h5py objects with extra informations.
+The callback receives a :class:`Hdf5ContextMenuEvent` every time the user
+requests the context menu. The event contains :class:`H5Node` objects which wrap
+h5py objects with extra information.
 
 .. code-block:: python
 
