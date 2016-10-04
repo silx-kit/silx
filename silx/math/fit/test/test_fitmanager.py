@@ -106,6 +106,10 @@ CONFIGURE = [myconfig]
 """
 
 
+def _order_of_magnitude(x):
+    return numpy.log10(x).round()
+
+
 class TestFitmanager(unittest.TestCase):
     """
     Unit tests of multi-peak functions.
@@ -138,6 +142,8 @@ class TestFitmanager(unittest.TestCase):
         fit.estimate()
         fit.runfit()
 
+        # fit.fit_results[]
+
         # first 2 parameters are related to the linear background
         self.assertEqual(fit.fit_results[0]["name"], "Constant")
         self.assertAlmostEqual(fit.fit_results[0]["fitresult"], 13)
@@ -155,8 +161,11 @@ class TestFitmanager(unittest.TestCase):
             elif i % 3 == 2:
                 self.assertEqual(param["name"],
                                  "FWHM%d" % param_number)
+
             self.assertAlmostEqual(param["fitresult"],
                                    p[i])
+            self.assertAlmostEqual(_order_of_magnitude(param["estimation"]),
+                                   _order_of_magnitude(p[i]))
 
     def testLoadCustomFitFunction(self):
         """Test FitManager using a custom fit function defined in an external
@@ -344,7 +353,7 @@ class TestFitmanager(unittest.TestCase):
             # ('Height', 'Position', 'FWHM')
             p = [1000, 439, 250]
 
-            linear_bg = 2.65 * x + 13
+            linear_bg = 0.05 * x + 13
             y = theory_fun(x, *p) + linear_bg
 
             # Fitting
@@ -361,10 +370,13 @@ class TestFitmanager(unittest.TestCase):
 
             # # first 2 parameters are related to the linear background
             self.assertAlmostEqual(params[0], 13, places=5)
-            self.assertAlmostEqual(params[1], 2.65, places=5)
+            self.assertAlmostEqual(params[1], 0.05, places=5)
 
             for i, param in enumerate(params[2:]):
                 self.assertAlmostEqual(param, p[i], places=5)
+                print(p[i], fit.fit_results[i+2])
+                self.assertAlmostEqual(_order_of_magnitude(fit.fit_results[i+2]["estimation"]),
+                                       _order_of_magnitude(p[i]))
 
 
 test_cases = (TestFitmanager,)

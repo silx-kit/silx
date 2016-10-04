@@ -127,11 +127,6 @@ class Test_smooth(unittest.TestCase):
         for j in range(0, y.shape[1]):
             expected_smooth[:, j] = filters.smooth1d(intermediate_smooth[:, j])
 
-        print(y[25:30, 25:30 ])
-        print(intermediate_smooth[25:30, 25:30])
-        print(expected_smooth[25:30, 25:30 ])
-        print(smoothed_y[25:30, 25:30])
-
         for i in range(0, y.shape[0]):
             for j in range(0, y.shape[1]):
                 self.assertAlmostEqual(smoothed_y[i, j],
