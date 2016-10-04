@@ -60,7 +60,7 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     """Signal for all events of the plot.
 
     The signal information is provided as a dict.
-    See :class:`Plot` for documentation of the content of the dict.
+    See :class:`.Plot` for documentation of the content of the dict.
     """
 
     sigSetYAxisInverted = qt.Signal(bool)
@@ -141,6 +141,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
         if parent is not None:
             # behave as a widget
             self.setWindowFlags(qt.Qt.Widget)
+        else:
+            self.setWindowTitle('PlotWidget')
 
         Plot.Plot.__init__(self, parent, backend=backend)
 
@@ -149,6 +151,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
             self.setCentralWidget(widget)
         else:
             _logger.warning("Plot backend does not support widget")
+
+        self.setFocusPolicy(qt.Qt.StrongFocus)
+        self.setFocus(qt.Qt.OtherFocusReason)
 
     def notify(self, event, **kwargs):
         """Override :meth:`Plot.notify` to send Qt signals."""

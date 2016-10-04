@@ -30,10 +30,12 @@ __date__ = "18/02/2016"
 import unittest
 
 from .testColormapDialog import suite as testColormapDialogSuite
+from .testColors import suite as testColorsSuite
 from .testCurvesROIWidget import suite as testCurvesROIWidgetSuite
 from .testInteraction import suite as testInteractionSuite
 from .testLegendSelector import suite as testLegendSelectorSuite
 from .testMaskToolsWidget import suite as testMaskToolsWidgetSuite
+from .testPlotInteraction import suite as testPlotInteractionSuite
 from .testPlotTools import suite as testPlotToolsSuite
 from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlotWindow import suite as testPlotWindowSuite
@@ -43,11 +45,13 @@ from .testPlot import suite as testPlotSuite
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [testColormapDialogSuite(),
+        [testColorsSuite(),
+         testColormapDialogSuite(),
          testCurvesROIWidgetSuite(),
          testInteractionSuite(),
          testLegendSelectorSuite(),
          testMaskToolsWidgetSuite(),
+         testPlotInteractionSuite(),
          testPlotSuite(),
          testPlotToolsSuite(),
          testPlotWidgetSuite(),

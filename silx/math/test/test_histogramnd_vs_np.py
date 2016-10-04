@@ -50,14 +50,14 @@ def _add_values_to_array_if_missing(array, values, n_values):
 
     if len(array.shape) == 1:
         if not max_in_col:
-            rnd_idx = np.random.random_integers(0,
+            rnd_idx = np.random.randint(0,
                                                 high=len(array)-1,
                                                 size=(n_values,))
             array[rnd_idx] = values
     else:
         for i in range(len(max_in_col)):
             if not max_in_col[i]:
-                rnd_idx = np.random.random_integers(0,
+                rnd_idx = np.random.randint(0,
                                                     high=len(array)-1,
                                                     size=(n_values,))
                 array[rnd_idx, i] = values[i]
@@ -94,7 +94,7 @@ class _TestHistogramnd(unittest.TestCase):
     filter_min = None
     filter_max = None
 
-    bins_rng = None
+    histo_range = None
     n_bins = None
 
     dtype_sample = None
@@ -118,7 +118,7 @@ class _TestHistogramnd(unittest.TestCase):
         self.state_msg = ('Current RNG state :\n'
                           '{0}'.format(self.rng_state))
 
-        sample = np.random.random_integers(int_min,
+        sample = np.random.randint(int_min,
                                            high=int_max,
                                            size=shape)
 
@@ -128,7 +128,7 @@ class _TestHistogramnd(unittest.TestCase):
                   (self.sample_rng[1]-self.sample_rng[0]) /
                   (int_max-int_min)).astype(self.dtype_sample)
 
-        weights = np.random.random_integers(int_min,
+        weights = np.random.randint(int_min,
                                             high=int_max,
                                             size=(n_elements,))
         weights = weights.astype(self.dtype_weights)
@@ -142,11 +142,11 @@ class _TestHistogramnd(unittest.TestCase):
         # the bins range are cast to the same type as the sample
         # in order to get the same results as numpy
         # (which doesnt cast the range)
-        self.bins_rng = np.array(self.bins_rng).astype(self.dtype_sample)
+        self.histo_range = np.array(self.histo_range).astype(self.dtype_sample)
 
         # adding some values that are equal to the max
         #   in order to test the opened/closed last bin
-        bins_max = [b[1] for b in self.bins_rng]
+        bins_max = [b[1] for b in self.histo_range]
         _add_values_to_array_if_missing(sample,
                                         bins_max,
                                         100)
@@ -179,14 +179,14 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True)
 
         result_np = np.histogramdd(self.sample,
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         for i_edges, edges in enumerate(result_c[2]):
             # allclose for now until I can try with the latest version (TBD)
@@ -201,18 +201,18 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True)
 
         result_np = np.histogramdd(self.sample,
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample,
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights)
 
         # comparing "hits"
@@ -225,8 +225,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertTrue(weights_cmp, msg=self.state_msg)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample,
                                             bins_min,
                                             bins_max,
@@ -247,21 +247,21 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=False)
 
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_max = [rng[1] for rng in self.histo_range]
         filtered_idx = _get_values_index(self.sample, bins_max)
 
         result_np = np.histogramdd(self.sample[filtered_idx],
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample[filtered_idx],
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights[filtered_idx])
 
         # comparing "hits"
@@ -273,8 +273,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertTrue(weights_cmp, msg=self.state_msg)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample,
                                             bins_min,
                                             bins_max,
@@ -294,7 +294,7 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True,
@@ -309,11 +309,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np = np.histogramdd(self.sample[weight_idx],
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample[weight_idx],
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights[weight_idx])
 
         # comparing "hits"
@@ -325,8 +325,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertTrue(weights_cmp, msg=self.state_msg)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample[weight_idx],
                                             bins_min,
                                             bins_max,
@@ -349,7 +349,7 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True,
@@ -364,11 +364,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np = np.histogramdd(self.sample[weight_idx],
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample[weight_idx],
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights[weight_idx])
 
         # comparing "hits"
@@ -380,8 +380,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertTrue(weights_cmp, msg=self.state_msg)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample[weight_idx],
                                             bins_min,
                                             bins_max,
@@ -404,7 +404,7 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True,
@@ -423,11 +423,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np = np.histogramdd(self.sample[weight_idx],
                                    bins=self.n_bins,
-                                   range=self.bins_rng)
+                                   range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample[weight_idx],
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights[weight_idx])
 
         # comparing "hits"
@@ -439,8 +439,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp)
         self.assertTrue(weights_cmp)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample[weight_idx],
                                             bins_min,
                                             bins_max,
@@ -463,24 +463,24 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c_1 = histogramnd(self.sample,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=self.weights,
                                  last_bin_closed=True)
 
         result_np_1 = np.histogramdd(self.sample,
                                      bins=self.n_bins,
-                                     range=self.bins_rng)
+                                     range=self.histo_range)
 
         np.histogramdd(self.sample,
                        bins=self.n_bins,
-                       range=self.bins_rng,
+                       range=self.histo_range,
                        weights=self.weights)
 
         sample_2, weights_2 = self.generate_data()
 
         result_c_2 = histogramnd(sample_2,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=weights_2,
                                  last_bin_closed=True,
@@ -488,11 +488,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np_2 = np.histogramdd(sample_2,
                                      bins=self.n_bins,
-                                     range=self.bins_rng)
+                                     range=self.histo_range)
 
         result_np_w_2 = np.histogramdd(sample_2,
                                        bins=self.n_bins,
-                                       range=self.bins_rng,
+                                       range=self.histo_range,
                                        weights=weights_2)
 
         # comparing "hits"
@@ -511,24 +511,24 @@ class _TestHistogramnd(unittest.TestCase):
 
         """
         result_c = histogramnd(self.sample,
-                               self.bins_rng,
+                               self.histo_range,
                                self.n_bins,
                                weights=self.weights,
                                last_bin_closed=True)
 
         np.histogramdd(self.sample,
                        bins=self.n_bins,
-                       range=self.bins_rng)
+                       range=self.histo_range)
 
         result_np_w = np.histogramdd(self.sample,
                                      bins=self.n_bins,
-                                     range=self.bins_rng,
+                                     range=self.histo_range,
                                      weights=self.weights)
 
         sample_2, weights_2 = self.generate_data()
 
         result_c_2 = histogramnd(sample_2,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=weights_2,
                                  last_bin_closed=True,
@@ -536,11 +536,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np_2 = np.histogramdd(sample_2,
                                      bins=self.n_bins,
-                                     range=self.bins_rng)
+                                     range=self.histo_range)
 
         result_np_w_2 = np.histogramdd(sample_2,
                                        bins=self.n_bins,
-                                       range=self.bins_rng,
+                                       range=self.histo_range,
                                        weights=weights_2)
 
         # comparing "hits"
@@ -569,7 +569,7 @@ class _TestHistogramnd(unittest.TestCase):
             cumul = np.zeros(shp, dtype=np.float32)
 
         result_c_1 = histogramnd(self.sample,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=self.weights,
                                  last_bin_closed=True,
@@ -577,11 +577,11 @@ class _TestHistogramnd(unittest.TestCase):
 
         result_np_1 = np.histogramdd(self.sample,
                                      bins=self.n_bins,
-                                     range=self.bins_rng)
+                                     range=self.histo_range)
 
         result_np_w_1 = np.histogramdd(self.sample,
                                        bins=self.n_bins,
-                                       range=self.bins_rng,
+                                       range=self.histo_range,
                                        weights=self.weights)
 
         # comparing "hits"
@@ -591,8 +591,8 @@ class _TestHistogramnd(unittest.TestCase):
         self.assertTrue(hits_cmp, msg=self.state_msg)
         self.assertEqual(result_c_1[1].dtype, np.float32, msg=self.state_msg)
 
-        bins_min = [rng[0] for rng in self.bins_rng]
-        bins_max = [rng[1] for rng in self.bins_rng]
+        bins_min = [rng[0] for rng in self.histo_range]
+        bins_max = [rng[1] for rng in self.histo_range]
         inrange_idx = _get_in_range_indices(self.sample,
                                             bins_min,
                                             bins_max,
@@ -619,7 +619,7 @@ class _TestHistogramnd_1d(_TestHistogramnd):
     filter_min = -15.6
     filter_max = 85.7
 
-    bins_rng = [[-30.2, 90.3]]
+    histo_range = [[-30.2, 90.3]]
     n_bins = 30
 
     dtype = None
@@ -637,7 +637,7 @@ class _TestHistogramnd_2d(_TestHistogramnd):
     filter_min = 81.7
     filter_max = 135.3
 
-    bins_rng = [[10., 90.], [20., 70.]]
+    histo_range = [[10., 90.], [20., 70.]]
     n_bins = 30
 
     dtype = None
@@ -655,7 +655,7 @@ class _TestHistogramnd_3d(_TestHistogramnd):
     filter_min = 31.5
     filter_max = 83.7
 
-    bins_rng = [[30.8, 150.2], [20.1, 90.9], [10.1, 195.]]
+    histo_range = [[30.8, 150.2], [20.1, 90.9], [10.1, 195.]]
     n_bins = 30
 
     dtype = None

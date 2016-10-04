@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """
 This module is a cython binding to wrap the C SpecFile library, to access
 SpecFile data within a python program.
@@ -84,7 +84,7 @@ Classes
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/03/2016"
+__date__ = "06/07/2016"
 
 import os.path
 import logging
@@ -99,7 +99,7 @@ cimport numpy
 cimport cython
 from libc.stdlib cimport free
 
-from specfile cimport *
+cimport specfile_wrapper
 
 # hack to avoid C compiler warnings about unused functions in the NumPy header files
 # Sources: Cython test suite.
@@ -307,6 +307,8 @@ class Scan(object):
         self._scan_header_lines = self._specfile.scan_header(self._index)
         self._file_header_lines = self._specfile.file_header(self._index)
 
+        if self._file_header_lines == self._scan_header_lines:
+            self._file_header_lines = []
         self._header = self._file_header_lines + self._scan_header_lines
 
         self._scan_header_dict = {}
@@ -326,7 +328,7 @@ class Scan(object):
                 # this shouldn't happen
                 _logger.warning("Unable to parse scan header line " + line)
 
-        self._labels = None
+        self._labels = []
         if self.record_exists_in_hdr('L'):
             try:
                 self._labels = self._specfile.labels(self._index)
@@ -381,13 +383,13 @@ class Scan(object):
         This includes the file header, the scan header and possibly a MCA
         header.
         """
-        return self._header\
+        return self._header
 
     @property
     def scan_header(self):
         """List of raw scan header lines (as a list of strings).
         """
-        return self._scan_header_lines\
+        return self._scan_header_lines
 
     @property
     def file_header(self):
@@ -427,14 +429,15 @@ class Scan(object):
         """
         return self._labels
 
-
     @property
     def data(self):
-        """Scan data as a numpy.ndarray with the usual attributes
+        """Scan data as a 2D numpy.ndarray with the usual attributes
         (e.g. data.shape).
+
+        The first index is the detector, the second index is the sample index.
         """
         if self._data is None:
-            self._data = self._specfile.data(self._index)
+            self._data = numpy.transpose(self._specfile.data(self._index))
 
         return self._data
 
@@ -466,7 +469,7 @@ class Scan(object):
     def record_exists_in_hdr(self, record):
         """record_exists_in_hdr(record)
 
-        Check whether a scan header line  exists.
+        Check whether a scan header line exists.
         
         This should be used before attempting to retrieve header information 
         using a C function that may crash with a *segmentation fault* if the
@@ -479,7 +482,7 @@ class Scan(object):
         :return: True or False
         :rtype: boolean
         """
-        for line in self.header:
+        for line in self._header:
             if line.startswith("#" + record):
                 return True
         return False
@@ -488,6 +491,13 @@ class Scan(object):
         """data_line(line_index)
 
         Returns data for a given line of this scan.
+
+        .. note::
+
+            A data line returned by this method, corresponds to a data line
+            in the original specfile (a series of data points, one per
+            detector). In the :attr:`data` array, this line index corresponds
+            to the index in the second dimension (~ column) of the array.
         
         :param line_index: Index of data line to retrieve (starting with 0)
         :type line_index: int
@@ -495,8 +505,9 @@ class Scan(object):
         :return: Line data as a 1D array of doubles
         :rtype: numpy.ndarray 
         """
-        #return self._specfile.data_line(self._index, line_index)
-        return self.data[line_index, :]
+        # attribute data corresponds to a transposed version of the original
+        # specfile data (where detectors correspond to columns)
+        return self.data[:, line_index]
 
     def data_column_by_name(self, label):
         """data_column_by_name(label)
@@ -531,7 +542,7 @@ def _string_to_char_star(string_):
     """_string_to_char_star(string_)
 
     Convert a string to ASCII encoded bytes when using python3"""
-    if sys.version.startswith("3"):
+    if sys.version.startswith("3") and not isinstance(string_, bytes):
         return bytes(string_, "ascii")
     return string_
 
@@ -540,14 +551,13 @@ cdef class SpecFile(object):
     """``SpecFile(filename)``
 
     :param filename: Path of the SpecFile to read
-    :type filename: string
 
     This class wraps the main data and header access functions of the C
     SpecFile library.
     """
     
     cdef:
-        SpecFileHandle *handle
+        specfile_wrapper.SpecFileHandle *handle
         str filename
         int __open_failed
     
@@ -556,9 +566,10 @@ cdef class SpecFile(object):
         cdef int error = SF_ERR_NO_ERRORS
         self.__open_failed = 0
 
+
         if os.path.isfile(filename):
             filename = _string_to_char_star(filename)
-            self.handle =  SfOpen(filename, &error)
+            self.handle =  specfile_wrapper.SfOpen(filename, &error)
         else:
             self.__open_failed = 1
             self._handle_error(SF_ERR_FILE_OPEN)
@@ -567,19 +578,27 @@ cdef class SpecFile(object):
             self._handle_error(error)
        
     def __init__(self, filename):
-        self.filename = filename
+        if not isinstance(filename, str):
+            # encode unicode to str in python 2
+            if sys.version_info[0] < 3:
+                self.filename = filename.encode()
+            # decode bytes to str in python 3
+            elif sys.version_info[0] >= 3:
+                self.filename = filename.decode()
+        else:
+            self.filename = filename
         
     def __dealloc__(self):
         """Destructor: Calls SfClose(self.handle)"""
         #SfClose makes a segmentation fault if file failed to open
         if not self.__open_failed:            
-            if SfClose(self.handle):
+            if specfile_wrapper.SfClose(self.handle):
                 _logger.warning("Error while closing SpecFile")
                                         
     def __len__(self):
         """Return the number of scans in the SpecFile
         """
-        return SfScanNo(self.handle)
+        return specfile_wrapper.SfScanNo(self.handle)
 
     def __iter__(self):
         """Return the next :class:`Scan` in a SpecFile each time this method
@@ -641,7 +660,7 @@ cdef class SpecFile(object):
         :rtype: list of strings
         """
         ret_list = []
-        list_of_numbers = self.list()
+        list_of_numbers = self._list()
         count = {}
         
         for number in list_of_numbers:
@@ -667,7 +686,7 @@ cdef class SpecFile(object):
         :return: Human readable error message
         :rtype: str
         """
-        return (<bytes> SfError(error_code)).decode()
+        return (<bytes> specfile_wrapper.SfError(error_code)).decode()
     
     def _handle_error(self, error_code):
         """Inspect error code, raise adequate error type if necessary.
@@ -718,7 +737,7 @@ cdef class SpecFile(object):
         The scan order for a given scan number increments each time the scan 
         number appers in a given file.
         """
-        idx = SfIndex(self.handle, scan_number, scan_order)
+        idx = specfile_wrapper.SfIndex(self.handle, scan_number, scan_order)
         if idx == -1:
             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
         return idx - 1
@@ -735,7 +754,7 @@ cdef class SpecFile(object):
         :return: User defined scan number.
         :rtype: int
         """
-        idx = SfNumber(self.handle, scan_index + 1)
+        idx = specfile_wrapper.SfNumber(self.handle, scan_index + 1)
         if idx == -1:
             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
         return idx
@@ -753,23 +772,19 @@ cdef class SpecFile(object):
                  non-unique occurrence of a scan number is encountered).
         :rtype: int
         """
-        ordr = SfOrder(self.handle, scan_index + 1)
+        ordr = specfile_wrapper.SfOrder(self.handle, scan_index + 1)
         if ordr == -1:
             self._handle_error(SF_ERR_SCAN_NOT_FOUND)
         return ordr
 
-    def list(self):  
-        """Returns list (1D numpy array) of scan numbers in SpecFile.
-         
-        :return: list of scan numbers (from `` #S``  lines) in the same order
-            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
-        :rtype: numpy array 
+    def _list(self):
+        """see documentation of :meth:`list`
         """
         cdef:
             long *scan_numbers
             int error = SF_ERR_NO_ERRORS
             
-        scan_numbers = SfList(self.handle, &error)
+        scan_numbers = specfile_wrapper.SfList(self.handle, &error)
         self._handle_error(error)
 
         ret_list = []
@@ -778,6 +793,17 @@ cdef class SpecFile(object):
 
         free(scan_numbers)
         return ret_list
+
+    def list(self):
+        """Returns list (1D numpy array) of scan numbers in SpecFile.
+
+        :return: list of scan numbers (from `` #S``  lines) in the same order
+            as in the original SpecFile (e.g ``[1, 1, 2, 3, …]``).
+        :rtype: numpy array
+        """
+        # this method is overloaded in specfilewrapper to output a string
+        # representation of the list
+        return self._list()
     
     def data(self, scan_index):
         """data(scan_index)
@@ -798,11 +824,11 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             long nlines, ncolumns, regular
 
-        sfdata_error = SfData(self.handle,
-                              scan_index + 1,
-                              &mydata,
-                              &data_info,
-                              &error)
+        sfdata_error = specfile_wrapper.SfData(self.handle,
+                                               scan_index + 1,
+                                               &mydata,
+                                               &data_info,
+                                               &error)
         self._handle_error(error)
 
         if <long>data_info != 0:
@@ -820,7 +846,7 @@ cdef class SpecFile(object):
             for j in range(ncolumns):
                 ret_array[i, j] = mydata[i][j]
 
-        freeArrNZ(<void ***>&mydata, nlines)
+        specfile_wrapper.freeArrNZ(<void ***>&mydata, nlines)
         free(data_info)
         return ret_array
 
@@ -846,11 +872,11 @@ cdef class SpecFile(object):
 
         label = _string_to_char_star(label)
 
-        nlines = SfDataColByName(self.handle,
-                                 scan_index + 1,
-                                 label,
-                                 &data_column,
-                                 &error)
+        nlines = specfile_wrapper.SfDataColByName(self.handle,
+                                                  scan_index + 1,
+                                                  label,
+                                                  &data_column,
+                                                  &error)
         self._handle_error(error)
 
         cdef numpy.ndarray ret_array = numpy.empty((nlines,),
@@ -877,11 +903,11 @@ cdef class SpecFile(object):
             char** lines
             int error = SF_ERR_NO_ERRORS
 
-        nlines = SfHeader(self.handle, 
-                          scan_index + 1, 
-                          "",           # no pattern matching 
-                          &lines, 
-                          &error)
+        nlines = specfile_wrapper.SfHeader(self.handle,
+                                           scan_index + 1,
+                                           "",           # no pattern matching
+                                           &lines,
+                                           &error)
         
         self._handle_error(error)
         
@@ -890,10 +916,10 @@ cdef class SpecFile(object):
             line = <bytes>lines[i].decode()
             lines_list.append(line)
                 
-        freeArrNZ(<void***>&lines, nlines)
+        specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
         return lines_list
     
-    def file_header(self, scan_index):
+    def file_header(self, scan_index=0):
         """file_header(scan_index)
 
         Return list of file header lines.
@@ -915,11 +941,11 @@ cdef class SpecFile(object):
             char** lines
             int error = SF_ERR_NO_ERRORS
 
-        nlines = SfFileHeader(self.handle, 
-                             scan_index + 1, 
-                             "",          # no pattern matching
-                             &lines, 
-                             &error)
+        nlines = specfile_wrapper.SfFileHeader(self.handle,
+                                               scan_index + 1,
+                                               "",          # no pattern matching
+                                               &lines,
+                                               &error)
         self._handle_error(error)
 
         lines_list = []
@@ -927,7 +953,7 @@ cdef class SpecFile(object):
             line =  <bytes>lines[i].decode()
             lines_list.append(line)
                 
-        freeArrNZ(<void***>&lines, nlines)
+        specfile_wrapper.freeArrNZ(<void***>&lines, nlines)
         return lines_list     
     
     def columns(self, scan_index): 
@@ -946,9 +972,9 @@ cdef class SpecFile(object):
         cdef: 
             int error = SF_ERR_NO_ERRORS
             
-        ncolumns = SfNoColumns(self.handle, 
-                               scan_index + 1, 
-                               &error)
+        ncolumns = specfile_wrapper.SfNoColumns(self.handle,
+                                                scan_index + 1,
+                                                &error)
         self._handle_error(error)
         
         return ncolumns
@@ -968,14 +994,14 @@ cdef class SpecFile(object):
         cdef: 
             int error = SF_ERR_NO_ERRORS
             
-        s_record = <bytes> SfCommand(self.handle, 
-                                     scan_index + 1, 
-                                     &error)
+        s_record = <bytes> specfile_wrapper.SfCommand(self.handle,
+                                                      scan_index + 1,
+                                                      &error)
         self._handle_error(error)
 
         return s_record.decode()
     
-    def date(self, scan_index):  
+    def date(self, scan_index=0):
         """date(scan_index)
 
         Return date from ``#D`` line
@@ -990,9 +1016,9 @@ cdef class SpecFile(object):
         cdef: 
             int error = SF_ERR_NO_ERRORS
             
-        d_line = <bytes> SfDate(self.handle,
-                                scan_index + 1,
-                                &error)
+        d_line = <bytes> specfile_wrapper.SfDate(self.handle,
+                                                 scan_index + 1,
+                                                 &error)
         self._handle_error(error)
         
         return d_line.decode()
@@ -1013,26 +1039,30 @@ cdef class SpecFile(object):
             char** all_labels
             int error = SF_ERR_NO_ERRORS
 
-        nlabels = SfAllLabels(self.handle, 
-                              scan_index + 1, 
-                              &all_labels,
-                              &error)
+        nlabels = specfile_wrapper.SfAllLabels(self.handle,
+                                               scan_index + 1,
+                                               &all_labels,
+                                               &error)
         self._handle_error(error)
 
         labels_list = []
         for i in range(nlabels):
             labels_list.append(<bytes>all_labels[i].decode())
             
-        freeArrNZ(<void***>&all_labels, nlabels)
+        specfile_wrapper.freeArrNZ(<void***>&all_labels, nlabels)
         return labels_list
      
-    def motor_names(self, scan_index):
-        """motor_names(scan_index)
+    def motor_names(self, scan_index=0):
+        """motor_names(scan_index=0)
 
         Return all motor names from ``#O`` lines
           
         :param scan_index: Unique scan index between ``0`` and
-            ``len(self)-1``.
+            ``len(self)-1``.If not specified, defaults to 0 (meaning the
+            function returns motors names associated with the first scan).
+            This parameter makes a difference only if there are more than
+            on file header in the file, in which case the file header applies
+            to all following scans until a new file header appears.
         :type scan_index: int
 
         :return: All motor names
@@ -1042,19 +1072,19 @@ cdef class SpecFile(object):
             char** all_motors
             int error = SF_ERR_NO_ERRORS
          
-        nmotors = SfAllMotors(self.handle, 
-                              scan_index + 1, 
-                              &all_motors,
-                              &error)
+        nmotors = specfile_wrapper.SfAllMotors(self.handle,
+                                               scan_index + 1,
+                                               &all_motors,
+                                               &error)
         self._handle_error(error)
         
         motors_list = []
         for i in range(nmotors):
             motors_list.append(<bytes>all_motors[i].decode())
         
-        freeArrNZ(<void***>&all_motors, nmotors)
+        specfile_wrapper.freeArrNZ(<void***>&all_motors, nmotors)
         return motors_list
-         
+
     def motor_positions(self, scan_index):
         """motor_positions(scan_index)
 
@@ -1071,10 +1101,10 @@ cdef class SpecFile(object):
             double* motor_positions
             int error = SF_ERR_NO_ERRORS
 
-        nmotors = SfAllMotorPos(self.handle, 
-                                scan_index + 1, 
-                                &motor_positions,
-                                &error)
+        nmotors = specfile_wrapper.SfAllMotorPos(self.handle,
+                                                 scan_index + 1,
+                                                 &motor_positions,
+                                                 &error)
         self._handle_error(error)
 
         motor_positions_list = []
@@ -1101,10 +1131,10 @@ cdef class SpecFile(object):
 
         name = _string_to_char_star(name)
 
-        motor_position = SfMotorPosByName(self.handle,
-                                          scan_index + 1,
-                                          name,
-                                          &error)
+        motor_position = specfile_wrapper.SfMotorPosByName(self.handle,
+                                                           scan_index + 1,
+                                                           name,
+                                                           &error)
         self._handle_error(error)
 
         return motor_position
@@ -1124,9 +1154,9 @@ cdef class SpecFile(object):
         cdef:
             int error = SF_ERR_NO_ERRORS
 
-        num_mca = SfNoMca(self.handle,
-                        scan_index + 1,
-                        &error)
+        num_mca = specfile_wrapper.SfNoMca(self.handle,
+                                           scan_index + 1,
+                                           &error)
         # error code updating isn't implemented in SfNoMCA
         if num_mca == -1:
             raise SfNoMcaError("Failed to retrieve number of MCA " +
@@ -1151,10 +1181,10 @@ cdef class SpecFile(object):
             int error = SF_ERR_NO_ERRORS
             double* mca_calib
 
-        mca_calib_error = SfMcaCalib(self.handle,
-                                     scan_index + 1,
-                                     &mca_calib,
-                                     &error)
+        mca_calib_error = specfile_wrapper.SfMcaCalib(self.handle,
+                                                      scan_index + 1,
+                                                      &mca_calib,
+                                                      &error)
 
         # error code updating isn't implemented in SfMcaCalib
         if mca_calib_error:
@@ -1185,11 +1215,11 @@ cdef class SpecFile(object):
             double* mca_data
             long  len_mca
 
-        len_mca = SfGetMca(self.handle,
-                           scan_index + 1,
-                           mca_index + 1,
-                           &mca_data,
-                           &error)
+        len_mca = specfile_wrapper.SfGetMca(self.handle,
+                                            scan_index + 1,
+                                            mca_index + 1,
+                                            &mca_data,
+                                            &error)
         self._handle_error(error)
 
 

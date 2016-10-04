@@ -53,7 +53,7 @@ from __future__ import absolute_import, print_function, division
 __authors__ = ["Jérôme Kieffer"]
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "17/06/2016"
+__date__ = "15/09/2016"
 __status__ = "production"
 __docformat__ = 'restructuredtext'
 __all__ = ["date", "version_info", "strictversion", "hexversion", "debianversion", "calc_hexversion"]
@@ -67,10 +67,10 @@ RELEASE_LEVEL_VALUE = {"dev": 0,
                        "final": 15}
 
 MAJOR = 0
-MINOR = 2
+MINOR = 3
 MICRO = 0
 RELEV = "dev"  # <16
-SERIAL = 1  # <16
+SERIAL = 0  # <16
 
 date = __date__
 
@@ -91,13 +91,13 @@ if version_info.releaselevel != "final":
 
 def calc_hexversion(major=0, minor=0, micro=0, releaselevel="dev", serial=0):
     """Calculate the hexadecimal version number from the tuple version_info:
-    
+
     :param major: integer
     :param minor: integer
     :param micro: integer
     :param relev: integer or string
     :param serial: integer
-    :return: integerm always increasing with revision numbers  
+    :return: integerm always increasing with revision numbers
     """
     try:
         releaselevel = int(releaselevel)

@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.gui.plot
 
-:mod:`PlotWidget`
-=================
+:mod:`PlotWidget`: Base class for plotting widgets
+==================================================
 
 .. module:: silx.gui.plot.PlotWidget
 
@@ -10,58 +10,12 @@
 
 The :class:`PlotWidget` is a Qt widget providing the plot API initially
 provided in `PyMca <http://pymca.sourceforge.net/>`_.
+It is the basis of other plot widget, thus all plot widgets share the same API.
 
-Examples
+For an introduction and examples of the plot API, see :doc:`getting_started`.
+
+Plot API
 --------
-
-As this widget is a Qt widget, a Qt application must be running in order to
-use this widget.
-The following sample code be included in a script that already created a
-Qt application or from IPython.
-
-To use this widget from `IPython <http://ipython.org/>`_,
-IPython (and matplotlib) need to integrate with Qt.
-You need to either start IPython with the following option
-``ipython --pylab=qt`` or use the ``%pylab qt`` magic from IPython prompt.
-
-.. code-block:: python
-
-   %pylab qt
-
-Basics
-......
-
-Displaying a curve:
-
-.. code-block:: python
-
-   from silx.gui.plot import PlotWidget
-
-   plot = PlotWidget()  # Create the plot widget
-   plot.addCurve(x=(1, 2, 3), y=(3, 2, 1))  # Add a curve with default style
-   plot.show()  # Make the PlotWidget visible
-
-Updating a curve:
-
-.. code-block:: python
-
-   plot.addCurve(x=(1, 2, 3), y=(1, 2, 3))  # Replace the existing curve
-
-Displaying an image:
-
-.. code-block:: python
-
-   import numpy
-   from silx.gui.plot import PlotWidget
-
-   data = numpy.random.random(512 * 512).reshape(512, -1)  # Create 2D data
-
-   plot = PlotWidget()  # Create the plot widget
-   plot.addImage(data)  # Add a 2D data set with default colormap
-   plot.show()  # Make the PlotWidget visible
-
-API
----
 
 .. currentmodule:: silx.gui.plot.Plot
 
@@ -72,33 +26,34 @@ documented in :class:`silx.gui.plot.Plot`.
 
 .. autoclass:: PlotWidget
    :show-inheritance:
-   :members: resetZoom, replot, remove, clear, saveGraph, sigPlotSignal
 
-Curves
-......
+Plot data
+.........
+
+Those methods allow to add and update plotted data:
 
 .. automethod:: PlotWidget.addCurve
-.. automethod:: PlotWidget.removeCurve
-.. automethod:: PlotWidget.clearCurves
-
-Images
-......
-
 .. automethod:: PlotWidget.addImage
-.. automethod:: PlotWidget.removeImage
-.. automethod:: PlotWidget.clearImages
 
-Markers
-.......
+Plot markers
+............
+
+It is also possible to add point or line markers to the plot:
 
 .. automethod:: PlotWidget.addMarker
 .. automethod:: PlotWidget.addXMarker
 .. automethod:: PlotWidget.addYMarker
-.. automethod:: PlotWidget.removeMarker
-.. automethod:: PlotWidget.clearMarkers
+
+Remove data from the plot
+.........................
+
+.. automethod:: PlotWidget.clear
+.. automethod:: PlotWidget.remove
 
 Title and labels
 ................
+
+Those methods handle the text labels of the axes and the plot title:
 
 .. automethod:: PlotWidget.getGraphTitle
 .. automethod:: PlotWidget.setGraphTitle
@@ -121,6 +76,8 @@ Those methods change the range of data values displayed on each axis.
 Axes
 ....
 
+The following methods handle the display properties of the axes:
+
 .. automethod:: PlotWidget.isXAxisLogarithmic
 .. automethod:: PlotWidget.setXAxisLogarithmic
 .. automethod:: PlotWidget.isYAxisLogarithmic
@@ -133,8 +90,10 @@ Axes
 .. automethod:: PlotWidget.getGraphGrid
 .. automethod:: PlotWidget.setGraphGrid
 
-Reset zoom settings
-...................
+Reset zoom
+..........
+
+.. automethod:: PlotWidget.resetZoom
 
 Those methods change the behavior of :meth:`PlotWidget.resetZoom`.
 
@@ -149,7 +108,7 @@ Defaults
 ........
 
 Those methods set-up default values for :meth:`PlotWidget.addCurve` and
-:meth:`PlotWidget.addImage`.
+:meth:`PlotWidget.addImage`:
 
 .. automethod:: PlotWidget.getDefaultColormap
 .. automethod:: PlotWidget.setDefaultColormap
@@ -161,7 +120,7 @@ Interaction
 ...........
 
 Those methods allow to change the interaction mode (e.g., drawing mode)
-of the plot and to toggle the use of a crosshair cursor.
+of the plot and to toggle the use of a crosshair cursor:
 
 .. automethod:: PlotWidget.getInteractiveMode
 .. automethod:: PlotWidget.setInteractiveMode
@@ -169,6 +128,30 @@ of the plot and to toggle the use of a crosshair cursor.
 .. automethod:: PlotWidget.getGraphCursor
 .. automethod:: PlotWidget.setGraphCursor
 
+Misc.
+.....
+
+.. automethod:: PlotWidget.saveGraph
+
+Signals
+.......
+
+The :class:`PlotWidget` provides the following Qt signals:
+
+.. autoattribute:: PlotWidget.sigPlotSignal
+.. autoattribute:: PlotWidget.sigSetYAxisInverted
+.. autoattribute:: PlotWidget.sigSetXAxisLogarithmic
+.. autoattribute:: PlotWidget.sigSetYAxisLogarithmic
+.. autoattribute:: PlotWidget.sigSetXAxisAutoScale
+.. autoattribute:: PlotWidget.sigSetYAxisAutoScale
+.. autoattribute:: PlotWidget.sigSetKeepDataAspectRatio
+.. autoattribute:: PlotWidget.sigSetGraphGrid
+.. autoattribute:: PlotWidget.sigSetGraphCursor
+.. autoattribute:: PlotWidget.sigSetPanWithArrowKeys
+.. autoattribute:: PlotWidget.sigContentChanged
+.. autoattribute:: PlotWidget.sigActiveCurveChanged
+.. autoattribute:: PlotWidget.sigActiveImageChanged
+.. autoattribute:: PlotWidget.sigInteractiveModeChanged
 
 .. Not documented:
    addItem, removeItem, clearItems

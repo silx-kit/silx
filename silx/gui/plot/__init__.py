@@ -22,13 +22,12 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Qt widgets for 1D and 2D plotting.
+"""This package provides a set of Qt widgets for plotting curves and images.
 
-This package provides a set of widgets for plotting curve and images.
+The plotting API is inherited from the `PyMca <http://pymca.sourceforge.net/>`_
+plot API and is mostly compatible with it.
+
 Those widgets supports interaction (e.g., zoom, pan, selections).
-
-The plotting API is inherited from and thus mostly compatible with
-`PyMca <http://pymca.sourceforge.net/>`_ plot API.
 
 List of Qt widgets:
 
@@ -38,9 +37,6 @@ List of Qt widgets:
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 - :class:`.Plot1D`: A widget with tools for curves.
 - :class:`.Plot2D`: A widget with tools for images.
-
-- :func:`.plot1D`: A function to plot curves from the (i)Python console.
-- :func:`.plot2D`: A function to plot an image from the (i)Python console.
 """
 
 __authors__ = ["T. Vincent"]
@@ -49,6 +45,7 @@ __date__ = "22/02/2016"
 
 
 from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D, plot1D, plot2D  # noqa
+from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
+from .ImageView import ImageView  # noqa
 
-__all__ = ['PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D', 'plot1D', 'plot2D']
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']

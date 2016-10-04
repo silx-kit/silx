@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "11/05/2016"
+__date__ = "15/09/2016"
 __license__ = "MIT"
 
 
@@ -138,7 +138,9 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'run_tests.py', '-i'])
         if errno != 0:
             raise SystemExit(errno)
+
 cmdclass['test'] = PyTest
+
 
 # ################### #
 # build_doc commandes #
@@ -149,8 +151,22 @@ try:
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
     from sphinx.setup_command import BuildDoc
+
 except ImportError:
-    sphinx = None
+    class build_doc(Command):
+        user_options = []
+
+        def initialize_options(self):
+            pass
+
+        def finalize_options(self):
+            pass
+
+        def run(self):
+            raise RuntimeError(
+                'Sphinx is required to build the documentation.\n'
+                'Please install Sphinx (http://www.sphinx-doc.org).')
+
 else:
     # i.e. if sphinx:
     class build_doc(BuildDoc):
@@ -182,7 +198,9 @@ else:
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
-    cmdclass['build_doc'] = build_doc
+
+
+cmdclass['build_doc'] = build_doc
 
 
 # ############## #
@@ -439,8 +457,7 @@ setup_kwargs = config.todict()
 install_requires = ["numpy"]
 setup_requires = ["numpy"]
 
-setup_kwargs.update(
-                    name=PROJECT,
+setup_kwargs.update(name=PROJECT,
                     version=get_version(),
                     url="https://github.com/silx-kit/silx",
                     author="data analysis unit",
@@ -454,6 +471,10 @@ setup_kwargs.update(
                     package_data={'silx.resources': [
                         # Add here all resources files
                         'gui/icons/*.png',
+                        'gui/icons/*.svg',
+                        'gui/icons/*.mng',
+                        'gui/icons/*.gif',
+                        'opencl/sift/*.cl',
                         ]},
                     zip_safe=False,
                     )

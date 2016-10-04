@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/03/2016"
+__date__ = "15/09/2016"
 
 
 import unittest
@@ -120,7 +120,7 @@ class TestPlotWidget(_PlotWidgetTest):
         checkLimits(expectedYLim=(1., 10.), expectedRatio=defaultRatio)
 
 
-class TestPlotImage(_PlotWidgetTest):
+class TestPlotImage(_PlotWidgetTest, ParametricTestCase):
     """Basic tests for addImage"""
 
     def setUp(self):
@@ -196,6 +196,46 @@ class TestPlotImage(_PlotWidgetTest):
                            origin=(DATA_2D.shape[0], 0),
                            replace=False, resetzoom=False)
         self.plot.resetZoom()
+
+    def testImageOriginScale(self):
+        """Test of image with different origin and scale"""
+        self.plot.setGraphTitle('origin and scale')
+
+        tests = [  # (origin, scale)
+            ((10, 20), (1, 1)),
+            ((10, 20), (-1, -1)),
+            ((-10, 20), (2, 1)),
+            ((10, -20), (-1, -2)),
+            (100, 2),
+            (-100, (1, 1)),
+            ((10, 20), 2),
+            ]
+
+        for origin, scale in tests:
+            with self.subTest(origin=origin, scale=scale):
+                self.plot.addImage(DATA_2D, origin=origin, scale=scale)
+                xmin, xmax = self.plot.getGraphXLimits()
+                ymin, ymax = self.plot.getGraphYLimits()
+
+                try:
+                    ox, oy = origin
+                except TypeError:
+                    ox, oy = origin, origin
+                try:
+                    sx, sy = scale
+                except TypeError:
+                    sx, sy = scale, scale
+
+                xbounds = ox, ox + DATA_2D.shape[1] * sx
+                self.assertEqual(xmin, min(xbounds))
+                self.assertEqual(xmax, max(xbounds))
+
+                ybounds = oy, oy + DATA_2D.shape[0] * sy
+                self.assertEqual(ymin, min(ybounds))
+                self.assertEqual(ymax, max(ybounds))
+
+                self.plot.clear()
+                self.plot.resetZoom()
 
 
 class TestPlotCurve(_PlotWidgetTest):
@@ -329,6 +369,24 @@ class TestPlotMarker(_PlotWidgetTest):
 
         self.plot.resetZoom()
 
+    def testPlotMarkerWithoutLegend(self):
+        self.plot.setGraphTitle('Markers without legend')
+        self.plot.setYAxisInverted(True)
+
+        # Markers without legend
+        self.plot.addMarker(10, 10)
+        self.plot.addMarker(10, 20)
+        self.plot.addMarker(40, 50, text='test', symbol=None)
+        self.plot.addMarker(40, 50, text='test', symbol='+')
+        self.plot.addXMarker(25)
+        self.plot.addXMarker(35)
+        self.plot.addXMarker(45, text='test')
+        self.plot.addYMarker(55)
+        self.plot.addYMarker(65)
+        self.plot.addYMarker(75, text='test')
+
+        self.plot.resetZoom()
+
 
 # TestPlotItem ################################################################
 
@@ -406,6 +464,86 @@ class TestPlotItem(_PlotWidgetTest):
         self.plot.resetZoom()
 
 
+class TestPlotActiveCurveImage(_PlotWidgetTest):
+    """Basic tests for active image handling"""
+
+    def testActiveCurveAndLabels(self):
+        # Active curve handling off, no label change
+        self.plot.setActiveCurveHandling(False)
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+        self.plot.addCurve((1, 2), (1, 2))
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.addCurve((1, 2), (2, 3), xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        # Active curve handling on, label changes
+        self.plot.setActiveCurveHandling(True)
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+
+        # labels changed as active curve
+        self.plot.addCurve((1, 2), (1, 2), legend='1',
+                           xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels not changed as not active curve
+        self.plot.addCurve((1, 2), (2, 3), legend='2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels changed
+        self.plot.setActiveCurve('2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.setActiveCurve('1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+    def testActiveImageAndLabels(self):
+        # Active image handling always on, no API for toggling it
+        self.plot.setGraphXLabel('XLabel')
+        self.plot.setGraphYLabel('YLabel')
+
+        # labels changed as active curve
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+                           legend='1', xlabel='x1', ylabel='y1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels not changed as not active curve
+        self.plot.addImage(numpy.arange(100).reshape(10, 10), replace=False,
+                           legend='2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        # labels changed
+        self.plot.setActiveImage('2')
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+        self.plot.setActiveImage('1')
+        self.assertEqual(self.plot.getGraphXLabel(), 'x1')
+        self.assertEqual(self.plot.getGraphYLabel(), 'y1')
+
+        self.plot.clear()
+        self.assertEqual(self.plot.getGraphXLabel(), 'XLabel')
+        self.assertEqual(self.plot.getGraphYLabel(), 'YLabel')
+
+
 ##############################################################################
 # Log
 ##############################################################################
@@ -475,7 +613,7 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
             ('x<0, y>0', -arange, arange),
             ('some negative x and y', arange - 500, arange - 500),
             ('x<0, y<0', -arange, -arange),
-            ]
+        ]
 
         for name, xData, yData in tests:
             with self.subTest(name):

@@ -78,10 +78,10 @@ _logger = logging.getLogger(__name__)
 class _FloatEdit(qt.QLineEdit):
     """Field to edit a float value.
 
-    :param float value: The value to set the QLineEdit to.
     :param parent: See :class:`QLineEdit`
+    :param float value: The value to set the QLineEdit to.
     """
-    def __init__(self, value=None, parent=None):
+    def __init__(self, parent=None, value=None):
         qt.QLineEdit.__init__(self, parent)
         self.setValidator(qt.QDoubleValidator())
         self.setAlignment(qt.Qt.AlignRight)
@@ -103,8 +103,8 @@ class _FloatEdit(qt.QLineEdit):
 class ColormapDialog(qt.QDialog):
     """A QDialog widget to set the colormap.
 
-    :param str title: The QDialog title
     :param parent: See :class:`QDialog`
+    :param str title: The QDialog title
     """
 
     sigColormapChanged = qt.Signal(dict)
@@ -114,7 +114,7 @@ class ColormapDialog(qt.QDialog):
     This dict can be used with :class:`Plot`.
     """
 
-    def __init__(self, title="Colormap Dialog", parent=None):
+    def __init__(self, parent=None, title="Colormap Dialog"):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle(title)
 
@@ -172,14 +172,14 @@ class ColormapDialog(qt.QDialog):
         formLayout.addRow('Range:', self._rangeAutoscaleButton)
 
         # Min row
-        self._minValue = _FloatEdit(1.)
+        self._minValue = _FloatEdit(value=1.)
         self._minValue.setEnabled(False)
         self._minValue.textEdited.connect(self._minMaxTextEdited)
         self._minValue.editingFinished.connect(self._minEditingFinished)
         formLayout.addRow('\tMin:', self._minValue)
 
         # Max row
-        self._maxValue = _FloatEdit(10.)
+        self._maxValue = _FloatEdit(value=10.)
         self._maxValue.setEnabled(False)
         self._maxValue.textEdited.connect(self._minMaxTextEdited)
         self._maxValue.editingFinished.connect(self._maxEditingFinished)
@@ -427,14 +427,19 @@ class ColormapDialog(qt.QDialog):
             self._normButtonLinear.setChecked(normalization == 'linear')
             self._normButtonLog.setChecked(normalization == 'log')
 
-        if autoscale is not None:
-            self._rangeAutoscaleButton.setChecked(autoscale)
-
         if vmin is not None:
             self._minValue.setValue(vmin)
 
         if vmax is not None:
             self._maxValue.setValue(vmax)
+
+        if autoscale is not None:
+            self._rangeAutoscaleButton.setChecked(autoscale)
+            if autoscale:
+                dataRange = self.getDataRange()
+                if dataRange is not None:
+                    self._minValue.setValue(dataRange[0])
+                    self._maxValue.setValue(dataRange[1])
 
         # Do it once for all the changes
         self._notify()

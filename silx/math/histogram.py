@@ -52,13 +52,13 @@ Computing the histogram with Histogramnd :
 >>> from silx.math import Histogramnd
 >>> n_bins = 35
 >>> ranges = [[40., 150.], [-130., 250.], [0., 505]]
->>> histo, w_histo, edges = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> histo, w_histo, edges = Histogramnd(sample, n_bins=n_bins, histo_range=ranges, weights=weights)
 
 Histogramnd can accumulate sets of data that don't have the same
 coordinates :
 
 >>> from silx.math import Histogramnd
->>> histo_obj = Histogramnd(sample, n_bins=n_bins, bins_rng=ranges, weights=weights)
+>>> histo_obj = Histogramnd(sample, n_bins=n_bins, histo_range=ranges, weights=weights)
 >>> sample_2 = np.random.random(shape) * 200
 >>> weights_2 = np.random.random((shape[0],))
 >>> histo_obj.accumulate(sample_2, weights=weights_2)
@@ -119,18 +119,35 @@ Second call with weights_2
 
 >>> histo, w_histo = histo_lut.apply_lut(weights_2, histo=histo, weighted_histo=w_histo)
 
+Bin edges
+---------
+When computing an histogram the caller is asked to provide the histogram
+range along each coordinates (parameter *histo_range*). This parameter must
+be given a [N, 2] array where N is the number of dimensions of the histogram.
+
+In other words, the caller must provide, for each dimension,
+the left edge of the first (*leftmost*) bin, and the right edge of the
+last (*rightmost*) bin.
+
+E.g. : for a 1D sample, for a histo_range equal to [0, 10] and n_bins=4, the
+bins ranges will be :
+
+* [0, 2.5[, [2.5, 5[, [5, 7.5[, [7.5, 10 **[** if last_bin_closed = **False**
+* [0, 2.5[, [2.5, 5[, [5, 7.5[, [7.5, 10 **]** if last_bin_closed = **True**
+
 ....
 """  # noqa
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/05/2016"
+__date__ = "15/09/2016"
 
 import numpy as np
 from .chistogramnd import chistogramnd as _chistogramnd  # noqa
 from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
 from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
-           
+
+
 class Histogramnd(object):
     """
     Computes the multidimensional histogram of some data.
@@ -138,7 +155,7 @@ class Histogramnd(object):
 
     def __init__(self,
                  sample,
-                 bins_rng,
+                 histo_range,
                  n_bins,
                  weights=None,
                  weight_min=None,
@@ -160,10 +177,10 @@ class Histogramnd(object):
                 copy.
         :type sample: :class:`numpy.array`
 
-        :param bins_rng:
-            A (N, 2) array containing the lower and upper
-            bin edges along each dimension.
-        :type bins_rng: array_like
+        :param histo_range:
+            A (N, 2) array containing the histogram range along each dimension,
+            where N is the sample's number of dimensions.
+        :type histo_range: array_like
 
         :param n_bins:
             The number of bins :
@@ -208,14 +225,14 @@ class Histogramnd(object):
             Set this parameter to true if you want
             the LAST bin to be closed.
         :type last_bin_closed: *optional*, :class:`python.boolean`
-        
+
         :param wh_dtype: type of the weighted histogram array. If not provided, the
             weighted histogram array will contain values of the same type as
             *weights*. Allowed values are : `numpy.double` and `numpy.float32`
         :type wh_dtype: *optional*, numpy data type
         """
 
-        self.__bins_rng = bins_rng
+        self.__histo_range = histo_range
         self.__n_bins = n_bins
         self.__last_bin_closed = last_bin_closed
         self.__wh_dtype = wh_dtype
@@ -224,7 +241,7 @@ class Histogramnd(object):
             self.__data = [None, None, None]
         else:
             self.__data = _chistogramnd(sample,
-                                        self.__bins_rng,
+                                        self.__histo_range,
                                         self.__n_bins,
                                         weights=weights,
                                         weight_min=weight_min,
@@ -241,7 +258,7 @@ class Histogramnd(object):
 
         .. code-block:: python
 
-            histo, w_histo, edges = Histogramnd(sample, bins_rng, n_bins, weights)
+            histo, w_histo, edges = Histogramnd(sample, histo_range, n_bins, weights)
 
         """
         return self.__data[key]
@@ -268,7 +285,7 @@ class Histogramnd(object):
                 contiguous slice) then histogramnd will have to do make an internal
                 copy.
         :type sample: :class:`numpy.array`
-        
+
         :param weights:
             A N elements numpy array of values associated with
             each sample.
@@ -299,7 +316,7 @@ class Histogramnd(object):
         :type weight_max: *optional*, scalar
         """
         result = _chistogramnd(sample,
-                               self.__bins_rng,
+                               self.__histo_range,
                                self.__n_bins,
                                weights=weights,
                                weight_min=weight_min,
@@ -313,21 +330,21 @@ class Histogramnd(object):
         elif self.__data[1] is None and result[1] is not None:
             self.__data = result
 
-    histo = property(lambda self:self[0])
+    histo = property(lambda self: self[0])
     """ Histogram array, or None if this instance was initialized without
         <sample> and accumulate has not been called yet.
 
         .. note:: this is a **reference** to the array store in this
              Histogramnd instance, use with caution.
     """
-    weighted_histo = property(lambda self:self[1])
+    weighted_histo = property(lambda self: self[1])
     """ Weighted Histogram, or None if this instance was initialized without
         <sample>, or no weights have been passed to __init__ nor accumulate.
 
         .. note:: this is a **reference** to the array store in this
             Histogramnd instance, use with caution.
     """
-    edges = property(lambda self:self[2])
+    edges = property(lambda self: self[2])
     """ Bins edges, or None if this instance was initialized without
         <sample> and accumulate has not been called yet.
     """
@@ -342,7 +359,7 @@ class HistogramndLut(object):
 
     def __init__(self,
                  sample,
-                 bins_rng,
+                 histo_range,
                  n_bins,
                  last_bin_closed=False,
                  dtype=None):
@@ -356,10 +373,10 @@ class HistogramndLut(object):
             :class:`numpy.float32`, :class:`numpy.int32`.
         :type sample: :class:`numpy.array`
 
-        :param bins_rng:
-            A (N, 2) array containing the lower and upper
-            bin edges along each dimension.
-        :type bins_rng: array_like
+        :param histo_range:
+            A (N, 2) array containing the histogram range along each dimension,
+            where N is the sample's number of dimensions.
+        :type histo_range: array_like
 
         :param n_bins:
             The number of bins :
@@ -381,12 +398,12 @@ class HistogramndLut(object):
         :type last_bin_closed: *optional*, :class:`python.boolean`
         """
         lut, histo, edges = _histo_get_lut(sample,
-                                           bins_rng,
+                                           histo_range,
                                            n_bins,
                                            last_bin_closed=last_bin_closed)
 
         self.__n_bins = np.array(histo.shape)
-        self.__bins_rng = bins_rng
+        self.__histo_range = histo_range
         self.__lut = lut
         self.__histo = None
         self.__weighted_histo = None
@@ -432,11 +449,11 @@ class HistogramndLut(object):
         return self.__weighted_histo
 
     @property
-    def bins_rng(self):
+    def histo_range(self):
         """
         Bins ranges.
         """
-        return self.__bins_rng.copy()
+        return self.__histo_range.copy()
 
     @property
     def n_bins(self):
@@ -474,7 +491,7 @@ class HistogramndLut(object):
             A numpy array of values associated with each sample. The number of
             elements in the array must be the same as the number of samples
             provided at instantiation time.
-        :type bins_rng: array_like
+        :type histo_range: array_like
 
         :param weight_min:
             Use this parameter to filter out all samples whose
@@ -526,7 +543,7 @@ class HistogramndLut(object):
             A numpy array of values associated with each sample. The number of
             elements in the array must be the same as the number of samples
             provided at instantiation time.
-        :type bins_rng: array_like
+        :type histo_range: array_like
 
         :param histo:
             Use this parameter if you want to pass your

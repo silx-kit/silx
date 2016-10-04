@@ -33,12 +33,12 @@ from silx.math.chistogramnd import chistogramnd as histogramnd
 from silx.math import Histogramnd
 
 
-def _get_bin_edges(bins_rng, n_bins, n_dims):
+def _get_bin_edges(histo_range, n_bins, n_dims):
     edges = []
     for i_dim in range(n_dims):
-        edges.append(bins_rng[i_dim, 0] +
+        edges.append(histo_range[i_dim, 0] +
                      np.arange(n_bins[i_dim] + 1) *
-                     (bins_rng[i_dim, 1] - bins_rng[i_dim, 0]) /
+                     (histo_range[i_dim, 1] - histo_range[i_dim, 0]) /
                      n_bins[i_dim])
     return tuple(edges)
 
@@ -96,8 +96,8 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         # bin [2, y] because of the bin ranges [-2, 2] and n_bins = 4
         # for the first dimension)
         self.other_axes_index = 2
-        self.bins_rng = np.repeat([[-2., 2.]], ndims, axis=0)
-        self.bins_rng[ndims-1] = [-4., 6.]
+        self.histo_range = np.repeat([[-2., 2.]], ndims, axis=0)
+        self.histo_range[ndims-1] = [-4., 6.]
 
         self.n_bins = np.array([4]*ndims)
         self.n_bins[ndims-1] = 5
@@ -132,11 +132,11 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul, bin_edges = histogramnd(self.sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=self.weights)
 
-        expected_edges = _get_bin_edges(self.bins_rng,
+        expected_edges = _get_bin_edges(self.histo_range,
                                         self.n_bins,
                                         self.ndims)
 
@@ -164,7 +164,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul, bin_edges = histogramnd(self.sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=self.weights,
                                               wh_dtype=np.float32)
@@ -195,7 +195,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
                          msg='Making sure the array is not contiguous.')
 
         histo, cumul, bin_edges = histogramnd(uncontig_sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=self.weights)
 
@@ -226,7 +226,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
                          msg='Making sure the array is not contiguous.')
 
         histo, cumul, bin_edges = histogramnd(self.sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=uncontig_weights)
 
@@ -245,7 +245,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=None)[0:2]
 
@@ -266,7 +266,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=None,
                                    weighted_histo=cumul_in)[0:2]
@@ -291,7 +291,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=None,
                                    histo=histo_in)[0:2]
@@ -313,7 +313,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights,
                                    last_bin_closed=True)[0:2]
@@ -337,7 +337,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights.astype(np.int32),
                                    weight_min=weight_min,
@@ -360,7 +360,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights)[0:2]
 
@@ -373,7 +373,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo_2, cumul = histogramnd(sample_2,          # <==== !!
-                                     self.bins_rng,
+                                     self.histo_range,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
                                      histo=histo)[0:2]
@@ -396,7 +396,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights)[0:2]
 
@@ -409,7 +409,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo, cumul_2 = histogramnd(sample_2,           # <==== !!
-                                     self.bins_rng,
+                                     self.histo_range,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
                                      weighted_histo=cumul)[0:2]
@@ -434,7 +434,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights)[0:2]
 
@@ -450,7 +450,7 @@ class _Test_chistogramnd_nominal(unittest.TestCase):
         sample_2[idx] += 2
 
         histo, cumul_2 = histogramnd(sample_2,           # <==== !!
-                                     self.bins_rng,
+                                     self.histo_range,
                                      self.n_bins,
                                      weights=10 * self.weights,  # <==== !!
                                      weighted_histo=cumul)[0:2]
@@ -508,8 +508,8 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         # bin [2, y] because of the bin ranges [-2, 2] and n_bins = 4
         # for the first dimension)
         self.other_axes_index = 2
-        self.bins_rng = np.repeat([[-2., 2.]], ndims, axis=0)
-        self.bins_rng[ndims-1] = [-4., 6.]
+        self.histo_range = np.repeat([[-2., 2.]], ndims, axis=0)
+        self.histo_range[ndims-1] = [-4., 6.]
 
         self.n_bins = np.array([4]*ndims)
         self.n_bins[ndims-1] = 5
@@ -544,13 +544,13 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo = Histogramnd(self.sample,
-                            self.bins_rng,
+                            self.histo_range,
                             self.n_bins,
                             weights=self.weights)
                             
         histo, cumul, bin_edges = histo
 
-        expected_edges = _get_bin_edges(self.bins_rng,
+        expected_edges = _get_bin_edges(self.histo_range,
                                         self.n_bins,
                                         self.ndims)
 
@@ -578,7 +578,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul, bin_edges = Histogramnd(self.sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=self.weights,
                                               wh_dtype=np.float32)
@@ -609,7 +609,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
                          msg='Making sure the array is not contiguous.')
 
         histo, cumul, bin_edges = Histogramnd(uncontig_sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=self.weights)
 
@@ -640,7 +640,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
                          msg='Making sure the array is not contiguous.')
 
         histo, cumul, bin_edges = Histogramnd(self.sample,
-                                              self.bins_rng,
+                                              self.histo_range,
                                               self.n_bins,
                                               weights=uncontig_weights)
 
@@ -659,7 +659,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_h, expected_h_tpl, self.ndims-1)
 
         histo, cumul = Histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=None)[0:2]
 
@@ -681,7 +681,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = Histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights,
                                    last_bin_closed=True)[0:2]
@@ -705,7 +705,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo, cumul = Histogramnd(self.sample,
-                                   self.bins_rng,
+                                   self.histo_range,
                                    self.n_bins,
                                    weights=self.weights.astype(np.int32),
                                    weight_min=weight_min,
@@ -719,7 +719,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         """
 
         histo_inst = Histogramnd(None,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins)
 
         histo, weighted_histo, edges = histo_inst
@@ -744,7 +744,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo_inst = Histogramnd(None,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins)
 
         histo_inst.accumulate(self.sample,
@@ -754,7 +754,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         cumul = histo_inst.weighted_histo
         bin_edges = histo_inst.edges
 
-        expected_edges = _get_bin_edges(self.bins_rng,
+        expected_edges = _get_bin_edges(self.histo_range,
                                         self.n_bins,
                                         self.ndims)
 
@@ -783,7 +783,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo_inst = Histogramnd(self.sample,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=self.weights)
 
@@ -820,7 +820,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo_inst = Histogramnd(self.sample,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=self.weights)
 
@@ -857,7 +857,7 @@ class _Test_Histogramnd_nominal(unittest.TestCase):
         self.fill_histo(expected_c, expected_c_tpl, self.ndims-1)
 
         histo_inst = Histogramnd(self.sample,
-                                 self.bins_rng,
+                                 self.histo_range,
                                  self.n_bins,
                                  weights=None)  # <==== !!
 
@@ -915,9 +915,10 @@ class Test_Histogramnd_nominal_3d(_Test_Histogramnd_nominal):
 test_cases = (Test_chistogram_nominal_1d,
               Test_chistogram_nominal_2d,
               Test_chistogram_nominal_3d,
-              Test_Histogramnd_nominal_1d,)
-              #Test_Histogramnd_nominal_2d,
-              #Test_Histogramnd_nominal_3d)
+              Test_Histogramnd_nominal_1d,
+              # Test_Histogramnd_nominal_2d,
+              # Test_Histogramnd_nominal_3d
+              )
 
 
 def suite():

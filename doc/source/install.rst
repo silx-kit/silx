@@ -125,8 +125,10 @@ read the following sections.
 Installing Python
 +++++++++++++++++
 
-Download and install Python from `python.org <https://www.python.org/downloads/>`_.
-We recommend you to install the 64bits version of Python as the 32bits version is limited to 2 GB of memory.
+Download and install Python from `python.org <https://www.python.org/downloads/>`_. 
+
+We recommend that you install the 64bits version of Python, which is not the default version suggested on the Python website. The 32bits version is limited to 2 GB of memory, and also we don't provide a silx wheel for it. This means that you would have to install silx from its sources, which requires you to install a C compiler first.
+
 We also encourage you to use Python 3.5 or newer.
 
 Configure Python as explained on `docs.python.org
@@ -204,14 +206,14 @@ The easy way to install *silx* on Mac OS X, is::
 
 This should work without issues, as binary wheels of *silx* are provided on
 PyPi.
-The tricky part is to install the optional dependencies.
 
-Until recently, the `h5py` developers provided Mac OS X wheels.
-Therefore, the easiest way to install `h5py` on this system is to get an older version using pip::
+Wheels are available for *h5py* on Mac OS X, so you can install it with::
 
-    pip install h5py==2.5.0
-    
-If you require `h5py` version `2.6.0` or newer, you will need to compile it as well as it's dependencies (mainly HDF5) yourself.
+    pip install h5py
+
+If at the time of your installation a new version of *h5py* has been released but
+the corresponding Mac OS X wheel is not ready, you should install the latest version including
+a wheel: ``pip install h5py==2.6.0``
 
 A PyQt5 wheel is now available for Python 3.5 on Mac OS X: https://pypi.python.org/simple/pyqt5/.
 Download it and install it with::
@@ -230,11 +232,12 @@ Building from source
 ++++++++++++++++++++
 
 Source package of *silx* releases can be downloaded from `the pypi project page <https://pypi.python.org/pypi/silx>`_.
-Alternatively, you can get the latest source code from the repository: https://github.com/silx-kit/silx
 
 After downloading the `silx-x.y.z.tar.gz` archive, extract its content::
 
     tar xzvf silx-x.y.z.tar.gz
+    
+Alternatively, you can get the latest source code from the master branch of the `git repository <https://github.com/silx-kit/silx>`_:  https://github.com/silx-kit/silx/archive/master.zip
 
 You can now build and install *silx* from its sources::
 

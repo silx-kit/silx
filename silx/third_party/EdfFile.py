@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
@@ -25,7 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 __author__ = "Alexandre Gobbo, V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
@@ -182,13 +182,13 @@ class  EdfFile(object):
     def __init__(self, FileName, access=None, fastedf=None):
         """ Constructor
 
-        @param  FileName:   Name of the file (either existing or to be created)
+        :param  FileName:   Name of the file (either existing or to be created)
         @type FileName: string
-        @param access: access mode "r" for reading (the file should exist) or
+        :param access: access mode "r" for reading (the file should exist) or
                                    "w" for writing (if the file does not exist, it does not matter).
         @type access: string
         @type fastedf= True to use the fastedf module
-        @param fastedf= boolean
+        :param fastedf= boolean
         """
         self.Images = []
         self.NumImages = 0

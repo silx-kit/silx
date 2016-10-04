@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "26/05/2016"
+__date__ = "03/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -68,17 +68,17 @@ else:
 try:
     import numpy
 except Exception as error:
-    logger.warning("Numpy missing: %s" % error)
+    logger.warning("Numpy missing: %s", error)
 else:
-    logger.info("Numpy %s" % numpy.version.version)
+    logger.info("Numpy %s", numpy.version.version)
 
 
 try:
     import h5py
 except Exception as error:
-    logger.warning("h5py missing: %s" % error)
+    logger.warning("h5py missing: %s", error)
 else:
-    logger.info("h5py %s" % h5py.version.version)
+    logger.info("h5py %s", h5py.version.version)
 
 
 def get_project_name(root_dir):
@@ -87,17 +87,17 @@ def get_project_name(root_dir):
     :param str root_dir: Directory where to run the command.
     :return: The name of the project stored in root_dir
     """
-    logger.debug("Getting project name in %s" % root_dir)
+    logger.debug("Getting project name in %s", root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
     name, stderr_data = p.communicate()
-    logger.debug("subprocess ended with rc= %s" % p.returncode)
+    logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
 
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info('Project name: %s' % PROJECT_NAME)
+logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TestResult(unittest.TestResult):
@@ -114,9 +114,14 @@ class TestResult(unittest.TestResult):
 
     def stopTest(self, test):
         unittest.TestResult.stopTest(self, test)
+        # see issue 311. For other platform, get size of ru_maxrss in "man getrusage"
+        if sys.platform == "darwin":
+            ratio = 1e-6
+        else:
+            ratio = 1e-3
         if resource:
             memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
-                        self.__mem_start) * 0.001
+                        self.__mem_start) * ratio
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
@@ -212,16 +217,17 @@ def build_project(name, root_dir):
     else:
         home = os.path.join(root_dir, "build", architecture)
 
-    logger.warning("Building %s to %s" % (name, home))
+    logger.warning("Building %s to %s", name, home)
     p = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=root_dir)
-    logger.debug("subprocess ended with rc= %s" % p.wait())
+    logger.debug("subprocess ended with rc= %s", p.wait())
     return home
 
 
 from argparse import ArgumentParser
 
-parser = ArgumentParser(description='Run the tests.')
+parser = ArgumentParser(description='Run the tests.',
+                        epilog='To disable graphical tests, set WITH_QT_TEST environment variable to False')
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,
@@ -235,7 +241,9 @@ parser.add_argument("-m", "--memprofile", dest="memprofile",
                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
-                    help="Increase verbosity")
+                    help="Increase verbosity. Option -v prints additional " +
+                         "INFO messages. Use -vv for full verbosity, " +
+                         "including debug messages and test help strings.")
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
                     default=(default_test_name,),
@@ -244,12 +252,14 @@ options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
 
+test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
+    test_verbosity = 2
 
 
 if options.coverage:
@@ -266,7 +276,7 @@ if options.coverage:
 if (os.path.dirname(os.path.abspath(__file__)) ==
         os.path.abspath(sys.path[0])):
     removed_from_sys_path = sys.path.pop(0)
-    logger.info("Patched sys.path, removed: '%s'" % removed_from_sys_path)
+    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
 
 
 # import module
@@ -283,7 +293,7 @@ if options.insource:
     build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
 
     sys.path.insert(0, build_dir)
-    logger.warning("Patched sys.path, added: '%s'" % build_dir)
+    logger.warning("Patched sys.path, added: '%s'", build_dir)
     module = importer(PROJECT_NAME)
 
 
@@ -295,7 +305,7 @@ PROJECT_PATH = module.__path__[0]
 if options.memprofile:
     runner = ProfileTestRunner()
 else:
-    runner = unittest.TextTestRunner()
+    runner = unittest.TextTestRunner(verbosity=test_verbosity)
 
 logger.warning("Test %s %s from %s",
                PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
@@ -316,7 +326,12 @@ else:
         unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
 
-if runner.run(test_suite).wasSuccessful():
+result = runner.run(test_suite)
+for test, reason in result.skipped:
+    logger.warning('Skipped %s (%s): %s',
+                   test.id(), test.shortDescription() or '', reason)
+
+if result.wasSuccessful():
     logger.info("Test suite succeeded")
     exit_status = 0
 else:

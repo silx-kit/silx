@@ -22,14 +22,28 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Common wrapper over Python Qt bindings: PyQt5, PyQt4, PySide.
+"""Common wrapper over Python Qt bindings:
 
-This module provides a flattened namespace over Qt bindings.
+- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
+- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
+- `PySide <http://www.pyside.org>`_.
 
-If a Qt bindings is already loaded, it will be used, otherwise the different
-bindings are tried in this order: PyQt5, PyQt4, PySide.
+If a Qt binding is already loaded, it will use it, otherwise the different
+Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
 
-The name of the loaded Qt bindings is stored in the BINDING variable.
+The name of the loaded Qt binding is stored in the BINDING variable.
+
+This module provides a flat namespace over Qt bindings by importing
+all symbols from **QtCore** and **QtGui** packages and if available
+from **QtOpenGL** and **QtSvg** packages.
+For **PyQt5**, it also imports all symbols from **QtWidgets** and
+**QtPrintSupport** packages.
+
+Example of using :mod:`silx.gui.qt` module:
+
+>>> from silx.gui import qt
+>>> app = qt.QApplication([])
+>>> widget = qt.QWidget()
 
 For an alternative solution providing a structured namespace,
 see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
@@ -38,7 +52,7 @@ provides the namespace of PyQt5 over PyQt4 and PySide.
 
 __authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__date__ = "16/02/2016"
+__date__ = "01/09/2016"
 
 
 import logging
@@ -49,7 +63,10 @@ _logger = logging.getLogger(__name__)
 
 
 BINDING = None
-"""The Python Qt binding that is used (One of: 'PySide', 'PyQt5', 'PyQt4')."""
+"""The name of the Qt binding in use: 'PyQt5', 'PyQt4' or 'PySide'."""
+
+QtBinding = None
+"""The Qt binding module in use: PyQt5, PyQt4 or PySide."""
 
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
@@ -66,22 +83,22 @@ elif 'PyQt4' in sys.modules:
 
 else:  # Then try Qt bindings
     try:
-        import PyQt5  # noqa
+        import PyQt4  # noqa
     except ImportError:
         try:
-            import PyQt4  # noqa
+            import PySide  # noqa
         except ImportError:
             try:
-                import PySide  # noqa
+                import PyQt5  # noqa
             except ImportError:
                 raise ImportError(
                     'No Qt wrapper found. Install PyQt4, PyQt5 or PySide.')
             else:
-                BINDING = 'PySide'
+                BINDING = 'PyQt5'
         else:
-            BINDING = 'PyQt4'
+            BINDING = 'PySide'
     else:
-        BINDING = 'PyQt5'
+        BINDING = 'PyQt4'
 
 
 if BINDING == 'PyQt4':
@@ -95,6 +112,8 @@ if BINDING == 'PyQt4':
             sip.setapi("QVariant", 2)
         except:
             _logger.warning("Cannot set sip API")
+
+    import PyQt4 as QtBinding  # noqa
 
     from PyQt4.QtCore import *  # noqa
     from PyQt4.QtGui import *  # noqa
@@ -112,10 +131,18 @@ if BINDING == 'PyQt4':
     else:
         HAS_SVG = True
 
+    from PyQt4.uic import loadUi  # noqa
+
     Signal = pyqtSignal
+
+    Property = pyqtProperty
+
+    Slot = pyqtSlot
 
 elif BINDING == 'PySide':
     _logger.debug('Using PySide bindings')
+
+    import PySide as QtBinding  # noqa
 
     from PySide.QtCore import *  # noqa
     from PySide.QtGui import *  # noqa
@@ -133,8 +160,15 @@ elif BINDING == 'PySide':
     else:
         HAS_SVG = True
 
+    pyqtSignal = Signal
+
+    # Import loadUi wrapper for PySide
+    from ._pyside_dynamic import loadUi  # noqa
+
 elif BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')
+
+    import PyQt5 as QtBinding  # noqa
 
     from PyQt5.QtCore import *  # noqa
     from PyQt5.QtGui import *  # noqa
@@ -154,7 +188,24 @@ elif BINDING == 'PyQt5':
     else:
         HAS_SVG = True
 
+    from PyQt5.uic import loadUi  # noqa
+
     Signal = pyqtSignal
+
+    Property = pyqtProperty
+
+    Slot = pyqtSlot
 
 else:
     raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
+
+
+def supportedImageFormats():
+    """Return a set of string of file format extensions supported by the
+    Qt runtime."""
+    if sys.version_info[0] < 3:
+        convert = str
+    else:
+        convert = lambda data: str(data, 'ascii')
+    formats = QImageReader.supportedImageFormats()
+    return set([convert(data) for data in formats])

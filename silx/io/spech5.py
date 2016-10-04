@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 """This module provides a h5py-like API to access SpecFile data.
 
 API description
@@ -164,12 +164,19 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "03/10/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
 
-string_types = (basestring,) if sys.version_info[0] == 2 else (str,)
+try:
+    import h5py
+except ImportError:
+    h5py = None
+    logger1.debug("Module h5py optional.", exc_info=True)
+
+
+string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
 
 # Static subitems: all groups and datasets that are present in any
 # scan (excludes list of scans, data columns, list of mca devices,
@@ -213,7 +220,10 @@ instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9
 
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
-measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^/]+)$")
+# info/ + calibration, channel, preset_time, live_time, elapsed_time (not data)
+measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^d/][^/]+)$")
+# info/data
+measurement_mca_info_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/data$")
 
 
 def _bulk_match(string_, list_of_patterns):
@@ -238,7 +248,7 @@ def is_group(name):
         - ``is_group("spam")`` returns ``False`` because :literal:`\"spam\"`
           is not at all a valid group name.
         - ``is_group("/1.2/instrument/positioners/xyz")`` returns ``False``
-          because this key would point to a motor position, which is a
+          because this key would point to a motor position, which is a
           dataset and not a group.
     """
     group_patterns = (
@@ -306,6 +316,7 @@ def is_link_to_dataset(name):
     """
     list_of_link_patterns = (
         measurement_mca_data_pattern, measurement_mca_info_dataset_pattern,
+        measurement_mca_info_data_pattern
     )
     return _bulk_match(name, list_of_link_patterns)
 
@@ -363,12 +374,20 @@ def _get_attrs_dict(name):
         measurement_mca_data_pattern:
             {"interpretation": "spectrum", },
         measurement_mca_info_pattern:
-            {"NX_class": "NXdetector", }
+            {"NX_class": "NXdetector", },
+        measurement_mca_info_dataset_pattern:
+            {},
+        measurement_mca_info_data_pattern:
+            {"interpretation": "spectrum"},
     }
 
     for pattern in pattern_attrs:
         if pattern.match(name):
             return pattern_attrs[pattern]
+
+    logger1.warning("%s not a known pattern, assigning empty dict to attrs",
+                    name)
+    return {}
 
 
 def _get_scan_key_in_name(item_name):
@@ -439,7 +458,8 @@ def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
                        "does not exist in SpecFile %s" % sf.filename)
 
     number_of_MCA_spectra = len(sf[scan_key].mca)
-    number_of_data_lines = sf[scan_key].data.shape[0]
+    # Scan.data is transposed
+    number_of_data_lines = sf[scan_key].data.shape[1]
 
     # Number of MCA spectra must be a multiple of number of data lines
     assert number_of_MCA_spectra % number_of_data_lines == 0
@@ -652,6 +672,19 @@ class SpecH5Dataset(numpy.ndarray):
         self.file = getattr(obj, 'file', None)
         self.attrs = getattr(obj, 'attrs', None)
 
+    @property
+    def h5py_class(self):
+        """Return h5py class which is mimicked by this class:
+        :class:`h5py.dataset`.
+
+        Accessing this attribute if :mod:`h5py` is not installed causes
+        an ``ImportError`` to be raised
+        """
+        if h5py is None:
+            raise ImportError("Cannot return h5py.Dataset class, " +
+                              "unable to import h5py module")
+        return h5py.Dataset
+
 
 class SpecH5LinkToDataset(SpecH5Dataset):
     """Special :class:`SpecH5Dataset` representing a link to a dataset. It
@@ -690,7 +723,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header["D"])
+            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
         else:
             logger1.warn("No #D line in header. " +
                          "Using current system time for start_time.")
@@ -767,28 +800,39 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     # get dataset in an array-like format (ndarray, str, list…)
     array_like = None
 
+    # /1.1/measurement/mca_0/data -> /1.1/instrument/mca_0/data
     if measurement_mca_data_pattern.match(name):
         m = measurement_mca_data_pattern.match(name)
         analyser_index = int(m.group(1))
         array_like = _demultiplex_mca(scan, analyser_index)
 
-    elif measurement_mca_info_dataset_pattern:
+    # /1.1/measurement/mca_0/info/X -> /1.1/instrument/mca_0/X
+    # X: calibration, channels, preset_time, live_time, elapsed_time
+    elif measurement_mca_info_dataset_pattern.match(name):
         m = measurement_mca_info_dataset_pattern.match(name)
-
         mca_hdr_type = m.group(1)
+
         if mca_hdr_type == "calibration":
             array_like = scan.mca.calibration
+
         elif mca_hdr_type == "channels":
             array_like = scan.mca.channels
+
         elif "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
             (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
-            if instrument_mca_preset_t_pattern.match(name):
+            if mca_hdr_type == "preset_time":
                 array_like = preset_time
-            elif instrument_mca_live_t_pattern.match(name):
+            elif mca_hdr_type == "live_time":
                 array_like = live_time
-            elif instrument_mca_elapsed_t_pattern.match(name):
+            elif mca_hdr_type == "elapsed_time":
                 array_like = elapsed_time
+
+    # /1.1/measurement/mca_0/info/data -> /1.1/instrument/mca_0/data
+    elif measurement_mca_info_data_pattern.match(name):
+        m = measurement_mca_info_data_pattern.match(name)
+        analyser_index = int(m.group(1))
+        array_like = _demultiplex_mca(scan, analyser_index)
 
     if array_like is None:
         raise KeyError("Name " + name + " does not match any known dataset.")
@@ -814,7 +858,7 @@ def _demultiplex_mca(scan, analyser_index):
     mca_data = scan.mca
 
     number_of_MCA_spectra = len(mca_data)
-    number_of_scan_data_lines = scan.data.shape[0]
+    number_of_scan_data_lines = scan.data.shape[1]
 
     # Number of MCA spectra must be a multiple of number of scan data lines
     assert number_of_MCA_spectra % number_of_scan_data_lines == 0
@@ -850,6 +894,19 @@ class SpecH5Group(object):
         if name != "/":
             scan_key = _get_scan_key_in_name(name)
             self._scan = self.file._sf[scan_key]
+
+    @property
+    def h5py_class(self):
+        """Return h5py class which is mimicked by this class:
+        :class:`h5py.Group`.
+
+        Accessing this attribute if :mod:`h5py` is not installed causes
+        an ``ImportError`` to be raised
+        """
+        if h5py is None:
+            raise ImportError("Cannot return h5py.Group class, " +
+                              "unable to import h5py module")
+        return h5py.Group
 
     @property
     def parent(self):
@@ -923,6 +980,32 @@ class SpecH5Group(object):
                 self.file.filename == other.file.filename and
                 self.keys() == other.keys())
 
+    def get(self, name, default=None, getclass=False, getlink=False):
+        """Retrieve an item by name, or a default value if name does not
+        point to an existing item.
+
+        :param name str: name of the item
+        :param default: Default value returned if the name is not found
+        :param bool getclass: if *True*, the returned object is the class of
+            the item, instead of the item instance.
+        :param bool getlink: Not implemented. This method always returns
+            an instance of the original class of the requested item (or
+            just the class, if *getclass* is *True*)
+        :return: The requested item, or its class if *getclass* is *True*,
+            or the specified *default* value if the group does not contain
+            an item with the requested name.
+        """
+        if name not in self:
+            return default
+
+        if getlink and getclass:
+            pass
+
+        if getclass:
+            return self[name].h5py_class
+
+        return self[name]
+
     def __getitem__(self, key):
         """Return a :class:`SpecH5Group` or a :class:`SpecH5Dataset`
         if ``key`` is a valid name of a group or dataset.
@@ -963,6 +1046,10 @@ class SpecH5Group(object):
         for key in self.keys():
             yield key
 
+    def items(self):
+        for key in self.keys():
+            yield key, self[key]
+
     def __len__(self):
         """Return number of members,subgroups and datasets, attached to this
          group.
@@ -994,14 +1081,14 @@ class SpecH5Group(object):
         if instrument_mca_group_pattern.match(self.name):
             ret = static_items["scan/instrument/mca"]
             if "CTIME" in self._scan.mca_header_dict:
-                ret += ["preset_time", "elapsed_time", "live_time"]
+                return ret + [u"preset_time", u"elapsed_time", u"live_time"]
             return ret
 
         # number of data columns must be equal to number of labels
-        assert self._scan.data.shape[1] == len(self._scan.labels)
+        assert self._scan.data.shape[0] == len(self._scan.labels)
 
         number_of_MCA_spectra = len(self._scan.mca)
-        number_of_data_lines = self._scan.data.shape[0]
+        number_of_data_lines = self._scan.data.shape[1]
 
         # Number of MCA spectra must be a multiple of number of data lines
         assert number_of_MCA_spectra % number_of_data_lines == 0
@@ -1130,6 +1217,9 @@ class SpecH5(SpecH5Group):
         self._sf = SpecFile(filename)
 
         SpecH5Group.__init__(self, name="/", specfileh5=self)
+        if len(self) == 0:
+            # SpecFile library do not raise exception for non specfiles
+            raise IOError("Empty specfile. Not a valid spec format.")
 
     def keys(self):
         """
@@ -1137,6 +1227,13 @@ class SpecH5(SpecH5Group):
             (e.g. ``["1.1", "2.1"…]``)
         """
         return self._sf.keys()
+
+    def close(self):
+        """Close the object, and free up associated resources.
+
+        After calling this method, attempts to use the object may fail.
+        """
+        self._sf = None
 
     def __repr__(self):
         return '<SpecH5 "%s" (%d members)>' % (self.filename, len(self))
@@ -1146,3 +1243,10 @@ class SpecH5(SpecH5Group):
                 self.filename == other.filename and
                 self.keys() == other.keys())
 
+    @property
+    def h5py_class(self):
+        """h5py class which is mimicked by this class"""
+        if h5py is None:
+            raise ImportError("Cannot return h5py.File class, " +
+                              "unable to import h5py module")
+        return h5py.File

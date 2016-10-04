@@ -28,9 +28,12 @@ The following QAction are available:
 
 - :class:`ColormapAction`
 - :class:`CopyAction`
+- :class:`CrosshairAction`
 - :class:`CurveStyleAction`
+- :class:`FitAction`
 - :class:`GridAction`
 - :class:`KeepAspectRatioAction`
+- :class:`PanWithArrowKeysAction`
 - :class:`PrintAction`
 - :class:`ResetZoomAction`
 - :class:`SaveAction`
@@ -48,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/04/2016"
+__date__ = "15/09/2016"
 
 
 from collections import OrderedDict
@@ -72,13 +75,15 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
+from ..fit.FitWidget import FitWidget
 from silx.io.utils import save1D, savespec
+
 
 
 _logger = logging.getLogger(__name__)
 
 
-class _PlotAction(qt.QAction):
+class PlotAction(qt.QAction):
     """Base class for QAction that operates on a PlotWidget.
 
     :param plot: :class:`.PlotWidget` instance on which to operate.
@@ -100,7 +105,7 @@ class _PlotAction(qt.QAction):
             # Try with icon as a string and load corresponding icon
             icon = icons.getQIcon(icon)
 
-        super(_PlotAction, self).__init__(icon, text, None)
+        super(PlotAction, self).__init__(icon, text, None)
 
         if tooltip is not None:
             self.setToolTip(tooltip)
@@ -116,7 +121,7 @@ class _PlotAction(qt.QAction):
         return self._plotRef()
 
 
-class ResetZoomAction(_PlotAction):
+class ResetZoomAction(PlotAction):
     """QAction controlling reset zoom on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -125,16 +130,33 @@ class ResetZoomAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ResetZoomAction, self).__init__(
-            plot,  icon='zoom-original', text='Reset Zoom',
-            tooltip='Auto-Scale the Graph',
+            plot, icon='zoom-original', text='Reset Zoom',
+            tooltip='Auto-scale the graph',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
+        self._autoscaleChanged(True)
+        plot.sigSetXAxisAutoScale.connect(self._autoscaleChanged)
+        plot.sigSetYAxisAutoScale.connect(self._autoscaleChanged)
+
+    def _autoscaleChanged(self, enabled):
+        self.setEnabled(
+            self.plot.isXAxisAutoScale() or self.plot.isYAxisAutoScale())
+
+        if self.plot.isXAxisAutoScale() and self.plot.isYAxisAutoScale():
+            tooltip = 'Auto-scale the graph'
+        elif self.plot.isXAxisAutoScale():  # And not Y axis
+            tooltip = 'Auto-scale the x-axis of the graph only'
+        elif self.plot.isYAxisAutoScale():  # And not X axis
+            tooltip = 'Auto-scale the y-axis of the graph only'
+        else:  # no axis in autoscale
+            tooltip = 'Auto-scale the graph'
+        self.setToolTip(tooltip)
 
     def _actionTriggered(self, checked=False):
         self.plot.resetZoom()
 
 
-class ZoomInAction(_PlotAction):
+class ZoomInAction(PlotAction):
     """QAction performing a zoom-in on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -143,7 +165,7 @@ class ZoomInAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomInAction, self).__init__(
-            plot,  icon='zoom-in', text='Zoom In',
+            plot, icon='zoom-in', text='Zoom In',
             tooltip='Zoom in the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
@@ -153,7 +175,7 @@ class ZoomInAction(_PlotAction):
         _applyZoomToPlot(self.plot, 1.1)
 
 
-class ZoomOutAction(_PlotAction):
+class ZoomOutAction(PlotAction):
     """QAction performing a zoom-out on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -162,17 +184,17 @@ class ZoomOutAction(_PlotAction):
 
     def __init__(self, plot, parent=None):
         super(ZoomOutAction, self).__init__(
-            plot,  icon='zoom-out', text='Zoom Out',
+            plot, icon='zoom-out', text='Zoom Out',
             tooltip='Zoom out the plot',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.ZoomOut)
 
     def _actionTriggered(self, checked=False):
-        _applyZoomToPlot(self.plot, 1./1.1)
+        _applyZoomToPlot(self.plot, 1. / 1.1)
 
 
-class XAxisAutoScaleAction(_PlotAction):
+class XAxisAutoScaleAction(PlotAction):
     """QAction controlling X axis autoscale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -182,7 +204,8 @@ class XAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisAutoScaleAction, self).__init__(
             plot, icon='plot-xauto', text='X Autoscale',
-            tooltip='Enable X Axis Autoscale when checked',
+            tooltip='Enable x-axis auto-scale when checked.\n'
+                    'If unchecked, x-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -190,9 +213,11 @@ class XAxisAutoScaleAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setXAxisAutoScale(checked)
+        if checked:
+            self.plot.resetZoom()
 
 
-class YAxisAutoScaleAction(_PlotAction):
+class YAxisAutoScaleAction(PlotAction):
     """QAction controlling Y axis autoscale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -202,7 +227,8 @@ class YAxisAutoScaleAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisAutoScaleAction, self).__init__(
             plot, icon='plot-yauto', text='Y Autoscale',
-            tooltip='Enable Y Axis Autoscale when checked',
+            tooltip='Enable y-axis auto-scale when checked.\n'
+                    'If unchecked, y-axis does not change when reseting zoom.',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisAutoScale())
@@ -210,9 +236,11 @@ class YAxisAutoScaleAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setYAxisAutoScale(checked)
+        if checked:
+            self.plot.resetZoom()
 
 
-class XAxisLogarithmicAction(_PlotAction):
+class XAxisLogarithmicAction(PlotAction):
     """QAction controlling X axis log scale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -222,7 +250,7 @@ class XAxisLogarithmicAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(XAxisLogarithmicAction, self).__init__(
             plot, icon='plot-xlog', text='X Log. scale',
-            tooltip='Logarithmic X Axis when checked',
+            tooltip='Logarithmic x-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isXAxisLogarithmic())
@@ -232,7 +260,7 @@ class XAxisLogarithmicAction(_PlotAction):
         self.plot.setXAxisLogarithmic(checked)
 
 
-class YAxisLogarithmicAction(_PlotAction):
+class YAxisLogarithmicAction(PlotAction):
     """QAction controlling Y axis log scale on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -242,7 +270,7 @@ class YAxisLogarithmicAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(YAxisLogarithmicAction, self).__init__(
             plot, icon='plot-ylog', text='Y Log. scale',
-            tooltip='Logarithmic Y Axis when checked',
+            tooltip='Logarithmic y-axis when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.isYAxisLogarithmic())
@@ -252,7 +280,7 @@ class YAxisLogarithmicAction(_PlotAction):
         self.plot.setYAxisLogarithmic(checked)
 
 
-class GridAction(_PlotAction):
+class GridAction(PlotAction):
     """QAction controlling grid mode on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -267,7 +295,7 @@ class GridAction(_PlotAction):
 
         super(GridAction, self).__init__(
             plot, icon='plot-grid', text='Grid',
-            tooltip='Toggle grid (On/Off)',
+            tooltip='Toggle grid (on/off)',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
         self.setChecked(plot.getGraphGrid() is not None)
@@ -281,7 +309,7 @@ class GridAction(_PlotAction):
         self.plot.setGraphGrid(self._gridMode if checked else None)
 
 
-class CurveStyleAction(_PlotAction):
+class CurveStyleAction(PlotAction):
     """QAction controlling curve style on a :class:`.PlotWidget`.
 
     It changes the default line and markers style which updates all
@@ -310,7 +338,7 @@ class CurveStyleAction(_PlotAction):
         self.plot.setDefaultPlotPoints(newState[1])
 
 
-class ColormapAction(_PlotAction):
+class ColormapAction(PlotAction):
     """QAction opening a ColormapDialog to update the colormap.
 
     Both the active image colormap and the default colormap are updated.
@@ -388,7 +416,7 @@ class ColormapAction(_PlotAction):
                                **params)
 
 
-class KeepAspectRatioAction(_PlotAction):
+class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -427,7 +455,7 @@ class KeepAspectRatioAction(_PlotAction):
         self.plot.setKeepDataAspectRatio(not self.plot.isKeepDataAspectRatio())
 
 
-class YAxisInvertedAction(_PlotAction):
+class YAxisInvertedAction(PlotAction):
     """QAction controlling Y orientation on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -465,7 +493,7 @@ class YAxisInvertedAction(_PlotAction):
         self.plot.setYAxisInverted(not self.plot.isYAxisInverted())
 
 
-class SaveAction(_PlotAction):
+class SaveAction(PlotAction):
     """QAction for saving Plot content.
 
     It opens a Save as... dialog.
@@ -475,41 +503,41 @@ class SaveAction(_PlotAction):
     """
     # TODO find a way to make the filter list selectable and extensible
 
-    SNAPSHOT_FILTERS = ('Plot Snapshot PNG *.png', 'Plot Snapshot JPEG *.jpg')
+    SNAPSHOT_FILTERS = ('Plot Snapshot PNG (*.png)', 'Plot Snapshot JPEG (*.jpg)')
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
     # Note: '%.18e' is numpy.savetxt default format
     CURVE_FILTERS_TXT = OrderedDict((
-        ('Curve as Raw ASCII *.txt',
+        ('Curve as Raw ASCII (*.txt)',
          {'fmt': '%.18e', 'delimiter': ' ', 'header': False}),
-        ('Curve as ";"-separated CSV *.csv',
+        ('Curve as ";"-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ';', 'header': True}),
-        ('Curve as ","-separated CSV *.csv',
+        ('Curve as ","-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': ',', 'header': True}),
-        ('Curve as tab-separated CSV *.csv',
+        ('Curve as tab-separated CSV (*.csv)',
          {'fmt': '%.18e', 'delimiter': '\t', 'header': True}),
-        ('Curve as OMNIC CSV *.csv',
+        ('Curve as OMNIC CSV (*.csv)',
          {'fmt': '%.7E', 'delimiter': ',', 'header': False}),
-        ('Curve as SpecFile *.dat',
+        ('Curve as SpecFile (*.dat)',
          {'fmt': '%.7g', 'delimiter': '', 'header': False})
     ))
 
-    CURVE_FILTER_NPY = 'Curve as NumPy binary file *.npy'
+    CURVE_FILTER_NPY = 'Curve as NumPy binary file (*.npy)'
 
     CURVE_FILTERS = list(CURVE_FILTERS_TXT.keys()) + [CURVE_FILTER_NPY]
 
-    ALL_CURVES_FILTERS = ("All curves as SpecFile *.dat", )
+    ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
-    IMAGE_FILTER_EDF = 'Image as EDF *.edf'
-    IMAGE_FILTER_TIFF = 'Image as TIFF *.tif'
-    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file *.npy'
+    IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
+    IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file (*.npy)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
             plot, icon='document-save', text='Save as...',
-            tooltip='Save Curve/Image/Plot Snapshot Dialog',
+            tooltip='Save curve/image/plot snapshot dialog',
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Save)
@@ -531,7 +559,12 @@ class SaveAction(_PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        pixmap = qt.QPixmap.grabWidget(self.plot.centralWidget())
+        if hasattr(qt.QPixmap, "grabWidget"):
+            # Qt 4
+            pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
+        else:
+            # Qt 5
+            pixmap = self.plot.getWidgetHandle().grab()
         if not pixmap.save(filename):
             self._errorMessage()
             return False
@@ -568,9 +601,17 @@ class SaveAction(_PlotAction):
             # .npy
             fmt, csvdelim, autoheader = ("", "", False)
 
+        # If curve has no associated label, get the default from the plot
+        xlabel = curve[4]['xlabel']
+        if xlabel is None:
+            xlabel = self.plot.getGraphXLabel()
+        ylabel = curve[4]['ylabel']
+        if ylabel is None:
+            ylabel = self.plot.getGraphYLabel()
+
         try:
             save1D(filename, curve[0], curve[1],
-                   curve[4]['xlabel'], [curve[4]['ylabel']],
+                   xlabel, [ylabel],
                    fmt=fmt, csvdelim=csvdelim,
                    autoheader=autoheader)
         except IOError:
@@ -697,7 +738,7 @@ class SaveAction(_PlotAction):
         dialog.close()
 
         # Forces the filename extension to match the chosen filter
-        extension = nameFilter.split()[-1][1:]
+        extension = nameFilter.split()[-1][2:-1]
         if (len(filename) <= len(extension) or
                 filename[-len(extension):].lower() != extension.lower()):
             filename += extension
@@ -730,7 +771,7 @@ def _plotAsPNG(plot):
     return data
 
 
-class PrintAction(_PlotAction):
+class PrintAction(PlotAction):
     """QAction for printing the plot.
 
     It opens a Print dialog.
@@ -748,7 +789,7 @@ class PrintAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(PrintAction, self).__init__(
             plot, icon='document-print', text='Print...',
-            tooltip='Open Print Dialog',
+            tooltip='Open print dialog',
             triggered=self.printPlot,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Print)
@@ -832,7 +873,7 @@ class PrintAction(_PlotAction):
         return True
 
 
-class CopyAction(_PlotAction):
+class CopyAction(PlotAction):
     """QAction to copy :class:`.PlotWidget` content to clipboard.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -842,7 +883,7 @@ class CopyAction(_PlotAction):
     def __init__(self, plot, parent=None):
         super(CopyAction, self).__init__(
             plot, icon='edit-copy', text='Copy plot',
-            tooltip='Copy a snapshot of the plot the clipboard',
+            tooltip='Copy a snapshot of the plot into the clipboard',
             triggered=self.copyPlot,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Copy)
@@ -855,7 +896,7 @@ class CopyAction(_PlotAction):
         qt.QApplication.clipboard().setImage(image)
 
 
-class CrosshairAction(_PlotAction):
+class CrosshairAction(PlotAction):
     """QAction toggling crosshair cursor on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -891,7 +932,7 @@ class CrosshairAction(_PlotAction):
                                  linewidth=self.linewidth)
 
 
-class PanWithArrowKeysAction(_PlotAction):
+class PanWithArrowKeysAction(PlotAction):
     """QAction toggling pan with arrow keys on a :class:`.PlotWidget`.
 
     :param plot: :class:`.PlotWidget` instance on which to operate
@@ -901,7 +942,7 @@ class PanWithArrowKeysAction(_PlotAction):
     def __init__(self, plot, parent=None):
 
         super(PanWithArrowKeysAction, self).__init__(
-            plot, icon='arrow_keys', text='Pan with arrow keys',
+            plot, icon='arrow-keys', text='Pan with arrow keys',
             tooltip='Enable pan with arrow keys when checked',
             triggered=self._actionTriggered,
             checkable=True, parent=parent)
@@ -910,3 +951,59 @@ class PanWithArrowKeysAction(_PlotAction):
 
     def _actionTriggered(self, checked=False):
         self.plot.setPanWithArrowKeys(checked)
+
+
+class FitAction(PlotAction):
+    """QAction to open a :class:`FitWidget` and set its data to the
+    active curve if any, or to the first curve..
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+    def __init__(self, plot, parent=None):
+        super(FitAction, self).__init__(
+            plot, icon='math-fit', text='Fit curve',
+            tooltip='Open a fit dialog',
+            triggered=self._openFitWindow,
+            checkable=False, parent=parent)
+
+    def _warningMessage(self, informativeText='', detailedText=''):
+        """Display a warning message."""
+        msg = qt.QMessageBox(self.plot)
+        msg.setIcon(qt.QMessageBox.Warning)
+        msg.setInformativeText(informativeText)
+        msg.setDetailedText(detailedText)
+        msg.exec_()
+
+    def _openFitWindow(self):
+        curve = self.plot.getActiveCurve()
+        if curve is None:
+            curves = self.plot.getAllCurves()
+            if len(curves) != 1:
+                self._warningMessage(
+                        "No curve selected")
+                return
+            curve = curves[0]
+        self.xlabel = self.plot.getGraphXLabel()
+        self.ylabel = self.plot.getGraphYLabel()
+        self.x, self.y, self.legend = curve[0:3]
+
+        # open a window with a FitWidget
+        mw = qt.QMainWindow(self.plot)
+        self.fit_widget = FitWidget(parent=mw)
+        self.fit_widget.setData(self.x, self.y)
+        self.fit_widget.show()
+        mw.setWindowTitle("Fitting " + self.legend)
+        mw.setCentralWidget(self.fit_widget)
+        self.fit_widget.guibuttons.DismissButton.clicked.connect(mw.close)
+        self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
+        mw.show()
+
+    def handle_signal(self, ddict):
+        if ddict["event"] == "EstimateFinished":
+            pass
+        if ddict["event"] == "FitFinished":
+            y_fit = self.fit_widget.fitmanager.gendata()
+            self.plot.addCurve(self.x, y_fit,
+                               "Fit <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel)

@@ -1,4 +1,4 @@
-#/*##########################################################################
+# /*##########################################################################
 #
 # The PyMca X-Ray Fluorescence Toolkit
 #
@@ -25,7 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-#############################################################################*/
+# ############################################################################*/
 __author__ = "V.A. Sole - ESRF Data Analysis"
 __contact__ = "sole@esrf.fr"
 __license__ = "MIT"
@@ -589,7 +589,7 @@ class TiffIO(object):
 
         if rowMax < rowMin:
             txt = "Max Row smaller than Min Row. Reverse selection not supported"
-            raise NotImplemented(txt)
+            raise NotImplementedError(txt)
 
         if rowMin >= nRows:
             raise IndexError("Image only has %d rows" % nRows)

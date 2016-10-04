@@ -198,7 +198,7 @@ __license__ = "MIT"
 __date__ = "23/02/2016"
 
 
-from collections import OrderedDict
+from collections import Iterable, OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -237,6 +237,13 @@ _COLORLIST = [_COLORDICT['black'],
               _COLORDICT['darkBrown']]
 
 
+"""
+Object returned when requesting the data range.
+"""
+_PlotDataRange = namedtuple('PlotDataRange',
+                            ['x', 'y', 'yright'])
+
+
 class Plot(object):
     """This class implements the plot API initially provided in PyMca.
 
@@ -258,7 +265,7 @@ class Plot(object):
     colorDict = _COLORDICT
 
     def __init__(self, parent=None, backend=None):
-        self._autoreplot = True
+        self._autoreplot = False
         self._dirty = False
 
         if backend is None:
@@ -292,6 +299,8 @@ class Plot(object):
         self._markers = OrderedDict()
         self._items = OrderedDict()
 
+        self._dataRange = False
+
         # line types
         self._styleList = ['-', '--', '-.', ':']
 
@@ -312,9 +321,16 @@ class Plot(object):
         self._yAutoScale = True
         self._grid = None
 
+        # Store default labels provided to setGraph[X|Y]Label
+        self._defaultLabels = {'x': '', 'y': '', 'yright': ''}
+        # Store currently displayed labels
+        # Current label can differ from input one with active curve handling
+        self._currentLabels = {'x': '', 'y': '', 'yright': ''}
+
         self.setGraphTitle()
         self.setGraphXLabel()
         self.setGraphYLabel()
+        self.setGraphYLabel('', axis='right')
 
         self.setDefaultColormap()  # Init default colormap
 
@@ -327,6 +343,11 @@ class Plot(object):
         self._pressedButtons = []  # Currently pressed mouse buttons
 
         self._defaultDataMargins = (0., 0., 0., 0.)
+
+        # Only activate autoreplot at the end
+        # This avoids errors when loaded in Qt designer
+        self._dirty = False
+        self._autoreplot = True
 
     def _getDirtyPlot(self):
         """Return the plot dirty flag.
@@ -356,6 +377,82 @@ class Plot(object):
 
         if self._autoreplot and not wasDirty:
             self._backend.postRedisplay()
+
+    def _invalidateDataRange(self):
+        """
+        Notifies this Plot instance that the range has changed and will have
+        to be recomputed.
+        """
+        self._dataRange = False
+
+    def _updateDataRange(self):
+        """
+        Recomputes the range of the data displayed on this Plot.
+        """
+        # already available
+        if self._dataRange is not False:
+            return self._dataRange
+
+        xMin = yMinLeft = yMinRight = float('nan')
+        xMax = yMaxLeft = yMaxRight = float('nan')
+
+        for curve, info in self._curves.items():
+            # using numpy's separate min and max is faster than
+            # a pure python minmax.
+            if info['xmin'] is not None:
+                xMin = numpy.nanmin([xMin, info['xmin']])
+            if info['xmax'] is not None:
+                xMax = numpy.nanmax([xMax, info['xmax']])
+
+            if info['params']['yaxis'] == 'left':
+                if info['ymin'] is not None:
+                    yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                if info['ymax'] is not None:
+                    yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+            else:
+                if info['ymin'] is not None:
+                    yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                if info['ymax'] is not None:
+                    yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+
+        if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
+            for image, info in self._images.items():
+                if info['data'] is not None:
+                    height, width = info['data'].shape[:2]
+                    params = info['params']
+                    origin = params['origin']
+                    scale = params['scale']
+                    # Taking care of scale might be < 0
+                    xCoords = [origin[0], origin[0] + width * scale[0]]
+                    xMin = numpy.nanmin([xMin] + xCoords)
+                    xMax = numpy.nanmax([xMax] + xCoords)
+                    # Taking care of scale might be < 0
+                    yCoords = [origin[1], origin[1] + height * scale[1]]
+                    yMinLeft = numpy.nanmin([yMinLeft] + yCoords)
+                    yMaxLeft = numpy.nanmax([yMaxLeft] + yCoords)
+
+        lGetRange = (lambda x, y:
+                     None if numpy.isnan(x) and numpy.isnan(y) else (x, y))
+        xRange = lGetRange(xMin, xMax)
+        yLeftRange = lGetRange(yMinLeft, yMaxLeft)
+        yRightRange = lGetRange(yMinRight, yMaxRight)
+
+        self._dataRange = _PlotDataRange(x=xRange,
+                                         y=yLeftRange,
+                                         yright=yRightRange)
+
+        return self._dataRange
+
+    def getDataRange(self):
+        """
+        Returns this Plot's data range.
+
+        :return: a namedtuple with the following members :
+                x, y (left y axis), yright. Each member is a tuple (min, max)
+                or None if no data is associated with the axis.
+        :rtype: namedtuple
+        """
+        return self._updateDataRange()
 
     # Add
 
@@ -416,7 +513,9 @@ class Plot(object):
             - None (the default) to use default line style
 
         :param str xlabel: Label to show on the X axis when the curve is active
+                           or None to keep default axis label.
         :param str ylabel: Label to show on the Y axis when the curve is active
+                           or None to keep default axis label.
         :param str yaxis: The Y axis this curve is attached to.
                           Either 'left' (the default) or 'right'
         :param xerror: Values with the uncertainties on the x values
@@ -510,7 +609,7 @@ class Plot(object):
                 'symbol': self._defaultPlotPoints,
                 'linewidth': 1,
                 'linestyle': default_linestyle,
-                'xlabel': 'X', 'ylabel': 'Y', 'yaxis': 'left',
+                'xlabel': None, 'ylabel': None, 'yaxis': 'left',
                 'xerror': None, 'yerror': None, 'z': 1,
                 'selectable': True, 'fill': False
             }
@@ -554,12 +653,24 @@ class Plot(object):
                                             selectable=params['selectable'],
                                             fill=params['fill'])
             self._setDirtyPlot()
+
+            # caching the min and max values for the getDataRange method.
+            xMin = numpy.nanmin(xFiltered)
+            xMax = numpy.nanmax(xFiltered)
+            yMin = numpy.nanmin(yFiltered)
+            yMax = numpy.nanmax(yFiltered)
+
         else:
-            handle = None  # The curve has no points or is hidden
+            # The curve has no points or is hidden
+            handle = None
+            xMin, xMax, yMin, yMax = None, None, None, None
 
         self._curves[legend] = {
-            'handle': handle, 'x': x, 'y': y, 'params': params
+            'handle': handle, 'x': x, 'y': y, 'params': params,
+            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
         }
+
+        self._invalidateDataRange()
 
         self.notify(
             'contentChanged', action='add', kind='curve', legend=legend)
@@ -613,14 +724,20 @@ class Plot(object):
                               of the colormap dict.
         :param pixmap: Pixmap representation of the data (if any)
         :type pixmap: (nrows, ncolumns, RGBA) ubyte array or None (default)
-        :param str xlabel: X axis label to show when this curve is active.
-        :param str ylabel: Y axis label to show when this curve is active.
+        :param str xlabel: X axis label to show when this curve is active,
+                           or None to keep default axis label.
+        :param str ylabel: Y axis label to show when this curve is active,
+                           or None to keep default axis label.
         :param origin: (origin X, origin Y) of the data.
+                       It is possible to pass a single float if both
+                       coordinates are equal.
                        Default: (0., 0.)
-        :type origin: 2-tuple of float
+        :type origin: float or 2-tuple of float
         :param scale: (scale X, scale Y) of the data.
-                       Default: (1., 1.)
-        :type scale: 2-tuple of float
+                      It is possible to pass a single float if both
+                      coordinates are equal.
+                      Default: (1., 1.)
+        :type scale: float or 2-tuple of float
         :param bool resetzoom: True (the default) to reset the zoom.
         :returns: The key string identify this image
         """
@@ -653,10 +770,16 @@ class Plot(object):
         data = numpy.asarray(data)
 
         if origin is not None:
-            origin = float(origin[0]), float(origin[1])
+            if isinstance(origin, Iterable):
+                origin = float(origin[0]), float(origin[1])
+            else:  # single value origin
+                origin = float(origin), float(origin)
 
         if scale is not None:
-            scale = float(scale[0]), float(scale[1])
+            if isinstance(scale, Iterable):
+                scale = float(scale[0]), float(scale[1])
+            else:  # single value scale
+                scale = float(scale), float(scale)
 
         if z is not None:
             z = int(z)
@@ -689,12 +812,12 @@ class Plot(object):
         if previousImage is not None:
             defaults = previousImage['params']
 
-        else:  # If no existing curve use default values
+        else:  # If no existing image use default values
             defaults = {
                 'info': None, 'origin': (0., 0.), 'scale': (1., 1.), 'z': 0,
                 'selectable': False, 'draggable': False,
                 'colormap': self.getDefaultColormap(),
-                'xlabel': 'Column', 'ylabel': 'Row'
+                'xlabel': None, 'ylabel': None
             }
 
         # If a parameter is not given as argument, use its default value
@@ -750,6 +873,8 @@ class Plot(object):
 
         if len(self._images) == 1 or wasActive:
             self.setActiveImage(legend)
+
+        self._invalidateDataRange()
 
         self.notify(
             'contentChanged', action='add', kind='image', legend=legend)
@@ -976,7 +1101,8 @@ class Plot(object):
         See :meth:`addMarker` for argument documentation.
         """
         if legend is None:
-            i = 0
+            legend = "Unnamed Marker 0"
+            i = 1
             while legend in self._markers:
                 legend = "Unnamed Marker %d" % i
                 i += 1
@@ -1075,13 +1201,13 @@ class Plot(object):
 
         Examples:
 
-        - remove() clears the plot
-        - remove(kind='curve') removes all curves from the plot
-        - remove('myCurve', kind='curve') removes the curve with
+        - ``remove()`` clears the plot
+        - ``remove(kind='curve')`` removes all curves from the plot
+        - ``remove('myCurve', kind='curve')`` removes the curve with
           legend 'myCurve' from the plot.
-        - remove('myImage, kind='image') removes the image with
+        - ``remove('myImage, kind='image')`` removes the image with
           legend 'myImage' from the plot.
-        - remove('myImage') removes elements (for instance curve, image,
+        - ``remove('myImage')`` removes elements (for instance curve, image,
           item and marker) with legend 'myImage'.
 
         :param str legend: The legend associated to the element to remove,
@@ -1150,6 +1276,7 @@ class Plot(object):
                             self._colorIndex = 0
                             self._styleIndex = 0
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='curve', legend=legend)
 
@@ -1165,6 +1292,7 @@ class Plot(object):
                             self._setDirtyPlot()
                         del self._images[legend]
 
+                        self._invalidateDataRange()
                         self.notify('contentChanged', action='remove',
                                     kind='image', legend=legend)
 
@@ -1406,8 +1534,9 @@ class Plot(object):
         if not self.isActiveCurveHandling():
             return
 
-        xLabel = self._xLabel
-        yLabel = self._yLabel
+        xLabel = self._defaultLabels['x']
+        yLabel = self._defaultLabels['y']
+        yRightLabel = self._defaultLabels['yright']
 
         oldActiveCurveLegend = self.getActiveCurve(just_legend=True)
         if oldActiveCurveLegend:  # Reset previous active curve
@@ -1430,15 +1559,24 @@ class Plot(object):
                     self._backend.setActiveCurve(handle, True,
                                                  self.getActiveCurveColor())
 
-                xLabel = self._curves[self._activeCurve]['params']['xlabel']
-                yLabel = self._curves[self._activeCurve]['params']['ylabel']
-                # TODO y2 axis case
+                curveParams = self._curves[self._activeCurve]['params']
+
+                if curveParams['xlabel'] is not None:
+                    xLabel = curveParams['xlabel']
+                if curveParams['ylabel'] is not None:
+                    if curveParams['yaxis'] == 'left':
+                        yLabel = curveParams['ylabel']
+                    else:
+                        yRightLabel = curveParams['ylabel']
 
         # Store current labels and update plot
-        self._currentXLabel = xLabel
+        self._currentLabels['x'] = xLabel
+        self._currentLabels['y'] = yLabel
+        self._currentLabels['yright'] = yRightLabel
+
         self._backend.setGraphXLabel(xLabel)
-        self._currentYLabel = yLabel
-        self._backend.setGraphYLabel(yLabel, axis='left')  # TODO y2 axis
+        self._backend.setGraphYLabel(yLabel, axis='left')
+        self._backend.setGraphYLabel(yRightLabel, axis='right')
 
         self._setDirtyPlot()
 
@@ -1490,6 +1628,9 @@ class Plot(object):
         if replot is not None:
             _logger.warning('setActiveImage deprecated replot parameter')
 
+        xLabel = self._defaultLabels['x']
+        yLabel = self._defaultLabels['y']
+
         oldActiveImageLegend = self.getActiveImage(just_legend=True)
 
         if legend is None:
@@ -1502,6 +1643,20 @@ class Plot(object):
                 self._activeImage = None
             else:
                 self._activeImage = legend
+
+                imageParams = self._images[self._activeImage]['params']
+
+                if imageParams['xlabel'] is not None:
+                    xLabel = imageParams['xlabel']
+                if imageParams['ylabel'] is not None:
+                    yLabel = imageParams['ylabel']
+
+        # Store current labels and update plot
+        self._currentLabels['x'] = xLabel
+        self._currentLabels['y'] = yLabel
+
+        self._backend.setGraphXLabel(xLabel)
+        self._backend.setGraphYLabel(yLabel, axis='left')
 
         if oldActiveImageLegend is not None or self._activeImage is not None:
             self.notify('activeImageChanged',
@@ -1548,36 +1703,61 @@ class Plot(object):
                                curve['params']['info'] or {}, curve['params']))
         return output
 
-    def getCurve(self, legend):
-        """Return the data and info of a specific curve.
+    def getCurve(self, legend=None):
+        """Get the data and info of a specific curve.
 
-        It returns None in case of not having the curve.
+        It returns None in case no matching curve is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the curve.
+            If not provided or None (the default), the active curve is returned
+            or if there is no active curve, the lastest updated curve that is
+            not hidden.
+            is returned if there are curves in the plot.
         :return: None or list [x, y, legend, parameters]
         """
-        if legend in self._curves:
+        if legend is None:
+            legend = self.getActiveCurve(just_legend=True)
+            if legend is None and self._curves:
+                # There is no active curve, but there is some curves:
+                # get one that is not hidden
+                for curveLegend in reversed(list(self._curves.keys())):
+                    if curveLegend not in self._hiddenCurves:
+                        legend = curveLegend
+                        break
+
+        if legend is not None and legend in self._curves:
             curve = self._curves[legend]
             return (curve['x'], curve['y'], legend,
                     curve['params']['info'] or {}, curve['params'])
         else:
             return None
 
-    def getImage(self, legend):
-        """Return the data and info of a specific image.
+    def getImage(self, legend=None):
+        """Get the data and info of a specific image.
 
-        It returns None in case of not having an active curve.
+        It returns None in case no matching image is found.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
 
-        :param str legend: legend associated to the curve
+        :param str legend:
+            The legend identifying the image.
+            If not provided or None (the default), the active image is returned
+            or if there is no active image, the lastest updated image
+            is returned if there are images in the plot.
         :return: None or list [image, legend, info, pixmap, params]
         """
-        if legend in self._images:
+        if legend is None:
+            legend = self.getActiveImage(just_legend=True)
+            if legend is None and self._images:
+                # There is no active image, but there is some images: get one
+                legend = list(self._images.keys())[-1]
+
+        if legend is not None and legend in self._images:
             image = self._images[legend]
             return (image['data'], legend, image['params']['info'] or {},
                     image['pixmap'], image['params'])
@@ -1733,7 +1913,7 @@ class Plot(object):
 
     def getGraphXLabel(self):
         """Return the current X axis label as a str."""
-        return self._currentXLabel
+        return self._defaultLabels['x']
 
     def setGraphXLabel(self, label="X"):
         """Set the plot X axis label.
@@ -1743,28 +1923,39 @@ class Plot(object):
 
         :param str label: The X axis label (default: 'X')
         """
-        self._xLabel = label
-        # Current label can differ from input one with active curve handling
-        self._currentXLabel = label
+        self._defaultLabels['x'] = label
+        self._currentLabels['x'] = label
         self._backend.setGraphXLabel(label)
         self._setDirtyPlot()
 
-    def getGraphYLabel(self):
-        """Return the current Y axis label as a str."""
-        return self._currentYLabel
+    def getGraphYLabel(self, axis='left'):
+        """Return the current Y axis label as a str.
 
-    def setGraphYLabel(self, label="Y"):
+        :param str axis: The Y axis for which to get the label (left or right)
+        """
+        assert axis in ('left', 'right')
+
+        return self._currentLabels['y' if axis == 'left' else 'yright']
+
+    def setGraphYLabel(self, label="Y", axis='left'):
         """Set the plot Y axis label.
 
         The provided label can be temporarily replaced by the Y label of the
         active curve if any.
 
         :param str label: The Y axis label (default: 'Y')
+        :param str axis: The Y axis for which to set the label (left or right)
         """
-        self._yLabel = label
-        # Current label can differ from input one with active curve handling
-        self._currentYLabel = label
-        self._backend.setGraphYLabel(label, axis='left')
+        assert axis in ('left', 'right')
+
+        if axis == 'left':
+            self._defaultLabels['y'] = label
+            self._currentLabels['y'] = label
+        else:
+            self._defaultLabels['yright'] = label
+            self._currentLabels['yright'] = label
+
+        self._backend.setGraphYLabel(label, axis=axis)
         self._setDirtyPlot()
 
     # Axes
@@ -1823,6 +2014,7 @@ class Plot(object):
                 self._backend.setXAxisLogarithmic(self._logX)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setXAxisLogarithmic', state=self._logX)
@@ -1866,6 +2058,7 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
         self.resetZoom()
         self.notify('setYAxisLogarithmic', state=self._logY)
@@ -1989,6 +2182,11 @@ class Plot(object):
 
     def setDefaultColormap(self, colormap=None):
         """Set the default colormap used by :meth:`addImage`.
+
+        Setting the default colormap do not change any currently displayed
+        image.
+        It only affects future calls to :meth:`addImage` without the colormap
+        parameter.
 
         :param dict colormap: The description of the default colormap, or
                             None to set the colormap to a linear autoscale
@@ -2268,7 +2466,7 @@ class Plot(object):
             for legend in list(self._images):  # Copy has images is changed
                 image = self._images[legend]
                 self.addImage(image['data'], legend,
-                              replace=False, rezetZoom=False,
+                              replace=False, resetzoom=False,
                               pixmap=image['pixmap'], **image['params'])
 
     # Coord conversion

@@ -147,7 +147,7 @@ def applyZoomToPlot(plot, scaleF, center=None):
 
     :param plot: The plot on which to apply zoom.
     :param float scaleF: Scale factor of zoom.
-    :param center: (x, y) coords in data coordinates of the zoom center.
+    :param center: (x, y) coords in pixel coordinates of the zoom center.
     :type center: 2-tuple of float
     """
     xMin, xMax = plot.getGraphXLimits()
@@ -186,7 +186,7 @@ def applyPan(min_, max_, panFactor, isLog10):
 
     :param float min_: Min value of the data range to pan.
     :param float max_: Max value of the data range to pan.
-                       Must be >= min_.
+                       Must be >= min.
     :param float panFactor: Signed proportion of the range to use for pan.
     :param bool isLog10: True if log10 scale, False if linear scale.
     :return: New min and max value with pan applied.
@@ -217,8 +217,8 @@ def clamp(value, min_=0., max_=1.):
     """Clip a value to a range [min, max].
 
     :param value: The value to clip
-    :param min_: The min_ edge of the range
-    :param max_: The max_ edge of the range
+    :param min_: The min edge of the range
+    :param max_: The max edge of the range
     :return: The clipped value
     """
     if value < min_:

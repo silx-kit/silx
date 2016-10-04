@@ -17,5 +17,5 @@ matplotlib >= 1.2.0       # For silx.gui.plot
 # This is no available for all configurations
 
 # Require PyQt5 except on Windows with Python2.7
-PyQt5; sys_platform != 'win32' and python_version != '2.7'
+PyQt5; sys_platform != 'win32' or python_version != '2.7'
 PyQt4; sys_platform == 'win32' and python_version == '2.7'  # From silx.org

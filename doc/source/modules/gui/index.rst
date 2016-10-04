@@ -14,6 +14,7 @@ Available modules:
    :maxdepth: 1
 
    plot/index.rst
+   fit/index.rst
    qt.rst
    icons.rst
    console.rst
@@ -25,4 +26,5 @@ How-to:
 .. toctree::
    :maxdepth: 1
 
+   plot/getting_started.rst
    designer.rst
