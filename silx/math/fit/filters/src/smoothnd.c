@@ -297,30 +297,21 @@ void smooth2d_yzslice(double *data, long nx, long ny, long nz)
 /* 2D smoothing of a XZ slice in a 3D volume*/
 void smooth2d_xzslice(double *data, long nx, long ny, long nz)
 {
-    long y_idx;
 
-	for (y_idx=0; y_idx < ny; y_idx++)
-	{
-        /* smooth along the first dimension */
-        smooth1d_x(data, nx, ny, nz);
+    /* smooth along the first dimension */
+    smooth1d_x(data, nx, ny, nz);
 
-        /* smooth along the third dimension */
-        smooth1d_z(data, nx, ny, nz);
-	}
+    /* smooth along the third dimension */
+    smooth1d_z(data, nx, ny, nz);
 }
 
 /* 2D smoothing of a XY slice in a 3D volume*/
 void smooth2d_xyslice(double *data, long nx, long ny, long nz)
 {
-    long z_idx;
+    /* smooth along the first dimension */
+    smooth1d_x(data, nx, ny, nz);
 
-	for (z_idx=0; z_idx < nz; z_idx++)
-	{
-        /* smooth along the first dimension */
-        smooth1d_x(data, nx, ny, nz);
-
-        /* smooth along the third dimension */
-        smooth1d_y(data, nx, ny, nz);
-	}
+    /* smooth along the second dimension */
+    smooth1d_y(data, nx, ny, nz);
 }
 
