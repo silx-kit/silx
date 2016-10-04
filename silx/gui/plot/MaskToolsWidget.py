@@ -981,6 +981,17 @@ class MaskToolsWidget(qt.QWidget):
             msg.setText("Cannot save file %s\n" % filename)
             msg.exec_()
 
+    def getCurrentMaskColor(self):
+        """Returns the color of the current selected level.
+
+        :rtype: A tuple or a python array
+        """
+        currentLevel = self.levelSpinBox.value()
+        if self._defaultColors[currentLevel]:
+            return self._defaultOverlayColor
+        else:
+            return self._overlayColors[currentLevel].tolist()
+
     def _setMaskColors(self, level, alpha):
         """Set-up the mask colormap to highlight current mask level.
 
@@ -1045,6 +1056,18 @@ class MaskToolsWidget(qt.QWidget):
                             self.transparencySlider.value() /
                             self.transparencySlider.maximum())
         self._updatePlotMask()
+        self._updateInteractiveMode()
+
+    def _updateInteractiveMode(self):
+        """Update the current mode to the same if some cached data have to be
+        updated. It is the case for the color for example.
+        """
+        if self._drawingMode == 'rectangle':
+            self._rectActionToggled(True)
+        elif self._drawingMode == 'polygon':
+            self._polygonActionToggled(True)
+        elif self._drawingMode == 'pencil':
+            self._pencilActionToggled(True)
 
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
@@ -1085,8 +1108,9 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'rectangle'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
+            color = self.getCurrentMaskColor()
             self.plot.setInteractiveMode(
-                'draw', shape='rectangle', source=self)
+                'draw', shape='rectangle', source=self, color=color)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
@@ -1096,7 +1120,8 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'polygon'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='polygon', source=self)
+            color = self.getCurrentMaskColor()
+            self.plot.setInteractiveMode('draw', shape='polygon', source=self, color=color)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
@@ -1107,7 +1132,7 @@ class MaskToolsWidget(qt.QWidget):
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
             self.plot.setInteractiveMode(
-                'draw', shape='polylines', color=None, source=self)
+                'draw', shape='polylines', source=self, color=None)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
