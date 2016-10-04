@@ -739,6 +739,13 @@ class SpecH5Dataset(object):
     def __iter__(self):
         return self.value.__iter__()
 
+    def __dir__(self):
+        attrs = set(dir(self.value) +
+                    ["value", "name", "parent", "file",
+                     "attrs",  "shape", "dtype", "size",
+                     "h5py_class"])
+        return sorted(attrs)
+
     # casting
     def __repr__(self):
         return self.value.__repr__()
