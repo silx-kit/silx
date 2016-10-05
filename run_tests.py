@@ -109,6 +109,7 @@ class TestResult(unittest.TestResult):
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        self.logger.info("Start %s", test.id())
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
@@ -124,8 +125,8 @@ class TestResult(unittest.TestResult):
                         self.__mem_start) * ratio
         else:
             memusage = 0
-        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-            time.time() - self.__time_start, memusage, test.id()))
+        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
+            time.time() - self.__time_start, memusage, test.id())
 
 
 if sys.hexversion < 34013184:  # 2.7
