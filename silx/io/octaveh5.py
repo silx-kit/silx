@@ -86,7 +86,7 @@ class Octaveh5(object):
         try:
             self.file = h5py.File(h5file, mode)
             return self
-        except IOError:
+        except IOError as e:
             if mode == 'a':
                 reason = "\n %s: Can t find or create " % h5file
             else:
@@ -94,6 +94,8 @@ class Octaveh5(object):
             self.file = None
 
             logger.info(reason)
+            raise e
+            
 
     def get(self, struct_name):
         """Read octave equivalent structures in hdf5 file
