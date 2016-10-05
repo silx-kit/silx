@@ -28,7 +28,7 @@
 process with constraints on parameters.
 
 The main class is :class:`FitWidget`. It relies on
-:mod:`silx.math.fit.fitmanager`.
+:mod:`silx.math.fit.fitmanager`, which relies on :func:`silx.math.fit.leastsq`.
 
 The user can choose between functions before running the fit. These function can
 be user defined, or by default are loaded from
@@ -46,23 +46,41 @@ from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
-# from .QScriptOption import QScriptOption
 
 QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "05/10/2016"
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)
 
 
 class FitWidget(qt.QWidget):
-    """Widget to configure, run and display results of a fitting.
-    It works hand in hand with a :class:`silx.math.fit.fitmanager.FitManager`
-    object that handles the fit functions and calls the iterative least-square
-    fitting algorithm.
+    """This widget can be used to configure, run and display results of a
+    fitting process.
+
+    The standard steps for using this widget is to initialize it, then load
+    the data to be fitted.
+
+    Optionally, you can also load user defined fit theories. If you skip this
+    step, a series of default fit functions will be presented (gaussian-like
+    functions), and you can later load your custom fit theories from an
+    external file using the GUI.
+
+    A fit theory is a fit function and its associated features:
+
+      - estimation function,
+      - list of parameter names
+      - numerical derivative algorithm
+      - configuration widget
+
+    Once the widget is up and running, the user may select a fit theory and a
+    background theory, change configuration parameters specific to the theory
+    run the estimation, set constraints on parameters and run the actual fit.
+
+    The results are displayed in a table.
     """
     sigFitWidgetSignal = qt.Signal(object)
     """This signal is emitted when:
