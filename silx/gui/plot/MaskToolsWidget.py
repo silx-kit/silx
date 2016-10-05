@@ -656,15 +656,7 @@ class MaskToolsWidget(qt.QWidget):
             self.maskStateWidget.setHidden)
 
         # Pencil settings
-
-        self.pencilSpinBox = qt.QSpinBox()
-        self.pencilSpinBox.setRange(1, 1024)
-        self.pencilSpinBox.setToolTip(
-            """Set pencil drawing tool size in pixels of the image
-            on which to make the mask.""")
-
-        self.pencilSetting = self._hboxWidget(
-            qt.QLabel('Pencil Size:'), self.pencilSpinBox)
+        self.pencilSetting = self._createPencilSettings(None)
         self.pencilSetting.setVisible(False)
         layout.addWidget(self.pencilSetting)
 
@@ -673,6 +665,32 @@ class MaskToolsWidget(qt.QWidget):
         drawGroup = qt.QGroupBox('Draw tools')
         drawGroup.setLayout(layout)
         return drawGroup
+
+    def _createPencilSettings(self, parent=None):
+        pencilSetting = qt.QWidget(parent)
+
+        self.pencilSpinBox = qt.QSpinBox(parent=pencilSetting)
+        self.pencilSpinBox.setRange(1, 1024)
+        pencilToolTip = """Set pencil drawing tool size in pixels of the image
+            on which to make the mask."""
+        self.pencilSpinBox.setToolTip(pencilToolTip)
+
+        self.pencilSlider = qt.QSlider(qt.Qt.Horizontal, parent=pencilSetting)
+        self.pencilSlider.setRange(1, 50)
+        self.pencilSlider.setToolTip(pencilToolTip)
+
+        pencilLabel = qt.QLabel('Pencil size:', parent=pencilSetting)
+
+        layout = qt.QGridLayout()
+        layout.addWidget(pencilLabel, 0, 0)
+        layout.addWidget(self.pencilSpinBox, 0, 1)
+        layout.addWidget(self.pencilSlider, 1, 1)
+        pencilSetting.setLayout(layout)
+
+        self.pencilSpinBox.valueChanged.connect(self._pencilWidthChanged)
+        self.pencilSlider.valueChanged.connect(self._pencilWidthChanged)
+
+        return pencilSetting
 
     def _initThresholdGroupBox(self):
         """Init thresholding widgets"""
@@ -1057,6 +1075,18 @@ class MaskToolsWidget(qt.QWidget):
                             self.transparencySlider.maximum())
         self._updatePlotMask()
         self._updateInteractiveMode()
+
+    def _pencilWidthChanged(self, width):
+        try:
+            old = self.pencilSpinBox.blockSignals(True)
+            self.pencilSpinBox.setValue(width)
+        finally:
+            self.pencilSpinBox.blockSignals(old)
+        try:
+            old = self.pencilSlider.blockSignals(True)
+            self.pencilSlider.setValue(width)
+        finally:
+            self.pencilSlider.blockSignals(old)
 
     def _updateInteractiveMode(self):
         """Update the current mode to the same if some cached data have to be
