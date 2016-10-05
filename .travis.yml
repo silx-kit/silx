@@ -123,7 +123,7 @@ script:
     - pip list
 
     # Run the tests using WITH_QT_TEST from the environment
-    - python -mx run_tests.py
+    - python run_tests.py -mx
 
     # Mac OS X specific cleanup
     - travis_osx_run_end
