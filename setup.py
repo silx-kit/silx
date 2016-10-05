@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "15/09/2016"
+__date__ = "04/10/2016"
 __license__ = "MIT"
 
 
@@ -58,6 +58,14 @@ except ImportError:
 
 PROJECT = "silx"
 cmdclass = {}
+
+
+if "LANG" not in os.environ and sys.platform == "darwin" and sys.version_info[0]>2:
+    print("""WARNING: the LANG environment variable is not defined, 
+an utf-8 LANG is mandatory to use setup.py, you may face unexpected UnicodeError. 
+export LANG=en_US.utf-8
+export LC_ALL=en_US.utf-8
+""")
 
 
 # Check if action requires build/install
