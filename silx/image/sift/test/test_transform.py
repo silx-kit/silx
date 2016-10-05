@@ -90,9 +90,11 @@ class TestTransform(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        print("start TestTransform TearDownClass")
         super(TestTransform, cls).tearDownClass()
         cls.ctx = None
         cls.queue = None
+        print("end TestTransform TearDownClass")
 
     def setUp(self):
         kernel_src = get_opencl_code("transform")
