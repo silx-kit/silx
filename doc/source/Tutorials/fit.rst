@@ -76,7 +76,7 @@ The output of this program is::
    Reduced chi-square: 682592.670690
    Theoretical parameters:
        a=2.4, b=-10, c=15.2, d=-24.6, e=150
-   Optimal parameters for y2 fitting:
+   Optimal parameters for y fitting:
        a=2.400000, b=-9.999665, c=14.970422, d=31.683448, e=-3216.131136
 
 We can see that this fit result is poor. In particular, parameters ``d`` and ``e``
@@ -94,7 +94,7 @@ produces the following result::
    Reduced chi-square: 0.000000
    Theoretical parameters:
        a=2.4, b=-10, c=15.2, d=-24.6, e=150
-   Optimal parameters for y2 fitting:
+   Optimal parameters for y fitting:
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
 Constrained fit
@@ -133,7 +133,7 @@ The output of this program is::
    Reduced chi-square: 3.749280
    Theoretical parameters:
        a=2.4, b=-10, c=15.2, d=-24.6, e=150
-   Optimal parameters:
+   Optimal parameters for y fitting:
        a=2.400000, b=-9.999999, c=15.199648, d=-24.533014, e=150.000000
 
 The chi-square value is much improved and the results are much better, at the
@@ -170,7 +170,7 @@ This results in a great improvement::
    Reduced chi-square: 0.000000
    Theoretical parameters:
        a=2.4, b=-10, c=15.2, d=-24.6, e=150
-   Optimal parameters for y2 fitting:
+   Optimal parameters for y fitting:
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
 The resulting fit is perfect. The very large ``y`` values with their very large
@@ -185,7 +185,39 @@ Using :class:`FitManager`
 
 A :class:`FitManager` is a tool that provides a way of handling fit functions.
 
-TODO
+.. code-block:: python
+
+    from silx.math.fit.functions import sum_gauss
+    from silx.math.fit import fittheories
+
+    # Create synthetic data with a sum of gaussian functions
+    x = numpy.arange(1000).astype(numpy.float)
+
+    # height, center, fwhm
+    p = [1000, 100., 250,     # 1st peak
+         255, 690., 45,       # 2nd peak
+         1500, 800.5, 95]     # 3rd peak
+
+    # Add a synthetic linear background to our 3 gaussians
+    y = 2.65 * x + 13 + sum_gauss(x, *p)
+
+    # Fitting
+    fit = FitManager()
+    fit.setdata(x=x, y=y)
+    fit.loadtheories(fittheories)
+    fit.settheory('Gaussians')
+    fit.setbackground('Linear')
+    fit.estimate()
+    fit.runfit()
+
+    print("Searched parameters = ", p)
+    print("Obtained parameters : ")
+    dummy_list = []
+    for param in fit.fit_results:
+        print(param['name'], ' = ', param['fitresult'])
+        dummy_list.append(param['fitresult'])
+    print("chisq = ", fit.chisq)
+
 
 
 .. _fitwidget-tutorial:
