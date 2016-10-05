@@ -205,8 +205,8 @@ class FitConfigWidget(qt.QWidget):
         self.WeightCheckBox = qt.QCheckBox(self)
         self.WeightCheckBox.setText("Weight")
         self.WeightCheckBox.setToolTip(
-                "Use square root of data as weights in the least-square " +
-                "problem")
+                "Enable usage of weights in the least-square problem. Use " +
+                "the uncertainties if provided, or else use sqrt(y).")
 
         layout6.addWidget(self.WeightCheckBox)
 

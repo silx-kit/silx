@@ -87,7 +87,7 @@ class FitManager(object):
         self.fitconfig = {
             'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
                                # we can get rid of this param (will be defined in fittheories for peak detection)
-            'AutoWeightFlag': auto_weight,
+            'WeightFlag': auto_weight,
             'fitbkg': 'No Background',
             'fittheory': None,
             'StripWidth': 2,
@@ -681,17 +681,13 @@ class FitManager(object):
                 self.xdata0 = numpy.array(x)
                 self.xdata = numpy.array(x)
 
-            # default weight in the least-square problem is 1 (defined in leastsq function)
-            if sigmay is None and not self.fitconfig["AutoWeightFlag"]:
+            # default weight
+            if sigmay is None:
                 self.sigmay0 = None
-                self.sigmay = None
-            # if AutoWeightFlag is set, default weight are sqrt(y)
-            elif sigmay is None and self.fitconfig["AutoWeightFlag"]:
-                self.sigmay0 = numpy.sqrt(self.ydata0)
-                self.sigmay = numpy.sqrt(self.ydata)
+                self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
             else:
                 self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = numpy.array(sigmay)
+                self.sigmay = numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
 
             # take the data between limits, using boolean array indexing
             if (xmin is not None or xmax is not None) and len(self.xdata):
@@ -702,17 +698,19 @@ class FitManager(object):
                 self.ydata = self.ydata[bool_array]
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
 
-    def autoweight(self):
-        """This method can be called to set :attr:`sigmay` equal to the
-        square root of :attr:`ydata`
+    def enableweight(self):
+        """This method can be called to set :attr:`sigmay`. If :attr:`sigmay0` was filled with
+        actual uncertainties in :meth:`setdata`, use these values.
+        Else, use ``sqrt(self.ydata)``.
         """
-        if self.sigmay is not None:
-            _logger.warning("Overwriting existing sigmay values")
-        self.sigmay = numpy.sqrt(self.ydata)
+        if self.sigmay0 is None:
+            self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+        else:
+            self.sigmay = self.sigmay0
 
-    def noweight(self):
+    def disableweight(self):
         """This method can be called to set :attr:`sigmay` equal to ``None``.
-        As a result, the fit process will consider that the weights in the
+        As a result, :func:`leastsq` will consider that the weights in the
         least square problem are 1 for all samples."""
         self.sigmay = None
 

@@ -158,7 +158,7 @@ class FitWidget(qt.QWidget):
                 self.bkgEvent(self.fitmanager.selectedbg)
 
             self.guiConfig.WeightCheckBox.setChecked(
-                    self.fitmanager.fitconfig.get("AutoWeightFlag", False))
+                    self.fitmanager.fitconfig.get("WeightFlag", False))
 
             configuration.update(self.configure())
 
@@ -438,15 +438,15 @@ class FitWidget(qt.QWidget):
         self.__initialParameters()
 
     def weightEvent(self, flag):
-        """This is called when WeightCheckBox is clicked, to configure
-        AutoWeightFlag in :attr:`fitmanager.fitconfig` and compute weights
-        in the least-square problem as the square root of the data."""
-        self.configure(AutoWeightFlag=flag)
+        """This is called when WeightCheckBox is clicked, to configure the
+        *WeightFlag* field in :attr:`fitmanager.fitconfig` and set weights
+        in the least-square problem."""
+        self.configure(WeightFlag=flag)
         if flag:
-            self.fitmanager.autoweight()
+            self.fitmanager.enableweight()
         else:
             # set weights back to 1
-            self.fitmanager.noweight()
+            self.fitmanager.disableweight()
 
     def __initialParameters(self):
         """Fill the fit parameters names with names of the parameters of
