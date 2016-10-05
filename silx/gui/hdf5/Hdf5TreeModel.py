@@ -345,7 +345,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.endMoveRows()
         return True
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=qt.QModelIndex()):
         try:
             node = self.nodeFromIndex(parent)
             return self.createIndex(row, column, node.child(row))
