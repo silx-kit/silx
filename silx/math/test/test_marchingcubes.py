@@ -158,17 +158,19 @@ class TestMarchingCubes(ParametricTestCase):
                                                      sampling=sampling)
                 # Compare vertices normalized with shape
                 self.assertAllClose(
-                    ref_result.vertices / ref_result.shape,
-                    result.vertices / result.shape,
+                    ref_result.get_vertices() / ref_result.shape,
+                    result.get_vertices() / result.shape,
                     atol=0., rtol=0.)
 
                 # Compare normals
                 # This comparison only works for normals aligned with axes
                 # otherwise non uniform sampling would make different normals
-                self.assertAllClose(ref_result.normals, result.normals,
+                self.assertAllClose(ref_result.get_normals(),
+                                    result.get_normals(),
                                     atol=0., rtol=0.)
 
-                self.assertAllClose(ref_result.indices, result.indices,
+                self.assertAllClose(ref_result.get_indices(),
+                                    result.get_indices(),
                                     atol=0., rtol=0.)
 
 
