@@ -8,6 +8,22 @@ Fit tools
 Using :func:`leastsq`
 +++++++++++++++++++++
 
+Running an iterative fit with :func:`leastsq` involves the following steps:
+
+    - designing a fit model function that has the signature ``f(x, ...)``,
+      where ``x`` is an array of values of the independant variable and all
+      remaining parameters are the parameters to be fitted
+    - defining the sequence of initial values for all parameters to be fitted.
+      You can usually start with ``[1., 1., ...]`` if you don't know a better
+      estimate. The algorithm is robust enough to converge to a solution most
+      of the time.
+    - setting constraints (optional)
+
+Let's demonstrate this process in a short example, using synthetic data.
+We create an array of synthetic data using a polynomial of degree 4, and try
+to use :func:`leastsq` to find back the same parameters used to create the
+synthetic data.
+
 .. code-block:: python
 
    import numpy
@@ -32,13 +48,15 @@ Using :func:`leastsq`
                        p0=initial_parameters,
                        full_output=True)
 
+   # leastsq with full_output=True returns 3 objets
    optimal_parameters, covariance, infodict = fitresult
+   # the first object is an array with the fitted parameters
+   a, b, c, d, e = optimal_parameters
 
    print("Fit took %d iterations" % infodict["niter"])
    print("Reduced chi-square: %f" % infodict["reduced_chisq"])
    print("Theoretical parameters:\n\t" +
          "a=2.4, b=-10, c=15.2, d=-24.6, e=150")
-   a, b, c, d, e = optimal_parameters
    print("Optimal parameters for y2 fitting:\n\t" +
          "a=%f, b=%f, c=%f, d=%f, e=%f" % (a, b, c, d, e))
 
