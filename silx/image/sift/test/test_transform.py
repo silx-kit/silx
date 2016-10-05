@@ -102,6 +102,7 @@ class TestTransform(unittest.TestCase):
         self.wg = (1, 128)
 
     def tearDown(self):
+        print("start TestTransform TearDown")
         self.program = None
 
     def image_reshape(self, img, output_height, output_width, image_height, image_width):
