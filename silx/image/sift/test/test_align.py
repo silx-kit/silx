@@ -67,7 +67,6 @@ class TestLinalign(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -103,19 +102,9 @@ class TestLinalign(unittest.TestCase):
         out = out["result"]
 
         if self.PROFILE and out is not None:
-            fig = pylab.figure()
-            sp0 = fig.add_subplot(221)
-            im0 = sp0.imshow(self.lena)
-            sp1 = fig.add_subplot(222)
-            im1 = sp1.imshow(self.img)
-            sp2 = fig.add_subplot(223)
-            im2 = sp2.imshow(out)
-            sp3 = fig.add_subplot(224)
+
             delta = (out - self.lena)[100:400, 100:400]
-            im3 = sp3.imshow(delta)
-            print({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
-            pylab.show()
-            raw_input("enter")
+            logger.info({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
 
 
 def suite():

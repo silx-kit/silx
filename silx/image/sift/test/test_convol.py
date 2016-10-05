@@ -147,19 +147,6 @@ class TestConvol(unittest.TestCase):
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-                import pylab
-                fig = pylab.figure()
-                fig.suptitle('convolution horizontal sigma=%s delta=%s' % (sigma, delta))
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
     @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_vert(self):
@@ -192,18 +179,6 @@ class TestConvol(unittest.TestCase):
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-                fig = pylab.figure()
-                fig.suptitle('convolution horizontal sigma=%s delta=%s' % (sigma, delta))
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
     def test_convol(self):
         """
@@ -236,18 +211,6 @@ class TestConvol(unittest.TestCase):
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms and vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start),
                                                                                           1e-6 * (k2.profile.end - k2.profile.start)))
-                fig = pylab.figure()
-                fig.suptitle('sigma=%s' % sigma)
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
 
 def suite():
