@@ -39,6 +39,12 @@ addons:
             - libhdf5-serial-1.8.4
             - libhdf5-serial-dev
             - libegl1-mesa  # Required by Qt xcb platform plugin
+            - libboost-python-dev # for PyOpenCL
+            - opencl-headers
+
+before_install:
+  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'linux' ]; then . ./ci/before_install-linux.sh; fi"
+#  - "if [ ${TRAVIS_OS_NAME:-'linux'} = 'osx' ]; then . ./ci/travis/before_install-osx.sh; fi"
 
 install:
     # Mac OS X specific bootstrap
@@ -94,6 +100,11 @@ script:
 
     # Install h5py for silx.io tests
     - pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py
+
+    #Install optional dependencies for running test
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy 
+    - pip install --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ pyopencl==2015.1
+    - pip install mako 
 
     # Install GUI dependencies
     - if [ "$WITH_QT_TEST" == "True" ];

@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/07/2016"
+__date__ = "15/09/2016"
 
 
 import doctest
@@ -110,14 +110,15 @@ class TestPositionInfo(TestCaseQt):
 
     def testDefaultConverters(self):
         """Test PositionInfo with default converters"""
-        positionWidget = PlotTools.PositionInfo(self.plot)
+        positionWidget = PlotTools.PositionInfo(plot=self.plot)
         self._test(positionWidget, ('X', 'Y'))
 
     def testCustomConverters(self):
         """Test PositionInfo with custom converters"""
-        positionWidget = PlotTools.PositionInfo(self.plot, converters=[
+        positionWidget = PlotTools.PositionInfo(plot=self.plot,
+                                                converters=[
             ('Coords', lambda x, y: (int(x), int(y))),
-            ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
+            ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
@@ -127,7 +128,8 @@ class TestPositionInfo(TestCaseQt):
             raise RuntimeError()
 
         positionWidget = PlotTools.PositionInfo(
-            self.plot, converters=[('Exception', raiseException)])
+            plot=self.plot,
+            converters=[('Exception', raiseException)])
         self._test(positionWidget, ['Exception'], error=2)
 
 
@@ -181,7 +183,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
                 self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
 
                 # with image
-                self.plot.addImage(numpy.arange(100*100).reshape(100, -1))
+                self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
                 self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
                 self.mouseMove(widget, pos=pos2)
                 self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
@@ -207,7 +209,7 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
         for image in (False, True):
             with self.subTest(image=image):
                 if image:
-                    self.plot.addImage(numpy.arange(100*100).reshape(100, -1))
+                    self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
 
                 self.mouseMove(widget, pos=pos1)
                 self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)

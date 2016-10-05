@@ -31,7 +31,7 @@ It shows the following widgets:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "26/09/2016"
 
 import sys
 from silx.gui import qt
@@ -60,12 +60,12 @@ class SimpleWidgetExample(qt.QMainWindow):
         self.setCentralWidget(main_panel)
 
     def createWaitingPushButton(self):
-        widget = WaitingPushButton("Push me and wait for ever")
+        widget = WaitingPushButton(text="Push me and wait for ever")
         widget.clicked.connect(widget.swapWaiting)
         return widget
 
     def createWaitingPushButton2(self):
-        widget = WaitingPushButton("Push me")
+        widget = WaitingPushButton(text="Push me")
         widget.setDisabledWhenWaiting(False)
         widget.clicked.connect(widget.swapWaiting)
         return widget
@@ -82,7 +82,7 @@ class SimpleWidgetExample(qt.QMainWindow):
         return a ** b
 
     def createThreadPoolPushButton(self):
-        widget = ThreadPoolPushButton("Compute 2^16")
+        widget = ThreadPoolPushButton(text="Compute 2^16")
         widget.setCallable(self.takesTimeToComputePow, 2, 16)
         widget.succeeded.connect(self.printResult)
         widget.failed.connect(self.printError)

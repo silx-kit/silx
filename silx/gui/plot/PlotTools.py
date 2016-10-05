@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/04/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -78,7 +78,7 @@ class PositionInfo(qt.QWidget):
     >>> import numpy
     >>> from silx.gui.plot.PlotTools import PositionInfo
 
-    >>> position = PositionInfo(plot, converters=[
+    >>> position = PositionInfo(plot=plot, converters=[
     ...     ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
     ...     ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
 
@@ -95,7 +95,8 @@ class PositionInfo(qt.QWidget):
     :param parent: Parent widget
     """
 
-    def __init__(self, plot, converters=None, parent=None):
+    def __init__(self, parent=None, plot=None, converters=None):
+        assert plot is not None
         self._plotRef = weakref.ref(plot)
 
         super(PositionInfo, self).__init__(parent)
@@ -146,7 +147,7 @@ class PositionInfo(qt.QWidget):
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
-        return [(name, func) for lineEdit, name, func in self._fields]
+        return [(name, func) for _lineEdit, name, func in self._fields]
 
     def _plotEvent(self, event):
         """Handle events from the Plot.
@@ -164,7 +165,7 @@ class PositionInfo(qt.QWidget):
 
                 activeCurve = self.plot.getActiveCurve()
                 if activeCurve:
-                    xData, yData, legend, info, params = activeCurve[0:5]
+                    xData, yData, _legend, _info, params = activeCurve[0:5]
                     if params['symbol']:  # Only handled if symbols on curve
                         closestIndex = numpy.argmin(
                             pow(xData - x, 2) + pow(yData - y, 2))
@@ -210,9 +211,9 @@ class PositionInfo(qt.QWidget):
 class LimitsToolBar(qt.QToolBar):
     """QToolBar displaying and controlling the limits of a :class:`PlotWidget`.
 
+    :param parent: See :class:`QToolBar`.
     :param plot: :class:`PlotWidget` instance on which to operate.
     :param str title: See :class:`QToolBar`.
-    :param parent: See :class:`QToolBar`.
     """
 
     class _FloatEdit(qt.QLineEdit):
@@ -231,7 +232,7 @@ class LimitsToolBar(qt.QToolBar):
         def setValue(self, value):
             self.setText('%g' % value)
 
-    def __init__(self, plot, title='Limits', parent=None):
+    def __init__(self, parent=None, plot=None, title='Limits'):
         super(LimitsToolBar, self).__init__(title, parent)
         assert plot is not None
         self._plot = plot
@@ -321,7 +322,7 @@ class ProfileToolBar(qt.QToolBar):
     >>> from silx.gui import qt
 
     >>> plot = PlotWindow()  # Create a PlotWindow
-    >>> toolBar = ProfileToolBar(plot)  # Create a profile toolbar for the plot
+    >>> toolBar = ProfileToolBar(plot=plot)  # Create a profile toolbar
     >>> plot.addToolBar(toolBar)  # Add it to plot
     >>> plot.show()  # To display the PlotWindow with the profile toolbar
 
@@ -335,8 +336,8 @@ class ProfileToolBar(qt.QToolBar):
 
     _POLYGON_LEGEND = '__ProfileToolBar_ROI_Polygon'
 
-    def __init__(self, plot, profileWindow=None,
-                 title='Profile Selection', parent=None):
+    def __init__(self, parent=None, plot=None, profileWindow=None,
+                 title='Profile Selection'):
         super(ProfileToolBar, self).__init__(title, parent)
         assert plot is not None
         self.plot = plot
@@ -616,7 +617,7 @@ class ProfileToolBar(qt.QToolBar):
                                 axis=axis, dtype=numpy.float32)
 
         # Profile including out of bound area
-        profile = numpy.zeros(profileLength,  dtype=numpy.float32)
+        profile = numpy.zeros(profileLength, dtype=numpy.float32)
 
         # Place imgProfile in full profile
         offset = - min(0, profileRange[0])
@@ -782,7 +783,7 @@ class ProfileToolBar(qt.QToolBar):
                           legend=self._POLYGON_LEGEND,
                           color=self.overlayColor,
                           shape='polygon', fill=True,
-                          replace=False, z=zActiveImage+1)
+                          replace=False, z=zActiveImage + 1)
 
         if self._ownProfileWindow and not self.profileWindow.isVisible():
             # If profile window was created in this widget,

@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/09/2016"
+__date__ = "13/09/2016"
 
 
 from numpy.distutils.misc_util import Configuration
@@ -33,6 +33,8 @@ from numpy.distutils.misc_util import Configuration
 def configuration(parent_package='', top_path=None):
     config = Configuration('gui', parent_package, top_path)
     config.add_subpackage('plot')
+    config.add_subpackage('fit')
+    config.add_subpackage('hdf5')
     config.add_subpackage('widgets')
     config.add_subpackage('test')
 

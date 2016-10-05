@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "01/09/2016"
+__date__ = "15/09/2016"
 __license__ = "MIT"
 
 
@@ -457,8 +457,7 @@ setup_kwargs = config.todict()
 install_requires = ["numpy"]
 setup_requires = ["numpy"]
 
-setup_kwargs.update(
-                    name=PROJECT,
+setup_kwargs.update(name=PROJECT,
                     version=get_version(),
                     url="https://github.com/silx-kit/silx",
                     author="data analysis unit",
@@ -475,6 +474,7 @@ setup_kwargs.update(
                         'gui/icons/*.svg',
                         'gui/icons/*.mng',
                         'gui/icons/*.gif',
+                        'opencl/sift/*.cl',
                         ]},
                     zip_safe=False,
                     )

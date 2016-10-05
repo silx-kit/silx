@@ -24,15 +24,16 @@
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "01/02/2016"
+__date__ = "04/07/2016"
 
 import unittest
 
-from .test_histogramnd_nominal import suite as test_histo_nominal
 from .test_histogramnd_error import suite as test_histo_error
+from .test_histogramnd_nominal import suite as test_histo_nominal
 from .test_histogramnd_vs_np import suite as test_histo_vs_np
 from .test_HistogramndLut_nominal import suite as test_histolut_nominal
-from .test_fit import suite as test_curve_fit
+from ..fit.test import suite as test_fit_suite
+from .test_marchingcubes import suite as test_marchingcubes_suite
 
 
 def suite():
@@ -40,6 +41,7 @@ def suite():
     test_suite.addTest(test_histo_nominal())
     test_suite.addTest(test_histo_error())
     test_suite.addTest(test_histo_vs_np())
+    test_suite.addTest(test_fit_suite())
     test_suite.addTest(test_histolut_nominal())
-    test_suite.addTest(test_curve_fit())
+    test_suite.addTest(test_marchingcubes_suite())
     return test_suite

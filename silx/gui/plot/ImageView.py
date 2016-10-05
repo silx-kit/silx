@@ -53,7 +53,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/05/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -298,7 +298,7 @@ class ImageView(PlotWindow):
 
         self._initWidgets(backend)
 
-        self.profile = ProfileToolBar(self)
+        self.profile = ProfileToolBar(plot=self)
         """"Profile tools attached to this plot.
 
         See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
@@ -371,7 +371,7 @@ class ImageView(PlotWindow):
             wasUpdatingLimits = self._updatingLimits
             self._updatingLimits = True
 
-            data, legend, info, pixmap, params = activeImage[0:5]
+            data, _legend, _info, _pixmap, params = activeImage[0:5]
             origin, scale = params['origin'], params['scale']
             height, width = data.shape
 
@@ -725,7 +725,7 @@ class ImageView(PlotWindow):
 
         activeImage = self.getActiveImage()
         if activeImage is not None:  # Refresh image with new colormap
-            data, legend, info, pixmap = activeImage
+            data, legend, info, _pixmap = activeImage
 
             self.addImage(data, legend=legend, info=info,
                           colormap=self.getColormap(),
@@ -800,7 +800,7 @@ class ImageViewMainWindow(ImageView):
         self.setGraphTitle('Image')
 
         # Add toolbars and status bar
-        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(self))
+        self.addToolBar(qt.Qt.BottomToolBarArea, LimitsToolBar(plot=self))
 
         self.statusBar()
 
@@ -942,7 +942,7 @@ def main(argv=None):
             'Frame [0-%d]:' % (nbFrames - 1)))
 
         spinBox = qt.QSpinBox()
-        spinBox.setRange(0, nbFrames-1)
+        spinBox.setRange(0, nbFrames - 1)
 
         def updateImage(index):
             mainWindow.setImage(edfFile.GetData(index),
@@ -955,6 +955,7 @@ def main(argv=None):
         mainWindow.addToolBar(multiFrameToolbar)
 
     mainWindow.show()
+    mainWindow.setFocus(qt.Qt.OtherFocusReason)
 
     return app.exec_()
 

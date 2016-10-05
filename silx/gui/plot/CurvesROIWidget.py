@@ -29,7 +29,7 @@ This widget is meant to work with :class:`PlotWindow`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/05/2016"
+__date__ = "15/09/2016"
 
 
 import logging
@@ -81,7 +81,7 @@ class CurvesROIWidget(qt.QWidget):
         ##############
         self.roiTable = ROITable(self)
         rheight = self.roiTable.horizontalHeader().sizeHint().height()
-        self.roiTable.setMinimumHeight(4*rheight)
+        self.roiTable.setMinimumHeight(4 * rheight)
         self.fillFromROIDict = self.roiTable.fillFromROIDict
         self.getROIListAndDict = self.roiTable.getROIListAndDict
         layout.addWidget(self.roiTable)
@@ -390,7 +390,7 @@ class ROITable(qt.QTableWidget):
                     col = col + 1
         self.setRowCount(line0)
         i = 0
-        for label in self.labels:
+        for _label in self.labels:
             self.resizeColumnToContents(i)
             i = i + 1
         self.sortByColumn(2, qt.Qt.AscendingOrder)
@@ -499,13 +499,13 @@ class CurvesROIDockWidget(qt.QDockWidget):
 
     It makes the link between the CurvesROIWidget and the PlotWindow.
 
+    :param parent: See :class:`QDockWidget`
     :param plot: :class:`.PlotWindow` instance on which to operate
     :param name: See :class:`QDockWidget`
-    :param parent: See :class:`QDockWidget`
     """
     sigROISignal = qt.Signal(object)
 
-    def __init__(self, plot, name=None, parent=None):
+    def __init__(self, parent=None, plot=None, name=None):
         super(CurvesROIDockWidget, self).__init__(name, parent)
 
         assert plot is not None
@@ -777,7 +777,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
                     deltaX = xw[-1] - xw[0]
                     deltaY = yw[-1] - yw[0]
                     if deltaX > 0.0:
-                        slope = (deltaY/deltaX)
+                        slope = (deltaY / deltaX)
                         background = yw[0] + slope * (xw - xw[0])
                         netCounts = (rawCounts -
                                      background.sum(dtype=numpy.float))
@@ -800,7 +800,7 @@ class CurvesROIDockWidget(qt.QDockWidget):
     def _emitCurrentROISignal(self):
         ddict = {}
         ddict['event'] = "currentROISignal"
-        roiList, roiDict = self.roiWidget.getROIListAndDict()
+        _roiList, roiDict = self.roiWidget.getROIListAndDict()
         if self.currentROI in roiDict:
             ddict['ROI'] = roiDict[self.currentROI]
         else:

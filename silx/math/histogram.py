@@ -140,13 +140,14 @@ bins ranges will be :
 
 __authors__ = ["D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/05/2016"
+__date__ = "15/09/2016"
 
 import numpy as np
 from .chistogramnd import chistogramnd as _chistogramnd  # noqa
 from .chistogramnd_lut import histogramnd_get_lut as _histo_get_lut
 from .chistogramnd_lut import histogramnd_from_lut as _histo_from_lut
-           
+
+
 class Histogramnd(object):
     """
     Computes the multidimensional histogram of some data.
@@ -224,7 +225,7 @@ class Histogramnd(object):
             Set this parameter to true if you want
             the LAST bin to be closed.
         :type last_bin_closed: *optional*, :class:`python.boolean`
-        
+
         :param wh_dtype: type of the weighted histogram array. If not provided, the
             weighted histogram array will contain values of the same type as
             *weights*. Allowed values are : `numpy.double` and `numpy.float32`
@@ -284,7 +285,7 @@ class Histogramnd(object):
                 contiguous slice) then histogramnd will have to do make an internal
                 copy.
         :type sample: :class:`numpy.array`
-        
+
         :param weights:
             A N elements numpy array of values associated with
             each sample.
@@ -329,21 +330,21 @@ class Histogramnd(object):
         elif self.__data[1] is None and result[1] is not None:
             self.__data = result
 
-    histo = property(lambda self:self[0])
+    histo = property(lambda self: self[0])
     """ Histogram array, or None if this instance was initialized without
         <sample> and accumulate has not been called yet.
 
         .. note:: this is a **reference** to the array store in this
              Histogramnd instance, use with caution.
     """
-    weighted_histo = property(lambda self:self[1])
+    weighted_histo = property(lambda self: self[1])
     """ Weighted Histogram, or None if this instance was initialized without
         <sample>, or no weights have been passed to __init__ nor accumulate.
 
         .. note:: this is a **reference** to the array store in this
             Histogramnd instance, use with caution.
     """
-    edges = property(lambda self:self[2])
+    edges = property(lambda self: self[2])
     """ Bins edges, or None if this instance was initialized without
         <sample> and accumulate has not been called yet.
     """

@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "02/08/2016"
+__date__ = "03/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -114,9 +114,14 @@ class TestResult(unittest.TestResult):
 
     def stopTest(self, test):
         unittest.TestResult.stopTest(self, test)
+        # see issue 311. For other platform, get size of ru_maxrss in "man getrusage"
+        if sys.platform == "darwin":
+            ratio = 1e-6
+        else:
+            ratio = 1e-3
         if resource:
             memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
-                        self.__mem_start) * 0.001
+                        self.__mem_start) * ratio
         else:
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
@@ -221,7 +226,8 @@ def build_project(name, root_dir):
 
 from argparse import ArgumentParser
 
-parser = ArgumentParser(description='Run the tests.')
+parser = ArgumentParser(description='Run the tests.',
+                        epilog='To disable graphical tests, set WITH_QT_TEST environment variable to False')
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,

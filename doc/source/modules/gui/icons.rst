@@ -31,6 +31,20 @@ Available icons
      - crop
    * - |crosshair|
      - crosshair
+   * - |cube-back|
+     - cube-back
+   * - |cube-bottom|
+     - cube-bottom
+   * - |cube-front|
+     - cube-front
+   * - |cube-left|
+     - cube-left
+   * - |cube-right|
+     - cube-right
+   * - |cube-top|
+     - cube-top
+   * - |cube|
+     - cube
    * - |document-open|
      - document-open
    * - |document-print|
@@ -59,6 +73,18 @@ Available icons
      - image-select-erase
    * - |image|
      - image
+   * - |item-0dim|
+     - item-0dim
+   * - |item-1dim|
+     - item-1dim
+   * - |item-2dim|
+     - item-2dim
+   * - |item-3dim|
+     - item-3dim
+   * - |item-ndim|
+     - item-ndim
+   * - |item-object|
+     - item-object
    * - |math-average|
      - math-average
    * - |math-derive|
@@ -153,6 +179,8 @@ Available icons
      - sliders-on
    * - |spec|
      - spec
+   * - |test-png|
+     - test-png
    * - |view-fullscreen|
      - view-fullscreen
    * - |view-nofullscreen|
@@ -176,6 +204,13 @@ Available icons
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
 .. |crop| image:: ../../../../silx/resources/gui/icons/crop.png
 .. |crosshair| image:: ../../../../silx/resources/gui/icons/crosshair.png
+.. |cube-back| image:: ../../../../silx/resources/gui/icons/cube-back.png
+.. |cube-bottom| image:: ../../../../silx/resources/gui/icons/cube-bottom.png
+.. |cube-front| image:: ../../../../silx/resources/gui/icons/cube-front.png
+.. |cube-left| image:: ../../../../silx/resources/gui/icons/cube-left.png
+.. |cube-right| image:: ../../../../silx/resources/gui/icons/cube-right.png
+.. |cube-top| image:: ../../../../silx/resources/gui/icons/cube-top.png
+.. |cube| image:: ../../../../silx/resources/gui/icons/cube.png
 .. |document-open| image:: ../../../../silx/resources/gui/icons/document-open.png
 .. |document-print| image:: ../../../../silx/resources/gui/icons/document-print.png
 .. |document-save| image:: ../../../../silx/resources/gui/icons/document-save.png
@@ -190,6 +225,12 @@ Available icons
 .. |image-select-erase-rubber| image:: ../../../../silx/resources/gui/icons/image-select-erase-rubber.png
 .. |image-select-erase| image:: ../../../../silx/resources/gui/icons/image-select-erase.png
 .. |image| image:: ../../../../silx/resources/gui/icons/image.png
+.. |item-0dim| image:: ../../../../silx/resources/gui/icons/item-0dim.png
+.. |item-1dim| image:: ../../../../silx/resources/gui/icons/item-1dim.png
+.. |item-2dim| image:: ../../../../silx/resources/gui/icons/item-2dim.png
+.. |item-3dim| image:: ../../../../silx/resources/gui/icons/item-3dim.png
+.. |item-ndim| image:: ../../../../silx/resources/gui/icons/item-ndim.png
+.. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
@@ -237,6 +278,7 @@ Available icons
 .. |sliders-off| image:: ../../../../silx/resources/gui/icons/sliders-off.png
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
+.. |test-png| image:: ../../../../silx/resources/gui/icons/test-png.png
 .. |view-fullscreen| image:: ../../../../silx/resources/gui/icons/view-fullscreen.png
 .. |view-nofullscreen| image:: ../../../../silx/resources/gui/icons/view-nofullscreen.png
 .. |view-refresh| image:: ../../../../silx/resources/gui/icons/view-refresh.png
