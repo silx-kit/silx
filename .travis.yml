@@ -124,7 +124,7 @@ script:
 
     # Run the tests using WITH_QT_TEST from the environment
     - echo "WITH_QT_TEST="$WITH_QT_TEST
-    - python run_tests.py -mv
+    - python run_tests.py -v
 
     # Mac OS X specific cleanup
     - travis_osx_run_end
