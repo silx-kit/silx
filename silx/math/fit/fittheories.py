@@ -227,17 +227,21 @@ class FitTheories(object):
             of the noise multiplied by this sensitivity parameter are detected.
         :return: List of peak indices
         """
-        # add padding and apply scalingfactor
-        ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
-        ysearch[0:(fwhm + 1)] = ysearch[0:(fwhm+1)] * y[0] * self.config["Yscaling"]
-        ysearch[-1:-(fwhm + 1):-1] = ysearch[-1:-(fwhm + 1):-1] * y[len(y)-1] * self.config["Yscaling"]
-        ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
+        # # add padding and apply scaling factor
+        # ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
+        # ysearch[0:fwhm] = y[0] * self.config["Yscaling"]
+        # ysearch[-1:-fwhm - 1:-1] = y[len(y)-1] * self.config["Yscaling"]
+        # ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
+
+        ysearch = y
 
         if len(ysearch) > 1.5 * fwhm:
             peaks = peak_search(self.config["Yscaling"] * ysearch,
                                 fwhm=fwhm, sensitivity=sensitivity)
-            # remove padding
-            return [peak_index - fwhm for peak_index in peaks]
+            # # remove padding
+            # return [peak_index - fwhm - 1 for peak_index in peaks]
+            # # FIXME: investigate why we need - 1. Index problem in peak search algorithm?
+            return peaks
         else:
             return []
 
