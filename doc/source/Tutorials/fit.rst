@@ -19,6 +19,16 @@ Running an iterative fit with :func:`leastsq` involves the following steps:
       of the time.
     - setting constraints (optional)
 
+Data required to perform a fit is:
+
+    - an array of ``x`` values (abscissa, independant variable)
+    - an array of ``y`` data points
+    - the ``sigma`` array of uncertainties associated to each data point.
+      This is optional, by default each data point gets assigned a weight of 1.
+
+Standard fit
+************
+
 Let's demonstrate this process in a short example, using synthetic data.
 We create an array of synthetic data using a polynomial of degree 4, and try
 to use :func:`leastsq` to find back the same parameters used to create the
@@ -87,6 +97,9 @@ produces the following result::
    Optimal parameters for y2 fitting:
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
+Constrained fit
+***************
+
 But let's revert back to our initial ``x`` range (0 -- 1000) and try to improve
 the result using a different approach. The :func:`leastsq` functions provides
 a way to set constraints on parameters. You can for instance assert that a given
@@ -95,7 +108,7 @@ for it to vary, or decide that a parameter must be equal to another parameter
 multiplied by a certain factor. This is very useful in cases in which you have
 enough knowledge to make reasonable assumptions on some parameters.
 
-In our case, we will set constraints on ``d`` ann ``e``. We will quote ``d`` to
+In our case, we will set constraints on ``d`` and ``e``. We will quote ``d`` to
 the range between -25 and -24, and fix ``e`` to 150.
 
 Replace the call to :func:`leastsq` by following lines:
@@ -113,9 +126,10 @@ Replace the call to :func:`leastsq` by following lines:
                        p0=[1., 1., 1., -24., 150.],
                        constraints=cons,
                        full_output=True)
-The output of this is::
 
-   Fit took 100 iterations
+The output of this program is::
+
+   Constrained fit took 100 iterations
    Reduced chi-square: 3.749280
    Theoretical parameters:
        a=2.4, b=-10, c=15.2, d=-24.6, e=150
@@ -123,14 +137,55 @@ The output of this is::
        a=2.400000, b=-9.999999, c=15.199648, d=-24.533014, e=150.000000
 
 The chi-square value is much improved and the results are much better, at the
-cost of mose iterations.
+cost of more iterations.
+
+Weighted fit
+************
+A third approach to improve our fit is to define uncertainties for the data.
+The larger the uncertainty on a data sample, the smaller its weight will be
+in the least-square problem.
+
+In our case, we don't have obvious uncertainties associated to our data, altough we could
+try to figure out the uncertainties due to numerical rounding errors by closely
+looking at how floating point values are stored.
+
+A common approach that requires less work is to use the square-root of the data values
+as their uncertainty value. Let's try it:
+
+.. code-block:: python
+
+   sigma = numpy.sqrt(y)
+
+   # Fit y
+   fitresult = leastsq(model=poly4,
+                       xdata=x,
+                       ydata=y,
+                       sigma=sigma,
+                       p0=initial_parameters,
+                       full_output=True)
+
+This results in a great improvement::
+
+   Weighted fit took 6 iterations
+   Reduced chi-square: 0.000000
+   Theoretical parameters:
+       a=2.4, b=-10, c=15.2, d=-24.6, e=150
+   Optimal parameters for y2 fitting:
+       a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
+
+The resulting fit is perfect. The very large ``y`` values with their very large
+associated uncertainties have been ignored, for all practical purposes. The fit
+converged even faster than with the solution of limiting the ``x`` range to
+0 -- 100.
 
 .. _fitmanager-tutorial:
 
 Using :class:`FitManager`
 +++++++++++++++++++++++++
 
-bar
+A :class:`FitManager` is a tool that provides a way of handling fit functions.
+
+TODO
 
 
 .. _fitwidget-tutorial:
