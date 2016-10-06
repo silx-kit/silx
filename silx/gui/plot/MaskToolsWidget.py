@@ -237,8 +237,8 @@ class Mask(qt.QObject):
         :param bool mask: True to mask (default), False to unmask.
         """
         assert level > 0 and level < 256
-        selection = self._mask[max(0, row):row+height+1,
-                               max(0, col):col+width+1]
+        selection = self._mask[max(0, row):row + height + 1,
+                               max(0, col):col + width + 1]
         if mask:
             selection[:, :] = level
         else:
@@ -327,8 +327,10 @@ class MaskToolsWidget(qt.QWidget):
     _maxLevelNumber = 255
 
     def __init__(self, parent=None, plot=None):
-        self._defaultColors = numpy.ones((self._maxLevelNumber+1), dtype=numpy.bool)  # register if the user as force a color for the corresponding mask level
-        self._overlayColors = numpy.zeros((self._maxLevelNumber+1, 3), dtype=numpy.float32)  # overlays colors setted by the user
+        # register if the user as force a color for the corresponding mask level
+        self._defaultColors = numpy.ones((self._maxLevelNumber + 1), dtype=numpy.bool)
+        # overlays colors set by the user
+        self._overlayColors = numpy.zeros((self._maxLevelNumber + 1, 3), dtype=numpy.float32)
 
         self._plot = plot
         self._maskName = '__MASK_TOOLS_%d' % id(self)  # Legend of the mask
@@ -491,7 +493,7 @@ class MaskToolsWidget(qt.QWidget):
         grid.setContentsMargins(0, 0, 0, 0)
         self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
         self.transparencySlider.setRange(3, 10)
-        self.transparencySlider.setValue(5)
+        self.transparencySlider.setValue(8)
         self.transparencySlider.setToolTip(
             'Set the transparency of the mask display')
         self.transparencySlider.valueChanged.connect(self._updateColors)
@@ -505,7 +507,7 @@ class MaskToolsWidget(qt.QWidget):
     def _initMaskGroupBox(self):
         """Init general mask operation widgets"""
 
-        # Mask level 
+        # Mask level
         self.levelSpinBox = qt.QSpinBox()
         self.levelSpinBox.setRange(1, self._maxLevelNumber)
         self.levelSpinBox.setToolTip(
@@ -514,7 +516,7 @@ class MaskToolsWidget(qt.QWidget):
         self.levelSpinBox.valueChanged[int].connect(self._updateColors)
         self.levelWidget = self._hboxWidget(qt.QLabel('Mask level:'),
                                             self.levelSpinBox)
-        # Transarency
+        # Transparency
         self.transparencyWidget = self._initTransparencyWidget()
 
         # Buttons group
@@ -654,15 +656,7 @@ class MaskToolsWidget(qt.QWidget):
             self.maskStateWidget.setHidden)
 
         # Pencil settings
-
-        self.pencilSpinBox = qt.QSpinBox()
-        self.pencilSpinBox.setRange(1, 1024)
-        self.pencilSpinBox.setToolTip(
-            """Set pencil drawing tool size in pixels of the image
-            on which to make the mask.""")
-
-        self.pencilSetting = self._hboxWidget(
-            qt.QLabel('Pencil Size:'), self.pencilSpinBox)
+        self.pencilSetting = self._createPencilSettings(None)
         self.pencilSetting.setVisible(False)
         layout.addWidget(self.pencilSetting)
 
@@ -671,6 +665,32 @@ class MaskToolsWidget(qt.QWidget):
         drawGroup = qt.QGroupBox('Draw tools')
         drawGroup.setLayout(layout)
         return drawGroup
+
+    def _createPencilSettings(self, parent=None):
+        pencilSetting = qt.QWidget(parent)
+
+        self.pencilSpinBox = qt.QSpinBox(parent=pencilSetting)
+        self.pencilSpinBox.setRange(1, 1024)
+        pencilToolTip = """Set pencil drawing tool size in pixels of the image
+            on which to make the mask."""
+        self.pencilSpinBox.setToolTip(pencilToolTip)
+
+        self.pencilSlider = qt.QSlider(qt.Qt.Horizontal, parent=pencilSetting)
+        self.pencilSlider.setRange(1, 50)
+        self.pencilSlider.setToolTip(pencilToolTip)
+
+        pencilLabel = qt.QLabel('Pencil size:', parent=pencilSetting)
+
+        layout = qt.QGridLayout()
+        layout.addWidget(pencilLabel, 0, 0)
+        layout.addWidget(self.pencilSpinBox, 0, 1)
+        layout.addWidget(self.pencilSlider, 1, 1)
+        pencilSetting.setLayout(layout)
+
+        self.pencilSpinBox.valueChanged.connect(self._pencilWidthChanged)
+        self.pencilSlider.valueChanged.connect(self._pencilWidthChanged)
+
+        return pencilSetting
 
     def _initThresholdGroupBox(self):
         """Init thresholding widgets"""
@@ -979,6 +999,17 @@ class MaskToolsWidget(qt.QWidget):
             msg.setText("Cannot save file %s\n" % filename)
             msg.exec_()
 
+    def getCurrentMaskColor(self):
+        """Returns the color of the current selected level.
+
+        :rtype: A tuple or a python array
+        """
+        currentLevel = self.levelSpinBox.value()
+        if self._defaultColors[currentLevel]:
+            return self._defaultOverlayColor
+        else:
+            return self._overlayColors[currentLevel].tolist()
+
     def _setMaskColors(self, level, alpha):
         """Set-up the mask colormap to highlight current mask level.
 
@@ -987,8 +1018,8 @@ class MaskToolsWidget(qt.QWidget):
         """
         assert level > 0 and level <= self._maxLevelNumber
 
-        colors = numpy.empty((self._maxLevelNumber+1, 4), dtype=numpy.float32)
-        
+        colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
+
         # Set color
         colors[:, :3] = self._defaultOverlayColor[:3]
 
@@ -1032,7 +1063,7 @@ class MaskToolsWidget(qt.QWidget):
             self._defaultColors[level] = False
 
         self._updateColors()
-        
+
     def getMaskColors(self):
         """masks colors getter"""
         return self._overlayColors
@@ -1043,6 +1074,30 @@ class MaskToolsWidget(qt.QWidget):
                             self.transparencySlider.value() /
                             self.transparencySlider.maximum())
         self._updatePlotMask()
+        self._updateInteractiveMode()
+
+    def _pencilWidthChanged(self, width):
+        try:
+            old = self.pencilSpinBox.blockSignals(True)
+            self.pencilSpinBox.setValue(width)
+        finally:
+            self.pencilSpinBox.blockSignals(old)
+        try:
+            old = self.pencilSlider.blockSignals(True)
+            self.pencilSlider.setValue(width)
+        finally:
+            self.pencilSlider.blockSignals(old)
+
+    def _updateInteractiveMode(self):
+        """Update the current mode to the same if some cached data have to be
+        updated. It is the case for the color for example.
+        """
+        if self._drawingMode == 'rectangle':
+            self._rectActionToggled(True)
+        elif self._drawingMode == 'polygon':
+            self._polygonActionToggled(True)
+        elif self._drawingMode == 'pencil':
+            self._pencilActionToggled(True)
 
     def _handleClearMask(self):
         """Handle clear button clicked: reset current level mask"""
@@ -1083,8 +1138,9 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'rectangle'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
+            color = self.getCurrentMaskColor()
             self.plot.setInteractiveMode(
-                'draw', shape='rectangle', source=self)
+                'draw', shape='rectangle', source=self, color=color)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
@@ -1094,7 +1150,8 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'polygon'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
-            self.plot.setInteractiveMode('draw', shape='polygon', source=self)
+            color = self.getCurrentMaskColor()
+            self.plot.setInteractiveMode('draw', shape='polygon', source=self, color=color)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
@@ -1105,7 +1162,7 @@ class MaskToolsWidget(qt.QWidget):
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
             self.plot.setInteractiveMode(
-                'draw', shape='polylines', color=None, source=self)
+                'draw', shape='polylines', source=self, color=None)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None
@@ -1299,7 +1356,8 @@ class MaskToolsDockWidget(qt.QDockWidget):
         See :class:`QMainWindow`.
         """
         action = super(MaskToolsDockWidget, self).toggleViewAction()
-        action.setIcon(icons.getQIcon('image-select-brush'))
+        action.setIcon(icons.getQIcon('image-mask'))
+        action.setToolTip("Display/hide mask tools")
         return action
 
     def _dockLocationChanged(self, area):
