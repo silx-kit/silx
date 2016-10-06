@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "06/10/2016"
 
 
 import time
@@ -350,6 +350,19 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
         proxy.sort(0, qt.Qt.AscendingOrder)
         names = self.getChildNames(proxy, proxy.index(0, 0, qt.QModelIndex()))
         self.assertListEqual(names, ["a1-1", "a3-1", "a3-3", "a3-20", "a20-1"])
+
+    def testUnconsistantTypes(self):
+        model = hdf5.Hdf5TreeModel()
+        h5 = _mock.File("/foo/bar/1.mock")
+        h5.create_group("aaa100")
+        h5.create_group("100aaa")
+        model.insertH5pyObject(h5)
+
+        proxy = hdf5.NexusSortFilterProxyModel()
+        proxy.setSourceModel(model)
+        proxy.sort(0, qt.Qt.AscendingOrder)
+        names = self.getChildNames(proxy, proxy.index(0, 0, qt.QModelIndex()))
+        self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
 class TestHdf5(testutils.TestCaseQt):

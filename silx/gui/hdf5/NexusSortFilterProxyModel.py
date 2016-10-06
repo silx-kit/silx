@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "06/10/2016"
 
 
 import logging
@@ -111,9 +111,13 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :param str right: A string
         :rtype: bool
         """
-        left = self.getWordsAndNumbers(left)
-        right = self.getWordsAndNumbers(right)
-        return left < right
+        leftList = self.getWordsAndNumbers(left)
+        rightList = self.getWordsAndNumbers(right)
+        try:
+            return leftList < rightList
+        except TypeError:
+            # Back to string comparison if list are not type consistent
+            return left < right
 
     def childDatasetLessThan(self, left, right, childName):
         """
