@@ -493,7 +493,7 @@ class MaskToolsWidget(qt.QWidget):
         grid.setContentsMargins(0, 0, 0, 0)
         self.transparencySlider = qt.QSlider(qt.Qt.Horizontal, parent=transparencyWidget)
         self.transparencySlider.setRange(3, 10)
-        self.transparencySlider.setValue(5)
+        self.transparencySlider.setValue(8)
         self.transparencySlider.setToolTip(
             'Set the transparency of the mask display')
         self.transparencySlider.valueChanged.connect(self._updateColors)
