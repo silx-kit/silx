@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/10/2016"
+__date__ = "06/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -101,9 +101,12 @@ logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TestResult(unittest.TestResult):
-    logger = logging.getLogger("memProf")
-    logger.setLevel(logging.DEBUG)
-    logger.handlers.append(logging.FileHandler("profile.log"))
+
+    def __init__(self, *arg, **kwarg):
+        unittest.TestResult.__init__(self, *arg, **kwarg)
+        self.logger = logging.getLogger("memProf")
+        self.logger.setLevel(min(logging.INFO, logging.root.level))
+        self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
         if resource:
@@ -229,6 +232,8 @@ from argparse import ArgumentParser
 epilog = """Environment variables:
 WITH_QT_TEST=False to disable graphical tests,
 SILX_OPENCL=False to disable OpenCL tests.
+SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+GPU=False to disable the use of a GPU with OpenCL test
 """
 parser = ArgumentParser(description='Run the tests.',
                         epilog=epilog)
@@ -254,6 +259,9 @@ parser.add_argument("-x", "--no-gui", dest="gui", default=True,
 parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
                     action="store_false",
                     help="Disable the test of the OpenCL part")
+parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
+                    action="store_true",
+                    help="Disable test with large memory consumption (>100Mbyte")
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -277,6 +285,9 @@ if not options.gui:
 
 if not options.opencl:
     os.environ["SILX_OPENCL"]="False"
+
+if options.low_mem:
+    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")

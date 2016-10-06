@@ -35,8 +35,10 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/09/2016"
+__date__ = "06/10/2016"
 
+
+import os
 import unittest
 import time
 import logging
@@ -151,7 +153,7 @@ class TestTransform(unittest.TestCase):
         MSE = numpy.linalg.norm(y - numpy.dot(X, sol)) ** 2 / N  # value of the sum of residuals at "sol"
         return sol, MSE
 
-    @unittest.skipIf(scipy and ocl is None, "scipy or ocl missing")
+    @unittest.skipIf(os.environ.get("SILX_TEST_LOW_MEM") == "True", "low mem")
     def test_transform(self):
         '''
         tests transform kernel
