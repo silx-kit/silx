@@ -282,6 +282,20 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
     def testStartTime(self):
         model = hdf5.Hdf5TreeModel()
         h5 = _mock.File("/foo/bar/1.mock")
+        h5.create_group("a").create_dataset("start_time", numpy.string_("2015"))
+        h5.create_group("b").create_dataset("start_time", numpy.string_("2013"))
+        h5.create_group("c").create_dataset("start_time", numpy.string_("2014"))
+        model.insertH5pyObject(h5)
+
+        proxy = hdf5.NexusSortFilterProxyModel()
+        proxy.setSourceModel(model)
+        proxy.sort(0, qt.Qt.DescendingOrder)
+        names = self.getChildNames(proxy, proxy.index(0, 0, qt.QModelIndex()))
+        self.assertListEqual(names, ["a", "c", "b"])
+
+    def testStartTimeInArray(self):
+        model = hdf5.Hdf5TreeModel()
+        h5 = _mock.File("/foo/bar/1.mock")
         h5.create_group("a").create_dataset("start_time", numpy.array([numpy.string_("2015")]))
         h5.create_group("b").create_dataset("start_time", numpy.array([numpy.string_("2013")]))
         h5.create_group("c").create_dataset("start_time", numpy.array([numpy.string_("2014")]))
@@ -293,7 +307,7 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
         names = self.getChildNames(proxy, proxy.index(0, 0, qt.QModelIndex()))
         self.assertListEqual(names, ["a", "c", "b"])
 
-    def testEndTime(self):
+    def testEndTimeInArray(self):
         model = hdf5.Hdf5TreeModel()
         h5 = _mock.File("/foo/bar/1.mock")
         h5.create_group("a").create_dataset("end_time", numpy.array([numpy.string_("2015")]))

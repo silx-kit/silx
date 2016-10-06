@@ -30,6 +30,7 @@ __date__ = "06/10/2016"
 
 import logging
 import re
+import numpy
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
 
@@ -132,8 +133,10 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :rtype: bool
         """
         try:
-            left_time = left.obj[childName].value[0]
-            right_time = right.obj[childName].value[0]
+            left_time = left.obj[childName].value
+            right_time = right.obj[childName].value
+            if isinstance(left_time, numpy.ndarray):
+                return left_time[0] < right_time[0]
             return left_time < right_time
         except KeyboardInterrupt:
             raise
