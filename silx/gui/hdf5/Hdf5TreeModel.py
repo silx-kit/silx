@@ -46,6 +46,31 @@ except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
 
+"""Helpers to take care of None objects as signal parameters.
+PySide crash if a signal with a None parameter is emitted between threads.
+"""
+if qt.BINDING == 'PySide':
+    class _NoneWraper(object): pass
+    _NoneWraperInstance = _NoneWraper()
+    def _wrapNone(x):
+        """Wrap x if it is a None value, else returns x"""
+        if x is None:
+            return _NoneWraperInstance
+        else:
+            return x
+
+    def _unwrapNone(x):
+        """Unwrap x as a None if a None was stored by `wrapNone`, else returns
+        x"""
+        if x is _NoneWraperInstance:
+            return None
+        else:
+            return x
+else:
+    # Allow to fix None event params to avoid PySide crashes
+    def _wrapNone(x): return x
+    def _unwrapNone(x): return x
+
 
 class LoadingItemRunnable(qt.QRunnable):
     """Runner to process item loading from a file"""
@@ -105,6 +130,10 @@ class LoadingItemRunnable(qt.QRunnable):
             # Should be logged
             error = e
             newItem = None
+
+        # Take care of None value in case of PySide
+        newItem = _wrapNone(newItem)
+        error = _wrapNone(error)
         self.itemReady.emit(self.oldItem, newItem, error)
 
     def autoDelete(self):
@@ -198,6 +227,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param Hdf5Node newItem: item loaded, or None if error is defined
         :param Exception error: An exception, or None if newItem is defined
         """
+        # Take care of None value in case of PySide
+        newItem = _unwrapNone(newItem)
+        error = _unwrapNone(error)
         row = self.__root.indexOfChild(oldItem)
         rootIndex = qt.QModelIndex()
         self.beginRemoveRows(rootIndex, row, row)
