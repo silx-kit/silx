@@ -317,9 +317,133 @@ And the result of this program is::
     ('FWHM3', ' = ', 95.000000000000014)
     ('chisq = ', 0.0)
 
+In addition to gaussians, we could have fitted several other similar type of
+functions: asymetric gaussian functions, lorentzian functions,
+Pseudo-Voigt functions or hypermet tailing functions.
+
+The :meth:`loadtheories` method can also be used to load user defined
+functions. Instead of a module, a path to a Python source file can be given
+as a parameter. This source file must adhere to certain conventions, explained
+in the documentation of :mod:`silx.math.fit.fittheories`.
+
 Subtracting a background
 ************************
 
+:class:`FitManager` provides a few standard background theories, for cases when
+a background signal is superimposed on the multi-peak spectrum.
+
+For example, let's add a linear background to our synthetic data, and see how
+:class:`FitManager` handles the fitting.
+
+In our previous example, redefine ``y`` as follows:
+
+.. code-block:: python
+
+    p = [1000, 100., 250,
+         255, 690., 45,
+         1500, 800.5, 95]
+    y = sum_gauss(x, *p)
+    # add a synthetic linear background
+    y += 0.13 * x + 100.
+
+Before the line ``fit.estimate()``, add the following line:
+
+.. code-block:: python
+
+    fit.setbackground('Linear')
+
+The result becomes::
+
+    Searched parameters = [1000, 100.0, 250, 255, 690.0, 45, 1500, 800.5, 95]
+    Obtained parameters :
+    ('Constant', ' = ', 100.00000000000001)
+    ('Slope', ' = ', 0.12999999999999998)
+    ('Height1', ' = ', 1000.0)
+    ('Position1', ' = ', 100.0)
+    ('FWHM1', ' = ', 249.99999999999997)
+    ('Height2', ' = ', 255.00000000000003)
+    ('Position2', ' = ', 690.0)
+    ('FWHM2', ' = ', 44.999999999999993)
+    ('Height3', ' = ', 1500.0)
+    ('Position3', ' = ', 800.5)
+    ('FWHM3', ' = ', 95.0)
+    ('chisq = ', 3.1789004676997597e-27)
+
+The available background theories are: *Linear*, *Constant* and *Strip*.
+
+The strip background is a popular background model that can compute and
+subtract any background shape as long as its curvature is significantly
+lower than the peaks' curvature. In other words, as long as the background
+signal is significantly smoother than the actual signal, it can be easily
+computed.
+
+The main parameters required by the strip function are the strip width *w*
+and the number of iterations. At each iteration, if the contents of channel *i*,
+``y(i)``, is above the average of the contents of the channels at *w* channels of
+distance, ``y(i-w)`` and ``y(i+w)``,  ``y(i)`` is replaced by the average.
+At the end of the process we are left with something that resembles a spectrum
+in which the peaks have been "stripped".
+
+The following example illustrates the effect of strip background removal:
+
+.. code-block:: python
+
+    from silx.gui.plot import plot1D, plot2D
+    from silx.gui import qt
+    import numpy
+    from silx.math.fit.filters import strip
+    from silx.math.fit.functions import sum_gauss
+
+    x = numpy.arange(5000)
+    # (height1, center1, fwhm1, ...) 5 peaks
+    params1 = (50, 500, 100,
+               20, 2000, 200,
+               50, 2250, 100,
+               40, 3000, 75,
+               23, 4000, 150)
+    y0 = sum_gauss(x, *params1)
+
+    # random values between [-1;1]
+    noise = 2 * numpy.random.random(5000) - 1
+    # make it +- 5%
+    noise *= 0.05
+
+    # 2 gaussians with very large fwhm, as background signal
+    actual_bg = sum_gauss(x, 15, 3500, 3000, 5, 1000, 1500)
+
+    # Add 5% random noise to gaussians and add background
+    y = y0 * (1 + noise) + actual_bg
+
+    # compute strip background model
+    strip_bg = strip(y, w=5, niterations=5000)
+
+    # plot results
+    app = qt.QApplication([])
+    plot1D(x, (y, actual_bg, strip_bg))
+    plot1D(x, (y, y - strip_bg))
+    app.exec_()
+
+.. |imgStrip1| image:: img/stripbg_plot1.png
+   :height: 300px
+   :align: middle
+
+.. |imgStrip2| image:: img/stripbg_plot2.png
+   :height: 300px
+   :align: middle
+
+.. list-table::
+   :widths: 1 2
+
+   * - |imgStrip1|
+     - Data with background in black (``y``), actual background in red, computed strip
+       background in green
+   * - |imgStrip2|
+     - Data with background in blue, data after subtracting strip background in black
+
+
+The strip also removes the statistical noise, so the computed strip background
+will be slightly lower than the actual background. This can be solved by
+performing a smoothing prior to the strip computation.
 
 .. _fitwidget-tutorial:
 
