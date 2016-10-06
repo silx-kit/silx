@@ -140,6 +140,7 @@ class test_keypoints(unittest.TestCase):
         	gpu_keypoints.data, gpu_grad.data, gpu_ori.data, counter.data,
         	octsize, orisigma, nb_keypoints, keypoints_start, keypoints_end, grad_width, grad_height)
         res = gpu_keypoints.get()
+        del gpu_keypoints
         cnt = counter.get()
         t1 = time.time()
 
@@ -227,7 +228,7 @@ class test_keypoints(unittest.TestCase):
             keypoints_start, counter.data, grad_width, grad_height)
         res = gpu_descriptors.get()
         t1 = time.time()
-
+        del gpu_descriptors
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()

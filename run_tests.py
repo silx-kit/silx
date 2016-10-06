@@ -109,7 +109,7 @@ class TestResult(unittest.TestResult):
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        self.logger.info("Start %s", test.id())
+        self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
