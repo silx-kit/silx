@@ -43,18 +43,18 @@ _logger = logging.getLogger(__name__)
 class Hdf5TreeView(qt.QTreeView):
     """TreeView which allow to browse HDF5 file structure.
 
-    It provids columns width auto-resizing and additional
+    It provides columns width auto-resizing and additional
     signals.
 
-    The default model is a `NexusSortFilterProxyModel` sourcing
-    a `Hdf5TreeModel`. The `Hdf5TreeModel` is reachable using
-    `findHdf5TreeModel`. The default header is `Hdf5HeaderView`.
+    The default model is a :class:`NexusSortFilterProxyModel` sourcing
+    a :class:`Hdf5TreeModel`. The :class:`Hdf5TreeModel` is reachable using
+    :meth:`findHdf5TreeModel`. The default header is :class:`Hdf5HeaderView`.
 
-    Context menu is managed by the `setContextMenuPolicy` with the value
-    CustomContextMenu. This policy must not be changed, else context menus
-    will not work anymore. You can use `addContextMenuCallback` and
-    `removeContextMenuCallback` to add your custum actions according to the
-    selected objects.
+    Context menu is managed by the :meth:`setContextMenuPolicy` with the value
+    Qt.CustomContextMenu. This policy must not be changed, otherwise context
+    menus will not work anymore. You can use :meth:`addContextMenuCallback` and
+    :meth:`removeContextMenuCallback` to add your custum actions according
+    to the selected objects.
     """
     def __init__(self, parent=None):
         """
@@ -127,7 +127,7 @@ class Hdf5TreeView(qt.QTreeView):
 
         The callback will be called when a context menu is requested with the
         treeview and the list of selected h5py objects in parameters. The
-        callback must return a list of `qt.QAction` object.
+        callback must return a list of :class:`qt.QAction` object.
 
         Callbacks are stored as saferef. The object must store a reference by
         itself.
@@ -174,12 +174,12 @@ class Hdf5TreeView(qt.QTreeView):
             qt.QTreeView.dragMoveEvent(self, event)
 
     def selectedH5Nodes(self, ignoreBrokenLinks=True):
-        """Returns selected h5py objects like `h5py.File`, `h5py.Group`,
-        `h5py.Dataset` or mimicked objects.
+        """Returns selected h5py objects like :class:`h5py.File`,
+        :class:`h5py.Group`, :class:`h5py.Dataset` or mimicked objects.
 
         :param ignoreBrokenLinks bool: Returns objects which are not not
-            broken links.\
-        :rtype: iterator(_utils.H5Node)
+            broken links.
+        :rtype: iterator(:class:`_utils.H5Node`)
         """
         for index in self.selectedIndexes():
             if index.column() != 0:

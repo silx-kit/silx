@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/08/2016"
+__date__ = "28/09/2016"
 
 
 import logging
@@ -70,6 +70,7 @@ else:
 
     from ..plot.test import suite as test_plot_suite
     from ..fit.test import suite as test_fit_suite
+    from ..hdf5.test import suite as test_hdf5_suite
     from .test_qt import suite as test_qt_suite
     from .test_console import suite as test_console_suite
     from .test_icons import suite as test_icons_suite
@@ -79,6 +80,7 @@ else:
         test_suite.addTest(test_qt_suite())
         test_suite.addTest(test_plot_suite())
         test_suite.addTest(test_fit_suite())
+        test_suite.addTest(test_hdf5_suite())
         test_suite.addTest(test_console_suite())
         test_suite.addTest(test_icons_suite())
         return test_suite

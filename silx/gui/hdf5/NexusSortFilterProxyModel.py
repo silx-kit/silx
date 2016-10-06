@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "29/09/2016"
 
 
 import logging
@@ -47,24 +47,29 @@ _logger = logging.getLogger(__name__)
 class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
     """Try to sort items according to Nexus structure. Else sort by name."""
 
-    def __init__(self, *args, **kwargs):
-        qt.QSortFilterProxyModel.__init__(self, *args, **kwargs)
+    def __init__(self, parent=None):
+        qt.QSortFilterProxyModel.__init__(self, parent)
         self.__split = re.compile("(\\d+|\\D+)")
 
-    def lessThan(self, source_left, source_right):
-        """Returns true if the value of the item referred to by the given
-        index `source_left` is less than the value of the item referred to by
-        the given index `source_right`, otherwise returns false.
+    def lessThan(self, sourceLeft, sourceRight):
+        """Returns True if the value of the item referred to by the given
+        index `sourceLeft` is less than the value of the item referred to by
+        the given index `sourceRight`, otherwise returns false.
 
-        :param qt.QModelIndex source_left:
-        :param qt.QModelIndex source_right:
+        :param qt.QModelIndex sourceLeft:
+        :param qt.QModelIndex sourceRight:
         :rtype: bool
         """
-        if source_left.column() != Hdf5TreeModel.NAME_COLUMN:
-            return super(NexusSortFilterProxyModel, self).lessThan(source_left, source_right)
+        if sourceLeft.column() != Hdf5TreeModel.NAME_COLUMN:
+            return super(NexusSortFilterProxyModel, self).lessThan(
+                sourceLeft, sourceRight)
 
-        left = self.sourceModel().data(source_left, Hdf5TreeModel.H5PY_ITEM_ROLE)
-        right = self.sourceModel().data(source_right, Hdf5TreeModel.H5PY_ITEM_ROLE)
+        # Do not sort child of root (files)
+        if sourceLeft.parent() == qt.QModelIndex():
+            return sourceLeft.row() < sourceRight.row()
+
+        left = self.sourceModel().data(sourceLeft, Hdf5TreeModel.H5PY_ITEM_ROLE)
+        right = self.sourceModel().data(sourceRight, Hdf5TreeModel.H5PY_ITEM_ROLE)
 
         if issubclass(left.h5pyClass, h5py.Group) and issubclass(right.h5pyClass, h5py.Group):
             less = self.childDatasetLessThan(left, right, "start_time")
@@ -74,13 +79,13 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
             if less is not None:
                 return less
 
-        left = self.sourceModel().data(source_left, qt.Qt.DisplayRole)
-        right = self.sourceModel().data(source_right, qt.Qt.DisplayRole)
+        left = self.sourceModel().data(sourceLeft, qt.Qt.DisplayRole)
+        right = self.sourceModel().data(sourceRight, qt.Qt.DisplayRole)
         return self.nameLessThan(left, right)
 
     def getWordsAndNumbers(self, name):
         """
-        Returns a list of splited words and integers composing the name.
+        Returns a list of words and integers composing the name.
 
         An input `"aaa10bbb50.30"` will return
         `["aaa", 10, "bbb", 50, ".", 30]`.
@@ -97,7 +102,7 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         return result
 
     def nameLessThan(self, left, right):
-        """Returns true if the left string is less than the right string.
+        """Returns True if the left string is less than the right string.
 
         Number composing the names are compared as integers, as result "name2"
         is smaller than "name10".
@@ -112,8 +117,9 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
 
     def childDatasetLessThan(self, left, right, childName):
         """
-        Reach the same children name of two items and compare there values.
-        Returns true if the left one is smaller than the right one.
+        Reach the same children name of two items and compare their values.
+
+        Returns True if the left one is smaller than the right one.
 
         :param Hdf5Item left: An item
         :param Hdf5Item right: An item
