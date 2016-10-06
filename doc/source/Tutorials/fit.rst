@@ -515,7 +515,7 @@ The :class:`FitWidget` is a graphical interface for :class:`FitManager`.
                      750, 700., 30.0,
                      1234, 900., 29.5,
                      302, 1100., 30.5,
-                     75, 1300., 210.])
+                     75, 1300., 75.])
     y = sum_gauss(x, *p) + constant_bg
 
     a = qt.QApplication([])
