@@ -70,24 +70,26 @@ class FitManager(object):
     :param y: The dependant data ``y = f(x)``. ``y`` must have the same
         shape as ``x`` if ``x`` is not ``None``.
     :type y: Sequence or numpy array or None
-    :param sigmay: The uncertainties in the ``ydata`` array. These are
-        used as weights in the least-squares problem.
+    :param sigmay: The uncertainties in the ``ydata`` array. These can be
+        used as weights in the least-squares problem, if ``weight_flag``
+        is ``True``.
         If ``None``, the uncertainties are assumed to be 1, unless
-        ``auto_weight`` is ``True``, in which case the square-root
+        ``weight_flag`` is ``True``, in which case the square-root
         of ``y`` is used.
     :type sigmay: Sequence or numpy array or None
-    :param auto_weight: If this parameter is ``True`` and ``sigmay``
+    :param weight_flag: If this parameter is ``True`` and ``sigmay``
         uncertainties are not specified, the square root of ``y`` is used
-        as weights in the least-squares problem.
-    :type auto_weight: boolean
+        as weights in the least-squares problem. If ``False``, the
+        uncertainties are set to 1.
+    :type weight_flag: boolean
     """
-    def __init__(self, x=None, y=None, sigmay=None, auto_weight=False):
+    def __init__(self, x=None, y=None, sigmay=None, weight_flag=False):
         """
         """
         self.fitconfig = {
             'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
                                # we can get rid of this param (will be defined in fittheories for peak detection)
-            'WeightFlag': auto_weight,
+            'WeightFlag': weight_flag,
             'fitbkg': 'No Background',
             'fittheory': None,
             'StripWidth': 2,
@@ -353,11 +355,16 @@ class FitManager(object):
         result = {}
         result.update(self.fitconfig)
 
-        # Apply custom configuration function
-        custom_config_fun = None
+        if "WeightFlag" in kw:
+            if kw["WeightFlag"]:
+                self.enableweight()
+            else:
+                self.disableweight()
+
         if self.selectedtheory is None:
             return result
 
+        # Apply custom configuration function
         custom_config_fun = self.theories[self.selectedtheory].configure
         if custom_config_fun is not None:
             result.update(custom_config_fun(**kw))
@@ -498,6 +505,7 @@ class FitManager(object):
 
         self.state = 'Ready to Fit'
         self.chisq = None
+        self.niter = 0
 
         if callback is not None:
             callback(data={'chisq': self.chisq,
@@ -797,6 +805,7 @@ class FitManager(object):
                 param['sigma'] = sigmas[i]
 
         self.chisq = infodict["reduced_chisq"]
+        self.niter = infodict["niter"]
         self.state = 'Ready'
 
         if callback is not None:
