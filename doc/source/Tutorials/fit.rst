@@ -396,7 +396,7 @@ The following example illustrates the strip background removal process:
 
 .. code-block:: python
 
-    from silx.gui.plot import plot1D, plot2D
+    from silx.sx import plot
     from silx.gui import qt
     import numpy
     from silx.math.fit.filters import strip
@@ -427,8 +427,8 @@ The following example illustrates the strip background removal process:
 
     # plot results
     app = qt.QApplication([])
-    plot1D(x, (y, actual_bg, strip_bg))
-    plot1D(x, (y, y - strip_bg))
+    plot(x, y, x, actual_bg, x, strip_bg)
+    plot(x, y, x, (y - strip_bg))
     app.exec_()
 
 .. |imgStrip1| image:: img/stripbg_plot1.png
