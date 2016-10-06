@@ -25,11 +25,12 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "06/10/2016"
 
 
 import logging
 import re
+import numpy
 from .. import qt
 from .Hdf5TreeModel import Hdf5TreeModel
 
@@ -111,9 +112,13 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :param str right: A string
         :rtype: bool
         """
-        left = self.getWordsAndNumbers(left)
-        right = self.getWordsAndNumbers(right)
-        return left < right
+        leftList = self.getWordsAndNumbers(left)
+        rightList = self.getWordsAndNumbers(right)
+        try:
+            return leftList < rightList
+        except TypeError:
+            # Back to string comparison if list are not type consistent
+            return left < right
 
     def childDatasetLessThan(self, left, right, childName):
         """
@@ -128,8 +133,10 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :rtype: bool
         """
         try:
-            left_time = left.obj[childName].value[0]
-            right_time = right.obj[childName].value[0]
+            left_time = left.obj[childName].value
+            right_time = right.obj[childName].value
+            if isinstance(left_time, numpy.ndarray):
+                return left_time[0] < right_time[0]
             return left_time < right_time
         except KeyboardInterrupt:
             raise
