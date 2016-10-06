@@ -55,8 +55,6 @@ else:
     import scipy.misc
     import scipy.ndimage
 
-# import pylab
-
 import unittest
 import logging
 from utilstest import UtilsTest, ctx
@@ -67,7 +65,6 @@ logger = logging.getLogger(__name__)
 if logger.getEffectiveLevel() <= logging.INFO:
     PROFILE = True
     queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
 else:
     PROFILE = False
     queue = pyopencl.CommandQueue(ctx)
