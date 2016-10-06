@@ -3,10 +3,14 @@
 Fit tools
 ---------
 
+.. contents:: :local:
+
 .. _leastsq-tutorial:
 
 Using :func:`leastsq`
 +++++++++++++++++++++
+
+.. currentmodule:: silx.math.fit
 
 Running an iterative fit with :func:`leastsq` involves the following steps:
 
@@ -190,10 +194,14 @@ converged even faster than with the solution of limiting the ``x`` range to
 Using :class:`FitManager`
 +++++++++++++++++++++++++
 
+.. currentmodule:: silx.math.fit.fitmanager
+
 A :class:`FitManager` is a tool that provides a way of handling fit functions,
 associating estimation functions to estimate the initial parameters, modify
 the configuration parameters for the fit (enabling or disabling weights...) or
 for the estimation function, and choosing a background model.
+
+It provides an abstraction layer on top of :func:`leastsq`.
 
 Weighted polynomial fit
 ***********************
@@ -384,7 +392,7 @@ distance, ``y(i-w)`` and ``y(i+w)``,  ``y(i)`` is replaced by the average.
 At the end of the process we are left with something that resembles a spectrum
 in which the peaks have been "stripped".
 
-The following example illustrates the effect of strip background removal:
+The following example illustrates the strip background removal process:
 
 .. code-block:: python
 
@@ -440,22 +448,62 @@ The following example illustrates the effect of strip background removal:
    * - |imgStrip2|
      - Data with background in blue, data after subtracting strip background in black
 
-
 The strip also removes the statistical noise, so the computed strip background
 will be slightly lower than the actual background. This can be solved by
 performing a smoothing prior to the strip computation.
+
+See the `PyMca documentation <http://pymca.sourceforge.net/stripbackground.html>`_
+for more information on the strip background.
+
+To configure the strip background model of :class:`FitManager`, use :meth:`configure`
+to modify the following parameters:
+
+ - *StripWidth*: strip width parameter *w*, mentionned earlier
+ - *StripNIterations*: number of iterations
+ - *StripThresholdFactor*: if this parameter is left to its default value 1,
+   the algorithm behaves as explained earlier: ``y(i)`` is compared to the average of
+   ``y(i-1)`` and ``y(i+1)``.
+   If this factor is set to another value *f*, ``y(i)`` is compared to the
+   average multiplied by ``f``.
+ - *SmoothStrip*: if this parameter is set to ``True``, a smoothing is applied
+   prior to the strip.
+
+
+These parameters can be modified like this:
+
+.. code-block:: python
+
+    # ...
+    fit.settheory('Strip')
+    fit.configure(StripWidth=5,
+                  StripNIterations=5000,
+                  StripThresholdFactor=1.1,
+                  SmoothStrip=True)
+    # ...
+
+Using a strip background has performance implications. You should try to keep
+the number of iterations as low as possible if you need to run batch fitting
+using this model. Increasing the strip width can help reducing the number of
+iterations, with the risk of underestimating the background signal.
 
 .. _fitwidget-tutorial:
 
 Using :class:`FitWidget`
 ++++++++++++++++++++++++
 
+.. currentmodule:: silx.gui.fit.FitWidget
+
+Simple usage
+************
+
+The :class:`FitWidget` is a graphical interface for :class:`FitManager`.
+
 .. code-block:: python
 
     import numpy
+    from silx.gui import qt
     from silx.gui.fit import FitWidget
     from silx.math.fit.functions import sum_gauss
-    from silx.gui import qt
 
     x = numpy.arange(2000).astype(numpy.float)
     constant_bg = 3.14
@@ -471,28 +519,83 @@ Using :class:`FitWidget`
     y = sum_gauss(x, *p) + constant_bg
 
     a = qt.QApplication([])
-    a.lastWindowClosed.connect(a.quit)
-    w = FitWidget(enableconfig=1, enablestatus=1, enablebuttons=1)
+
+    w = FitWidget()
     w.setData(x=x, y=y)
     w.show()
+
     a.exec_()
 
-.. |imgFitWidget3| image:: img/fitwidget3.png
-   :width: 400px
+.. |imgFitWidget1| image:: img/fitwidget1.png
+   :width: 300px
    :align: middle
 
-Executing this code, then selecting a constant background, clicking
-the estimate button, then the fit button, shows the following result:
+.. |imgFitWidget2| image:: img/fitwidget2.png
+   :width: 300px
+   :align: middle
+
+.. |imgFitWidget3| image:: img/fitwidget3.png
+   :width: 300px
+   :align: middle
+
+.. |imgFitWidget4| image:: img/fitwidget4.png
+   :width: 300px
+   :align: middle
+
+Executing this code opens the following widget.
+
+    |imgFitWidget1|
+
+The functions you can choose from are the standard gaussian-shaped functions
+from :mod:`silx.math.fit.fittheories`. At the top of the list, you will find
+the *Add Function(s)* option, that allows you to load your user defined fit
+theories from a *.py* source file.
+
+After selecting the *Constant* background model and clicking the *Estimate*
+button, the widget displays this:
+
+    |imgFitWidget2|
+
+The 7 peaks have been detected, and their parameters estimated.
+Also, the estimation function defined some constraints (positive height and
+positive full-width at half-maximum).
+
+You can modify the values in the estimation column of the table, to use different
+initial parameters for the fit.
+
+The individual constraints can be modified prior to fitting. It is also possible to
+modify the constraints globally by clicking the *Configure* button' to open a
+configuration dialog. To get help on the meaning of the various parameters,
+hover the mouse on the corresponding check box or entry widget, to display a
+tooltip help message.
 
     |imgFitWidget3|
 
+The other configuration tabs can be modified to change the peak search parameters
+and the strip background parameters prior to the estimation.
+After closing the configuration dialog, you must re-run the estimation
+by clicking the *Estimate* button.
 
-The following example shows how to define a custom fit function.
+After all configuration parameters and all constrants are set according to your
+preferences, you can click the *Start Fit* button. This runs the fit and displays
+the results in the *Fit Value* column of the table.
+
+    |imgFitWidget4|
+
+Customizing the functions
+*************************
+
+.. |imgFitWidget5| image:: img/fitwidget5.png
+   :width: 300px
+   :align: middle
+
+The :class:`FitWidget` can be initialized with a non-standard
+:class:`FitManager`, to customize the available functions.
 
 .. code-block:: python
 
-    from silx.math.fit import FitManager
     from silx.gui import qt
+    from silx.math.fit import FitManager
     from silx.gui.fit import FitWidget
 
     def linearfun(x, a, b):
@@ -504,7 +607,7 @@ The following example shows how to define a custom fit function.
 
     # we need to create a custom fit manager and add our theory
     myfitmngr = FitManager()
-    myfitmngr.setData(x, y)
+    myfitmngr.setdata(x, y)
     myfitmngr.addtheory("my linear function",
                         function=linearfun,
                         parameters=["a", "b"])
@@ -516,3 +619,17 @@ The following example shows how to define a custom fit function.
     fw.show()
 
     a.exec_()
+
+In our previous example, we didn't load a custom :class:`FitManager`.
+Therefore, the fit widget automatically initialized a fit manager and
+loaded the custom gaussian functions.
+
+This time, we initialized our own :class:`FitManager` and loaded our
+own function, so only this function is presented as an option in the GUI.
+
+Our custom function does not provide an associated estimation function, so
+the default estimation function of :class:`FitManager` was used. This
+default estimation function returns an array of ones the same length as the
+list of *parameter* names, and set all constraints to *FREE*.
+
+    |imgFitWidget5|
