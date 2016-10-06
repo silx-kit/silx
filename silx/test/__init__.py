@@ -48,6 +48,7 @@ from ..math.test import suite as test_math_suite
 from ..image.test import suite as test_image_suite
 from ..gui.test import suite as test_gui_suite
 from ..utils.test import suite as test_utils_suite
+from . import test_sx
 
 
 def suite():
@@ -59,6 +60,7 @@ def suite():
     test_suite.addTest(test_io_suite())
     test_suite.addTest(test_math_suite())
     test_suite.addTest(test_image_suite())
+    test_suite.addTest(test_sx.suite())
     return test_suite
 
 

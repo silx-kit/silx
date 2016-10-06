@@ -98,9 +98,9 @@ cdef class MarchingCubes:
     ...     mc.process_image(previous_image, image)  # Process one slice
     ...     previous_image = image
 
-    >>> vertices = mc.vertices  # Array of vertex positions
-    >>> normals = mc.normals  # Array of vertices normal
-    >>> triangle_indices = mc.indices  # Array of indices of vertices
+    >>> vertices = mc.get_vertices()  # Array of vertex positions
+    >>> normals = mc.get_normals()  # Array of normals
+    >>> triangle_indices = mc.get_indices()  # Array of indices of vertices
 
     :param data: 3D dataset of float32 or None
     :type data: numpy.ndarray of float32 of dimension 3
@@ -131,11 +131,11 @@ cdef class MarchingCubes:
         vertices, normals, indices = MarchingCubes(...)
         """
         if key == 0:
-            return self.vertices
+            return self.get_vertices()
         elif key == 1:
-            return self.normals
+            return self.get_normals()
         elif key == 2:
-            return self.indices
+            return self.get_indices()
         else:
             raise IndexError("Index out of range")
 
@@ -144,8 +144,7 @@ cdef class MarchingCubes:
 
         Compute an isosurface from a 3D scalar field.
 
-        This builds :attr:`vertices`, :attr:`normals` and :attr:`indices`
-        arrays.
+        This builds vertices, normals and indices arrays.
         Vertices and normals coordinates are in the same order as input array,
         i.e., (dim 0, dim 1, dim 2).
 
@@ -170,7 +169,8 @@ cdef class MarchingCubes:
         :param numpy.ndarray slice0: Slice previously provided as slice1.
         :param numpy.ndarray slice1: Slice to process.
         """
-        assert slice0.shape == slice1.shape
+        assert slice0.shape[0] == slice1.shape[0]
+        assert slice0.shape[1] == slice1.shape[1]
 
         cdef float[:] c_slice0 = numpy.ravel(slice0)
         cdef float[:] c_slice1 = numpy.ravel(slice1)
@@ -217,24 +217,21 @@ cdef class MarchingCubes:
         """True to use gradient descent as normals."""
         return self.c_mc.invert_normals
 
-    @property
-    def vertices(self):
+    def get_vertices(self):
         """Vertices currently computed (ndarray of dim NbVertices x 3)
 
         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
         """
         return numpy.array(self.c_mc.vertices).reshape(-1, 3)
 
-    @property
-    def normals(self):
+    def get_normals(self):
         """Normals currently computed (ndarray of dim NbVertices x 3)
 
         Order is dim0, dim1, dim2 (i.e., z, y, x if dim0 is depth).
         """
         return numpy.array(self.c_mc.normals).reshape(-1, 3)
 
-    @property
-    def indices(self):
+    def get_indices(self):
         """Triangle indices currently computed (ndarray of dim NbTriangles x 3)
         """
         return numpy.array(self.c_mc.indices,

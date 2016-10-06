@@ -190,6 +190,9 @@ class TestFitmanager(unittest.TestCase):
             fd.write(custom_function_definition)
             fd.close()
             fit.loadtheories(tmpfile)
+            tmpfile_pyc = os.path.join(tmpDir, 'customfun.pyc')
+            if os.path.exists(tmpfile_pyc):
+                os.unlink(tmpfile_pyc)
             os.unlink(tmpfile)
 
         fit.settheory('my fit theory')
@@ -234,6 +237,9 @@ class TestFitmanager(unittest.TestCase):
             fd.write(old_custom_function_definition)
             fd.close()
             fit.loadtheories(tmpfile)
+            tmpfile_pyc = os.path.join(tmpDir, 'oldcustomfun.pyc')
+            if os.path.exists(tmpfile_pyc):
+                os.unlink(tmpfile_pyc)
             os.unlink(tmpfile)
 
         fit.settheory('my fit theory')
