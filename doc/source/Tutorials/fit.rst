@@ -30,9 +30,8 @@ Standard fit
 ************
 
 Let's demonstrate this process in a short example, using synthetic data.
-We create an array of synthetic data using a polynomial of degree 4, and try
-to use :func:`leastsq` to find back the same parameters used to create the
-synthetic data.
+We generate an array of synthetic data using a polynomial function of degree 4,
+and try to use :func:`leastsq` to find back the functions parameters.
 
 .. code-block:: python
 
@@ -41,7 +40,7 @@ synthetic data.
 
    # create some synthetic polynomial data
    x = numpy.arange(1000)
-   y = 2.4 * x**4 - 10 * x**3 + 15.2 * x**2 - 24.6 * x + 150
+   y = 2.4 * x**4 - 10. * x**3 + 15.2 * x**2 - 24.6 * x + 150.
 
    # define our fit function: a generic polynomial of degree 4
    def poly4(x, a, b, c, d, e):
@@ -81,12 +80,16 @@ The output of this program is::
 
 We can see that this fit result is poor. In particular, parameters ``d`` and ``e``
 are very poorly fitted.
-This is most likely due to numerical rounding errors, as we are dealing with
-very large values in our ``y`` array. If you limit the ``x`` range to deal with
+This is most likely due to numerical rounding errors. As we are dealing with
+very large values in our ``y`` array, we are affected by the limits of how
+floating point numbers are represented by computers. The larger a value, the
+larger its rounding error.
+
+If you limit the ``x`` range to deal with
 smaller ``y`` values, the fit result becomes perfect. In our example, replacing ``x``
 with::
 
-    x = numpy.arange(1000)
+    x = numpy.arange(100)
 
 produces the following result::
 
@@ -97,11 +100,15 @@ produces the following result::
    Optimal parameters for y fitting:
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
+
+
 Constrained fit
 ***************
 
-But let's revert back to our initial ``x`` range (0 -- 1000) and try to improve
-the result using a different approach. The :func:`leastsq` functions provides
+But let's revert back to our initial ``x = numpy.arange(1000)``, to experiment
+with different approaches to improving the fit.
+
+The :func:`leastsq` functions provides
 a way to set constraints on parameters. You can for instance assert that a given
 parameter must remain equal to it's initial value, or define an acceptable range
 for it to vary, or decide that a parameter must be equal to another parameter
@@ -109,7 +116,7 @@ multiplied by a certain factor. This is very useful in cases in which you have
 enough knowledge to make reasonable assumptions on some parameters.
 
 In our case, we will set constraints on ``d`` and ``e``. We will quote ``d`` to
-the range between -25 and -24, and fix ``e`` to 150.
+stay in the range between -25 and -24, and fix ``e`` to 150.
 
 Replace the call to :func:`leastsq` by following lines:
 
@@ -183,34 +190,111 @@ converged even faster than with the solution of limiting the ``x`` range to
 Using :class:`FitManager`
 +++++++++++++++++++++++++
 
-A :class:`FitManager` is a tool that provides a way of handling fit functions.
+A :class:`FitManager` is a tool that provides a way of handling fit functions,
+associating estimation functions to estimate the initial parameters, modify
+the configuration parameters for the fit (enabling or disabling weights...) or
+for the estimation function, and choosing a background model.
+
+Weighted polynomial fit
+***********************
+
+The following program accomplishes the same weighted fit of a polynomial as in
+the previous tutorial (`Weighted fit`_)
 
 .. code-block:: python
 
+    import numpy
+    from silx.math.fit.fitmanager import FitManager
+
+    # Create synthetic data with a sum of gaussian functions
+    x = numpy.arange(1000).astype(numpy.float)
+    y = 2.4 * x**4 - 10. * x**3 + 15.2 * x**2 - 24.6 * x + 150.
+
+    # define our fit function: a generic polynomial of degree 4
+    def poly4(x, a, b, c, d, e):
+        return a * x**4 + b * x**3 + c * x**2 + d * x + e
+
+    # define an estimation function to that returns initial parameters
+    # and constraints
+    def esti(x, y):
+        p0 = numpy.array([1., 1., 1., 1., 1.])
+        cons = numpy.zeros(shape=(5, 3))
+        return p0, cons
+
+    # Fitting
+    fit = FitManager()
+    fit.setdata(x=x, y=y)
+
+    fit.addtheory("polynomial",
+                  function=poly4,
+                  # any list of 5 parameter names would be OK
+                  parameters=["A", "B", "C", "D", "E"],
+                  estimate=esti)
+    fit.settheory('polynomial')
+    fit.configure(WeightFlag=True)
+    fit.estimate()
+    fit.runfit()
+
+    print("\n\nFit took %d iterations" % fit.niter)
+    print("Reduced chi-square: %f" % fit.chisq)
+    print("Theoretical parameters:\n\t" +
+          "a=2.4, b=-10, c=15.2, d=-24.6, e=150")
+    a, b, c, d, e = (param['fitresult'] for param in fit.fit_results)
+    print("Optimal parameters for y2 fitting:\n\t" +
+          "a=%f, b=%f, c=%f, d=%f, e=%f" % (a, b, c, d, e))
+
+
+The result is the same as in our weighted :func:`leastsq` example,
+as expected::
+
+    Fit took 6 iterations
+    Reduced chi-square: 0.000000
+    Theoretical parameters:
+        a=2.4, b=-10, c=15.2, d=-24.6, e=150
+    Optimal parameters for y2 fitting:
+        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
+
+Fitting gaussians
+*****************
+
+The :class:`FitManager` object is especially useful for fitting multi-peak
+gaussian-shaped spectra. The *silx* module :mod:`silx.math.fit.fittheories`
+provides fit functions and their associated estimation functions that are
+specifically designed for this purpose.
+
+These fit functions can handle variable number of parameters defining a
+variable number of peaks, and the estimation functions use a peak detection
+algorithm to determine how many initial parameters must be returned.
+
+For the sake of the example, let's test the multi-peak fitting on synthetic
+data, generated using another *silx* module: :mod:`silx.math.fit.functions`.
+
+.. code-block:: python
+
+    import numpy
     from silx.math.fit.functions import sum_gauss
     from silx.math.fit import fittheories
+    from silx.math.fit.fitmanager import FitManager
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
 
-    # height, center, fwhm
+    # height, center x, fwhm
     p = [1000, 100., 250,     # 1st peak
          255, 690., 45,       # 2nd peak
          1500, 800.5, 95]     # 3rd peak
 
-    # Add a synthetic linear background to our 3 gaussians
-    y = 2.65 * x + 13 + sum_gauss(x, *p)
+    y = sum_gauss(x, *p)
 
     # Fitting
     fit = FitManager()
     fit.setdata(x=x, y=y)
     fit.loadtheories(fittheories)
     fit.settheory('Gaussians')
-    fit.setbackground('Linear')
     fit.estimate()
     fit.runfit()
 
-    print("Searched parameters = ", p)
+    print("Searched parameters = %s" % p)
     print("Obtained parameters : ")
     dummy_list = []
     for param in fit.fit_results:
@@ -218,6 +302,23 @@ A :class:`FitManager` is a tool that provides a way of handling fit functions.
         dummy_list.append(param['fitresult'])
     print("chisq = ", fit.chisq)
 
+And the result of this program is::
+
+    Searched parameters = [1000, 100.0, 250, 255, 690.0, 45, 1500, 800.5, 95]
+    Obtained parameters :
+    ('Height1', ' = ', 1000.0)
+    ('Position1', ' = ', 100.0)
+    ('FWHM1', ' = ', 250.0)
+    ('Height2', ' = ', 255.0)
+    ('Position2', ' = ', 690.0)
+    ('FWHM2', ' = ', 44.999999999999993)
+    ('Height3', ' = ', 1500.0)
+    ('Position3', ' = ', 800.5)
+    ('FWHM3', ' = ', 95.000000000000014)
+    ('chisq = ', 0.0)
+
+Subtracting a background
+************************
 
 
 .. _fitwidget-tutorial:
