@@ -35,8 +35,8 @@ Specfile data structure exposed by this API:
           start_time = "…"
           instrument/
               specfile/
-                  file_header = ["…", "…", …]
-                  scan_header = ["…", "…", …]
+                  file_header = "…"
+                  scan_header = "…"
               positioners/
                   motor_name = value
                   …
@@ -62,15 +62,17 @@ Specfile data structure exposed by this API:
       2.1/
           …
 
-``file_header`` and ``scan_header`` are numpy arrays of fixed-length strings
-containing raw header lines relevant to the scan.
+``file_header`` and ``scan_header`` are the raw headers as they
+appear in the original file, as a string of lines separated by ``\n`` characters.
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).
 
-The start time is in ISO8601 format (``"2016-02-23T22:49:05Z"``)
+The start time is converted to ISO8601 format (``"2016-02-23T22:49:05Z"``),
+if the original date format is standard.
 
-All numeric datasets store values in `float32` format.
+Numeric datasets are stored in *float32* format, except for scalar integers
+which are stored as *int64*.
 
 Motor positions (e.g. ``/1.1/instrument/positioners/motor_name``) can be
 1D numpy arrays if they are measured as scan data, or else scalars as defined
@@ -108,7 +110,7 @@ Data and groups are accessed in :mod:`h5py` fashion::
     scan1group = sfh5["1.1"]
     instrument_group = scan1group["instrument"]
 
-    # altenative: full path access
+    # alternative: full path access
     measurement_group = sfh5["/1.1/measurement"]
 
     # accessing a scan data column by name as a 1D numpy array
@@ -143,6 +145,22 @@ You can test for existence of data or groups::
     >>> "spam" in sfh5["1.1"]
     False
 
+Strings are stored encoded as ``numpy.string_``, as recommended by
+`the h5py documentation <http://docs.h5py.org/en/latest/strings.html>`_.
+This ensures maximum compatibility with third party software libraries,
+when saving a :class:`SpecH5` to a HDF5 file using :mod:`silx.io.spectoh5`.
+
+The type ``numpy.string_`` is a byte-string format. The consequence of this
+is that you should decode strings before using them in **Python 3**::
+
+    >>> from silx.io.spech5 import SpecH5
+    >>> sfh5 = SpecH5("31oct98.dat")
+    >>> sfh5["/68.1/title"]
+    b'68  ascan  tx3 -28.5 -24.5  20 0.5'
+    >>> sfh5["/68.1/title"].decode()
+    '68  ascan  tx3 -28.5 -24.5  20 0.5'
+
+
 Classes
 =======
 
@@ -158,7 +176,6 @@ import numpy
 import posixpath
 import re
 import sys
-import time
 
 from .specfile import SpecFile
 
@@ -212,8 +229,8 @@ scan_header_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/specfile/scan
 positioners_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/positioners/([^/]+)$")
 measurement_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/([^/]+)$")
 instrument_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/data$")
-instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/calibration$")
-instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/channels$")
+instrument_mca_calib_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9]+)/calibration$")
+instrument_mca_chann_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_([0-9])+/channels$")
 instrument_mca_preset_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/preset_time$")
 instrument_mca_elapsed_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/elapsed_time$")
 instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9]+/live_time$")
@@ -221,7 +238,7 @@ instrument_mca_live_t_pattern = re.compile(r"/[0-9]+\.[0-9]+/instrument/mca_[0-9
 # Links to dataset
 measurement_mca_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/data$")
 # info/ + calibration, channel, preset_time, live_time, elapsed_time (not data)
-measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_[0-9]+/info/([^d/][^/]+)$")
+measurement_mca_info_dataset_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/([^d/][^/]+)$")
 # info/data
 measurement_mca_info_data_pattern = re.compile(r"/[0-9]+\.[0-9]+/measurement/mca_([0-9]+)/info/data$")
 
@@ -496,16 +513,26 @@ def _column_label_in_scan(sf, scan_key, column_label):
     return column_label in sf[scan_key].labels
 
 
-def _parse_ctime(ctime_line):
+def _parse_ctime(ctime_lines, analyser_index=0):
     """
-    :param ctime_line: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
+    :param ctime_lines: e.g ``@CTIME %f %f %f``, first word ``@CTIME`` optional
+        When multiple CTIME lines are present in a scan header, this argument
+        is a concatenation of them separated by a ``\n`` character.
+    :param analyser_index: MCA device/analyser index, when multiple devices
+        are in a scan.
     :return: (preset_time, live_time, elapsed_time)
     """
-    ctime_line = ctime_line.lstrip("@CTIME ")
+    ctime_lines = ctime_lines.lstrip("@CTIME ")
+    ctimes_lines_list = ctime_lines.split("\n")
+    if len(ctimes_lines_list) == 1:
+        # single @CTIME line for all devices
+        ctime_line = ctimes_lines_list[0]
+    else:
+        ctime_line = ctimes_lines_list[analyser_index]
     if not len(ctime_line.split()) == 3:
         raise ValueError("Incorrect format for @CTIME header line " +
                          '(expected "@CTIME %f %f %f").')
-    return map(float, ctime_line.split())
+    return list(map(float, ctime_line.split()))
 
 
 def spec_date_to_iso8601(date, zone=None):
@@ -612,65 +639,72 @@ def _fixed_length_strings(strings, length=0):
     return [s.ljust(length) for s in strings]
 
 
-class SpecH5Dataset(numpy.ndarray):
-    """Emulate :class:`h5py.Dataset` for a SpecFile object
+class SpecH5Dataset(object):
+    """Emulate :class:`h5py.Dataset` for a SpecFile object.
 
-    :param array_like: Input dataset in a type that can be digested by
-        ``numpy.array()`` (`str`, `list`, `numpy.ndarray`…)
+    A :class:`SpecH5Dataset` instance is basically  a proxy for the
+    :attr:`value` attribute, with additional attributes for compatibility
+    with *h5py* datasets.
+
+    :param value: Actual dataset value
     :param name: Dataset full name (posix path format, starting with ``/``)
     :type name: str
     :param file_: Parent :class:`SpecH5`
     :param parent: Parent :class:`SpecH5Group` which contains this dataset
-
-    This class inherits from :class:`numpy.ndarray` and adds ``name`` and
-    ``value`` attributes for HDF5 compatibility. ``value`` is a reference
-    to the class instance (``value = self``).
-
-    Data is stored in float32 format, unless it is a string.
     """
-    # For documentation on subclassing numpy.ndarray,
-    # see http://docs.scipy.org/doc/numpy-1.10.1/user/basics.subclassing.html
-    def __new__(cls, array_like, name, file_, parent):
-        # unicode can't be stored in hdf5, we need to use bytes
-        if isinstance(array_like, string_types):
-            array_like = numpy.string_(array_like)
+    def __init__(self, value, name, file_, parent):
+        object.__init__(self)
 
-        # Ensure our data is a numpy.ndarray
-        if not isinstance(array_like, numpy.ndarray):
-            array = numpy.array(array_like)
+        self.value = None
+        """Actual dataset, can be a *numpy array*, a *numpy.string_*,
+        a *numpy.int_* or a *numpy.float32*
+
+        All operations applied to an instance of the class use this."""
+
+        # get proper value types, to inherit from numpy
+        # attributes (dtype, shape, size)
+        if isinstance(value, string_types):
+            # use bytes for maximum compatibility
+            # (see http://docs.h5py.org/en/latest/strings.html)
+            self.value = numpy.string_(value)
+        elif isinstance(value, float):
+            # use 32 bits for float scalars
+            self.value = numpy.float32(value)
+        elif isinstance(value, int):
+            self.value = numpy.int_(value)
         else:
-            array = array_like
+            # Enforce numpy array
+            array = numpy.array(value)
+            data_kind = array.dtype.kind
 
-        data_kind = array.dtype.kind
-        # unicode: convert to byte strings
-        # (http://docs.h5py.org/en/latest/strings.html)
-        if data_kind in ["S", "U"]:
-            obj = numpy.asarray(array, dtype=numpy.string_).view(cls)
-        # enforce float32 for int, unsigned int, float
-        elif data_kind in ["i", "u", "f"]:
-            obj = numpy.asarray(array, dtype=numpy.float32).view(cls)
-        # reject boolean (b), complex (c), object (O), void/data block (V)
-        else:
-            raise TypeError("Unexpected data type " + data_kind +
-                            " (expected int-, string- or float-like data)")
+            if data_kind in ["S", "U"]:
+                self.value = numpy.asarray(array, dtype=numpy.string_)
+            elif data_kind in ["f"]:
+                self.value = numpy.asarray(array, dtype=numpy.float32)
+            else:
+                self.value = array
 
-        obj.name = name
-        obj.value = obj
-        obj.parent = parent
-        obj.file = file_
+        self.name = name
+        """"Dataset name (posix path format, starting with ``/``)"""
 
-        obj.attrs = _get_attrs_dict(name)
+        self.parent = parent
+        """Parent :class:`SpecH5Group` object which contains this dataset"""
 
-        return obj
+        self.file = file_
+        """Parent :class:`SpecH5` object"""
 
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self.name = getattr(obj, 'name', None)
-        self.value = getattr(obj, 'value', None)
-        self.parent = getattr(obj, 'parent', None)
-        self.file = getattr(obj, 'file', None)
-        self.attrs = getattr(obj, 'attrs', None)
+        self.attrs = _get_attrs_dict(name)
+        """Attributes dictionary"""
+
+        self.shape = self.value.shape
+        """Dataset shape, as a tuple with the length of each dimension
+        of the dataset."""
+
+        self.dtype = self.value.dtype
+        """Dataset dtype"""
+
+        self.size = self.value.size
+        """Dataset size (number of elements)"""
 
     @property
     def h5py_class(self):
@@ -684,6 +718,136 @@ class SpecH5Dataset(numpy.ndarray):
             raise ImportError("Cannot return h5py.Dataset class, " +
                               "unable to import h5py module")
         return h5py.Dataset
+
+    def __getattribute__(self, item):
+        if item in ["value", "name", "parent", "file", "attrs",
+                    "shape", "dtype", "size", "h5py_class"]:
+            return object.__getattribute__(self, item)
+
+        return getattr(self.value, item)
+
+    def __len__(self):
+        return len(self.value)
+
+    def __getitem__(self, item):
+        return self.value.__getitem__(item)
+
+    def __getslice__(self, i, j):
+        # deprecated but still in use for python 2.7
+        return self.__getitem__(slice(i, j, None))
+
+    def __iter__(self):
+        return self.value.__iter__()
+
+    def __dir__(self):
+        attrs = set(dir(self.value) +
+                    ["value", "name", "parent", "file",
+                     "attrs",  "shape", "dtype", "size",
+                     "h5py_class"])
+        return sorted(attrs)
+
+    # casting
+    def __repr__(self):
+        return self.value.__repr__()
+
+    def __float__(self):
+        return float(self.value)
+
+    def __int__(self):
+        return int(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
+    def __bool__(self):
+        if self.value:
+            return True
+        return False
+
+    def __nonzero__(self):
+        # python 2
+        return self.__bool__()
+
+    def __array__(self, dtype=None):
+        if dtype is None:
+            return numpy.array(self.value)
+        else:
+            return numpy.array(self.value, dtype=dtype)
+
+    # comparisons
+    def __eq__(self, other):
+        if hasattr(other, "value"):
+            return self.value == other.value
+        else:
+            return self.value == other
+
+    def __ne__(self, other):
+        if hasattr(other, "value"):
+            return self.value != other.value
+        else:
+            return self.value != other
+
+    def __lt__(self, other):
+        if hasattr(other, "value"):
+            return self.value < other.value
+        else:
+            return self.value < other
+
+    def __le__(self, other):
+        if hasattr(other, "value"):
+            return self.value <= other.value
+        else:
+            return self.value <= other
+
+    def __gt__(self, other):
+        if hasattr(other, "value"):
+            return self.value > other.value
+        else:
+            return self.value > other
+
+    def __ge__(self, other):
+        if hasattr(other, "value"):
+            return self.value >= other.value
+        else:
+            return self.value >= other
+
+    # operations
+    def __add__(self, other):
+        return self.value + other
+
+    def __radd__(self, other):
+        return other + self.value
+
+    def __sub__(self, other):
+        return self.value - other
+
+    def __rsub__(self, other):
+        return other - self.value
+
+    def __mul__(self, other):
+        return self.value * other
+
+    def __rmul__(self, other):
+        return other * self.value
+
+    def __truediv__(self, other):
+        return self.value / other
+
+    def __rtruediv__(self, other):
+        return other / self.value
+
+    def __floordiv__(self, other):
+        return self.value // other
+
+    def __rfloordiv__(self, other):
+        return other // self.value
+
+    # unary operations
+    def __neg__(self):
+        return -self.value
+
+    def __abs__(self):
+        return abs(self.value)
 
 
 class SpecH5LinkToDataset(SpecH5Dataset):
@@ -719,28 +883,39 @@ def _dataset_builder(name, specfileh5, parent_group):
 
     elif start_time_pattern.match(name):
         if "D" in scan.scan_header_dict:
-            array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
+            try:
+                array_like = spec_date_to_iso8601(scan.scan_header_dict["D"])
+            except (IndexError, ValueError):
+                logger1.warn("Could not parse date format in scan header. " +
+                             "Using original date not converted to ISO-8601")
+                array_like = scan.scan_header_dict["D"]
         elif "D" in scan.file_header_dict:
             logger1.warn("No #D line in scan header. " +
                          "Using file header for start_time.")
-            array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
+            try:
+                array_like = spec_date_to_iso8601(scan.file_header_dict["D"])
+            except (IndexError, ValueError):
+                logger1.warn("Could not parse date format in scan header. " +
+                             "Using original date not converted to ISO-8601")
+                array_like = scan.file_header_dict["D"]
         else:
-            logger1.warn("No #D line in header. " +
-                         "Using current system time for start_time.")
-            array_like = time.ctime(time.time())
+            logger1.warn("No #D line in header. Setting date to empty string.")
+            array_like = ""
 
     elif file_header_data_pattern.match(name):
-        array_like = _fixed_length_strings(scan.file_header)
+        # array_like = _fixed_length_strings(scan.file_header)
+        array_like = "\n".join(scan.file_header)
 
     elif scan_header_data_pattern.match(name):
-        array_like = _fixed_length_strings(scan.scan_header)
+        #array_like = _fixed_length_strings(scan.scan_header)
+        array_like = "\n".join(scan.scan_header)
 
     elif positioners_data_pattern.match(name):
         m = positioners_data_pattern.match(name)
         motor_name = m.group(1)
         # if a motor is recorded as a data column, ignore its position in
         # header and return the data column instead
-        if motor_name in scan.labels:
+        if motor_name in scan.labels and scan.data.shape[0] > 0:
             array_like = scan.data_column_by_name(motor_name)
         else:
             # may return float("inf") if #P line is missing from scan hdr
@@ -759,14 +934,27 @@ def _dataset_builder(name, specfileh5, parent_group):
         array_like = _demultiplex_mca(scan, analyser_index)
 
     elif instrument_mca_calib_pattern.match(name):
-        array_like = scan.mca.calibration
+        m = instrument_mca_calib_pattern.match(name)
+        analyser_index = int(m.group(1))
+        if len(scan.mca.channels) == 1:
+            # single @CALIB line applying to multiple devices
+            analyser_index = 0
+        array_like = scan.mca.calibration[analyser_index]
 
     elif instrument_mca_chann_pattern.match(name):
-        array_like = scan.mca.channels
+        m = instrument_mca_chann_pattern.match(name)
+        analyser_index = int(m.group(1))
+        if len(scan.mca.channels) == 1:
+            # single @CHANN line applying to multiple devices
+            analyser_index = 0
+        array_like = scan.mca.channels[analyser_index]
 
-    elif "CTIME" in scan.mca_header_dict:
+    elif "CTIME" in scan.mca_header_dict and "mca_" in name:
+        m = re.compile(r"/.*/mca_([0-9]+)/.*").match(name)
+        analyser_index = int(m.group(1))
+
         ctime_line = scan.mca_header_dict['CTIME']
-        (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+        (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line, analyser_index)
         if instrument_mca_preset_t_pattern.match(name):
             array_like = preset_time
         elif instrument_mca_live_t_pattern.match(name):
@@ -810,17 +998,25 @@ def _link_to_dataset_builder(name, specfileh5, parent_group):
     # X: calibration, channels, preset_time, live_time, elapsed_time
     elif measurement_mca_info_dataset_pattern.match(name):
         m = measurement_mca_info_dataset_pattern.match(name)
-        mca_hdr_type = m.group(1)
+        analyser_index = int(m.group(1))
+        mca_hdr_type = m.group(2)
 
         if mca_hdr_type == "calibration":
-            array_like = scan.mca.calibration
+            if len(scan.mca.calibration) == 1:
+                # single @CALIB line for multiple devices
+                analyser_index = 0
+            array_like = scan.mca.calibration[analyser_index]
 
         elif mca_hdr_type == "channels":
-            array_like = scan.mca.channels
+            if len(scan.mca.channels) == 1:
+                # single @CHANN line for multiple devices
+                analyser_index = 0
+            array_like = scan.mca.channels[analyser_index]
 
         elif "CTIME" in scan.mca_header_dict:
             ctime_line = scan.mca_header_dict['CTIME']
-            (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line)
+            (preset_time, live_time, elapsed_time) = _parse_ctime(ctime_line,
+                                                                  analyser_index)
             if mca_hdr_type == "preset_time":
                 array_like = preset_time
             elif mca_hdr_type == "live_time":
@@ -892,6 +1088,9 @@ class SpecH5Group(object):
         """Attributes dictionary"""
 
         if name != "/":
+            if name not in specfileh5:
+                raise KeyError("File %s does not contain group %s" %
+                               (specfileh5, name))
             scan_key = _get_scan_key_in_name(name)
             self._scan = self.file._sf[scan_key]
 
@@ -1021,8 +1220,13 @@ class SpecH5Group(object):
         :type key: str
         :raise: KeyError if ``key`` is not a known member of this group.
         """
+        # accept numbers for scan indices
+        if isinstance(key, int):
+            number = self.file._sf.number(key)
+            order = self.file._sf.order(key)
+            full_key = "/%d.%d" % (number, order)
         # Relative path starting from this group (e.g "mca_0/info")
-        if not key.startswith("/"):
+        elif not key.startswith("/"):
             full_key = self.name.rstrip("/") + "/" + key
         # Absolute path called from the root group or from a parent group
         elif key.startswith(self.name):
@@ -1084,19 +1288,22 @@ class SpecH5Group(object):
                 return ret + [u"preset_time", u"elapsed_time", u"live_time"]
             return ret
 
-        # number of data columns must be equal to number of labels
-        assert self._scan.data.shape[0] == len(self._scan.labels)
-
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[1]
 
-        # Number of MCA spectra must be a multiple of number of data lines
-        assert number_of_MCA_spectra % number_of_data_lines == 0
-        number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-        mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
+        if not number_of_data_lines == 0:
+            # Number of MCA spectra must be a multiple of number of data lines
+            assert number_of_MCA_spectra % number_of_data_lines == 0
+            number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
+            mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
 
-        if measurement_group_pattern.match(self.name):
-            return self._scan.labels + mca_list
+            if measurement_group_pattern.match(self.name):
+                return self._scan.labels + mca_list
+        else:
+            mca_list = []
+            # no data: no measurement
+            if measurement_group_pattern.match(self.name):
+                return []
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
