@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "04/10/2016"
 
 
 from collections import OrderedDict
@@ -418,7 +418,6 @@ class ColormapAction(PlotAction):
 
 class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
-
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """

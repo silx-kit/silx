@@ -398,7 +398,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         except IndexError:
             return qt.QModelIndex()
 
-    def data(self, index, role):
+    def data(self, index, role=qt.Qt.DisplayRole):
         node = self.nodeFromIndex(index)
 
         if role == self.H5PY_ITEM_ROLE:
@@ -425,13 +425,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def columnCount(self, parent=qt.QModelIndex()):
         return len(self.header_labels)
 
-    def hasChildren(self, parent):
+    def hasChildren(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)
         if node is None:
             return 0
         return node.hasChildren()
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)
         if node is None:
             return 0

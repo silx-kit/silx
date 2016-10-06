@@ -22,6 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+from silx.gui.plot import PlotActions, PlotToolButtons
+from silx.gui import icons
 """A :class:`.PlotWidget` with additionnal toolbars.
 
 The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
@@ -30,13 +32,14 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "05/10/2016"
 
 import collections
 import logging
 
 from . import PlotWidget
 from .PlotActions import *  # noqa
+from . import PlotToolButtons
 from .PlotTools import PositionInfo, ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
@@ -68,8 +71,6 @@ class PlotWindow(PlotWidget):
     - curveStyleAction: Change curve line and markers style
     - colormapAction: Open a colormap dialog to change active image
       and default colormap.
-    - keepDataAspectRatioAction: Toggle keep aspect ratio
-    - yAxisInvertedAction: Toggle Y Axis direction
     - copyAction: Copy plot snapshot to clipboard
     - saveAction: Save plot
     - printAction: Print plot
@@ -156,14 +157,6 @@ class PlotWindow(PlotWidget):
 
         self.colormapAction = self.group.addAction(ColormapAction(self))
         self.colormapAction.setVisible(colormap)
-
-        self.keepDataAspectRatioAction = self.group.addAction(
-            KeepAspectRatioAction(self))
-        self.keepDataAspectRatioAction.setVisible(aspectRatio)
-
-        self.yAxisInvertedAction = self.group.addAction(
-            YAxisInvertedAction(self))
-        self.yAxisInvertedAction.setVisible(yInverted)
 
         self.group.addAction(self.roiAction)
         self.roiAction.setVisible(roi)
@@ -320,16 +313,38 @@ class PlotWindow(PlotWidget):
             self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
 
+    def _createToolBar(self, title, parent):
+        """Create a QToolBar from the QAction of the PlotWindow.
+
+        :param str title: The title of the QMenu
+        :param qt.QWidget parent: See :class:`QToolBar`
+        """
+        toolbar = qt.QToolBar(title, parent)
+
+        self._keepAspectRatio = PlotToolButtons.AspectToolButton(self, self)
+        self._yAxisInverted = PlotToolButtons.YAxisOriginToolButton(self, self)
+
+        # Order widgets with actions
+        objects = self.group.actions()
+        index = objects.index(self.colormapAction)
+        objects.insert(index + 1, self._keepAspectRatio)
+        objects.insert(index + 2, self._yAxisInverted)
+
+        for obj in objects:
+            if isinstance(obj, qt.QAction):
+                toolbar.addAction(obj)
+            else:
+                toolbar.addWidget(obj)
+        return toolbar
+
     def toolBar(self, title='Plot', parent=None):
         """Return a QToolBar from the QAction of the PlotWindow.
 
         :param str title: The title of the QMenu
-        :param parent: See :class:`QToolBar`
+        :param qt.QWidget parent: See :class:`QToolBar`
         """
         if not hasattr(self, '_toolbar'):
-            self._toolbar = qt.QToolBar(title, parent)
-            for action in self.group.actions():
-                self._toolbar.addAction(action)
+            self._toolbar = self._createToolBar(title, parent)
         return self._toolbar
 
     def menu(self, title='Plot', parent=None):

@@ -61,6 +61,8 @@ Available icons
      - edit-copy
    * - |folder|
      - folder
+   * - |image-mask|
+     - image-mask
    * - |image-select-add|
      - image-select-add
    * - |image-select-box|
@@ -219,6 +221,7 @@ Available icons
 .. |draw-rubber| image:: ../../../../silx/resources/gui/icons/draw-rubber.png
 .. |edit-copy| image:: ../../../../silx/resources/gui/icons/edit-copy.png
 .. |folder| image:: ../../../../silx/resources/gui/icons/folder.png
+.. |image-mask| image:: ../../../../silx/resources/gui/icons/image-mask.png
 .. |image-select-add| image:: ../../../../silx/resources/gui/icons/image-select-add.png
 .. |image-select-box| image:: ../../../../silx/resources/gui/icons/image-select-box.png
 .. |image-select-brush| image:: ../../../../silx/resources/gui/icons/image-select-brush.png

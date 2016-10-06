@@ -20,7 +20,7 @@ with a ``#F`` line.
 The metadata stored in a file header applies to all the content of the data file, until a
 new file header is encountered. There can be more than one file header, but a file with
 multiple headers can be treated as multiple SPEC files concatenated into a single one.
-File header are sometimes missing.
+File headers are sometimes missing.
 
 A file header contains general information:
 
@@ -28,7 +28,7 @@ A file header contains general information:
  - ``#E`` - epoch
  - ``#D`` - file time and date
  - ``#C`` - First comment (SPEC title, SPEC user)
- - ``#O`` - Motor names (separated by two blank spaces)
+ - ``#O`` - Motor names (separated by at least two blank spaces)
 
 The second type of header is the *scan header*. A scan header must start with a ``#S`` line
 and must be preceded by an empty line. This also applies to files without file headers: in
@@ -63,26 +63,27 @@ of a sensor.
 MCA data
 ++++++++
 
-Newer SPEC files can also contain multi-channel analysers data, in between each *normal* data line.
-A multichannel analyser records multiple values when regular sensors record a single value.
-This is typically a histogram of number of counts against frequency (*MCA spectrum*)), to analyze energy distribution
-of a nuclear process.
+Newer SPEC files can also contain multi-channel analyser data, in between each *normal* data line.
+A multichannel analyser records multiple values per single measurement.
+This is typically a histogram of number of counts against channels (*MCA spectrum*), to analyze energy distribution
+of a process.
 
 SPEC data files containing MCA data have additional scan header lines:
 
- - ``#@MCA`` - this indicates the number of values per line
+ - ``#@MCA %16C`` - a spectrum will usually extend for more than one line.
+   This indicates a number of 16 values per line.
  - ``#@CHANN`` - contains 4 values:
 
    - the number of channels per spectrum
    - the first channel number
    - the last channel number
-   - the increment between two channel numbers
- - ``#@CALIB`` - 3 calibration values
- - ``#@CTIME``
+   - the increment between two channel numbers (usually 1)
+ - ``#@CALIB`` - 3 polynomial calibration values a, b, c. ( i.e. energy = a + b * channel + c * channel ^ 2)
+ - ``#@CTIME`` - 3 values: preset time, live time, elapsed time
 
 The actual MCA data for a single spectrum usually spans over multiple lines.
 A spectrum starts on a new line with a ``@A``, and when it span over multiple lines, all
-lines end with a continuation character ``\``.
+lines except the last one end with a continuation character ``\``.
 
 Example of SPEC file
 ++++++++++++++++++++
@@ -125,7 +126,8 @@ Example of scan and data block, without MCA::
     29.366004  45256 0.000343 734 419 248 229 236 343 178082 664 0.00372862 0.00765939 0.0041217 0.00235285 0.00185308 0.00139262 0.00128592 0.00132523 0.00192608 1364 330
     29.36998  45258 0.00036 847 448 254 229 248 360 178342 668 0.00374561 0.00857342 0.0047493 0.00251203 0.00194009 0.00142423 0.00128405 0.00139059 0.00201859 1529 346
 
-Synthetic example of file with 3 scans. The last scan includes data of 3 multichannel analysers.
+Synthetic example of file with 3 scans. The last scan includes data of 3 multichannel analysers, sharing the
+same MCA header.
 
 ::
 
@@ -138,15 +140,12 @@ Synthetic example of file with 3 scans. The last scan includes data of 3 multich
     #o0 pshg mrtu mrtd
     #o2 ss1vo ss1ho ss1vg
 
-    #J0 Seconds  IA  ion.mono  Current
-    #J1 xbpmc2  idgap1  Inorm
-
     #S 1  ascan  ss1vo -4.55687 -0.556875  40 0.2
     #D Thu Feb 11 09:55:20 2016
     #T 0.2  (Seconds)
     #P0 180.005 -0.66875 0.87125
     #P1 14.74255 16.197579 12.238283
-    #N 4
+    #N 3
     #L MRTSlit UP  second column  3rd_col
     -1.23 5.89  8
     8.478100E+01  5 1.56
@@ -157,7 +156,7 @@ Synthetic example of file with 3 scans. The last scan includes data of 3 multich
     #D Sat 2015/03/14 03:53:50
     #P0 80.005 -1.66875 1.87125
     #P1 4.74255 6.197579 2.238283
-    #N 5
+    #N 4
     #L column0  column1  col2  col3
     0.0 0.1 0.2 0.3
     1.0 1.1 1.2 1.3
@@ -166,31 +165,27 @@ Synthetic example of file with 3 scans. The last scan includes data of 3 multich
 
     #S 1 aaaaaa
     #D Thu Feb 11 10:00:32 2016
-    #@MCADEV 1
     #@MCA %16C
-    #@CHANN 3 0 2 1
-    #@CALIB 1 2 3
+    #@CHANN 20 0 19 1
+    #@CALIB 1.2 2.3 3.4
     #@CTIME 123.4 234.5 345.6
-    #N 3
+    #N 2
     #L uno  duo
     1 2
-    @A 0 1 2
-    @A 10 9 8
-    @A 1 1 1.1
+    @A 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15\
+    16 17 18 19
     3 4
-    @A 3.1 4 5
-    @A 7 6 5
-    @A 1 1 1
+    @A 0 0 2 4 15 10 5 1 0 0 0 0 1 0 0 0\
+    0 0 0 0
     5 6
-    @A 6 7.7 8
-    @A 4 3 2
-    @A 1 1 1
+    @A 0 0 0 0 5 7 2 0 0 0 0 0 1 0 0 0\
+    0 0 0 1
 
-Reading a SpecFile as a HDF5 file
----------------------------------
+Reading a SpecFile as an HDF5 file
+----------------------------------
 
-Intoduction to the spech5 module
-++++++++++++++++++++++++++++++++
+Introduction to the spech5 module
++++++++++++++++++++++++++++++++++
 
 The *silx* module :mod:`silx.io.spech5` can be used to expose SPEC files in a hierarchical tree structure
 and access them through an API that mimics the *h5py* Python library used to read HDF5 files.
@@ -242,14 +237,15 @@ is the column label as it appears on the ``#L`` header line.
 The ``instrument`` subgroup contains following subgroups:
 
     - ``specfile`` - contains two datasets, ``file_header`` and ``scan_header``,
-      containing all header lines
+      containing all header lines as a long string. Lines are delimited by the ``\n`` character.
     - ``positioners`` - contains one dataset per motor (positioner), containing
       either the single motor position from the ``#P`` header line, or a complete 1D array
       of positions if the motor names corresponds to a data column (i.e. if the motor name
-      from the ``#O`` header line is identical to a label on the ``#L`` header line
+      from the ``#O`` header line is identical to a label on the ``#L`` header line)
     - one subgroup per MCA analyser/device containing a 2D ``data`` array with all spectra
       recorded by this analyser, as well as datasets for the various MCA metadata
-      (``#@`` header lines)
+      (``#@`` header lines). The first dimension of the ``data`` array corresponds to the number
+      of points and the second one to the spectrum length.
 
 
 In addition the the data columns, this group contains one subgroup per MCA analyser/device
@@ -268,16 +264,17 @@ Accessing groups and datasets:
     sfh5 = SpecH5("test.dat")
 
     # using SpecH5 as a regular group to access scans
-    scan1group = sfh5["1.1"]
+    scan1group = sfh5["1.1"]   # This retrieves scan 1.1
+    scan1group = sfh5[0]       # This retrieves the first scan irrespectively of its number.
     instrument_group = scan1group["instrument"]
 
-    # altenative: full path access
+    # alternative: full path access
     measurement_group = sfh5["/1.1/measurement"]
 
     # accessing a scan data column by name as a 1D numpy array
     data_array = measurement_group["Pslit HGap"]
 
-    # accessing all mca-spectra for one MCA device
+    # accessing all mca-spectra for one MCA device as a 2D array
     mca_0_spectra = measurement_group["mca_0/data"]
 
 
@@ -308,4 +305,19 @@ HDF5 file with the same structure as the one exposed by the :mod:`spech5` module
 You can then read the file with any HDF5 reader.
 
 
+In addition to the function :func:`silx.io.spectoh5.convert`, which is simplified
+on purpose, you can use the more flexible :func:`silx.io.spectoh5.write_spec_to_h5`.
+
+This way, you can choose to write scans into a specific HDF5 group in the output directory.
+You can also decide whether you want to overwrite an existing file, or append data to it.
+You can specify whether existing data with the same name as input data should be overwritten
+or ignored.
+
+This allows you to repeatedly transfer new content of a SPEC file to an existing HDF5 file, in between
+two scans.
+
+The following script is an example of a command line interface to :func:`write_spec_to_h5`.
+
+.. literalinclude:: ../../../examples/spectoh5.py
+   :lines: 42-
 

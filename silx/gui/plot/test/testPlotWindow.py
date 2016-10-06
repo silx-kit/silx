@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/05/2016"
+__date__ = "05/10/2016"
 
 
 import doctest
@@ -90,9 +90,6 @@ class TestPlotWindow(TestCaseQt):
             (self.plot.xAxisLogarithmicAction, self.plot.isXAxisLogarithmic),
             (self.plot.yAxisLogarithmicAction, self.plot.isYAxisLogarithmic),
             (self.plot.gridAction, self.plot.getGraphGrid),
-            (self.plot.keepDataAspectRatioAction,
-             self.plot.isKeepDataAspectRatio),
-            (self.plot.yAxisInvertedAction, self.plot.isYAxisInverted),
         ]
 
         for action, getter in checkList:
@@ -114,6 +111,20 @@ class TestPlotWindow(TestCaseQt):
         toolButton = getQToolButtonFromAction(resetZoomAction)
         self.assertIsNot(toolButton, None)
         self.mouseClick(toolButton, qt.Qt.LeftButton)
+
+    def testToolAspectRatio(self):
+        self.plot.toolBar()
+        self.plot._keepAspectRatio.keepDataAspectRatio()
+        self.assertTrue(self.plot.isKeepDataAspectRatio())
+        self.plot._keepAspectRatio.dontKeepDataAspectRatio()
+        self.assertFalse(self.plot.isKeepDataAspectRatio())
+
+    def testToolYAxisOrigin(self):
+        self.plot.toolBar()
+        self.plot._yAxisInverted.setYAxisUpward()
+        self.assertFalse(self.plot.isYAxisInverted())
+        self.plot._yAxisInverted.setYAxisDownward()
+        self.assertTrue(self.plot.isYAxisInverted())
 
 
 def suite():
