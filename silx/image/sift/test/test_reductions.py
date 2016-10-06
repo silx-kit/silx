@@ -160,6 +160,6 @@ def suite():
     if ocl:
         testSuite.addTest(TestReduction("test_max_min_rnd"))
         testSuite.addTest(TestReduction("test_max_min"))
-        testSuite.addTest(TestReduction("test_max_min_rnd_big"))
+        #testSuite.addTest(TestReduction("test_max_min_rnd_big"))
 
     return testSuite
