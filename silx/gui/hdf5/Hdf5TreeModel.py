@@ -264,7 +264,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         if self.__fileMoveEnabled or self.__fileDropEnabled:
             return qt.Qt.CopyAction | qt.Qt.MoveAction
         else:
-            return None
+            return 0
 
     def mimeTypes(self):
         if self.__fileMoveEnabled:

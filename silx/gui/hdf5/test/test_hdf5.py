@@ -150,19 +150,19 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
 
     def testSupportedDrop(self):
         model = hdf5.Hdf5TreeModel()
-        self.assertNotEquals(model.supportedDropActions(), None)
+        self.assertNotEquals(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(False)
-        self.assertEquals(model.supportedDropActions(), None)
+        self.assertEquals(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(False)
         model.setFileDropEnabled(True)
-        self.assertNotEquals(model.supportedDropActions(), None)
+        self.assertNotEquals(model.supportedDropActions(), 0)
 
         model.setFileMoveEnabled(True)
         model.setFileDropEnabled(False)
-        self.assertNotEquals(model.supportedDropActions(), None)
+        self.assertNotEquals(model.supportedDropActions(), 0)
 
     def testDropExternalFile(self):
         with self.h5TempFile() as filename:
