@@ -8,16 +8,16 @@
 
 Snapshot of the widgets:
 
-.. |imgFitWidget1| image:: ../../../Tutorials/img/fitwidget1.png
+.. |imgFitWidget4| image:: ../../../Tutorials/img/fitwidget4.png
    :height: 150px
    :align: middle
 
-.. |imgFitWidget2| image:: ../../../Tutorials/img/fitwidget2.png
+.. |imgFitWidget3| image:: ../../../Tutorials/img/fitwidget3.png
    :height: 150px
    :align: middle
 
 =================== ===================
-|imgFitWidget1|     |imgFitWidget2|
+|imgFitWidget4|     |imgFitWidget3|
 :class:`FitWidget`  Fit configuration
 =================== ===================
 

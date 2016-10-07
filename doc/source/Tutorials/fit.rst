@@ -1,4 +1,5 @@
 
+.. _fit-tutorial:
 
 Fit tools
 ---------
@@ -156,12 +157,10 @@ A third approach to improve our fit is to define uncertainties for the data.
 The larger the uncertainty on a data sample, the smaller its weight will be
 in the least-square problem.
 
-In our case, we don't have obvious uncertainties associated to our data, altough we could
-try to figure out the uncertainties due to numerical rounding errors by closely
-looking at how floating point values are stored.
-
-A common approach that requires less work is to use the square-root of the data values
-as their uncertainty value. Let's try it:
+In our case, we do not know the uncertainties associated to our data. We could
+determine the uncertainties due to numerical rounding errors, but let's just use
+a common approach that requires less work: use the square-root of the data values
+as their uncertainty value:
 
 .. code-block:: python
 
@@ -185,7 +184,7 @@ This results in a great improvement::
        a=2.400000, b=-10.000000, c=15.200000, d=-24.600000, e=150.000000
 
 The resulting fit is perfect. The very large ``y`` values with their very large
-associated uncertainties have been ignored, for all practical purposes. The fit
+associated uncertainties have been practicaly rejected from the fit process. The fit
 converged even faster than with the solution of limiting the ``x`` range to
 0 -- 100.
 
@@ -331,8 +330,9 @@ Pseudo-Voigt functions or hypermet tailing functions.
 
 The :meth:`loadtheories` method can also be used to load user defined
 functions. Instead of a module, a path to a Python source file can be given
-as a parameter. This source file must adhere to certain conventions, explained
-in the documentation of :mod:`silx.math.fit.fittheories`.
+as a parameter. This source file must adhere to certain conventions, as explained
+in the documentation of :mod:`silx.math.fit.fittheories` and
+:mod:`silx.math.fit.fittheory.FitTheory`.
 
 Subtracting a background
 ************************
@@ -455,8 +455,8 @@ performing a smoothing prior to the strip computation.
 See the `PyMca documentation <http://pymca.sourceforge.net/stripbackground.html>`_
 for more information on the strip background.
 
-To configure the strip background model of :class:`FitManager`, use :meth:`configure`
-to modify the following parameters:
+To configure the strip background model of :class:`FitManager`, use its :meth:`configure`
+method to modify the following parameters:
 
  - *StripWidth*: strip width parameter *w*, mentionned earlier
  - *StripNIterations*: number of iterations
