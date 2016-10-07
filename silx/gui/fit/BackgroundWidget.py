@@ -311,22 +311,19 @@ class StripBackgroundWidget(qt.QWidget):
                     if index > 0:
                         anchors_indices.append(index)
 
-        if niter > 0:
-            stripBackground = filters.strip(ysmooth,
-                                            w=pars['stripwidth'],
-                                            niterations=niter,
-                                            factor=pars['stripconstant'],
-                                            anchors=anchors_indices)
+        stripBackground = filters.strip(ysmooth,
+                                        w=pars['stripwidth'],
+                                        niterations=niter,
+                                        factor=pars['stripconstant'],
+                                        anchors=anchors_indices)
 
-            # if niter > 1000:
-            #     # final smoothing
-            #     stripBackground = filters.strip(stripBackground,
-            #                                     w=1,
-            #                                     niterations=500,
-            #                                     factor=pars['stripconstant'],
-            #                                     anchors=anchors_indices)
-        else:
-            stripBackground = 0.0 * ysmooth + ysmooth.min()
+        # if niter > 1000:
+        #     # final smoothing
+        #     stripBackground = filters.strip(stripBackground,
+        #                                     w=1,
+        #                                     niterations=500,
+        #                                     factor=pars['stripconstant'],
+        #                                     anchors=anchors_indices)
 
         if len(anchors_indices) == 0:
             anchors_indices = [0, len(ysmooth)-1]
