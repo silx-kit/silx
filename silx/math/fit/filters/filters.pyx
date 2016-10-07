@@ -104,7 +104,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     output = numpy.empty(shape=(input_c.size,),
                          dtype=numpy.float64)
 
-    if anchors is not None:
+    if anchors is not None and len(anchors):
         # numpy.int_ is the same as C long (http://docs.scipy.org/doc/numpy/user/basics.types.html)
         anchors_c = numpy.array(anchors,
                                 copy=False,
