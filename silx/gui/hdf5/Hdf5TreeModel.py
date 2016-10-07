@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "03/10/2016"
 
 
 import os
@@ -36,6 +36,7 @@ from .Hdf5Node import Hdf5Node
 from .Hdf5Item import Hdf5Item
 from .Hdf5LoadingItem import Hdf5LoadingItem
 from . import _utils
+from ...io import utils
 
 _logger = logging.getLogger(__name__)
 
@@ -44,6 +45,31 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
+
+"""Helpers to take care of None objects as signal parameters.
+PySide crash if a signal with a None parameter is emitted between threads.
+"""
+if qt.BINDING == 'PySide':
+    class _NoneWraper(object): pass
+    _NoneWraperInstance = _NoneWraper()
+    def _wrapNone(x):
+        """Wrap x if it is a None value, else returns x"""
+        if x is None:
+            return _NoneWraperInstance
+        else:
+            return x
+
+    def _unwrapNone(x):
+        """Unwrap x as a None if a None was stored by `wrapNone`, else returns
+        x"""
+        if x is _NoneWraperInstance:
+            return None
+        else:
+            return x
+else:
+    # Allow to fix None event params to avoid PySide crashes
+    def _wrapNone(x): return x
+    def _unwrapNone(x): return x
 
 
 class LoadingItemRunnable(qt.QRunnable):
@@ -82,7 +108,7 @@ class LoadingItemRunnable(qt.QRunnable):
         else:
             class_ = h5obj.__class__
 
-        if class_ == h5py.File:
+        if class_ is h5py.File:
             text = os.path.basename(h5obj.filename)
         else:
             filename = os.path.basename(h5obj.file.filename)
@@ -97,13 +123,17 @@ class LoadingItemRunnable(qt.QRunnable):
         of the data and the signal. The result is sent as a signal.
         """
         try:
-            h5file = _utils.load_file_as_h5py(self.filename)
+            h5file = utils.load(self.filename)
             newItem = self.__loadItemTree(self.oldItem, h5file)
             error = None
         except IOError as e:
             # Should be logged
             error = e
             newItem = None
+
+        # Take care of None value in case of PySide
+        newItem = _wrapNone(newItem)
+        error = _wrapNone(error)
         self.itemReady.emit(self.oldItem, newItem, error)
 
     def autoDelete(self):
@@ -111,10 +141,10 @@ class LoadingItemRunnable(qt.QRunnable):
 
 
 class Hdf5TreeModel(qt.QAbstractItemModel):
-    """Tree model storing a list of `h5py.File` like objects.
+    """Tree model storing a list of :class:`h5py.File` like objects.
 
-    The main column display the h5py.File list and there hierarchy. Other
-    columns dipslay information on node hierarchy.
+    The main column display the :class:`h5py.File` list and there hierarchy.
+    Other columns display information on node hierarchy.
     """
 
     H5PY_ITEM_ROLE = qt.Qt.UserRole
@@ -197,6 +227,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param Hdf5Node newItem: item loaded, or None if error is defined
         :param Exception error: An exception, or None if newItem is defined
         """
+        # Take care of None value in case of PySide
+        newItem = _unwrapNone(newItem)
+        error = _unwrapNone(error)
         row = self.__root.indexOfChild(oldItem)
         rootIndex = qt.QModelIndex()
         self.beginRemoveRows(rootIndex, row, row)
@@ -224,14 +257,14 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.__fileMoveEnabled = enabled
 
     fileMoveEnabled = qt.Property(bool, isFileMoveEnabled, setFileMoveEnabled)
-    """Property to enable/disable drag-and-drop to drag and drop files to
+    """Property to enable/disable drag-and-drop of files to
     change the ordering in the model."""
 
     def supportedDropActions(self):
         if self.__fileMoveEnabled or self.__fileDropEnabled:
             return qt.Qt.CopyAction | qt.Qt.MoveAction
         else:
-            return None
+            return 0
 
     def mimeTypes(self):
         if self.__fileMoveEnabled:
@@ -239,13 +272,26 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         else:
             return []
 
-    def mimeData(self, index):
-        if self.__fileMoveEnabled:
-            node = self.nodeFromIndex(index[0])
-            mimeData = _utils.Hdf5NodeMimeData(node)
-            return mimeData
-        else:
+    def mimeData(self, indexes):
+        """
+        Returns an object that contains serialized items of data corresponding
+        to the list of indexes specified.
+
+        :param list(qt.QModelIndex) indexes: List of indexes
+        :rtype: qt.QMimeData
+        """
+        if not self.__fileMoveEnabled or len(indexes) == 0:
             return None
+
+        indexes = [i for i in indexes if i.column() == 0]
+        if len(indexes) > 1:
+            raise NotImplementedError("Drag of multi rows is not implemented")
+        if len(indexes) == 0:
+            raise NotImplementedError("Drag of cell is not implemented")
+
+        node = self.nodeFromIndex(indexes[0])
+        mimeData = _utils.Hdf5NodeMimeData(node)
+        return mimeData
 
     def flags(self, index):
         defaultFlags = qt.QAbstractItemModel.flags(self, index)
@@ -254,7 +300,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             node = self.nodeFromIndex(index)
             if self.__fileMoveEnabled and node.parent is self.__root:
                 # that's a root
-                return qt.Qt.ItemIsEditable | qt.Qt.ItemIsDragEnabled | defaultFlags
+                return qt.Qt.ItemIsDragEnabled | defaultFlags
             return defaultFlags
         elif self.__fileDropEnabled or self.__fileMoveEnabled:
             return qt.Qt.ItemIsDropEnabled | defaultFlags
@@ -345,14 +391,14 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         self.endMoveRows()
         return True
 
-    def index(self, row, column, parent):
+    def index(self, row, column, parent=qt.QModelIndex()):
         try:
             node = self.nodeFromIndex(parent)
             return self.createIndex(row, column, node.child(row))
         except IndexError:
             return qt.QModelIndex()
 
-    def data(self, index, role):
+    def data(self, index, role=qt.Qt.DisplayRole):
         node = self.nodeFromIndex(index)
 
         if role == self.H5PY_ITEM_ROLE:
@@ -379,13 +425,13 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     def columnCount(self, parent=qt.QModelIndex()):
         return len(self.header_labels)
 
-    def hasChildren(self, parent):
+    def hasChildren(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)
         if node is None:
             return 0
         return node.hasChildren()
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=qt.QModelIndex()):
         node = self.nodeFromIndex(parent)
         if node is None:
             return 0
@@ -418,7 +464,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def synchronizeIndex(self, index):
         """
-        Synchronize a file a wn index.
+        Synchronize a file a given its index.
 
         Basically close it and load it again.
 
@@ -452,7 +498,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
     def removeIndex(self, index):
         """
-        Remove an item from the model using it's index.
+        Remove an item from the model using its index.
 
         :param qt.QModelIndex index: Index of the item to remove
         """
@@ -491,7 +537,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             else:
                 class_ = h5pyObject.__class__
 
-            if class_ == h5py.File:
+            if class_ is h5py.File:
                 text = os.path.basename(h5pyObject.filename)
             else:
                 filename = os.path.basename(h5pyObject.file.filename)
@@ -521,11 +567,11 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         :param filename: file path.
         """
         try:
-            h5file = _utils.load_file_as_h5py(filename)
+            h5file = utils.load(filename)
             self.insertH5pyObject(h5file, row=row)
         except IOError:
             _logger.debug("File '%s' can't be read.", filename, exc_info=True)
-            raise IOError("File '%s' can't be read as HDF5, fabio, or SpecFile" % filename)
+            raise
 
     def appendFile(self, filename):
         self.insertFile(filename, -1)

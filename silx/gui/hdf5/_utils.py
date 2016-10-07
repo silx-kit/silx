@@ -22,16 +22,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of utilitary class and function used by the
+"""This package provides a set of helper class and function used by the
 package `silx.gui.hdf5` package.
 """
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "03/10/2016"
 
 
-import os
 import logging
 from .. import qt
 
@@ -42,39 +41,6 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
-
-
-def load_file_as_h5py(filename):
-    """
-    Load a file as an h5py.File object
-
-    :param str filename: A filename
-    :raises: IOError if the file can't be loaded as an h5py.File like object
-    :rtype: h5py.File
-    """
-    if not os.path.isfile(filename):
-        raise IOError("Filename '%s' must be a file path" % filename)
-
-    if h5py.is_hdf5(filename):
-        return h5py.File(filename)
-
-    try:
-        from ...io import spech5
-        return spech5.SpecH5(filename)
-    except ImportError:
-        _logger.debug("spech5 can't be loaded.", exc_info=True)
-    except IOError:
-        _logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
-
-    try:
-        from ...io import fabioh5
-        return fabioh5.File(filename)
-    except ImportError:
-        _logger.debug("fabioh5 can't be loaded.", exc_info=True)
-    except Exception:
-        _logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
-
-    raise IOError("Format of filename '%s' is not supported" % filename)
 
 
 class Hdf5ContextMenuEvent(object):
@@ -107,7 +73,7 @@ class Hdf5ContextMenuEvent(object):
         return self.__menu
 
     def hoveredObject(self):
-        """Item content overed by the mouse when the context menu was
+        """Item content hovered by the mouse when the context menu was
         requested
 
         :rtype: H5Node
@@ -136,7 +102,7 @@ class Hdf5NodeMimeData(qt.QMimeData):
     def __init__(self, node=None):
         qt.QMimeData.__init__(self)
         self.__node = node
-        self.setData(self.MIME_TYPE, "")
+        self.setData(self.MIME_TYPE, "".encode(encoding='utf-8'))
 
     def node(self):
         return self.__node
@@ -144,10 +110,10 @@ class Hdf5NodeMimeData(qt.QMimeData):
 
 class H5Node(object):
     """Adapter over an h5py object to provide missing informations from h5py
-    nodes, like internal node path and filename (which are not provided by h5py
-    for soft and external links).
+    nodes, like internal node path and filename (which are not provided by
+    :mod:`h5py` for soft and external links).
 
-    It also provide an abstraction to reach node type for mimicked h5py
+    It also provides an abstraction to reach node type for mimicked h5py
     objects.
     """
 
@@ -174,7 +140,8 @@ class H5Node(object):
     def ntype(self):
         """Returns the node type, as an h5py class.
 
-        :rtype: h5py.File.__class__ or h5py.Group.__class__ or h5py.Dataset.__class__
+        :rtype:
+            :class:`h5py.File`, :class:`h5py.Group` or :class:`h5py.Dataset`
         """
         if hasattr(self.__h5py_object, "h5py_class"):
             return self.__h5py_object.h5py_class
@@ -183,7 +150,7 @@ class H5Node(object):
 
     @property
     def basename(self):
-        """Returns the basename of this h5 node. It is the last identifier of
+        """Returns the basename of this h5py node. It is the last identifier of
         the path.
 
         :rtype: str
@@ -192,7 +159,7 @@ class H5Node(object):
 
     @property
     def local_name(self):
-        """Return the local path of this h5 node.
+        """Returns the local path of this h5py node.
 
         For links, this path is not equal to the h5py one.
 
@@ -217,7 +184,7 @@ class H5Node(object):
         return "/".join(result)
 
     def __file_item(self):
-        """Returns the parent item holding the h5py.File object
+        """Returns the parent item holding the :class:`h5py.File` object
 
         :rtype: h5py.File
         :raises RuntimeException: If no file are found
@@ -231,7 +198,7 @@ class H5Node(object):
 
     @property
     def local_file(self):
-        """Returns the local h5py.File object.
+        """Returns the local :class:`h5py.File` object.
 
         For path containing external links, this file is not equal to the h5py
         one.
@@ -244,7 +211,7 @@ class H5Node(object):
 
     @property
     def local_filename(self):
-        """Returns the local filename of the h5 node.
+        """Returns the local filename of the h5py node.
 
         For path containing external links, this path is not equal to the
         filename provided by h5py.
@@ -256,7 +223,7 @@ class H5Node(object):
 
     @property
     def local_basename(self):
-        """Returns the local filename of the h5 node.
+        """Returns the local filename of the h5py node.
 
         For path containing links, this basename can be different than the
         basename provided by h5py.

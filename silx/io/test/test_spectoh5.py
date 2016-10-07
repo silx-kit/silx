@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/05/2016"
+__date__ = "05/10/2016"
 
 
 sftext = """#F /tmp/sf.dat
@@ -128,6 +128,14 @@ class TestConvertSpecHDF5(unittest.TestCase):
             array_equal(self.h5f["/1.2/measurement/mca_1/data"],
                         self.h5f["/foo/bar/spam/1.2/measurement/mca_1/data"])
         )
+
+    def testTitle(self):
+        """Test the value of a dataset"""
+        title12 = self.h5f["/1.2/title"].value
+        if sys.version > '3.0':
+            title12 = title12.decode()
+        self.assertEqual(title12,
+                         "1 aaaaaa")
 
     def testAttrs(self):
         # Test root group (file) attributes

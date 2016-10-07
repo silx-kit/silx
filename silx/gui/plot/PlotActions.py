@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "04/10/2016"
 
 
 from collections import OrderedDict
@@ -418,7 +418,6 @@ class ColormapAction(PlotAction):
 
 class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
-
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
@@ -964,8 +963,10 @@ class FitAction(PlotAction):
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
-            triggered=self._openFitWindow,
+            triggered=self._getFitWindow,
             checkable=False, parent=parent)
+        self.fit_windows = {}
+        self.fit_widgets = {}
 
     def _warningMessage(self, informativeText='', detailedText=''):
         """Display a warning message."""
@@ -975,7 +976,7 @@ class FitAction(PlotAction):
         msg.setDetailedText(detailedText)
         msg.exec_()
 
-    def _openFitWindow(self):
+    def _getFitWindow(self):
         curve = self.plot.getActiveCurve()
         if curve is None:
             curves = self.plot.getAllCurves()
@@ -989,21 +990,30 @@ class FitAction(PlotAction):
         self.x, self.y, self.legend = curve[0:3]
 
         # open a window with a FitWidget
-        mw = qt.QMainWindow(self.plot)
-        self.fit_widget = FitWidget(parent=mw)
-        self.fit_widget.setData(self.x, self.y)
-        self.fit_widget.show()
-        mw.setWindowTitle("Fitting " + self.legend)
-        mw.setCentralWidget(self.fit_widget)
-        self.fit_widget.guibuttons.DismissButton.clicked.connect(mw.close)
-        self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
-        mw.show()
+        if self.fit_windows.get(self.legend) is None:
+            self.fit_windows[self.legend] = qt.QMainWindow(self.plot)
+            self.fit_widgets[self.legend] = FitWidget(parent=self.fit_windows[self.legend])
+            self.fit_windows[self.legend].setCentralWidget(
+                    self.fit_widgets[self.legend])
+            self.fit_widgets[self.legend].guibuttons.DismissButton.clicked.connect(
+                    self.fit_windows[self.legend].close)
+            self.fit_widgets[self.legend].sigFitWidgetSignal.connect(
+                    self.handle_signal)
+            self.fit_windows[self.legend].show()
+        else:
+            if self.fit_windows[self.legend].isHidden():
+                self.fit_windows[self.legend].show()
+                self.fit_widgets[self.legend].show()
+            self.fit_windows[self.legend].raise_()
+
+        self.fit_widgets[self.legend].setData(self.x, self.y)
+        self.fit_windows[self.legend].setWindowTitle("Fitting " + self.legend)
 
     def handle_signal(self, ddict):
         if ddict["event"] == "EstimateFinished":
             pass
         if ddict["event"] == "FitFinished":
-            y_fit = self.fit_widget.fitmanager.gendata()
+            y_fit = self.fit_widgets[self.legend].fitmanager.gendata()
             self.plot.addCurve(self.x, y_fit,
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel)

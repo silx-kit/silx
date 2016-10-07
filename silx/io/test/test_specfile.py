@@ -25,7 +25,7 @@
 
 __authors__ = ["P. Knobel", "V.A. Sole"]
 __license__ = "MIT"
-__date__ = "29/04/2016"
+__date__ = "27/09/2016"
 
 import gc
 import locale
@@ -354,15 +354,15 @@ class TestSpecFile(unittest.TestCase):
         self.assertEqual(len(self.scan1_2.mca_header_dict), 4)
         self.assertEqual(self.scan1_2.mca_header_dict["CALIB"], "1 2 3")
         self.assertEqual(self.scan1_2.mca.calibration,
-                         [1., 2., 3.])
+                         [[1., 2., 3.]])
         # default calib in the absence of #@CALIB
         self.assertEqual(self.scan25.mca.calibration,
-                         [0., 1., 0.])
+                         [[0., 1., 0.]])
         self.assertEqual(self.scan1_2.mca.channels,
-                         [0, 1, 2])
+                         [[0, 1, 2]])
         # absence of #@CHANN and spectra
-        self.assertIs(self.scan25.mca.channels,
-                      None)
+        self.assertEqual(self.scan25.mca.channels,
+                         [])
 
 
 class TestSFLocale(unittest.TestCase):

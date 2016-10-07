@@ -36,4 +36,10 @@ int strip(double* input, long len_input, double c, long niter, int deltai,
 /* Smoothing functions */
 
 int SavitskyGolay(double* input, long len_input, int npoints, double* output);
+
+void smooth1d(double *data, int size);
+void smooth2d(double *data, int size0, int size1);
+void smooth3d(double *data, int size0, int size1, int size2);
+
+
 #endif /* #define FITFILTERS_H */

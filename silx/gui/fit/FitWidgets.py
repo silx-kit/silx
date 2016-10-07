@@ -33,7 +33,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/06/2016"
+__date__ = "29/09/2016"
 
 
 class FitActionsButtons(qt.QWidget):
@@ -114,7 +114,7 @@ class FitStatusLines(qt.QWidget):
         self.resize(535, 47)
 
         layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(11, 11, 11, 11)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
 
         self.StatusLabel = qt.QLabel(self)
@@ -139,7 +139,7 @@ class FitStatusLines(qt.QWidget):
 
 class FitConfigWidget(qt.QWidget):
     """Widget whose purpose is to select a fit theory and a background
-    theory, load a new fit theory definition file and open and provide
+    theory, load a new fit theory definition file and provide
     a "Configure" button to open an advanced configuration dialog.
 
     This is used in :class:`silx.gui.fit.FitWidget.FitWidget`, to offer
@@ -156,7 +156,7 @@ class FitConfigWidget(qt.QWidget):
         self.setWindowTitle("FitConfigGUI")
 
         fitconfigguilayout = qt.QHBoxLayout(self)
-        fitconfigguilayout.setContentsMargins(11, 11, 11, 11)
+        fitconfigguilayout.setContentsMargins(0, 0, 0, 0)
         fitconfigguilayout.setSpacing(6)
 
         layout9 = qt.QHBoxLayout(None)
@@ -167,19 +167,9 @@ class FitConfigWidget(qt.QWidget):
         layout2.setContentsMargins(0, 0, 0, 0)
         layout2.setSpacing(6)
 
-        self.BkgComBox = qt.QComboBox(self)
-        # Not implemented (TODO?)
-        # self.BkgComBox.addItem("Add Background")
-        # self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
-        #                            "Load background theories from a file",
-        #                            qt.Qt.ToolTipRole)
-
-        layout2.addWidget(self.BkgComBox, 1, 1)
-
-        self.BkgLabel = qt.QLabel(self)
-        self.BkgLabel.setText("Background")
-
-        layout2.addWidget(self.BkgLabel, 1, 0)
+        self.FunLabel = qt.QLabel(self)
+        self.FunLabel.setText("Function")
+        layout2.addWidget(self.FunLabel, 0, 0)
 
         self.FunComBox = qt.QComboBox(self)
         self.FunComBox.addItem("Add Function(s)")
@@ -189,15 +179,43 @@ class FitConfigWidget(qt.QWidget):
 
         layout2.addWidget(self.FunComBox, 0, 1)
 
-        self.FunLabel = qt.QLabel(self)
-        self.FunLabel.setText("Function")
+        self.BkgLabel = qt.QLabel(self)
+        self.BkgLabel.setText("Background")
+        layout2.addWidget(self.BkgLabel, 1, 0)
 
-        layout2.addWidget(self.FunLabel, 0, 0)
+        self.BkgComBox = qt.QComboBox(self)
+        # Not implemented (TODO?)
+        # self.BkgComBox.addItem("Add Background")
+        # self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
+        #                            "Load background theories from a file",
+        #                            qt.Qt.ToolTipRole)
+
+        layout2.addWidget(self.BkgComBox, 1, 1)
+
         layout9.addLayout(layout2)
         spacer = qt.QSpacerItem(20, 20,
                                 qt.QSizePolicy.Expanding,
                                 qt.QSizePolicy.Minimum)
         layout9.addItem(spacer)
+
+        layout6 = qt.QVBoxLayout(None)
+        layout6.setContentsMargins(0, 0, 0, 0)
+        layout6.setSpacing(6)
+
+        self.WeightCheckBox = qt.QCheckBox(self)
+        self.WeightCheckBox.setText("Weight")
+        self.WeightCheckBox.setToolTip(
+                "Enable usage of weights in the least-square problem. Use " +
+                "the uncertainties if provided, or else use sqrt(y).")
+
+        layout6.addWidget(self.WeightCheckBox)
+
+        layout9.addLayout(layout6)
+
+        spacer_2 = qt.QSpacerItem(20, 20,
+                                  qt.QSizePolicy.Expanding,
+                                  qt.QSizePolicy.Minimum)
+        layout9.addItem(spacer_2)
 
         layout5 = qt.QGridLayout(None)
         layout5.setContentsMargins(0, 0, 0, 0)
@@ -288,6 +306,7 @@ class ParametersTab(qt.QTabWidget):
         """
         qt.QTabWidget.__init__(self, parent)
         self.setWindowTitle(name)
+        self.setContentsMargins(0, 0, 0, 0)
 
         self.views = OrderedDict()
         """Dictionary of views. Keys are view names,

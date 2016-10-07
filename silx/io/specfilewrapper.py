@@ -240,7 +240,7 @@ class scandata(Scan):  # noqa
         - :meth:`data` becomes a method returning an array, instead of just
           an array
         - :meth:`mca`: becomes a method returning an array, instead of
-          a :class:`silx.io.specfile.Scan` object
+          a :class:`silx.io.specfile.MCA` object
         - :meth:`header`: becomes a method returning a list of **scan**
           header lines (or a list of a single header line, if a key is
           specified), instead of just a list of all header lines
@@ -361,7 +361,8 @@ class scandata(Scan):  # noqa
     def mca(self, number):
         """Return one MCA spectrum
 
-        :param number: MCA number (1-based index)"""
+        :param number: MCA number (1-based index)
+        :rtype: 1D numpy array"""
         # in the base class, mca is an object that can be indexed (but 0-based)
         return super(scandata, self).mca[number - 1]
 

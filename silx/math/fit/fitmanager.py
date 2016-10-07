@@ -48,21 +48,21 @@ from numpy.linalg.linalg import LinAlgError
 import os
 import sys
 
-from .filters import strip
+from .filters import strip, smooth1d
 from .leastsq import leastsq
 from .fittheory import FitTheory
 
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "09/08/2016"
+__date__ = "29/08/2016"
 
 _logger = logging.getLogger(__name__)
 
 
 class FitManager(object):
     """
-    Multi-peak fitting functions manager
+    Fit functions manager
 
     :param x: Abscissa data. If ``None``, :attr:`xdata` is set to
         ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
@@ -70,43 +70,32 @@ class FitManager(object):
     :param y: The dependant data ``y = f(x)``. ``y`` must have the same
         shape as ``x`` if ``x`` is not ``None``.
     :type y: Sequence or numpy array or None
-    :param sigmay: The uncertainties in the ``ydata`` array. These are
-        used as weights in the least-squares problem.
-        If ``None``, the uncertainties are assumed to be 1.
+    :param sigmay: The uncertainties in the ``ydata`` array. These can be
+        used as weights in the least-squares problem, if ``weight_flag``
+        is ``True``.
+        If ``None``, the uncertainties are assumed to be 1, unless
+        ``weight_flag`` is ``True``, in which case the square-root
+        of ``y`` is used.
     :type sigmay: Sequence or numpy array or None
-
-    :param auto_fwhm: Flag to enable or disable automatic estimation of
-        the peaks' full width at half maximum.
-    :param fwhm_points:
-    :param sensitivity: Sensitivity value used for by peak detection
-        algorithm. To be detected, a peak must have an amplitude greater
-        than ``σn * sensitivity`` (where ``σn`` is an estimated value of
-        the standard deviation of the noise). Thus, the number of detected
-        peaks increases if you set a *lower* sensitivity value.
+    :param weight_flag: If this parameter is ``True`` and ``sigmay``
+        uncertainties are not specified, the square root of ``y`` is used
+        as weights in the least-squares problem. If ``False``, the
+        uncertainties are set to 1.
+    :type weight_flag: boolean
     """
-    # TODO: document following attributes
-    # Data attributes:
-    #
-    #  - :attr:`xdata0`, :attr:`ydata0` and :attr:`sigmay0` store the initial data
-    #    and uncertainties. These attributes are not modified after
-    #    initialization.
-    #  - :attr:`xdata`, :attr:`ydata` and :attr:`sigmay` store the data after
-    #    removing values where :attr:`xdata < xmin` or :attr:`xdata > xmax`.
-    #    These attributes may be modified at a latter stage by filters.
-
-    def __init__(self, x=None, y=None, sigmay=None, auto_fwhm=True, fwhm_points=8,
-                 sensitivity=2.5):
+    def __init__(self, x=None, y=None, sigmay=None, weight_flag=False):
         """
         """
         self.fitconfig = {
-            'AutoFwhm': auto_fwhm,
-            'FwhmPoints': fwhm_points,
-            'Sensitivity': sensitivity,
+            'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
+                               # we can get rid of this param (will be defined in fittheories for peak detection)
+            'WeightFlag': weight_flag,
             'fitbkg': 'No Background',
             'fittheory': None,
             'StripWidth': 2,
             'StripNIterations': 5000,
-            'StripThresholdFactor': 1.0
+            'StripThresholdFactor': 1.0,
+            'SmoothStrip': False
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -115,10 +104,8 @@ class FitManager(object):
 
             - 'fitbkg': name of the function used for fitting a low frequency
               background signal
-            - 'AutoFwhm': Flag to enable or disable automatic estimation of
-              the peaks' full width at half maximum.
             - 'FwhmPoints': default full width at half maximum value for the
-              peaks'. Ignored if ``AutoFwhm==True``.
+              peaks'.
             - 'Sensitivity': Sensitivity parameter for the peak detection
               algorithm (:func:`silx.math.fit.peak_search`)
         """
@@ -368,11 +355,16 @@ class FitManager(object):
         result = {}
         result.update(self.fitconfig)
 
-        # Apply custom configuration function
-        custom_config_fun = None
+        if "WeightFlag" in kw:
+            if kw["WeightFlag"]:
+                self.enableweight()
+            else:
+                self.disableweight()
+
         if self.selectedtheory is None:
             return result
 
+        # Apply custom configuration function
         custom_config_fun = self.theories[self.selectedtheory].configure
         if custom_config_fun is not None:
             result.update(custom_config_fun(**kw))
@@ -513,6 +505,7 @@ class FitManager(object):
 
         self.state = 'Ready to Fit'
         self.chisq = None
+        self.niter = 0
 
         if callback is not None:
             callback(data={'chisq': self.chisq,
@@ -665,7 +658,6 @@ class FitManager(object):
               removing values where ``xdata < xmin`` or ``xdata > xmax``.
               These attributes may be modified at a latter stage by filters.
 
-
         :param x: Abscissa data. If ``None``, :attr:`xdata`` is set to
             ``numpy.array([0.0, 1.0, 2.0, ..., len(y)-1])``
         :type x: Sequence or numpy array or None
@@ -697,13 +689,13 @@ class FitManager(object):
                 self.xdata0 = numpy.array(x)
                 self.xdata = numpy.array(x)
 
-            # default weight in the least-square problem is 1.
+            # default weight
             if sigmay is None:
                 self.sigmay0 = None
-                self.sigmay = None
+                self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
             else:
                 self.sigmay0 = numpy.array(sigmay)
-                self.sigmay = numpy.array(sigmay)
+                self.sigmay = numpy.array(sigmay) if self.fitconfig["WeightFlag"] else None
 
             # take the data between limits, using boolean array indexing
             if (xmin is not None or xmax is not None) and len(self.xdata):
@@ -713,6 +705,22 @@ class FitManager(object):
                 self.xdata = self.xdata[bool_array]
                 self.ydata = self.ydata[bool_array]
                 self.sigmay = self.sigmay[bool_array] if sigmay is not None else None
+
+    def enableweight(self):
+        """This method can be called to set :attr:`sigmay`. If :attr:`sigmay0` was filled with
+        actual uncertainties in :meth:`setdata`, use these values.
+        Else, use ``sqrt(self.ydata)``.
+        """
+        if self.sigmay0 is None:
+            self.sigmay = numpy.sqrt(self.ydata) if self.fitconfig["WeightFlag"] else None
+        else:
+            self.sigmay = self.sigmay0
+
+    def disableweight(self):
+        """This method can be called to set :attr:`sigmay` equal to ``None``.
+        As a result, :func:`leastsq` will consider that the weights in the
+        least square problem are 1 for all samples."""
+        self.sigmay = None
 
     def settheory(self, theory):
         """Pick a theory from :attr:`theories`.
@@ -797,6 +805,7 @@ class FitManager(object):
                 param['sigma'] = sigmas[i]
 
         self.chisq = infodict["reduced_chisq"]
+        self.niter = infodict["niter"]
         self.state = 'Ready'
 
         if callback is not None:
@@ -920,6 +929,8 @@ class FitManager(object):
                 if self.fitconfig["fitbkg"] == "No Background":
                     bg = numpy.zeros_like(y)
                 else:
+                    if self.fitconfig["SmoothStrip"]:
+                        y = smooth1d(y)
                     bg = strip(y,
                                w=self.fitconfig["StripWidth"],
                                niterations=self.fitconfig["StripNIterations"],
@@ -960,6 +971,9 @@ class FitManager(object):
 
         Parameters are *(strip_width, n_iterations)*
 
+        A 1D smoothing is applied prior to the stripping, if configuration
+        parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
+
         See http://pymca.sourceforge.net/stripbackground.html
         """
         if self._bkg_strip_oldpars[0] == pars[0]:
@@ -975,6 +989,9 @@ class FitManager(object):
         self._bkg_strip_oldpars = pars
         idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
         yy = numpy.take(self.ydata, idx)
+        if self.fitconfig["SmoothStrip"]:
+            yy = smooth1d(yy)
+
         nrx = numpy.shape(x)[0]
         nry = numpy.shape(yy)[0]
         if nrx == nry:
@@ -1075,6 +1092,8 @@ class FitManager(object):
         # TODO: document square filter
 
         # extract bg by applying a strip filter
+        if self.fitconfig["SmoothStrip"]:
+            y = smooth1d(y)
         background = strip(y,
                            w=self.fitconfig["StripWidth"],
                            niterations=self.fitconfig["StripNIterations"],
@@ -1191,8 +1210,7 @@ def test():
     y = 2.65 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
-    fit = FitManager(auto_fwhm=True,
-                     sensitivity=0.25)
+    fit = FitManager()
     # more sensitivity necessary to resolve
     # overlapping peaks at x=690 and x=800.5
     fit.setdata(x=x, y=y)

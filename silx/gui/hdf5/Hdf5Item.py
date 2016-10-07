@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "03/10/2016"
 
 
 import numpy
@@ -121,9 +121,12 @@ class Hdf5Item(Hdf5Node):
 
         try:
             obj = parent_obj.get(self.__key)
-        except RuntimeError as e:
+        except Exception as e:
             _logger.debug("Internal h5py error", exc_info=True)
-            self.__obj = parent_obj.get(self.__key, getlink=True)
+            try:
+                self.__obj = parent_obj.get(self.__key, getlink=True)
+            except Exception:
+                self.__obj = None
             self.__error = e.args[0]
             self.__isBroken = True
         else:
@@ -164,7 +167,10 @@ class Hdf5Item(Hdf5Node):
                     has_error = False
                 except Exception as e:
                     _logger.error("Internal h5py error", exc_info=True)
-                    class_ = self.obj.get(name, getclass=True, getlink=True)
+                    try:
+                        class_ = self.obj.get(name, getclass=True, getlink=True)
+                    except Exception as e:
+                        class_ = h5py.HardLink
                     has_error = True
                 item = Hdf5Item(text=name, obj=None, parent=self, key=name, h5pyClass=class_, isBroken=has_error)
                 self.appendChild(item)
@@ -213,6 +219,7 @@ class Hdf5Item(Hdf5Node):
         :rtype: str
         """
         if self.__error is not None:
+            self.obj  # lazy loading of the object
             return self.__error
         class_ = self.h5pyClass
 
@@ -285,7 +292,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
-                return None
+                return ""
             shape = [str(i) for i in self.obj.shape]
             text = u" \u00D7 ".join(shape)
             return text
@@ -330,14 +337,17 @@ class Hdf5Item(Hdf5Node):
             return qt.Qt.AlignTop | qt.Qt.AlignLeft
         if role == qt.Qt.DisplayRole:
             if self.__isBroken:
+                self.obj  # lazy loading of the object
                 return self.__error
             if "desc" in self.obj.attrs:
                 text = self.obj.attrs["desc"]
             else:
-                return None
+                return ""
             return text
         if role == qt.Qt.ToolTipRole:
             if self.__error is not None:
+                self.obj  # lazy loading of the object
+                self.__initH5pyObject()
                 return self.__error
             if "desc" in self.obj.attrs:
                 text = self.obj.attrs["desc"]

@@ -160,9 +160,9 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
             if overwrite_data or not member_initially_exists:
                 # fancy arguments don't apply to scalars (shape==())
                 if obj.shape == ():
-                    ds = h5f.create_dataset(h5_name, data=obj)
+                    ds = h5f.create_dataset(h5_name, data=obj.value)
                 else:
-                    ds = h5f.create_dataset(h5_name, data=obj,
+                    ds = h5f.create_dataset(h5_name, data=obj.value,
                                             **create_dataset_args)
             else:
                 ds = h5f[h5_name]

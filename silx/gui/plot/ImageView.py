@@ -53,7 +53,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "04/10/2016"
 
 
 import logging
@@ -62,6 +62,7 @@ import numpy
 from .. import qt
 
 from . import PlotWindow, PlotWidget
+from . import PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import ProfileToolBar, LimitsToolBar
 
@@ -816,8 +817,8 @@ class ImageViewMainWindow(ImageView):
         menu.addSeparator()
         menu.addAction(self.resetZoomAction)
         menu.addAction(self.colormapAction)
-        menu.addAction(self.keepDataAspectRatioAction)
-        menu.addAction(self.yAxisInvertedAction)
+        menu.addAction(PlotActions.KeepAspectRatioAction(self, self))
+        menu.addAction(PlotActions.YAxisInvertedAction(self, self))
 
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self.profile.browseAction)
