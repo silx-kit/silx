@@ -304,14 +304,6 @@ HDF5 file with the same structure as the one exposed by the :mod:`spech5` module
 
 You can then read the file with any HDF5 reader.
 
-For example, you can access it with :mod:`h5py`:
-
-    >>> import h5py
-    >>> f = h5py.File("myfile.h5")
-    >>> f["/1.1/instrument/specfile/scan_header"][0]
-    b'#S 94  ascan  del -0.5 0.5  20 1'
-    >>> f["/1.1/instrument/specfile/scan_header"][0].decode()
-    '#S 94  ascan  del -0.5 0.5  20 1'
 
 In addition to the function :func:`silx.io.spectoh5.convert`, which is simplified
 on purpose, you can use the more flexible :func:`silx.io.spectoh5.write_spec_to_h5`.

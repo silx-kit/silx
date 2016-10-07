@@ -17,4 +17,6 @@
    fittheories.rst
 
 
+For a graphical fit widget, see :mod:`silx.gui.fit.FitWidget`.
+
 

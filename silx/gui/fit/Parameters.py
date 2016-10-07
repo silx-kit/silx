@@ -108,6 +108,7 @@ class Parameters(qt.QTableWidget):
     """
     def __init__(self, parent=None, paramlist=None):
         qt.QTableWidget.__init__(self, parent)
+        self.setContentsMargins(0, 0, 0, 0)
 
         labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
                   'Constraints', 'Min/Parame', 'Max/Factor/Delta']

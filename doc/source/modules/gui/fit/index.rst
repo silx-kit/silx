@@ -8,11 +8,11 @@
 
 Snapshot of the widgets:
 
-.. |imgFitWidget1| image:: img/fitwidget1.png
+.. |imgFitWidget1| image:: ../../../Tutorials/img/fitwidget1.png
    :height: 150px
    :align: middle
 
-.. |imgFitWidget2| image:: img/fitwidget2.png
+.. |imgFitWidget2| image:: ../../../Tutorials/img/fitwidget2.png
    :height: 150px
    :align: middle
 
