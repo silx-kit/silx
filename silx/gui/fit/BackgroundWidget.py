@@ -79,6 +79,7 @@ class StripParametersWidget(qt.QWidget):
         self.stripIterValue = qt.QLineEdit(self.stripGroup)
         validator = qt.QIntValidator(self.stripIterValue)
         self.stripIterValue._v = validator
+        self.stripIterValue.setText("0")
         self.stripIterValue.editingFinished[()].connect(self._emitSignal)
 
         stripLayout.setColumnStretch(1, 1)
@@ -276,12 +277,12 @@ class StripBackgroundWidget(qt.QWidget):
     def setData(self, x, y):
         self._x = x
         self._y = y
-        self.update()
+        self.update(resetzoom=True)
 
     def _slot(self, ddict):
         self.update()
 
-    def update(self):
+    def update(self, resetzoom=False):
         if self._y is None:
             return
 
@@ -344,8 +345,8 @@ class StripBackgroundWidget(qt.QWidget):
 
         self.graphWidget.addCurve(x, y,
                                   legend='Input Data',
-                                  replace=True,)
-                                  # resetzoom=True)
+                                  replace=True,
+                                  resetzoom=resetzoom)
         self.graphWidget.addCurve(x, stripBackground,
                                   legend='Strip Background',
                                   resetzoom=False)
