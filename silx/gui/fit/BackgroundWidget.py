@@ -290,7 +290,6 @@ class StripBackgroundWidget(qt.QWidget):
         # smoothed data
         y = numpy.ravel(numpy.array(self._y)).astype(numpy.float)
         ysmooth = filters.savitsky_golay(y, pars['filterwidth'])
-        print(sum(y - ysmooth))
         f = [0.25, 0.5, 0.25]
         ysmooth[1:-1] = numpy.convolve(ysmooth, f, mode=0)
         ysmooth[0] = 0.5 * (ysmooth[0] + ysmooth[1])
@@ -311,24 +310,20 @@ class StripBackgroundWidget(qt.QWidget):
                     if index > 0:
                         anchors_indices.append(index)
 
-        if niter > 1000:
+        if niter > 0:
             stripBackground = filters.strip(ysmooth,
                                             w=pars['stripwidth'],
                                             niterations=niter,
                                             factor=pars['stripconstant'],
                                             anchors=anchors_indices)
-            # final smoothing
-            stripBackground = filters.strip(stripBackground,
-                                            w=1,
-                                            niterations=500,
-                                            factor=pars['stripconstant'],
-                                            anchors=anchors_indices)
-        elif niter > 0:
-            stripBackground = filters.strip(ysmooth,
-                                            w=pars['stripwidth'],
-                                            niterations=niter,
-                                            factor=pars['stripconstant'],
-                                            anchors=anchors_indices)
+
+            # if niter > 1000:
+            #     # final smoothing
+            #     stripBackground = filters.strip(stripBackground,
+            #                                     w=1,
+            #                                     niterations=500,
+            #                                     factor=pars['stripconstant'],
+            #                                     anchors=anchors_indices)
         else:
             stripBackground = 0.0 * ysmooth + ysmooth.min()
 
@@ -349,14 +344,14 @@ class StripBackgroundWidget(qt.QWidget):
 
         self.graphWidget.addCurve(x, y,
                                   legend='Input Data',
-                                  replace=True,
-                                  replot=False)
+                                  replace=True,)
+                                  # resetzoom=True)
         self.graphWidget.addCurve(x, stripBackground,
                                   legend='Strip Background',
-                                  replot=False)
+                                  resetzoom=False)
         self.graphWidget.addCurve(x, snipBackground,
                                   legend='SNIP Background',
-                                  replot=True)
+                                  resetzoom=False)
 
 
 class StripBackgroundDialog(qt.QDialog):
@@ -394,20 +389,41 @@ class StripBackgroundDialog(qt.QDialog):
 
 
 def main():
+    # synthetic data
+    from silx.math.fit.functions import sum_gauss
+
+    x = numpy.arange(5000)
+    # (height1, center1, fwhm1, ...) 5 peaks
+    params1 = (50, 500, 100,
+               20, 2000, 200,
+               50, 2250, 100,
+               40, 3000, 75,
+               23, 4000, 150)
+    y0 = sum_gauss(x, *params1)
+
+    # random values between [-1;1]
+    noise = 2 * numpy.random.random(5000) - 1
+    # make it +- 5%
+    noise *= 0.05
+
+    # 2 gaussians with very large fwhm, as background signal
+    actual_bg = sum_gauss(x, 15, 3500, 3000, 5, 1000, 1500)
+
+    # Add 5% random noise to gaussians and add background
+    y = y0 * (1 + noise) + actual_bg
+
+    # Open widget
     a = qt.QApplication(sys.argv)
     a.lastWindowClosed.connect(a.quit)
-    w = StripBackgroundDialog()
 
     def mySlot(ddict):
         print(ddict)
 
+    w = StripBackgroundDialog()
     w.parametersWidget.parametersWidget.sigStripParametersWidgetSignal.connect(mySlot)
-    x = numpy.arange(1000.).astype(numpy.float32) + 100.
-    y = 100 + x + 100 * numpy.exp(-0.5 * (x - 500) * (x - 500) / 30.)
     w.setData(x, y)
     w.exec_()
     #a.exec_()
-
 
 if __name__ == "__main__":
     main()
