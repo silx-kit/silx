@@ -63,7 +63,7 @@ Specfile data structure exposed by this API:
           …
 
 ``file_header`` and ``scan_header`` are the raw headers as they
-appear in the original file, as a string of lines separated by ``\n`` characters.
+appear in the original file, as a string of lines separated by newline (``\\n``) characters.
 
 The title is the content of the ``#S`` scan header line without the leading
 ``#S`` (e.g ``"1  ascan  ss1vo -4.55687 -0.556875  40 0.2"``).

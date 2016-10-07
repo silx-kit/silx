@@ -267,7 +267,7 @@ class OptionStr(str):
         """Return a list or a numpy array.
 
         Any string containing a comma (``,``) character will be interpreted
-        as a list: for instance ``-1, Hello World, 3.0``, or ``"2.0,``
+        as a list: for instance ``-1, Hello World, 3.0``, or ``2.0,``
 
         The format for numpy arrays is a blank space delimited list of values
         between square brackets: ``[ 1.3 2.2 3.1 ]``, or

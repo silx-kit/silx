@@ -138,7 +138,9 @@ class IPythonWidget(RichIPythonWidget):
        the console.
     """
 
-    def __init__(self, custom_banner=None, *args, **kwargs):
+    def __init__(self, parent=None, custom_banner=None, *args, **kwargs):
+        if parent is not None:
+            kwargs["parent"] = parent
         super(IPythonWidget, self).__init__(*args, **kwargs)
         if custom_banner is not None:
             self.banner = custom_banner
@@ -179,8 +181,8 @@ class IPythonDockWidget(qt.QDockWidget):
     :param parent: Parent :class:`qt.QMainWindow` containing this
         :class:`qt.QDockWidget`
     """
-    def __init__(self, available_vars=None, custom_banner=None,
-                 title="Console", parent=None):
+    def __init__(self, parent=None, available_vars=None, custom_banner=None,
+                 title="Console"):
         super(IPythonDockWidget, self).__init__(title, parent)
 
         self.ipyconsole = IPythonWidget(custom_banner=custom_banner)

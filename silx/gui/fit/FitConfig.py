@@ -188,8 +188,9 @@ class ConstraintsPage(qt.QGroupBox):
     """Checkable QGroupBox widget filled with QCheckBox widgets,
     to configure the fit estimation for standard fit theories.
     """
-    def __init__(self, title="Set constraints", parent=None):
-        super(ConstraintsPage, self).__init__(title, parent)
+    def __init__(self, parent=None, title="Set constraints"):
+        super(ConstraintsPage, self).__init__(parent)
+        self.setTitle(title)
         self.setToolTip("Disable 'Set constraints' to remove all " +
                         "constraints on all fit parameters")
         self.setCheckable(True)
@@ -346,10 +347,10 @@ class SearchPage(qt.QWidget):
 
 
 class BackgroundPage(qt.QGroupBox):
-    def __init__(self,
-                 title="Subtract strip background prior to estimation",
-                 parent=None):
-        super(BackgroundPage, self).__init__(title, parent)
+    def __init__(self, parent=None,
+                 title="Subtract strip background prior to estimation"):
+        super(BackgroundPage, self).__init__(parent)
+        self.setTitle(title)
         self.setCheckable(True)
         self.setToolTip(
             "The strip algorithm strips away peaks to compute the " +
