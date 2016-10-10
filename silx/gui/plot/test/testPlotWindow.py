@@ -114,16 +114,16 @@ class TestPlotWindow(TestCaseQt):
 
     def testToolAspectRatio(self):
         self.plot.toolBar()
-        self.plot._keepAspectRatio.keepDataAspectRatio()
+        self.plot.keepDataAspectRatioButton.keepDataAspectRatio()
         self.assertTrue(self.plot.isKeepDataAspectRatio())
-        self.plot._keepAspectRatio.dontKeepDataAspectRatio()
+        self.plot.keepDataAspectRatioButton.dontKeepDataAspectRatio()
         self.assertFalse(self.plot.isKeepDataAspectRatio())
 
     def testToolYAxisOrigin(self):
         self.plot.toolBar()
-        self.plot._yAxisInverted.setYAxisUpward()
+        self.plot.yAxisInvertedButton.setYAxisUpward()
         self.assertFalse(self.plot.isYAxisInverted())
-        self.plot._yAxisInverted.setYAxisDownward()
+        self.plot.yAxisInvertedButton.setYAxisDownward()
         self.assertTrue(self.plot.isYAxisInverted())
 
 
