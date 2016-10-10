@@ -26,18 +26,20 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/10/2016"
+__date__ = "10/10/2016"
 
 
 import time
 import unittest
 import tempfile
 import numpy
-from decorator import contextmanager
+import logging
+import contextlib
 from silx.gui import qt
 from silx.gui import testutils
 from silx.gui import hdf5
 from . import _mock
+import os.path
 
 try:
     import h5py
@@ -60,15 +62,24 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
         if h5py is None:
             self.skipTest("h5py is not available")
 
-    @contextmanager
+    @contextlib.contextmanager
     def h5TempFile(self):
+        logging.info("a")
         tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
+        logging.info("b")
         tmp.file.close()
 
+        logging.info("load using h5py %s", tmp.name)
+        logging.info("os.path.exists %s: %s", tmp.name, os.path.exists(tmp.name))
+
         self.h5 = h5py.File(tmp.name, "w")
+        logging.info("d")
         g = self.h5.create_group("arrays")
+        logging.info("e")
         g.create_dataset("scalar", data=10)
+        logging.info("f")
         self.h5.close()
+        logging.info("g")
         yield tmp.name
 
     def testCreate(self):
@@ -87,13 +98,19 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
         self.assertRaises(IOError, model.appendFile, "#%$")
 
     def testInsertFilename(self):
+        logging.info("testInsertFilename")
         with self.h5TempFile() as filename:
+            logging.info("create model")
             model = hdf5.Hdf5TreeModel()
+            logging.info("test")
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
+            logging.info("before insert filename")
             model.insertFile(filename)
+            logging.info("after insert filename")
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
 
     def testInsertFilenameAsync(self):
+        print("testInsertFilenameAsync")
         with self.h5TempFile() as filename:
             model = hdf5.Hdf5TreeModel()
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
