@@ -346,13 +346,13 @@ class BackgroundWidget(qt.QWidget):
                                         factor=pars['stripthreshold'],
                                         anchors=anchors_indices)
 
-        # if niter > 1000:
-        #     # final smoothing
-        #     stripBackground = filters.strip(stripBackground,
-        #                                     w=1,
-        #                                     niterations=500,
-        #                                     factor=pars['stripthreshold'],
-        #                                     anchors=anchors_indices)
+        if niter >= 1000:
+            # final smoothing
+            stripBackground = filters.strip(stripBackground,
+                                            w=1,
+                                            niterations=50*pars['stripwidth'],
+                                            factor=pars['stripthreshold'],
+                                            anchors=anchors_indices)
 
         if len(anchors_indices) == 0:
             anchors_indices = [0, len(ysmooth)-1]
