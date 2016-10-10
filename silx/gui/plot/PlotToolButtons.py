@@ -47,7 +47,7 @@ class PlotToolButton(qt.QToolButton):
     """A QToolButton connected to a :class:`.PlotWidget`.
     """
 
-    def __init__(self, plot=None, parent=None):
+    def __init__(self, parent=None, plot=None):
         super(PlotToolButton, self).__init__(parent)
         self._plot = None
         if plot is not None:
@@ -97,7 +97,7 @@ class AspectToolButton(PlotToolButton):
     STATE = None
     """Lazy loaded states used to feed AspectToolButton"""
 
-    def __init__(self, plot=None, parent=None):
+    def __init__(self, parent=None, plot=None):
         if self.STATE is None:
             self.STATE = {}
             # dont keep ration
@@ -109,7 +109,7 @@ class AspectToolButton(PlotToolButton):
             self.STATE[True, "state"] = "Aspect ration is kept"
             self.STATE[True, "action"] = "Keep data aspect ratio"
 
-        super(AspectToolButton, self).__init__(plot, parent)
+        super(AspectToolButton, self).__init__(parent=parent, plot=plot)
 
         keepAction = self._createAction(True)
         keepAction.triggered.connect(self.keepDataAspectRatio)
@@ -163,7 +163,7 @@ class YAxisOriginToolButton(PlotToolButton):
     STATE = None
     """Lazy loaded states used to feed YAxisOriginToolButton"""
 
-    def __init__(self, plot=None, parent=None):
+    def __init__(self, parent=None, plot=None):
         if self.STATE is None:
             self.STATE = {}
             # is down
@@ -175,7 +175,7 @@ class YAxisOriginToolButton(PlotToolButton):
             self.STATE[True, "state"] = "Y-axis is oriented upward"
             self.STATE[True, "action"] = "Orient Y-axis upward"
 
-        super(YAxisOriginToolButton, self).__init__(plot, parent)
+        super(YAxisOriginToolButton, self).__init__(parent=parent, plot=plot)
 
         upwardAction = self._createAction(True)
         upwardAction.triggered.connect(self.setYAxisUpward)

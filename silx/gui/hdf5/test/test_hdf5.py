@@ -33,7 +33,7 @@ import time
 import unittest
 import tempfile
 import numpy
-from decorator import contextmanager
+from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui import testutils
 from silx.gui import hdf5
