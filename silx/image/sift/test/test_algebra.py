@@ -35,14 +35,14 @@ __authors__ = ["Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "30/09/2016"
 
 import time
 import logging
 import numpy
 
 import unittest
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -101,7 +101,7 @@ class TestAlgebra(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.wg = (32, 4)
         if self.maxwg < self.wg[0] * self.wg[1]:
-            self.wg = (1, self.maxwg)
+            self.wg = (self.maxwg, 1)
 
     def tearDown(self):
         self.mat1 = None
@@ -125,20 +125,23 @@ class TestAlgebra(unittest.TestCase):
         shape = calc_size((width, height), self.wg)
 
         t0 = time.time()
-        k1 = self.program.combine(self.queue, shape, self.wg,
-                                  gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
-                                  gpu_out.data, numpy.int32(0),
-                                  width, height)
+        try:
+            k1 = self.program.combine(self.queue, shape, None,
+                                      gpu_mat1.data, coeff1, gpu_mat2.data, coeff2,
+                                      gpu_out.data, numpy.int32(0),
+                                      width, height)
+        except pyopencl.LogicError as error:
+            logger.warning("%s in test_combine", error)
         res = gpu_out.get()
         t1 = time.time()
         ref = my_combine(mat1, coeff1, mat2, coeff2)
         t2 = time.time()
         delta = abs(ref - res).max()
-        logger.info("delta=%s" % delta)
+        logger.debug("delta=%s" % delta)
         self.assert_(delta < 1e-4, "delta=%s" % (delta))
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.info("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
+            logger.debug("Linear combination took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
     def test_compact(self):
         """
@@ -164,15 +167,19 @@ class TestAlgebra(unittest.TestCase):
         nbkeypoints = numpy.int32(nbkeypoints)
         startkeypoints = numpy.int32(0)
         t0 = time.time()
-        k1 = self.program.compact(self.queue, shape, wg,
-            gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
+        try:
+            k1 = self.program.compact(self.queue, shape, wg,
+                                      gpu_keypoints.data, output.data, counter.data, startkeypoints, nbkeypoints)
+        except pyopencl.LogicError as error:
+            logger.warning("%s in test_combine", error)
         res = output.get()
         count = counter.get()[0]
         t1 = time.time()
         ref, count_ref = my_compact(keypoints, nbkeypoints)
         t2 = time.time()
 
-        print("Kernel counter : %s / Python counter : %s / True value : %s" % (count, count_ref, nbkeypoints - nb_ones))
+        logger.debug("Kernel counter : %s / Python counter : %s / True value : %s",
+                     count, count_ref, nbkeypoints - nb_ones)
 
         res_sort_arg = res[:, 2].argsort(axis=0)
         res_sort = res[res_sort_arg]
@@ -181,10 +188,10 @@ class TestAlgebra(unittest.TestCase):
         delta = abs((res_sort - ref_sort)).max()
         self.assert_(delta < 1e-5, "delta=%s" % (delta))
         self.assertEqual(count, count_ref, "counters are the same")
-        logger.info("delta=%s" % delta)
+        logger.debug("delta=%s", delta)
         if self.PROFILE:
-            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-            logger.info("Compact operation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms.",1000.0 * (t2 - t1), 1000.0 * (t1 - t0))
+            logger.debug("Compact operation took %.3fms", 1e-6 * (k1.profile.end - k1.profile.start))
 
 
 def suite():

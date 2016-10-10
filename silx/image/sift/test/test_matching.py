@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "29/09/2016"
 
 import unittest
 import time
@@ -57,7 +57,13 @@ from silx.opencl import ocl
 if ocl:
     import pyopencl, pyopencl.array
 
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
+
+try:
+    import feature
+except:
+    logger.warning("feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
+    feature = None
 
 SHOW_FIGURES = False
 PRINT_KEYPOINTS = False
@@ -79,7 +85,6 @@ class TestMatching(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -105,11 +110,6 @@ class TestMatching(unittest.TestCase):
         tests keypoints matching kernel
         '''
         image = scipy.misc.ascent().astype(numpy.float32)
-        try:
-            import feature
-        except:
-            logger.error("WARNING: feature module is not available to compare results with C++ implementation. Matching cannot be tested.")
-            feature = None
 
         if (feature is not None):
             # get the struct keypoints : (x,y,s,angle,[descriptors])
@@ -152,10 +152,10 @@ class TestMatching(unittest.TestCase):
             res_sort = res[numpy.argsort(res[:, 1])]
     #        ref_sort = ref[numpy.argsort(ref[:,1])]
 
-            logger.info("%s", res[0:20])
+            logger.debug("%s", res[0:20])
     #        print ref_sort[0:20]
-            logger.info("C++ Matching took %.3f ms" , 1000.0 * (t1_matching - t0_matching))
-            logger.info("OpenCL: %d match / C++ : %d match" , cnt, siftmatch.shape[0])
+            logger.debug("C++ Matching took %.3f ms" , 1000.0 * (t1_matching - t0_matching))
+            logger.debug("OpenCL: %d match / C++ : %d match" , cnt, siftmatch.shape[0])
 
 
             # sort to compare added keypoints
@@ -166,8 +166,8 @@ class TestMatching(unittest.TestCase):
             '''
 
             if self.PROFILE:
-                logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
-                logger.info("Matching took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+                logger.debug("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
+                logger.debug("Matching took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
 
 def suite():

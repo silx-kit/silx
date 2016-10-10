@@ -48,7 +48,7 @@ else:
     import scipy.misc
 
 import math
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 import unittest
@@ -135,8 +135,8 @@ class TestPreproc(unittest.TestCase):
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+            cls.max_wg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.max_wg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -160,8 +160,8 @@ class TestPreproc(unittest.TestCase):
         self.reduction = pyopencl.Program(self.ctx, reduct_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        if self.maxwg < 32 * 16:
-            self.wg = self.maxwg, 1
+        if self.max_wg < 32 * 16:
+            self.wg = self.max_wg, 1
         else:
             self.wg = (32, 16)  # (256, 2) #(32, 16) # (2, 256)
 
@@ -187,9 +187,11 @@ class TestPreproc(unittest.TestCase):
         """
         tests the uint8 kernel
         """
-        if self.maxwg < self.red_size:
-            logger.info("Skip test_uint8 as wg=% < red_size=%s", self.maxwg, self.red_size)
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_uint8: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
             return
+
         lint = self.input.astype(numpy.uint8)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -230,9 +232,11 @@ class TestPreproc(unittest.TestCase):
         """
         tests the uint16 kernel
         """
-        if self.maxwg < self.red_size:
-            logger.info("Skip test_uint16 as wg=% < red_size=%s", self.maxwg, self.red_size)
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_uint16: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
             return
+
         lint = self.input.astype(numpy.uint16)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -270,9 +274,11 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int32 kernel
         """
-        if self.maxwg < self.red_size:
-            logger.info("Skip test_int32 as wg=% < red_size=%s", self.maxwg, self.red_size)
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_int32: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
             return
+
         lint = self.input.astype(numpy.int32)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -310,9 +316,11 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int64 kernel
         """
-        if self.maxwg < self.red_size:
-            logger.info("Skip test_int64 as wg=% < red_size=%s", self.maxwg, self.red_size)
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_int64: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
             return
+
         lint = self.input.astype(numpy.int64)
         t0 = time.time()
         au8 = pyopencl.array.to_device(self.queue, lint)
@@ -349,9 +357,11 @@ class TestPreproc(unittest.TestCase):
         """
         tests the int64 kernel
         """
-        if self.maxwg < self.red_size:
-            logger.info("Skip test_rgb as wg=% < red_size=%s", self.maxwg, self.red_size)
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_uint16: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
             return
+
         lint = numpy.empty((self.input.shape[0], self.input.shape[1], 3), dtype=numpy.uint8)
         lint[:, :, 0] = self.input.astype(numpy.uint8)
         lint[:, :, 1] = self.input.astype(numpy.uint8)

@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/10/2016"
+__date__ = "06/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -101,14 +101,18 @@ logger.info("Project name: %s", PROJECT_NAME)
 
 
 class TestResult(unittest.TestResult):
-    logger = logging.getLogger("memProf")
-    logger.setLevel(logging.DEBUG)
-    logger.handlers.append(logging.FileHandler("profile.log"))
+
+    def __init__(self, *arg, **kwarg):
+        unittest.TestResult.__init__(self, *arg, **kwarg)
+        self.logger = logging.getLogger("memProf")
+        self.logger.setLevel(min(logging.INFO, logging.root.level))
+        self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
@@ -124,8 +128,8 @@ class TestResult(unittest.TestResult):
                         self.__mem_start) * ratio
         else:
             memusage = 0
-        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-            time.time() - self.__time_start, memusage, test.id()))
+        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
+            time.time() - self.__time_start, memusage, test.id())
 
 
 if sys.hexversion < 34013184:  # 2.7
@@ -225,9 +229,14 @@ def build_project(name, root_dir):
 
 
 from argparse import ArgumentParser
-
+epilog = """Environment variables:
+WITH_QT_TEST=False to disable graphical tests,
+SILX_OPENCL=False to disable OpenCL tests.
+SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+GPU=False to disable the use of a GPU with OpenCL test
+"""
 parser = ArgumentParser(description='Run the tests.',
-                        epilog='To disable graphical tests, set WITH_QT_TEST environment variable to False')
+                        epilog=epilog)
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,
@@ -244,6 +253,16 @@ parser.add_argument("-v", "--verbose", default=0,
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
+parser.add_argument("-x", "--no-gui", dest="gui", default=True,
+                    action="store_false",
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
+                    action="store_false",
+                    help="Disable the test of the OpenCL part")
+parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
+                    action="store_true",
+                    help="Disable test with large memory consumption (>100Mbyte")
+
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
                     default=(default_test_name,),
@@ -261,6 +280,14 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
 
+if not options.gui:
+    os.environ["WITH_QT_TEST"] = "False"
+
+if not options.opencl:
+    os.environ["SILX_OPENCL"]="False"
+
+if options.low_mem:
+    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
