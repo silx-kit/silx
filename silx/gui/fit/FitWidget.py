@@ -52,9 +52,14 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
 from .FitConfig import getFitConfigDialog
 
 QTVERSION = qt.qVersion()
-
 DEBUG = 0
 _logger = logging.getLogger(__name__)
+
+
+__authors__ = ["V.A. Sole", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "10/10/2016"
+
 
 
 class FitWidget(qt.QWidget):
@@ -170,7 +175,7 @@ class FitWidget(qt.QWidget):
             else:
                 self.funEvent(self.fitmanager.selectedtheory)
             if self.fitmanager.selectedbg is None:
-                self.guiConfig.BkgComBox.setCurrentIndex(0)
+                self.guiConfig.BkgComBox.setCurrentIndex(1)
                 self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
             else:
                 self.bkgEvent(self.fitmanager.selectedbg)
@@ -263,7 +268,7 @@ class FitWidget(qt.QWidget):
         try:
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
-                    self.fitmanager.selectedtheory)
+                        self.fitmanager.selectedtheory)
             self.guiConfig.FunComBox.setCurrentIndex(i)
             self.funEvent(self.fitmanager.selectedtheory)
         except ValueError:
@@ -272,8 +277,10 @@ class FitWidget(qt.QWidget):
             self.funEvent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
-            i = list(self.fitmanager.bgtheories.keys()
-                     ).index(self.fitmanager.selectedbg)
+            i = 1 + \
+                list(self.fitmanager.bgtheories.keys()).index(
+                        self.fitmanager.selectedbg)
+            print(i)
             self.guiConfig.BkgComBox.setCurrentIndex(i)
         except ValueError:
             _logger.error("Background not in list %s",
@@ -408,12 +415,29 @@ class FitWidget(qt.QWidget):
         if bgtheory in self.fitmanager.bgtheories:
             self.fitmanager.setbackground(bgtheory)
         else:
-            qt.QMessageBox.information(
-                self, "Info",
-                "%s is not a known background theory. Known " % bgtheory +
-                "theories are: " + ", ".join(self.fitmanager.bgtheories)
-            )
-            return
+            functionsfile = qt.QFileDialog.getOpenFileName(
+                self, "Select python module with your function(s)", "",
+                "Python Files (*.py);;All Files (*)")
+
+            if len(functionsfile):
+                try:
+                    self.fitmanager.loadbgtheories(functionsfile)
+                except ImportError:
+                    qt.QMessageBox.critical(self, "ERROR",
+                                            "Function not imported")
+                    return
+                else:
+                    # empty the ComboBox
+                    while self.guiConfig.BkgComBox.count() > 1:
+                        self.guiConfig.BkgComBox.removeItem(1)
+                    # and fill it again
+                    for key in self.fitmanager.bgtheories:
+                        self.guiConfig.BkgComBox.addItem(str(key))
+
+            i = 1 + \
+                list(self.fitmanager.bgtheories.keys()).index(
+                    self.fitmanager.selectedbg)
+            self.guiConfig.BkgComBox.setCurrentIndex(i)
         self.__initialParameters()
 
     def funEvent(self, theoryname):

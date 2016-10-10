@@ -138,7 +138,6 @@ def estimate_strip(x, y):
 def configure(**kw):
     """Update the CONFIG dict
     """
-    print("in config", kw)
     # inspect **kw to find known keys, update them in CONFIG
     for key in CONFIG:
         if key in kw:

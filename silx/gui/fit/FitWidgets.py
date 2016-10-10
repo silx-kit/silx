@@ -184,11 +184,10 @@ class FitConfigWidget(qt.QWidget):
         layout2.addWidget(self.BkgLabel, 1, 0)
 
         self.BkgComBox = qt.QComboBox(self)
-        # Not implemented (TODO?)
-        # self.BkgComBox.addItem("Add Background")
-        # self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
-        #                            "Load background theories from a file",
-        #                            qt.Qt.ToolTipRole)
+        self.BkgComBox.addItem("Add Background(s)")
+        self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background(s)"),
+                                   "Load background theories from a file",
+                                   qt.Qt.ToolTipRole)
 
         layout2.addWidget(self.BkgComBox, 1, 1)
 
@@ -535,7 +534,7 @@ def test():
     fit = fitmanager.FitManager(x=x, y=y1)
 
     fitfuns = fittheories.FitTheories()
-    fit.addtheory(theory="Gaussian",
+    fit.addtheory(name="Gaussian",
                   function=functions.sum_gauss,
                   parameters=("height", "peak center", "fwhm"),
                   estimate=fitfuns.estimate_height_position_fwhm)
@@ -559,7 +558,7 @@ def test():
     fit.setdata(x=x, y=y2)
 
     # Define new theory
-    fit.addtheory(theory="Asymetric gaussian",
+    fit.addtheory(name="Asymetric gaussian",
                   function=functions.sum_splitgauss,
                   parameters=("height", "peak center", "left fwhm", "right fwhm"),
                   estimate=fitfuns.estimate_splitgauss)
