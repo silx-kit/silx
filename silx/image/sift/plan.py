@@ -845,7 +845,11 @@ class SiftPlan(object):
 def demo():
     # Prepare debugging
     import scipy.misc
-    img = scipy.misc.ascent()
+    if hasattr(scipy.misc, "ascent"):
+        img = scipy.misc.ascent()
+    else:
+        img = scipy.misc.lena()
+
     s = SiftPlan(template=img)
     print(s.keypoints(img))
 

@@ -93,7 +93,12 @@ class TestConvol(unittest.TestCase):
     def setUp(self):
         if scipy and ocl is None:
             return
-        self.input = scipy.misc.ascent().astype(numpy.float32)
+
+        if hasattr(scipy.misc, "ascent"):
+            self.input = scipy.misc.ascent().astype(numpy.float32)
+        else:
+            self.input = scipy.misc.lena().astype(numpy.float32)
+
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)

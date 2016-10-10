@@ -109,7 +109,11 @@ class TestMatching(unittest.TestCase):
         '''
         tests keypoints matching kernel
         '''
-        image = scipy.misc.ascent().astype(numpy.float32)
+        if hasattr(scipy.misc, "ascent"):
+            image = scipy.misc.ascent().astype(numpy.float32)
+        else:
+            image = scipy.misc.lena().astype(numpy.float32)
+
 
         if (feature is not None):
             # get the struct keypoints : (x,y,s,angle,[descriptors])
