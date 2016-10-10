@@ -80,7 +80,13 @@ class TestLinalign(unittest.TestCase):
     def setUp(self):
         if scipy and ocl is None:
             return
-        self.lena = scipy.misc.ascent().astype(numpy.float32)
+
+        if hasattr(scipy.misc, "ascent"):
+            self.lena = scipy.misc.ascent().astype(numpy.float32)
+        else:
+            self.lena = scipy.misc.lena().astype(numpy.float32)
+
+
         self.shape = self.lena.shape
         self.extra = (10, 11)
 #        self.img = scipy.ndimage.shift(self.lena, (7, 5))
