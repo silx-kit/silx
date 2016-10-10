@@ -82,10 +82,14 @@ class BackgroundParamWidget(qt.QWidget):
         self.stripIterValue._v = validator
         self.stripIterValue.setText("0")
         self.stripIterValue.editingFinished[()].connect(self._emitSignal)
+        self.stripIterValue.setToolTip(
+                "Number of iterations for strip algorithm.\n" +
+                "If greater than 999, an 2nd pass of strip filter is " +
+                "applied to remove artifacts created by first pass.")
 
         # Snip parameters ----------------------------------------------------
         self.snipWidthLabel = qt.QLabel(self)
-        self.snipWidthLabel.setText("SNIP Width")
+        self.snipWidthLabel.setText("Snip Width")
 
         self.snipWidthSpin = qt.QSpinBox(self)
         self.snipWidthSpin.setMaximum(300)
