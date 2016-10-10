@@ -51,6 +51,7 @@ import sys
 from .filters import strip, smooth1d
 from .leastsq import leastsq
 from .fittheory import FitTheory
+from . import bgtheories
 
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
@@ -87,11 +88,13 @@ class FitManager(object):
         """
         """
         self.fitconfig = {
-            'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
-                               # we can get rid of this param (will be defined in fittheories for peak detection)
+            # 'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
+            #                    # we can get rid of this param (will be defined in fittheories for peak detection)
             'WeightFlag': weight_flag,
             'fitbkg': 'No Background',
             'fittheory': None,
+            # Next few parameters are defined for compatibility with legacy theories
+            # which take the background as argument for their estimation function
             'StripWidth': 2,
             'StripNIterations': 5000,
             'StripThresholdFactor': 1.0,
@@ -135,61 +138,13 @@ class FitManager(object):
         """Name of currently selected theory. This name matches a key in
         :attr:`theories`."""
 
-        self.bgtheories = OrderedDict((
-             ('No Background', FitTheory(
-                                 description="No background function",
-                                 function=self.bkg_none,
-                                 parameters=[],
-                                 estimate=None)),
-             ('Constant', FitTheory(
-                                 description="Constant background",
-                                 function=self.bkg_constant,
-                                 parameters=['Constant'],
-                                 estimate=self.estimate_builtin_bkg)),
-             ('Linear', FitTheory(
-                                 description="Linear background, parameters 'Constant' and 'Slope'",
-                                 function=self.bkg_linear,
-                                 parameters=['Constant', 'Slope'],
-                                 estimate=self.estimate_builtin_bkg)),
-             ('Strip', FitTheory(
-                                 description="Background based on strip filter\n" +
-                                             "Parameters 'StripWidth', 'StripIterations'",
-                                 function=self.bkg_strip,
-                                 parameters=['StripWidth', 'StripIterations'],
-                                 estimate=self.estimate_builtin_bkg))))
+        self.bgtheories = OrderedDict()
         """Dictionary of background theories.
 
-        Keys are descriptive theory names (e.g "Constant" or "Linear").
-        Values are :class:`silx.math.fit.fittheory.FitTheory` objects.
-
-          - *description* is an optional description string, which can be used
-            for instance as a tooltip message in a GUI.
-
-          - *function* is a callable function with the signature ``function(x, params) -> y``
-            where params is a sequence of parameters.
-
-          - *parameters* is a sequence of parameter names (e.g. could be
-            for a linear function ``["constant", "slope"]``).
-
-          - *estimate* is a function to compute initial values for parameters.
-            It should have the following signature:
-            ``f(x, y) -> (estimated_param, constraints)``
-
-                Parameters:
-
-                - ``x`` is the independant variable, i.e. all the points where
-                  the function is calculated
-                - ``y`` is the data from which we want to extract the bg
-
-                Return values:
-
-                - ``estimated_param`` is a list of estimated values for each
-                  background parameter.
-                - ``constraints`` is a 2D sequence of dimension ``(n_parameters, 3)``
-
-                  See explanation about 'constraints' in :attr:`fit_results`
-                  documentation.
+        See :attr:`theories` for documentation on theories.
         """
+
+        self.loadbgtheories(bgtheories)
 
         self.selectedbg = 'No Background'
         """Name of currently selected background theory. This name matches a
@@ -256,12 +211,12 @@ class FitManager(object):
 
         self.setdata(x, y, sigmay)
 
-        # Attributes used to store internal background parameters and data,
-        # to avoid costly computations when parameters stay the same
-        self._bkg_strip_oldx = numpy.array([])
-        self._bkg_strip_oldy = numpy.array([])
-        self._bkg_strip_oldpars = [0, 0]
-        self._bkg_strip_oldbkg = numpy.array([])
+        # # Attributes used to store internal background parameters and data,
+        # # to avoid costly computations when parameters stay the same
+        # self._bkg_strip_oldx = numpy.array([])
+        # self._bkg_strip_oldy = numpy.array([])
+        # self._bkg_strip_oldpars = [0, 0]
+        # self._bkg_strip_oldbkg = numpy.array([])
 
     ##################
     # Public methods #
@@ -331,6 +286,55 @@ class FitManager(object):
             raise TypeError("You must supply a FitTheory object or define " +
                             "a fit function and its parameters.")
 
+    def addbgtheory(self, name, theory=None,
+                    function=None, parameters=None,
+                    estimate=None, configure=None, derivative=None,
+                    description=None, config_widget=None):
+        """Add a new theory to dictionary :attr:`bgtheories`.
+
+        You can pass a name and a :class:`FitTheory` object as arguments, or
+        alternatively provide all arguments necessary to instantiate a new
+        :class:`FitTheory` object.
+
+        :param name: String with the name describing the function
+        :param theory: :class:`FitTheory` object, defining a fit function and
+            associated information (estimation function, description…).
+            If this parameter is provided, all other parameters, except for
+            ``name``, are ignored.
+        :type theory: :class:`silx.math.fit.fittheory.FitTheory`
+        :param function function: Mandatory argument if ``theory`` is not provided.
+            See documentation for :attr:`silx.math.fit.fittheory.FitTheory.function`.
+        :param list[str] parameters: Mandatory argument if ``theory`` is not provided.
+            See documentation for :attr:`silx.math.fit.fittheory.FitTheory.parameters`.
+        :param function estimate: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.estimate`
+        :param function configure: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.configure`
+        :param function derivative: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.derivative`
+        :param str description: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.description`
+        :param config_widget: See documentation for
+            :attr:`silx.math.fit.fittheory.FitTheory.config_widget`
+        """
+        if theory is not None:
+            self.bgtheories[name] = theory
+
+        elif function is not None and parameters is not None:
+            self.bgtheories[name] = FitTheory(
+                description=description,
+                function=function,
+                parameters=parameters,
+                estimate=estimate,
+                configure=configure,
+                derivative=derivative,
+                config_widget=config_widget,
+            )
+
+        else:
+            raise TypeError("You must supply a FitTheory object or define " +
+                            "a background function and its parameters.")
+
     def configure(self, **kw):
         """Configure the current theory by filling or updating the
         :attr:`fitconfig` dictionary.
@@ -377,18 +381,18 @@ class FitManager(object):
         result.update(self.fitconfig)
         return result
 
-    def dataupdate(self):
-        """This method can be updated with a user defined function to
-        update data (for instance modify range fo :attr:`xdata`,
-        :attr:`ydata` and :attr:`sigmay` when user zooms in or out in a GUI
-        plot).
-
-        It is called at the beginning of :meth:`estimate` and
-        :meth:`runfit`.
-
-        By default, it does nothing.
-        """
-        pass
+    # def dataupdate(self):
+    #     """This method can be updated with a user defined function to
+    #     update data (for instance modify range fo :attr:`xdata`,
+    #     :attr:`ydata` and :attr:`sigmay` when user zooms in or out in a GUI
+    #     plot).
+    #
+    #     It is called at the beginning of :meth:`estimate` and
+    #     :meth:`runfit`.
+    #
+    #     By default, it does nothing.
+    #     """
+    #     pass
 
     def estimate(self, callback=None):
         """
@@ -428,9 +432,9 @@ class FitManager(object):
                 5: 'DELTA',
                 6: 'SUM',
                 7: 'IGNORE'}
-
-        # Update data using user defined method
-        self.dataupdate()
+        #
+        # # Update data using user defined method
+        # self.dataupdate()
 
         xwork = self.xdata
         ywork = self.ydata
@@ -633,6 +637,63 @@ class FitManager(object):
         else:
             self._load_legacy_theories(theories_module)
 
+    def loadbgtheories(self, theories):
+        """Import user defined background functions defined in an external Python
+        module (source file), and save them in :attr:`theories`.
+
+        An example of such a file can be found in the sources of
+        :mod:`silx.math.fit.fittheories`. It must contain a
+        dictionary named ``THEORY`` with the following structure::
+
+            THEORY = {
+                'theory_name_1':
+                    FitTheory(description='Description of theory 1',
+                              function=fitfunction1,
+                              parameters=('param name 1', 'param name 2', …),
+                              estimate=estimation_function1,
+                              configure=configuration_function1,
+                'theory_name_2':
+                    FitTheory(…),
+            }
+
+        See documentation of :mod:`silx.math.fit.bgtheories` and
+        :mod:`silx.math.fit.fittheory` for more
+        information on designing your background functions file.
+
+        :param theories: Module or name of python source file containing the
+            definition of background functions.
+        :raise: ImportError if theories cannot be imported
+        """
+        from types import ModuleType
+        if isinstance(theories, ModuleType):
+            theories_module = theories
+        else:
+            # if theories is not a module, it must be a string
+            string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+            if not isinstance(theories, string_types):
+                raise ImportError("theory must be a python module, a module" +
+                                  "name or a python filename")
+            # if theories is a filename
+            if os.path.isfile(theories):
+                sys.path.append(os.path.dirname(theories))
+                f = os.path.basename(os.path.splitext(theories)[0])
+                theories_module = __import__(f)
+            # if theories is a module name
+            else:
+                theories_module = __import__(theories)
+
+        if hasattr(theories_module, "INIT"):
+            theories.INIT()
+
+        if not hasattr(theories_module, "THEORY"):
+            msg = "File %s does not contain a THEORY dictionary" % theories
+            raise ImportError(msg)
+
+        elif isinstance(theories_module.THEORY, dict):
+            # silx format for theory definition
+            for theory_name, fittheory in list(theories_module.THEORY.items()):
+                self.addbgtheory(theory_name, fittheory)
+
     def setbackground(self, theory):
         """Choose a background type from within :attr:`bgtheories`.
 
@@ -762,7 +823,7 @@ class FitManager(object):
             ``full_output=True``. Uncertainties is a sequence of uncertainty
             values associated with each fitted parameter.
         """
-        self.dataupdate()
+        # self.dataupdate()
 
         self.state = 'Fit in progress'
         self.chisq = None
@@ -944,86 +1005,55 @@ class FitManager(object):
                             "theories[%s]" % self.selectedtheory +
                             " must be callable.")
 
-    def bkg_constant(self, x, *pars):
-        """Constant background function ``y = constant``
 
-        :param x: Abscissa values
-        :type x: numpy.ndarray
-        :param pars: Background function parameters: ``(constant, )``
-        :return: Array of the same shape as ``x`` filled with constant value
-        """
-        return pars[0] * numpy.ones(numpy.shape(x), numpy.float)
+    # def bkg_strip(self, x, *pars):
+    #     """
+    #     Internal Background based on a strip filter
+    #     (:meth:`silx.math.fit.filters.strip`)
+    #
+    #     Parameters are *(strip_width, n_iterations)*
+    #
+    #     A 1D smoothing is applied prior to the stripping, if configuration
+    #     parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
+    #
+    #     See http://pymca.sourceforge.net/stripbackground.html
+    #     """
+    #     if self._bkg_strip_oldpars[0] == pars[0]:
+    #         if self._bkg_strip_oldpars[1] == pars[1]:
+    #             if (len(x) == len(self._bkg_strip_oldx)) & \
+    #                (len(self.ydata) == len(self._bkg_strip_oldy)):
+    #                 # same parameters
+    #                 if numpy.sum(self._bkg_strip_oldx == x) == len(x):
+    #                     if numpy.sum(self._bkg_strip_oldy == self.ydata) == len(self.ydata):
+    #                         return self._bkg_strip_oldbkg
+    #     self._bkg_strip_oldy = self.ydata
+    #     self._bkg_strip_oldx = x
+    #     self._bkg_strip_oldpars = pars
+    #     idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
+    #     yy = numpy.take(self.ydata, idx)
+    #     if self.fitconfig["SmoothStrip"]:
+    #         yy = smooth1d(yy)
+    #
+    #     nrx = numpy.shape(x)[0]
+    #     nry = numpy.shape(yy)[0]
+    #     if nrx == nry:
+    #         self._bkg_strip_oldbkg = strip(yy, pars[0], pars[1])
+    #         return self._bkg_strip_oldbkg
+    #
+    #     else:
+    #         self._bkg_strip_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
+    #                                        pars[0], pars[1])
+    #         return self._bkg_strip_oldbkg
 
-    def bkg_linear(self, x, *pars):
-        """Linear background function ``y = constant + slope * x``
-
-        :param x: Abscissa values
-        :type x: numpy.ndarray
-        :param pars: Background function parameters: ``(constant, slope)``
-        :return: Array ``y = constant + slope * x``
-        """
-        return pars[0] + pars[1] * x
-
-    def bkg_strip(self, x, *pars):
-        """
-        Internal Background based on a strip filter
-        (:meth:`silx.math.fit.filters.strip`)
-
-        Parameters are *(strip_width, n_iterations)*
-
-        A 1D smoothing is applied prior to the stripping, if configuration
-        parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
-
-        See http://pymca.sourceforge.net/stripbackground.html
-        """
-        if self._bkg_strip_oldpars[0] == pars[0]:
-            if self._bkg_strip_oldpars[1] == pars[1]:
-                if (len(x) == len(self._bkg_strip_oldx)) & \
-                   (len(self.ydata) == len(self._bkg_strip_oldy)):
-                    # same parameters
-                    if numpy.sum(self._bkg_strip_oldx == x) == len(x):
-                        if numpy.sum(self._bkg_strip_oldy == self.ydata) == len(self.ydata):
-                            return self._bkg_strip_oldbkg
-        self._bkg_strip_oldy = self.ydata
-        self._bkg_strip_oldx = x
-        self._bkg_strip_oldpars = pars
-        idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
-        yy = numpy.take(self.ydata, idx)
-        if self.fitconfig["SmoothStrip"]:
-            yy = smooth1d(yy)
-
-        nrx = numpy.shape(x)[0]
-        nry = numpy.shape(yy)[0]
-        if nrx == nry:
-            self._bkg_strip_oldbkg = strip(yy, pars[0], pars[1])
-            return self._bkg_strip_oldbkg
-
-        else:
-            self._bkg_strip_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-                                           pars[0], pars[1])
-            return self._bkg_strip_oldbkg
-
-    def bkg_squarefilter(self, x, *pars):
-        """
-        Square filter Background
-        """
-        # TODO: docstring
-        # why is this different than bkg_constant?
-        # what is pars[0]?
-        # what defines the (xmin, xmax) limits of the square function?
-        return pars[1] * numpy.ones(numpy.shape(x), numpy.float)
-
-    def bkg_none(self, x, *pars):
-        """Null background function.
-
-        :param x: Abscissa values
-        :type x: numpy.ndarray
-        :param pars: Background function parameters. Ignored, only present
-            because other methods expect this signature for all background
-            functions
-        :return: Array of 0 values of the same shape as ``x``
-        """
-        return numpy.zeros(x.shape, numpy.float)
+    # def bkg_squarefilter(self, x, *pars):
+    #     """
+    #     Square filter Background
+    #     """
+    #     # TODO: docstring
+    #     # why is this different than bkg_constant?
+    #     # what is pars[0]?
+    #     # what defines the (xmin, xmax) limits of the square function?
+    #     return pars[1] * numpy.ones(numpy.shape(x), numpy.float)
 
     def _load_legacy_theories(self, theories_module):
         """Load theories from a custom module in the old PyMca format.
@@ -1066,140 +1096,45 @@ class FitManager(object):
                                derivative,
                                pymca_legacy=True))
 
-    def estimate_builtin_bkg(self, x, y):
-        """Compute the initial parameters for the background function before
-        starting the iterative fit.
-
-        The return parameters and constraints depends on the selected theory:
-
-            - ``'Constant'``: [min(background)], constraint FREE
-            - ``'Strip'``: [2.000, 5000, 0.0], constraint FIXED
-            - ``'No Background'``: empty array []
-            - ``'Square Filter'``:
-            - ``'Linear'``: [constant, slope], constraint FREE
-
-        :param x: Array of values for the independant variable
-        :param y: Array of data values for the dependant data
-        :return: Tuple ``(fitted_param, constraints)`` where:
-
-            - ``fitted_param`` is a list of the estimated background
-              parameters. The length of the list depends on the theory used
-            - ``constraints`` is a numpy array of shape
-              *(len(fitted_param), 3)* containing constraint information for
-              each parameter *code, cons1, cons2* (see documentation of
-              :attr:`fit_results`)
-        """
-        # TODO: document square filter
-
-        # extract bg by applying a strip filter
-        if self.fitconfig["SmoothStrip"]:
-            y = smooth1d(y)
-        background = strip(y,
-                           w=self.fitconfig["StripWidth"],
-                           niterations=self.fitconfig["StripNIterations"],
-                           factor=self.fitconfig["StripThresholdFactor"])
-
-        npoints = len(background)
-        if self.selectedbg == 'Constant':
-            # Constant background
-            Sy = min(background)
-            fittedpar = [Sy]
-            # code = 0: FREE
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-
-        elif self.selectedbg == 'Strip':
-            # Strip
-            fittedpar = [self.fitconfig["StripWidth"],
-                         self.fitconfig["StripNIterations"]]
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-            # code = 3: FIXED
-            cons[0][0] = 3
-            cons[1][0] = 3
-
-        elif self.selectedbg == 'No Background':
-            # None
-            fittedpar = []
-            # code = 0: FREE
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-
-        elif self.selectedbg == 'Square Filter':
-            fwhm = self.fitconfig['FwhmPoints']
-            # set an odd number
-            if fwhm % 2 == 1:
-                fittedpar = [fwhm, 0.0]
-            else:
-                fittedpar = [fwhm + 1, 0.0]
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-            # code = 3: FIXED
-            cons[0][0] = 3
-            cons[1][0] = 3
-
-        elif self.selectedbg == 'Linear':
-            n = float(npoints)
-            Sy = numpy.sum(background)
-            Sx = float(numpy.sum(x))
-            Sxx = float(numpy.sum(x * x))
-            Sxy = float(numpy.sum(x * background))
-
-            deno = n * Sxx - (Sx * Sx)
-            if (deno != 0):
-                bg = (Sxx * Sy - Sx * Sxy) / deno
-                slop = (n * Sxy - Sx * Sy) / deno
-            else:
-                bg = 0.0
-                slop = 0.0
-            fittedpar = [bg / 1.0, slop / 1.0]
-            # code = 0: FREE
-            cons = numpy.zeros((len(fittedpar), 3), numpy.float)
-
-        else:
-            # this can happen if someone modifies self.selectedbg without
-            # going through the proper channels (method setbackground)
-            msg = "Selected background theory %s " % self.selectedbg
-            msg += "not a valid theory. Valid theories: "
-            msg += str(list(self.bgtheories.keys()))
-            raise AttributeError(msg)
-
-        return fittedpar, cons
-
-    def squarefilter(self, y, width):
-        """
-
-        :param y:
-        :param width:
-        :return:
-        """ # TODO: document
-        if len(y) == 0:
-            if isinstance(y, list):
-                return []
-            else:
-                return numpy.array([])
-
-        # make width an odd number of samples and calculate half width
-        width = int(width) + ((int(width) + 1) % 2)
-        half_width = int(width / 2)
-
-        len_coef = 2 * half_width + width
-
-        if len(y) < len_coef:
-            return y
-
-        coef = numpy.zeros((len_coef,), numpy.float)
-
-        coef[0:half_width] = -0.5 / float(half_width)
-        coef[half_width:(half_width + width)] = 1.0 / float(width)
-        coef[(half_width + width):len(coef)] = -0.5 / float(half_width)
-
-        result = numpy.zeros(len(y), numpy.float)
-        result[(width - 1):-(width - 1)] = numpy.convolve(y, coef, 0)
-        result[0:width - 1] = result[width - 1]
-        result[-(width - 1):] = result[-(width + 1)]
-        return result
+    # def squarefilter(self, y, width):
+    #     """
+    #
+    #     :param y:
+    #     :param width:
+    #     :return:
+    #     """ # TODO: document
+    #     if len(y) == 0:
+    #         if isinstance(y, list):
+    #             return []
+    #         else:
+    #             return numpy.array([])
+    #
+    #     # make width an odd number of samples and calculate half width
+    #     width = int(width) + ((int(width) + 1) % 2)
+    #     half_width = int(width / 2)
+    #
+    #     len_coef = 2 * half_width + width
+    #
+    #     if len(y) < len_coef:
+    #         return y
+    #
+    #     coef = numpy.zeros((len_coef,), numpy.float)
+    #
+    #     coef[0:half_width] = -0.5 / float(half_width)
+    #     coef[half_width:(half_width + width)] = 1.0 / float(width)
+    #     coef[(half_width + width):len(coef)] = -0.5 / float(half_width)
+    #
+    #     result = numpy.zeros(len(y), numpy.float)
+    #     result[(width - 1):-(width - 1)] = numpy.convolve(y, coef, 0)
+    #     result[0:width - 1] = result[width - 1]
+    #     result[-(width - 1):] = result[-(width + 1)]
+    #     return result
 
 
 def test():
     from .functions import sum_gauss
     from . import fittheories
+    from . import bgtheories
 
     # Create synthetic data with a sum of gaussian functions
     x = numpy.arange(1000).astype(numpy.float)
@@ -1207,7 +1142,7 @@ def test():
     p = [1000, 100., 250,
          255, 690., 45,
          1500, 800.5, 95]
-    y = 2.65 * x + 13 + sum_gauss(x, *p)
+    y = 0.5 * x + 13 + sum_gauss(x, *p)
 
     # Fitting
     fit = FitManager()
@@ -1216,6 +1151,7 @@ def test():
     fit.setdata(x=x, y=y)
     fit.loadtheories(fittheories)
     fit.settheory('Gaussians')
+    fit.loadbgtheories(bgtheories)
     fit.setbackground('Linear')
     fit.estimate()
     fit.runfit()

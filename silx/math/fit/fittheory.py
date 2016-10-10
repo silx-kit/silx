@@ -104,10 +104,7 @@ class FitTheory(object):
             - ``constraints`` is a sequence of shape *(n, 3)*, where *n* is the
               number of estimated parameters, containing the constraints for each
               parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
-              explanations about constraints.
-
-
-        """
+              explanations about constraints."""
         if estimate is None:
             self.estimate = self.default_estimate
 
