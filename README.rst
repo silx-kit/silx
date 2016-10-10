@@ -5,8 +5,16 @@ silx toolkit
 The silx project aims at providing a collection of Python packages to support the development of data assessment, reduction and analysis applications at synchrotron radiation facilities.
 It aims at providing reading/writing different file formats, data reduction routines and a set of Qt widgets to browse and visualize data.
 
-The current version provides reading `SPEC <https://certif.com/spec.html>`_ file format, histogramming, curves and image plot widget with a set of associated tools
-(See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
+The current version provides :
+
+* reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of `SPEC <https://certif.com/spec.html>`_ file format)
+* histogramming
+* fitting
+* curves
+* image plot widget with a set of associated tools (See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
+* HDF5 browser
+* isosurface rendering (using marching cubes)
+* image alignement (sift - OpenCL implementation)
 
 Installation
 ------------
@@ -47,6 +55,8 @@ The GUI widgets of the silx package depend on the following extra packages:
 Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on the following extra package:
 * `h5py <http://www.h5py.org/>`_
 
+* `ipython <https://ipython.org/>`_ and `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ requires silx.gui.console.py
+
 Supported platforms: Linux, Windows, Mac OS X.
 
 Documentation
@@ -74,6 +84,14 @@ To run the tests from the python interpreter, run:
 To run the tests, from the source directory, run::
 
     python run_tests.py
+
+Examples
+--------
+
+Some examples are available in the source code repository. For example::
+
+    python examples/{exampleName.py}
+
 
 License
 -------
