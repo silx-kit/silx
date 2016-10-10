@@ -35,8 +35,9 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "06/10/2016"
 
+import os
 import unittest
 import time
 import logging
@@ -93,6 +94,7 @@ class TestReduction(unittest.TestCase):
     def test_max_min_rnd(self):
         self.test_max_min(numpy.random.randint(1000), -numpy.random.randint(1000))
 
+    @unittest.skipIf(os.environ.get("SILX_TEST_LOW_MEM") == "True", "low mem")
     def test_max_min_rnd_big(self):
         self.test_max_min(512, 0, (1980, 2560))
 
@@ -161,5 +163,6 @@ def suite():
         testSuite.addTest(TestReduction("test_max_min_rnd"))
         testSuite.addTest(TestReduction("test_max_min"))
         testSuite.addTest(TestReduction("test_max_min_rnd_big"))
+
 
     return testSuite

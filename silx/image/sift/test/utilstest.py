@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "31/08/2016"
+__date__ = "29/09/2016"
 
 import os
 import imp
@@ -54,7 +54,8 @@ except ImportError:  # Python2
 import numpy
 import shutil
 logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger("utilstest")
+logger = logging.getLogger(__name__)
+
 
 def copy(infile, outfile):
     "link or copy file according to the OS"
@@ -62,6 +63,7 @@ def copy(infile, outfile):
         os.symlink(infile, outfile)
     else:
         shutil.copy(infile, outfile)
+
 
 class UtilsTest(object):
     """

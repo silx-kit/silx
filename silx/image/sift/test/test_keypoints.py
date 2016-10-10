@@ -27,6 +27,9 @@
 
 """
 Test suite for image kernels
+
+For Python implementation of tested functions, see "test_image_functions.py"
+
 """
 
 from __future__ import division, print_function
@@ -52,7 +55,7 @@ else:
 # for Python implementation of tested functions
 from .test_image_functions import my_compact, my_orientation, keypoints_compare, my_descriptor, descriptors_compare
 from .test_image_setup import orientation_setup, descriptor_setup
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 from ..utils import calc_size, get_opencl_code
@@ -64,9 +67,6 @@ PRINT_KEYPOINTS = True
 USE_CPP_SIFT = False  # use reference cplusplus implementation for descriptors comparison... not valid for (octsize,scale)!=(1,1)
 
 
-'''
-For Python implementation of tested functions, see "test_image_functions.py"
-'''
 
 
 class ParameterisedTestCase(unittest.TestCase):
@@ -201,6 +201,12 @@ class test_keypoints(ParameterisedTestCase):
         keypoints_end = numpy.int32(actual_nb_keypoints)
         counter = pyopencl.array.to_device(self.queue, keypoints_end)  # actual_nb_keypoints)
 
+        max_wg = kernel_workgroup_size(self.program_orient,"orientation_assignment")
+        if max_wg < wg[0]:
+            logger.warning("test_orientation: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
+            return
+
+
         t0 = time.time()
         k1 = self.program_orient.orientation_assignment(self.queue, shape, wg,
         	                                            gpu_keypoints.data, gpu_grad.data, gpu_ori.data, counter.data,
@@ -293,6 +299,12 @@ class test_keypoints(ParameterisedTestCase):
         keypoints_start, keypoints_end = numpy.int32(keypoints_start), numpy.int32(keypoints_end)
         grad_height, grad_width = numpy.int32(grad.shape)
         counter = pyopencl.array.to_device(self.queue, keypoints_end)
+
+        max_wg = kernel_workgroup_size(self.program_keypoint,"descriptor")
+        if max_wg < wg[0]:
+            logger.warning("test_descriptor: Skipping test of WG=%s when maximum for this kernel is %s ", wg, max_wg)
+            return
+
 
         t0 = time.time()
         k1 = self.program_keypoint.descriptor(self.queue, shape, wg,

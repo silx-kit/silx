@@ -50,20 +50,20 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "2013-07-19"
+__date__ = "29/09/2016"
 __status__ = "beta"
 
 import time
 import math
 import logging
 import threading
-import sys
 import gc
 import numpy
 from .param import par
-from silx.opencl import ocl, pyopencl
+from silx.opencl import ocl, pyopencl, kernel_workgroup_size
+from silx.opencl.utils import get_opencl_code, nextpower
 
-from .utils import calc_size, kernel_size, get_opencl_code
+from .utils import calc_size, kernel_size
 logger = logging.getLogger("sift.plan")
 
 
@@ -150,26 +150,6 @@ class SiftPlan(object):
         if PIX_PER_KP:
             self.PIX_PER_KP = int(PIX_PER_KP)
         self.profile = bool(profile)
-        if max_workgroup_size:
-            self.max_workgroup_size = int(max_workgroup_size)
-            self.kernels = {}
-            for k, v in self.__class__.kernels.items():
-                if isinstance(v, int):
-                    self.kernels[k] = min(v, self.max_workgroup_size)
-                else:
-                    prod = 1
-                    for i in v:
-                        prod *= i
-                    if prod <= self.max_workgroup_size:
-                        self.kernels[k] = v
-                    else:
-                        r = prod // self.max_workgroup_size
-                        if r == 0:
-                            self.kernels[k] = tuple([1] * len(v))
-                        else:
-                            self.kernels[k] = (r,) + tuple([1] * (len(v) - 1))
-        else:
-            self.max_workgroup_size = None
         self.events = []
         self._sem = threading.Semaphore()
         self.scales = []  # in XY order
@@ -180,6 +160,7 @@ class SiftPlan(object):
         self.octave_max = None
         self.red_size = None
         self._calc_scales()
+        self.max_workgroup_size = max_workgroup_size or 4096
         self._calc_memory()
         self.LOW_END = 0
         if context:
@@ -203,26 +184,18 @@ class SiftPlan(object):
             self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
         else:
             self.queue = pyopencl.CommandQueue(self.ctx)
+        ocldevice = ocl.platforms[self.device[0]].devices[self.device[1]]
         self._calc_workgroups()
         self._compile_kernels()
         self._allocate_buffers()
         self.debug = []
         self.cnt = numpy.empty(1, dtype=numpy.int32)
-        self.devicetype = ocl.platforms[self.device[0]].devices[self.device[1]].type
+        self.devicetype = ocldevice.type
         if (self.devicetype == "CPU"):
             self.USE_CPU = True
-            if sys.platform == "darwin":
-                logger.warning("MacOSX computer working on CPU: limiting workgroup size to 1 !")
-                self.max_workgroup_size = 1
-                self.kernels = {}
-                for k, v in self.__class__.kernels.items():
-                    if isinstance(v, int):
-                        self.kernels[k] = 1
-                    else:
-                        self.kernels[k] = tuple([1] * len(v))
         else:
             self.USE_CPU = False
-            if "HD Graphics" in ocl.platforms[self.device[0]].devices[self.device[1]].name:
+            if "HD Graphics" in ocldevice.name:
                 self.LOW_END = 2
 
     def __del__(self):
@@ -269,11 +242,8 @@ class SiftPlan(object):
         self.memory += self.kpsize * size_of_float * 4 * 2  # those are array of float4 to register keypoints, we need two of them
         self.memory += self.kpsize * 128  # stores the descriptors: 128 unsigned chars
         self.memory += 4  # keypoint index Counter
-        if self.max_workgroup_size:
-            wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
-        else:
-            wg_float = min(128, numpy.sqrt(self.shape[0] * self.shape[1]))
-        self.red_size = 2 ** (int(math.ceil(math.log(wg_float, 2))))
+        wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        self.red_size = nextpower(wg_float)
         self.memory += 4 * 2 * self.red_size  # temporary storage for reduction
 
         ########################################################################
@@ -315,8 +285,6 @@ class SiftPlan(object):
         for scale in range(par.Scales + 3):
             self.buffers[scale] = pyopencl.array.empty(self.queue, shape, dtype=numpy.float32)
         self.buffers["DoGs"] = pyopencl.array.empty(self.queue, (par.Scales + 2, shape[0], shape[1]), dtype=numpy.float32)
-        wg_float = min(512.0, numpy.sqrt(self.shape[0] * self.shape[1]))
-#        wg = 2 ** (int(math.ceil(math.log(wg_float, 2))))
         self.buffers["max_min"] = pyopencl.array.empty(self.queue, (self.red_size, 2), dtype=numpy.float32)  # temporary buffer for max/min reduction
         self.buffers["min"] = pyopencl.array.empty(self.queue, (1), dtype=numpy.float32)
         self.buffers["max"] = pyopencl.array.empty(self.queue, (1), dtype=numpy.float32)
@@ -348,15 +316,11 @@ class SiftPlan(object):
         """
         name = "gaussian_%s" % sigma
         size = kernel_size(sigma, True)
-        wg_size = 2 ** int(math.ceil(math.log(size) / math.log(2)))
+        wg_size = nextpower(size)
 
-        logger.debug("Allocating %s float for blur sigma: %s" % (size, sigma))
-        if self.max_workgroup_size and (wg_size > self.max_workgroup_size):  # compute on CPU
-            x = numpy.arange(size) - (size - 1.0) / 2.0
-            gaus = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
-            gaus /= gaus.sum(dtype=numpy.float32)
-            gaussian_gpu = pyopencl.array.to_device(self.queue, gaus)
-        else:
+        logger.info("Allocating %s float for blur sigma: %s. wg=%s max_wg=%s", size, sigma,wg_size, self.max_workgroup_size)
+        wg1 = self.kernels["gaussian.gaussian"]
+        if wg1>=wg_size:
             gaussian_gpu = pyopencl.array.empty(self.queue, size, dtype=numpy.float32)
             evt = self.programs["gaussian"].gaussian(self.queue, (wg_size,), (wg_size,),
                                                      gaussian_gpu.data,  # __global     float     *data,
@@ -364,8 +328,18 @@ class SiftPlan(object):
                                                      numpy.int32(size))  # const        int     SIZE
             if self.profile:
                 self.events.append(("gaussian %s" % sigma, evt))
-        self.buffers[name] = gaussian_gpu
+        else:
+            logger.info("Workgroup size error: gaussian wg: %s < max_work_group_size: %s",
+                        wg1, self.max_workgroup_size)
+            #common bug on OSX when running on CPU
+            x = numpy.arange(size) - (size - 1.0) / 2.0
+            gaus = numpy.exp(-(x / sigma) ** 2 / 2.0).astype(numpy.float32)
+            gaus /= gaus.sum(dtype=numpy.float32)
+            gaussian_gpu = pyopencl.array.to_device(self.queue, gaus)
 
+        self.buffers[name] = gaussian_gpu
+        return gaussian_gpu
+        
     def _free_buffers(self):
         """free all memory allocated on the device
         """
@@ -380,18 +354,10 @@ class SiftPlan(object):
     def _compile_kernels(self):
         """Call the OpenCL compiler
         """
-        for kernel in self.kernels:
+        for kernel, wg_size in list(self.kernels.items()):
             kernel_src = get_opencl_code(kernel)
-            if self.max_workgroup_size:
-                if "__len__" not in dir(self.kernels[kernel]):
-                    wg_size = min(self.max_workgroup_size, self.kernels[kernel])
-                else:
-                    wg_size = self.max_workgroup_size
-            else:
-                if "__len__" not in dir(self.kernels[kernel]):
-                    wg_size = self.kernels[kernel]
-                else:
-                    wg_size = 128
+            if isinstance(wg_size, tuple):
+                wg_size = self.max_workgroup_size
             try:
                 program = pyopencl.Program(self.ctx, kernel_src).build('-D WORKGROUP_SIZE=%s' % wg_size)
             except pyopencl.MemoryError as error:
@@ -407,6 +373,10 @@ class SiftPlan(object):
                     logger.error("Failed compiling kernel '%s' with workgroup size %s: %s", kernel, wg_size, error)
                     raise error
             self.programs[kernel] = program
+            for one_function in program.all_kernels():
+                workgroup_size = kernel_workgroup_size(program, one_function)
+                self.kernels[kernel+"."+one_function.function_name] = workgroup_size
+
 
     def _free_kernels(self):
         """free all kernels
@@ -417,23 +387,42 @@ class SiftPlan(object):
         """First try to guess the best workgroup size, then calculate all global worksize
 
         Nota:
-        The workgroup size is limited by the device
+        The workgroup size is limited by the device, some devices report wrong size.
         The workgroup size is limited to the 2**n below then image size (hence changes with octaves)
         The second dimension of the wg size should be large, the first small: i.e. (1,64)
         The processing size should be a multiple of  workgroup size.
         """
         device = self.ctx.devices[0]
-#        max_work_group_size = device.max_work_group_size
         max_work_item_sizes = device.max_work_item_sizes
+        if self.max_workgroup_size:
+            self.max_workgroup_size = min(max_work_item_sizes[0], self.max_workgroup_size)
+        else:
+            self.max_workgroup_size = max_work_item_sizes[0]
+        # MacOSX driver on CPU usually reports bad workgroup size: this is addressed in ocl
+        self.max_workgroup_size = min(self.max_workgroup_size,
+                                      ocl.platforms[self.device[0]].devices[self.device[1]].max_work_group_size)
+
+        self.kernels = {}
+        for k, v in self.__class__.kernels.items():
+            if isinstance(v, int):
+                self.kernels[k] = min(v, self.max_workgroup_size)
+            else:  # probably a list
+                prod = 1
+                for i in v:
+                    prod *= i
+                if prod <= self.max_workgroup_size:
+                    self.kernels[k] = v
+                # else it is not possible to run this kernel.
+                # If the kernel is not present in the dict, it should not be used.
+
+        wg_float = min(self.max_workgroup_size, numpy.sqrt(self.shape[0] * self.shape[1]))
+        self.red_size = nextpower(wg_float)
+
         # we recalculate the shapes ...
         shape = self.shape
         min_size = 2 * par.BorderDist + 2
-        if self.max_workgroup_size:
-            self.max_workgroup_size = min(self.max_workgroup_size, max_work_item_sizes[0])
-        else:
-            self.max_workgroup_size = max_work_item_sizes[0]
         while min(shape) > min_size:
-            wg = (min(2 ** int(math.ceil(math.log(shape[-1], 2))), self.max_workgroup_size), 1)
+            wg = (min(nextpower(shape[-1]), self.max_workgroup_size), 1)
             self.wgsize.append(wg)
             self.procsize.append(calc_size(shape[-1::-1], wg))
             shape = tuple(i // 2 for i in shape)
@@ -485,18 +474,42 @@ class SiftPlan(object):
                     self.events.append(("convert -> float", evt))
             else:
                 raise RuntimeError("invalid input format error")
+            
+            wg1 = self.kernels["reductions.max_min_global_stage1"]
+            wg2 = self.kernels["reductions.max_min_global_stage2"]
+            if min(wg1, wg2) < self.red_size:
+                #common bug on OSX when running on CPU
+                logger.info("Unable to use MinMax Reduction: stage1 wg: %s; stage2 wg: %s < max_work_group_size: %s, expected: %s",
+                            wg1, wg2, self.max_workgroup_size, self.red_size)
+                kernel = self.programs["reductions"].max_min_serial
+                k = kernel(self.queue, (1,), (1,),
+                               self.buffers[0].data,
+                               numpy.uint32(self.shape[0] * self.shape[1]),
+                               self.buffers["max"].data,
+                               self.buffers["min"].data)
+                if self.profile:
+                    self.events.append(("max_min_serial", k))
+                #python implementation:
+                #buffer_ = self.buffers[0].get()
+                #self.buffers["max"].set(numpy.array([buffer_.max()], dtype=numpy.float32))
+                #self.buffers["min"].set(numpy.array([buffer_.min()], dtype=numpy.float32))
+            else:
+                kernel1 = self.programs["reductions"].max_min_global_stage1
+                kernel2 = self.programs["reductions"].max_min_global_stage2
+                #logger.debug("self.red_size: %s", self.red_size)
+                k1 = kernel1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
+                               self.buffers[0].data,
+                               self.buffers["max_min"].data,
+                               numpy.uint32(self.shape[0] * self.shape[1]))
+                k2 = kernel2(self.queue, (self.red_size,), (self.red_size,),
+                               self.buffers["max_min"].data,
+                               self.buffers["max"].data,
+                               self.buffers["min"].data)
+                
+                if self.profile:
+                    self.events.append(("max_min_stage1", k1))
+                    self.events.append(("max_min_stage2", k2))
 
-            k1 = self.programs["reductions"].max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
-                                                                   self.buffers[0].data,
-                                                                   self.buffers["max_min"].data,
-                                                                   numpy.uint32(self.shape[0] * self.shape[1]))
-            k2 = self.programs["reductions"].max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
-                                                                   self.buffers["max_min"].data,
-                                                                   self.buffers["max"].data,
-                                                                   self.buffers["min"].data)
-            if self.profile:
-                self.events.append(("max_min_stage1", k1))
-                self.events.append(("max_min_stage2", k2))
             evt = self.programs["preprocess"].normalizes(self.queue, self.procsize[0], self.wgsize[0],
                                                          self.buffers[0].data,
                                                          self.buffers["min"].data,
@@ -517,10 +530,12 @@ class SiftPlan(object):
                 kp, descriptor = self._one_octave(octave)
                 logger.info("in octave %i found %i kp" % (octave, kp.shape[0]))
 
-                if kp.shape[0] > 0:
-                    keypoints.append(kp)
-                    descriptors.append(descriptor)
-                    total_size += kp.shape[0]
+                if len(kp):
+                    #sieve out coordinates with NaNs
+                    mask = numpy.where(numpy.logical_not(numpy.isnan(kp.sum(axis=-1))))
+                    keypoints.append(kp[mask])
+                    descriptors.append(descriptor[mask])
+                    total_size += len(mask[0])
 
             ########################################################################
             # Merge keypoints in central memory
@@ -662,61 +677,40 @@ class SiftPlan(object):
                 evt_cp = pyopencl.enqueue_copy(self.queue, self.cnt, self.buffers["cnt"].data)
                 newcnt = self.cnt[0]  # do not forget to update numbers of keypoints, modified above !
 
-                if self.USE_CPU or self.LOW_END == 2:
-                    file_to_use = "keypoints_cpu"
-                    logger.info("Computing descriptors with CPU optimized kernels")
-                    wgsize2 = self.kernels[file_to_use],
-                    procsize2 = int(newcnt * wgsize2[0]),
-
-                else:
-                    if self.LOW_END == 1:
-                        file_to_use = "keypoints_gpu1"
-                        logger.info("Computing descriptors with older-GPU optimized kernels")
-                        wgsize2 = self.kernels[file_to_use]
-                    else:
+                for i_not_used in range(3):
+                    # up to 3 attempts
+                    if (not self.USE_CPU) and (self.LOW_END == 0) and ("keypoints_gpu2" in self.kernels):
                         file_to_use = "keypoints_gpu2"
                         logger.info("Computing descriptors with newer-GPU optimized kernels")
                         wgsize2 = self.kernels[file_to_use]
-                    procsize2 = int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2]
-                try:
-                    evt2 = self.programs[file_to_use].descriptor(self.queue, procsize2, wgsize2,
-                                                                 self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                                                 self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
-                                                                 self.buffers["tmp"].data,  # __global float* grad,
-                                                                 self.buffers["ori"].data,  # __global float* ori,
-                                                                 octsize,  # int octsize,
-                                                                 numpy.int32(last_start),  # int keypoints_start,
-                                                                 self.buffers["cnt"].data,  # int* keypoints_end,
-                                                                 *self.scales[octave])  # int grad_width, int grad_height)
-                except pyopencl.RuntimeError as error:
-                    self.LOW_END += 1
-                    logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
-                    if self.USE_CPU or self.LOW_END == 2:
+                        procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
+                    elif (not self.USE_CPU) and (self.LOW_END == 1) and ("keypoints_gpu1" in self.kernels):
+                        file_to_use = "keypoints_gpu1"
+                        logger.info("Computing descriptors with older-GPU optimized kernels")
+                        wgsize2 = self.kernels[file_to_use]
+                        procsize2 = (int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2])
+                    else:
+                        # self.USE_CPU or self.LOW_END == 2, fail-safe fall-back
                         file_to_use = "keypoints_cpu"
                         logger.info("Computing descriptors with CPU optimized kernels")
                         wgsize2 = self.kernels[file_to_use],
-                        procsize2 = int(newcnt * wgsize2[0]),
-
+                        procsize2 = (int(newcnt * wgsize2[0]),)
+                    try:
+                        evt2 = self.programs[file_to_use].descriptor(self.queue, procsize2, wgsize2,
+                                                                     self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
+                                                                     self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
+                                                                     self.buffers["tmp"].data,  # __global float* grad,
+                                                                     self.buffers["ori"].data,  # __global float* ori,
+                                                                     octsize,  # int octsize,
+                                                                     numpy.int32(last_start),  # int keypoints_start,
+                                                                     self.buffers["cnt"].data,  # int* keypoints_end,
+                                                                     *self.scales[octave])  # int grad_width, int grad_height)
+                    except pyopencl.RuntimeError as error:
+                        self.LOW_END += 1
+                        logger.error("Descriptor failed with %s. Switching to lower_end mode" % error)
+                        continue
                     else:
-                        if self.LOW_END == 1:
-                            file_to_use = "keypoints_gpu1"
-                            logger.info("Computing descriptors with older-GPU optimized kernels")
-                            wgsize2 = self.kernels[file_to_use]
-                        else:
-                            file_to_use = "keypoints_gpu2"
-                            logger.info("Computing descriptors with newer-GPU optimized kernels")
-                            wgsize2 = self.kernels[file_to_use]
-                        procsize2 = int(newcnt * wgsize2[0]), wgsize2[1], wgsize2[2]
-
-                    evt2 = self.programs[file_to_use].descriptor(self.queue, procsize2, wgsize2,
-                                                                 self.buffers["Kp_1"].data,  # __global keypoint* keypoints,
-                                                                 self.buffers["descriptors"].data,  # ___global unsigned char *descriptors
-                                                                 self.buffers["tmp"].data,  # __global float* grad,
-                                                                 self.buffers["ori"].data,  # __global float* ori,
-                                                                 octsize,  # int octsize,
-                                                                 numpy.int32(last_start),  # int keypoints_start,
-                                                                 self.buffers["cnt"].data,  # int* keypoints_end,
-                                                                 *self.scales[octave])  # int grad_width, int grad_height)
+                        break
                 if self.profile:
                     self.events += [("orientation_assignment %s %s" % (octave, scale), evt),
                                     ("copy cnt D->H", evt_cp),
