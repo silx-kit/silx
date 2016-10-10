@@ -55,99 +55,74 @@ class BackgroundParamWidget(qt.QWidget):
         qt.QWidget.__init__(self, parent)
 
         self.mainLayout = qt.QGridLayout(self)
+        self.mainLayout.setColumnStretch(1, 1)
+
+        # Algorithm choice ---------------------------------------------------
+        self.algorithmComboLabel = qt.QLabel(self)
+        self.algorithmComboLabel.setText("Background algorithm")
+        self.algorithmCombo = qt.QComboBox(self)
+        self.algorithmCombo.addItem("Strip")
+        self.algorithmCombo.addItem("Snip")
+        self.algorithmCombo.activated[int].connect(
+                self._algorithmComboActivated)
 
         # Strip parameters ---------------------------------------------------
-        self.stripGroup = qt.QGroupBox("Strip", self)
-        self.stripGroup.setCheckable(True)
-        self.stripGroup.toggled.connect(self._stripGroupToggled)
-        stripLayout = qt.QGridLayout(self.stripGroup)
-        self.stripGroup.setLayout(stripLayout)
-
-        self.stripWidthLabel = qt.QLabel(self.stripGroup)
+        self.stripWidthLabel = qt.QLabel(self)
         self.stripWidthLabel.setText("Strip Width")
 
-        self.stripWidthSpin = qt.QSpinBox(self.stripGroup)
+        self.stripWidthSpin = qt.QSpinBox(self)
         self.stripWidthSpin.setMaximum(100)
         self.stripWidthSpin.setMinimum(1)
         self.stripWidthSpin.valueChanged[int].connect(self._emitSignal)
 
-        # Strip iterations
-        self.stripIterLabel = qt.QLabel(self.stripGroup)
+        self.stripIterLabel = qt.QLabel(self)
         self.stripIterLabel.setText("Strip Iterations")
-        self.stripIterValue = qt.QLineEdit(self.stripGroup)
+        self.stripIterValue = qt.QLineEdit(self)
         validator = qt.QIntValidator(self.stripIterValue)
         self.stripIterValue._v = validator
         self.stripIterValue.setText("0")
         self.stripIterValue.editingFinished[()].connect(self._emitSignal)
 
-        stripLayout.setColumnStretch(1, 1)
-        stripLayout.addWidget(self.stripWidthLabel, 0, 0)
-        stripLayout.addWidget(self.stripWidthSpin, 0, 2)
-        stripLayout.addWidget(self.stripIterLabel, 1, 0)
-        stripLayout.addWidget(self.stripIterValue, 1, 2)
-
         # Snip parameters ----------------------------------------------------
-        self.snipGroup = qt.QGroupBox("Snip", self)
-        self.snipGroup.setCheckable(True)
-        self.snipGroup.toggled.connect(self._snipGroupToggled)
-        snipLayout = qt.QGridLayout(self.snipGroup)
-        self.snipGroup.setLayout(snipLayout)
-
-        self.snipWidthLabel = qt.QLabel(self.snipGroup)
+        self.snipWidthLabel = qt.QLabel(self)
         self.snipWidthLabel.setText("SNIP Width")
 
-        self.snipWidthSpin = qt.QSpinBox(self.snipGroup)
+        self.snipWidthSpin = qt.QSpinBox(self)
         self.snipWidthSpin.setMaximum(300)
         self.snipWidthSpin.setMinimum(0)
         self.snipWidthSpin.valueChanged[int].connect(self._emitSignal)
 
-        snipLayout.setColumnStretch(1, 1)
-        snipLayout.addWidget(self.snipWidthLabel, 0, 0)
-        snipLayout.addWidget(self.snipWidthSpin, 0, 2)
 
         # Smoothing parameters -----------------------------------------------
-        self.smoothingGroup = qt.QGroupBox("Smoothing", self)
-        self.smoothingGroup.setCheckable(True)
-        self.smoothingGroup.toggled.connect(self._smoothingGroupToggled)
-        smoothingLayout = qt.QGridLayout(self.smoothingGroup)
-        self.smoothingGroup.setLayout(smoothingLayout)
+        self.smoothingFlagCheck = qt.QCheckBox(self)
+        self.smoothingFlagCheck.setText("Smoothing Width (Savitsky-Golay)")
+        self.smoothingFlagCheck.toggled.connect(self._smoothingToggled)
 
-        self.filterLabel = qt.QLabel(self.smoothingGroup)
-        self.filterLabel.setText("Smoothing Width (Savitsky-Golay)")
-
-        self.filterSpin = qt.QSpinBox(self.smoothingGroup)
-        self.filterSpin.setMinimum(3)
-        #self.filterSpin.setMaximum(40)
-        self.filterSpin.setSingleStep(2)
-        self.filterSpin.valueChanged[int].connect(self._emitSignal)
-
-        smoothingLayout.setColumnStretch(1, 1)
-        smoothingLayout.addWidget(self.filterLabel, 0, 0)
-        smoothingLayout.addWidget(self.filterSpin, 0, 2)
+        self.smoothingSpin = qt.QSpinBox(self)
+        self.smoothingSpin.setMinimum(3)
+        #self.smoothingSpin.setMaximum(40)
+        self.smoothingSpin.setSingleStep(2)
+        self.smoothingSpin.valueChanged[int].connect(self._emitSignal)
 
         # Anchors ------------------------------------------------------------
 
-        # Strip anchors
-        self.anchorsGroup = qt.QGroupBox("Anchors", self)
-        self.anchorsGroup.setToolTip(
-                 "X coordinates of values that must remain constant")
-        self.anchorsGroup.setCheckable(True)
-        self.anchorsGroup.toggled.connect(self._emitSignal)
+        self.anchorsGroup = qt.QWidget(self)
         anchorsLayout = qt.QHBoxLayout(self.anchorsGroup)
         anchorsLayout.setSpacing(2)
-        self.anchorsGroup.setLayout(anchorsLayout)
+        anchorsLayout.setContentsMargins(0, 0, 0, 0)
 
-        # self.stripAnchorsFlagCheck = qt.QCheckBox(self.anchorsGroup)
-        # self.stripAnchorsFlagCheck.setText("Use anchors")
-        # self.stripAnchorsFlagCheck.setToolTip(
-        #         "X coordinates of values that must not be modified")
-        # self.stripAnchorsFlagCheck.stateChanged[int].connect(
-        #         self._emitSignal)
-        # anchorsLayout.addWidget(self.stripAnchorsFlagCheck)
+        self.anchorsFlagCheck = qt.QCheckBox(self.anchorsGroup)
+        self.anchorsFlagCheck.setText("Use anchors")
+        self.anchorsFlagCheck.setToolTip(
+                "Define X coordinates of points that must remain fixed")
+        self.anchorsFlagCheck.stateChanged[int].connect(
+                self._anchorsToggled)
+        anchorsLayout.addWidget(self.anchorsFlagCheck)
 
         maxnchannel = 16384 * 4    # Fixme ?
         self.anchorsList = []
-        for i in range(4):
+        num_anchors = 4
+        for i in range(num_anchors):
             anchorSpin = qt.QSpinBox(self.anchorsGroup)
             anchorSpin.setMinimum(0)
             anchorSpin.setMaximum(maxnchannel)
@@ -155,64 +130,59 @@ class BackgroundParamWidget(qt.QWidget):
             anchorsLayout.addWidget(anchorSpin)
             self.anchorsList.append(anchorSpin)
 
-        # --------------------------------------------------------------------
-        self.mainLayout.addWidget(self.stripGroup)
-        self.mainLayout.addWidget(self.snipGroup)
-        self.mainLayout.addWidget(self.smoothingGroup)
-        self.mainLayout.addWidget(self.anchorsGroup)
+        # Layout ------------------------------------------------------------
+        self.mainLayout.addWidget(self.algorithmComboLabel, 0, 0)
+        self.mainLayout.addWidget(self.algorithmCombo, 0, 2)
+        self.mainLayout.addWidget(self.stripWidthLabel, 1, 0)
+        self.mainLayout.addWidget(self.stripWidthSpin, 1, 2)
+        self.mainLayout.addWidget(self.stripIterLabel, 2, 0)
+        self.mainLayout.addWidget(self.stripIterValue, 2, 2)
+        self.mainLayout.addWidget(self.snipWidthLabel, 3, 0)
+        self.mainLayout.addWidget(self.snipWidthSpin, 3, 2)
+        self.mainLayout.addWidget(self.smoothingFlagCheck, 4, 0)
+        self.mainLayout.addWidget(self.smoothingSpin, 4, 2)
+        self.mainLayout.addWidget(self.anchorsGroup, 5, 0, 1, 4)
 
-        margin = 6
-        # margins left, top, right of groups
-        for layout in [self.mainLayout, stripLayout, snipLayout,
-                       smoothingLayout, anchorsLayout]:
-            layout.setContentsMargins(margin, margin, margin, 0)
-            layout.setSpacing(margin / 2)
-        # margin above widgets inside group
-        # for layout in []:
-        #     self.layout.setSpacing(6)
-        #     layout.setContentsMargins(0, margin, 0, 0)
+        # Initialize interface -----------------------------------------------
+        self._setAlgorithm("strip")
+        self.smoothingFlagCheck.setChecked(False)
+        self._smoothingToggled(is_checked=False)
+        self.anchorsFlagCheck.setChecked(False)
+        self._anchorsToggled(is_checked=False)
 
-        self.stripGroup.setChecked(True)
-        self.snipGroup.setChecked(False)
-        self.algorithm = "strip"
+    def _algorithmComboActivated(self, algorithm_index):
+        self._setAlgorithm("strip" if algorithm_index == 0 else "snip")
 
-    def _stripGroupToggled(self, is_checked):
-        """Slot called when the Strip group is activated
-
-        :param is_checked: If *True*, use Strip algorithm, else use Snip
+    def _setAlgorithm(self, algorithm):
+        """Enable/disable snip and snip input widgets, depending on the
+        chosen algorithm.
+        :param algorithm: "snip" or "strip"
         """
-        # snip and strip groups are mutually exclusive
-        self.snipGroup.setChecked(not is_checked)
-        self.algorithm = "strip" if is_checked else "snip"
+        if algorithm not in ["strip", "snip"]:
+            raise ValueError(
+                    "Unknown background filter algorithm %s" % algorithm)
+
+        self.algorithm = algorithm
+        self.stripWidthSpin.setEnabled(algorithm == "strip")
+        self.stripIterValue.setEnabled(algorithm == "strip")
+        self.snipWidthSpin.setEnabled(algorithm == "snip")
+
+    def _smoothingToggled(self, is_checked):
+        """Enable/disable smoothing input widgets, emit dictionary"""
+        self.smoothingSpin.setEnabled(is_checked)
         self._emitSignal()
 
-    def _snipGroupToggled(self, is_checked):
-        """Slot called when the Snip group is selectd
-
-        :param is_checked: If *True*, use Strip algorithm, else use Snip
+    def _anchorsToggled(self, is_checked):
+        """Enable/disable all spin widgets defining anchor X coordinates,
+        emit signal.
         """
-        # snip and strip groups are mutually exclusive
-        self.stripGroup.setChecked(not is_checked)
-        self.algorithm = "snip" if is_checked else "strip"
-        self._emitSignal()
-
-    def _smoothingGroupToggled(self, is_checked):
+        for anchor_spin in self.anchorsList:
+            anchor_spin.setEnabled(is_checked)
         self._emitSignal()
 
     def setParameters(self, ddict):
-        # if 'fit' in ddict:
-        #     pars = ddict['fit']
-        # else:
-        #     pars = ddict
-
         if "algorithm" in ddict:
-            if ddict["algorithm"] == "strip":
-                self.stripGroup.setChecked(True)
-            elif ddict["algorithm"] == "snip":
-                self.snipGroup.setChecked(True)
-            else:
-                raise ValueError(
-                        "Unknown background filter algorithm %s" % ddict["algorithm"])
+            self._setAlgorithm(ddict["algorithm"])
 
         if "snipwidth" in ddict:
             self.snipWidthSpin.setValue(int(ddict["snipwidth"]))
@@ -224,13 +194,13 @@ class BackgroundParamWidget(qt.QWidget):
             self.stripIterValue.setText("%d" % int(ddict["stripiterations"]))
 
         if "smoothingflag" in ddict:
-            self.smoothingGroup.setChecked(bool(ddict["smoothingflag"]))
+            self.self.smoothingFlagCheck.setChecked(bool(ddict["smoothingflag"]))
 
         if "smoothingwidth" in ddict:
-            self.filterSpin.setValue(int(ddict["smoothingwidth"]))
+            self.smoothingSpin.setValue(int(ddict["smoothingwidth"]))
 
         if "anchorsflag" in ddict:
-            self.anchorsGroup.setChecked(bool(ddict["anchorsflag"]))
+            self.anchorsFlagCheck.setChecked(bool(ddict["anchorsflag"]))
 
         if "anchorslist" in ddict:
             anchorslist = ddict["anchorslist"]
@@ -266,9 +236,9 @@ class BackgroundParamWidget(qt.QWidget):
                 "snipwidth": self.snipWidthSpin.value(),
                 "stripiterations": stripiter,
                 "stripwidth": self.stripWidthSpin.value(),
-                "smoothingflag": self.smoothingGroup.isChecked(),
-                "smoothingwidth": self.filterSpin.value(),
-                "anchorsflag": self.anchorsGroup.isChecked(),
+                "smoothingflag": self.smoothingFlagCheck.isChecked(),
+                "smoothingwidth": self.smoothingSpin.value(),
+                "anchorsflag": self.anchorsFlagCheck.isChecked(),
                 "anchorslist": [spin.value() for spin in self.anchorsList]}
 
     def _emitSignal(self, dummy=None):
@@ -319,11 +289,15 @@ class BackgroundWidget(qt.QWidget):
 
         # smoothed data
         y = numpy.ravel(numpy.array(self._y)).astype(numpy.float)
-        ysmooth = filters.savitsky_golay(y, pars['smoothingwidth'])
-        f = [0.25, 0.5, 0.25]
-        ysmooth[1:-1] = numpy.convolve(ysmooth, f, mode=0)
-        ysmooth[0] = 0.5 * (ysmooth[0] + ysmooth[1])
-        ysmooth[-1] = 0.5 * (ysmooth[-1] + ysmooth[-2])
+        if pars["smoothingflag"]:
+            ysmooth = filters.savitsky_golay(y, pars['smoothingwidth'])
+            f = [0.25, 0.5, 0.25]
+            ysmooth[1:-1] = numpy.convolve(ysmooth, f, mode=0)
+            ysmooth[0] = 0.5 * (ysmooth[0] + ysmooth[1])
+            ysmooth[-1] = 0.5 * (ysmooth[-1] + ysmooth[-2])
+        else:
+            ysmooth = y
+
 
         # loop for anchors
         x = self._x
