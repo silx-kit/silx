@@ -101,8 +101,8 @@ def estimate_linear(x, y):
     Strip peaks, then perform a linear regression.
     """
     bg = strip_bg(y,
-                    width=CONFIG["StripWidth"],
-                    niter=CONFIG["StripNIterations"])
+                  width=CONFIG["StripWidth"],
+                  niter=CONFIG["StripNIterations"])
     n = float(len(bg))
     Sy = numpy.sum(bg)
     Sx = float(numpy.sum(x))
@@ -135,6 +135,18 @@ def estimate_strip(x, y):
     return estimated_par, constraints
 
 
+def configure(**kw):
+    """Update the CONFIG dict
+    """
+    print("in config", kw)
+    # inspect **kw to find known keys, update them in CONFIG
+    for key in CONFIG:
+        if key in kw:
+            CONFIG[key] = kw[key]
+
+    return CONFIG
+
+
 THEORY = {
     'No Background': FitTheory(
             description="No background function",
@@ -149,12 +161,14 @@ THEORY = {
             description="Linear background, parameters 'Constant' and 'Slope'",
             function=lambda x, a, b: a + b * x,
             parameters=['Constant', 'Slope'],
-            estimate=estimate_linear,),
+            estimate=estimate_linear,
+            configure=configure),
     'Strip': FitTheory(
             description="Background based on strip filter\n" +
                         "Parameters 'StripWidth', 'StripIterations'",
             function=strip_bg,
             parameters=['StripWidth', 'StripIterations'],
-            estimate=estimate_strip),
+            estimate=estimate_strip,
+            configure=configure),
 }
 

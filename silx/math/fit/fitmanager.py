@@ -373,10 +373,14 @@ class FitManager(object):
         if custom_config_fun is not None:
             result.update(custom_config_fun(**kw))
 
-            # Update self.fitconfig with custom config
-            for key in self.fitconfig:
-                if key in result:
-                    self.fitconfig[key] = result[key]
+        custom_bg_config_fun = self.bgtheories[self.selectedbg].configure
+        if custom_bg_config_fun is not None:
+            result.update(custom_bg_config_fun(**kw))
+
+        # Update self.fitconfig with custom config
+        for key in self.fitconfig:
+            if key in result:
+                self.fitconfig[key] = result[key]
 
         result.update(self.fitconfig)
         return result
@@ -708,6 +712,10 @@ class FitManager(object):
             msg = "No theory with name %s in bgtheories.\n" % theory
             msg += "Available theories: %s\n" % self.bgtheories.keys()
             raise KeyError(msg)
+
+        # run configure to apply our fitconfig to the selected theory
+        # through its custom config function
+        self.configure(**self.fitconfig)
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         """Set data attributes:
