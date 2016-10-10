@@ -32,7 +32,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/10/2016"
+__date__ = "10/10/2016"
 
 import collections
 import logging
@@ -167,11 +167,11 @@ class PlotWindow(PlotWidget):
         self.colormapAction.setVisible(colormap)
 
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
-            parent=None, plot=self)
+            parent=self, plot=self)
         self.keepDataAspectRatioButton.setVisible(aspectRatio)
 
         self.yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
-            parent=None, plot=self)
+            parent=self, plot=self)
         self.yAxisInvertedButton.setVisible(yInverted)
 
         self.group.addAction(self.roiAction)
