@@ -408,7 +408,7 @@ def main():
     actual_bg = sum_gauss(x, 15, 3500, 3000, 5, 1000, 1500)
 
     # Add 5% random noise to gaussians and add background
-    y = y0 * (1 + noise) + actual_bg
+    y = y0 + numpy.average(y0) * noise + actual_bg
 
     # Open widget
     a = qt.QApplication(sys.argv)

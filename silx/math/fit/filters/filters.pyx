@@ -112,7 +112,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
                                 order='C')
         len_anchors = anchors_c.size
     else:
-        # Make a dummy lenght-1 array, because if I use shape=(0,) I get the error
+        # Make a dummy length-1 array, because if I use shape=(0,) I get the error
         # IndexError: Out of bounds on buffer access (axis 0)
         anchors_c = numpy.empty(shape=(1,),
                                 dtype=numpy.int_)
