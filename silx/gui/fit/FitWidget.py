@@ -145,7 +145,10 @@ class FitWidget(qt.QWidget):
             """Function selector and configuration widget"""
 
             self.guiConfig.ConfigureButton.clicked.connect(
-                self.__configureGuiSlot)
+                self.__funConfigureGuiSlot)
+            # TODO: rename ConfigureButton -> FunConfigureButton, implement BgConfigureButton
+            # self.guiConfig.BgConfigureButton.clicked.connect(
+            #     self.__BgConfigureGuiSlot)
 
             self.guiConfig.WeightCheckBox.setChecked(
                     self.fitconfig.get("WeightFlag", False))
@@ -258,11 +261,15 @@ class FitWidget(qt.QWidget):
         (``ddict = {'event': 'FitFinished', 'data': fit_results}``)"""
         self.sigFitWidgetSignal.emit(ddict)
 
-    def __configureGuiSlot(self):
+    def __funConfigureGuiSlot(self):
         """Open an advanced configuration dialog widget"""
-        self.__configureGui()
+        self.__configureGui(dialog_type="function")
 
-    def __configureGui(self, newconfiguration=None):
+    def __bgConfigureGuiSlot(self):
+        """Open an advanced configuration dialog widget"""
+        self.__configureGui(dialog_type="background")
+
+    def __configureGui(self, newconfiguration=None, dialog_type="function"):
         """Open an advanced configuration dialog widget to get a configuration
         dictionary, or use a supplied configuration dictionary. Call
         :meth:`configure` with this dictionary as a parameter. Update the gui
@@ -274,7 +281,7 @@ class FitWidget(qt.QWidget):
         configuration = self.configure()
         # get new dictionary
         if newconfiguration is None:
-            newconfiguration = self.configureDialog(configuration)
+            newconfiguration = self.configureDialog(configuration, dialog_type)
         # update configuration
         configuration.update(self.configure(**newconfiguration))
         # set fit function theory
@@ -303,7 +310,7 @@ class FitWidget(qt.QWidget):
         # update the Gui
         self.__initialParameters()
 
-    def configureDialog(self, oldconfiguration):
+    def configureDialog(self, oldconfiguration, dialog_type="function"):
         """Display a dialog, allowing the user to define fit configuration
         parameters:
 
@@ -322,15 +329,22 @@ class FitWidget(qt.QWidget):
             - ``StripWidth``
             - ``StripNIterations``
             - ``StripThresholdFactor``
-
+        :param dict oldconfiguration: Dictionary containing previous configuration
+        :param str dialog_type: "function" or "background"
         :return: User defined parameters in a dictionary"""
         # this method can be overwritten
         # it should give back a new dictionary
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
-        theory = self.fitmanager.selectedtheory
-        custom_config_widget = self.fitmanager.theories[theory].config_widget
+        if dialog_type == "function":
+            theory = self.fitmanager.selectedtheory
+            custom_config_widget = self.fitmanager.theories[theory].config_widget
+        elif dialog_type == "background":
+            theory = self.fitmanager.selectedbg
+            custom_config_widget = self.fitmanager.bgtheories[theory].config_widget
+        else:
+            custom_config_widget = None
 
         if custom_config_widget is not None:
             dialog_widget = custom_config_widget()
