@@ -72,6 +72,7 @@ install:
 
     # Generate source package or wheel
     - python setup.py $BUILD_COMMAND
+    - pip install PyQt4
     - python run_tests.py -i silx.gui.widgets.test.suite
     - ls dist
 
@@ -122,7 +123,6 @@ script:
     # Print Python info
     - python ci/info_platform.py
     - pip list
-    - pip install PyQt4
 
     # Run the tests using WITH_QT_TEST from the environment
     - echo "WITH_QT_TEST="$WITH_QT_TEST
