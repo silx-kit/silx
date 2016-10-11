@@ -58,7 +58,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "10/10/2016"
+__date__ = "11/10/2016"
 
 
 
@@ -130,7 +130,7 @@ class FitWidget(qt.QWidget):
 
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
-        self.fitConfig = self.fitmanager.fitconfig
+        self.fitconfig = self.fitmanager.fitconfig
 
         self.guiConfig = None
         """Configuration widget at the top of FitWidget, to select
@@ -139,51 +139,23 @@ class FitWidget(qt.QWidget):
 
         self.guiParameters = ParametersTab(self)
         """Table widget for display of fit parameters and constraints"""
-        # self.guiParameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
             self.guiConfig = FitConfigWidget(self)
+            """Function selector and configuration widget"""
 
             self.guiConfig.ConfigureButton.clicked.connect(
                 self.__configureGuiSlot)
-            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
-            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
-            self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
-            layout.addWidget(self.guiConfig)
-
-            for theory_name in self.fitmanager.bgtheories:
-                self.guiConfig.BkgComBox.addItem(theory_name)
-                self.guiConfig.BkgComBox.setItemData(
-                    self.guiConfig.BkgComBox.findText(theory_name),
-                    self.fitmanager.bgtheories[theory_name].description,
-                    qt.Qt.ToolTipRole)
-
-            for theory_name in self.fitmanager.theories:
-                self.guiConfig.FunComBox.addItem(theory_name)
-                self.guiConfig.FunComBox.setItemData(
-                    self.guiConfig.FunComBox.findText(theory_name),
-                    self.fitmanager.theories[theory_name].description,
-                    qt.Qt.ToolTipRole)
-
-            #    - activate selected fit theory (if any)
-            #    - activate selected bg theory (if any)
-            configuration = self.fitmanager.configure()
-            if self.fitmanager.selectedtheory is None:
-                # take the first one by default
-                self.guiConfig.FunComBox.setCurrentIndex(1)
-                self.funEvent(list(self.fitmanager.theories.keys())[0])
-            else:
-                self.funEvent(self.fitmanager.selectedtheory)
-            if self.fitmanager.selectedbg is None:
-                self.guiConfig.BkgComBox.setCurrentIndex(1)
-                self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
-            else:
-                self.bkgEvent(self.fitmanager.selectedbg)
 
             self.guiConfig.WeightCheckBox.setChecked(
-                    self.fitmanager.fitconfig.get("WeightFlag", False))
+                    self.fitconfig.get("WeightFlag", False))
+            self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            configuration.update(self.configure())
+            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
+            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            self._populate_functions()
+
+            layout.addWidget(self.guiConfig)
 
         layout.addWidget(self.guiParameters)
 
@@ -213,6 +185,47 @@ class FitWidget(qt.QWidget):
         if not len(fitmngr.theories):
             fitmngr.loadtheories(fittheories)
         return fitmngr
+
+    def _populate_functions(self):
+        """Fill combo-boxes with fit theories and background theories
+        loaded by :attr:`fitmanager`.
+        Run :meth:`fitmanager.configure` to ensure the custom configuration
+        of the selected theory has been loaded into :attr:`fitconfig`"""
+        for theory_name in self.fitmanager.bgtheories:
+            self.guiConfig.BkgComBox.addItem(theory_name)
+            self.guiConfig.BkgComBox.setItemData(
+                    self.guiConfig.BkgComBox.findText(theory_name),
+                    self.fitmanager.bgtheories[theory_name].description,
+                    qt.Qt.ToolTipRole)
+
+        for theory_name in self.fitmanager.theories:
+            self.guiConfig.FunComBox.addItem(theory_name)
+            self.guiConfig.FunComBox.setItemData(
+                    self.guiConfig.FunComBox.findText(theory_name),
+                    self.fitmanager.theories[theory_name].description,
+                    qt.Qt.ToolTipRole)
+
+        # - activate selected fit theory (if any)
+        #    - activate selected bg theory (if any)
+        configuration = self.fitmanager.configure()
+        if self.fitmanager.selectedtheory is None:
+            # take the first one by default
+            self.guiConfig.FunComBox.setCurrentIndex(1)
+            self.funEvent(list(self.fitmanager.theories.keys())[0])
+        else:
+            idx = list(self.fitmanager.theories).index(self.fitmanager.selectedtheory)
+            self.guiConfig.FunComBox.setCurrentIndex(idx + 1)
+            self.funEvent(self.fitmanager.selectedtheory)
+
+        if self.fitmanager.selectedbg is None:
+            self.guiConfig.BkgComBox.setCurrentIndex(1)
+            self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
+        else:
+            idx = list(self.fitmanager.bgtheories).index(self.fitmanager.selectedbg)
+            self.guiConfig.BkgComBox.setCurrentIndex(idx + 1)
+            self.bkgEvent(self.fitmanager.selectedbg)
+
+        configuration.update(self.configure())
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         warnings.warn("Method renamed to setData",
