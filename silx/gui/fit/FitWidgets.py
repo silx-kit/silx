@@ -148,84 +148,60 @@ class FitConfigWidget(qt.QWidget):
       - select a fitting function through :attr:`FunComBox`
       - select a background function through :attr:`BkgComBox`
       - open a dialog for modifying advanced parameters through
-        :attr:`ConfigureButton`
+        :attr:`FunConfigureButton`
     """
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
 
         self.setWindowTitle("FitConfigGUI")
 
-        fitconfigguilayout = qt.QHBoxLayout(self)
-        fitconfigguilayout.setContentsMargins(0, 0, 0, 0)
-        fitconfigguilayout.setSpacing(6)
-
-        layout9 = qt.QHBoxLayout(None)
-        layout9.setContentsMargins(0, 0, 0, 0)
-        layout9.setSpacing(6)
-
-        layout2 = qt.QGridLayout(None)
-        layout2.setContentsMargins(0, 0, 0, 0)
-        layout2.setSpacing(6)
+        layout = qt.QGridLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
 
         self.FunLabel = qt.QLabel(self)
         self.FunLabel.setText("Function")
-        layout2.addWidget(self.FunLabel, 0, 0)
+        layout.addWidget(self.FunLabel, 0, 0)
 
         self.FunComBox = qt.QComboBox(self)
         self.FunComBox.addItem("Add Function(s)")
         self.FunComBox.setItemData(self.FunComBox.findText("Add Function(s)"),
                                    "Load fit theories from a file",
                                    qt.Qt.ToolTipRole)
-
-        layout2.addWidget(self.FunComBox, 0, 1)
+        layout.addWidget(self.FunComBox, 0, 1)
 
         self.BkgLabel = qt.QLabel(self)
         self.BkgLabel.setText("Background")
-        layout2.addWidget(self.BkgLabel, 1, 0)
+        layout.addWidget(self.BkgLabel, 1, 0)
 
         self.BkgComBox = qt.QComboBox(self)
         self.BkgComBox.addItem("Add Background(s)")
         self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background(s)"),
                                    "Load background theories from a file",
                                    qt.Qt.ToolTipRole)
+        layout.addWidget(self.BkgComBox, 1, 1)
 
-        layout2.addWidget(self.BkgComBox, 1, 1)
+        self.FunConfigureButton = qt.QPushButton(self)
+        self.FunConfigureButton.setText("Configure")
+        self.FunConfigureButton.setToolTip(
+                "Open a configuration dialog for the selected function")
+        layout.addWidget(self.FunConfigureButton, 0, 2)
 
-        layout9.addLayout(layout2)
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Minimum)
-        layout9.addItem(spacer)
-
-        layout6 = qt.QVBoxLayout(None)
-        layout6.setContentsMargins(0, 0, 0, 0)
-        layout6.setSpacing(6)
+        self.BgConfigureButton = qt.QPushButton(self)
+        self.BgConfigureButton.setText("Configure")
+        self.BgConfigureButton.setToolTip(
+                "Open a configuration dialog for the selected background")
+        layout.addWidget(self.BgConfigureButton, 1, 2)
 
         self.WeightCheckBox = qt.QCheckBox(self)
-        self.WeightCheckBox.setText("Weight")
+        self.WeightCheckBox.setText("Weighted fit")
         self.WeightCheckBox.setToolTip(
-                "Enable usage of weights in the least-square problem. Use " +
-                "the uncertainties if provided, or else use sqrt(y).")
+                "Enable usage of weights in the least-square problem.\n Use" +
+                " the uncertainties (sigma) if provided, else use sqrt(y).")
 
-        layout6.addWidget(self.WeightCheckBox)
+        layout.addWidget(self.WeightCheckBox, 0, 3, 2, 1)
 
-        layout9.addLayout(layout6)
-
-        spacer_2 = qt.QSpacerItem(20, 20,
-                                  qt.QSizePolicy.Expanding,
-                                  qt.QSizePolicy.Minimum)
-        layout9.addItem(spacer_2)
-
-        layout5 = qt.QGridLayout(None)
-        layout5.setContentsMargins(0, 0, 0, 0)
-        layout5.setSpacing(6)
-
-        self.ConfigureButton = qt.QPushButton(self)
-        self.ConfigureButton.setText("Configure")
-
-        layout5.addWidget(self.ConfigureButton, 0, 0)
-        layout9.addLayout(layout5)
-        fitconfigguilayout.addLayout(layout9)
+        layout.setColumnStretch(4, 1)
 
 
 class ParametersTab(qt.QTabWidget):

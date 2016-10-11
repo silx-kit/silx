@@ -144,11 +144,10 @@ class FitWidget(qt.QWidget):
             self.guiConfig = FitConfigWidget(self)
             """Function selector and configuration widget"""
 
-            self.guiConfig.ConfigureButton.clicked.connect(
+            self.guiConfig.FunConfigureButton.clicked.connect(
                 self.__funConfigureGuiSlot)
-            # TODO: rename ConfigureButton -> FunConfigureButton, implement BgConfigureButton
-            # self.guiConfig.BgConfigureButton.clicked.connect(
-            #     self.__BgConfigureGuiSlot)
+            self.guiConfig.BgConfigureButton.clicked.connect(
+                self.__bgConfigureGuiSlot)
 
             self.guiConfig.WeightCheckBox.setChecked(
                     self.fitconfig.get("WeightFlag", False))
