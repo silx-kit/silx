@@ -59,6 +59,7 @@ class TestThreadPoolPushButton(testutils.TestCaseQt):
         button.executeCallable()
         time.sleep(0.1)
         self.assertListEqual(self._result, ["a"])
+        self.qapp.processEvents()
 
     def testMultiExecution(self):
         button = ThreadPoolPushButton()
@@ -68,6 +69,7 @@ class TestThreadPoolPushButton(testutils.TestCaseQt):
             button.executeCallable()
         time.sleep(number * 0.01 + 0.1)
         self.assertListEqual(self._result, ["a"] * number)
+        self.qapp.processEvents()
 
     def testSaturateThreadPool(self):
         button = ThreadPoolPushButton()
@@ -77,6 +79,7 @@ class TestThreadPoolPushButton(testutils.TestCaseQt):
             button.executeCallable()
         time.sleep(number * 0.1 + 0.1)
         self.assertListEqual(self._result, ["a"] * number)
+        self.qapp.processEvents()
 
     def testSuccess(self):
         button = ThreadPoolPushButton()

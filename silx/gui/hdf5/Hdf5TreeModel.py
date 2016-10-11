@@ -78,6 +78,7 @@ class LoadingItemRunnable(qt.QRunnable):
     class __Signals(qt.QObject):
         """Signal holder"""
         itemReady = qt.Signal(object, object, object)
+        runnerFinished = qt.Signal(object)
 
     def __init__(self, filename, item):
         """Constructor
@@ -95,6 +96,10 @@ class LoadingItemRunnable(qt.QRunnable):
     @property
     def itemReady(self):
         return self.signals.itemReady
+
+    @property
+    def runnerFinished(self):
+        return self.signals.runnerFinished
 
     def __loadItemTree(self, oldItem, h5obj):
         """Create an item tree used by the GUI from an h5py object.
@@ -135,6 +140,7 @@ class LoadingItemRunnable(qt.QRunnable):
         newItem = _wrapNone(newItem)
         error = _wrapNone(error)
         self.itemReady.emit(self.oldItem, newItem, error)
+        self.runnerFinished.emit(self)
 
     def autoDelete(self):
         return True
@@ -200,6 +206,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
 
         self.__animatedIcon = icons.getWaitIcon()
         self.__animatedIcon.iconChanged.connect(self.__updateLoadingItems)
+        self.__runnerSet = set([])
 
         # store used icons to avoid to avoid the cache to release it
         self.__icons = []
@@ -559,7 +566,12 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
         # start loading the real one
         runnable = LoadingItemRunnable(filename, item)
         runnable.itemReady.connect(self.__itemReady)
+        self.__runnerSet.add(runnable)
+        runnable.runnerFinished.connect(self.__releaseRunner)
         qt.QThreadPool.globalInstance().start(runnable)
+
+    def __releaseRunner(self, runner):
+        self.__runnerSet.remove(runner)
 
     def insertFile(self, filename, row=-1):
         """Load a HDF5 file into the data model.
