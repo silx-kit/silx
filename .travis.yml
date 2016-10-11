@@ -28,7 +28,7 @@ matrix:
           os: osx
           env:
               - BUILD_COMMAND=bdist_wheel
-              - WITH_QT_TEST=False
+              - WITH_QT_TEST=True
 
 cache:
     apt: true
@@ -72,6 +72,7 @@ install:
 
     # Generate source package or wheel
     - python setup.py $BUILD_COMMAND
+    - python run_tests.py -i silx.gui.widgets.test.suite
     - ls dist
 
     # Mac OS X specific cleanup
