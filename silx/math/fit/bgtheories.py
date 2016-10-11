@@ -32,14 +32,15 @@ __date__ = "10/10/2016"
 
 import numpy
 from silx.math.fit.filters import strip, snip1d,\
-    smooth1d, savitsky_golay
+    savitsky_golay
 from silx.math.fit.fittheory import FitTheory
 
 CONFIG = {
-    "SmoothStrip": False,
+    "SmoothStripFlag": False,
     "StripWidth": 2,
     "StripNIterations": 5000,
     "StripThresholdFactor": 1.0,
+    "SmoothingWidth": 5
 }
 
 
@@ -47,6 +48,8 @@ CONFIG = {
 _BG_STRIP_OLDY = numpy.array([])
 _BG_STRIP_OLDPARS = [0, 0]
 _BG_STRIP_OLDBG = numpy.array([])
+_BG_STRIP_OLDWIDTH = 0
+_BG_STRIP_OLDFLAG = None
 
 
 def strip_bg(y, width, niter):
@@ -54,8 +57,12 @@ def strip_bg(y, width, niter):
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
     global _BG_STRIP_OLDBG
+    global _BG_STRIP_OLDWIDTH
+    global _BG_STRIP_OLDFLAG
     # same parameters
-    if _BG_STRIP_OLDPARS == [width, niter]:
+    if _BG_STRIP_OLDPARS == [width, niter] and\
+            _BG_STRIP_OLDWIDTH == CONFIG["SmoothingWidth"] and\
+            _BG_STRIP_OLDFLAG == CONFIG["SmoothStripFlag"]:
         # same data
         if numpy.sum(_BG_STRIP_OLDY == y) == len(y):
             # same result
@@ -63,8 +70,10 @@ def strip_bg(y, width, niter):
 
     _BG_STRIP_OLDY = y
     _BG_STRIP_OLDPARS = [width, niter]
+    _BG_STRIP_OLDWIDTH = CONFIG["SmoothingWidth"]
+    _BG_STRIP_OLDFLAG = CONFIG["SmoothStripFlag"]
 
-    y1 = smooth1d(y) if CONFIG["SmoothStrip"] else y
+    y1 = savitsky_golay(y, CONFIG["SmoothingWidth"]) if CONFIG["SmoothStripFlag"] else y
 
     background = strip(y1,
                        w=width,
