@@ -51,7 +51,6 @@ _BG_STRIP_OLDBG = numpy.array([])
 
 def strip_bg(y, width, niter):
     """Compute the strip bg for y"""
-    print("running fit with ", width, niter)
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
     global _BG_STRIP_OLDBG

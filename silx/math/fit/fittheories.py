@@ -294,7 +294,7 @@ class FitTheories(object):
                 delta = y - bg
                 # get index of global maximum
                 # (first one if several samples are equal to this value)
-                peaks = [int(numpy.nonzero(delta == delta.max())[0])]
+                peaks = [numpy.nonzero(delta == delta.max())[0][0]]
 
         # Find index of largest peak in peaks array
         index_largest_peak = 0
