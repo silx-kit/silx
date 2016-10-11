@@ -347,6 +347,8 @@ class SearchPage(qt.QWidget):
 
 
 class BackgroundPage(qt.QGroupBox):
+    """Background subtraction configuration, specific to fittheories
+    estimation functions."""
     def __init__(self, parent=None,
                  title="Subtract strip background prior to estimation"):
         super(BackgroundPage, self).__init__(parent)
@@ -354,10 +356,10 @@ class BackgroundPage(qt.QGroupBox):
         self.setCheckable(True)
         self.setToolTip(
             "The strip algorithm strips away peaks to compute the " +
-            "background signal. At each iteration, a sample is compared " +
+            "background signal.\nAt each iteration, a sample is compared " +
             "to the average of the two samples at a given distance in both" +
-            " directions, and if its value is higher than the average, it " +
-            "is replaced by the average.")
+            " directions,\n and if its value is higher than the average,"
+            "it is replaced by the average.")
 
         layout = qt.QGridLayout(self)
         self.setLayout(layout)
@@ -386,7 +388,14 @@ class BackgroundPage(qt.QGroupBox):
             "average of the 2 samples at +- width multiplied by this factor.")
         layout.addWidget(self.thresholdFactorEntry, 2, 1)
 
-        layout.setRowStretch(3, 1)
+        self.smoothStripCB = qt.QCheckBox("Apply smoothing prior to strip", self)
+        self.smoothStripCB.setToolTip(
+                "Apply a simple smoothing (weighted average of neighboring" +
+                " sample) before subtracting strip background in fit and " +
+                "estimate processes")
+        layout.addWidget(self.smoothStripCB, 3, 0, 1, 2)
+
+        layout.setRowStretch(4, 1)
 
         self.setDefault()
 
@@ -407,6 +416,8 @@ class BackgroundPage(qt.QGroupBox):
                 str(default_dict.get('StripNIterations', 5000)))
         self.thresholdFactorEntry.setText(
                 str(default_dict.get('StripThresholdFactor', 1.0)))
+        self.smoothStripCB.setChecked(
+                default_dict.get('SmoothStrip', False))
 
     def get(self):
         """Return a dictionary of background subtraction parameters, to be
@@ -416,41 +427,7 @@ class BackgroundPage(qt.QGroupBox):
             'StripBackgroundFlag': self.isChecked(),
             'StripWidth': safe_int(self.stripWidthEntry.text()),
             'StripNIterations': safe_int(self.numIterationsEntry.text()),
-            'StripThresholdFactor': safe_float(self.thresholdFactorEntry.text())
-        }
-        return ddict
-
-
-class SmoothPage(qt.QWidget):
-    def __init__(self, parent=None):
-        super(SmoothPage, self).__init__(parent)
-        layout = qt.QVBoxLayout(self)
-
-        self.smoothStripCB = qt.QCheckBox("Apply smoothing prior to strip", self)
-        self.smoothStripCB.setToolTip(
-                "Apply a simple smoothing (weighted average of neighboring" +
-                " sample) before subtracting strip background in fit and " +
-                "estimate processes")
-        layout.addWidget(self.smoothStripCB)
-
-        layout.addStretch()
-
-        self.setDefault()
-
-    def setDefault(self, default_dict=None):
-        """Set default values for all widgets.
-
-        :param default_dict: If a default config dictionary is provided as
-            a parameter, its values are used as default values."""
-        if default_dict is None:
-            default_dict = {}
-        self.smoothStripCB.setChecked(
-                default_dict.get('SmoothStrip', False))
-
-    def get(self):
-        """Return a dictionary of peak search parameters, to be processed by
-        the :meth:`configure` method of the selected fit theory."""
-        ddict = {
+            'StripThresholdFactor': safe_float(self.thresholdFactorEntry.text()),
             'SmoothStrip': self.smoothStripCB.isChecked(),
         }
         return ddict
@@ -493,7 +470,6 @@ def getFitConfigDialog(parent=None, default=None, modal=True):
     tdd.addTab(ConstraintsPage(), label="Constraints")
     tdd.addTab(SearchPage(), label="Peak search")
     tdd.addTab(BackgroundPage(), label="Background")
-    tdd.addTab(SmoothPage(), label="Smoothing")
     # apply default to newly added pages
     tdd.setDefault()
 
