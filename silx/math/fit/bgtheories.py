@@ -43,55 +43,38 @@ CONFIG = {
 }
 
 
+# to avoid costly computations when parameters stay the same
+_BG_STRIP_OLDY = numpy.array([])
+_BG_STRIP_OLDPARS = [0, 0]
+_BG_STRIP_OLDBG = numpy.array([])
+
+
 def strip_bg(y, width, niter):
     """Compute the strip bg for y"""
-    if CONFIG["SmoothStrip"]:
-        y = smooth1d(y)
-    background = strip(y,
+    print("running fit with ", width, niter)
+    global _BG_STRIP_OLDY
+    global _BG_STRIP_OLDPARS
+    global _BG_STRIP_OLDBG
+    # same parameters
+    if _BG_STRIP_OLDPARS == [width, niter]:
+        # same data
+        if numpy.sum(_BG_STRIP_OLDY == y) == len(y):
+            # same result
+            return _BG_STRIP_OLDBG
+
+    _BG_STRIP_OLDY = y
+    _BG_STRIP_OLDPARS = [width, niter]
+
+    y1 = smooth1d(y) if CONFIG["SmoothStrip"] else y
+
+    background = strip(y1,
                        w=width,
                        niterations=niter,
                        factor=CONFIG["StripThresholdFactor"])
+
+    _BG_STRIP_OLDBG = background
+
     return background
-
-
-# def bkg_strip(self, x, *pars):
-#       """
-#       Internal Background based on a strip filter
-#       (:meth:`silx.math.fit.filters.strip`)
-#
-#       Parameters are *(strip_width, n_iterations)*
-#
-#       A 1D smoothing is applied prior to the stripping, if configuration
-#       parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
-#
-#       See http://pymca.sourceforge.net/stripbackground.html
-#       """
-#       if self._bkg_strip_oldpars[0] == pars[0]:
-#           if self._bkg_strip_oldpars[1] == pars[1]:
-#               if (len(x) == len(self._bkg_strip_oldx)) & \
-#                  (len(self.ydata) == len(self._bkg_strip_oldy)):
-#                   # same parameters
-#                   if numpy.sum(self._bkg_strip_oldx == x) == len(x):
-#                       if numpy.sum(self._bkg_strip_oldy == self.ydata) == len(self.ydata):
-#                           return self._bkg_strip_oldbkg
-#       self._bkg_strip_oldy = self.ydata
-#       self._bkg_strip_oldx = x
-#       self._bkg_strip_oldpars = pars
-#       idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
-#       yy = numpy.take(self.ydata, idx)
-#       if self.fitconfig["SmoothStrip"]:
-#           yy = smooth1d(yy)
-#
-#       nrx = numpy.shape(x)[0]
-#       nry = numpy.shape(yy)[0]
-#       if nrx == nry:
-#           self._bkg_strip_oldbkg = strip(yy, pars[0], pars[1])
-#           return self._bkg_strip_oldbkg
-#
-#       else:
-#           self._bkg_strip_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-#                                          pars[0], pars[1])
-#           return self._bkg_strip_oldbkg
 
 
 def estimate_linear(x, y):
@@ -125,7 +108,8 @@ def estimate_linear(x, y):
 def estimate_strip(x, y):
     """Estimation function for strip parameters.
 
-    Return parameters from CONFIG dict, set constraints to FIXED."""
+    Return parameters from CONFIG dict, set constraints to FIXED.
+    """
     estimated_par = [CONFIG["StripWidth"],
                      CONFIG["StripNIterations"]]
     constraints = numpy.zeros((len(estimated_par), 3), numpy.float)
@@ -170,4 +154,3 @@ THEORY = {
             estimate=estimate_strip,
             configure=configure),
 }
-

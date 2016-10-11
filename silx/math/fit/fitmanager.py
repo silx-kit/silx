@@ -211,13 +211,6 @@ class FitManager(object):
 
         self.setdata(x, y, sigmay)
 
-        # # Attributes used to store internal background parameters and data,
-        # # to avoid costly computations when parameters stay the same
-        # self._bkg_strip_oldx = numpy.array([])
-        # self._bkg_strip_oldy = numpy.array([])
-        # self._bkg_strip_oldpars = [0, 0]
-        # self._bkg_strip_oldbkg = numpy.array([])
-
     ##################
     # Public methods #
     ##################
@@ -385,19 +378,6 @@ class FitManager(object):
         result.update(self.fitconfig)
         return result
 
-    # def dataupdate(self):
-    #     """This method can be updated with a user defined function to
-    #     update data (for instance modify range fo :attr:`xdata`,
-    #     :attr:`ydata` and :attr:`sigmay` when user zooms in or out in a GUI
-    #     plot).
-    #
-    #     It is called at the beginning of :meth:`estimate` and
-    #     :meth:`runfit`.
-    #
-    #     By default, it does nothing.
-    #     """
-    #     pass
-
     def estimate(self, callback=None):
         """
         Fill :attr:`fit_results` with an estimation of the fit parameters.
@@ -436,9 +416,6 @@ class FitManager(object):
                 5: 'DELTA',
                 6: 'SUM',
                 7: 'IGNORE'}
-        #
-        # # Update data using user defined method
-        # self.dataupdate()
 
         xwork = self.xdata
         ywork = self.ydata
@@ -1013,56 +990,6 @@ class FitManager(object):
                             "theories[%s]" % self.selectedtheory +
                             " must be callable.")
 
-
-    # def bkg_strip(self, x, *pars):
-    #     """
-    #     Internal Background based on a strip filter
-    #     (:meth:`silx.math.fit.filters.strip`)
-    #
-    #     Parameters are *(strip_width, n_iterations)*
-    #
-    #     A 1D smoothing is applied prior to the stripping, if configuration
-    #     parameter ``SmoothStrip`` in :attr:`fitconfig` is ``True``.
-    #
-    #     See http://pymca.sourceforge.net/stripbackground.html
-    #     """
-    #     if self._bkg_strip_oldpars[0] == pars[0]:
-    #         if self._bkg_strip_oldpars[1] == pars[1]:
-    #             if (len(x) == len(self._bkg_strip_oldx)) & \
-    #                (len(self.ydata) == len(self._bkg_strip_oldy)):
-    #                 # same parameters
-    #                 if numpy.sum(self._bkg_strip_oldx == x) == len(x):
-    #                     if numpy.sum(self._bkg_strip_oldy == self.ydata) == len(self.ydata):
-    #                         return self._bkg_strip_oldbkg
-    #     self._bkg_strip_oldy = self.ydata
-    #     self._bkg_strip_oldx = x
-    #     self._bkg_strip_oldpars = pars
-    #     idx = numpy.nonzero((self.xdata >= x[0]) & (self.xdata <= x[-1]))[0]
-    #     yy = numpy.take(self.ydata, idx)
-    #     if self.fitconfig["SmoothStrip"]:
-    #         yy = smooth1d(yy)
-    #
-    #     nrx = numpy.shape(x)[0]
-    #     nry = numpy.shape(yy)[0]
-    #     if nrx == nry:
-    #         self._bkg_strip_oldbkg = strip(yy, pars[0], pars[1])
-    #         return self._bkg_strip_oldbkg
-    #
-    #     else:
-    #         self._bkg_strip_oldbkg = strip(numpy.take(yy, numpy.arange(0, nry, 2)),
-    #                                        pars[0], pars[1])
-    #         return self._bkg_strip_oldbkg
-
-    # def bkg_squarefilter(self, x, *pars):
-    #     """
-    #     Square filter Background
-    #     """
-    #     # TODO: docstring
-    #     # why is this different than bkg_constant?
-    #     # what is pars[0]?
-    #     # what defines the (xmin, xmax) limits of the square function?
-    #     return pars[1] * numpy.ones(numpy.shape(x), numpy.float)
-
     def _load_legacy_theories(self, theories_module):
         """Load theories from a custom module in the old PyMca format.
 
@@ -1103,40 +1030,6 @@ class FitManager(object):
                                configure,
                                derivative,
                                pymca_legacy=True))
-
-    # def squarefilter(self, y, width):
-    #     """
-    #
-    #     :param y:
-    #     :param width:
-    #     :return:
-    #     """ # TODO: document
-    #     if len(y) == 0:
-    #         if isinstance(y, list):
-    #             return []
-    #         else:
-    #             return numpy.array([])
-    #
-    #     # make width an odd number of samples and calculate half width
-    #     width = int(width) + ((int(width) + 1) % 2)
-    #     half_width = int(width / 2)
-    #
-    #     len_coef = 2 * half_width + width
-    #
-    #     if len(y) < len_coef:
-    #         return y
-    #
-    #     coef = numpy.zeros((len_coef,), numpy.float)
-    #
-    #     coef[0:half_width] = -0.5 / float(half_width)
-    #     coef[half_width:(half_width + width)] = 1.0 / float(width)
-    #     coef[(half_width + width):len(coef)] = -0.5 / float(half_width)
-    #
-    #     result = numpy.zeros(len(y), numpy.float)
-    #     result[(width - 1):-(width - 1)] = numpy.convolve(y, coef, 0)
-    #     result[0:width - 1] = result[width - 1]
-    #     result[-(width - 1):] = result[-(width + 1)]
-    #     return result
 
 
 def test():

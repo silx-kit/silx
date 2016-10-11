@@ -293,8 +293,8 @@ class FitWidget(qt.QWidget):
             i = 1 + \
                 list(self.fitmanager.bgtheories.keys()).index(
                         self.fitmanager.selectedbg)
-            print(i)
             self.guiConfig.BkgComBox.setCurrentIndex(i)
+            self.bkgEvent(self.fitmanager.selectedbg)
         except ValueError:
             _logger.error("Background not in list %s",
                           self.fitmanager.selectedbg)
