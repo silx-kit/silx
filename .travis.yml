@@ -122,6 +122,7 @@ script:
     # Print Python info
     - python ci/info_platform.py
     - pip list
+    - pip install PyQt4
 
     # Run the tests using WITH_QT_TEST from the environment
     - echo "WITH_QT_TEST="$WITH_QT_TEST
