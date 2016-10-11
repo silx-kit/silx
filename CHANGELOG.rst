@@ -7,26 +7,26 @@ Unreleased
 0.3.0: 2016/10/12
 -----------------
 
-* Added OpenCL management
-* Added isosurface marching cubes
-* Added sift algorithm for image alignement
-* Added octaveh5 module to insure communication between octave and python using HDF5 file
-* Added silx.utils module containing weakref and html-escape
-* Added silx.sx for flat import (helper for interactive shell)
-* Added HDF5 load API (supporting Spec files) to silx.io.utils module
-* Added SpecFile support for multiple MCA headers
-* Added HDF5 TreeView
-* Added FitManager and FitWidget to the silx.math.fit module
-* Added ThreadPoolPushButton to silx.gui.widgets
-* Added getDataRange function to plot widget
-* Added loadUi, Slot and Property to qt.py
-* Added SVG icons and support
-* Added examples for plot actions, HDF5 widget, helper widgets, converter from Spec to HDF5
-* Added tutorials for plot actions, spech5, spectoh5, sift and fitmanager
-* Improve right axis support for plot widget
-* Improve mask tool
-* Refactoring widgets constructor: first argument is now the parent widget
-* Change plot documentation and add missing module to the documentation
+ * Added OpenCL management
+ * Added isosurface marching cubes
+ * Added sift algorithm for image alignement
+ * Added octaveh5 module to insure communication between octave and python using HDF5 file
+ * Added silx.utils module containing weakref and html-escape
+ * Added silx.sx for flat import (helper for interactive shell)
+ * Added HDF5 load API (supporting Spec files) to silx.io.utils module
+ * Added SpecFile support for multiple MCA headers
+ * Added HDF5 TreeView
+ * Added FitManager and FitWidget to the silx.math.fit module
+ * Added ThreadPoolPushButton to silx.gui.widgets
+ * Added getDataRange function to plot widget
+ * Added loadUi, Slot and Property to qt.py
+ * Added SVG icons and support
+ * Added examples for plot actions, HDF5 widget, helper widgets, converter from Spec to HDF5
+ * Added tutorials for plot actions, spech5, spectoh5, sift and fitmanager
+ * Improve right axis support for plot widget
+ * Improve mask tool
+ * Refactoring widgets constructor: first argument is now the parent widget
+ * Change plot documentation and add missing module to the documentation
 
 
 0.2.0: 2016/07/12
