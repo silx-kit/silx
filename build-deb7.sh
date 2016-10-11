@@ -39,7 +39,7 @@ export PYBUILD_DISABLE_python2=test
 export PYBUILD_DISABLE_python3=test
 export DEB_BUILD_OPTIONS=nocheck
 rm -rf dist
-python setup.py sdist
+python setup.py sdist --no-cython
 cd dist
 tar -xzf ${PROJECT}-*.tar.gz
 cd ${PROJECT}*
