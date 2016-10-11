@@ -654,14 +654,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 dataRatio = (ymax - ymin) / (xmax - xmin)
                 if dataRatio < figureRatio:
                     # Increase y range
-                    ycenter = 0.5 * (newLimits[3] - newLimits[2])
+                    ycenter = 0.5 * (newLimits[3] + newLimits[2])
                     yrange = (xmax - xmin) * figureRatio
                     newLimits[2] = ycenter - 0.5 * yrange
                     newLimits[3] = ycenter + 0.5 * yrange
 
                 elif dataRatio > figureRatio:
                     # Increase x range
-                    xcenter = 0.5 * (newLimits[1] - newLimits[0])
+                    xcenter = 0.5 * (newLimits[1] + newLimits[0])
                     xrange_ = (ymax - ymin) / figureRatio
                     newLimits[0] = xcenter - 0.5 * xrange_
                     newLimits[1] = xcenter + 0.5 * xrange_
