@@ -100,13 +100,13 @@ class AspectToolButton(PlotToolButton):
     def __init__(self, parent=None, plot=None):
         if self.STATE is None:
             self.STATE = {}
-            # dont keep ration
+            # dont keep ratio
             self.STATE[False, "icon"] = icons.getQIcon('shape-ellipse-solid')
-            self.STATE[False, "state"] = "Aspect ration is not kept"
+            self.STATE[False, "state"] = "Aspect ratio is not kept"
             self.STATE[False, "action"] = "Do no keep data aspect ratio"
-            # keep ration
+            # keep ratio
             self.STATE[True, "icon"] = icons.getQIcon('shape-circle-solid')
-            self.STATE[True, "state"] = "Aspect ration is kept"
+            self.STATE[True, "state"] = "Aspect ratio is kept"
             self.STATE[True, "action"] = "Keep data aspect ratio"
 
         super(AspectToolButton, self).__init__(parent=parent, plot=plot)
