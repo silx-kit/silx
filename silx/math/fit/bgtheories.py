@@ -56,7 +56,7 @@ _BG_STRIP_OLDFLAG = None
 
 
 def strip_bg(x, y0, width, niter):
-    """Compute the strip bg for y"""
+    """Compute the strip bg for y0"""
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
     global _BG_STRIP_OLDBG
@@ -94,7 +94,7 @@ def estimate_linear(x, y):
 
     Strip peaks, then perform a linear regression.
     """
-    bg = strip_bg(y,
+    bg = strip_bg(x, y,
                   width=CONFIG["StripWidth"],
                   niter=CONFIG["StripIterations"])
     n = float(len(bg))
