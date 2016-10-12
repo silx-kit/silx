@@ -16,7 +16,7 @@ Unreleased
  * Added HDF5 load API (supporting Spec files) to silx.io.utils module
  * Added SpecFile support for multiple MCA headers
  * Added HDF5 TreeView
- * Added FitManager and FitWidget to the silx.math.fit module
+ * Added FitManager to the silx.math.fit and FitWidget to silx.gui.fit 
  * Added ThreadPoolPushButton to silx.gui.widgets
  * Added getDataRange function to plot widget
  * Added loadUi, Slot and Property to qt.py
