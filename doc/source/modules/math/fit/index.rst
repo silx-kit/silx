@@ -15,6 +15,7 @@
    fitmanager.rst
    fittheory.rst
    fittheories.rst
+   bgtheories.rst
 
 
 For a graphical fit widget, see :mod:`silx.gui.fit.FitWidget`.

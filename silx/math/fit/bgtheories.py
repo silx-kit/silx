@@ -22,16 +22,50 @@
 # THE SOFTWARE.
 #
 ########################################################################### */
-"""This modules provides a set of background model functions and associated
+"""This modules defines a set of background model functions and associated
 estimation functions in a format that can be imported into a
 :class:`silx.math.fit.FitManager` object.
 
-This includes common background models such as a constant value or a linear
-background.
+A background function is a function that you want to add to a regular fit
+function prior to fitting the sum of both functions. This is useful, for
+instance, if you need to fit multiple gaussian peaks in an array of
+measured data points when the measurement is polluted by a background signal.
+
+The models include common background models such as a constant value or a
+linear background.
 
 It also includes background computation filters - *strip* and *snip* - that
-can extract a low-curvature background signal from a signal with peaks having
-higher curvatures.
+can extract a more complex low-curvature background signal from a signal with
+peaks having higher curvatures.
+
+The source code of this module can serve as a template for defining your
+own fit background theories. The minimal skeleton of such a theory definition
+file is::
+
+    from silx.math.fit.fittheory import FitTheory
+
+    def bgfunction1(x, y0, …):
+        bg_signal = …
+        return bg_signal
+
+    def estimation_function1(x, y):
+        …
+        estimated_params = …
+        constraints = …
+        return estimated_params, constraints
+
+    THEORY = {
+        'bg_theory_name1': FitTheory(
+                            description='Description of theory 1',
+                            function=bgfunction1,
+                            parameters=('param name 1', 'param name 2', …),
+                            estimate=estimation_function1,
+                            configure=configuration_function1,
+                            derivative=derivative_function1,
+                            config_widget=MyConfigWidget,
+                            is_background=True),
+        'theory_name_2': …,
+    }
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
