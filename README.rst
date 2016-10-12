@@ -55,7 +55,7 @@ The GUI widgets of the silx package depend on the following extra packages:
 Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on the following extra package:
 * `h5py <http://www.h5py.org/>`_
 
-* `ipython <https://ipython.org/>`_ and `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ requires silx.gui.console.py
+* `ipython <https://ipython.org/>`_ and `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ is required by silx.gui.console.py
 
 Supported platforms: Linux, Windows, Mac OS X.
 
