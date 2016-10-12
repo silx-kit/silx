@@ -24,7 +24,9 @@
 # THE SOFTWARE.
 #
 # #########################################################################*/
-"""Background configuration widget"""
+"""This module provides a background configuration widget
+:class:`BackgroundWidget` and a corresponding dialog window
+:class:`BackgroundDialog`."""
 import sys
 import numpy
 from silx.gui import qt
@@ -44,11 +46,13 @@ class HorizontalSpacer(qt.QWidget):
 
 
 class BackgroundParamWidget(qt.QWidget):
-    """Background configuration widget.
+    """Background configuration composite widget.
 
-    Strip and snip filters parameters can be adjusted, and
-    the computed backgrounds are plotted next to the original data to
-    show the result."""
+    Strip and snip filters parameters can be adjusted using input widgets.
+
+    Updating the widgets causes :attr:`sigBackgroundParamWidgetSignal` to
+    be emitted.
+    """
     sigBackgroundParamWidgetSignal = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -185,6 +189,11 @@ class BackgroundParamWidget(qt.QWidget):
         self._emitSignal()
 
     def setParameters(self, ddict):
+        """Set values for all input widgets.
+
+        :param dict ddict: Input dictionary, must have the same
+            keys as the dictionary output by :meth:`getParameters`
+        """
         if "algorithm" in ddict:
             self._setAlgorithm(ddict["algorithm"])
 
@@ -226,12 +235,13 @@ class BackgroundParamWidget(qt.QWidget):
             - *algorithm*: *"strip"* or *"snip"*
             - *StripWidth*: width of strip iterator
             - *StripIterations*: number of iterations
+            - *StripThreshold*: curvature parameter (currently fixed to 1.0)
             - *SnipWidth*: width of snip algorithm
             - *SmoothingFlag*: flag to enable/disable smoothing
             - *SmoothingWidth*: width of Savitsky-Golay smoothing filter
             - *AnchorsFlag*: flag to enable/disable anchors
             - *AnchorsList*: list of anchors (X coordinates of fixed values)
-            """
+        """
         stripitertext = self.stripIterValue.text()
         stripiter = int(stripitertext) if len(stripitertext) else 0
 
@@ -254,8 +264,8 @@ class BackgroundParamWidget(qt.QWidget):
 class BackgroundWidget(qt.QWidget):
     """Background configuration widget, with a :class:`PlotWindow`.
 
-    Strip and snip filters parameters can be adjusted, and
-    the computed backgrounds are plotted next to the original data to
+    Strip and snip filters parameters can be adjusted using input widgets,
+    and the computed backgrounds are plotted next to the original data to
     show the result."""
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
@@ -271,21 +281,52 @@ class BackgroundWidget(qt.QWidget):
                                       fit=False)
         self.mainLayout.addWidget(self.parametersWidget)
         self.mainLayout.addWidget(self.graphWidget)
-        self.getParameters = self.parametersWidget.getParameters
-        self.setParameters = self.parametersWidget.setParameters
         self._x = None
         self._y = None
         self.parametersWidget.sigBackgroundParamWidgetSignal.connect(self._slot)
 
+    def getParameters(self):
+        """Return dictionary of parameters defined in the GUI
+
+        The returned dictionary contains following values:
+
+            - *algorithm*: *"strip"* or *"snip"*
+            - *StripWidth*: width of strip iterator
+            - *StripIterations*: number of iterations
+            - *StripThreshold*: strip curvature (currently fixed to 1.0)
+            - *SnipWidth*: width of snip algorithm
+            - *SmoothingFlag*: flag to enable/disable smoothing
+            - *SmoothingWidth*: width of Savitsky-Golay smoothing filter
+            - *AnchorsFlag*: flag to enable/disable anchors
+            - *AnchorsList*: list of anchors (X coordinates of fixed values)
+        """
+        return self.parametersWidget.getParameters()
+
+    def setParameters(self, ddict):
+        """Set values for all input widgets.
+
+        :param dict ddict: Input dictionary, must have the same
+            keys as the dictionary output by :meth:`getParameters`
+        """
+        return self.parametersWidget.setParameters(ddict)
+
     def setData(self, x, y):
+        """Set data for the original curve, and _update strip and snip
+        curves accordingly.
+
+        :param x: Array or sequence of curve abscissa values
+        :param y: Array or sequence of curve ordinate values
+        """
         self._x = x
         self._y = y
-        self.update(resetzoom=True)
+        self._update(resetzoom=True)
 
     def _slot(self, ddict):
-        self.update()
+        self._update()
 
-    def update(self, resetzoom=False):
+    def _update(self, resetzoom=False):
+        """Compute strip and snip backgrounds, update the curves
+        """
         if self._y is None:
             return
 
@@ -361,6 +402,7 @@ class BackgroundWidget(qt.QWidget):
 
 
 class BackgroundDialog(qt.QDialog):
+    """QDialog window featuring a :class:`BackgroundWidget`"""
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
         self.setWindowTitle("Strip and SnipP Configuration Window")
@@ -368,9 +410,6 @@ class BackgroundDialog(qt.QDialog):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(2)
         self.parametersWidget = BackgroundWidget(self)
-        self.setData = self.parametersWidget.setData
-        self.getParameters = self.parametersWidget.getParameters
-        self.setParameters = self.parametersWidget.setParameters
         self.mainLayout.addWidget(self.parametersWidget)
         hbox = qt.QWidget(self)
         hboxLayout = qt.QHBoxLayout(hbox)
@@ -392,11 +431,14 @@ class BackgroundDialog(qt.QDialog):
         self.output = {}
         """Configuration dictionary containing following fields:
 
-          - *SmoothStripFlag*
+          - *SmoothingFlag*
           - *SmoothingWidth*
           - *StripWidth*
-          - *StripNIterations*
-          - *StripThresholdFactor*
+          - *StripIterations*
+          - *StripThreshold*
+          - *SnipWidth*
+          - *AnchorsFlag*
+          - *AnchorsList*
         """
 
         # self.parametersWidget.parametersWidget.sigBackgroundParamWidgetSignal.connect(self.updateOutput)
@@ -405,12 +447,26 @@ class BackgroundDialog(qt.QDialog):
     #     self.output = ddict
 
     def accept(self):
+        """Update :attr:`output`, then call :meth:`QDialog.accept`
+        """
         self.output = self.getParameters()
         super(BackgroundDialog, self).accept()
 
     def sizeHint(self):
         return qt.QSize(int(1.5*qt.QDialog.sizeHint(self).width()),
                         qt.QDialog.sizeHint(self).height())
+
+    def setData(self, x, y):
+        """See :meth:`BackgroundWidget.setData`"""
+        return self.parametersWidget.setData(x, y)
+
+    def getParameters(self):
+        """See :meth:`BackgroundWidget.getParameters`"""
+        return self.parametersWidget.getParameters()
+
+    def setParameters(self, ddict):
+        """See :meth:`BackgroundWidget.setParameters`"""
+        return self.parametersWidget.setParameters(ddict)
 
 
 def main():

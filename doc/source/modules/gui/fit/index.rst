@@ -28,4 +28,5 @@ Public modules:
    :maxdepth: 2
 
    fitwidget.rst
+   backgroundwidget.rst
 
