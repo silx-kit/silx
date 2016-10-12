@@ -24,12 +24,20 @@
 ########################################################################### */
 """This modules provides a set of background model functions and associated
 estimation functions in a format that can be imported into a
-:class:`silx.math.fit.FitManager` instance.
+:class:`silx.math.fit.FitManager` object.
+
+This includes common background models such as a constant value or a linear
+background.
+
+It also includes background computation filters - *strip* and *snip* - that
+can extract a low-curvature background signal from a signal with peaks having
+higher curvatures.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "10/10/2016"
 
+from collections import OrderedDict
 import numpy
 from silx.math.fit.filters import strip, snip1d,\
     savitsky_golay
@@ -43,16 +51,22 @@ CONFIG = {
     "StripWidth": 2,
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
-    "SnipWidth": 2,         # TODO
+    "SnipWidth": 2,
 }
-
 
 # to avoid costly computations when parameters stay the same
 _BG_STRIP_OLDY = numpy.array([])
 _BG_STRIP_OLDPARS = [0, 0]
 _BG_STRIP_OLDBG = numpy.array([])
-_BG_STRIP_OLDWIDTH = 0
-_BG_STRIP_OLDFLAG = None
+
+_BG_SNIP_OLDY = numpy.array([])
+_BG_SNIP_OLDWIDTH = None
+_BG_SNIP_OLDBG = numpy.array([])
+
+_BG_OLD_ANCHORS = []
+
+_BG_SMOOTH_OLDWIDTH = None
+_BG_SMOOTH_OLDFLAG = None
 
 
 def strip_bg(x, y0, width, niter):
@@ -60,12 +74,12 @@ def strip_bg(x, y0, width, niter):
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
     global _BG_STRIP_OLDBG
-    global _BG_STRIP_OLDWIDTH
-    global _BG_STRIP_OLDFLAG
+    global _BG_SMOOTH_OLDWIDTH
+    global _BG_SMOOTH_OLDFLAG
     # same parameters
     if _BG_STRIP_OLDPARS == [width, niter] and\
-            _BG_STRIP_OLDWIDTH == CONFIG["SmoothingWidth"] and\
-            _BG_STRIP_OLDFLAG == CONFIG["SmoothingFlag"]:
+            _BG_SMOOTH_OLDWIDTH == CONFIG["SmoothingWidth"] and\
+            _BG_SMOOTH_OLDFLAG == CONFIG["SmoothingFlag"]:
         # same data
         if numpy.sum(_BG_STRIP_OLDY == y0) == len(y0):
             # same result
@@ -73,8 +87,8 @@ def strip_bg(x, y0, width, niter):
 
     _BG_STRIP_OLDY = y0
     _BG_STRIP_OLDPARS = [width, niter]
-    _BG_STRIP_OLDWIDTH = CONFIG["SmoothingWidth"]
-    _BG_STRIP_OLDFLAG = CONFIG["SmoothingFlag"]
+    _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
+    _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
 
     y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
 
@@ -84,6 +98,36 @@ def strip_bg(x, y0, width, niter):
                        factor=CONFIG["StripThresholdFactor"])
 
     _BG_STRIP_OLDBG = background
+
+    return background
+
+
+def snip_bg(x, y0, width):
+    """Compute the snip bg for y0"""
+    global _BG_SNIP_OLDY
+    global _BG_SNIP_OLDWIDTH
+    global _BG_SNIP_OLDBG
+    global _BG_SMOOTH_OLDWIDTH
+    global _BG_SMOOTH_OLDFLAG
+    # same parameters
+    if _BG_SNIP_OLDWIDTH == width and\
+            _BG_SMOOTH_OLDWIDTH == CONFIG["SmoothingWidth"] and\
+            _BG_SMOOTH_OLDFLAG == CONFIG["SmoothingFlag"]:
+        # same data
+        if numpy.sum(_BG_SNIP_OLDY == y0) == len(y0):
+            # same result
+            return _BG_SNIP_OLDBG
+
+    _BG_SNIP_OLDY = y0
+    _BG_SNIP_OLDWIDTH = width
+    _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
+    _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
+
+    y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
+
+    background = snip1d(y1, width)
+
+    _BG_SNIP_OLDBG = background
 
     return background
 
@@ -119,7 +163,8 @@ def estimate_linear(x, y):
 def estimate_strip(x, y):
     """Estimation function for strip parameters.
 
-    Return parameters from CONFIG dict, set constraints to FIXED.
+    Return parameters as defined in CONFIG dict,
+    set constraints to FIXED.
     """
     estimated_par = [CONFIG["StripWidth"],
                      CONFIG["StripIterations"]]
@@ -127,6 +172,19 @@ def estimate_strip(x, y):
     # code = 3: FIXED
     constraints[0][0] = 3
     constraints[1][0] = 3
+    return estimated_par, constraints
+
+
+def estimate_snip(x, y):
+    """Estimation function for snip parameters.
+
+    Return parameters as defined in CONFIG dict,
+    set constraints to FIXED.
+    """
+    estimated_par = [CONFIG["SnipWidth"]]
+    constraints = numpy.zeros((len(estimated_par), 3), numpy.float)
+    # code = 3: FIXED
+    constraints[0][0] = 3
     return estimated_par, constraints
 
 
@@ -141,31 +199,46 @@ def configure(**kw):
     return CONFIG
 
 
-THEORY = {
-    'No Background': FitTheory(
-            description="No background function",
-            function=lambda x, y0: numpy.zeros_like(x),
-            parameters=[],
-            is_background=True),
-    'Constant': FitTheory(
-            description='Constant background',
-            function=lambda x, y0, c: c * numpy.ones_like(x),
-            parameters=['Constant', ],
-            estimate=lambda x, y: ([min(y)], [(0, 0, 0)]),
-            is_background=True),
-    'Linear':  FitTheory(
-            description="Linear background, parameters 'Constant' and 'Slope'",
-            function=lambda x, y0, a, b: a + b * x,
-            parameters=['Constant', 'Slope'],
-            estimate=estimate_linear,
-            configure=configure,
-            is_background=True),
-    'Strip': FitTheory(
-            description="Background based on strip filter\n" +
-                        "Parameters 'StripWidth', 'StripIterations'",
-            function=strip_bg,
-            parameters=['StripWidth', 'StripIterations'],
-            estimate=estimate_strip,
-            configure=configure,
-            is_background=True),
-}
+THEORY = OrderedDict(
+        (('No Background',
+          FitTheory(
+                description="No background function",
+                function=lambda x, y0: numpy.zeros_like(x),
+                parameters=[],
+                is_background=True)),
+         ('Constant',
+          FitTheory(
+                description='Constant background',
+                function=lambda x, y0, c: c * numpy.ones_like(x),
+                parameters=['Constant', ],
+                estimate=lambda x, y: ([min(y)], [(0, 0, 0)]),
+                is_background=True)),
+         ('Linear',
+          FitTheory(
+                description="Linear background, parameters 'Constant' and"
+                            " 'Slope'",
+                function=lambda x, y0, a, b: a + b * x,
+                parameters=['Constant', 'Slope'],
+                estimate=estimate_linear,
+                configure=configure,
+                is_background=True)),
+         ('Strip',
+          FitTheory(
+                description="Compute background using a strip filter\n"
+                            "Parameters 'StripWidth', 'StripIterations'",
+                function=strip_bg,
+                parameters=['StripWidth', 'StripIterations'],
+                estimate=estimate_strip,
+                configure=configure,
+                is_background=True)),
+         ('Snip',
+          FitTheory(
+                description="Compute background using a snip filter\n"
+                            "Parameter 'SnipWidth'",
+                function=snip_bg,
+                parameters=['SnipWidth'],
+                estimate=estimate_snip,
+                configure=configure,
+                is_background=True)),
+         )
+)
