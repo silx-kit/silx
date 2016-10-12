@@ -115,19 +115,16 @@ class TestLegendSelector(TestCaseQt):
 class TestRenameCurveDialog(TestCaseQt):
     """Basic test for RenameCurveDialog"""
 
-    def _testDialogCB(self):
-        """Callback to make mouse events on the dialog"""
-        self.qWaitForWindowExposed(self.dialog)
-        self.keyClicks(self.dialog.lineEdit, 'changed')
-        self.mouseClick(self.dialog.okButton, qt.Qt.LeftButton)
-
     def testDialog(self):
         """Create dialog, change name and press OK"""
         self.dialog = LegendSelector.RenameCurveDialog(
             None, 'curve1', ['curve1', 'curve2', 'curve3'])
-
-        qt.QTimer.singleShot(100, self._testDialogCB)
-        ret = self.dialog.exec_()
+        self.dialog.open()
+        self.qWaitForWindowExposed(self.dialog)
+        self.keyClicks(self.dialog.lineEdit, 'changed')
+        self.mouseClick(self.dialog.okButton, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        ret = self.dialog.result()
         self.assertEqual(ret, qt.QDialog.Accepted)
         newName = self.dialog.getText()
         self.assertEqual(newName, 'curve1changed')

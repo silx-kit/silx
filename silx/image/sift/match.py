@@ -330,7 +330,11 @@ def demo():
     import scipy.misc
     import numpy
     from .plan import SiftPlan
-    img1 = scipy.misc.ascent()
+    if hasattr(scipy.misc, "ascent"):
+        img1 = scipy.misc.ascent()
+    else:
+        img1 = scipy.misc.lena()
+
     splan = SiftPlan(template=img1)
     kp1 = splan(img1)
     img2 = numpy.zeros_like(img1)

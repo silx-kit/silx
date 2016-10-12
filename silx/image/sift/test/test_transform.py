@@ -158,8 +158,14 @@ class TestTransform(unittest.TestCase):
 
         if (USE_LENA):
             # original image
-            image = scipy.misc.ascent().astype(numpy.float32)
+            if hasattr(scipy.misc, "ascent"):
+                image = scipy.misc.ascent().astype(numpy.float32)
+            else:
+                image = scipy.misc.lena().astype(numpy.float32)
+
             image = numpy.ascontiguousarray(image[0:512, 0:512])
+
+
             # transformation
             angle = 1.9  # numpy.pi/5.0
     #        matrix = numpy.array([[numpy.cos(angle),-numpy.sin(angle)],[numpy.sin(angle),numpy.cos(angle)]],dtype=numpy.float32)
