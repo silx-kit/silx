@@ -88,8 +88,6 @@ class FitManager(object):
         """
         """
         self.fitconfig = {
-            # 'FwhmPoints': 8,   # Fixme: if we decide to drop square filter BG,
-            #                    # we can get rid of this param (will be defined in fittheories for peak detection)
             'WeightFlag': weight_flag,
             'fitbkg': 'No Background',
             'fittheory': None,
@@ -144,11 +142,12 @@ class FitManager(object):
         See :attr:`theories` for documentation on theories.
         """
 
+        # Load default theories (constant, linear, strip)
         self.loadbgtheories(bgtheories)
 
         self.selectedbg = 'No Background'
-        """Name of currently selected background theory. This name matches a
-        key in :attr:``."""
+        """Name of currently selected background theory. This name must be
+        an existing key in :attr:`bgtheories`."""
 
         self.fit_results = []
         """This list stores detailed information about all fit parameters.
@@ -826,10 +825,6 @@ class FitManager(object):
 
         ywork = self.ydata
 
-        if self.selectedbg == "Square Filter":
-            ywork = self.squarefilter(
-                    self.ydata, self.fit_results[0]['estimation'])
-
         try:
             params, covariance_matrix, infodict = leastsq(
                     self.fitfunction,  # bg + actual model function
@@ -877,15 +872,21 @@ class FitManager(object):
         :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
-        bg_pars_list = self.bgtheories[self.selectedbg].parameters
-        nb_bg_pars = len(bg_pars_list)
+        result = numpy.zeros(numpy.shape(x), numpy.float)
+
+        if self.selectedbg is not None:
+            bg_pars_list = self.bgtheories[self.selectedbg].parameters
+            nb_bg_pars = len(bg_pars_list)
+
+            bgfun = self.bgtheories[self.selectedbg].function
+            result += bgfun(x, self.ydata, *pars[0:nb_bg_pars])
+        else:
+            nb_bg_pars = 0
 
         peak_pars_list = self.theories[self.selectedtheory].parameters
         nb_peak_pars = len(peak_pars_list)
 
         nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
-
-        result = numpy.zeros(numpy.shape(x), numpy.float)
 
         # Compute one peak function per peak, and sum the output numpy arrays
         selectedfun = self.theories[self.selectedtheory].function
@@ -894,15 +895,7 @@ class FitManager(object):
             end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
             result += selectedfun(x, *pars[start_par_index:end_par_index])
 
-        if nb_bg_pars > 0:
-            bgfun = self.bgtheories[self.selectedbg].function
-            result += bgfun(x, *pars[0:nb_bg_pars])
-        # TODO: understand and document this Square Filter
-        if self.selectedbg == "Square Filter":
-            result = result - pars[1]
-            return pars[1] + self.squarefilter(result, pars[0])
-        else:
-            return result
+        return result
 
     def estimate_bkg(self, x, y):
         """Estimate background parameters using the function defined in
