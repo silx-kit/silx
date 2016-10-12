@@ -55,7 +55,7 @@ _BG_STRIP_OLDWIDTH = 0
 _BG_STRIP_OLDFLAG = None
 
 
-def strip_bg(y, width, niter):
+def strip_bg(x, y0, width, niter):
     """Compute the strip bg for y"""
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
@@ -67,16 +67,16 @@ def strip_bg(y, width, niter):
             _BG_STRIP_OLDWIDTH == CONFIG["SmoothingWidth"] and\
             _BG_STRIP_OLDFLAG == CONFIG["SmoothingFlag"]:
         # same data
-        if numpy.sum(_BG_STRIP_OLDY == y) == len(y):
+        if numpy.sum(_BG_STRIP_OLDY == y0) == len(y0):
             # same result
             return _BG_STRIP_OLDBG
 
-    _BG_STRIP_OLDY = y
+    _BG_STRIP_OLDY = y0
     _BG_STRIP_OLDPARS = [width, niter]
     _BG_STRIP_OLDWIDTH = CONFIG["SmoothingWidth"]
     _BG_STRIP_OLDFLAG = CONFIG["SmoothingFlag"]
 
-    y1 = savitsky_golay(y, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y
+    y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
 
     background = strip(y1,
                        w=width,
@@ -144,24 +144,28 @@ def configure(**kw):
 THEORY = {
     'No Background': FitTheory(
             description="No background function",
-            function=lambda x: numpy.zeros_like(x),
-            parameters=[]),
+            function=lambda x, y0: numpy.zeros_like(x),
+            parameters=[],
+            is_background=True),
     'Constant': FitTheory(
             description='Constant background',
-            function=lambda x, c: c * numpy.ones_like(x),
+            function=lambda x, y0, c: c * numpy.ones_like(x),
             parameters=['Constant', ],
-            estimate=lambda x, y: ([min(y)], [(0, 0, 0)])),
+            estimate=lambda x, y: ([min(y)], [(0, 0, 0)]),
+            is_background=True),
     'Linear':  FitTheory(
             description="Linear background, parameters 'Constant' and 'Slope'",
-            function=lambda x, a, b: a + b * x,
+            function=lambda x, y0, a, b: a + b * x,
             parameters=['Constant', 'Slope'],
             estimate=estimate_linear,
-            configure=configure),
+            configure=configure,
+            is_background=True),
     'Strip': FitTheory(
             description="Background based on strip filter\n" +
                         "Parameters 'StripWidth', 'StripIterations'",
             function=strip_bg,
             parameters=['StripWidth', 'StripIterations'],
             estimate=estimate_strip,
-            configure=configure),
+            configure=configure,
+            is_background=True),
 }

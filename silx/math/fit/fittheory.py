@@ -23,6 +23,9 @@
 #
 ########################################################################### */
 """
+This module defines the :class:`FitTheory` object that is used by
+:class:`silx.math.fit.FitManager` to define fit functions and background
+models.
 """
 
 __authors__ = ["P. Knobel"]
@@ -49,7 +52,7 @@ class FitTheory(object):
     def __init__(self, function, parameters,
                  estimate=None, configure=None, derivative=None,
                  config_widget=None, description=None,
-                 pymca_legacy=False):
+                 pymca_legacy=False, is_background=False):
         """
         :param function function: Actual function. See documentation for
             :attr:`function`.
@@ -67,16 +70,27 @@ class FitTheory(object):
             See documentation for :attr:`config_widget`
         :param bool pymca_legacy: Flag to indicate that the theory is a PyMca
             legacy theory. See documentation for :attr:`pymca_legacy`
+        :param bool background: Flag to indicate that the theory is a
+            background theory. This has implications regarding the function's
+            signature, as explained in the documentation for :attr:`function`.
         """
         self.function = function
-        """The function must have the signature ``f(x, *params)``, where ``x``
-        is an array of values for the independent variable, and ``params`` are
-        the parameters to be fitted.
+        """Regular fit functions must have the signature *f(x, \*params) -> y*,
+        where *x* is a 1D array of values for the independent variable,
+        *params* are the parameters to be fitted and *y* is the output array
+        that we want to have the best fit to a series of data points.
+
+        Background functions used by :class:`FitManager` must have a slightly
+        different signature: *f(x, y0, \*params) -> bg*, where *y0* is the
+        array of original data points and *bg* is the background signal that
+        we want to subtract from the data array prior to fitting the regular
+        fit function.
 
         The number of parameters must be the same as in :attr:`parameters`, or
         a multiple of this number if the function is defined as a sum of a
         variable number of base functions and if :attr:`estimate` is designed
-        to be able to estimate the number of needed base functions."""
+        to be able to estimate the number of needed base functions.
+        """
 
         self.parameters = parameters
         """List of parameters names.
@@ -152,6 +166,15 @@ class FitTheory(object):
 
             f(x, y, bg, xscaling, yscaling) -> (estimated_param, constraints)
         """
+
+        self.is_background = is_background
+        """Flag to indicate that the theory is background theory.
+
+        A background function is an secondary function that needs to be added
+        to the main fit function to better fit the original data.
+        If this flag is set to *True*, modules using this theory are informed
+        that :attr:`function` has the signature *f(x, y0, \*params) -> bg*,
+        instead of the usual fit function signature."""
 
     def default_estimate(self, x=None, y=None, bg=None):
         """Default estimate function. Return an array of *ones* as the
