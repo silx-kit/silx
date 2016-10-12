@@ -144,10 +144,10 @@ DEFAULT_CONFIG = {
     'SameAreaRatioFlag': 1,
     # Strip bg removal
     'StripBackgroundFlag': True,
-    'SmoothStripFlag': True,
+    'SmoothingFlag': True,
     'SmoothingWidth': 5,
     'StripWidth': 2,
-    'StripNIterations': 5000,
+    'StripIterations': 5000,
     'StripThresholdFactor': 1.0}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
@@ -201,13 +201,13 @@ class FitTheories(object):
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
         :attr:`config` dictionary (*StripBackgroundFlag, StripWidth,
-        StripNIterations, StripThresholdFactor*)"""
+        StripIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
-            if self.config['SmoothStripFlag']:
+            if self.config['SmoothingFlag']:
                 y = savitsky_golay(y, self.config['SmoothingWidth'])
             strip_width = self.config['StripWidth']
-            strip_niterations = self.config['StripNIterations']
+            strip_niterations = self.config['StripIterations']
             strip_thr_factor = self.config['StripThresholdFactor']
             return strip(y, w=strip_width,
                          niterations=strip_niterations,

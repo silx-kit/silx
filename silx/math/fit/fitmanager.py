@@ -96,9 +96,9 @@ class FitManager(object):
             # Next few parameters are defined for compatibility with legacy theories
             # which take the background as argument for their estimation function
             'StripWidth': 2,
-            'StripNIterations': 5000,
+            'StripIterations': 5000,
             'StripThresholdFactor': 1.0,
-            'SmoothStrip': False
+            'SmoothingFlag': False
         }
         """Dictionary of fit configuration parameters.
         These parameters can be modified using the :meth:`configure` method.
@@ -975,11 +975,11 @@ class FitManager(object):
                 if self.fitconfig["fitbkg"] == "No Background":
                     bg = numpy.zeros_like(y)
                 else:
-                    if self.fitconfig["SmoothStrip"]:
+                    if self.fitconfig["SmoothingFlag"]:
                         y = smooth1d(y)
                     bg = strip(y,
                                w=self.fitconfig["StripWidth"],
-                               niterations=self.fitconfig["StripNIterations"],
+                               niterations=self.fitconfig["StripIterations"],
                                factor=self.fitconfig["StripThresholdFactor"])
                 # fitconfig can be filled by user defined config function
                 xscaling = self.fitconfig.get('Xscaling', 1.0)

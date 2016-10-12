@@ -36,11 +36,14 @@ from silx.math.fit.filters import strip, snip1d,\
 from silx.math.fit.fittheory import FitTheory
 
 CONFIG = {
-    "SmoothStripFlag": False,
+    "SmoothingFlag": False,
+    "SmoothingWidth": 5,
+    "AnchorsFlag": False,   # TODO
+    "AnchorsList": [],      # TODO
     "StripWidth": 2,
-    "StripNIterations": 5000,
+    "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
-    "SmoothingWidth": 5
+    "SnipWidth": 2,         # TODO
 }
 
 
@@ -62,7 +65,7 @@ def strip_bg(y, width, niter):
     # same parameters
     if _BG_STRIP_OLDPARS == [width, niter] and\
             _BG_STRIP_OLDWIDTH == CONFIG["SmoothingWidth"] and\
-            _BG_STRIP_OLDFLAG == CONFIG["SmoothStripFlag"]:
+            _BG_STRIP_OLDFLAG == CONFIG["SmoothingFlag"]:
         # same data
         if numpy.sum(_BG_STRIP_OLDY == y) == len(y):
             # same result
@@ -71,9 +74,9 @@ def strip_bg(y, width, niter):
     _BG_STRIP_OLDY = y
     _BG_STRIP_OLDPARS = [width, niter]
     _BG_STRIP_OLDWIDTH = CONFIG["SmoothingWidth"]
-    _BG_STRIP_OLDFLAG = CONFIG["SmoothStripFlag"]
+    _BG_STRIP_OLDFLAG = CONFIG["SmoothingFlag"]
 
-    y1 = savitsky_golay(y, CONFIG["SmoothingWidth"]) if CONFIG["SmoothStripFlag"] else y
+    y1 = savitsky_golay(y, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y
 
     background = strip(y1,
                        w=width,
@@ -93,7 +96,7 @@ def estimate_linear(x, y):
     """
     bg = strip_bg(y,
                   width=CONFIG["StripWidth"],
-                  niter=CONFIG["StripNIterations"])
+                  niter=CONFIG["StripIterations"])
     n = float(len(bg))
     Sy = numpy.sum(bg)
     Sx = float(numpy.sum(x))
@@ -119,7 +122,7 @@ def estimate_strip(x, y):
     Return parameters from CONFIG dict, set constraints to FIXED.
     """
     estimated_par = [CONFIG["StripWidth"],
-                     CONFIG["StripNIterations"]]
+                     CONFIG["StripIterations"]]
     constraints = numpy.zeros((len(estimated_par), 3), numpy.float)
     # code = 3: FIXED
     constraints[0][0] = 3
