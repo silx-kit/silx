@@ -213,7 +213,7 @@ def snip_bg(x, y0, width):
 
     anchors_indices = _convert_anchors_to_indices(x)
 
-    if len(anchors_indices) == 0 or anchors_indices is None:
+    if anchors_indices is None or not len(anchors_indices):
         anchors_indices = [0, len(y1) - 1]
 
     background = numpy.zeros_like(y1)
