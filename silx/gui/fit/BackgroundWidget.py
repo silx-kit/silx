@@ -30,7 +30,7 @@
 import sys
 import numpy
 from silx.gui import qt
-from silx.gui.plot import PlotWindow
+from silx.gui.plot import PlotWidget
 from silx.math.fit import filters
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
@@ -274,11 +274,7 @@ class BackgroundWidget(qt.QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(2)
         self.parametersWidget = BackgroundParamWidget(self)
-        self.graphWidget = PlotWindow(parent=self,
-                                      colormap=False,
-                                      roi=False,
-                                      mask=False,
-                                      fit=False)
+        self.graphWidget = PlotWidget(parent=self)
         self.mainLayout.addWidget(self.parametersWidget)
         self.mainLayout.addWidget(self.graphWidget)
         self._x = None

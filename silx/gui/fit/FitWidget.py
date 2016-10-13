@@ -50,6 +50,7 @@ from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
+from .BackgroundWidget import BackgroundDialog
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -125,8 +126,51 @@ class FitWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
 
         self.fitmanager = self._setFitManager(fitmngr)
-        """Instance of :class:`FitManager`. If no theories are defined,
-        we import the default ones from :mod:`silx.math.fit.fittheories`."""
+        """Instance of :class:`FitManager`.
+        This is the underlying data model of this FitWidget.
+
+        If no custom theories are defined, the default ones from
+        :mod:`silx.math.fit.fittheories` are imported.
+        """
+
+        self.configdialogs = {}
+        """This dictionary defines the fit configuration widgets
+        associated with the fit theories in :attr:`fitmanager.theories`
+
+        Keys must correspond to existing theory names, i.e. existing keys
+        in :attr:`fitmanager.theories`.
+
+        Values must be instances of QDialog widgets with an additional
+        *output* attribute, a dictionary storing configuration parameters
+        interpreted by the corresponding fit theory.
+
+        In case the widget does not actually inherit :class:`QDialog`, it
+        must at least implement the following methods (executed in this
+        particular order):
+
+            - :meth:`show`: should cause the widget to become visible to the
+              user)
+            - :meth:`exec_`: should run while the user is interacting with the
+              widget, interrupting the rest of the program. It should
+              typically end (*return*) when the user clicks an *OK*
+              or a *Cancel* button.
+            - :meth:`result`: must return ``True`` if the new configuration in
+              attribute :attr:`output` is to be accepted (user clicked *OK*),
+              or return ``False`` if :attr:`output` is to be rejected (user
+              clicked *Cancel*)
+
+        To associate a custom configuration widget with a fit theory, use
+        :meth:`associateConfigDialog`. E.g.::
+
+            fw = FitWidget()
+            my_config_widget = MyGaussianConfigWidget(parent=fw)
+            fw.associateConfigDialog(theory_name="Gaussians",
+                                     config_widget=my_config_widget)
+        """
+
+        self.bgconfigdialogs = {}
+        """Same as :attr:`configdialogs`, except that the widget is associated
+        with a background theory in :attr:`fitmanager.bgtheories`"""
 
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
@@ -176,16 +220,41 @@ class FitWidget(qt.QWidget):
 
     def _setFitManager(self, fitinstance):
         """Initialize a :class:`FitManager` instance, to be assigned to
-        :attr:`fitmanager`"""
+        :attr:`fitmanager`, or use a custom FitManager instance.
+
+        Fill :attr:`bgconfigdialogs` and :attr:`configdialogs` by calling
+        :meth:`associateConfigDialog` with default config dialog widgets.
+
+        :param fitinstance: Existing instance of FitManager, possibly
+            customized by the user, or None to load a default instance."""
         if isinstance(fitinstance, fitmanager.FitManager):
+            # customized
             fitmngr = fitinstance
         else:
+            # initialize default instance
             fitmngr = fitmanager.FitManager()
 
         # initialize the default fitting functions in case
         # none is present
         if not len(fitmngr.theories):
             fitmngr.loadtheories(fittheories)
+
+        # associate silx.gui.fit.FitConfig with all theories
+        # Users can later associate their own custom dialogs to
+        # replace the default.
+        configdialog = getFitConfigDialog()
+        for theory in fitmngr.theories:
+            self.associateConfigDialog(theory, configdialog)
+        for bgtheory in fitmngr.bgtheories:
+            self.associateConfigDialog(bgtheory, configdialog,
+                                       theory_is_background=True)
+
+        # associate silx.gui.fit.BackgroundWidget with Strip and Snip
+        bgdialog = BackgroundDialog()
+        for bgtheory in ["Strip", "Snip"]:
+            if bgtheory in fitmngr.bgtheories:
+                self.associateConfigDialog(bgtheory, bgdialog,
+                                           theory_is_background=True)
         return fitmngr
 
     def _populate_functions(self):
@@ -253,6 +322,45 @@ class FitWidget(qt.QWidget):
         self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
                                 xmin=xmin, xmax=xmax)
 
+    def associateConfigDialog(self, theory_name, config_widget,
+                              theory_is_background=False):
+        """Associate an instance of custom configuration dialog widget to
+        a fit theory or to a background theory.
+
+        This adds or modifies an item in the correspondence table
+        :attr:`configdialogs` or :attr:`bgconfigdialogs`.
+
+        :param str theory_name: Name of fit theory. This must be a key of dict
+            :attr:`fitmanager.theories`
+        :param config_widget: Custom configuration widget. See documentation
+            for :attr:`configdialogs`
+        :param bool theory_is_background: If flag is *True*, add dialog to
+            :attr:`bgconfigdialogs` rather than :attr:`configdialogs`
+            (default).
+        :raise: KeyError if parameter ``theory_name`` does not match an
+            existing fit theory or background theory in :attr:`fitmanager`.
+        :raise: AttributeError if the widget does not implement the mandatory
+            methods (*show*, *exec_*, *result*) or the mandatory attribute
+            (*output*).
+        """
+        theories = self.fitmanager.bgtheories if theory_is_background else\
+            self.fitmanager.theories
+
+        if theory_name not in theories:
+            raise KeyError("%s does not match an existing fitmanager theory")
+
+        if config_widget is not None:
+            for mandatory_attr in ["show", "exec_", "result", "output"]:
+                if not hasattr(config_widget, mandatory_attr):
+                    raise AttributeError(
+                            "Custom configuration widget must define " +
+                            "attribute or method " + mandatory_attr)
+
+        if theory_is_background:
+            self.bgconfigdialogs[theory_name] = config_widget
+        else:
+            self.configdialogs[theory_name] = config_widget
+
     def _emitSignal(self, ddict):
         """Emit pyqtSignal after estimation completed
         (``ddict = {'event': 'EstimateFinished', 'data': fit_results}``)
@@ -311,58 +419,35 @@ class FitWidget(qt.QWidget):
 
     def configureDialog(self, oldconfiguration, dialog_type="function"):
         """Display a dialog, allowing the user to define fit configuration
-        parameters:
+        parameters.
 
-            - ``AutoFwhm``
-            - ``PositiveHeightAreaFlag``
-            - ``QuotedPositionFlag``
-            - ``PositiveFwhmFlag``
-            - ``SameFwhmFlag``
-            - ``QuotedEtaFlag``
-            - ``NoConstraintsFlag``
-            - ``FwhmPoints``
-            - ``Sensitivity``
-            - ``Yscaling``
-            - ``ForcePeakPresence``
-            - ``StripBackgroundFlag``
-            - ``StripWidth``
-            - ``StripNIterations``
-            - ``StripThresholdFactor``
+        By default, a common dialog is used for all fit theories. But if the
+        defined a custom dialog using :meth:`associateConfigDialog`, it is
+        used instead.
+
         :param dict oldconfiguration: Dictionary containing previous configuration
         :param str dialog_type: "function" or "background"
-        :return: User defined parameters in a dictionary"""
-        # this method can be overwritten
-        # it should give back a new dictionary
+        :return: User defined parameters in a dictionary
+        """
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
         if dialog_type == "function":
             theory = self.fitmanager.selectedtheory
-            custom_config_widget = self.fitmanager.theories[theory].config_widget
+            configdialog = self.configdialogs[theory]
         elif dialog_type == "background":
             theory = self.fitmanager.selectedbg
-            custom_config_widget = self.fitmanager.bgtheories[theory].config_widget
-        else:
-            custom_config_widget = None
+            configdialog = self.bgconfigdialogs[theory]
 
-        if custom_config_widget is not None:
-            dialog_widget = custom_config_widget()
-            for mandatory_attr in ["show", "exec_", "result", "output"]:
-                if not hasattr(dialog_widget, mandatory_attr):
-                    raise AttributeError(
-                            "Custom configuration widget must define " +
-                            "attribute or method " + mandatory_attr)
+        # this should only happen if a user specifically associates None
+        # with a theory, to have no configuration option
+        if configdialog is None:
+            return {}
 
-        else:
-            # default config widget, adapted for default fit theories
-            dialog_widget = getFitConfigDialog(self, default=oldconfiguration)
-
-        dialog_widget.show()
-        dialog_widget.exec_()
-        if dialog_widget.result():
-            newconfiguration.update(dialog_widget.output)
-        # we do not need the dialog any longer
-        del dialog_widget
+        configdialog.show()
+        configdialog.exec_()
+        if configdialog.result():
+            newconfiguration.update(configdialog.output)
 
         return newconfiguration
 
