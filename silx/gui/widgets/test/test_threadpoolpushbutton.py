@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/10/2016"
+__date__ = "13/10/2016"
 
 
 import unittest
@@ -34,6 +34,7 @@ import time
 from silx.gui import qt
 from silx.gui import testutils
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
+from silx.testutils import TestLogging
 
 
 class TestThreadPoolPushButton(testutils.TestCaseQt):
@@ -103,10 +104,11 @@ class TestThreadPoolPushButton(testutils.TestCaseQt):
         button.succeeded.connect(lambda r: self.fail("Unexpected success"))
         button.failed.connect(lambda e: self._result.append(str(e)))
         button.finished.connect(lambda: self._result.append("f"))
-        button.executeCallable()
-        self.qapp.processEvents()
-        time.sleep(0.1)
-        self.qapp.processEvents()
+        with TestLogging('silx.gui.widgets.ThreadPoolPushButton', error=1):
+            button.executeCallable()
+            self.qapp.processEvents()
+            time.sleep(0.1)
+            self.qapp.processEvents()
         self.assertListEqual(self._result, ["be", "s", "exception", "f"])
 
 
