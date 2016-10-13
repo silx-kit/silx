@@ -96,10 +96,40 @@ _BG_SNIP_OLDY = numpy.array([])
 _BG_SNIP_OLDWIDTH = None
 _BG_SNIP_OLDBG = numpy.array([])
 
+
 _BG_OLD_ANCHORS = []
+_BG_OLD_ANCHORS_FLAG = None
 
 _BG_SMOOTH_OLDWIDTH = None
 _BG_SMOOTH_OLDFLAG = None
+
+
+def _convert_anchors_to_indices(x):
+    """Anchors stored in CONFIG["AnchorsList"] are abscissa.
+    Convert then to indices (take first index where x >= anchor),
+    then return the list of indices.
+
+    :param x: Original array of abscissa
+    :return: List of indices of anchors in x array.
+        If CONFIG['AnchorsFlag'] is False or None, or if the list
+        of indices is empty, return None.
+    """
+    # convert anchor X abscissa to index
+    if CONFIG['AnchorsFlag'] and CONFIG['AnchorsList'] is not None:
+        anchors_indices = []
+        for anchor_x in CONFIG['AnchorsList']:
+            if anchor_x <= x[0]:
+                continue
+            # take the first index where x > anchor_x
+            indices = numpy.nonzero(x >= anchor_x)[0]
+            if len(indices):
+                anchors_indices.append(min(indices))
+        if not len(anchors_indices):
+            anchors_indices = None
+    else:
+        anchors_indices = None
+
+    return anchors_indices
 
 
 def strip_bg(x, y0, width, niter):
@@ -109,10 +139,18 @@ def strip_bg(x, y0, width, niter):
     global _BG_STRIP_OLDBG
     global _BG_SMOOTH_OLDWIDTH
     global _BG_SMOOTH_OLDFLAG
+    global _BG_OLD_ANCHORS
+    global _BG_OLD_ANCHORS_FLAG
+
+    parameters_changed =\
+        _BG_STRIP_OLDPARS != [width, niter] or\
+        _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"] or\
+        _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"] or\
+        _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"] or\
+        _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+
     # same parameters
-    if _BG_STRIP_OLDPARS == [width, niter] and\
-            _BG_SMOOTH_OLDWIDTH == CONFIG["SmoothingWidth"] and\
-            _BG_SMOOTH_OLDFLAG == CONFIG["SmoothingFlag"]:
+    if not parameters_changed:
         # same data
         if numpy.sum(_BG_STRIP_OLDY == y0) == len(y0):
             # same result
@@ -122,13 +160,18 @@ def strip_bg(x, y0, width, niter):
     _BG_STRIP_OLDPARS = [width, niter]
     _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
     _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
+    _BG_OLD_ANCHORS = CONFIG["AnchorsList"]
+    _BG_OLD_ANCHORS_FLAG = CONFIG["AnchorsFlag"]
 
     y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
+
+    anchors_indices = _convert_anchors_to_indices(x)
 
     background = strip(y1,
                        w=width,
                        niterations=niter,
-                       factor=CONFIG["StripThresholdFactor"])
+                       factor=CONFIG["StripThresholdFactor"],
+                       anchors=anchors_indices)
 
     _BG_STRIP_OLDBG = background
 
@@ -142,10 +185,18 @@ def snip_bg(x, y0, width):
     global _BG_SNIP_OLDBG
     global _BG_SMOOTH_OLDWIDTH
     global _BG_SMOOTH_OLDFLAG
+    global _BG_OLD_ANCHORS
+    global _BG_OLD_ANCHORS_FLAG
+
+    parameters_changed =\
+        _BG_SNIP_OLDWIDTH != width or\
+        _BG_SMOOTH_OLDWIDTH != CONFIG["SmoothingWidth"] or\
+        _BG_SMOOTH_OLDFLAG != CONFIG["SmoothingFlag"] or\
+        _BG_OLD_ANCHORS_FLAG != CONFIG["AnchorsFlag"] or\
+        _BG_OLD_ANCHORS != CONFIG["AnchorsList"]
+
     # same parameters
-    if _BG_SNIP_OLDWIDTH == width and\
-            _BG_SMOOTH_OLDWIDTH == CONFIG["SmoothingWidth"] and\
-            _BG_SMOOTH_OLDFLAG == CONFIG["SmoothingFlag"]:
+    if not parameters_changed:
         # same data
         if numpy.sum(_BG_SNIP_OLDY == y0) == len(y0):
             # same result
@@ -155,10 +206,28 @@ def snip_bg(x, y0, width):
     _BG_SNIP_OLDWIDTH = width
     _BG_SMOOTH_OLDWIDTH = CONFIG["SmoothingWidth"]
     _BG_SMOOTH_OLDFLAG = CONFIG["SmoothingFlag"]
+    _BG_OLD_ANCHORS = CONFIG["AnchorsList"]
+    _BG_OLD_ANCHORS_FLAG = CONFIG["AnchorsFlag"]
 
     y1 = savitsky_golay(y0, CONFIG["SmoothingWidth"]) if CONFIG["SmoothingFlag"] else y0
 
-    background = snip1d(y1, width)
+    anchors_indices = _convert_anchors_to_indices(x)
+
+    if len(anchors_indices) == 0 or anchors_indices is None:
+        anchors_indices = [0, len(y1) - 1]
+
+    background = numpy.zeros_like(y1)
+    previous_anchor = 0
+    for anchor_index in anchors_indices:
+        if (anchor_index > previous_anchor) and (anchor_index < len(ysmooth)):
+                background[previous_anchor:anchor_index] =\
+                            snip1d(y1[previous_anchor:anchor_index],
+                                   width)
+                previous_anchor = anchor_index
+
+    if previous_anchor < len(y1):
+        background[previous_anchor:] = snip1d(y1[previous_anchor:],
+                                              width)
 
     _BG_SNIP_OLDBG = background
 
