@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -158,7 +158,7 @@ def plot(*args, **kwargs):
 
             if style:
                 # Run twice to handle inversion symbol/linestyle
-                for i in range(2):
+                for _i in range(2):
                     # Handle linestyle
                     for line in (' ', '-', '--', '-.', ':'):
                         if style.endswith(line):

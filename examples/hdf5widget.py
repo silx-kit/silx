@@ -29,7 +29,6 @@
     to install it if you don't already have it.
 """
 
-import os
 import sys
 import numpy
 import logging

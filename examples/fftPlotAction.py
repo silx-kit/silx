@@ -39,7 +39,7 @@ See shiftPlotAction.py for a simpler example with more basic comments.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/09/2016"
+__date__ = "13/10/2016"
 
 import numpy
 import os
@@ -105,8 +105,8 @@ class FftAction(PlotAction):
 
         self.plot.clearCurves()
 
-        for i, curve in enumerate(allCurves):
-            x, y, legend, info, params = curve
+        for curve in allCurves:
+            x, y, legend, info, _params = curve
 
             if checked:
                 # FAST FOURIER TRANSFORM

@@ -22,8 +22,6 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from silx.gui.plot import PlotActions, PlotToolButtons
-from silx.gui import icons
 """A :class:`.PlotWidget` with additionnal toolbars.
 
 The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
@@ -32,13 +30,13 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/10/2016"
+__date__ = "13/10/2016"
 
 import collections
 import logging
 
 from . import PlotWidget
-from .PlotActions import *  # noqa
+from . import PlotActions
 from . import PlotToolButtons
 from .PlotTools import PositionInfo, ProfileToolBar
 from .LegendSelector import LegendsDockWidget
@@ -131,39 +129,39 @@ class PlotWindow(PlotWidget):
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
 
-        self.resetZoomAction = self.group.addAction(ResetZoomAction(self))
+        self.resetZoomAction = self.group.addAction(PlotActions.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
 
-        self.zoomInAction = ZoomInAction(self)
+        self.zoomInAction = PlotActions.ZoomInAction(self)
         self.addAction(self.zoomInAction)
 
-        self.zoomOutAction = ZoomOutAction(self)
+        self.zoomOutAction = PlotActions.ZoomOutAction(self)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
-            XAxisAutoScaleAction(self))
+            PlotActions.XAxisAutoScaleAction(self))
         self.xAxisAutoScaleAction.setVisible(autoScale)
 
         self.yAxisAutoScaleAction = self.group.addAction(
-            YAxisAutoScaleAction(self))
+            PlotActions.YAxisAutoScaleAction(self))
         self.yAxisAutoScaleAction.setVisible(autoScale)
 
         self.xAxisLogarithmicAction = self.group.addAction(
-            XAxisLogarithmicAction(self))
+            PlotActions.XAxisLogarithmicAction(self))
         self.xAxisLogarithmicAction.setVisible(logScale)
 
         self.yAxisLogarithmicAction = self.group.addAction(
-            YAxisLogarithmicAction(self))
+            PlotActions.YAxisLogarithmicAction(self))
         self.yAxisLogarithmicAction.setVisible(logScale)
 
         self.gridAction = self.group.addAction(
-            GridAction(self, gridMode='both'))
+            PlotActions.GridAction(self, gridMode='both'))
         self.gridAction.setVisible(grid)
 
-        self.curveStyleAction = self.group.addAction(CurveStyleAction(self))
+        self.curveStyleAction = self.group.addAction(PlotActions.CurveStyleAction(self))
         self.curveStyleAction.setVisible(curveStyle)
 
-        self.colormapAction = self.group.addAction(ColormapAction(self))
+        self.colormapAction = self.group.addAction(PlotActions.ColormapAction(self))
         self.colormapAction.setVisible(colormap)
 
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
@@ -184,16 +182,16 @@ class PlotWindow(PlotWidget):
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
 
-        self.copyAction = self.group.addAction(CopyAction(self))
+        self.copyAction = self.group.addAction(PlotActions.CopyAction(self))
         self.copyAction.setVisible(copy)
 
-        self.saveAction = self.group.addAction(SaveAction(self))
+        self.saveAction = self.group.addAction(PlotActions.SaveAction(self))
         self.saveAction.setVisible(save)
 
-        self.printAction = self.group.addAction(PrintAction(self))
+        self.printAction = self.group.addAction(PlotActions.PrintAction(self))
         self.printAction.setVisible(print_)
 
-        self.fitAction = self.group.addAction(FitAction(self))
+        self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
 
         if control or position:
@@ -321,14 +319,14 @@ class PlotWindow(PlotWidget):
     def crosshairAction(self):
         """Action toggling crosshair cursor mode (lazy-loaded)."""
         if not hasattr(self, '_crosshairAction'):
-            self._crosshairAction = CrosshairAction(self, color='red')
+            self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
         return self._crosshairAction
 
     @property
     def panWithArrowKeysAction(self):
         """Action toggling pan with arrow keys (lazy-loaded)."""
         if not hasattr(self, '_panWithArrowKeysAction'):
-            self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
+            self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
 
     def _createToolBar(self, title, parent):

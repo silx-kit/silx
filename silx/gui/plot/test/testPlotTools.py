@@ -26,10 +26,9 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "13/10/2016"
 
 
-import doctest
 import numpy
 import unittest
 
@@ -115,11 +114,12 @@ class TestPositionInfo(TestCaseQt):
 
     def testCustomConverters(self):
         """Test PositionInfo with custom converters"""
-        positionWidget = PlotTools.PositionInfo(plot=self.plot,
-                                                converters=[
+        converters = [
             ('Coords', lambda x, y: (int(x), int(y))),
             ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
-            ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
+            ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))
+        ]
+        positionWidget = PlotTools.PositionInfo(plot=self.plot, converters=converters)
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
     def testFailingConverters(self):

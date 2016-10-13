@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "13/10/2016"
 
 
 import os
@@ -50,8 +50,10 @@ except ImportError as e:
 PySide crash if a signal with a None parameter is emitted between threads.
 """
 if qt.BINDING == 'PySide':
-    class _NoneWraper(object): pass
+    class _NoneWraper(object):
+        pass
     _NoneWraperInstance = _NoneWraper()
+
     def _wrapNone(x):
         """Wrap x if it is a None value, else returns x"""
         if x is None:
@@ -68,8 +70,11 @@ if qt.BINDING == 'PySide':
             return x
 else:
     # Allow to fix None event params to avoid PySide crashes
-    def _wrapNone(x): return x
-    def _unwrapNone(x): return x
+    def _wrapNone(x):
+        return x
+
+    def _unwrapNone(x):
+        return x
 
 
 class LoadingItemRunnable(qt.QRunnable):
