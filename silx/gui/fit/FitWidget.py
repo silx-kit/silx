@@ -172,6 +172,8 @@ class FitWidget(qt.QWidget):
         """Same as :attr:`configdialogs`, except that the widget is associated
         with a background theory in :attr:`fitmanager.bgtheories`"""
 
+        self._associateDefaultConfigDialogs()
+
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
         self.fitconfig = self.fitmanager.fitconfig
@@ -199,7 +201,7 @@ class FitWidget(qt.QWidget):
 
             self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
             self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
-            self._populate_functions()
+            self._populateFunctions()
 
             layout.addWidget(self.guiConfig)
 
@@ -222,9 +224,6 @@ class FitWidget(qt.QWidget):
         """Initialize a :class:`FitManager` instance, to be assigned to
         :attr:`fitmanager`, or use a custom FitManager instance.
 
-        Fill :attr:`bgconfigdialogs` and :attr:`configdialogs` by calling
-        :meth:`associateConfigDialog` with default config dialog widgets.
-
         :param fitinstance: Existing instance of FitManager, possibly
             customized by the user, or None to load a default instance."""
         if isinstance(fitinstance, fitmanager.FitManager):
@@ -239,25 +238,30 @@ class FitWidget(qt.QWidget):
         if not len(fitmngr.theories):
             fitmngr.loadtheories(fittheories)
 
+        return fitmngr
+
+    def _associateDefaultConfigDialogs(self):
+        """Fill :attr:`bgconfigdialogs` and :attr:`configdialogs` by calling
+        :meth:`associateConfigDialog` with default config dialog widgets.
+        """
         # associate silx.gui.fit.FitConfig with all theories
         # Users can later associate their own custom dialogs to
         # replace the default.
         configdialog = getFitConfigDialog()
-        for theory in fitmngr.theories:
+        for theory in self.fitmanager.theories:
             self.associateConfigDialog(theory, configdialog)
-        for bgtheory in fitmngr.bgtheories:
+        for bgtheory in self.fitmanager.bgtheories:
             self.associateConfigDialog(bgtheory, configdialog,
                                        theory_is_background=True)
 
         # associate silx.gui.fit.BackgroundWidget with Strip and Snip
         bgdialog = BackgroundDialog()
         for bgtheory in ["Strip", "Snip"]:
-            if bgtheory in fitmngr.bgtheories:
+            if bgtheory in self.fitmanager.bgtheories:
                 self.associateConfigDialog(bgtheory, bgdialog,
                                            theory_is_background=True)
-        return fitmngr
 
-    def _populate_functions(self):
+    def _populateFunctions(self):
         """Fill combo-boxes with fit theories and background theories
         loaded by :attr:`fitmanager`.
         Run :meth:`fitmanager.configure` to ensure the custom configuration
@@ -321,6 +325,9 @@ class FitWidget(qt.QWidget):
         """
         self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
                                 xmin=xmin, xmax=xmax)
+        for config_dialog in self.bgconfigdialogs.values():
+            if isinstance(config_dialog, BackgroundDialog):
+                config_dialog.setData(x, y)
 
     def associateConfigDialog(self, theory_name, config_widget,
                               theory_is_background=False):
