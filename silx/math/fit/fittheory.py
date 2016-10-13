@@ -45,14 +45,10 @@ class FitTheory(object):
           and the estimation function
         - an optional derivative function, that replaces the default model
           derivative used in :func:`silx.math.fit.leastsq`
-        - an optional configuration widget, that can be called for
-          interactively modifying the configuration when running a fit from
-          a GUI
     """
     def __init__(self, function, parameters,
                  estimate=None, configure=None, derivative=None,
-                 config_widget=None, description=None,
-                 pymca_legacy=False, is_background=False):
+                 description=None, pymca_legacy=False, is_background=False):
         """
         :param function function: Actual function. See documentation for
             :attr:`function`.
@@ -66,8 +62,6 @@ class FitTheory(object):
             See documentation for :attr:`derivative`
         :param str description: Optional description string.
             See documentation for :attr:`description`
-        :param config_widget: Optional configuration widget.
-            See documentation for :attr:`config_widget`
         :param bool pymca_legacy: Flag to indicate that the theory is a PyMca
             legacy theory. See documentation for :attr:`pymca_legacy`
         :param bool background: Flag to indicate that the theory is a
@@ -135,24 +129,6 @@ class FitTheory(object):
         sequence with the current values of the fitting parameters, index is
         the fitting parameter index for which the the derivative has to be
         provided in the supplied array of xdata points."""
-
-        self.config_widget = config_widget
-        """Optional configuration dialog widget that can allow users to modify
-        the fit and estimation configuration.
-
-        This widget must store the modified configuration parameters in a
-        dictionary attribute :attr:`output`.
-
-        The widget must define, or inherit from :class:`qt.QDialog`, following
-        methods which are executed in that order:
-
-            - :meth:`show`
-            - :meth:`exec_`
-            - :meth:`result`: must return ``True`` if the new configuration in
-              :attr:`config_widget.output` is to be accepted, ``False`` if
-              it is to be rejected / ignored (e.g. if the user clicked a
-              *Cancel* button)
-        """
 
         self.description = description
         """Optional description string for this particular fit theory."""
