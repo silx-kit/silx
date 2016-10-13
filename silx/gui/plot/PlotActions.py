@@ -75,7 +75,6 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
-from ..fit.FitWidget import FitWidget
 from silx.io.utils import save1D, savespec
 
 
@@ -989,6 +988,9 @@ class FitAction(PlotAction):
         # open a window with a FitWidget
         if self.fit_window is None:
             self.fit_window = qt.QMainWindow(self.plot)
+            # import done here rather than at module level to avoid circular import
+            # FitWidget -> BackgroundWidget -> PlotWindow -> PlotActions -> FitWidget
+            from ..fit.FitWidget import FitWidget
             self.fit_widget = FitWidget(parent=self.fit_window)
             self.fit_window.setCentralWidget(
                     self.fit_widget)
