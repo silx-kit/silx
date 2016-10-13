@@ -62,7 +62,6 @@ file is::
                             estimate=estimation_function1,
                             configure=configuration_function1,
                             derivative=derivative_function1,
-                            config_widget=MyConfigWidget,
                             is_background=True),
         'theory_name_2': …,
     }

@@ -53,8 +53,7 @@ a dictionary :const:`THEORY`: with the following structure::
                             parameters=('param name 1', 'param name 2', …),
                             estimate=estimation_function1,
                             configure=configuration_function1,
-                            derivative=derivative_function1,
-                            config_widget=MyConfigWidget),
+                            derivative=derivative_function1),
 
         'theory_name_2':  FitTheory(…),
     }
