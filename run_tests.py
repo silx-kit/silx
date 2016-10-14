@@ -90,7 +90,7 @@ def get_project_name(root_dir):
     logger.debug("Getting project name in %s", root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
-    name, stderr_data = p.communicate()
+    name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
 
@@ -284,7 +284,7 @@ if not options.gui:
     os.environ["WITH_QT_TEST"] = "False"
 
 if not options.opencl:
-    os.environ["SILX_OPENCL"]="False"
+    os.environ["SILX_OPENCL"] = "False"
 
 if options.low_mem:
     os.environ["SILX_TEST_LOW_MEM"] = "True"
