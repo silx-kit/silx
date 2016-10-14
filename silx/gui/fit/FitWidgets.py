@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# #########################################################################*/
+# ######################################################################### */
 """Collection of widgets used to build
 :class:`silx.gui.fit.FitWidget.FitWidget`"""
 
@@ -33,7 +33,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "13/10/2016"
 
 
 class FitActionsButtons(qt.QWidget):
@@ -109,7 +109,7 @@ class FitStatusLines(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        qt.QWidget.__init__(self,  parent)
+        qt.QWidget.__init__(self, parent)
 
         self.resize(535, 47)
 

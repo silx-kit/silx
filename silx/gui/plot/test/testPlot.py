@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/03/2016"
+__date__ = "13/10/2016"
 
 
 import unittest
@@ -328,7 +328,6 @@ class TestPlotRanges(ParametricTestCase):
                 self.assertTrue(numpy.array_equal(dataRange.y, yRange),
                                 msg='{0} != {1}'.format(dataRange.y, yRange))
                 self.assertIsNone(dataRange.yright)
-
 
     def testDataRangeImageNegativeScaleY(self):
         """image data range, negative scale"""

@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
@@ -23,7 +23,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# #########################################################################*/
+# ######################################################################### */
 """This module provides a widget designed to configure and run a fitting
 process with constraints on parameters.
 
@@ -33,8 +33,12 @@ The main class is :class:`FitWidget`. It relies on
 The user can choose between functions before running the fit. These function can
 be user defined, or by default are loaded from
 :mod:`silx.math.fit.fittheories`.
-
 """
+
+__authors__ = ["V.A. Sole", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "13/10/2016"
+
 import logging
 import sys
 import traceback
@@ -48,10 +52,6 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
 from .FitConfig import getFitConfigDialog
 
 QTVERSION = qt.qVersion()
-
-__authors__ = ["V.A. Sole", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "05/10/2016"
 
 DEBUG = 0
 _logger = logging.getLogger(__name__)

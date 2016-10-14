@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
@@ -23,14 +23,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# #########################################################################*/
+# ######################################################################### */
 """This module defines widgets used to build a fit configuration dialog.
 """
 from silx.gui import qt
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/09/2016"
+__date__ = "13/10/2016"
 
 
 class TabsDialog(qt.QDialog):
@@ -70,11 +70,11 @@ class TabsDialog(qt.QDialog):
         self.buttonOk = qt.QPushButton(self)
         self.buttonOk.setText("OK")
         layout2.addWidget(self.buttonOk)
-        
+
         self.buttonCancel = qt.QPushButton(self)
         self.buttonCancel.setText(str("Cancel"))
         layout2.addWidget(self.buttonCancel)
-        
+
         layout.addLayout(layout2)
 
         self.buttonOk.clicked.connect(self.accept)

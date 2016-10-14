@@ -27,10 +27,9 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "13/10/2016"
 
 import logging
-import time
 from .. import qt
 from .WaitingPushButton import WaitingPushButton
 

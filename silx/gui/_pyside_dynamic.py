@@ -39,12 +39,10 @@ from __future__ import (print_function, division, unicode_literals,
                         absolute_import)
 
 import logging
-import os
-import sys
 
-from PySide.QtCore import Slot, QMetaObject
+from PySide.QtCore import QMetaObject
 from PySide.QtUiTools import QUiLoader
-from PySide.QtGui import QApplication, QMainWindow, QMessageBox
+from PySide.QtGui import QMainWindow
 
 
 _logger = logging.getLogger(__name__)

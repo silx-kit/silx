@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "20/09/2016"
+__date__ = "13/10/2016"
 
 
 import numpy
@@ -44,14 +44,14 @@ class TestRGBA(ParametricTestCase):
         """"Test rgba function with accepted values"""
         tests = {  # name: (colors, expected values)
             'blue': ('blue', (0., 0., 1., 1.)),
-            '#010203': ('#010203', (1./255., 2./255., 3./255., 1.)),
-            '#01020304': ('#01020304', (1./255., 2./255., 3./255., 4./255.)),
+            '#010203': ('#010203', (1. / 255., 2. / 255., 3. / 255., 1.)),
+            '#01020304': ('#01020304', (1. / 255., 2. / 255., 3. / 255., 4. / 255.)),
             '3 x uint8': (numpy.array((1, 255, 0), dtype=numpy.uint8),
-                          (1/255., 1., 0., 1.)),
+                          (1 / 255., 1., 0., 1.)),
             '4 x uint8': (numpy.array((1, 255, 0, 1), dtype=numpy.uint8),
-                          (1/255., 1., 0., 1/255.)),
+                          (1 / 255., 1., 0., 1 / 255.)),
             '3 x float overflow': ((3., 0.5, 1.), (1., 0.5, 1., 1.)),
-            }
+        }
 
         for name, test in tests.items():
             color, expected = test

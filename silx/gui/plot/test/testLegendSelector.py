@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/04/2016"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -77,7 +77,7 @@ class TestLegendSelector(TestCaseQt):
         # layout.setContentsMargins(0,0,0,0)
         llist = []
 
-        for idx, (l, c, s) in enumerate(zip(legends, colors, symbols)):
+        for _idx, (l, c, s) in enumerate(zip(legends, colors, symbols)):
             ddict = {
                 'color': qt.QColor(c),
                 'linewidth': 4,

@@ -24,16 +24,14 @@
 # ###########################################################################*/
 """Basic tests for :class:`FitConfig`"""
 
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "13/10/2016"
+
 import unittest
 
 from ...testutils import TestCaseQt
-
-from ... import qt
 from .. import FitConfig
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "21/09/2016"
 
 
 class TestFitConfig(TestCaseQt):
@@ -70,7 +68,7 @@ class TestFitConfig(TestCaseQt):
                     "StripBackgroundFlag",
                     "StripWidth",
                     "StripNIterations",
-                    "StripThresholdFactor",]:
+                    "StripThresholdFactor"]:
             self.assertIn(key, output)
 
         self.assertTrue(output["AutoFwhm"])

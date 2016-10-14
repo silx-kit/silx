@@ -52,7 +52,7 @@ provides the namespace of PyQt5 over PyQt4 and PySide.
 
 __authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__date__ = "01/09/2016"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -65,7 +65,7 @@ _logger = logging.getLogger(__name__)
 BINDING = None
 """The name of the Qt binding in use: 'PyQt5', 'PyQt4' or 'PySide'."""
 
-QtBinding = None
+QtBinding = None  # noqa
 """The Qt binding module in use: PyQt5, PyQt4 or PySide."""
 
 HAS_SVG = False

@@ -194,7 +194,7 @@ setting the interactive mode.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "13/10/2016"
 
 
 from collections import Iterable, OrderedDict, namedtuple
@@ -395,7 +395,7 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for curve, info in self._curves.items():
+        for _curve, info in self._curves.items():
             # using numpy's separate min and max is faster than
             # a pure python minmax.
             if info['xmin'] is not None:
@@ -415,7 +415,7 @@ class Plot(object):
                     yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
-            for image, info in self._images.items():
+            for _image, info in self._images.items():
                 if info['data'] is not None:
                     height, width = info['data'].shape[:2]
                     params = info['params']
