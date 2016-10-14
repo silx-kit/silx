@@ -147,16 +147,16 @@ class FitWidget(qt.QWidget):
 
         Values must be instances of QDialog widgets with an additional
         *output* attribute, a dictionary storing configuration parameters
-        interpreted by the corresponding fit theory, and an additional
-        *setDefault* method to initialize the widget values.
+        interpreted by the corresponding fit theory.
+
+        The dialog can also define a *setDefault* method to initialize the
+        widget values with values in a dictionary passed as a parameter.
+        This will be executed first.
 
         In case the widget does not actually inherit :class:`QDialog`, it
         must at least implement the following methods (executed in this
         particular order):
 
-            - :meth:`setDefault`: take a dictionary as an argument, whose
-              values are used to set the default values of the various
-              input widgets in the dialog
             - :meth:`show`: should cause the widget to become visible to the
               user)
             - :meth:`exec_`: should run while the user is interacting with the
@@ -364,8 +364,7 @@ class FitWidget(qt.QWidget):
             raise KeyError("%s does not match an existing fitmanager theory")
 
         if config_widget is not None:
-            for mandatory_attr in ["show", "exec_", "result", "output",
-                                   "setDefault"]:
+            for mandatory_attr in ["show", "exec_", "result", "output"]:
                 if not hasattr(config_widget, mandatory_attr):
                     raise AttributeError(
                             "Custom configuration widget must define " +
