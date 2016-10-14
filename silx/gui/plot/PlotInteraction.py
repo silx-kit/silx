@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "06/10/2016"
+__date__ = "14/10/2016"
 
 
 import math
@@ -855,11 +855,11 @@ class DrawFreeHand(Select):
         return self.parameters.get('width', None)
 
     def setFirstPoint(self, x, y):
-        self._lastPos = x, y
+        self._points = []
         self.select(x, y)
 
     def updatePencilShape(self, x, y):
-        center = self.plot.pixelToData(x, y)
+        center = self.plot.pixelToData(x, y, check=False)
         assert center is not None
         size = self.width * 0.5
 
@@ -873,22 +873,32 @@ class DrawFreeHand(Select):
         self.setSelectionArea(polygon, fill='', color=self.color)
 
     def select(self, x, y):
-        pos = self.plot.pixelToData(x, y)
+        pos = self.plot.pixelToData(x, y, check=False)
+        if len(self._points) > 0:
+            if self._points[-1] == pos:
+                # Skip same points
+                return
+        self._points.append(pos)
         eventDict = prepareDrawingSignal('drawingProgress',
                                          'polylines',
-                                         (self._lastPos, pos),
+                                         self._points,
                                          self.parameters)
         self.plot.notify(**eventDict)
         self._lastPos = pos
 
     def endSelect(self, x, y):
-        pos = self.plot.pixelToData(x, y)
+        pos = self.plot.pixelToData(x, y, check=False)
+        if len(self._points) > 0:
+            if self._points[-1] != pos:
+                # Append if different
+                self._points.append(pos)
+
         eventDict = prepareDrawingSignal('drawingFinished',
                                          'polylines',
-                                         (self._lastPos, pos),
+                                         self._points,
                                          self.parameters)
         self.plot.notify(**eventDict)
-        self._lastPos = None
+        self._points = None
 
     def cancelSelect(self):
         self.resetSelectionArea()
