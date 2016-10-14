@@ -91,7 +91,7 @@ class TestBgTheories(unittest.TestCase):
 
     def testStrip(self):
         stripfun = bgtheories.THEORY["Strip"].function
-        anchors = sorted(random.sample(self.x, 3))
+        anchors = sorted(random.sample(list(self.x), 3))
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
         # we really want to strip away the narrow peak
@@ -120,7 +120,7 @@ class TestBgTheories(unittest.TestCase):
 
     def testSnip(self):
         snipfun = bgtheories.THEORY["Snip"].function
-        anchors = sorted(random.sample(self.x, 3))
+        anchors = sorted(random.sample(list(self.x), 3))
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
         # we really want to strip away the narrow peak
