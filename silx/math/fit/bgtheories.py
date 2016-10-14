@@ -79,8 +79,8 @@ from silx.math.fit.fittheory import FitTheory
 CONFIG = {
     "SmoothingFlag": False,
     "SmoothingWidth": 5,
-    "AnchorsFlag": False,   # TODO
-    "AnchorsList": [],      # TODO
+    "AnchorsFlag": False,
+    "AnchorsList": [],
     "StripWidth": 2,
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
@@ -133,7 +133,17 @@ def _convert_anchors_to_indices(x):
 
 
 def strip_bg(x, y0, width, niter):
-    """Compute the strip bg for y0"""
+    """Extract and return the strip bg from y0.
+
+    Use anchors coordinates in CONFIG["AnchorsList"] if flag
+    CONFIG["AnchorsFlag"] is True. Convert anchors from x coordinate
+    to array index prior to passing it to silx.math.fit.filters.strip
+
+    :param x: Abscissa array
+    :param x: Ordinate array (data values at x positions)
+    :param width: strip width
+    :param niter: strip niter
+    """
     global _BG_STRIP_OLDY
     global _BG_STRIP_OLDPARS
     global _BG_STRIP_OLDBG
@@ -313,7 +323,7 @@ THEORY = OrderedDict(
                 description='Constant background',
                 function=lambda x, y0, c: c * numpy.ones_like(x),
                 parameters=['Constant', ],
-                estimate=lambda x, y: ([min(y)], [(0, 0, 0)]),
+                estimate=lambda x, y: ([min(y)], [[0, 0, 0]]),
                 is_background=True)),
          ('Linear',
           FitTheory(
