@@ -32,6 +32,8 @@ from .test_functions import suite as test_fitfuns
 from .test_filters import suite as test_fitfilters
 from .test_peaks import suite as test_peaks
 from .test_fitmanager import suite as test_fitmanager
+from .test_bgtheories import suite as test_bgtheories
+
 
 def suite():
     test_suite = unittest.TestSuite()
@@ -40,4 +42,5 @@ def suite():
     test_suite.addTest(test_fitfilters())
     test_suite.addTest(test_peaks())
     test_suite.addTest(test_fitmanager())
+    test_suite.addTest(test_bgtheories())
     return test_suite
