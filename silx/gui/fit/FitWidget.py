@@ -50,7 +50,7 @@ from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
-from .BackgroundWidget import BackgroundDialog
+from .BackgroundWidget import getBgDialog, BackgroundDialog
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -133,6 +133,11 @@ class FitWidget(qt.QWidget):
         :mod:`silx.math.fit.fittheories` are imported.
         """
 
+        # reference fitmanager.configure method for direct access
+        self.configure = self.fitmanager.configure
+        self.fitconfig = self.fitmanager.fitconfig
+
+
         self.configdialogs = {}
         """This dictionary defines the fit configuration widgets
         associated with the fit theories in :attr:`fitmanager.theories`
@@ -142,12 +147,16 @@ class FitWidget(qt.QWidget):
 
         Values must be instances of QDialog widgets with an additional
         *output* attribute, a dictionary storing configuration parameters
-        interpreted by the corresponding fit theory.
+        interpreted by the corresponding fit theory, and an additional
+        *setDefault* method to initialize the widget values.
 
         In case the widget does not actually inherit :class:`QDialog`, it
         must at least implement the following methods (executed in this
         particular order):
 
+            - :meth:`setDefault`: take a dictionary as an argument, whose
+              values are used to set the default values of the various
+              input widgets in the dialog
             - :meth:`show`: should cause the widget to become visible to the
               user)
             - :meth:`exec_`: should run while the user is interacting with the
@@ -173,10 +182,6 @@ class FitWidget(qt.QWidget):
         with a background theory in :attr:`fitmanager.bgtheories`"""
 
         self._associateDefaultConfigDialogs()
-
-        # reference fitmanager.configure method for direct access
-        self.configure = self.fitmanager.configure
-        self.fitconfig = self.fitmanager.fitconfig
 
         self.guiConfig = None
         """Configuration widget at the top of FitWidget, to select
@@ -247,7 +252,8 @@ class FitWidget(qt.QWidget):
         # associate silx.gui.fit.FitConfig with all theories
         # Users can later associate their own custom dialogs to
         # replace the default.
-        configdialog = getFitConfigDialog()
+        configdialog = getFitConfigDialog(parent=self,
+                                          default=self.fitconfig)
         for theory in self.fitmanager.theories:
             self.associateConfigDialog(theory, configdialog)
         for bgtheory in self.fitmanager.bgtheories:
@@ -255,7 +261,8 @@ class FitWidget(qt.QWidget):
                                        theory_is_background=True)
 
         # associate silx.gui.fit.BackgroundWidget with Strip and Snip
-        bgdialog = BackgroundDialog()
+        bgdialog = getBgDialog(parent=self,
+                               default=self.fitconfig)
         for bgtheory in ["Strip", "Snip"]:
             if bgtheory in self.fitmanager.bgtheories:
                 self.associateConfigDialog(bgtheory, bgdialog,
@@ -347,8 +354,8 @@ class FitWidget(qt.QWidget):
         :raise: KeyError if parameter ``theory_name`` does not match an
             existing fit theory or background theory in :attr:`fitmanager`.
         :raise: AttributeError if the widget does not implement the mandatory
-            methods (*show*, *exec_*, *result*) or the mandatory attribute
-            (*output*).
+            methods (*show*, *exec_*, *result*, *setDefault*) or the mandatory
+            attribute (*output*).
         """
         theories = self.fitmanager.bgtheories if theory_is_background else\
             self.fitmanager.theories
@@ -357,7 +364,8 @@ class FitWidget(qt.QWidget):
             raise KeyError("%s does not match an existing fitmanager theory")
 
         if config_widget is not None:
-            for mandatory_attr in ["show", "exec_", "result", "output"]:
+            for mandatory_attr in ["show", "exec_", "result", "output",
+                                   "setDefault"]:
                 if not hasattr(config_widget, mandatory_attr):
                     raise AttributeError(
                             "Custom configuration widget must define " +
@@ -451,6 +459,8 @@ class FitWidget(qt.QWidget):
         if configdialog is None:
             return {}
 
+        print(configdialog)
+        configdialog.setDefault(newconfiguration)
         configdialog.show()
         configdialog.exec_()
         if configdialog.result():

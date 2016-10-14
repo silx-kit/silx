@@ -207,7 +207,7 @@ class BackgroundParamWidget(qt.QWidget):
             self.stripIterValue.setText("%d" % int(ddict["StripIterations"]))
 
         if "SmoothingFlag" in ddict:
-            self.self.smoothingFlagCheck.setChecked(bool(ddict["SmoothingFlag"]))
+            self.smoothingFlagCheck.setChecked(bool(ddict["SmoothingFlag"]))
 
         if "SmoothingWidth" in ddict:
             self.smoothingSpin.setValue(int(ddict["SmoothingWidth"]))
@@ -463,6 +463,24 @@ class BackgroundDialog(qt.QDialog):
     def setParameters(self, ddict):
         """See :meth:`BackgroundWidget.setParameters`"""
         return self.parametersWidget.setParameters(ddict)
+
+    def setDefault(self, ddict):
+        """Alias for :meth:`setParameters`"""
+        return self.setParameters(ddict)
+
+
+def getBgDialog(parent=None, default=None, modal=True):
+    """Instantiate and return a bg configuration dialog, adapted
+    for configuring standard background theories from
+    :mod:`silx.math.fit.bgtheories`.
+
+    :return: Instance of :class:`BackgroundDialog`
+    """
+    bgd = BackgroundDialog(parent=parent)
+    # apply default to newly added pages
+    bgd.setParameters(default)
+
+    return bgd
 
 
 def main():

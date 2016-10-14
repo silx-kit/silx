@@ -131,6 +131,7 @@ class TabsDialogData(TabsDialog):
         """
         TabsDialog.__init__(self, parent)
         self.setModal(modal)
+        self.setWindowTitle("Fit configuration")
 
         self.output = {}
 
@@ -172,12 +173,17 @@ class TabsDialogData(TabsDialog):
         self.setDefault()
         super(TabsDialogData, self).reject()
 
-    def setDefault(self):
-        """Reinitialize :attr:`output` with :attr:`default`
+    def setDefault(self, newdefault=None):
+        """Reinitialize :attr:`output` with :attr:`default` or with
+        new dictionary ``newdefault`` if provided.
         Call :meth:`setDefault` for each tab widget, if available.
         """
         self.output = {}
-        self.output.update(self.default)
+        if newdefault is None:
+            newdefault = self.default
+        else:
+            self.default = newdefault
+        self.output.update(newdefault)
 
         for tabWidget in self:
             if hasattr(tabWidget, "setDefault"):
