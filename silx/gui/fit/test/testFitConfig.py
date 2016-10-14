@@ -40,7 +40,6 @@ class TestFitConfig(TestCaseQt):
     def setUp(self):
         super(TestFitConfig, self).setUp()
         self.fit_config = FitConfig.getFitConfigDialog(modal=False)
-        self.fit_config.show()
         self.qWaitForWindowExposed(self.fit_config)
 
     def tearDown(self):
@@ -48,7 +47,16 @@ class TestFitConfig(TestCaseQt):
         super(TestFitConfig, self).tearDown()
 
     def testShow(self):
-        pass
+        self.fit_config.show()
+        self.fit_config.hide()
+
+    def testAccept(self):
+        self.fit_config.accept()
+        self.assertTrue(self.fit_config.result())
+
+    def testReject(self):
+        self.fit_config.reject()
+        self.assertFalse(self.fit_config.result())
 
     def testDefaultOutput(self):
         self.fit_config.accept()
@@ -67,8 +75,9 @@ class TestFitConfig(TestCaseQt):
                     "ForcePeakPresence",
                     "StripBackgroundFlag",
                     "StripWidth",
-                    "StripNIterations",
-                    "StripThresholdFactor"]:
+                    "StripIterations",
+                    "StripThreshold",
+                    "SmoothingFlag"]:
             self.assertIn(key, output)
 
         self.assertTrue(output["AutoFwhm"])

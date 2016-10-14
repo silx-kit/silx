@@ -432,11 +432,11 @@ class BackgroundPage(qt.QGroupBox):
         self.stripWidthSpin.setValue(
                 default_dict.get('StripWidth', 2))
         self.numIterationsSpin.setValue(
-                default_dict.get('StripNIterations', 5000))
+                default_dict.get('StripIterations', 5000))
         self.thresholdFactorEntry.setText(
-                str(default_dict.get('StripThresholdFactor', 1.0)))
+                str(default_dict.get('StripThreshold', 1.0)))
         self.smoothStripGB.setChecked(
-                default_dict.get('SmoothStripFlag', False))
+                default_dict.get('SmoothingFlag', False))
         self.smoothingWidthSpin.setValue(
                 default_dict.get('SmoothingWidth', 3))
 
@@ -447,9 +447,9 @@ class BackgroundPage(qt.QGroupBox):
         ddict = {
             'StripBackgroundFlag': self.isChecked(),
             'StripWidth': self.stripWidthSpin.value(),
-            'StripNIterations': self.numIterationsSpin.value(),
-            'StripThresholdFactor': safe_float(self.thresholdFactorEntry.text()),
-            'SmoothStripFlag': self.smoothStripGB.isChecked(),
+            'StripIterations': self.numIterationsSpin.value(),
+            'StripThreshold': safe_float(self.thresholdFactorEntry.text()),
+            'SmoothingFlag': self.smoothStripGB.isChecked(),
             'SmoothingWidth': self.smoothingWidthSpin.value()
         }
         return ddict

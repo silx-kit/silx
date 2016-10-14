@@ -63,9 +63,6 @@ class TestFitWidget(TestCaseQt):
         self.qapp.processEvents()
 
     def testCustomConfigWidget(self):
-        """For the moment we open a fitwidget initialized with a fitmanager
-        containing custom theories with a custom config dialog, and we
-        check that it doesnt raise errors"""
         class CustomConfigWidget(qt.QDialog):
             def __init__(self):
                 qt.QDialog.__init__(self)
@@ -86,22 +83,38 @@ class TestFitWidget(TestCaseQt):
         y = [fitfun(x_, 2, 3) for x_ in x]
 
         def conf(**kw):
-            return {"spam": "eggs"}
+            return {"spam": "eggs",
+                    "hello": "world!"}
 
         theory = FitTheory(
             function=fitfun,
             parameters=["a", "b"],
-            configure=conf,
-            config_widget=CustomConfigWidget)
+            configure=conf)
 
         fitmngr = FitManager()
         fitmngr.setdata(x, y)
         fitmngr.addtheory("foo", theory)
         fitmngr.addtheory("bar", theory)
+        fitmngr.addbgtheory("spam", theory)
 
         fw = FitWidget(fitmngr=fitmngr)
+        fw.associateConfigDialog("spam", CustomConfigWidget(),
+                                 theory_is_background=True)
+        fw.associateConfigDialog("foo", CustomConfigWidget())
         fw.show()
         self.qWaitForWindowExposed(fw)
+
+        fw.bgconfigdialogs["spam"].accept()
+        self.assertTrue(fw.bgconfigdialogs["spam"].result())
+
+        self.assertEqual(fw.bgconfigdialogs["spam"].output,
+                         {"hello": "world"})
+
+        fw.bgconfigdialogs["spam"].reject()
+        self.assertFalse(fw.bgconfigdialogs["spam"].result())
+
+        fw.configdialogs["foo"].accept()
+        self.assertTrue(fw.configdialogs["foo"].result())
 
         # self.mouseClick(fw.guiConfig.FunConfigureButton, qt.Qt.LeftButton)
         # todo: figure out how to click fw.guiconfigdialog.ok to close dialog
