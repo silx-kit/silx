@@ -459,8 +459,9 @@ class FitWidget(qt.QWidget):
         if configdialog is None:
             return {}
 
-        print(configdialog)
-        configdialog.setDefault(newconfiguration)
+        # update state of configdialog before showing it
+        if hasattr(configdialog, "setDefault"):
+            configdialog.setDefault(newconfiguration)
         configdialog.show()
         configdialog.exec_()
         if configdialog.result():
