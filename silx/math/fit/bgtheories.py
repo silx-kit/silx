@@ -219,7 +219,7 @@ def snip_bg(x, y0, width):
     background = numpy.zeros_like(y1)
     previous_anchor = 0
     for anchor_index in anchors_indices:
-        if (anchor_index > previous_anchor) and (anchor_index < len(ysmooth)):
+        if (anchor_index > previous_anchor) and (anchor_index < len(y1)):
                 background[previous_anchor:anchor_index] =\
                             snip1d(y1[previous_anchor:anchor_index],
                                    width)
