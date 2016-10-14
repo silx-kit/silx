@@ -401,7 +401,7 @@ class BackgroundDialog(qt.QDialog):
     """QDialog window featuring a :class:`BackgroundWidget`"""
     def __init__(self, parent=None):
         qt.QDialog.__init__(self, parent)
-        self.setWindowTitle("Strip and SnipP Configuration Window")
+        self.setWindowTitle("Strip and Snip Configuration Window")
         self.mainLayout = qt.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(2)
