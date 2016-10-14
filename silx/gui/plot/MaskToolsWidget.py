@@ -1087,6 +1087,7 @@ class MaskToolsWidget(qt.QWidget):
             self.pencilSlider.setValue(width)
         finally:
             self.pencilSlider.blockSignals(old)
+        self._updateInteractiveMode()
 
     def _updateInteractiveMode(self):
         """Update the current mode to the same if some cached data have to be
@@ -1161,8 +1162,10 @@ class MaskToolsWidget(qt.QWidget):
         if checked:
             self._drawingMode = 'pencil'
             self.plot.sigPlotSignal.connect(self._plotDrawEvent)
+            color = self.getCurrentMaskColor()
+            width = self.pencilSpinBox.value()
             self.plot.setInteractiveMode(
-                'draw', shape='polylines', source=self, color=None)
+                'draw', shape='pencil', source=self, color=color, width=width)
         else:
             self.plot.sigPlotSignal.disconnect(self._plotDrawEvent)
             self._drawingMode = None

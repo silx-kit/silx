@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "06/10/2016"
 
 
 import math
@@ -814,6 +814,89 @@ class SelectVLine(Select1Point):
         self.resetSelectionArea()
 
 
+class DrawFreeHand(Select):
+    """Interaction for drawing pencil. It display the preview of the pencil
+    before pressing the mouse.
+
+    TODO: The preview stay displayed when the mouse is not anymore over the
+        widget.
+    """
+    class Idle(State):
+        def onPress(self, x, y, btn):
+            if btn == LEFT_BTN:
+                self.goto('select', x, y)
+                return True
+
+        def onMove(self, x, y):
+            self.machine.updatePencilShape(x, y)
+
+    class Select(State):
+        def enterState(self, x, y):
+            self.machine.setFirstPoint(x, y)
+
+        def onMove(self, x, y):
+            self.machine.updatePencilShape(x, y)
+            self.machine.select(x, y)
+
+        def onRelease(self, x, y, btn):
+            if btn == LEFT_BTN:
+                self.machine.endSelect(x, y)
+                self.goto('idle')
+
+    def __init__(self, plot, parameters):
+        states = {
+            'idle': DrawFreeHand.Idle,
+            'select': DrawFreeHand.Select
+        }
+        super(DrawFreeHand, self).__init__(plot, parameters, states, 'idle')
+
+    @property
+    def width(self):
+        return self.parameters.get('width', None)
+
+    def setFirstPoint(self, x, y):
+        self._lastPos = x, y
+        self.select(x, y)
+
+    def updatePencilShape(self, x, y):
+        center = self.plot.pixelToData(x, y)
+        assert center is not None
+        size = self.width * 0.5
+
+        polygon = []
+        pointCount = 13
+        for i in range(0, pointCount):
+            r = i * math.pi * 2.0 / pointCount
+            pos = (center[0] + size * math.cos(r), center[1] + size * math.sin(r))
+            polygon.append(pos)
+
+        self.setSelectionArea(polygon, fill='', color=self.color)
+
+    def select(self, x, y):
+        pos = self.plot.pixelToData(x, y)
+        eventDict = prepareDrawingSignal('drawingProgress',
+                                         'polylines',
+                                         (self._lastPos, pos),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+        self._lastPos = pos
+
+    def endSelect(self, x, y):
+        pos = self.plot.pixelToData(x, y)
+        eventDict = prepareDrawingSignal('drawingFinished',
+                                         'polylines',
+                                         (self._lastPos, pos),
+                                         self.parameters)
+        self.plot.notify(**eventDict)
+        self._lastPos = None
+
+    def cancelSelect(self):
+        self.resetSelectionArea()
+
+    def cancel(self):
+        self.resetSelectionArea()
+
+
 class SelectFreeLine(ClickOrDrag, _PlotInteraction):
     """Base class for drawing free lines with tools such as pencil."""
 
@@ -1211,6 +1294,7 @@ class PlotInteraction(object):
         'vline': SelectVLine,
         'hline': SelectHLine,
         'polylines': SelectFreeLine,
+        'pencil': DrawFreeHand,
     }
 
     def __init__(self, plot):
@@ -1245,7 +1329,7 @@ class PlotInteraction(object):
             return {'mode': 'select'}
 
     def setInteractiveMode(self, mode, color='black',
-                           shape='polygon', label=None):
+                           shape='polygon', label=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -1260,6 +1344,7 @@ class PlotInteraction(object):
                           'polylines'.
                           Default is 'polygon'.
         :param str label: Only for 'draw' mode.
+        :param float width: Width of the pencil. Only for draw pencil mode.
         """
         assert mode in ('draw', 'pan', 'select', 'zoom')
 
@@ -1275,7 +1360,8 @@ class PlotInteraction(object):
             parameters = {
                 'shape': shape,
                 'label': label,
-                'color': color
+                'color': color,
+                'width': width,
             }
 
             self._eventHandler.cancel()
