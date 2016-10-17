@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "06/10/2016"
+__date__ = "14/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -90,7 +90,7 @@ def get_project_name(root_dir):
     logger.debug("Getting project name in %s", root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
-    name, stderr_data = p.communicate()
+    name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
 
@@ -100,10 +100,10 @@ PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)
 
 
-class TestResult(unittest.TestResult):
+class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
 
     def __init__(self, *arg, **kwarg):
-        unittest.TestResult.__init__(self, *arg, **kwarg)
+        unittest.TextTestRunner.resultclass.__init__(self, *arg, **kwarg)
         self.logger = logging.getLogger("memProf")
         self.logger.setLevel(min(logging.INFO, logging.root.level))
         self.logger.handlers.append(logging.FileHandler("profile.log"))
@@ -130,16 +130,6 @@ class TestResult(unittest.TestResult):
             memusage = 0
         self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
             time.time() - self.__time_start, memusage, test.id())
-
-
-if sys.hexversion < 34013184:  # 2.7
-    class ProfileTestRunner(unittest.TextTestRunner):
-        def _makeResult(self):
-            return TestResult()
-else:
-    class ProfileTestRunner(unittest.TextTestRunner):
-        def _makeResult(self):
-            return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
 
 
 def report_rst(cov, package, version="0.0.0", base=""):
@@ -284,7 +274,7 @@ if not options.gui:
     os.environ["WITH_QT_TEST"] = "False"
 
 if not options.opencl:
-    os.environ["SILX_OPENCL"]="False"
+    os.environ["SILX_OPENCL"] = "False"
 
 if options.low_mem:
     os.environ["SILX_TEST_LOW_MEM"] = "True"
@@ -329,10 +319,11 @@ PROJECT_PATH = module.__path__[0]
 
 
 # Run the tests
+runnerArgs = {}
+runnerArgs["verbosity"] = test_verbosity
 if options.memprofile:
-    runner = ProfileTestRunner()
-else:
-    runner = unittest.TextTestRunner(verbosity=test_verbosity)
+    runnerArgs["resultclass"] = ProfileTextTestResult
+runner = unittest.TextTestRunner(**runnerArgs)
 
 logger.warning("Test %s %s from %s",
                PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
