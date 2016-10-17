@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "17/10/2016"
 
 
 import logging
@@ -122,17 +122,17 @@ class PositionInfo(qt.QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         # layout.setSpacing(0)
 
-        # Create all LineEdit and store them with the corresponding converter
+        # Create all QLabel and store them with the corresponding converter
         for name, func in converters:
             layout.addWidget(qt.QLabel('<b>' + name + ':</b>'))
 
-            lineEdit = qt.QLineEdit()
-            lineEdit.setText('------')
-            lineEdit.setReadOnly(1)
-            lineEdit.setFixedWidth(
-                lineEdit.fontMetrics().width('##############'))
-            layout.addWidget(lineEdit)
-            self._fields.append((lineEdit, name, func))
+            contentWidget = qt.QLabel()
+            contentWidget.setText('------')
+            contentWidget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
+            contentWidget.setFixedWidth(
+                contentWidget.fontMetrics().width('##############'))
+            layout.addWidget(contentWidget)
+            self._fields.append((contentWidget, name, func))
 
         layout.addStretch(1)
         self.setLayout(layout)
@@ -147,7 +147,7 @@ class PositionInfo(qt.QWidget):
 
     def getConverters(self):
         """Return the list of converters as 2-tuple (name, function)."""
-        return [(name, func) for _lineEdit, name, func in self._fields]
+        return [(name, func) for _label, name, func in self._fields]
 
     def _plotEvent(self, event):
         """Handle events from the Plot.
@@ -181,19 +181,19 @@ class PositionInfo(qt.QWidget):
 
                             if (abs(xClosest - xPixel) < 5 and
                                     abs(yClosest - yPixel) < 5):
-                                # Update lineEdit style sheet
+                                # Update label style sheet
                                 styleSheet = "color: rgb(0, 0, 0);"
 
                                 # if close enough, wrap to data point coords
                                 x, y = xClosest, yClosest
 
-            for lineEdit, name, func in self._fields:
-                lineEdit.setStyleSheet(styleSheet)
+            for label, name, func in self._fields:
+                label.setStyleSheet(styleSheet)
 
                 try:
                     value = func(x, y)
                 except:
-                    lineEdit.setText('Error')
+                    label.setText('Error')
                     _logger.error(
                         "Error while converting coordinates (%f, %f)"
                         "with converter '%s'" % (x, y, name))
@@ -203,7 +203,7 @@ class PositionInfo(qt.QWidget):
                         value = '%.7g' % value  # Use this for floats and int
                     else:
                         value = str(value)  # Fallback for other types
-                    lineEdit.setText(value)
+                    label.setText(value)
 
 
 # LimitsToolBar ##############################################################
