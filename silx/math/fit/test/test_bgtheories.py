@@ -91,12 +91,14 @@ class TestBgTheories(unittest.TestCase):
 
     def testStrip(self):
         stripfun = bgtheories.THEORY["Strip"].function
-        anchors = sorted(random.sample(list(self.x), 3))
+        anchors = sorted(random.sample(list(self.x), 4))
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
         # we really want to strip away the narrow peak
-        if self.narrow_peak_index in anchors_indices:
-            anchors_indices.remove(self.narrow_peak_index)
+        for idx in anchors_indices:
+            if abs(idx - self.narrow_peak_index) < 5:
+                anchors_indices.remove(idx)
+                anchors.remove(self.x[idx])
 
         width = 2
         niter = 1000
@@ -120,23 +122,24 @@ class TestBgTheories(unittest.TestCase):
 
     def testSnip(self):
         snipfun = bgtheories.THEORY["Snip"].function
-        anchors = sorted(random.sample(list(self.x), 3))
+        anchors = sorted(random.sample(list(self.x), 4))
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
-        # we really want to strip away the narrow peak
-        if self.narrow_peak_index in anchors_indices:
-            anchors_indices.remove(self.narrow_peak_index)
+        # we want to strip away the narrow peak, so remove nearby anchors
+        for idx in anchors_indices:
+            if abs(idx - self.narrow_peak_index) < 5:
+                anchors_indices.remove(idx)
+                anchors.remove(self.x[idx])
 
         width = 16
         bgtheories.THEORY["Snip"].configure(AnchorsList=anchors, AnchorsFlag=True)
-
         bg = snipfun(self.x, self.y, width)
 
         # assert peak amplitude has been decreased
         self.assertLess(bg[self.narrow_peak_index],
                         self.y[self.narrow_peak_index])
 
-        # default estimate
+        # anchored data must remain fixed
         for i in anchors_indices:
             self.assertEqual(bg[i], self.y[i])
 
