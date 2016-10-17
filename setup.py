@@ -255,7 +255,7 @@ USE_OPENMP = check_openmp()
 # Cython support #
 # ############## #
 
-CYTHON_MIN_VERSION = '0.18'
+CYTHON_MIN_VERSION = '0.21.1'
 
 
 def check_cython():
