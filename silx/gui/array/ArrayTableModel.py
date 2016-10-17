@@ -32,7 +32,7 @@ __date__ = "17/10/2016"
 
 
 # TODO: generalise perspective to n-D arrays
-class NumpyArrayTableModel(qt.QAbstractTableModel):
+class ArrayTableModel(qt.QAbstractTableModel):
     """This data model provides access to 2D slices in a N-dimensional
     array.
 
@@ -154,6 +154,16 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         """
         return self._data(index, role)
 
+    def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
+        """Return the 0-based row or column index, for display in the
+        horizontal and vertical headers"""
+        if role == qt.Qt.DisplayRole:
+            if orientation == qt.Qt.Vertical:
+                return "%d" % section
+            if orientation == qt.Qt.Horizontal:
+                return "%d" % section
+        return None
+
     # Public methods
     def setArrayData(self, data, perspective=0):
         """Set the data array
@@ -206,6 +216,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             # accept integers as index in the case of 3-D arrays
             if not hasattr(index, "__len__"):
                 self._index = [index]
+            else:
+                self._index = index
             if not 0 <= self._index[0] < len_:
                 raise ValueError("Index must be a positive integer " +
                                  "lower than %d" % len_)
@@ -225,11 +237,11 @@ if __name__ == "__main__":
     w = qt.QTableView()
     d = numpy.random.normal(0,1, (5, 1000,1000))
     for i in range(5):
-        d[i, :, :] += i
-    # m = NumpyArrayTableModel(fmt="%.5f")
-    # m = NumpyArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
-    # m = NumpyArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
-    m = NumpyArrayTableModel(data=d, fmt="%.5f")
+        d[i, :, :] += i * 10
+    # m = ArrayTableModel(fmt="%.5f")
+    # m = ArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
+    # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
+    m = ArrayTableModel(data=d, fmt="%.5f")
     w.setModel(m)
     m.setCurrentArrayIndex(4)
     # m.setArrayData(numpy.ones((100,)))
