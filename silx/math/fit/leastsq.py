@@ -58,7 +58,7 @@ CIGNORED    = 7
 
 def leastsq(model, xdata, ydata, p0, sigma=None,
               constraints=None, model_deriv=None, epsfcn=None,
-              deltachi=None, full_output=0,
+              deltachi=None, full_output=None,
               check_finite=True,
               left_derivative=False,
               max_iter=100):
@@ -141,7 +141,8 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     :type deltachi: *optional*, float
 
     :param full_output: bool, optional
-        non-zero to return all optional outputs. The default is 0
+        non-zero to return all optional outputs. The default is None what will give a warning in case
+        of a constrained fit without having set this kweyword.
 
     :param check_finite: bool, optional
             If True, check that the input arrays do not contain nans of infs,
@@ -322,8 +323,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     raise ValueError("Unknown constraint %s" % constraints[i][0])
             if constraints[i][0] > 0:
                 constrained_fit = True
-    if constrained_fit and (not full_output):
-        _logger.warning("Recommended to set full_output to True when using constraints")
+    if constrained_fit:
+        if full_output is None:
+            _logger.warning("Recommended to set full_output to True when using constraints")
 
     # Levenberg-Marquardt algorithm
     fittedpar = parameters.__copy__()

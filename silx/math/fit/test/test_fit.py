@@ -196,7 +196,9 @@ class Test_leastsq(unittest.TestCase):
         full_output = True
         for index, constraints in enumerate(constraints_list):
             if index == 2:
-                full_output = False
+                full_output = None
+            elif index == 3:
+                full_output = 0
             for model_deriv in [None, self.gauss_derivative]:
                 for sigma in [None, numpy.sqrt(y)]:                    
                     fittedpar, cov = self.instance(model_function, x, y,
