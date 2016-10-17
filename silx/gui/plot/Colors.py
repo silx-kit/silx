@@ -26,7 +26,7 @@
 
 __authors__ = ["V.A. Sole", "T. VINCENT"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "17/10/2016"
 
 
 import numpy
@@ -106,15 +106,15 @@ def rgba(color, colorDict=None):
 _COLORMAP_CURSOR_COLORS = {
     'gray': 'pink',
     'reversed gray': 'pink',
-    'temperature': 'black',
-    'red': 'white',
-    'green': 'white',
-    'blue': 'white',
-    'jet': 'white',
-    'viridis': 'white',
-    'magma': 'white',
-    'inferno': 'white',
-    'plasma': 'white',
+    'temperature': 'pink',
+    'red': 'green',
+    'green': 'pink',
+    'blue': 'yellow',
+    'jet': 'pink',
+    'viridis': 'pink',
+    'magma': 'green',
+    'inferno': 'green',
+    'plasma': 'green',
 }
 
 
