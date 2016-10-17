@@ -344,7 +344,6 @@ class MaskToolsWidget(qt.QWidget):
         self._defaultOverlayColor = rgba('gray')  # Color of the mask
         self._setMaskColors(1, 0.5)
 
-        self._doMask = None  # Store mask/unmask state while interacting
         self._origin = (0., 0.)  # Mask origin in plot
         self._scale = (1., 1.)  # Mask scale in plot
         self._z = 1  # Mask layer in plot
@@ -1171,6 +1170,17 @@ class MaskToolsWidget(qt.QWidget):
 
     # Handle plot drawing events
 
+    def _isMasking(self):
+        """Returns true if the tool is used for masking, else it is used for
+        unmasking.
+
+        :rtype: bool"""
+        # First draw event, use current modifiers for all draw sequence
+        doMask = (self.maskStateGroup.checkedId() == 1)
+        if qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier:
+            doMask = not doMask
+        return doMask
+
     def _plotDrawEvent(self, event):
         """Handle draw events from the plot"""
         if (self._drawingMode is None or
@@ -1180,17 +1190,12 @@ class MaskToolsWidget(qt.QWidget):
         if not len(self._data):
             return
 
-        if self._doMask is None:
-            # First draw event, use current modifiers for all draw sequence
-            self._doMask = (self.maskStateGroup.checkedId() == 1)
-            if qt.QApplication.keyboardModifiers() & qt.Qt.ControlModifier:
-                self._doMask = not self._doMask
-
         level = self.levelSpinBox.value()
 
         if (self._drawingMode == 'rectangle' and
                 event['event'] == 'drawingFinished'):
             # Convert from plot to array coords
+            doMask = self._isMasking()
             ox, oy = self._origin
             sx, sy = self._scale
             self._mask.updateRectangle(
@@ -1199,26 +1204,27 @@ class MaskToolsWidget(qt.QWidget):
                 col=int((event['x'] - ox) / sx),
                 height=int(event['height'] / sy),
                 width=int(event['width'] / sx),
-                mask=self._doMask)
+                mask=doMask)
             self._mask.commit()
 
         elif (self._drawingMode == 'polygon' and
                 event['event'] == 'drawingFinished'):
+            doMask = self._isMasking()
             # Convert from plot to array coords
             vertices = event['points'] / self._scale - self._origin
             vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
-            self._mask.updatePolygon(level, vertices, self._doMask)
+            self._mask.updatePolygon(level, vertices, doMask)
             self._mask.commit()
 
         elif self._drawingMode == 'pencil':
+            doMask = self._isMasking()
             # convert from plot to array coords
             col, row = event['points'][-1] / self._scale - self._origin
             row, col = int(row), int(col)
             brushSize = self.pencilSpinBox.value()
 
             # Draw point
-            self._mask.updateDisk(level, row, col, brushSize / 2.,
-                                  self._doMask)
+            self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
 
             if self._lastPencilPos and self._lastPencilPos != (row, col):
                 # Draw the line
@@ -1227,17 +1233,13 @@ class MaskToolsWidget(qt.QWidget):
                     self._lastPencilPos[0], self._lastPencilPos[1],
                     row, col,
                     brushSize,
-                    self._doMask)
+                    doMask)
 
             if event['event'] == 'drawingFinished':
                 self._mask.commit()
                 self._lastPencilPos = None
             else:
                 self._lastPencilPos = row, col
-
-        if event['event'] == 'drawingFinished':
-            # Last draw sequence event: reset doMask
-            self._doMask = None
 
     # Handle threshold UI events
 
