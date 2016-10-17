@@ -1220,20 +1220,21 @@ class MaskToolsWidget(qt.QWidget):
             doMask = self._isMasking()
             # convert from plot to array coords
             col, row = event['points'][-1] / self._scale - self._origin
-            row, col = int(row), int(col)
+            col, row = int(col), int(row)
             brushSize = self.pencilSpinBox.value()
 
-            # Draw point
-            self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
+            if self._lastPencilPos != (row, col):
+                if self._lastPencilPos is not None:
+                    # Draw the line
+                    self._mask.updateLine(
+                        level,
+                        self._lastPencilPos[0], self._lastPencilPos[1],
+                        row, col,
+                        brushSize,
+                        doMask)
 
-            if self._lastPencilPos and self._lastPencilPos != (row, col):
-                # Draw the line
-                self._mask.updateLine(
-                    level,
-                    self._lastPencilPos[0], self._lastPencilPos[1],
-                    row, col,
-                    brushSize,
-                    doMask)
+                # Draw the very first, or last point
+                self._mask.updateDisk(level, row, col, brushSize / 2., doMask)
 
             if event['event'] == 'drawingFinished':
                 self._mask.commit()
