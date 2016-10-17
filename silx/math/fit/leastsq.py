@@ -166,7 +166,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
            of ``f(xdata, *popt) - ydata`` is minimized
          ``pcov``: 2d array
            If no constraints are applied, this array contains the estimated covariance
-           of popt. The diagonals provide the variance of the parameter estimate.
+           of popt. The diagonal provides the variance of the parameter estimate.
            To compute one standard deviation errors use ``perr = np.sqrt(np.diag(pcov))``.
            If constraints are applied, this array does not contain the estimated covariance of
            the parameters actually used during the fitting process but the uncertainties after

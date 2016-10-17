@@ -193,11 +193,12 @@ class Test_leastsq(unittest.TestCase):
         for constraints in constraints_list:
             for model_deriv in [None, self.gauss_derivative]:
                 for sigma in [None, numpy.sqrt(y)]:
-                    fittedpar, cov = self.instance(model_function, x, y,
+                    fittedpar, cov, dict_ = self.instance(model_function, x, y,
                                                    parameters_estimate,
                                                    sigma=sigma,
                                                    constraints=constraints,
-                                                   model_deriv=model_deriv)
+                                                   model_deriv=model_deriv,
+                                                   full_output=True)
 
         test_condition = numpy.allclose(parameters_actual, fittedpar)
         if not test_condition:
