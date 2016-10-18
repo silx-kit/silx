@@ -54,6 +54,7 @@ import numpy
 from .. import qt
 
 import matplotlib
+import matplotlib.ticker
 from ._matplotlib import FigureCanvasQTAgg
 
 from .Colors import getMPLColormap
@@ -90,7 +91,7 @@ class ColorbarWidget(qt.QWidget):
         self._canvas = FigureCanvasQTAgg(self._fig)
 
         super(ColorbarWidget, self).__init__(parent)
-        self.setFixedWidth(200)
+        self.setFixedWidth(150)
         layout = qt.QVBoxLayout()
         layout.addWidget(self._canvas)
         self.setLayout(layout)
@@ -142,10 +143,14 @@ class ColorbarWidget(qt.QWidget):
             raise ValueError('Wrong normalization %s' % normalization)
 
         self._fig.clear()
-        ax = self._fig.add_axes((0.03, 0.05, 0.4, 0.9))
+        ax = self._fig.add_axes((0.03, 0.15, 0.3, 0.75))
         self.colorbar = matplotlib.colorbar.ColorbarBase(
             ax, cmap=getMPLColormap(name), norm=norm, orientation='vertical')
         self.colorbar.set_label(self._label)
+        if normalization == 'linear':
+            formatter = matplotlib.ticker.FormatStrFormatter('%.4g')
+            self.colorbar.formatter = formatter
+            self.colorbar.update_ticks()
         self._canvas.draw()
 
         self._colormap = {'name': name,
