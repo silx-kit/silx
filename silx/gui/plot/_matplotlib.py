@@ -39,6 +39,9 @@ import sys
 import logging
 
 
+import logging
+
+
 _logger = logging.getLogger(__name__)
 
 if 'matplotlib' in sys.modules:
