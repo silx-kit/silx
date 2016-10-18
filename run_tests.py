@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "14/10/2016"
+__date__ = "18/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -252,6 +252,8 @@ parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
 parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
                     action="store_true",
                     help="Disable test with large memory consumption (>100Mbyte")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -288,6 +290,19 @@ if options.coverage:
         cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
+if options.qt_binding:
+    binding = options.qt_binding.lower()
+    if binding == "pyqt4":
+        logger.info("Force using PyQt4")
+        import PyQt4  #noqa
+    elif binding == "pyqt5":
+        logger.info("Force using PyQt5")
+        import PyQt5  #noqa
+    elif binding == "pyside":
+        logger.info("Force using PySide")
+        import PySide  #noqa
+    else:
+        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
 # Prevent importing from source directory
 if (os.path.dirname(os.path.abspath(__file__)) ==
