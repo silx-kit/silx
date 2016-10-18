@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -39,7 +40,7 @@ See shiftPlotAction.py for a simpler example with more basic comments.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "18/10/2016"
 
 import numpy
 import os

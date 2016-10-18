@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -38,7 +39,7 @@ possible to specify a different target path.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "18/10/2016"
 
 import argparse
 from silx.io.spectoh5 import write_spec_to_h5
