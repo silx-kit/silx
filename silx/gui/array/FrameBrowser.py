@@ -22,117 +22,22 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-from .. import qt
+"""This module defines a :class:`HorizontalSliderWithBrowser` widget and
+:class:`FrameBrowser` widget. These widgets are designed to select an array
+index or a frame number, to navigate between images"""
 
-__authors__ = ["V.A. Sole"]
+from .. import qt
+from .. import icons
+
+__authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/10/2016"
 
 
-# TODO: Use png icons in silx.resources
-icon_first = ["22 22 2 1",
-              ". c None",
-              "# c #000000",
-              "......................",
-              "......................",
-              ".#.................##.",
-              ".#...............####.",
-              ".#.............######.",
-              ".#...........########.",
-              ".#.........##########.",
-              ".#.......############.",
-              ".#.....##############.",
-              ".#...################.",
-              ".#.##################.",
-              ".#.##################.",
-              ".#...################.",
-              ".#.....##############.",
-              ".#.......############.",
-              ".#.........##########.",
-              ".#...........########.",
-              ".#.............######.",
-              ".#...............####.",
-              ".#.................##.",
-              "......................",
-              "......................"]
-
-icon_previous = ["22 22 2 1",
-                 ". c None",
-                 "# c #000000",
-                 "......................",
-                 "......................",
-                 "...................##.",
-                 ".................####.",
-                 "...............######.",
-                 ".............########.",
-                 "...........##########.",
-                 ".........############.",
-                 ".......##############.",
-                 ".....################.",
-                 "...##################.",
-                 "...##################.",
-                 ".....################.",
-                 ".......##############.",
-                 ".........############.",
-                 "...........##########.",
-                 ".............########.",
-                 "...............######.",
-                 ".................####.",
-                 "...................##.",
-                 "......................",
-                 "......................"]
-
-icon_next = ["22 22 2 1",
-             ". c None",
-             "# c #000000",
-             "......................",
-             "......................",
-             ".##...................",
-             ".####.................",
-             ".######...............",
-             ".########.............",
-             ".##########...........",
-             ".############.........",
-             ".##############.......",
-             ".################.....",
-             ".##################...",
-             ".##################...",
-             ".################.....",
-             ".##############.......",
-             ".############.........",
-             ".##########...........",
-             ".########.............",
-             ".######...............",
-             ".####.................",
-             ".##...................",
-             "......................",
-             "......................"]
-
-icon_last = ["22 22 2 1",
-             ". c None",
-             "# c #000000",
-             "......................",
-             "......................",
-             ".##.................#.",
-             ".####...............#.",
-             ".######.............#.",
-             ".########...........#.",
-             ".##########.........#.",
-             ".############.......#.",
-             ".##############.....#.",
-             ".################...#.",
-             ".##################.#.",
-             ".##################.#.",
-             ".################...#.",
-             ".##############.....#.",
-             ".############.......#.",
-             ".##########.........#.",
-             ".########...........#.",
-             ".######.............#.",
-             ".####...............#.",
-             ".##.................#.",
-             "......................",
-             "......................"]
+icon_first = icons.getQIcon("first")
+icon_previous = icons.getQIcon("previous")
+icon_next = icons.getQIcon("next")
+icon_last = icons.getQIcon("last")
 
 
 class HorizontalSpacer(qt.QWidget):
@@ -143,6 +48,8 @@ class HorizontalSpacer(qt.QWidget):
 
 
 class FrameBrowser(qt.QWidget):
+    """Frame browser widget, with 4 buttons/icons and a line edit to select
+    a frame number in a stack of images."""
     sigIndexChanged = qt.pyqtSignal(object)
 
     def __init__(self, parent=None, n=1):
@@ -151,21 +58,22 @@ class FrameBrowser(qt.QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         self.firstButton = qt.QPushButton(self)
-        self.firstButton.setIcon(qt.QIcon(qt.QPixmap(icon_first)))
+        self.firstButton.setIcon(icon_first)
         self.previousButton = qt.QPushButton(self)
-        self.previousButton.setIcon(qt.QIcon(qt.QPixmap(icon_previous)))
+        self.previousButton.setIcon(icon_previous)
         self.lineEdit = qt.QLineEdit(self)
         self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % n))
         validator = qt.QIntValidator(1, n, self.lineEdit)
         self.lineEdit.setText("1")
-        self._oldIndex = 0    # what is oldIndex
+        self._oldIndex = 0
+        """0-based index"""
         self.lineEdit.setValidator(validator)
         self.label = qt.QLabel(self)
         self.label.setText("of %d" % n)
         self.nextButton = qt.QPushButton(self)
-        self.nextButton.setIcon(qt.QIcon(qt.QPixmap(icon_next)))
+        self.nextButton.setIcon(icon_next)
         self.lastButton = qt.QPushButton(self)
-        self.lastButton.setIcon(qt.QIcon(qt.QPixmap(icon_last)))
+        self.lastButton.setIcon(icon_last)
 
         self.mainLayout.addWidget(HorizontalSpacer(self))
         self.mainLayout.addWidget(self.firstButton)
@@ -183,24 +91,29 @@ class FrameBrowser(qt.QWidget):
         self.lineEdit.editingFinished.connect(self._textChangedSlot)
 
     def _firstClicked(self):
+        """Select first/lowest frame number"""
         self.lineEdit.setText("%d" % self.lineEdit.validator().bottom())
         self._textChangedSlot()
 
     def _previousClicked(self):
+        """Select previous frame number"""
         if self._oldIndex >= self.lineEdit.validator().bottom():
             self.lineEdit.setText("%d" % self._oldIndex)
             self._textChangedSlot()
 
     def _nextClicked(self):
+        """Select next frame number"""
         if self._oldIndex < (self.lineEdit.validator().top() - 1):
             self.lineEdit.setText("%d" % (self._oldIndex + 2))     # why +2?
             self._textChangedSlot()
 
     def _lastClicked(self):
+        """Select last/highest frame number"""
         self.lineEdit.setText("%d" % self.lineEdit.validator().top())
         self._textChangedSlot()
 
     def _textChangedSlot(self):
+        """Select frame number typed in the line edit widget"""
         txt = self.lineEdit.text()
         if not len(txt):
             self.lineEdit.setText("%d" % (self._oldIndex + 1))
@@ -218,9 +131,11 @@ class FrameBrowser(qt.QWidget):
         self.sigIndexChanged.emit(ddict)
 
     def setRange(self, first, last):
+        """Set minimum and maximum frame numbers"""
         return self.setLimits(first, last)
 
     def setLimits(self, first, last):
+        """Set minimum and maximum frame numbers"""
         bottom = min(first, last)
         top = max(first, last)
         self.lineEdit.validator().setTop(top)
@@ -230,6 +145,7 @@ class FrameBrowser(qt.QWidget):
         self.label.setText(" limits = %d, %d" % (bottom, top))
 
     def setNFrames(self, nframes):
+        """Set minimum=1 and maximum frame numbers"""
         bottom = 1
         top = nframes
         self.lineEdit.validator().setTop(top)
@@ -239,14 +155,20 @@ class FrameBrowser(qt.QWidget):
         self.label.setText(" of %d" % top)
 
     def getCurrentIndex(self):
+        """Get 1-based index"""
         return self._oldIndex + 1
 
     def setValue(self, value):
+        """Set 1-based frame index
+
+        :param int value: Frame number"""
         self.lineEdit.setText("%d" % value)
         self._textChangedSlot()
 
 
 class HorizontalSliderWithBrowser(qt.QAbstractSlider):
+    """Frame browser widget, a :class:`FrameBrowser` widget and a slider,
+    to select a frame in a stack of images."""
     sigIndexChanged = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -269,6 +191,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._browser.sigIndexChanged.connect(self._browserSlot)
 
     def setMinimum(self, value):
+        """Set minimum frame number"""
         self._slider.setMinimum(value)
         maximum = self._slider.maximum()
         if value == 1:
@@ -277,6 +200,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
             self._browser.setRange(value, maximum)
 
     def setMaximum(self, value):
+        """Set maximum frame number"""
         self._slider.setMaximum(value)
         minimum = self._slider.minimum()
         if minimum == 1:
@@ -285,25 +209,32 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
             self._browser.setRange(minimum, value)
 
     def setRange(self, first, last):
+        """Set minimum/maximum frame numbers"""
         self._slider.setRange(first, last)
         self._browser.setRange(first, last)
 
     def _sliderSlot(self, value):
+        """Emit selected frame number when slider is activated"""
         self._browser.setValue(value)
         self.valueChanged.emit(value)
 
     def _browserSlot(self, ddict):
+        """Emit selected frame number when browser state is changed"""
         self._slider.setValue(ddict['new'])
 
     def setValue(self, value):
+        """Set frame number
+
+        :param int value: Frame number"""
         self._slider.setValue(value)
         self._browser.setValue(value)
 
     def value(self):
+        """Get selected frame number"""
         return self._slider.value()
 
 
-def test1(args):
+def _test1(args):
     app = qt.QApplication(args)
     w = HorizontalSliderWithBrowser()
 
@@ -316,7 +247,7 @@ def test1(args):
     app.exec_()
 
 
-def test2(args):
+def _test2(args):
     app = qt.QApplication(args)
     w = FrameBrowser()
 
@@ -332,5 +263,5 @@ def test2(args):
 
 if __name__ == "__main__":
     import sys
-    test1(sys.argv)
+    _test1(sys.argv)
 
