@@ -31,6 +31,9 @@ __license__ = "MIT"
 __date__ = "17/10/2016"
 
 
+# TODO: color the cells according to the value?
+# (subclass QItemDelegate, overload its paint method, then
+# table.setItemDelegate(...))
 class ArrayTableView(qt.QTableView):
     """QTableView with an additional methods to load numpy arrays
     into the model :class:`ArrayTableModel`:

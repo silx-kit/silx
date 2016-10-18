@@ -33,6 +33,7 @@ __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "17/10/2016"
 
+# TODO: use 0-based index everywhere instead of juggling between 0- and 1-based
 
 icon_first = icons.getQIcon("first")
 icon_previous = icons.getQIcon("previous")
