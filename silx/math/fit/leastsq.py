@@ -445,10 +445,20 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     if constraints is None:
         cov = cov0
     else:
-        # yet another call needed with all the parameters being free
+        # yet another call needed with all the parameters being free except those
+        # that are FIXED and that will be assigned a 100 % uncertainty.
+        new_constraints = constraints * 1
+        flag_special = [0] * len(fittedpar)
+        for idx, constraint in enumerate(constraints):
+            if constraints[idx][0] in [CFIXED, CIGNORED]:
+                flag_special[idx] = constraints[idx][0]
+            else:
+                new_constraints[idx][0] = CFREE
+                new_constraints[idx][1] = 0
+                new_constraints[idx][2] = 0
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x, y, weight, constraints=None,
+                                                 x, y, weight, constraints=new_constraints,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
@@ -460,6 +470,11 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         except LinAlgError:
             _logger.critical("Error calculating covariance matrix after successful fit")
             cov = None
+        if cov is not None:
+            for idx, value in enumerate(flag_special):
+                if value in [CFIXED, CIGNORED]:
+                    cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=1)
+                    cov[idx, idx] = fittedpar[idx] * fittedpar[idx]
     if not full_output:
         return fittedpar, cov
     else:
