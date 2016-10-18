@@ -266,6 +266,7 @@ class Plot(object):
     def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
+        self._cursorInPlot = False
 
         if backend is None:
             backend = self.defaultBackend
@@ -2686,6 +2687,11 @@ class Plot(object):
         inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
         isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
 
+        if self._cursorInPlot != isCursorInPlot:
+            self._cursorInPlot = isCursorInPlot
+            self._eventHandler.handleEvent(
+                'enter' if self._cursorInPlot else 'leave')
+
         if isCursorInPlot:
             # Signal mouse move event
             dataPos = self.pixelToData(inXPixel, inYPixel)
@@ -2728,23 +2734,11 @@ class Plot(object):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
 
-    def onMouseEnter(self, xPixel, yPixel):
-        """Handle mouse enter plot area event.
-
-        :param float xPixel: X mouse position in pixels
-        :param float yPixel: Y mouse position in pixels
-        """
-        self._eventHandler.handleEvent(
-            'enter', xPixel, yPixel)
-
-    def onMouseLeave(self, xPixel, yPixel):
-        """Handle mouse leave plot area event.
-
-        :param float xPixel: X mouse position in pixels
-        :param float yPixel: Y mouse position in pixels
-        """
-        self._eventHandler.handleEvent(
-            'leave', xPixel, yPixel)
+    def onMouseLeaveWidget(self):
+        """Handle mouse leave widget event."""
+        if self._cursorInPlot:
+            self._cursorInPlot = False
+            self._eventHandler.handleEvent('leave')
 
     # Interaction modes #
 
