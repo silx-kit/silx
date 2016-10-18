@@ -22,33 +22,43 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a set of Qt widgets for plotting curves and images.
+"""This module inits matplotlib and setups the backend to use.
 
-The plotting API is inherited from the `PyMca <http://pymca.sourceforge.net/>`_
-plot API and is mostly compatible with it.
+It MUST be imported prior to any other import of matplotlib.
 
-Those widgets supports interaction (e.g., zoom, pan, selections).
-
-List of Qt widgets:
-
-.. currentmodule:: silx.gui.plot
-
-- :mod:`.PlotWidget`: A widget displaying a single plot.
-- :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
-- :class:`.Plot1D`: A widget with tools for curves.
-- :class:`.Plot2D`: A widget with tools for images.
+It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
+to the used backend.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "22/02/2016"
+__date__ = "18/10/2016"
 
 
-# First of all init matplotlib and set its backend
-from . import _matplotlib  # noqa
+import sys
+import logging
 
-from .PlotWidget import PlotWidget  # noqa
-from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
-from .ImageView import ImageView  # noqa
 
-__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']
+_logger = logging.getLogger(__name__)
+
+if 'matplotlib' in sys.modules:
+    _logger.warning(
+        'matplotlib already loaded, setting its backend may not work')
+
+
+from .. import qt
+
+import matplotlib
+
+if qt.BINDING == 'PySide':
+    matplotlib.rcParams['backend'] = 'Qt4Agg'
+    matplotlib.rcParams['backend.qt4'] = 'PySide'
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+
+elif qt.BINDING == 'PyQt4':
+    matplotlib.rcParams['backend'] = 'Qt4Agg'
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+
+elif qt.BINDING == 'PyQt5':
+    matplotlib.rcParams['backend'] = 'Qt5Agg'
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
