@@ -473,7 +473,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         if cov is not None:
             for idx, value in enumerate(flag_special):
                 if value in [CFIXED, CIGNORED]:
-                    cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=1)
+                    cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=0)
                     cov[idx, idx] = fittedpar[idx] * fittedpar[idx]
     if not full_output:
         return fittedpar, cov
