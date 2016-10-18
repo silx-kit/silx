@@ -62,3 +62,4 @@ elif qt.BINDING == 'PyQt4':
 elif qt.BINDING == 'PyQt5':
     matplotlib.rcParams['backend'] = 'Qt5Agg'
     from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
+
