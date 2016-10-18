@@ -53,8 +53,7 @@ a dictionary :const:`THEORY`: with the following structure::
                             parameters=('param name 1', 'param name 2', …),
                             estimate=estimation_function1,
                             configure=configuration_function1,
-                            derivative=derivative_function1,
-                            config_widget=MyConfigWidget),
+                            derivative=derivative_function1),
 
         'theory_name_2':  FitTheory(…),
     }
@@ -86,7 +85,7 @@ import logging
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
-from silx.math.fit.filters import strip, smooth1d
+from silx.math.fit.filters import strip, savitsky_golay
 from silx.math.fit.leastsq import leastsq
 from silx.math.fit.fittheory import FitTheory
 
@@ -144,9 +143,10 @@ DEFAULT_CONFIG = {
     'SameAreaRatioFlag': 1,
     # Strip bg removal
     'StripBackgroundFlag': True,
-    'SmoothStrip': True,
+    'SmoothingFlag': True,
+    'SmoothingWidth': 5,
     'StripWidth': 2,
-    'StripNIterations': 5000,
+    'StripIterations': 5000,
     'StripThresholdFactor': 1.0}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
@@ -200,13 +200,13 @@ class FitTheories(object):
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
         :attr:`config` dictionary (*StripBackgroundFlag, StripWidth,
-        StripNIterations, StripThresholdFactor*)"""
+        StripIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
-            if self.config['SmoothStrip']:
-                y = smooth1d(y)
+            if self.config['SmoothingFlag']:
+                y = savitsky_golay(y, self.config['SmoothingWidth'])
             strip_width = self.config['StripWidth']
-            strip_niterations = self.config['StripNIterations']
+            strip_niterations = self.config['StripIterations']
             strip_thr_factor = self.config['StripThresholdFactor']
             return strip(y, w=strip_width,
                          niterations=strip_niterations,
@@ -294,7 +294,7 @@ class FitTheories(object):
                 delta = y - bg
                 # get index of global maximum
                 # (first one if several samples are equal to this value)
-                peaks = [int(numpy.nonzero(delta == delta.max())[0])]
+                peaks = [numpy.nonzero(delta == delta.max())[0][0]]
 
         # Find index of largest peak in peaks array
         index_largest_peak = 0

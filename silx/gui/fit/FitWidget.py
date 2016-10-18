@@ -50,11 +50,17 @@ from silx.gui import qt
 from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
+from .BackgroundWidget import getBgDialog, BackgroundDialog
 
 QTVERSION = qt.qVersion()
-
 DEBUG = 0
 _logger = logging.getLogger(__name__)
+
+
+__authors__ = ["V.A. Sole", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "11/10/2016"
+
 
 
 class FitWidget(qt.QWidget):
@@ -120,12 +126,62 @@ class FitWidget(qt.QWidget):
         layout = qt.QVBoxLayout(self)
 
         self.fitmanager = self._setFitManager(fitmngr)
-        """Instance of :class:`FitManager`. If no theories are defined,
-        we import the default ones from :mod:`silx.math.fit.fittheories`."""
+        """Instance of :class:`FitManager`.
+        This is the underlying data model of this FitWidget.
+
+        If no custom theories are defined, the default ones from
+        :mod:`silx.math.fit.fittheories` are imported.
+        """
 
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
-        self.fitConfig = self.fitmanager.fitconfig
+        self.fitconfig = self.fitmanager.fitconfig
+
+
+        self.configdialogs = {}
+        """This dictionary defines the fit configuration widgets
+        associated with the fit theories in :attr:`fitmanager.theories`
+
+        Keys must correspond to existing theory names, i.e. existing keys
+        in :attr:`fitmanager.theories`.
+
+        Values must be instances of QDialog widgets with an additional
+        *output* attribute, a dictionary storing configuration parameters
+        interpreted by the corresponding fit theory.
+
+        The dialog can also define a *setDefault* method to initialize the
+        widget values with values in a dictionary passed as a parameter.
+        This will be executed first.
+
+        In case the widget does not actually inherit :class:`QDialog`, it
+        must at least implement the following methods (executed in this
+        particular order):
+
+            - :meth:`show`: should cause the widget to become visible to the
+              user)
+            - :meth:`exec_`: should run while the user is interacting with the
+              widget, interrupting the rest of the program. It should
+              typically end (*return*) when the user clicks an *OK*
+              or a *Cancel* button.
+            - :meth:`result`: must return ``True`` if the new configuration in
+              attribute :attr:`output` is to be accepted (user clicked *OK*),
+              or return ``False`` if :attr:`output` is to be rejected (user
+              clicked *Cancel*)
+
+        To associate a custom configuration widget with a fit theory, use
+        :meth:`associateConfigDialog`. E.g.::
+
+            fw = FitWidget()
+            my_config_widget = MyGaussianConfigWidget(parent=fw)
+            fw.associateConfigDialog(theory_name="Gaussians",
+                                     config_widget=my_config_widget)
+        """
+
+        self.bgconfigdialogs = {}
+        """Same as :attr:`configdialogs`, except that the widget is associated
+        with a background theory in :attr:`fitmanager.bgtheories`"""
+
+        self._associateDefaultConfigDialogs()
 
         self.guiConfig = None
         """Configuration widget at the top of FitWidget, to select
@@ -134,51 +190,25 @@ class FitWidget(qt.QWidget):
 
         self.guiParameters = ParametersTab(self)
         """Table widget for display of fit parameters and constraints"""
-        # self.guiParameters.sigMultiParametersSignal.connect(self.__forward)  # mca related
 
         if enableconfig:
             self.guiConfig = FitConfigWidget(self)
+            """Function selector and configuration widget"""
 
-            self.guiConfig.ConfigureButton.clicked.connect(
-                self.__configureGuiSlot)
-            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
-            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
-            self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
-            layout.addWidget(self.guiConfig)
-
-            for theory_name in self.fitmanager.bgtheories:
-                self.guiConfig.BkgComBox.addItem(theory_name)
-                self.guiConfig.BkgComBox.setItemData(
-                    self.guiConfig.BkgComBox.findText(theory_name),
-                    self.fitmanager.bgtheories[theory_name].description,
-                    qt.Qt.ToolTipRole)
-
-            for theory_name in self.fitmanager.theories:
-                self.guiConfig.FunComBox.addItem(theory_name)
-                self.guiConfig.FunComBox.setItemData(
-                    self.guiConfig.FunComBox.findText(theory_name),
-                    self.fitmanager.theories[theory_name].description,
-                    qt.Qt.ToolTipRole)
-
-            #    - activate selected fit theory (if any)
-            #    - activate selected bg theory (if any)
-            configuration = self.fitmanager.configure()
-            if self.fitmanager.selectedtheory is None:
-                # take the first one by default
-                self.guiConfig.FunComBox.setCurrentIndex(1)
-                self.funEvent(list(self.fitmanager.theories.keys())[0])
-            else:
-                self.funEvent(self.fitmanager.selectedtheory)
-            if self.fitmanager.selectedbg is None:
-                self.guiConfig.BkgComBox.setCurrentIndex(0)
-                self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
-            else:
-                self.bkgEvent(self.fitmanager.selectedbg)
+            self.guiConfig.FunConfigureButton.clicked.connect(
+                self.__funConfigureGuiSlot)
+            self.guiConfig.BgConfigureButton.clicked.connect(
+                self.__bgConfigureGuiSlot)
 
             self.guiConfig.WeightCheckBox.setChecked(
-                    self.fitmanager.fitconfig.get("WeightFlag", False))
+                    self.fitconfig.get("WeightFlag", False))
+            self.guiConfig.WeightCheckBox.stateChanged[int].connect(self.weightEvent)
 
-            configuration.update(self.configure())
+            self.guiConfig.BkgComBox.activated[str].connect(self.bkgEvent)
+            self.guiConfig.FunComBox.activated[str].connect(self.funEvent)
+            self._populateFunctions()
+
+            layout.addWidget(self.guiConfig)
 
         layout.addWidget(self.guiParameters)
 
@@ -197,17 +227,87 @@ class FitWidget(qt.QWidget):
 
     def _setFitManager(self, fitinstance):
         """Initialize a :class:`FitManager` instance, to be assigned to
-        :attr:`fitmanager`"""
+        :attr:`fitmanager`, or use a custom FitManager instance.
+
+        :param fitinstance: Existing instance of FitManager, possibly
+            customized by the user, or None to load a default instance."""
         if isinstance(fitinstance, fitmanager.FitManager):
+            # customized
             fitmngr = fitinstance
         else:
+            # initialize default instance
             fitmngr = fitmanager.FitManager()
 
         # initialize the default fitting functions in case
         # none is present
         if not len(fitmngr.theories):
             fitmngr.loadtheories(fittheories)
+
         return fitmngr
+
+    def _associateDefaultConfigDialogs(self):
+        """Fill :attr:`bgconfigdialogs` and :attr:`configdialogs` by calling
+        :meth:`associateConfigDialog` with default config dialog widgets.
+        """
+        # associate silx.gui.fit.FitConfig with all theories
+        # Users can later associate their own custom dialogs to
+        # replace the default.
+        configdialog = getFitConfigDialog(parent=self,
+                                          default=self.fitconfig)
+        for theory in self.fitmanager.theories:
+            self.associateConfigDialog(theory, configdialog)
+        for bgtheory in self.fitmanager.bgtheories:
+            self.associateConfigDialog(bgtheory, configdialog,
+                                       theory_is_background=True)
+
+        # associate silx.gui.fit.BackgroundWidget with Strip and Snip
+        bgdialog = getBgDialog(parent=self,
+                               default=self.fitconfig)
+        for bgtheory in ["Strip", "Snip"]:
+            if bgtheory in self.fitmanager.bgtheories:
+                self.associateConfigDialog(bgtheory, bgdialog,
+                                           theory_is_background=True)
+
+    def _populateFunctions(self):
+        """Fill combo-boxes with fit theories and background theories
+        loaded by :attr:`fitmanager`.
+        Run :meth:`fitmanager.configure` to ensure the custom configuration
+        of the selected theory has been loaded into :attr:`fitconfig`"""
+        for theory_name in self.fitmanager.bgtheories:
+            self.guiConfig.BkgComBox.addItem(theory_name)
+            self.guiConfig.BkgComBox.setItemData(
+                    self.guiConfig.BkgComBox.findText(theory_name),
+                    self.fitmanager.bgtheories[theory_name].description,
+                    qt.Qt.ToolTipRole)
+
+        for theory_name in self.fitmanager.theories:
+            self.guiConfig.FunComBox.addItem(theory_name)
+            self.guiConfig.FunComBox.setItemData(
+                    self.guiConfig.FunComBox.findText(theory_name),
+                    self.fitmanager.theories[theory_name].description,
+                    qt.Qt.ToolTipRole)
+
+        # - activate selected fit theory (if any)
+        #    - activate selected bg theory (if any)
+        configuration = self.fitmanager.configure()
+        if self.fitmanager.selectedtheory is None:
+            # take the first one by default
+            self.guiConfig.FunComBox.setCurrentIndex(1)
+            self.funEvent(list(self.fitmanager.theories.keys())[0])
+        else:
+            idx = list(self.fitmanager.theories).index(self.fitmanager.selectedtheory)
+            self.guiConfig.FunComBox.setCurrentIndex(idx + 1)
+            self.funEvent(self.fitmanager.selectedtheory)
+
+        if self.fitmanager.selectedbg is None:
+            self.guiConfig.BkgComBox.setCurrentIndex(1)
+            self.bkgEvent(list(self.fitmanager.bgtheories.keys())[0])
+        else:
+            idx = list(self.fitmanager.bgtheories).index(self.fitmanager.selectedbg)
+            self.guiConfig.BkgComBox.setCurrentIndex(idx + 1)
+            self.bkgEvent(self.fitmanager.selectedbg)
+
+        configuration.update(self.configure())
 
     def setdata(self, x, y, sigmay=None, xmin=None, xmax=None):
         warnings.warn("Method renamed to setData",
@@ -232,6 +332,48 @@ class FitWidget(qt.QWidget):
         """
         self.fitmanager.setdata(x=x, y=y, sigmay=sigmay,
                                 xmin=xmin, xmax=xmax)
+        for config_dialog in self.bgconfigdialogs.values():
+            if isinstance(config_dialog, BackgroundDialog):
+                config_dialog.setData(x, y)
+
+    def associateConfigDialog(self, theory_name, config_widget,
+                              theory_is_background=False):
+        """Associate an instance of custom configuration dialog widget to
+        a fit theory or to a background theory.
+
+        This adds or modifies an item in the correspondence table
+        :attr:`configdialogs` or :attr:`bgconfigdialogs`.
+
+        :param str theory_name: Name of fit theory. This must be a key of dict
+            :attr:`fitmanager.theories`
+        :param config_widget: Custom configuration widget. See documentation
+            for :attr:`configdialogs`
+        :param bool theory_is_background: If flag is *True*, add dialog to
+            :attr:`bgconfigdialogs` rather than :attr:`configdialogs`
+            (default).
+        :raise: KeyError if parameter ``theory_name`` does not match an
+            existing fit theory or background theory in :attr:`fitmanager`.
+        :raise: AttributeError if the widget does not implement the mandatory
+            methods (*show*, *exec_*, *result*, *setDefault*) or the mandatory
+            attribute (*output*).
+        """
+        theories = self.fitmanager.bgtheories if theory_is_background else\
+            self.fitmanager.theories
+
+        if theory_name not in theories:
+            raise KeyError("%s does not match an existing fitmanager theory")
+
+        if config_widget is not None:
+            for mandatory_attr in ["show", "exec_", "result", "output"]:
+                if not hasattr(config_widget, mandatory_attr):
+                    raise AttributeError(
+                            "Custom configuration widget must define " +
+                            "attribute or method " + mandatory_attr)
+
+        if theory_is_background:
+            self.bgconfigdialogs[theory_name] = config_widget
+        else:
+            self.configdialogs[theory_name] = config_widget
 
     def _emitSignal(self, ddict):
         """Emit pyqtSignal after estimation completed
@@ -240,11 +382,15 @@ class FitWidget(qt.QWidget):
         (``ddict = {'event': 'FitFinished', 'data': fit_results}``)"""
         self.sigFitWidgetSignal.emit(ddict)
 
-    def __configureGuiSlot(self):
+    def __funConfigureGuiSlot(self):
         """Open an advanced configuration dialog widget"""
-        self.__configureGui()
+        self.__configureGui(dialog_type="function")
 
-    def __configureGui(self, newconfiguration=None):
+    def __bgConfigureGuiSlot(self):
+        """Open an advanced configuration dialog widget"""
+        self.__configureGui(dialog_type="background")
+
+    def __configureGui(self, newconfiguration=None, dialog_type="function"):
         """Open an advanced configuration dialog widget to get a configuration
         dictionary, or use a supplied configuration dictionary. Call
         :meth:`configure` with this dictionary as a parameter. Update the gui
@@ -256,14 +402,14 @@ class FitWidget(qt.QWidget):
         configuration = self.configure()
         # get new dictionary
         if newconfiguration is None:
-            newconfiguration = self.configureDialog(configuration)
+            newconfiguration = self.configureDialog(configuration, dialog_type)
         # update configuration
         configuration.update(self.configure(**newconfiguration))
         # set fit function theory
         try:
             i = 1 + \
                 list(self.fitmanager.theories.keys()).index(
-                    self.fitmanager.selectedtheory)
+                        self.fitmanager.selectedtheory)
             self.guiConfig.FunComBox.setCurrentIndex(i)
             self.funEvent(self.fitmanager.selectedtheory)
         except ValueError:
@@ -272,9 +418,11 @@ class FitWidget(qt.QWidget):
             self.funEvent(list(self.fitmanager.theories.keys())[0])
         # current background
         try:
-            i = list(self.fitmanager.bgtheories.keys()
-                     ).index(self.fitmanager.selectedbg)
+            i = 1 + \
+                list(self.fitmanager.bgtheories.keys()).index(
+                        self.fitmanager.selectedbg)
             self.guiConfig.BkgComBox.setCurrentIndex(i)
+            self.bkgEvent(self.fitmanager.selectedbg)
         except ValueError:
             _logger.error("Background not in list %s",
                           self.fitmanager.selectedbg)
@@ -283,53 +431,40 @@ class FitWidget(qt.QWidget):
         # update the Gui
         self.__initialParameters()
 
-    def configureDialog(self, oldconfiguration):
+    def configureDialog(self, oldconfiguration, dialog_type="function"):
         """Display a dialog, allowing the user to define fit configuration
-        parameters:
+        parameters.
 
-            - ``AutoFwhm``
-            - ``PositiveHeightAreaFlag``
-            - ``QuotedPositionFlag``
-            - ``PositiveFwhmFlag``
-            - ``SameFwhmFlag``
-            - ``QuotedEtaFlag``
-            - ``NoConstraintsFlag``
-            - ``FwhmPoints``
-            - ``Sensitivity``
-            - ``Yscaling``
-            - ``ForcePeakPresence``
-            - ``StripBackgroundFlag``
-            - ``StripWidth``
-            - ``StripNIterations``
-            - ``StripThresholdFactor``
+        By default, a common dialog is used for all fit theories. But if the
+        defined a custom dialog using :meth:`associateConfigDialog`, it is
+        used instead.
 
-        :return: User defined parameters in a dictionary"""
-        # this method can be overwritten
-        # it should give back a new dictionary
+        :param dict oldconfiguration: Dictionary containing previous configuration
+        :param str dialog_type: "function" or "background"
+        :return: User defined parameters in a dictionary
+        """
         newconfiguration = {}
         newconfiguration.update(oldconfiguration)
 
-        theory = self.fitmanager.selectedtheory
-        custom_config_widget = self.fitmanager.theories[theory].config_widget
+        if dialog_type == "function":
+            theory = self.fitmanager.selectedtheory
+            configdialog = self.configdialogs[theory]
+        elif dialog_type == "background":
+            theory = self.fitmanager.selectedbg
+            configdialog = self.bgconfigdialogs[theory]
 
-        if custom_config_widget is not None:
-            dialog_widget = custom_config_widget()
-            for mandatory_attr in ["show", "exec_", "result", "output"]:
-                if not hasattr(dialog_widget, mandatory_attr):
-                    raise AttributeError(
-                            "Custom configuration widget must define " +
-                            "attribute or method " + mandatory_attr)
+        # this should only happen if a user specifically associates None
+        # with a theory, to have no configuration option
+        if configdialog is None:
+            return {}
 
-        else:
-            # default config widget, adapted for default fit theories
-            dialog_widget = getFitConfigDialog(self, default=oldconfiguration)
-
-        dialog_widget.show()
-        dialog_widget.exec_()
-        if dialog_widget.result():
-            newconfiguration.update(dialog_widget.output)
-        # we do not need the dialog any longer
-        del dialog_widget
+        # update state of configdialog before showing it
+        if hasattr(configdialog, "setDefault"):
+            configdialog.setDefault(newconfiguration)
+        configdialog.show()
+        configdialog.exec_()
+        if configdialog.result():
+            newconfiguration.update(configdialog.output)
 
         return newconfiguration
 
@@ -408,12 +543,29 @@ class FitWidget(qt.QWidget):
         if bgtheory in self.fitmanager.bgtheories:
             self.fitmanager.setbackground(bgtheory)
         else:
-            qt.QMessageBox.information(
-                self, "Info",
-                "%s is not a known background theory. Known " % bgtheory +
-                "theories are: " + ", ".join(self.fitmanager.bgtheories)
-            )
-            return
+            functionsfile = qt.QFileDialog.getOpenFileName(
+                self, "Select python module with your function(s)", "",
+                "Python Files (*.py);;All Files (*)")
+
+            if len(functionsfile):
+                try:
+                    self.fitmanager.loadbgtheories(functionsfile)
+                except ImportError:
+                    qt.QMessageBox.critical(self, "ERROR",
+                                            "Function not imported")
+                    return
+                else:
+                    # empty the ComboBox
+                    while self.guiConfig.BkgComBox.count() > 1:
+                        self.guiConfig.BkgComBox.removeItem(1)
+                    # and fill it again
+                    for key in self.fitmanager.bgtheories:
+                        self.guiConfig.BkgComBox.addItem(str(key))
+
+            i = 1 + \
+                list(self.fitmanager.bgtheories.keys()).index(
+                    self.fitmanager.selectedbg)
+            self.guiConfig.BkgComBox.setCurrentIndex(i)
         self.__initialParameters()
 
     def funEvent(self, theoryname):

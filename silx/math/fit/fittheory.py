@@ -23,6 +23,9 @@
 #
 ########################################################################### */
 """
+This module defines the :class:`FitTheory` object that is used by
+:class:`silx.math.fit.FitManager` to define fit functions and background
+models.
 """
 
 __authors__ = ["P. Knobel"]
@@ -42,14 +45,10 @@ class FitTheory(object):
           and the estimation function
         - an optional derivative function, that replaces the default model
           derivative used in :func:`silx.math.fit.leastsq`
-        - an optional configuration widget, that can be called for
-          interactively modifying the configuration when running a fit from
-          a GUI
     """
     def __init__(self, function, parameters,
                  estimate=None, configure=None, derivative=None,
-                 config_widget=None, description=None,
-                 pymca_legacy=False):
+                 description=None, pymca_legacy=False, is_background=False):
         """
         :param function function: Actual function. See documentation for
             :attr:`function`.
@@ -63,20 +62,29 @@ class FitTheory(object):
             See documentation for :attr:`derivative`
         :param str description: Optional description string.
             See documentation for :attr:`description`
-        :param config_widget: Optional configuration widget.
-            See documentation for :attr:`config_widget`
         :param bool pymca_legacy: Flag to indicate that the theory is a PyMca
             legacy theory. See documentation for :attr:`pymca_legacy`
+        :param bool background: Flag to indicate that the theory is a
+            background theory. This has implications regarding the function's
+            signature, as explained in the documentation for :attr:`function`.
         """
         self.function = function
-        """The function must have the signature ``f(x, *params)``, where ``x``
-        is an array of values for the independent variable, and ``params`` are
-        the parameters to be fitted.
+        """Regular fit functions must have the signature *f(x, \*params) -> y*,
+        where *x* is a 1D array of values for the independent variable,
+        *params* are the parameters to be fitted and *y* is the output array
+        that we want to have the best fit to a series of data points.
+
+        Background functions used by :class:`FitManager` must have a slightly
+        different signature: *f(x, y0, \*params) -> bg*, where *y0* is the
+        array of original data points and *bg* is the background signal that
+        we want to subtract from the data array prior to fitting the regular
+        fit function.
 
         The number of parameters must be the same as in :attr:`parameters`, or
         a multiple of this number if the function is defined as a sum of a
         variable number of base functions and if :attr:`estimate` is designed
-        to be able to estimate the number of needed base functions."""
+        to be able to estimate the number of needed base functions.
+        """
 
         self.parameters = parameters
         """List of parameters names.
@@ -104,10 +112,7 @@ class FitTheory(object):
             - ``constraints`` is a sequence of shape *(n, 3)*, where *n* is the
               number of estimated parameters, containing the constraints for each
               parameter to be fitted. See :func:`silx.math.fit.leastsq` for more
-              explanations about constraints.
-
-
-        """
+              explanations about constraints."""
         if estimate is None:
             self.estimate = self.default_estimate
 
@@ -125,24 +130,6 @@ class FitTheory(object):
         the fitting parameter index for which the the derivative has to be
         provided in the supplied array of xdata points."""
 
-        self.config_widget = config_widget
-        """Optional configuration dialog widget that can allow users to modify
-        the fit and estimation configuration.
-
-        This widget must store the modified configuration parameters in a
-        dictionary attribute :attr:`output`.
-
-        The widget must define, or inherit from :class:`qt.QDialog`, following
-        methods which are executed in that order:
-
-            - :meth:`show`
-            - :meth:`exec_`
-            - :meth:`result`: must return ``True`` if the new configuration in
-              :attr:`config_widget.output` is to be accepted, ``False`` if
-              it is to be rejected / ignored (e.g. if the user clicked a
-              *Cancel* button)
-        """
-
         self.description = description
         """Optional description string for this particular fit theory."""
 
@@ -155,6 +142,15 @@ class FitTheory(object):
 
             f(x, y, bg, xscaling, yscaling) -> (estimated_param, constraints)
         """
+
+        self.is_background = is_background
+        """Flag to indicate that the theory is background theory.
+
+        A background function is an secondary function that needs to be added
+        to the main fit function to better fit the original data.
+        If this flag is set to *True*, modules using this theory are informed
+        that :attr:`function` has the signature *f(x, y0, \*params) -> bg*,
+        instead of the usual fit function signature."""
 
     def default_estimate(self, x=None, y=None, bg=None):
         """Default estimate function. Return an array of *ones* as the

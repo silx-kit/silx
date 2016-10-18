@@ -26,6 +26,7 @@ import unittest
 
 from .testFitWidget import suite as testFitWidgetSuite
 from .testFitConfig import suite as testFitConfigSuite
+from .testBackgroundWidget import suite as testBackgroundWidgetSuite
 
 
 __authors__ = ["P. Knobel"]
@@ -37,5 +38,6 @@ def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         [testFitWidgetSuite(),
-         testFitConfigSuite()])
+         testFitConfigSuite(),
+         testBackgroundWidgetSuite()])
     return test_suite

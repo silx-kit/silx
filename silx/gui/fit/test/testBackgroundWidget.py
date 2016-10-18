@@ -22,72 +22,60 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Basic tests for :class:`FitConfig`"""
-
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "13/10/2016"
-
 import unittest
 
 from ...testutils import TestCaseQt
-from .. import FitConfig
+
+from .. import BackgroundWidget
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "14/10/2016"
 
 
-class TestFitConfig(TestCaseQt):
-    """Basic test for FitWidget"""
-
+class TestBackgroundWidget(TestCaseQt):
     def setUp(self):
-        super(TestFitConfig, self).setUp()
-        self.fit_config = FitConfig.getFitConfigDialog(modal=False)
-        self.qWaitForWindowExposed(self.fit_config)
+        super(TestBackgroundWidget, self).setUp()
+        self.bgdialog = BackgroundWidget.BackgroundDialog()
+        self.bgdialog.setData(list([0, 1, 2, 3]),
+                              list([0, 1, 4, 8]))
+        self.qWaitForWindowExposed(self.bgdialog)
 
     def tearDown(self):
-        del self.fit_config
-        super(TestFitConfig, self).tearDown()
+        del self.bgdialog
+        super(TestBackgroundWidget, self).tearDown()
 
     def testShow(self):
-        self.fit_config.show()
-        self.fit_config.hide()
+        self.bgdialog.show()
+        self.bgdialog.hide()
 
     def testAccept(self):
-        self.fit_config.accept()
-        self.assertTrue(self.fit_config.result())
+        self.bgdialog.accept()
+        self.assertTrue(self.bgdialog.result())
 
     def testReject(self):
-        self.fit_config.reject()
-        self.assertFalse(self.fit_config.result())
+        self.bgdialog.reject()
+        self.assertFalse(self.bgdialog.result())
 
     def testDefaultOutput(self):
-        self.fit_config.accept()
-        output = self.fit_config.output
+        self.bgdialog.accept()
+        output = self.bgdialog.output
 
-        for key in ["AutoFwhm",
-                    "PositiveHeightAreaFlag",
-                    "QuotedPositionFlag",
-                    "PositiveFwhmFlag",
-                    "SameFwhmFlag",
-                    "QuotedEtaFlag",
-                    "NoConstraintsFlag",
-                    "FwhmPoints",
-                    "Sensitivity",
-                    "Yscaling",
-                    "ForcePeakPresence",
-                    "StripBackgroundFlag",
-                    "StripWidth",
-                    "StripIterations",
-                    "StripThreshold",
-                    "SmoothingFlag"]:
+        for key in ["algorithm", "StripThreshold",  "SnipWidth",
+                    "StripIterations", "StripWidth", "SmoothingFlag",
+                    "SmoothingWidth", "AnchorsFlag", "AnchorsList"]:
             self.assertIn(key, output)
 
-        self.assertTrue(output["AutoFwhm"])
-        self.assertEqual(output["StripWidth"], 2)
+        self.assertFalse(output["AnchorsFlag"])
+        self.assertEqual(output["StripWidth"], 1)
+        self.assertEqual(output["SmoothingFlag"], False)
+        self.assertEqual(output["SmoothingWidth"], 3)
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestFitConfig))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestBackgroundWidget))
     return test_suite
 
 
