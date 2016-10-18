@@ -902,6 +902,8 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.mpl_connect('button_release_event', self._onMouseRelease)
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
+        self.mpl_connect('axes_enter_event', self._onMouseEnter)
+        self.mpl_connect('axes_leave_event', self._onMouseLeave)
 
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
@@ -937,6 +939,12 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMouseWheel(self, event):
         self._plot.onMouseWheel(event.x, event.y, event.step)
+
+    def _onMouseEnter(self, event):
+        self._plot.onMouseEnter(event.x, event.y)
+
+    def _onMouseLeave(self, event):
+        self._plot.onMouseLeave(event.x, event.y)
 
     # picking
 

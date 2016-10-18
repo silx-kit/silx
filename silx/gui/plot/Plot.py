@@ -2728,6 +2728,24 @@ class Plot(object):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
 
+    def onMouseEnter(self, xPixel, yPixel):
+        """Handle mouse enter plot area event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        """
+        self._eventHandler.handleEvent(
+            'enter', xPixel, yPixel)
+
+    def onMouseLeave(self, xPixel, yPixel):
+        """Handle mouse leave plot area event.
+
+        :param float xPixel: X mouse position in pixels
+        :param float yPixel: Y mouse position in pixels
+        """
+        self._eventHandler.handleEvent(
+            'leave', xPixel, yPixel)
+
     # Interaction modes #
 
     def getInteractiveMode(self):

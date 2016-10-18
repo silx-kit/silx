@@ -425,7 +425,7 @@ class SelectPolygon(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             dataPos = self.machine.plot.pixelToData(x, y)
             assert dataPos is not None
             self._firstPos = dataPos
@@ -573,7 +573,7 @@ class Select2Points(Select):
                 return True
 
     class Start(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.machine.beginSelect(x, y)
 
         def onMove(self, x, y):
@@ -585,7 +585,7 @@ class Select2Points(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.onMove(x, y)
 
         def onMove(self, x, y):
@@ -706,7 +706,7 @@ class Select1Point(Select):
                 return True
 
     class Select(State):
-        def enter(self, x, y):
+        def enterState(self, x, y):
             self.onMove(x, y)
 
         def onMove(self, x, y):
@@ -1149,7 +1149,7 @@ class FocusManager(StateMachine):
             self._processEvent('wheel', x, y, angle)
 
     class Focus(State):
-        def enter(self, eventHandler, btn):
+        def enterState(self, eventHandler, btn):
             self.eventHandler = eventHandler
             self.focusBtns = set((btn,))
 
