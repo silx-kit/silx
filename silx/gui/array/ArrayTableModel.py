@@ -235,7 +235,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 if __name__ == "__main__":
     a = qt.QApplication([])
     w = qt.QTableView()
-    d = numpy.random.normal(0,1, (5, 1000,1000))
+    d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
         d[i, :, :] += i * 10
     # m = ArrayTableModel(fmt="%.5f")
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
     m = ArrayTableModel(data=d, fmt="%.5f")
     w.setModel(m)
-    m.setCurrentArrayIndex(4)
+    m.setCurrentArrayIndex(3)
     # m.setArrayData(numpy.ones((100,)))
     w.show()
     a.exec_()
