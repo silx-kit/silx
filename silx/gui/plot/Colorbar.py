@@ -37,14 +37,14 @@ To run the following sample code, a QApplication must be initialized.
 >>> image = numpy.arange(100).reshape(10, 10)
 >>> plot = plot2D(image)
 
->>> colorbar = ColorbarWidget(plot)
+>>> colorbar = ColorbarWidget(plot=plot)
 >>> colorbar.setLabel('Colormap')
 >>> colorbar.show()
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/08/2016"
+__date__ = "18/10/2016"
 
 
 import logging
@@ -53,19 +53,17 @@ import numpy
 
 from .. import qt
 
-# Order of import is important for matplotlib initialisation
-from .BackendMatplotlib import FigureCanvasQTAgg
 import matplotlib
+from ._matplotlib import FigureCanvasQTAgg
 
 from .Colors import getMPLColormap
+
 
 _logger = logging.getLogger(__name__)
 
 
 # TODO:
-# - Add a signal for plot default colormap changed and register to it
 # - Add a button to edit the colormap
-# - Move init matplotlib somewhere in common with BackendMatplotlib
 # - Handle width and ticks labels
 # - Store data min and max somewhere in common with plot instead of recomputing
 # - Doc + tests
@@ -76,11 +74,11 @@ class ColorbarWidget(qt.QWidget):
 
     This widget is using matplotlib.
 
-    :param plot: PlotWidget the colorbar is attached to (optional)
     :param parent: See :class:`QWidget`
+    :param plot: PlotWidget the colorbar is attached to (optional)
     """
 
-    def __init__(self, plot=None, parent=None):
+    def __init__(self, parent=None, plot=None):
         self.colorbar = None  # matplotlib colorbar
         self._colormap = None  # PlotWidget compatible colormap
 
@@ -102,6 +100,8 @@ class ColorbarWidget(qt.QWidget):
             self._plot.sigActiveImageChanged.connect(self._activeImageChanged)
             self._activeImageChanged(
                 None, self._plot.getActiveImage(just_legend=True))
+            self._plot.sigSetDefaultColormap.connect(
+                self._defaultColormapChanged)
 
     def getColormap(self):
         """Return the colormap displayed in the colorbar as a dict.
@@ -172,22 +172,48 @@ class ColorbarWidget(qt.QWidget):
     def _activeImageChanged(self, previous, legend):
         """Handle plot active curve changed"""
         if legend is None:  # No active image, display default colormap
-            cmap = self._plot.getDefaultColormap()
-            if cmap['autoscale']:  # Makes sure range is OK
-                vmin, vmax = 1., 10.
+            self._syncWithDefaultColormap()
+            return
 
+        # Sync with active image
+        image = self._plot.getActiveImage()[0]
+
+        # RGB(A) image, display default colormap
+        if image.ndim != 2:
+            self._syncWithDefaultColormap()
+            return
+
+        # data image, sync with image colormap
+        cmap = self._plot.getActiveImage()[4]['colormap']
+        if cmap['autoscale']:
+            if cmap['normalization'] == 'log':
+                data = image[
+                    numpy.logical_and(image > 0, numpy.isfinite(image))]
+            else:
+                data = image[numpy.isfinite(image)]
+            vmin, vmax = data.min(), data.max()
+        else:  # No autoscale
+            vmin, vmax = cmap['vmin'], cmap['vmax']
+
+        self.setColormap(name=cmap['name'],
+                         normalization=cmap['normalization'],
+                         vmin=vmin,
+                         vmax=vmax,
+                         colors=cmap.get('colors', None))
+
+    def _defaultColormapChanged(self):
+        """Handle plot default colormap changed"""
+        if self._plot.getActiveImage() is None:
+            # No active image, take default colormap update into account
+            self._syncWithDefaultColormap()
+
+    def _syncWithDefaultColormap(self):
+        """Update colorbar according to plot default colormap"""
+        cmap = self._plot.getDefaultColormap()
+        if cmap['autoscale']:  # Makes sure range is OK
+            vmin, vmax = 1., 10.
         else:
-            cmap = self._plot.getActiveImage()[4]['colormap']
-            if cmap['autoscale']:
-                image = self._plot.getActiveImage()[0]
-                if image.ndim == 2:  # Data set
-                    data = image[
-                        numpy.logical_and(image > 0, numpy.isfinite(image))]
-                    vmin, vmax = data.min(), data.max()
-                else:  # RGB(A) image
-                    vmin, vmax = 1., 10.
-            else:  # No autoscale
-                vmin, vmax = cmap['vmin'], cmap['vmax']
+            vmin, vmax = cmap['vmin'], cmap['vmax']
 
         self.setColormap(name=cmap['name'],
                          normalization=cmap['normalization'],
