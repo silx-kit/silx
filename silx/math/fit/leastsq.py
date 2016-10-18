@@ -42,6 +42,7 @@ from numpy.linalg import inv
 from numpy.linalg.linalg import LinAlgError
 import time
 import logging
+import copy
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -447,7 +448,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     else:
         # yet another call needed with all the parameters being free except those
         # that are FIXED and that will be assigned a 100 % uncertainty.
-        new_constraints = constraints * 1
+        new_constraints = copy.deepcopy(constraints)
         flag_special = [0] * len(fittedpar)
         for idx, constraint in enumerate(constraints):
             if constraints[idx][0] in [CFIXED, CIGNORED]:
@@ -475,6 +476,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 if value in [CFIXED, CIGNORED]:
                     cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=0)
                     cov[idx, idx] = fittedpar[idx] * fittedpar[idx]
+
     if not full_output:
         return fittedpar, cov
     else:
