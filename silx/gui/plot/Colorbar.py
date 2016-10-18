@@ -31,13 +31,13 @@ It uses a description of colormaps as dict compatible with :class:`Plot`.
 To run the following sample code, a QApplication must be initialized.
 
 >>> import numpy
->>> from silx.gui.plot import plot2D
+>>> from silx.gui.plot import Plot2D
 >>> from silx.gui.plot.Colorbar import ColorbarWidget
 
->>> image = numpy.arange(100).reshape(10, 10)
->>> plot = plot2D(image)
+>>> plot = Plot2D()  # Create a plot widget
+>>> plot.show()
 
->>> colorbar = ColorbarWidget(plot=plot)
+>>> colorbar = ColorbarWidget(plot=plot)  # Associate the colorbar with it
 >>> colorbar.setLabel('Colormap')
 >>> colorbar.show()
 """
