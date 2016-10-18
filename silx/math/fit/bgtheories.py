@@ -84,7 +84,7 @@ CONFIG = {
     "StripWidth": 2,
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
-    "SnipWidth": 2,
+    "SnipWidth": 16,
 }
 
 # to avoid costly computations when parameters stay the same
