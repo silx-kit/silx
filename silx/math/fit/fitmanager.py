@@ -37,8 +37,7 @@ This module deals with:
       fitting algorithm
     - handling of custom  derivative functions that can be passed as a
       parameter to  :func:`silx.math.fit.leastsq`
-    - removal of constant and linear background signal prior to performing the
-      actual fit
+    - providing different background models
 
 """
 from collections import OrderedDict
@@ -56,7 +55,7 @@ from . import bgtheories
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/08/2016"
+__date__ = "18/10/2016"
 
 _logger = logging.getLogger(__name__)
 
