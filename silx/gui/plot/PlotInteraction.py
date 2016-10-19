@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "19/10/2016"
 
 
 import math
@@ -825,18 +825,15 @@ class DrawFreeHand(Select):
                 self.goto('select', x, y)
                 return True
 
-        def enterState(self, x=None, y=None):
-            if x is not None:
-                self.machine.updatePencilShape(x, y)
-
         def onMove(self, x, y):
             self.machine.updatePencilShape(x, y)
 
-        def onLeave(self, x=None, y=None):
+        def onLeave(self):
             self.machine.cancel()
 
     class Select(State):
         def enterState(self, x, y):
+            self.__isOut = False
             self.machine.setFirstPoint(x, y)
 
         def onMove(self, x, y):
@@ -845,9 +842,16 @@ class DrawFreeHand(Select):
 
         def onRelease(self, x, y, btn):
             if btn == LEFT_BTN:
-                self.machine.cancel()
+                if self.__isOut:
+                    self.machine.resetSelectionArea()
                 self.machine.endSelect(x, y)
-                self.goto('idle', x, y)
+                self.goto('idle')
+
+        def onEnter(self):
+            self.__isOut = False
+
+        def onLeave(self):
+            self.__isOut = True
 
     def __init__(self, plot, parameters):
         # Circle used for pencil preview
@@ -903,7 +907,6 @@ class DrawFreeHand(Select):
                                          self._points,
                                          self.parameters)
         self.plot.notify(**eventDict)
-        self.resetSelectionArea()
         self._points = None
 
     def cancelSelect(self):
