@@ -817,10 +817,8 @@ class SelectVLine(Select1Point):
 class DrawFreeHand(Select):
     """Interaction for drawing pencil. It display the preview of the pencil
     before pressing the mouse.
-
-    TODO: The preview stay displayed when the mouse is not anymore over the
-        widget.
     """
+
     class Idle(State):
         def onPress(self, x, y, btn):
             if btn == LEFT_BTN:
@@ -846,8 +844,8 @@ class DrawFreeHand(Select):
             self.machine.select(x, y)
 
         def onRelease(self, x, y, btn):
-            self.machine.cancel()
             if btn == LEFT_BTN:
+                self.machine.cancel()
                 self.machine.endSelect(x, y)
                 self.goto('idle', x, y)
 
@@ -892,7 +890,6 @@ class DrawFreeHand(Select):
                                          self._points,
                                          self.parameters)
         self.plot.notify(**eventDict)
-        self._lastPos = pos
 
     def endSelect(self, x, y):
         pos = self.plot.pixelToData(x, y, check=False)
