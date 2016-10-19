@@ -194,7 +194,7 @@ setting the interactive mode.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "18/10/2016"
 
 
 from collections import Iterable, OrderedDict, namedtuple
@@ -2754,7 +2754,7 @@ class Plot(object):
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
-                           zoomOnWheel=True, source=None):
+                           zoomOnWheel=True, source=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2773,8 +2773,9 @@ class Plot(object):
                        that will be send in the interactiveModeChanged event,
                        to identify which object required a mode change.
                        Default: None
+        :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        self._eventHandler.setInteractiveMode(mode, color, shape, label)
+        self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
 
         self.notify(
