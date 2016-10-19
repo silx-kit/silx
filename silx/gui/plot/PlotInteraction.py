@@ -850,6 +850,12 @@ class DrawFreeHand(Select):
                 self.goto('idle', x, y)
 
     def __init__(self, plot, parameters):
+        # Circle used for pencil preview
+        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
+        size = parameters.get('width', 1.) * 0.5
+        self._circle = size * numpy.array((numpy.cos(angle),
+                                           numpy.sin(angle))).T
+
         states = {
             'idle': DrawFreeHand.Idle,
             'select': DrawFreeHand.Select
@@ -867,11 +873,8 @@ class DrawFreeHand(Select):
     def updatePencilShape(self, x, y):
         center = self.plot.pixelToData(x, y, check=False)
         assert center is not None
-        size = self.width * 0.5
 
-        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
-        unitCircle = numpy.array((numpy.cos(angle), numpy.sin(angle))).T
-        polygon = center + size * unitCircle
+        polygon = center + self._circle
 
         self.setSelectionArea(polygon, fill='', color=self.color)
 
