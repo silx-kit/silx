@@ -869,12 +869,9 @@ class DrawFreeHand(Select):
         assert center is not None
         size = self.width * 0.5
 
-        polygon = []
-        pointCount = 13
-        for i in range(0, pointCount):
-            r = i * math.pi * 2.0 / pointCount
-            pos = (center[0] + size * math.cos(r), center[1] + size * math.sin(r))
-            polygon.append(pos)
+        angle = numpy.arange(13.) * numpy.pi * 2.0 / 13.
+        unitCircle = numpy.array((numpy.cos(angle), numpy.sin(angle))).T
+        polygon = center + size * unitCircle
 
         self.setSelectionArea(polygon, fill='', color=self.color)
 
