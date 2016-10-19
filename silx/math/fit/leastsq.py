@@ -299,10 +299,10 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     if constraints is not None:
         # make sure we work with a list of lists
         input_constraints = constraints
-        working_constraints = [] * len(parameters)
+        tmp_constraints = [None] * len(input_constraints)
         for i in range(nparameters):
-            working_constraints[i] = list(input_constraints[i])
-        constraints = working_constraints
+            tmp_constraints[i] = list(input_constraints[i])
+        constraints = tmp_constraints
         for i in range(nparameters):
             if hasattr(constraints[i][0], "upper"):
                 txt = constraints[i][0].upper()
@@ -460,12 +460,13 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
             if constraints[idx][0] in [CFIXED, CIGNORED]:
                 flag_special[idx] = constraints[idx][0]
             else:
+                pass
                 new_constraints[idx][0] = CFREE
                 new_constraints[idx][1] = 0
                 new_constraints[idx][2] = 0
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x, y, weight, constraints=new_constraints,
+                                                 x, y, weight, constraints=None,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
