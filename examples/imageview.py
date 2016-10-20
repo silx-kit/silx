@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -40,7 +41,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "18/10/2016"
 
 import logging
 from silx.gui.plot.ImageView import ImageViewMainWindow

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -31,7 +32,7 @@ It shows the following widgets:
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2016"
+__date__ = "18/10/2016"
 
 import sys
 from silx.gui import qt
