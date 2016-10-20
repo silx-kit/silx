@@ -36,7 +36,6 @@ def configuration(parent_package='', top_path=None):
     config.add_subpackage('fit')
     config.add_subpackage('hdf5')
     config.add_subpackage('widgets')
-    config.add_subpackage('array')
     config.add_subpackage('test')
 
     return config

@@ -22,18 +22,43 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
-
-from .testArrayWidget import suite as testArrayWidgetSuite
-
-
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "13/10/2016"
+
+import unittest
+import numpy
+
+from .. import ArrayTableWidget
+from ...testutils import TestCaseQt
+
+
+class TestArrayWidget(TestCaseQt):
+    """Basic test for ArrayTableWidget"""
+    def setUp(self):
+        super(TestArrayWidget, self).setUp()
+        self.aw = ArrayTableWidget.ArrayTableWidget()
+
+    def tearDown(self):
+        del self.aw
+        super(TestArrayWidget, self).tearDown()
+
+    def testShow(self):
+        self.aw.show()
+        self.qWaitForWindowExposed(self.aw)
+
+    def testSetData(self):
+        a = numpy.reshape(numpy.linspace(0.213, 1.234, 10000),
+                          (10, 10, 10, 10))
+        self.aw.setArrayData(a)
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [testArrayWidgetSuite(),])
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestArrayWidget))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

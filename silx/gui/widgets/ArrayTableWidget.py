@@ -25,9 +25,9 @@
 """This module defines a widget designed to display 2D frames (images, slices)
 in a numpy array: class:`ArrayTableWidget`.
 """
-from .. import qt
-from .. import icons
-from . import ArrayTableModel
+from silx.gui import icons
+from silx.gui import qt
+from silx.gui.widgets import ArrayTableModel
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"

@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 import numpy
-from .. import qt
+from silx.gui import qt
 
 
 __authors__ = ["V.A. Sole"]
