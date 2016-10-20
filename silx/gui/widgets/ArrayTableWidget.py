@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """This module defines a widget designed to display 2D frames (images, slices)
-in a numpy array: class:`ArrayTableWidget`.
+in a numpy array :class:`ArrayTableWidget`.
 """
 from silx.gui import icons
 from silx.gui import qt
@@ -243,7 +243,7 @@ class ArrayTableView(qt.QTableView):
 
      - :meth:`setArrayData`: fill data model and adjust its display format
        based on the data type
-     - :meth:`setCurrentArrayIndex`: select index of slice (image) to be
+     - :meth:`setFrameIndex`: select index of slice (image) to be
        viewed """
     def __init__(self, parent=None):
         qt.QTableView.__init__(self, parent)
@@ -266,22 +266,22 @@ class ArrayTableView(qt.QTableView):
         # some linux distributions need this call
         self.setModel(self._model)
 
-    def setCurrentArrayIndex(self, index):
+    def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array
 
         :param index: Sequence of indices defining the active data slice in
-            a n-dimensional array. The sequence length is :mat:`n-2`
-        :raise IndexError: If any index in the index sequence is out of bound
+            a n-dimensional array. The sequence length is :math:`n-2`
+        :raise: IndexError if any index in the index sequence is out of bound
             on its respective axis.
         """
-        self._model.setCurrentArrayIndex(index)
+        self._model.setFrameIndex(index)
 
     def setPerspective(self, perspective):
         """Set the *perspective* by specifying which axes are orthogonal
         to the frame.
 
         :param perspective: Sequence of axes number (0-based) defining the orthogonal
-            axes. For a n-dimensional array, the sequence length is :mat:`n-2`
+            axes. For a n-dimensional array, the sequence length is :math:`n-2`
         """
         self._model.setPerspective(perspective)
 
@@ -308,7 +308,7 @@ class ArrayTableWidget(qt.QWidget):
     To set the data, use :meth:`setArrayData`.
     To select the perspective, use :meth:`setPerspective` or
     use :meth:`setFrameAxes`.
-    To select the frame, use :meth:`setCurrentArrayIndex`.
+    To select the frame, use :meth:`setFrameIndex`.
     """
     def __init__(self, parent=None):
         qt.QTableWidget.__init__(self, parent)
@@ -366,15 +366,29 @@ class ArrayTableWidget(qt.QWidget):
                 browser.hide()
         self.view.setArrayData(self._array)
 
-    def setCurrentArrayIndex(self, index):
-        """Set the active slice/image index in the n-dimensional array
+    def setFrameIndex(self, index):
+        """Set the active slice/image index in the n-dimensional array.
+
+        A frame is a 2D array extracted from an array. This frame is
+        necessarily parallel to 2 axes, and orthogonal to all other axes.
+
+        The index of a frame is a sequence of indices along the orthogonal
+        axes, where the frame intersects the respective axis. The indices
+        are listed in the same order as the corresponding dimensions of the
+        data array.
+
+        For example, it the data array has 5 dimensions, and we are
+        considering frames whose parallel axes are the 2nd and 4th dimensions
+        of the array, the frame index will be a sequence of length 3
+        corresponding to the indices where the frame intersects the 1st, 3rd
+        and 5th axes.
 
         :param index: Sequence of indices defining the active data slice in
-            a n-dimensional array. The sequence length is :mat:`n-2`
-        :raise IndexError: If any index in the index sequence is out of bound
+            a n-dimensional array. The sequence length is :math:`n-2`
+        :raise: IndexError if any index in the index sequence is out of bound
             on its respective axis.
         """
-        self.view.setCurrentArrayIndex(index)
+        self.view.setFrameIndex(index)
 
     def _resetBrowsers(self, perspective):
         """Adjust limits for browsers based on the perspective and the
@@ -389,9 +403,12 @@ class ArrayTableWidget(qt.QWidget):
         """Set the *perspective* by specifying which axes are orthogonal
         to the frame.
 
+        For the opposite approach (defining parallel axes), use
+        :meth:`setFrameAxes` instead.
+
         :param perspective: Sequence of axes number (0-based) defining the orthogonal
-            axes. For a n-dimensional array, the sequence length is :mat:`n-2`.
-            This sequence **must** be sorted in increasing order.
+            axes. For a n-dimensional array, the sequence length is :math:`n-2`.
+            This sequence **must be sorted** in increasing order.
         """
         self.view.setPerspective(perspective)
         self._resetBrowsers(perspective)
@@ -399,6 +416,9 @@ class ArrayTableWidget(qt.QWidget):
     def setFrameAxes(self, row_axis, col_axis):
         """Set the *perspective* by specifying which axes are parallel
         to the frame.
+
+        For the opposite approach (defining orthogonal axes), use
+        :meth:`setPerspective` instead.
 
         :param int row_axis: Index (0-based) of the first dimension used as a frame
             axis
@@ -415,7 +435,7 @@ class ArrayTableWidget(qt.QWidget):
         for browser in self._widgetList:
             if browser.isEnabled():
                 index.append(browser.value() - 1)
-        self.view.setCurrentArrayIndex(index)
+        self.view.setFrameIndex(index)
         self.view.reset()
 
 

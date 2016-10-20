@@ -170,7 +170,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.endResetModel()
 
-    def setCurrentArrayIndex(self, index):
+    def setFrameIndex(self, index):
         """Set the active slice index.
 
         This method is only relevant to arrays with at least 3 dimensions.
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
     m = ArrayTableModel(data=d, fmt="%.5f")
     w.setModel(m)
-    m.setCurrentArrayIndex(3)
+    m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))
     w.show()
     a.exec_()
