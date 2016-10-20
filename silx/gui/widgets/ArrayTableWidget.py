@@ -276,16 +276,40 @@ class ArrayTableView(qt.QTableView):
         """
         self._model.setCurrentArrayIndex(index)
 
+    def setPerspective(self, perspective):
+        """Set the *perspective* by specifying which axes are orthogonal
+        to the frame.
+
+        :param perspective: Sequence of axes number (0-based) defining the orthogonal
+            axes. For a n-dimensional array, the sequence length is :mat:`n-2`
+        """
+        self._model.setPerspective(perspective)
+
+    def setFrameAxes(self, row_axis, col_axis):
+        """Set the *perspective* by specifying which axes are parallel
+        to the frame.
+
+        :param int row_axis: Index (0-based) of the first dimension used as a frame
+            axis
+        :param int col_axis: Index (0-based) of the 2nd dimension used as a frame
+            axis
+        """
+        self._model.setFrameAxes(row_axis, col_axis)
+
 
 class ArrayTableWidget(qt.QWidget):
     """This widget is designed to display data of 2D frames (images, slices)
     in a table view. The widget can load any n-dimensional array, and display
-    images whose axes are the last two dimensions of the array.
+    any 2-D frame/slice in the array.
 
-    The index in all the other dimensions can be set with mouse controls
-    (sliders and buttons) and a text entry.
+    The index of the dimensions orthogonal to the displayed frame can be set
+    interactively using a browser widget (sliders, buttons and text entries).
 
-    To set the data, use :meth:`setArrayData`. """
+    To set the data, use :meth:`setArrayData`.
+    To select the perspective, use :meth:`setPerspective` or
+    use :meth:`setFrameAxes`.
+    To select the frame, use :meth:`setCurrentArrayIndex`.
+    """
     def __init__(self, parent=None):
         qt.QTableWidget.__init__(self, parent)
         self.mainLayout = qt.QVBoxLayout(self)
@@ -342,17 +366,57 @@ class ArrayTableWidget(qt.QWidget):
                 browser.hide()
         self.view.setArrayData(self._array)
 
+    def setCurrentArrayIndex(self, index):
+        """Set the active slice/image index in the n-dimensional array
+
+        :param index: Sequence of indices defining the active data slice in
+            a n-dimensional array. The sequence length is :mat:`n-2`
+        :raise IndexError: If any index in the index sequence is out of bound
+            on its respective axis.
+        """
+        self.view.setCurrentArrayIndex(index)
+
+    def _resetBrowsers(self, perspective):
+        """Adjust limits for browsers based on the perspective and the
+        size of the corresponding dimensions. Reset the index to 0"""
+        n_dimensions = len(self._array.shape)
+        for i in range(n_dimensions - 2):
+            browser = self._widgetList[i]
+            browser.setRange(1, self._array.shape[perspective[i]])
+            browser.setValue(1)
+
+    def setPerspective(self, perspective):
+        """Set the *perspective* by specifying which axes are orthogonal
+        to the frame.
+
+        :param perspective: Sequence of axes number (0-based) defining the orthogonal
+            axes. For a n-dimensional array, the sequence length is :mat:`n-2`.
+            This sequence **must** be sorted in increasing order.
+        """
+        self.view.setPerspective(perspective)
+        self._resetBrowsers(perspective)
+
+    def setFrameAxes(self, row_axis, col_axis):
+        """Set the *perspective* by specifying which axes are parallel
+        to the frame.
+
+        :param int row_axis: Index (0-based) of the first dimension used as a frame
+            axis
+        :param int col_axis: Index (0-based) of the 2nd dimension used as a frame
+            axis
+        """
+        self.view.setFrameAxes(row_axis, col_axis)
+        n_dimensions = len(self._array.shape)
+        perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
+        self._resetBrowsers(perspective)
+
     def browserSlot(self, value):
-        if len(self._array.shape) == 3:
-            self.view.setCurrentArrayIndex(value - 1)
-            self.view.reset()
-        else:
-            index = []
-            for browser in self._widgetList:
-                if browser.isEnabled():
-                    index.append(browser.value() - 1)
-            self.view.setCurrentArrayIndex(index)
-            self.view.reset()
+        index = []
+        for browser in self._widgetList:
+            if browser.isEnabled():
+                index.append(browser.value() - 1)
+        self.view.setCurrentArrayIndex(index)
+        self.view.reset()
 
 
 def main():

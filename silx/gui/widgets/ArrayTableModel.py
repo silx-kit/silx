@@ -23,12 +23,16 @@
 #
 # ###########################################################################*/
 import numpy
+import logging
 from silx.gui import qt
 
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
 __date__ = "17/10/2016"
+
+
+_logger = logging.getLogger(__name__)
 
 
 # TODO: generalise perspective to n-D arrays
@@ -48,15 +52,10 @@ class ArrayTableModel(qt.QAbstractTableModel):
     :param data: Numpy array
     :param str fmt: Format string for representing numerical values.
         Default is ``"%g"``.
-    :param int perspective: In the 3-D case, this parameter is the number of
-        the axis orthogonal to the data slice. If the unit vectors describing
-        your axes are :math:`\vec{x}, \vec{y}, \vec{z}`, a perspective of 0
-        means you slices are parallel to :math:`\vec{y}\vec{z}`, 1 means they
-        are parallel to :math:`\vec{x}\vec{z}` and 2 means they
-        are parallel to :math:`\vec{x}\vec{y}`.
-        In all other cases (1-D, 2-D, n-D), this parameter is ignored.
+    :param sequence[int] perspective: See documentation
+        of :meth:`setPerspective`.
     """
-    def __init__(self, parent=None, data=None, fmt="%g", perspective=0):
+    def __init__(self, parent=None, data=None, fmt="%g", perspective=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
         # make sure data is an array (not a scalar, list, or list of lists)
@@ -76,83 +75,58 @@ class ArrayTableModel(qt.QAbstractTableModel):
         self._format = fmt
         """Format string (default "%g")"""
 
-        self._index = [0] * (len(data.shape) - 2)
+        self._index = [0 for _i in range((len(data.shape) - 2))]
         """This attribute stores the slice index. In case _array is a 3D
         array, it is an integer.  If the number of dimensions is greater
         than 3, it is a list of indices."""
 
-        self._perspective = perspective
-        """Axis number orthogonal to the 2D-slice, for a 3-D array"""
+        self._perspective = tuple(perspective) if perspective is not None else\
+            tuple(range(0, len(self._array.shape) - 2))
+        """Sequence of dimensions orthogonal to the frame to be viewed.
+        For an array with ``n`` dimensions, this is a sequence of ``n-2``
+        integers. the first dimension is numbered ``0``.
+        By default, the data frames use the last two dimensions as their axes
+        and therefore the perspective is a sequence of the first ``n-2``
+        dimensions.
+        For example, for a 5-D array, the default perspective is ``(0, 1, 2)``
+        and the default frames axes are ``(3, 4)``."""
 
-        self._assignDataFunction()
+    def _getRowDim(self):
+        """The row axis is the first axis parallel to the frames
+        (lowest dimension number)"""
+        n_dimensions = len(self._array.shape)
+        # take all dimensions and remove the orthogonal ones
+        frame_axes = set(range(0, n_dimensions)) - set(self._perspective)
+        assert len(frame_axes) == 2
+        return min(frame_axes)
 
-    def _assignDataFunction(self):
-        shape = self._array.shape
-        if len(shape) == 3:
-            self._rowCount = self._rowCount3D
-            self._columnCount = self._columnCount3D
-            self._data = self._data3D
-        else:
-            # only C order array of images supported
-            self._rowCount = self._rowCountND
-            self._columnCount = self._columnCountND
-            self._data = self._dataND
-
-    def _rowCountND(self, parent_idx=None):
-        return self._array.shape[-2]
-
-    def _columnCountND(self, parent_idx=None):
-        return self._array.shape[-1]
-
-    def _dataND(self, index, role=qt.Qt.DisplayRole):
-        if index.isValid() and role == qt.Qt.DisplayRole:
-            row = index.row()
-            col = index.column()
-            selection = tuple(self._index + [row, col])
-            return self._format % self._array[selection]
-        return None
-
-    def _rowCount3D(self, parent_idx=None):
-        """Return number of rows in the slice. This is the length of the
-        first axis parallel to the slice (x or y)."""
-        if self._perspective == 0:
-            return self._array.shape[1]
-        return self._array.shape[0]
-
-    def _columnCount3D(self, parent_idx=None):
-        """Return number of columns in the slice. This is the length of the
-        last axis parallel to the slice (y or z)."""
-        if self._perspective == 2:
-            return self._array.shape[1]
-        return self._array.shape[2]
-
-    def _data3D(self, index, role=qt.Qt.DisplayRole):
-        if index.isValid() and role == qt.Qt.DisplayRole:
-            row = index.row()
-            col = index.column()
-            if self._perspective == 0:
-                selection = tuple(self._index + [row, col])
-            elif self._perspective == 1:
-                selection = (row, self._index[0], col)
-            else:
-                selection = tuple([row, col] + self._index)
-            return self._format % self._array[selection]
-        return None
+    def _getColumnDim(self):
+        """The column axis is the second (highest number) axis parallel
+        to the frames"""
+        n_dimensions = len(self._array.shape)
+        frame_axes = set(range(0, n_dimensions)) - set(self._perspective)
+        assert len(frame_axes) == 2
+        return max(frame_axes)
 
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
-        """Return the number of rows (first index) in the data slice"""
-        return self._rowCount(parent_idx)
+        return self._array.shape[self._getRowDim()]
+        # return self._array.shape[-2]
 
     def columnCount(self, parent_idx=None):
-        """Return the number of columns (second index) in the data slice"""
-        return self._columnCount(parent_idx)
+        return self._array.shape[self._getColumnDim()]
+        # return self._array.shape[-1]
 
     def data(self, index, role=qt.Qt.DisplayRole):
-        """Return the string representation of the value at the specified
-        index in the data slice.
-        """
-        return self._data(index, role)
+        if index.isValid() and role == qt.Qt.DisplayRole:
+            row = index.row()
+            col = index.column()
+            selection = list(self._index)
+            selection.insert(self._getRowDim(), row)
+            selection.insert(self._getColumnDim(), col)
+
+            return self._format % self._array[tuple(selection)]
+        return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Return the 0-based row or column index, for display in the
@@ -165,7 +139,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         return None
 
     # Public methods
-    def setArrayData(self, data, perspective=0):
+    def setArrayData(self, data, perspective=None):
         """Set the data array
 
         :param data: Numpy array
@@ -189,9 +163,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
             data.shape = (1, data.shape[0])
 
         self._array = data
-        self._index = [0] * (len(data.shape) - 2)
-        self._perspective = perspective
-        self._assignDataFunction()
+        self._index = [0 for _i in range((len(data.shape) - 2))]
+        self._perspective = tuple(perspective) if perspective is not None else\
+            tuple(range(0, len(self._array.shape) - 2))
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
@@ -201,9 +175,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
         This method is only relevant to arrays with at least 3 dimensions.
 
-        :param sequence index: Index of the active slice in the array.
+        :param index: Index of the active slice in the array.
             In the general n-D case, this is a sequence of :math:`n - 2`
-            indices where the slice intersects the orthogonal axes.
+            indices where the slice intersects the respective orthogonal axes.
         :raise IndexError: If any index in the index sequence is out of bound
             on its respective axis.
         """
@@ -211,8 +185,14 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if len(shape) < 3:
             # index is ignored
             return
+
+        if qt.qVersion() > "4.6":
+            self.beginResetModel()
+        else:
+            self.reset()
+
         if len(shape) == 3:
-            len_ = shape[self._perspective]
+            len_ = shape[self._perspective[0]]
             # accept integers as index in the case of 3-D arrays
             if not hasattr(index, "__len__"):
                 self._index = [index]
@@ -225,12 +205,123 @@ class ArrayTableModel(qt.QAbstractTableModel):
             # general n-D case
             for i, idx in enumerate(index):
                 if not 0 <= idx < shape[i]:
-                    raise IndexError("Index %d must be a positive " % idx +
-                                     "integer lower than %d" % shape[i])
+                    raise IndexError("Invalid index %d " % idx +
+                                     "higher than %d" % shape[i])
             self._index = index
 
+        if qt.qVersion() > "4.6":
+            self.endResetModel()
+
     def setFormat(self, fmt):
+        """Set format string controlling how the values are represented in
+        the table view.
+
+        :param str fmt: Format string (e.g. "%.3f", "%d", "%-10.2f", "%10.3e")
+            This is the C-style format string used by python when formatting
+            strings with the modulus operator.
+        """
         self._format = fmt
+
+    def setPerspective(self, perspective):
+        """Set the perspective by defining a sequence listing all axes
+        orthogonal to the frame or 2-D slice to be visualized.
+
+        Alternatively, you can use :meth:`setFrameAxes` for the complementary
+        approach of specifying the two axes parallel  to the frame.
+
+        In the 1-D or 2-D case, this parameter is irrelevant.
+
+        In the 3-D case, if the unit vectors describing
+        your axes are :math:`\vec{x}, \vec{y}, \vec{z}`, a perspective of 0
+        means you slices are parallel to :math:`\vec{y}\vec{z}`, 1 means they
+        are parallel to :math:`\vec{x}\vec{z}` and 2 means they
+        are parallel to :math:`\vec{x}\vec{y}`.
+
+        In the n-D case, this parameter is a sequence of :math:`n-2` axes
+        numbers. The first axis is numbered :math:`0` and the last axis is
+        numbered :math:`n-2`.
+        So for instance if you want to display 2-D frames whose axes are the
+        second and third dimensions of a 5-D array, set the perspective to
+        ``(0, 3, 4)``.
+
+        :param perspective: Sequence of dimensions/axes orthogonal to the
+            frames.
+        :raise: IndexError if any value in perspective is higher than the
+            number of dimensions minus one (first dimension is 0), or
+            if the number of values is different from the number of dimensions
+            minus two.
+        """
+        n_dimensions = len(self._array.shape)
+        if n_dimensions < 3:
+                _logger.warning(
+                        "perspective is not relevant for 1D and 2D array")
+
+        if not hasattr(perspective, "__len__"):
+            # we can tolerate an integer for 3-D array
+            if n_dimensions == 3:
+                perspective = [perspective]
+            else:
+                raise ValueError("perspective must be a sequence of integers")
+
+        # ensure unicity of dimensions in perspective
+        perspective = tuple(set(perspective))
+
+        if len(perspective) != n_dimensions - 2 or\
+                min(perspective) < 0 or max(perspective) >= n_dimensions:
+            raise IndexError(
+                    "Invalid perspective %s for %d-D array" % (perspective, n_dimensions))
+
+        if qt.qVersion() > "4.6":
+            self.beginResetModel()
+        else:
+            self.reset()
+
+        self._perspective = perspective
+
+        # reset index
+        self._index = [0 for _i in range(n_dimensions - 2)]
+
+        if qt.qVersion() > "4.6":
+            self.endResetModel()
+
+
+    def setFrameAxes(self, row_axis, col_axis):
+        """Set the perspective by specifying the two axes parallel to the frame
+        to be visualised.
+
+        The complementary approach of defining the orthogonal axes can be used
+        with :meth:`setPerspective`.
+
+        :param int row_axis: Index (0-based) of the first dimension used as a frame
+            axis
+        :param int col_axis: Index (0-based) of the 2nd dimension used as a frame
+            axis
+        :raise: IndexError if axes are invalid
+        """
+        if row_axis > col_axis:
+            _logger.warning("The dimension of the row axis must be lower " +
+                            "than the dimension of the column axis. Swapping.")
+            row_axis, col_axis = min(row_axis, col_axis), max(row_axis, col_axis)
+
+        n_dimensions = len(self._array.shape)
+        perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
+
+        if len(perspective) != n_dimensions - 2 or\
+                min(perspective) < 0 or max(perspective) >= n_dimensions:
+            raise IndexError(
+                    "Invalid perspective %s for %d-D array" % (perspective, n_dimensions))
+
+        if qt.qVersion() > "4.6":
+            self.beginResetModel()
+        else:
+            self.reset()
+
+        self._perspective = perspective
+        # reset index
+        self._index = [0 for _i in range(n_dimensions - 2)]
+
+        if qt.qVersion() > "4.6":
+            self.endResetModel()
 
 if __name__ == "__main__":
     a = qt.QApplication([])
