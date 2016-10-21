@@ -146,8 +146,7 @@ class ArrayTableWidget(qt.QWidget):
         self.mainLayout.addWidget(self.view)
 
     def setArrayData(self, data, labels=None):
-        """Set the data array. Create one data browser per dimension with
-        its corresponding label. Show all browsers but the last two.
+        """Set the data array. Update frame browsers and labels.
 
         :param data: Numpy array
         :param labels: list of labels for each dimension of the array, or
@@ -188,9 +187,9 @@ class ArrayTableWidget(qt.QWidget):
                 label_text = labels[i] if labels is not None else ""
             self._dimensionLabelsText.append(label_text)
             label.setText(label_text)
-            browser.setRange(1, self._array.shape[i])
 
             if (i + 2) < n_dimensions:
+                browser.setRange(1, self._array.shape[i])
                 browser.setEnabled(True)
                 browser.show()
                 if labels is not None:

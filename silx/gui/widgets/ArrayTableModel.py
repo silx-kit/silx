@@ -252,8 +252,9 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         """
         n_dimensions = len(self._array.shape)
         if n_dimensions < 3:
-                _logger.warning(
-                        "perspective is not relevant for 1D and 2D array")
+            _logger.warning(
+                    "perspective is not relevant for 1D and 2D arrays")
+            return
 
         if not hasattr(perspective, "__len__"):
             # we can tolerate an integer for 3-D array
@@ -268,8 +269,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         if len(perspective) != n_dimensions - 2 or\
                 min(perspective) < 0 or max(perspective) >= n_dimensions:
             raise IndexError(
-                    "Invalid perspective %s " % perspective +
-                    "for %d-D array " % n_dimensions +
+                    "Invalid perspective " + str(perspective) +
+                    " for %d-D array " % n_dimensions +
                     "with shape " + str(self._array.shape))
 
         if qt.qVersion() > "4.6":
@@ -304,13 +305,18 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             row_axis, col_axis = min(row_axis, col_axis), max(row_axis, col_axis)
 
         n_dimensions = len(self._array.shape)
+        if n_dimensions < 3:
+            _logger.warning(
+                    "Frame axes cannot be changed for 1D and 2D arrays")
+            return
+
         perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
 
         if len(perspective) != n_dimensions - 2 or\
                 min(perspective) < 0 or max(perspective) >= n_dimensions:
             raise IndexError(
-                    "Invalid perspective %s " % perspective +
-                    "for %d-D array " % n_dimensions +
+                    "Invalid perspective " + str(perspective) +
+                    " for %d-D array " % n_dimensions +
                     "with shape " + str(self._array.shape))
 
         if qt.qVersion() > "4.6":
