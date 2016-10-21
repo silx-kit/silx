@@ -133,8 +133,14 @@ class ArrayTableWidget(qt.QWidget):
         self.browserLayout.setContentsMargins(0, 0, 0, 0)
         self.browserLayout.setSpacing(0)
 
+        self._dimensionLabelsText = []
+        """List of text labels sorted in the increasing order of the dimension
+        they apply to."""
         self._browserLabels = []
+        """List of QLabel widgets."""
         self._browserWidgets = []
+        """List of HorizontalSliderWithBrowser widgets."""
+
         self.view = ArrayTableView(self)
         self.mainLayout.addWidget(self.browserContainer)
         self.mainLayout.addWidget(self.view)
@@ -166,8 +172,7 @@ class ArrayTableWidget(qt.QWidget):
                 browser.setEnabled(False)
                 browser.hide()
 
-                # default label text might be updated in next loop
-                label = qt.QLabel("Dimension %d" % i, self.browserContainer)
+                label = qt.QLabel(self.browserContainer)
                 self._browserLabels.append(label)
                 self.browserLayout.addWidget(label, i, 0)
                 label.hide()
@@ -176,6 +181,15 @@ class ArrayTableWidget(qt.QWidget):
         for i in range(n_widgets):
             label = self._browserLabels[i]
             browser = self._browserWidgets[i]
+
+            if labels in [True, 1]:
+                label_text = "Dimension %d" % i
+            else:
+                label_text = labels[i] if labels is not None else ""
+            self._dimensionLabelsText.append(label_text)
+            label.setText(label_text)
+            browser.setRange(1, self._array.shape[i])
+
             if (i + 2) < n_dimensions:
                 browser.setEnabled(True)
                 browser.show()
@@ -183,17 +197,11 @@ class ArrayTableWidget(qt.QWidget):
                     label.show()
                 else:
                     label.hide()
-
-                if labels in [True, 1]:
-                    label.setText("Dimension %d" % i)
-                elif labels is not None:
-                    label.setText(labels[i])
-
-                browser.setRange(1, self._array.shape[i])
             else:
                 browser.setEnabled(False)
                 browser.hide()
                 label.hide()
+
         self.view.setArrayData(self._array)
 
     def setFrameIndex(self, index):
@@ -235,17 +243,13 @@ class ArrayTableWidget(qt.QWidget):
         # perspective must be sorted
         perspective = sorted(perspective)
 
-        # labels should be set for all browsers in setArrayData
-        all_labels = [label.text() for label in self._browserLabels]
-        print(all_labels)
-
         n_dimensions = len(self._array.shape)
         for i in range(n_dimensions - 2):
             browser = self._browserWidgets[i]
             label = self._browserLabels[i]
             browser.setRange(1, self._array.shape[perspective[i]])
             browser.setValue(1)
-            label.setText(all_labels[perspective[i]])
+            label.setText(self._dimensionLabelsText[perspective[i]])
 
     def setPerspective(self, perspective):
         """Set the *perspective* by specifying which axes are orthogonal
