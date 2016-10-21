@@ -24,7 +24,11 @@ Let's look at a simple usage example::
     >>> w.setArrayData(array, labels=True)
     >>> w.show()
 
-TODO: screenshot
+.. |imgArray0| image:: img/arraywidget3D_0.png
+   :height: 300px
+   :align: middle
+
+|imgArray0|
 
 We get a widget that allows us to see a *slice*, or a *frame*, of 2D data
 with 10 lines and 20 columns, in a 3D array (5 x 10 x 20).
@@ -44,9 +48,13 @@ currently using), *[1, ]* and *[2, ]*.
 Lets change the perspective::
     >>> w.setPerspective([1])
 
-TODO: screenshot
+.. |imgArray1| image:: img/arraywidget3D_1.png
+   :height: 300px
+   :align: middle
 
-What we see now is a *5 x 20* frame, and the browser now browses the second dimension
+|imgArray1|
+
+What we see now is a frame of *5 x 20* valuesarra, and the browser now browses the second dimension
 to select one of 10 available frames. The label is updated accordingly to *Dimension 1*.
 
 To select a different frame programatically, without using the browser, you can
@@ -58,18 +66,29 @@ More dimensions
 
 This widget can be used for arrays of any numbers of dimensions. Let's create
 a 5-dimensional array and display it::
-    >>> array = numpy.arange(1000)
+    >>> array = numpy.arange(10000)
     >>> array.shape = (5, 2, 10, 5, 20)
     >>> w.setArrayData(array, labels=True)
 
-TODO: screenshot
+.. |imgArray2| image:: img/arraywidget5D_0.png
+   :height: 300px
+   :align: middle
+
+|imgArray2|
 
 We now have 3 frames browsers, on for each of the orthogonal dimensions.
 
 Let's look at a frame whose axes are along the second
 and the fourth dimension, by setting the orthogonal axes to the first,
 third and fifth dimensions::
-    >>> w.setPerspective([0, 2, 4])
+   >>> w.setPerspective([0, 2, 4])
+
+.. |imgArray3| image:: img/arraywidget5D_1.png
+   :height: 300px
+   :align: middle
+
+|imgArray3|
+
 
 Listing all the orthogonal dimensions might not feel very natural for arrays
 with more than 3 or 4 dimensions.
