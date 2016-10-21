@@ -157,6 +157,18 @@ class ArrayTableWidget(qt.QWidget):
 
         n_widgets = len(self._browserWidgets)
         n_dimensions = len(self._array.shape)
+
+        # Reset text of labels
+        self._dimensionLabelsText = []
+        for i in range(n_dimensions):
+            if labels in [True, 1]:
+                label_text = "Dimension %d" % i
+            elif labels is None or i >= len(labels):
+                label_text = ""
+            else:
+                label_text = labels[i]
+            self._dimensionLabelsText.append(label_text)
+
         if n_widgets > (n_dimensions - 2):
             for i in range((n_dimensions - 2), n_widgets):
                 self._browserWidgets[i].setEnabled(False)
@@ -181,12 +193,7 @@ class ArrayTableWidget(qt.QWidget):
             label = self._browserLabels[i]
             browser = self._browserWidgets[i]
 
-            if labels in [True, 1]:
-                label_text = "Dimension %d" % i
-            else:
-                label_text = labels[i] if labels is not None else ""
-            self._dimensionLabelsText.append(label_text)
-            label.setText(label_text)
+            label.setText(self._dimensionLabelsText[i])
 
             if (i + 2) < n_dimensions:
                 browser.setRange(1, self._array.shape[i])
