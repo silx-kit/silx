@@ -35,8 +35,7 @@ __date__ = "17/10/2016"
 _logger = logging.getLogger(__name__)
 
 
-# TODO: generalise perspective to n-D arrays
-class ArrayTableModel(qt.QAbstractTableModel):
+class NumpyArrayTableModel(qt.QAbstractTableModel):
     """This data model provides access to 2D slices in a N-dimensional
     array.
 
@@ -203,10 +202,10 @@ class ArrayTableModel(qt.QAbstractTableModel):
                                  "lower than %d" % len_)
         else:
             # general n-D case
-            for i, idx in enumerate(index):
-                if not 0 <= idx < shape[i]:
+            for i_, idx in enumerate(index):
+                if not 0 <= idx < shape[self._perspective[i_]]:
                     raise IndexError("Invalid index %d " % idx +
-                                     "higher than %d" % shape[i])
+                                     "higher than %d" % shape[i_])
             self._index = index
 
         if qt.qVersion() > "4.6":
@@ -269,7 +268,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if len(perspective) != n_dimensions - 2 or\
                 min(perspective) < 0 or max(perspective) >= n_dimensions:
             raise IndexError(
-                    "Invalid perspective %s for %d-D array" % (perspective, n_dimensions))
+                    "Invalid perspective %s " % perspective +
+                    "for %d-D array " % n_dimensions +
+                    "with shape " + str(self._array.shape))
 
         if qt.qVersion() > "4.6":
             self.beginResetModel()
@@ -283,7 +284,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
-
 
     def setFrameAxes(self, row_axis, col_axis):
         """Set the perspective by specifying the two axes parallel to the frame
@@ -309,7 +309,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if len(perspective) != n_dimensions - 2 or\
                 min(perspective) < 0 or max(perspective) >= n_dimensions:
             raise IndexError(
-                    "Invalid perspective %s for %d-D array" % (perspective, n_dimensions))
+                    "Invalid perspective %s " % perspective +
+                    "for %d-D array " % n_dimensions +
+                    "with shape " + str(self._array.shape))
 
         if qt.qVersion() > "4.6":
             self.beginResetModel()
@@ -323,16 +325,17 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.endResetModel()
 
+
 if __name__ == "__main__":
     a = qt.QApplication([])
     w = qt.QTableView()
     d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
         d[i, :, :] += i * 10
-    # m = ArrayTableModel(fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
-    m = ArrayTableModel(data=d, fmt="%.5f")
+    # m = NumpyArrayTableModel(fmt="%.5f")
+    # m = NumpyArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
+    # m = NumpyArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
+    m = NumpyArrayTableModel(data=d, fmt="%.5f")
     w.setModel(m)
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))

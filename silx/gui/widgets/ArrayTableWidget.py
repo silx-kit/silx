@@ -25,19 +25,13 @@
 """This module defines a widget designed to display 2D frames (images, slices)
 in a numpy array :class:`ArrayTableWidget`.
 """
-from silx.gui import icons
 from silx.gui import qt
-from silx.gui.widgets import ArrayTableModel
+from .ArrayTableModel import NumpyArrayTableModel
+from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "18/10/2016"
-
-
-icon_first = icons.getQIcon("first")
-icon_previous = icons.getQIcon("previous")
-icon_next = icons.getQIcon("next")
-icon_last = icons.getQIcon("last")
 
 
 class HorizontalSpacer(qt.QWidget):
@@ -47,199 +41,12 @@ class HorizontalSpacer(qt.QWidget):
                                           qt.QSizePolicy.Fixed))
 
 
-class FrameBrowser(qt.QWidget):
-    """Frame browser widget, with 4 buttons/icons and a line edit to select
-    a frame number in a stack of images."""
-    sigIndexChanged = qt.pyqtSignal(object)
-
-    def __init__(self, parent=None, n=1):
-        qt.QWidget.__init__(self, parent)
-        self.mainLayout = qt.QHBoxLayout(self)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setSpacing(0)
-        self.firstButton = qt.QPushButton(self)
-        self.firstButton.setIcon(icon_first)
-        self.previousButton = qt.QPushButton(self)
-        self.previousButton.setIcon(icon_previous)
-        self.lineEdit = qt.QLineEdit(self)
-        self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % n))
-        validator = qt.QIntValidator(1, n, self.lineEdit)
-        self.lineEdit.setText("1")
-        self._oldIndex = 0
-        """0-based index"""
-        self.lineEdit.setValidator(validator)
-        self.label = qt.QLabel(self)
-        self.label.setText("of %d" % n)
-        self.nextButton = qt.QPushButton(self)
-        self.nextButton.setIcon(icon_next)
-        self.lastButton = qt.QPushButton(self)
-        self.lastButton.setIcon(icon_last)
-
-        self.mainLayout.addWidget(HorizontalSpacer(self))
-        self.mainLayout.addWidget(self.firstButton)
-        self.mainLayout.addWidget(self.previousButton)
-        self.mainLayout.addWidget(self.lineEdit)
-        self.mainLayout.addWidget(self.label)
-        self.mainLayout.addWidget(self.nextButton)
-        self.mainLayout.addWidget(self.lastButton)
-        self.mainLayout.addWidget(HorizontalSpacer(self))
-
-        self.firstButton.clicked.connect(self._firstClicked)
-        self.previousButton.clicked.connect(self._previousClicked)
-        self.nextButton.clicked.connect(self._nextClicked)
-        self.lastButton.clicked.connect(self._lastClicked)
-        self.lineEdit.editingFinished.connect(self._textChangedSlot)
-
-    def _firstClicked(self):
-        """Select first/lowest frame number"""
-        self.lineEdit.setText("%d" % self.lineEdit.validator().bottom())
-        self._textChangedSlot()
-
-    def _previousClicked(self):
-        """Select previous frame number"""
-        if self._oldIndex >= self.lineEdit.validator().bottom():
-            self.lineEdit.setText("%d" % self._oldIndex)
-            self._textChangedSlot()
-
-    def _nextClicked(self):
-        """Select next frame number"""
-        if self._oldIndex < (self.lineEdit.validator().top() - 1):
-            self.lineEdit.setText("%d" % (self._oldIndex + 2))     # why +2?
-            self._textChangedSlot()
-
-    def _lastClicked(self):
-        """Select last/highest frame number"""
-        self.lineEdit.setText("%d" % self.lineEdit.validator().top())
-        self._textChangedSlot()
-
-    def _textChangedSlot(self):
-        """Select frame number typed in the line edit widget"""
-        txt = self.lineEdit.text()
-        if not len(txt):
-            self.lineEdit.setText("%d" % (self._oldIndex + 1))
-            return
-        new_value = int(txt) - 1
-        if new_value == self._oldIndex:
-            return
-        ddict = {
-            "event": "indexChanged",
-            "old": self._oldIndex + 1,
-            "new": new_value + 1,
-            "id": id(self)
-        }
-        self._oldIndex = new_value
-        self.sigIndexChanged.emit(ddict)
-
-    def setRange(self, first, last):
-        """Set minimum and maximum frame numbers"""
-        return self.setLimits(first, last)
-
-    def setLimits(self, first, last):
-        """Set minimum and maximum frame numbers"""
-        bottom = min(first, last)
-        top = max(first, last)
-        self.lineEdit.validator().setTop(top)
-        self.lineEdit.validator().setBottom(bottom)
-        self._oldIndex = bottom - 1
-        self.lineEdit.setText("%d" % (self._oldIndex + 1))
-        self.label.setText(" limits = %d, %d" % (bottom, top))
-
-    def setNFrames(self, nframes):
-        """Set minimum=1 and maximum frame numbers"""
-        bottom = 1
-        top = nframes
-        self.lineEdit.validator().setTop(top)
-        self.lineEdit.validator().setBottom(bottom)
-        self._oldIndex = bottom - 1
-        self.lineEdit.setText("%d" % (self._oldIndex + 1))
-        self.label.setText(" of %d" % top)
-
-    def getCurrentIndex(self):
-        """Get 1-based index"""
-        return self._oldIndex + 1
-
-    def setValue(self, value):
-        """Set 1-based frame index
-
-        :param int value: Frame number"""
-        self.lineEdit.setText("%d" % value)
-        self._textChangedSlot()
-
-
-class HorizontalSliderWithBrowser(qt.QAbstractSlider):
-    """Frame browser widget, a :class:`FrameBrowser` widget and a slider,
-    to select a frame in a stack of images."""
-    sigIndexChanged = qt.pyqtSignal(object)
-
-    def __init__(self, parent=None):
-        qt.QAbstractSlider.__init__(self, parent)
-        self.setOrientation(qt.Qt.Horizontal)
-
-        self.mainLayout = qt.QHBoxLayout(self)
-        self.mainLayout.setContentsMargins(0, 0, 0, 0)
-        self.mainLayout.setSpacing(2)
-
-        self._slider = qt.QSlider(self)
-        self._slider.setOrientation(qt.Qt.Horizontal)
-
-        self._browser = FrameBrowser(self)
-
-        self.mainLayout.addWidget(self._slider)
-        self.mainLayout.addWidget(self._browser)
-
-        self._slider.valueChanged[int].connect(self._sliderSlot)
-        self._browser.sigIndexChanged.connect(self._browserSlot)
-
-    def setMinimum(self, value):
-        """Set minimum frame number"""
-        self._slider.setMinimum(value)
-        maximum = self._slider.maximum()
-        if value == 1:
-            self._browser.setNFrames(maximum)
-        else:
-            self._browser.setRange(value, maximum)
-
-    def setMaximum(self, value):
-        """Set maximum frame number"""
-        self._slider.setMaximum(value)
-        minimum = self._slider.minimum()
-        if minimum == 1:
-            self._browser.setNFrames(value)
-        else:
-            self._browser.setRange(minimum, value)
-
-    def setRange(self, first, last):
-        """Set minimum/maximum frame numbers"""
-        self._slider.setRange(first, last)
-        self._browser.setRange(first, last)
-
-    def _sliderSlot(self, value):
-        """Emit selected frame number when slider is activated"""
-        self._browser.setValue(value)
-        self.valueChanged.emit(value)
-
-    def _browserSlot(self, ddict):
-        """Emit selected frame number when browser state is changed"""
-        self._slider.setValue(ddict['new'])
-
-    def setValue(self, value):
-        """Set frame number
-
-        :param int value: Frame number"""
-        self._slider.setValue(value)
-        self._browser.setValue(value)
-
-    def value(self):
-        """Get selected frame number"""
-        return self._slider.value()
-
-
 # TODO: color the cells according to the value?
 # (subclass QItemDelegate, overload its paint method, then
 # table.setItemDelegate(...))
 class ArrayTableView(qt.QTableView):
     """QTableView with an additional methods to load numpy arrays
-    into the model :class:`ArrayTableModel`:
+    into the model :class:`NumpyArrayTableModel`:
 
      - :meth:`setArrayData`: fill data model and adjust its display format
        based on the data type
@@ -247,7 +54,7 @@ class ArrayTableView(qt.QTableView):
        viewed """
     def __init__(self, parent=None):
         qt.QTableView.__init__(self, parent)
-        self._model = ArrayTableModel.ArrayTableModel(self)
+        self._model = NumpyArrayTableModel(self)
         self.setModel(self._model)
 
     def setArrayData(self, data):
@@ -311,59 +118,82 @@ class ArrayTableWidget(qt.QWidget):
     To select the frame, use :meth:`setFrameIndex`.
     """
     def __init__(self, parent=None):
+        """
+
+        :param parent: parent QWidget
+        :param labels: list of labels for each dimension of the array
+        """
         qt.QTableWidget.__init__(self, parent)
         self.mainLayout = qt.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
 
         self.browserContainer = qt.QWidget(self)
-        self.browserLayout = qt.QVBoxLayout(self.browserContainer)
+        self.browserLayout = qt.QGridLayout(self.browserContainer)
         self.browserLayout.setContentsMargins(0, 0, 0, 0)
         self.browserLayout.setSpacing(0)
 
-        self._widgetList = []
-        for i in range(4):
-            browser = HorizontalSliderWithBrowser(self.browserContainer)
-            self.browserLayout.addWidget(browser)
-            self._widgetList.append(browser)
-            browser.valueChanged.connect(self.browserSlot)
-            if i == 0:
-                browser.setEnabled(False)
-                browser.hide()
+        self._browserLabels = []
+        self._browserWidgets = []
         self.view = ArrayTableView(self)
         self.mainLayout.addWidget(self.browserContainer)
         self.mainLayout.addWidget(self.view)
 
-    def setArrayData(self, data):
-        """Set the data array
+    def setArrayData(self, data, labels=None):
+        """Set the data array. Create one data browser per dimension with
+        its corresponding label. Show all browsers but the last two.
 
         :param data: Numpy array
+        :param labels: list of labels for each dimension of the array, or
+            boolean ``True`` to use default labels ("dimension 0",
+            "dimension 1", ...). `None` to disable labels (default).
         """
         self._array = data
-        n_widgets = len(self._widgetList)
+
+        n_widgets = len(self._browserWidgets)
         n_dimensions = len(self._array.shape)
         if n_widgets > (n_dimensions - 2):
             for i in range((n_dimensions - 2), n_widgets):
-                self._widgetList[i].setEnabled(False)
-                self._widgetList[i].hide()
+                self._browserWidgets[i].setEnabled(False)
+                self._browserWidgets[i].hide()
+                self._browserLabels[i].hide()
         else:
-            for i in range(n_widgets, n_dimensions - 2):
+            for i in range(n_widgets, n_dimensions):
                 browser = HorizontalSliderWithBrowser(self.browserContainer)
-                self.browserLayout.addWidget(browser)
-                self._widgetList.append(browser)
+                self.browserLayout.addWidget(browser, i, 1)
+                self._browserWidgets.append(browser)
                 browser.valueChanged.connect(self.browserSlot)
                 browser.setEnabled(False)
                 browser.hide()
+
+                # default label text might be updated in next loop
+                label = qt.QLabel("Dimension %d" % i, self.browserContainer)
+                self._browserLabels.append(label)
+                self.browserLayout.addWidget(label, i, 0)
+                label.hide()
+
+        n_widgets = len(self._browserWidgets)
         for i in range(n_widgets):
-            browser = self._widgetList[i]
+            label = self._browserLabels[i]
+            browser = self._browserWidgets[i]
             if (i + 2) < n_dimensions:
                 browser.setEnabled(True)
-                if browser.isHidden():
-                    browser.show()
+                browser.show()
+                if labels is not None:
+                    label.show()
+                else:
+                    label.hide()
+
+                if labels in [True, 1]:
+                    label.setText("Dimension %d" % i)
+                elif labels is not None:
+                    label.setText(labels[i])
+
                 browser.setRange(1, self._array.shape[i])
             else:
                 browser.setEnabled(False)
                 browser.hide()
+                label.hide()
         self.view.setArrayData(self._array)
 
     def setFrameIndex(self, index):
@@ -392,12 +222,30 @@ class ArrayTableWidget(qt.QWidget):
 
     def _resetBrowsers(self, perspective):
         """Adjust limits for browsers based on the perspective and the
-        size of the corresponding dimensions. Reset the index to 0"""
+        size of the corresponding dimensions. Reset the index to 0.
+        Update the dimension in the labels.
+
+        :param perspective: Sequence of axes/dimensions numbers (0-based)
+            defining the axes orthogonal to the frame.
+        """
+        # for 3D arrays we can accept an int rather than a 1-tuple
+        if not hasattr(perspective, "__len__"):
+            perspective = [perspective]
+
+        # perspective must be sorted
+        perspective = sorted(perspective)
+
+        # labels should be set for all browsers in setArrayData
+        all_labels = [label.text() for label in self._browserLabels]
+        print(all_labels)
+
         n_dimensions = len(self._array.shape)
         for i in range(n_dimensions - 2):
-            browser = self._widgetList[i]
+            browser = self._browserWidgets[i]
+            label = self._browserLabels[i]
             browser.setRange(1, self._array.shape[perspective[i]])
             browser.setValue(1)
+            label.setText(all_labels[perspective[i]])
 
     def setPerspective(self, perspective):
         """Set the *perspective* by specifying which axes are orthogonal
@@ -406,9 +254,11 @@ class ArrayTableWidget(qt.QWidget):
         For the opposite approach (defining parallel axes), use
         :meth:`setFrameAxes` instead.
 
-        :param perspective: Sequence of axes number (0-based) defining the orthogonal
-            axes. For a n-dimensional array, the sequence length is :math:`n-2`.
-            This sequence **must be sorted** in increasing order.
+        :param perspective: Sequence of unique axes numbers (0-based) defining
+            the orthogonal axes. For a n-dimensional array, the sequence
+            length is :math:`n-2`. The order is of the sequence is not taken
+            into account (the dimensions are displayed in increasing order
+            in the widget).
         """
         self.view.setPerspective(perspective)
         self._resetBrowsers(perspective)
@@ -432,7 +282,7 @@ class ArrayTableWidget(qt.QWidget):
 
     def browserSlot(self, value):
         index = []
-        for browser in self._widgetList:
+        for browser in self._browserWidgets:
             if browser.isEnabled():
                 index.append(browser.value() - 1)
         self.view.setFrameIndex(index)
@@ -456,7 +306,7 @@ def main():
         w.setArrayData(d[0])
     else:
         print("sending 4 * 5 images ")
-        w.setArrayData(d)
+        w.setArrayData(d, labels=True)
     w.show()
     a.exec_()
 
