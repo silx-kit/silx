@@ -72,7 +72,6 @@ else:
     from ..fit.test import suite as test_fit_suite
     from ..hdf5.test import suite as test_hdf5_suite
     from ..widgets.test import suite as test_widgets_suite
-    from ..array.test import suite as test_array_suite
     from .test_qt import suite as test_qt_suite
     from .test_console import suite as test_console_suite
     from .test_icons import suite as test_icons_suite
@@ -86,5 +85,4 @@ else:
         test_suite.addTest(test_widgets_suite())
         test_suite.addTest(test_console_suite())
         test_suite.addTest(test_icons_suite())
-        test_suite.addTest(test_array_suite())
         return test_suite
