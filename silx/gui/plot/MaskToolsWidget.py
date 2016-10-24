@@ -890,6 +890,8 @@ class MaskToolsWidget(qt.QWidget):
                 # Refresh in case origin, scale, z changed
                 self._updatePlotMask()
 
+        self._updateInteractiveMode()
+
     # Handle whole mask operations
 
     def load(self, filename):
