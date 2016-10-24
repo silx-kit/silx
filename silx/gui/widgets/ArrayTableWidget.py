@@ -173,24 +173,19 @@ class ArrayTableWidget(qt.QWidget):
                 label_text = labels[i]
             self._dimensionLabelsText.append(label_text)
 
-        if n_widgets > (n_dimensions - 2):
-            for i in range((n_dimensions - 2), n_widgets):
-                self._browserWidgets[i].setEnabled(False)
-                self._browserWidgets[i].hide()
-                self._browserLabels[i].hide()
-        else:
-            for i in range(n_widgets, n_dimensions):
-                browser = HorizontalSliderWithBrowser(self.browserContainer)
-                self.browserLayout.addWidget(browser, i, 1)
-                self._browserWidgets.append(browser)
-                browser.valueChanged.connect(self.browserSlot)
-                browser.setEnabled(False)
-                browser.hide()
+        # not enough widgets, create new ones (we need n_dim - 2)
+        for i in range(n_widgets, n_dimensions - 2):
+            browser = HorizontalSliderWithBrowser(self.browserContainer)
+            self.browserLayout.addWidget(browser, i, 1)
+            self._browserWidgets.append(browser)
+            browser.valueChanged.connect(self.browserSlot)
+            browser.setEnabled(False)
+            browser.hide()
 
-                label = qt.QLabel(self.browserContainer)
-                self._browserLabels.append(label)
-                self.browserLayout.addWidget(label, i, 0)
-                label.hide()
+            label = qt.QLabel(self.browserContainer)
+            self._browserLabels.append(label)
+            self.browserLayout.addWidget(label, i, 0)
+            label.hide()
 
         n_widgets = len(self._browserWidgets)
         for i in range(n_widgets):
