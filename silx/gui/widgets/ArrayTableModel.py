@@ -227,17 +227,22 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.endResetModel()
 
-    def getData(self):
-        """Return a copy of the numpy array, possibly modified since it
-        was loaded with :meth:`setArrayData`.
+    def getData(self, copy=True):
+        """Return a copy of the data array, or a reference to it
+        if *copy=False* is passed as parameter.
 
-        In case the original shape was modified, to convert 0-D or 1-D data
+        In case the shape was modified, to convert 0-D or 1-D data
         into 2-D data, the original shape is restored in the returned data.
+
+        :param bool copy: If *True* (default), return a copy of the data. If
+            *False*, return a reference.
+        :return: numpy array of data, or reference to original data object
+            if *copy=False*
         """
-        copied_array = numpy.array(self._array, copy=True)
+        data = numpy.array(self._array, copy=copy)
         if not self._array.shape == self._original_shape:
-            copied_array = copied_array.reshape(self._original_shape)
-        return copied_array
+            data = data.reshape(self._original_shape)
+        return data
 
     def setFrameIndex(self, index):
         """Set the active slice index.
