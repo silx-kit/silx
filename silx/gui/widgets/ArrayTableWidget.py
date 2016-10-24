@@ -135,9 +135,8 @@ class ArrayTableWidget(qt.QWidget):
             label = self._browserLabels[i]
             browser = self._browserWidgets[i]
 
-            label.setText(self._dimensionLabelsText[i])
-
             if (i + 2) < n_dimensions:
+                label.setText(self._dimensionLabelsText[i])
                 browser.setRange(1, self._data_shape[i])
                 browser.setEnabled(True)
                 browser.show()
@@ -258,7 +257,7 @@ class ArrayTableWidget(qt.QWidget):
         :return: Numpy array of data, or reference to original data object
             if *copy=False*
         """
-        self.model.getData(copy=copy)
+        return self.model.getData(copy=copy)
 
 
 def main():
