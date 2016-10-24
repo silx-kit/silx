@@ -107,24 +107,33 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         assert len(frame_axes) == 2
         return max(frame_axes)
 
+    def _getIndexTuple(self, table_row, table_col):
+        """Return the n-dimensional index of a value in the original array,
+        based on its row and column indices in the table view
+
+        :param table_row: Row index (0-based) of a table cell
+        :param table_col: Column index (0-based) of a table cell
+        :return: Tuple of indices of the element in the numpy array
+        """
+        # get indices on all orthogonal axes
+        selection = list(self._index)
+        # insert indices on parallel axes
+        selection.insert(self._getRowDim(), table_row)
+        selection.insert(self._getColumnDim(), table_col)
+        return tuple(selection)
+
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
         return self._array.shape[self._getRowDim()]
-        # return self._array.shape[-2]
 
     def columnCount(self, parent_idx=None):
         return self._array.shape[self._getColumnDim()]
-        # return self._array.shape[-1]
 
     def data(self, index, role=qt.Qt.DisplayRole):
         if index.isValid() and role == qt.Qt.DisplayRole:
-            row = index.row()
-            col = index.column()
-            selection = list(self._index)
-            selection.insert(self._getRowDim(), row)
-            selection.insert(self._getColumnDim(), col)
-
-            return self._format % self._array[tuple(selection)]
+            selection = self._getIndexTuple(index.row(),
+                                            index.column())
+            return self._format % self._array[selection]
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
@@ -137,13 +146,53 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
                 return "%d" % section
         return None
 
-    # Public methods
-    def setArrayData(self, data, perspective=None):
-        """Set the data array
+    def flags(self, index):
+        """All cells are editable"""
+        return qt.QAbstractTableModel.flags(self, index) | qt.Qt.ItemIsEditable
 
-        :param data: Numpy array
-        :param int perspective: For a 3-D array, the array dimension acting
-            as index of images, orthogonal to the image
+    def setData(self, index, value, role=None):
+        """When a cell is changed, modify the corresponding value in the array"""
+        if index.isValid() and role == qt.Qt.EditRole:
+            try:
+                # cast value to same type as array
+                v = numpy.asscalar(
+                        numpy.array(value, dtype=self._array.dtype))
+            except ValueError:
+                return False
+
+            selection = self._getIndexTuple(index.row(),
+                                            index.column())
+            self._array[selection] = v
+            self.dataChanged.emit(index, index)
+            return True
+        else:
+            return False
+
+    # Public methods
+    def setArrayData(self, data, perspective=None, copy=True):
+        """Set the data array and the viewing perspective.
+
+        You can set ``copy=False`` if you need more performances, when dealing
+        with a large numpy array. In this case, a simple reference to the data
+        is used to access the data, rather than a copy of the array. Any
+        change to the data model may affect your original data array.
+
+        .. warning::
+
+            If ``copy=False`` is used with a 0-D (scalar) or 1-D array,
+            its shape will be modified to change it into a 2D array.
+
+        :param data: n-dimensional numpy array, or any object that can be
+            converted to a numpy array using ``numpy.array(data)`` (e.g.
+            a nested sequence).
+        :param perspective: See documentation of :meth:`setPerspective`.
+            If None, the default perspective is the list of the first ``n-2``
+            dimensions, to view frames parallel to the last two axes.
+        :param bool copy: If *True* (default), a copy of the array is stored
+            and the original array is not modified if the table is edited.
+            If *False*, then the behavior depends on the data type:
+            if possible (if the original array is a proper numpy array)
+            a reference to the original array is used.
         """
         if qt.qVersion() > "4.6":
             self.beginResetModel()
@@ -152,22 +201,43 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
 
         # ensure data is a numpy array
         if data is None:
-            data = numpy.array([])
-        elif not isinstance(data, numpy.ndarray):
-            data = numpy.array(data)
-        # ensure data is at least 2-dimensional
-        if len(data.shape) < 1:
-            data.shape = (1, 1)
-        elif len(data.shape) < 2:
-            data.shape = (1, data.shape[0])
+            self._array = numpy.array([])
+        else:
+            if not isinstance(data, numpy.ndarray) and not copy:
+                _logger.warning(
+                        "data is not a numpy array. " +
+                        "Param copy=False might have no effect.")
+            self._array = numpy.array(data, copy=copy)
 
-        self._array = data
+        # remember original shape, for :meth:`getData`
+        self._original_shape = self._array.shape
+
+        # ensure data is at least 2-dimensional
+        if len(self._array.shape) < 1:
+            self._array.shape = (1, 1)
+            _logger.warning("modifying shape of 0-D array")
+        elif len(data.shape) < 2:
+            self._array.shape = (1, self._array.shape[0])
+            _logger.warning("modifying shape of 1-D array")
+
         self._index = [0 for _i in range((len(data.shape) - 2))]
         self._perspective = tuple(perspective) if perspective is not None else\
             tuple(range(0, len(self._array.shape) - 2))
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
+
+    def getData(self):
+        """Return a copy of the numpy array, possibly modified since it
+        was loaded with :meth:`setArrayData`.
+
+        In case the original shape was modified, to convert 0-D or 1-D data
+        into 2-D data, the original shape is restored in the returned data.
+        """
+        copied_array = numpy.array(self._array, copy=True)
+        if not self._array.shape == self._original_shape:
+            copied_array = copied_array.reshape(self._original_shape)
+        return copied_array
 
     def setFrameIndex(self, index):
         """Set the active slice index.
