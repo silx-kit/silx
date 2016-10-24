@@ -48,7 +48,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
     slice on all the :math:`n - 2` orthogonal axes.
 
     :param parent: Parent QObject
-    :param data: Numpy array
+    :param data: Numpy array, or object implementing a similar interface
+        (e.g. h5py dataset)
     :param str fmt: Format string for representing numerical values.
         Default is ``"%g"``.
     :param sequence[int] perspective: See documentation
@@ -57,18 +58,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
     def __init__(self, parent=None, data=None, fmt="%g", perspective=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
-        # make sure data is an array (not a scalar, list, or list of lists)
-        if data is None:
-            data = numpy.array([])
-        elif not isinstance(data, numpy.ndarray):
-            data = numpy.array(data)
-        # ensure data is at least 2-dimensional
-        if len(data.shape) < 1:
-            data.shape = (1, 1)
-        elif len(data.shape) < 2:
-            data.shape = (1, data.shape[0])
-
-        self._array = data
+        self._array = None
         """n-dimensional numpy array"""
 
         self._format = fmt
@@ -79,8 +69,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         array, it is an integer.  If the number of dimensions is greater
         than 3, it is a list of indices."""
 
-        self._perspective = tuple(perspective) if perspective is not None else\
-            tuple(range(0, len(self._array.shape) - 2))
+        self._perspective = None
         """Sequence of dimensions orthogonal to the frame to be viewed.
         For an array with ``n`` dimensions, this is a sequence of ``n-2``
         integers. the first dimension is numbered ``0``.
@@ -89,6 +78,9 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         dimensions.
         For example, for a 5-D array, the default perspective is ``(0, 1, 2)``
         and the default frames axes are ``(3, 4)``."""
+
+        # set _data and _perspective
+        self.setArrayData(data, perspective=perspective)
 
     def _getRowDim(self):
         """The row axis is the first axis parallel to the frames
@@ -147,7 +139,10 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         return None
 
     def flags(self, index):
-        """All cells are editable"""
+        """All cells are editable, if possible"""
+        if not self._editable:
+            # case of h5py dataset open in read-only mode
+            return qt.QAbstractTableModel.flags(self, index)
         return qt.QAbstractTableModel.flags(self, index) | qt.Qt.ItemIsEditable
 
     def setData(self, index, value, role=None):
@@ -169,7 +164,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             return False
 
     # Public methods
-    def setArrayData(self, data, perspective=None, copy=True):
+    def setArrayData(self, data, fmt=None, perspective=None, copy=True):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
@@ -180,11 +175,13 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         .. warning::
 
             If ``copy=False`` is used with a 0-D (scalar) or 1-D array,
-            its shape will be modified to change it into a 2D array.
+            the array shape will be modified to change it into a 2D array.
 
         :param data: n-dimensional numpy array, or any object that can be
             converted to a numpy array using ``numpy.array(data)`` (e.g.
             a nested sequence).
+        :param fmt: Format string for representing numerical values.
+            By default, use the format set when initializing this model.
         :param perspective: See documentation of :meth:`setPerspective`.
             If None, the default perspective is the list of the first ``n-2``
             dimensions, to view frames parallel to the last two axes.
@@ -198,6 +195,19 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             self.beginResetModel()
         else:
             self.reset()
+
+        self._editable = True
+        if hasattr(data, "file"):
+            if hasattr(data.file, "mode"):
+                self._is_h5py_dataset = True
+                if data.file.mode == "r" and not copy:
+                    _logger.warning(
+                            "Data is an h5py dataset open in read-only " +
+                            "mode. Editing is disabled.")
+                    self._editable = False
+
+        if fmt is not None:
+            self._format = fmt
 
         # ensure data is a numpy array
         if data is None:
