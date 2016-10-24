@@ -603,6 +603,40 @@ class TestPlotCurveLog(_PlotWidgetTest, ParametricTestCase):
                            replace=False, resetzoom=True,
                            color='green', linestyle="-", symbol='o')
 
+    def testPlotCurveErrorLogXY(self):
+        self.plot.setXAxisLogarithmic(True)
+        self.plot.setYAxisLogarithmic(True)
+
+        # Every second error leads to negative number
+        errors = numpy.ones_like(self.xData)
+        errors[::2] = self.xData[::2] + 1
+
+        tests = [  # name, xerror, yerror
+            ('xerror=3', 3, None),
+            ('xerror=N array', errors, None),
+            ('xerror=Nx1 array', errors.reshape(len(errors), 1), None),
+            ('xerror=2xN array', numpy.array((errors, errors)), None),
+            ('yerror=6', None, 6),
+            ('yerror=N array', None, errors ** 2),
+            ('yerror=Nx1 array', None, (errors ** 2).reshape(len(errors), 1)),
+            ('yerror=2xN array', None, numpy.array((errors, errors)) ** 2),
+        ]
+
+        for name, xError, yError in tests:
+            with self.subTest(name):
+                self.plot.setGraphTitle(name)
+                self.plot.addCurve(self.xData, self.yData,
+                                   legend=name,
+                                   xerror=xError, yerror=yError,
+                                   replace=False, resetzoom=True,
+                                   color='green', linestyle="-", symbol='o')
+
+                self.qapp.processEvents()
+
+                self.plot.clear()
+                self.plot.resetZoom()
+                self.qapp.processEvents()
+
     def testPlotCurveToggleLog(self):
         """Add a curve with negative data and toggle log axis"""
         arange = numpy.arange(1000) + 1
