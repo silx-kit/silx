@@ -635,13 +635,13 @@ class Plot(object):
                     self._setDirtyPlot()
 
         # Filter-out values <= 0
-        xFiltered, yFiltered, color, xerror, yerror = self._logFilterData(
-            x, y, params['color'], params['xerror'], params['yerror'],
+        xFiltered, yFiltered, xerror, yerror = self._logFilterData(
+            x, y, params['xerror'], params['yerror'],
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
         if len(xFiltered) and not self.isCurveHidden(legend):
             handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                            color=color,
+                                            color=params['color'],
                                             symbol=params['symbol'],
                                             linestyle=params['linestyle'],
                                             linewidth=params['linewidth'],
@@ -2393,54 +2393,35 @@ class Plot(object):
     # Internal
 
     @staticmethod
-    def _logFilterData(x, y, color, xerror, yerror, xLog, yLog):
+    def _logFilterData(x, y, xerror, yerror, xLog, yLog):
         """Filter out values with x or y <= 0 on log axes
 
         All arrays are expected to have the same length.
 
         :param x: The x coords.
         :param y: The y coords.
-        :param color: The addCurve color arg (might not be an array).
         :param xerror: The addCuve xerror arg (might not be an array).
         :param yerror: The addCuve yerror arg (might not be an array).
         :param bool xLog: True to filter arrays according to X coords.
         :param bool yLog: True to filter arrays according to Y coords.
         :return: The filter arrays or unchanged object if
-        :rtype: (x, y, color, xerror, yerror)
+        :rtype: (x, y, xerror, yerror)
         """
-        if xLog and yLog:
-            idx = numpy.nonzero((x > 0) & (y > 0))[0]
-        elif yLog:
-            idx = numpy.nonzero(y > 0)[0]
-        elif xLog:
-            idx = numpy.nonzero(x > 0)[0]
-        else:
-            return x, y, color, xerror, yerror
+        # TODO: handle xerror, yerror, check all negative
+        if xLog or yLog:
+            xclipped = (x <= 0) if xLog else False
+            yclipped = (y <= 0) if yLog else False
+            clipped = numpy.logical_or(xclipped, yclipped)
 
-        x = numpy.take(x, idx)
-        y = numpy.take(y, idx)
+            if numpy.any(clipped):
+                # copy to keep original array and convert to float
+                x = numpy.array(x, copy=True, dtype=numpy.float64)
+                x[clipped] = numpy.nan
+                y = numpy.array(y, copy=True, dtype=numpy.float64)
+                y[clipped] = numpy.nan
 
-        if isinstance(color, numpy.ndarray) and len(color) == len(x):
-            # Nx(3 or 4) array (do not change RGBA color defined as an array)
-            color = numpy.take(color, idx, axis=0)
 
-        if isinstance(xerror, numpy.ndarray):
-            if len(xerror) == len(x):
-                # N or Nx1 array
-                xerror = numpy.take(xerror, idx, axis=0)
-            elif len(xerror) == 2 and len(xerror.shape) == 2:
-                # 2xN array (+/- error)
-                xerror = xerror[:, idx]
-
-        if isinstance(yerror, numpy.ndarray):
-            if len(yerror) == len(y):
-                # N or Nx1 array
-                yerror = numpy.take(yerror, idx, axis=0)
-            elif len(yerror) == 2 and len(yerror.shape) == 2:
-                # 2xN array (+/- error)
-                yerror = yerror[:, idx]
-
-        return x, y, color, xerror, yerror
+        return x, y, xerror, yerror
 
     def _update(self):
         _logger.debug("_update called")
