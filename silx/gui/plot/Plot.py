@@ -2393,6 +2393,52 @@ class Plot(object):
     # Internal
 
     @staticmethod
+    def _logFilterError(value, error):
+        """Filter/convert error values if they go <= 0.
+
+        Replace error leading to negative values by nan
+
+        :param numpy.ndarray value: 1D array of values
+        :param numpy.ndarray error:
+            Array of errors: scalar, N, Nx1 or 2xN or None.
+        :return: Filtered error so error bars are never negative
+        """
+        if error is not None:
+            # Convert Nx1 to N
+            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
+                error = numpy.ravel(error)
+
+            # Supports error being scalar, N or 2xN array
+            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
+
+            if numpy.any(errorClipped):  # Need filtering
+
+                # expand errorbars to 2xN
+                if error.size == 1:  # Scalar
+                    error = numpy.full(
+                        (2, len(value)), error, dtype=numpy.float)
+
+                elif error.ndim == 1:  # N array
+                    newError = numpy.empty((2, len(value)),
+                                            dtype=numpy.float)
+                    newError[0, :] = error
+                    newError[1, :] = error
+                    error = newError
+
+                elif error.size == 2 * len(value):  # 2xN array
+                    error = numpy.array(
+                        error, copy=True, dtype=numpy.float)
+
+                else:
+                    _logger.error("Unhandled error array")
+                    return error
+
+                error[0, errorClipped] = numpy.nan
+
+        return error
+
+
+    @staticmethod
     def _logFilterData(x, y, xerror, yerror, xLog, yLog):
         """Filter out values with x or y <= 0 on log axes
 
@@ -2400,14 +2446,13 @@ class Plot(object):
 
         :param x: The x coords.
         :param y: The y coords.
-        :param xerror: The addCuve xerror arg (might not be an array).
-        :param yerror: The addCuve yerror arg (might not be an array).
+        :param xerror: The addCuve xerror arg (None or numpy array).
+        :param yerror: The addCuve yerror arg (None or numpy array).
         :param bool xLog: True to filter arrays according to X coords.
         :param bool yLog: True to filter arrays according to Y coords.
         :return: The filter arrays or unchanged object if
         :rtype: (x, y, xerror, yerror)
         """
-        # TODO: handle xerror, yerror, check all negative
         if xLog or yLog:
             xclipped = (x <= 0) if xLog else False
             yclipped = (y <= 0) if yLog else False
@@ -2415,11 +2460,16 @@ class Plot(object):
 
             if numpy.any(clipped):
                 # copy to keep original array and convert to float
-                x = numpy.array(x, copy=True, dtype=numpy.float64)
+                x = numpy.array(x, copy=True, dtype=numpy.float)
                 x[clipped] = numpy.nan
-                y = numpy.array(y, copy=True, dtype=numpy.float64)
+                y = numpy.array(y, copy=True, dtype=numpy.float)
                 y[clipped] = numpy.nan
 
+                if xLog and xerror is not None:
+                    xerror = self._logFilterError(x, xerror)
+
+                if yLog and yerror is not None:
+                    yerror = self._logFilterError(y, yerror)
 
         return x, y, xerror, yerror
 
