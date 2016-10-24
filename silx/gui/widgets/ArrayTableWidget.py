@@ -46,66 +46,6 @@ class HorizontalSpacer(qt.QWidget):
 # TODO: color the cells according to the value?
 # (subclass QItemDelegate, overload its paint method, then
 # table.setItemDelegate(...))
-class ArrayTableView(qt.QTableView):
-    """QTableView with an additional methods to load numpy arrays
-    into the model :class:`NumpyArrayTableModel`:
-
-     - :meth:`setArrayData`: fill data model and adjust its display format
-       based on the data type
-     - :meth:`setFrameIndex`: select index of slice (image) to be
-       viewed """
-    def __init__(self, parent=None):
-        qt.QTableView.__init__(self, parent)
-        self._model = NumpyArrayTableModel(self)
-        self.setModel(self._model)
-
-    def setArrayData(self, data):
-        """Fill data model and adjust its display format
-        based on the data type
-
-        :param data: Numpy array
-        """
-        t = "%s" % numpy.array(data).dtype
-        if '|' in t:
-            fmt = "%s"
-        else:
-            fmt = "%g"
-        self._model.setFormat(fmt)
-        self._model.setArrayData(data)
-        # some linux distributions need this call
-        self.setModel(self._model)
-
-    def setFrameIndex(self, index):
-        """Set the active slice/image index in the n-dimensional array
-
-        :param index: Sequence of indices defining the active data slice in
-            a n-dimensional array. The sequence length is :math:`n-2`
-        :raise: IndexError if any index in the index sequence is out of bound
-            on its respective axis.
-        """
-        self._model.setFrameIndex(index)
-
-    def setPerspective(self, perspective):
-        """Set the *perspective* by specifying which axes are orthogonal
-        to the frame.
-
-        :param perspective: Sequence of axes number (0-based) defining the orthogonal
-            axes. For a n-dimensional array, the sequence length is :math:`n-2`
-        """
-        self._model.setPerspective(perspective)
-
-    def setFrameAxes(self, row_axis, col_axis):
-        """Set the *perspective* by specifying which axes are parallel
-        to the frame.
-
-        :param int row_axis: Index (0-based) of the first dimension used as a frame
-            axis
-        :param int col_axis: Index (0-based) of the 2nd dimension used as a frame
-            axis
-        """
-        self._model.setFrameAxes(row_axis, col_axis)
-
-
 class ArrayTableWidget(qt.QWidget):
     """This widget is designed to display data of 2D frames (images, slices)
     in a table view. The widget can load any n-dimensional array, and display
@@ -143,9 +83,12 @@ class ArrayTableWidget(qt.QWidget):
         self._browserWidgets = []
         """List of HorizontalSliderWithBrowser widgets."""
 
-        self.view = ArrayTableView(self)
+        self.view = qt.QTableView(self)
         self.mainLayout.addWidget(self.browserContainer)
         self.mainLayout.addWidget(self.view)
+
+        self.model = NumpyArrayTableModel(self)
+        self.view.setModel(self.model)
 
     def setArrayData(self, data, labels=None):
         """Set the data array. Update frame browsers and labels.
@@ -207,7 +150,16 @@ class ArrayTableWidget(qt.QWidget):
                 browser.hide()
                 label.hide()
 
-        self.view.setArrayData(data)
+        # set model
+        t = "%s" % numpy.array(data).dtype
+        if '|' in t:
+            fmt = "%s"
+        else:
+            fmt = "%g"
+        self.model.setFormat(fmt)
+        self.model.setArrayData(data)
+        # some linux distributions need this call
+        self.view.setModel(self.model)
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
@@ -231,7 +183,7 @@ class ArrayTableWidget(qt.QWidget):
         :raise: IndexError if any index in the index sequence is out of bound
             on its respective axis.
         """
-        self.view.setFrameIndex(index)
+        self.model.setFrameIndex(index)
 
     def _resetBrowsers(self, perspective):
         """Adjust limits for browsers based on the perspective and the
@@ -269,7 +221,7 @@ class ArrayTableWidget(qt.QWidget):
             into account (the dimensions are displayed in increasing order
             in the widget).
         """
-        self.view.setPerspective(perspective)
+        self.model.setPerspective(perspective)
         self._resetBrowsers(perspective)
 
     def setFrameAxes(self, row_axis, col_axis):
@@ -284,7 +236,7 @@ class ArrayTableWidget(qt.QWidget):
         :param int col_axis: Index (0-based) of the 2nd dimension used as a frame
             axis
         """
-        self.view.setFrameAxes(row_axis, col_axis)
+        self.model.setFrameAxes(row_axis, col_axis)
         n_dimensions = len(self._data_shape)
         perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
         self._resetBrowsers(perspective)
@@ -294,8 +246,19 @@ class ArrayTableWidget(qt.QWidget):
         for browser in self._browserWidgets:
             if browser.isEnabled():
                 index.append(browser.value() - 1)
-        self.view.setFrameIndex(index)
+        self.setFrameIndex(index)
         self.view.reset()
+
+    def getData(self, copy=True):
+        """Return a copy of the data array, or a reference to it if
+        *copy=False* is passed as parameter.
+
+        :param bool copy: If *True* (default), return a copy of the data. If
+            *False*, return a reference.
+        :return: Numpy array of data, or reference to original data object
+            if *copy=False*
+        """
+        self.model.getData(copy=copy)
 
 
 def main():
