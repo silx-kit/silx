@@ -64,10 +64,9 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         self._format = fmt
         """Format string (default "%g")"""
 
-        self._index = [0 for _i in range((len(data.shape) - 2))]
-        """This attribute stores the slice index. In case _array is a 3D
-        array, it is an integer.  If the number of dimensions is greater
-        than 3, it is a list of indices."""
+        self._index = None
+        """This attribute stores the slice index, as a list of indices
+        where the frame intersects orthogonal axis."""
 
         self._perspective = None
         """Sequence of dimensions orthogonal to the frame to be viewed.
@@ -226,11 +225,11 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         if len(self._array.shape) < 1:
             self._array.shape = (1, 1)
             _logger.warning("modifying shape of 0-D array")
-        elif len(data.shape) < 2:
+        elif len(self._array.shape) < 2:
             self._array.shape = (1, self._array.shape[0])
             _logger.warning("modifying shape of 1-D array")
 
-        self._index = [0 for _i in range((len(data.shape) - 2))]
+        self._index = [0 for _i in range((len(self._array.shape) - 2))]
         self._perspective = tuple(perspective) if perspective is not None else\
             tuple(range(0, len(self._array.shape) - 2))
 

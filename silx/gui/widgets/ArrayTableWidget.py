@@ -25,6 +25,8 @@
 """This module defines a widget designed to display 2D frames (images, slices)
 in a numpy array :class:`ArrayTableWidget`.
 """
+import numpy
+
 from silx.gui import qt
 from .ArrayTableModel import NumpyArrayTableModel
 from .FrameBrowser import HorizontalSliderWithBrowser
@@ -63,7 +65,7 @@ class ArrayTableView(qt.QTableView):
 
         :param data: Numpy array
         """
-        t = "%s" % data.dtype
+        t = "%s" % numpy.array(data).dtype
         if '|' in t:
             fmt = "%s"
         else:
@@ -148,15 +150,17 @@ class ArrayTableWidget(qt.QWidget):
     def setArrayData(self, data, labels=None):
         """Set the data array. Update frame browsers and labels.
 
-        :param data: Numpy array
+        :param data: Numpy array or similar object (e.g. nested sequence,
+            h5py dataset...)
         :param labels: list of labels for each dimension of the array, or
             boolean ``True`` to use default labels ("dimension 0",
             "dimension 1", ...). `None` to disable labels (default).
         """
-        self._array = data
+        data_as_array = numpy.array(data)
+        self._data_shape = data_as_array.shape
 
         n_widgets = len(self._browserWidgets)
-        n_dimensions = len(self._array.shape)
+        n_dimensions = len(self._data_shape)
 
         # Reset text of labels
         self._dimensionLabelsText = []
@@ -196,7 +200,7 @@ class ArrayTableWidget(qt.QWidget):
             label.setText(self._dimensionLabelsText[i])
 
             if (i + 2) < n_dimensions:
-                browser.setRange(1, self._array.shape[i])
+                browser.setRange(1, self._data_shape[i])
                 browser.setEnabled(True)
                 browser.show()
                 if labels is not None:
@@ -208,7 +212,7 @@ class ArrayTableWidget(qt.QWidget):
                 browser.hide()
                 label.hide()
 
-        self.view.setArrayData(self._array)
+        self.view.setArrayData(data)
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
@@ -249,11 +253,11 @@ class ArrayTableWidget(qt.QWidget):
         # perspective must be sorted
         perspective = sorted(perspective)
 
-        n_dimensions = len(self._array.shape)
+        n_dimensions = len(self._data_shape)
         for i in range(n_dimensions - 2):
             browser = self._browserWidgets[i]
             label = self._browserLabels[i]
-            browser.setRange(1, self._array.shape[perspective[i]])
+            browser.setRange(1, self._data_shape[perspective[i]])
             browser.setValue(1)
             label.setText(self._dimensionLabelsText[perspective[i]])
 
@@ -286,7 +290,7 @@ class ArrayTableWidget(qt.QWidget):
             axis
         """
         self.view.setFrameAxes(row_axis, col_axis)
-        n_dimensions = len(self._array.shape)
+        n_dimensions = len(self._data_shape)
         perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
         self._resetBrowsers(perspective)
 
