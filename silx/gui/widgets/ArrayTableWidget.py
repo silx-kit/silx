@@ -141,7 +141,7 @@ class ArrayTableWidget(qt.QWidget):
 
             if (i + 2) < n_dimensions:
                 label.setText(self._dimensionLabelsText[i])
-                browser.setRange(1, self._data_shape[i])
+                browser.setRange(0, self._data_shape[i] - 1)
                 browser.setEnabled(True)
                 browser.show()
                 if labels is not None:
@@ -248,7 +248,7 @@ class ArrayTableWidget(qt.QWidget):
         index = []
         for browser in self._browserWidgets:
             if browser.isEnabled():
-                index.append(browser.value() - 1)
+                index.append(browser.value())
         self.setFrameIndex(index)
         self.view.reset()
 

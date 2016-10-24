@@ -68,9 +68,9 @@ class FrameBrowser(qt.QWidget):
         self.previousButton.setIcon(icon_previous)
         self.lineEdit = qt.QLineEdit(self)
         self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % n))
-        validator = qt.QIntValidator(1, n, self.lineEdit)
-        self.lineEdit.setText("1")
-        self._oldIndex = 0
+        validator = qt.QIntValidator(0, n-1, self.lineEdit)
+        self.lineEdit.setText("0")
+        self._index = 0
         """0-based index"""
         self.lineEdit.setValidator(validator)
         self.label = qt.QLabel(self)
@@ -102,14 +102,14 @@ class FrameBrowser(qt.QWidget):
 
     def _previousClicked(self):
         """Select previous frame number"""
-        if self._oldIndex >= self.lineEdit.validator().bottom():
-            self.lineEdit.setText("%d" % self._oldIndex)
+        if self._index > self.lineEdit.validator().bottom():
+            self.lineEdit.setText("%d" % (self._index - 1))
             self._textChangedSlot()
 
     def _nextClicked(self):
         """Select next frame number"""
-        if self._oldIndex < (self.lineEdit.validator().top() - 1):
-            self.lineEdit.setText("%d" % (self._oldIndex + 2))     # why +2?
+        if self._index < (self.lineEdit.validator().top()):
+            self.lineEdit.setText("%d" % (self._index + 1))
             self._textChangedSlot()
 
     def _lastClicked(self):
@@ -121,50 +121,57 @@ class FrameBrowser(qt.QWidget):
         """Select frame number typed in the line edit widget"""
         txt = self.lineEdit.text()
         if not len(txt):
-            self.lineEdit.setText("%d" % (self._oldIndex + 1))
+            self.lineEdit.setText("%d" % self._index)
             return
-        new_value = int(txt) - 1
-        if new_value == self._oldIndex:
+        new_value = int(txt)
+        if new_value == self._index:
             return
         ddict = {
             "event": "indexChanged",
-            "old": self._oldIndex + 1,
-            "new": new_value + 1,
+            "old": self._index,
+            "new": new_value,
             "id": id(self)
         }
-        self._oldIndex = new_value
+        self._index = new_value
         self.sigIndexChanged.emit(ddict)
 
     def setRange(self, first, last):
-        """Set minimum and maximum frame numbers"""
+        """Set minimum and maximum frame indices
+
+        :param first: Minimum frame index
+        :param last: Maximum frame index"""
         return self.setLimits(first, last)
 
     def setLimits(self, first, last):
-        """Set minimum and maximum frame numbers"""
+        """Set minimum and maximum frame indices"""
         bottom = min(first, last)
         top = max(first, last)
         self.lineEdit.validator().setTop(top)
         self.lineEdit.validator().setBottom(bottom)
-        self._oldIndex = bottom - 1
-        self.lineEdit.setText("%d" % (self._oldIndex + 1))
-        self.label.setText(" limits = %d, %d" % (bottom, top))
+        self._index = bottom
+        self.lineEdit.setText("%d" % self._index)
+        self.label.setText(" limits: %d, %d" % (bottom, top))
 
     def setNFrames(self, nframes):
-        """Set minimum=1 and maximum frame numbers"""
-        bottom = 1
-        top = nframes
+        """Set minimum=1 and maximum=nframes frame numbers.
+
+        :param int nframes: Number of frames"""
+        bottom = 0
+        top = nframes - 1
         self.lineEdit.validator().setTop(top)
         self.lineEdit.validator().setBottom(bottom)
-        self._oldIndex = bottom - 1
-        self.lineEdit.setText("%d" % (self._oldIndex + 1))
-        self.label.setText(" of %d" % top)
+        self._index = bottom
+        self.lineEdit.setText("%d" % self._index)
+        # display 1-based index in label
+        self.label.setText("%d of %d" % (self._index + 1, top + 1))
 
     def getCurrentIndex(self):
-        """Get 1-based index"""
-        return self._oldIndex + 1
+        """Get 0-based index
+        """
+        return self._index
 
     def setValue(self, value):
-        """Set 1-based frame index
+        """Set 0-based frame index
 
         :param int value: Frame number"""
         self.lineEdit.setText("%d" % value)
@@ -199,19 +206,13 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         """Set minimum frame number"""
         self._slider.setMinimum(value)
         maximum = self._slider.maximum()
-        if value == 1:
-            self._browser.setNFrames(maximum)
-        else:
-            self._browser.setRange(value, maximum)
+        self._browser.setRange(value, maximum)
 
     def setMaximum(self, value):
         """Set maximum frame number"""
         self._slider.setMaximum(value)
         minimum = self._slider.minimum()
-        if minimum == 1:
-            self._browser.setNFrames(value)
-        else:
-            self._browser.setRange(minimum, value)
+        self._browser.setRange(minimum, value)
 
     def setRange(self, first, last):
         """Set minimum/maximum frame numbers"""

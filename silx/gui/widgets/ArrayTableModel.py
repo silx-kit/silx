@@ -290,7 +290,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             for i_, idx in enumerate(index):
                 if not 0 <= idx < shape[self._perspective[i_]]:
                     raise IndexError("Invalid index %d " % idx +
-                                     "higher than %d" % shape[i_])
+                                     "not in range 0-%d" % (shape[i_] - 1))
             self._index = index
 
         if qt.qVersion() > "4.6":
