@@ -200,6 +200,7 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             if hasattr(data.file, "mode"):
                 self._is_h5py_dataset = True
                 if data.file.mode == "r" and not copy:
+
                     _logger.warning(
                             "Data is an h5py dataset open in read-only " +
                             "mode. Editing is disabled.")

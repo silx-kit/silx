@@ -90,7 +90,7 @@ class ArrayTableWidget(qt.QWidget):
         self.model = NumpyArrayTableModel(self)
         self.view.setModel(self.model)
 
-    def setArrayData(self, data, labels=None):
+    def setArrayData(self, data, labels=None, copy=True):
         """Set the data array. Update frame browsers and labels.
 
         :param data: Numpy array or similar object (e.g. nested sequence,
@@ -98,6 +98,10 @@ class ArrayTableWidget(qt.QWidget):
         :param labels: list of labels for each dimension of the array, or
             boolean ``True`` to use default labels ("dimension 0",
             "dimension 1", ...). `None` to disable labels (default).
+        :param bool copy: If *True*, store a copy of *data* in the model. If
+            *False*, store a reference to *data* if possible (only possible if
+            *data* is a proper numpy array or an object that implements the
+            same methods).
         """
         data_as_array = numpy.array(data)
         self._data_shape = data_as_array.shape
@@ -156,7 +160,7 @@ class ArrayTableWidget(qt.QWidget):
         else:
             fmt = "%g"
         self.model.setFormat(fmt)
-        self.model.setArrayData(data)
+        self.model.setArrayData(data, copy=copy)
         # some linux distributions need this call
         self.view.setModel(self.model)
 

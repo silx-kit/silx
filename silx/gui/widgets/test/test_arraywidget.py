@@ -120,11 +120,13 @@ class TestH5pyArrayWidget(TestCaseQt):
     def _readAndSetData(self, mode):
         h5f = h5py.File(self.h5_fname, mode)
         a = h5f["my_array"]
-        self.aw.setArrayData(a)
+        self.aw.setArrayData(a, copy=False)
 
     def testReadOnly(self):
+        """Open H5 dataset in read-only mode, use a reference and not
+        a copy. Ensure the model is not editable."""
         self._readAndSetData(mode="r")
-        b = self.aw.getData(copy=True)
+        b = self.aw.getData(copy=False)
         self.assertTrue(numpy.array_equal(self.data, b))
 
         # model must not be editable
