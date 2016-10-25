@@ -4,14 +4,10 @@
 ArrayTableWidget
 ================
 
-:class:`ArrayTableWidget` is a widget designed to visualize arrays
-numpy arrays or h5py datasets).
+:class:`ArrayTableWidget` is a widget designed to visualize numpy arrays or h5py datasets.
 
 3D example
 ----------
-
-:class:`ArrayTableWidget` is a widget designed to visualize arrays
-numpy arrays or h5py datasets).
 
 Let's look at a simple usage example::
     >>> from silx.gui import qt
@@ -40,10 +36,10 @@ The parameter ``labels=True`` of :meth:`setArrayData` causes the browser to be l
 *Dimension 0*.
 
 If we want to see slices in different perspective, we can use
-:meth:`ArrayTableWidget.setPerspective`. The perspective is defined the list
+:meth:`ArrayTableWidget.setPerspective`. The perspective is defined as the list
 of dimensions that are not represented in the frame, orthogonal to it.
-For a 3D array, there 3 possible perspectives: *[0, ]* (the default perspective),
- *[1, ]* and *[2, ]*.
+For a 3D array, there are 3 possible perspectives: *[0, ]* (the default perspective),
+*[1, ]* and *[2, ]*.
 
 Lets change the perspective::
     >>> w.setPerspective([1])
@@ -96,7 +92,7 @@ Fortunately, you can use the opposite approach of defining the two axes
 parallel to the frame, using :meth:`ArrayTableWidget.setFrameAxes`::
    >>> w.setFrameAxes(row_axis=1, col_axis=3)
 
-This achieves the exact same result.
+This achieves the exact same result as ``w.setPerspective([0, 2, 4])``.
 
 .. note::
 
@@ -105,6 +101,9 @@ This achieves the exact same result.
     highest one with the current implementation.
     So setting ``w.setFrameAxes(row_axis=3, col_axis=1)`` would not modify
     the table axes.
+
+    For the same reason, the order of the dimensions given as parameter to
+    :meth:`setPerspective` is not significant.
 
 To select a frame programmaticaly, you can again use :meth:`setFrameIndex`.
 This time you must provide 3 unique indices::
@@ -121,7 +120,7 @@ Editing the data
 By default, the data displayed in the table view can be edited. If you modify
 a cell with a valid value, it will be modified in the internal data model.
 
-You can get the modified data using::
+You can get the modified data with the following line::
     >>> newdata = w.getData()
 
 This will give you a copy of the data, by default.
@@ -138,7 +137,7 @@ for internal storage. This ensures that the original data object is not
 modified when a cell of the table is changed interactively in the widget.
 
 This behavior has a negative impact on performances, especially for large data arrays.
-To avoid this, you can explicitely disable the copy when setting the data::
+To avoid this, you can explicitely disable the copy operation when setting the data::
     >>> w.setArrayData(array, copy=False)
 
 The internal data array used by the widget is then a reference
