@@ -89,6 +89,29 @@ class TestNumpyArrayWidget(TestCaseQt):
         self.assertTrue(
                 self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
+    def testReferenceReturned(self):
+        """when setting the data with copy=False and
+        retrieving it with getData(copy=False), we should recover
+        the same original object.
+
+        This only works for array with at least 2D. For 1D and 0D
+        arrays, a view is created at some point, which  in the case
+        of an hdf5 dataset creates a copy."""
+        # n-D (n >=2)
+        a0 = numpy.reshape(numpy.linspace(0.213, 1.234, 1000),
+                           (10, 10, 10))
+        self.aw.setArrayData(a0, copy=False)
+        a1 = self.aw.getData(copy=False)
+
+        self.assertIs(a0, a1)
+
+        # 1D: we must compare the base attribute of the returned view
+        # This ensures the memory is shared.
+        b0 = numpy.linspace(0.213, 1.234, 1000)
+        self.aw.setArrayData(b0, copy=False)
+        b1 = self.aw.getData(copy=False)
+        self.assertIs(b0, b1.base)
+
 
 @unittest.skipIf(h5py is None, "Could not import h5py")
 class TestH5pyArrayWidget(TestCaseQt):
@@ -105,6 +128,8 @@ class TestH5pyArrayWidget(TestCaseQt):
         self.h5_fname = os.path.join(self.tempdir, "array.h5")
         h5f = h5py.File(self.h5_fname)
         h5f["my_array"] = self.data
+        h5f["my_scalar"] = 3.14
+        h5f["my_1D_array"] = numpy.array(numpy.arange(1000))
         h5f.close()
 
     def tearDown(self):
@@ -117,32 +142,101 @@ class TestH5pyArrayWidget(TestCaseQt):
         self.aw.show()
         self.qWaitForWindowExposed(self.aw)
 
-    def _readAndSetData(self, mode):
-        h5f = h5py.File(self.h5_fname, mode)
-        a = h5f["my_array"]
-        self.aw.setArrayData(a, copy=False)
-
     def testReadOnly(self):
-        """Open H5 dataset in read-only mode, use a reference and not
-        a copy. Ensure the model is not editable."""
-        self._readAndSetData(mode="r")
-        b = self.aw.getData(copy=False)
+        """Open H5 dataset in read-only mode, ensure the model is not editable."""
+        h5f = h5py.File(self.h5_fname, "r")
+        a = h5f["my_array"]
+        # ArrayTableModel relies on following condition
+        self.assertTrue(a.file.mode == "r")
+
+        self.aw.setArrayData(a, copy=False, editable=True)
+
+        self.assertIsInstance(a, h5py.Dataset)   # simple sanity check
+        # internal representation must be a reference to original data (copy=False)
+        self.assertIsInstance(self.aw.model._array, h5py.Dataset)
+        self.assertTrue(self.aw.model._array.file.mode == "r")
+
+        b = self.aw.getData()
         self.assertTrue(numpy.array_equal(self.data, b))
 
-        # model must not be editable
+        # model must have detected read-only dataset and disabled editing
+        self.assertFalse(self.aw.model._editable)
         idx = self.aw.model.createIndex(0, 0)
         self.assertFalse(
-                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+                 self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+
+        # force editing read-only datasets raises IOError
+        self.assertRaises(IOError, self.aw.model.setData,
+                          idx, 123.4, role=qt.Qt.EditRole)
+        h5f.close()
 
     def testReadWrite(self):
-        self._readAndSetData(mode="r+")
-        b = self.aw.getData(copy=True)
+        h5f = h5py.File(self.h5_fname, "r+")
+        a = h5f["my_array"]
+        self.assertTrue(a.file.mode == "r+")
+
+        self.aw.setArrayData(a, copy=False, editable=True)
+        b = self.aw.getData(copy=False)
         self.assertTrue(numpy.array_equal(self.data, b))
 
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
         self.assertTrue(
                 self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        h5f.close()
+
+    def testSetData0D(self):
+        h5f = h5py.File(self.h5_fname, "r+")
+        a = h5f["my_scalar"]
+        self.aw.setArrayData(a)
+        b = self.aw.getData(copy=True)
+
+        # original data is 0-D (scalar)
+        self.assertTrue(len(a.shape) == 0)
+        # internal model data is 2D
+        self.assertTrue(len(self.aw.model._array.shape) == 2)
+        # original shape is preserved in returned array
+        self.assertTrue(len(a.shape) == len(b.shape))
+
+        self.assertTrue(numpy.array_equal(a, b))
+
+        h5f.close()
+
+    def testSetData1D(self):
+        h5f = h5py.File(self.h5_fname, "r+")
+        a = h5f["my_1D_array"]
+        self.aw.setArrayData(a)
+        b = self.aw.getData(copy=True)
+
+
+        # original data is 1-D
+        self.assertTrue(len(a.shape) == 1)
+        # internal model data is 2D
+        self.assertTrue(len(self.aw.model._array.shape) == 2)
+        # original shape is preserved in returned array
+        self.assertTrue(len(a.shape) == len(b.shape))
+
+        self.assertTrue(numpy.array_equal(a, b))
+
+        h5f.close()
+
+    def testReferenceReturned(self):
+        """when setting the data with copy=False and
+        retrieving it with getData(copy=False), we should recover
+        the same original object.
+
+        This only works for array with at least 2D. For 1D and 0D
+        arrays, a view is created at some point, which  in the case
+        of an hdf5 dataset creates a copy."""
+        h5f = h5py.File(self.h5_fname, "r+")
+        a0 = h5f["my_array"]
+
+        self.aw.setArrayData(a0, copy=False)
+        a1 = self.aw.getData(copy=False)
+
+        self.assertIs(a0, a1)
+
+        h5f.close()
 
 
 def suite():

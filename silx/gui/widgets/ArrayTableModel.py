@@ -249,8 +249,8 @@ class ArrayTableModel(qt.QAbstractTableModel):
         self._original_shape = self._array.shape
 
         # Ensure data is at least 2-dimensional
-        # numpy.reshape returns a view when possible, or else a copy,
-        # so this does not modify original data
+        # numpy.reshape returns a view when possible,
+        # so this does not modify original data shape
         if len(self._array.shape) < 1:
             self._array = numpy.reshape(self._array, (1, 1))
         elif len(self._array.shape) < 2:
@@ -276,15 +276,12 @@ class ArrayTableModel(qt.QAbstractTableModel):
         """
         self._editable = editable
         if hasattr(self._array, "file"):
-            print("has file")
             if hasattr(self._array.file, "mode"):
-                print("has mode")
                 if editable and self._array.file.mode == "r":
                     _logger.warning(
                             "Data is a HDF5 dataset open in read-only " +
                             "mode. Editing must be disabled.")
                     self._editable = False
-                    print(self._editable)
                     return False
         return True
 
@@ -300,9 +297,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
         :return: numpy array of data, or reference to original data object
             if *copy=False*
         """
-        data = numpy.array(self._array, copy=copy)
+        data = self._array if not copy else numpy.array(self._array, copy=True)
         if not self._array.shape == self._original_shape:
-            data = data.reshape(self._original_shape)
+            data.shape = self._original_shape
         return data
 
     def setFrameIndex(self, index):
