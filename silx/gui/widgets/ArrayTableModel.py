@@ -22,20 +22,38 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+This module defines a data model for displaying and editing arrays of any
+number of dimensions in a table view.
+"""
+from __future__ import division
 import numpy
 import logging
 from silx.gui import qt
 
-
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "17/10/2016"
+__date__ = "25/10/2016"
 
 
 _logger = logging.getLogger(__name__)
 
 
-class NumpyArrayTableModel(qt.QAbstractTableModel):
+def _is_array(object):
+    """Return True if object implements all necessary attributes to be used
+    as a numpy array.
+
+    :param object: Array-like object
+    :return: boolean
+    """
+    # add more required attribute if necessary
+    for attr in ("shape", "dtype"):
+        if not hasattr(object, attr):
+            return False
+    return True
+
+
+class ArrayTableModel(qt.QAbstractTableModel):
     """This data model provides access to 2D slices in a N-dimensional
     array.
 
@@ -115,12 +133,18 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
 
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
+        """QAbstractTableModel method
+        Return number of rows to be displayed in table"""
         return self._array.shape[self._getRowDim()]
 
     def columnCount(self, parent_idx=None):
+        """QAbstractTableModel method
+        Return number of columns to be displayed in table"""
         return self._array.shape[self._getColumnDim()]
 
     def data(self, index, role=qt.Qt.DisplayRole):
+        """QAbstractTableModel method to access data values
+        in the format ready to be displayed"""
         if index.isValid() and role == qt.Qt.DisplayRole:
             selection = self._getIndexTuple(index.row(),
                                             index.column())
@@ -128,7 +152,8 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
-        """Return the 0-based row or column index, for display in the
+        """QAbstractTableModel method
+        Return the 0-based row or column index, for display in the
         horizontal and vertical headers"""
         if role == qt.Qt.DisplayRole:
             if orientation == qt.Qt.Vertical:
@@ -138,14 +163,16 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
         return None
 
     def flags(self, index):
-        """All cells are editable, if possible"""
+        """QAbstractTableModel method to inform the view whether data
+        is editable or not."""
         if not self._editable:
-            # case of h5py dataset open in read-only mode
             return qt.QAbstractTableModel.flags(self, index)
         return qt.QAbstractTableModel.flags(self, index) | qt.Qt.ItemIsEditable
 
     def setData(self, index, value, role=None):
-        """When a cell is changed, modify the corresponding value in the array"""
+        """QAbstractTableModel method to handle editing data.
+        Cast the new value into the same format as the array before editing
+        the array value."""
         if index.isValid() and role == qt.Qt.EditRole:
             try:
                 # cast value to same type as array
@@ -163,72 +190,71 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
             return False
 
     # Public methods
-    def setArrayData(self, data, fmt=None, perspective=None, copy=True):
+    def setArrayData(self, data, copy=True,
+                     fmt=None, perspective=None, editable=True):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
         with a large numpy array. In this case, a simple reference to the data
-        is used to access the data, rather than a copy of the array. Any
-        change to the data model may affect your original data array.
+        is used to access the data, rather than a copy of the array.
 
         .. warning::
 
-            If ``copy=False`` is used with a 0-D (scalar) or 1-D array,
-            the array shape will be modified to change it into a 2D array.
+            Any change to the data model will affect your original data
+            array, when using a reference rather than a copy..
 
         :param data: n-dimensional numpy array, or any object that can be
             converted to a numpy array using ``numpy.array(data)`` (e.g.
             a nested sequence).
-        :param fmt: Format string for representing numerical values.
-            By default, use the format set when initializing this model.
-        :param perspective: See documentation of :meth:`setPerspective`.
-            If None, the default perspective is the list of the first ``n-2``
-            dimensions, to view frames parallel to the last two axes.
         :param bool copy: If *True* (default), a copy of the array is stored
             and the original array is not modified if the table is edited.
             If *False*, then the behavior depends on the data type:
             if possible (if the original array is a proper numpy array)
             a reference to the original array is used.
+        :param fmt: Format string for representing numerical values.
+            By default, use the format set when initializing this model.
+        :param perspective: See documentation of :meth:`setPerspective`.
+            If None, the default perspective is the list of the first ``n-2``
+            dimensions, to view frames parallel to the last two axes.
+        :param bool editable: Flag to enable editing data. Default *True*.
         """
         if qt.qVersion() > "4.6":
             self.beginResetModel()
         else:
             self.reset()
 
-        self._editable = True
-        if hasattr(data, "file"):
-            if hasattr(data.file, "mode"):
-                self._is_h5py_dataset = True
-                if data.file.mode == "r" and not copy:
-
-                    _logger.warning(
-                            "Data is an h5py dataset open in read-only " +
-                            "mode. Editing is disabled.")
-                    self._editable = False
-
         if fmt is not None:
             self._format = fmt
 
-        # ensure data is a numpy array
         if data is None:
+            # empty array
             self._array = numpy.array([])
+        elif copy:
+            # copy requested (default)
+            self._array = numpy.array(data, copy=True)
+        elif not _is_array(data):
+            # copy not requested, but necessary
+            _logger.warning(
+                    "data is not an array-like object. " +
+                    "Data must be copied.")
+            self._array = numpy.array(data, copy=True)
         else:
-            if not isinstance(data, numpy.ndarray) and not copy:
-                _logger.warning(
-                        "data is not a numpy array. " +
-                        "Param copy=False might have no effect.")
-            self._array = numpy.array(data, copy=copy)
+            # Copy explicitly disabled & data implements required attributes.
+            # We can use a reference.
+            self._array = data
+
+        self.setEditable(editable)
 
         # remember original shape, for :meth:`getData`
         self._original_shape = self._array.shape
 
-        # ensure data is at least 2-dimensional
+        # Ensure data is at least 2-dimensional
+        # numpy.reshape returns a view when possible, or else a copy,
+        # so this does not modify original data
         if len(self._array.shape) < 1:
-            self._array.shape = (1, 1)
-            _logger.warning("modifying shape of 0-D array")
+            self._array = numpy.reshape(self._array, (1, 1))
         elif len(self._array.shape) < 2:
-            self._array.shape = (1, self._array.shape[0])
-            _logger.warning("modifying shape of 1-D array")
+            self._array = numpy.reshape(self._array, (1, self._array.shape[0]))
 
         self._index = [0 for _i in range((len(self._array.shape) - 2))]
         self._perspective = tuple(perspective) if perspective is not None else\
@@ -236,6 +262,31 @@ class NumpyArrayTableModel(qt.QAbstractTableModel):
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
+
+    def setEditable(self, editable):
+        """Set flags to make the data editable.
+
+        .. warning::
+
+            If the data is a reference to a h5py dataset open in read-only
+            mode, setting *editable=True* will fail and print a warning.
+
+        :param bool editable: Flag to enable editing data. Default *True*.
+        :return: True if setting desired flag succeeded, False if it failed.
+        """
+        self._editable = editable
+        if hasattr(self._array, "file"):
+            print("has file")
+            if hasattr(self._array.file, "mode"):
+                print("has mode")
+                if editable and self._array.file.mode == "r":
+                    _logger.warning(
+                            "Data is a HDF5 dataset open in read-only " +
+                            "mode. Editing must be disabled.")
+                    self._editable = False
+                    print(self._editable)
+                    return False
+        return True
 
     def getData(self, copy=True):
         """Return a copy of the data array, or a reference to it
@@ -423,10 +474,10 @@ if __name__ == "__main__":
     d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
         d[i, :, :] += i * 10
-    # m = NumpyArrayTableModel(fmt="%.5f")
-    # m = NumpyArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
-    # m = NumpyArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
-    m = NumpyArrayTableModel(data=d, fmt="%.5f")
+    # m = ArrayTableModel(fmt="%.5f")
+    # m = ArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
+    # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
+    m = ArrayTableModel(data=d, fmt="%.5f")
     w.setModel(m)
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))

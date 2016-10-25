@@ -22,13 +22,19 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a widget designed to display 2D frames (images, slices)
-in a numpy array :class:`ArrayTableWidget`.
+"""This module defines a widget designed to display data arrays with any
+number of dimensions as 2D frames (images, slices) in a table view.
+The dimensions not displayed in the table can be browsed using improved
+sliders.
+
+The widget uses a standard QTableView that relies on a custom abstract table
+model: :class:`silx.gui.widgets.ArrayTableModel`.
 """
+from __future__ import division
 import numpy
 
 from silx.gui import qt
-from .ArrayTableModel import NumpyArrayTableModel
+from .ArrayTableModel import ArrayTableModel
 from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
@@ -87,10 +93,10 @@ class ArrayTableWidget(qt.QWidget):
         self.mainLayout.addWidget(self.browserContainer)
         self.mainLayout.addWidget(self.view)
 
-        self.model = NumpyArrayTableModel(self)
+        self.model = ArrayTableModel(self)
         self.view.setModel(self.model)
 
-    def setArrayData(self, data, labels=None, copy=True):
+    def setArrayData(self, data, labels=None, copy=True, editable=True):
         """Set the data array. Update frame browsers and labels.
 
         :param data: Numpy array or similar object (e.g. nested sequence,
@@ -102,6 +108,7 @@ class ArrayTableWidget(qt.QWidget):
             *False*, store a reference to *data* if possible (only possible if
             *data* is a proper numpy array or an object that implements the
             same methods).
+        :param bool editable: Flag to enable editing data. Default *True*.
         """
         data_as_array = numpy.array(data)
         self._data_shape = data_as_array.shape
@@ -160,7 +167,7 @@ class ArrayTableWidget(qt.QWidget):
         else:
             fmt = "%g"
         self.model.setFormat(fmt)
-        self.model.setArrayData(data, copy=copy)
+        self.model.setArrayData(data, copy=copy, editable=editable)
         # some linux distributions need this call
         self.view.setModel(self.model)
 
