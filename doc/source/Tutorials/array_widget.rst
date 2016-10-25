@@ -115,6 +115,53 @@ The 3 indices relate to the first, third and fifth dimensions.
 The frame index must always be defined as indices on the orthogonal axes/dimensions,
 as defined by the *perspective*.
 
+Editing the data
+----------------
+
+By default, the data displayed in the table view can be edited. If you modify
+a cell with a valid value, it will be modified in the internal data model.
+
+You can get the modified data using::
+    >>> newdata = w.getData()
+
+This will give you a copy of the data, by default.
+
+If you want the data to be read-only, not editable, you must specify it when
+you set the data::
+    >>> w.setDataArray(array, editable=False)
+
+More performances
+-----------------
+
+By default, the method :meth:`setArrayData` creates a copy of the data array
+for internal storage. This ensures that the original data object is not
+modified when a cell of the table is changed interactively in the widget.
+
+This behavior has a negative impact on performances, especially for large data arrays.
+To avoid this, you can explicitely disable the copy when setting the data::
+    >>> w.setArrayData(array, copy=False)
+
+The internal data array used by the widget is then a reference
+to the same data object as the original *array*. The memory is shared and
+is not duplicated.
+
+.. warning::
+
+    This can cause side-effects, if your original array is re-used elsewhere
+    in your program.
+
+Similarly, you can pass *copy=False* to the :meth:`getData` method, to avoid
+doing a data copy operation::
+    >>> newdata = w.getData(copy=False)
+
+The variable *newdata* is then a reference to the internal widget data.
+
+.. warning::
+
+    Modifying the internal data used by the widget can have unpredictable
+    consequences.
+
+
 
 
 
