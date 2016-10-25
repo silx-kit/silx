@@ -74,8 +74,8 @@ class TestArrayWidget(TestCaseQt):
 
     def testSetData4D(self):
         """test for errors"""
-        a = numpy.reshape(numpy.linspace(0.213, 1.234, 10000),
-                          (10, 10, 10, 10))
+        a = numpy.reshape(numpy.linspace(0.213, 1.234, 1250),
+                          (5, 5, 5, 10))
         self.aw.setArrayData(a)
         self.aw.setPerspective((1, 3))
         b = self.aw.getData(copy=True)
@@ -121,8 +121,8 @@ class TestH5pyArrayWidget(TestCaseQt):
     def setUp(self):
         super(TestH5pyArrayWidget, self).setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
-        self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 10000),
-                                  (10, 10, 10, 10))
+        self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000),
+                                  (10, 10, 10))
         # create an h5py file with a dataset
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "array.h5")
