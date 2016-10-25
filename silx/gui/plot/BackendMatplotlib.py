@@ -159,6 +159,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             else:
                 errorbarColor = color
 
+            # On Debian 7 at least, Nx1 array yerr does not seems supported
+            if (yerror is not None and yerror.ndim == 2 and
+                    yerror.shape[1] == 1 and len(x) != 1):
+                yerror = numpy.ravel(yerror)
+
             errorbars = axes.errorbar(x, y, label=legend,
                                       xerr=xerror, yerr=yerror,
                                       linestyle=' ', color=errorbarColor)
