@@ -41,15 +41,15 @@ except ImportError:
     h5py = None
 
 
-class TestNumpyArrayWidget(TestCaseQt):
+class TestArrayWidget(TestCaseQt):
     """Basic test for ArrayTableWidget with a numpy array"""
     def setUp(self):
-        super(TestNumpyArrayWidget, self).setUp()
+        super(TestArrayWidget, self).setUp()
         self.aw = ArrayTableWidget.ArrayTableWidget()
 
     def tearDown(self):
         del self.aw
-        super(TestNumpyArrayWidget, self).tearDown()
+        super(TestArrayWidget, self).tearDown()
 
     def testShow(self):
         """test for errors"""
@@ -242,7 +242,7 @@ class TestH5pyArrayWidget(TestCaseQt):
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestNumpyArrayWidget))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestArrayWidget))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestH5pyArrayWidget))
     return test_suite

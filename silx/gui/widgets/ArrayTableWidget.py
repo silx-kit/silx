@@ -71,7 +71,7 @@ class ArrayTableWidget(qt.QWidget):
         :param parent: parent QWidget
         :param labels: list of labels for each dimension of the array
         """
-        qt.QTableWidget.__init__(self, parent)
+        qt.QWidget.__init__(self, parent)
         self.mainLayout = qt.QVBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
