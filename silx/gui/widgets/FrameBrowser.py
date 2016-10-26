@@ -28,7 +28,7 @@
      last) to browse between frames and a text entry to access aspecific frame
      by typing it's number)
     - :class:`HorizontalSliderWithBrowser`: a FrameBrowser with an additional
-     slider.
+     slider. This class inherits :class:`qt.QAbstractSlider`.
 
 """
 from silx.gui import qt
@@ -53,11 +53,18 @@ class HorizontalSpacer(qt.QWidget):
 
 
 class FrameBrowser(qt.QWidget):
-    """Frame browser widget, with 4 buttons/icons and a line edit to select
-    a frame number in a stack of images."""
+    """Frame browser widget, with 4 buttons/icons and a line edit to provide
+    a way of selecting a frame index in a stack of images.
+
+    It can be used in more generic case to select an integer within a range.
+
+    :param QWidget parent: Parent widget
+    :param int n: Number of frames. This will set the range
+        of frame indices to :math:`0 -- n-1`.
+        If None, the range is initialized to the default QSlider range (0--99)."""
     sigIndexChanged = qt.pyqtSignal(object)
 
-    def __init__(self, parent=None, n=1):
+    def __init__(self, parent=None, n=None):
         qt.QWidget.__init__(self, parent)
         self.mainLayout = qt.QHBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
@@ -67,14 +74,8 @@ class FrameBrowser(qt.QWidget):
         self.previousButton = qt.QPushButton(self)
         self.previousButton.setIcon(icon_previous)
         self.lineEdit = qt.QLineEdit(self)
-        self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % n))
-        validator = qt.QIntValidator(0, n-1, self.lineEdit)
-        self.lineEdit.setText("0")
-        self._index = 0
-        """0-based index"""
-        self.lineEdit.setValidator(validator)
+
         self.label = qt.QLabel(self)
-        self.label.setText("of %d" % n)
         self.nextButton = qt.QPushButton(self)
         self.nextButton.setIcon(icon_next)
         self.lastButton = qt.QPushButton(self)
@@ -89,11 +90,27 @@ class FrameBrowser(qt.QWidget):
         self.mainLayout.addWidget(self.lastButton)
         self.mainLayout.addWidget(HorizontalSpacer(self))
 
+        if n is None:
+            first = qt.QSlider().minimum()
+            last = qt.QSlider().maximum()
+        else:
+            first, last = 0, n
+
+        self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % last))
+        validator = qt.QIntValidator(first, last, self.lineEdit)
+        self.lineEdit.setValidator(validator)
+        self.lineEdit.setText("%d" % first)
+        self.label.setText("of %d" % last)
+
+        self._index = first
+        """0-based index"""
+
         self.firstButton.clicked.connect(self._firstClicked)
         self.previousButton.clicked.connect(self._previousClicked)
         self.nextButton.clicked.connect(self._nextClicked)
         self.lastButton.clicked.connect(self._lastClicked)
         self.lineEdit.editingFinished.connect(self._textChangedSlot)
+
 
     def _firstClicked(self):
         """Select first/lowest frame number"""
@@ -137,13 +154,20 @@ class FrameBrowser(qt.QWidget):
 
     def setRange(self, first, last):
         """Set minimum and maximum frame indices
+        Initialize the frame index to *first*.
+        Update the label text to *" limits: first, last"*
 
         :param first: Minimum frame index
         :param last: Maximum frame index"""
         return self.setLimits(first, last)
 
     def setLimits(self, first, last):
-        """Set minimum and maximum frame indices"""
+        """Set minimum and maximum frame indices.
+        Initialize the frame index to *first*.
+        Update the label text to *" limits: first, last"*
+
+        :param first: Minimum frame index
+        :param last: Maximum frame index"""
         bottom = min(first, last)
         top = max(first, last)
         self.lineEdit.validator().setTop(top)
@@ -153,7 +177,9 @@ class FrameBrowser(qt.QWidget):
         self.label.setText(" limits: %d, %d" % (bottom, top))
 
     def setNFrames(self, nframes):
-        """Set minimum=1 and maximum=nframes frame numbers.
+        """Set minimum=0 and maximum=nframes-1 frame numbers.
+        Initialize the frame index to 0.
+        Update the label text to *"1 of nframes"*
 
         :param int nframes: Number of frames"""
         bottom = 0
@@ -166,7 +192,7 @@ class FrameBrowser(qt.QWidget):
         self.label.setText("%d of %d" % (self._index + 1, top + 1))
 
     def getCurrentIndex(self):
-        """Get 0-based index
+        """Get 0-based frame index
         """
         return self._index
 
@@ -179,8 +205,16 @@ class FrameBrowser(qt.QWidget):
 
 
 class HorizontalSliderWithBrowser(qt.QAbstractSlider):
-    """Frame browser widget, a :class:`FrameBrowser` widget and a slider,
-    to select a frame in a stack of images."""
+    """
+    Slider widget combining a :class:`QSlider` and a :class:`FrameBrowser`.
+
+    The data model is an integer within a range.
+
+    The default value is the default :class:`QSlider` value (0),
+    and the default range is the default QSlider range (0 -- 99)
+
+    :param QWidget parent: Optional parent widget
+    """
     sigIndexChanged = qt.pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -203,38 +237,47 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self._browser.sigIndexChanged.connect(self._browserSlot)
 
     def setMinimum(self, value):
-        """Set minimum frame number"""
+        """Set minimum value
+
+        :param int value: Minimum value"""
         self._slider.setMinimum(value)
         maximum = self._slider.maximum()
         self._browser.setRange(value, maximum)
 
     def setMaximum(self, value):
-        """Set maximum frame number"""
+        """Set maximum value
+
+        :param int value: Maximum value
+        """
         self._slider.setMaximum(value)
         minimum = self._slider.minimum()
         self._browser.setRange(minimum, value)
 
     def setRange(self, first, last):
-        """Set minimum/maximum frame numbers"""
+        """Set minimum/maximum values
+
+        :param first: Minimum value
+        :param last: Maximum value"""
         self._slider.setRange(first, last)
         self._browser.setRange(first, last)
 
     def _sliderSlot(self, value):
-        """Emit selected frame number when slider is activated"""
+        """Emit selected value when slider is activated
+        """
         self._browser.setValue(value)
         self.valueChanged.emit(value)
 
     def _browserSlot(self, ddict):
-        """Emit selected frame number when browser state is changed"""
+        """Emit selected value when browser state is changed"""
         self._slider.setValue(ddict['new'])
 
     def setValue(self, value):
-        """Set frame number
+        """Set value
 
-        :param int value: Frame number"""
+        :param int value: value"""
         self._slider.setValue(value)
         self._browser.setValue(value)
 
     def value(self):
-        """Get selected frame number"""
+        """Get selected value"""
         return self._slider.value()
