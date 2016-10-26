@@ -105,7 +105,7 @@ class WaitingPushButton(qt.QPushButton):
         the application (the one displayed when the widget is not in
         waiting state).
 
-        :rtpye: qt.QIcon
+        :rtype: qt.QIcon
         """
         return self.__icon
 
@@ -136,7 +136,7 @@ class WaitingPushButton(qt.QPushButton):
     def isEnabled(self):
         """Returns the enabled state of the widget.
 
-        :rtpye: bool
+        :rtype: bool
         """
         return self.__enabled
 
@@ -174,7 +174,7 @@ class WaitingPushButton(qt.QPushButton):
     def isWaiting(self):
         """Returns true if the widget is in waiting state.
 
-        :rtpye: bool"""
+        :rtype: bool"""
         return self.__waiting
 
     @qt.Slot()

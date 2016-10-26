@@ -25,10 +25,10 @@
 """This module defines two main classes:
 
     - :class:`FrameBrowser`: a widget with 4 buttons (first, previous, next,
-     last) to browse between frames and a text entry to access aspecific frame
-     by typing it's number)
+      last) to browse between frames and a text entry to access a specific frame
+      by typing it's number)
     - :class:`HorizontalSliderWithBrowser`: a FrameBrowser with an additional
-     slider. This class inherits :class:`qt.QAbstractSlider`.
+      slider. This class inherits :class:`qt.QAbstractSlider`.
 
 """
 from silx.gui import qt
@@ -60,7 +60,7 @@ class FrameBrowser(qt.QWidget):
 
     :param QWidget parent: Parent widget
     :param int n: Number of frames. This will set the range
-        of frame indices to :math:`0 -- n-1`.
+        of frame indices to 0--n-1.
         If None, the range is initialized to the default QSlider range (0--99)."""
     sigIndexChanged = qt.pyqtSignal(object)
 
@@ -157,8 +157,8 @@ class FrameBrowser(qt.QWidget):
         Initialize the frame index to *first*.
         Update the label text to *" limits: first, last"*
 
-        :param first: Minimum frame index
-        :param last: Maximum frame index"""
+        :param int first: Minimum frame index
+        :param int last: Maximum frame index"""
         return self.setLimits(first, last)
 
     def setLimits(self, first, last):
@@ -166,8 +166,8 @@ class FrameBrowser(qt.QWidget):
         Initialize the frame index to *first*.
         Update the label text to *" limits: first, last"*
 
-        :param first: Minimum frame index
-        :param last: Maximum frame index"""
+        :param int first: Minimum frame index
+        :param int last: Maximum frame index"""
         bottom = min(first, last)
         top = max(first, last)
         self.lineEdit.validator().setTop(top)
@@ -256,8 +256,8 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     def setRange(self, first, last):
         """Set minimum/maximum values
 
-        :param first: Minimum value
-        :param last: Maximum value"""
+        :param int first: Minimum value
+        :param int last: Maximum value"""
         self._slider.setRange(first, last)
         self._browser.setRange(first, last)
 

@@ -6,6 +6,8 @@
 
 .. automodule:: silx.gui.widgets.FrameBrowser
 
+API
+***
 
 .. autoclass:: silx.gui.widgets.FrameBrowser.HorizontalSliderWithBrowser
    :members:
