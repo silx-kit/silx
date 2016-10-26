@@ -32,35 +32,17 @@ __date__ = "15/09/2016"
 
 
 import logging
-import sys
 
 import numpy
 
 
 _logger = logging.getLogger(__name__)
 
-if 'matplotlib' in sys.modules:
-    _logger.warning(
-        'matplotlib already loaded, setting its backend may not work')
-
 
 from .. import qt
 
+from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
-
-if qt.BINDING == 'PySide':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt4':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt5':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-
 from matplotlib import cm
 from matplotlib.container import Container
 from matplotlib.figure import Figure
