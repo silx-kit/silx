@@ -32,7 +32,7 @@ to the used backend.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "26/10/2016"
 
 
 import sys
@@ -53,12 +53,12 @@ import matplotlib
 if qt.BINDING == 'PySide':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
     matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
 
 elif qt.BINDING == 'PyQt4':
     matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
 
 elif qt.BINDING == 'PyQt5':
     matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
