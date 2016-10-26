@@ -43,7 +43,7 @@ def _is_array(object):
     """Return True if object implements all necessary attributes to be used
     as a numpy array.
 
-    :param object: Array-like object
+    :param object: Array-like object (numpy array, h5py dataset...)
     :return: boolean
     """
     # add more required attribute if necessary
@@ -101,19 +101,33 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
     def _getRowDim(self):
         """The row axis is the first axis parallel to the frames
-        (lowest dimension number)"""
+        (lowest dimension number)
+
+        Return None for 0-D (scalar) or 1-D arrays
+        """
         n_dimensions = len(self._array.shape)
+        if n_dimensions < 2:
+            # scalar or 1D array: no row index
+            return None
         # take all dimensions and remove the orthogonal ones
         frame_axes = set(range(0, n_dimensions)) - set(self._perspective)
+        # sanity check
         assert len(frame_axes) == 2
         return min(frame_axes)
 
     def _getColumnDim(self):
-        """The column axis is the second (highest number) axis parallel
-        to the frames"""
+        """The column axis is the second (highest dimension) axis parallel
+        to the frames
+
+        Return None for 0-D (scalar)
+        """
         n_dimensions = len(self._array.shape)
+        if n_dimensions < 1:
+            # scalar: no column index
+            return None
         frame_axes = set(range(0, n_dimensions)) - set(self._perspective)
-        assert len(frame_axes) == 2
+        # sanity check
+        assert (len(frame_axes) == 2) if n_dimensions > 1 else (len(frame_axes) == 1)
         return max(frame_axes)
 
     def _getIndexTuple(self, table_row, table_col):
@@ -124,23 +138,36 @@ class ArrayTableModel(qt.QAbstractTableModel):
         :param table_col: Column index (0-based) of a table cell
         :return: Tuple of indices of the element in the numpy array
         """
+        row_dim = self._getRowDim()
+        col_dim = self._getColumnDim()
+
         # get indices on all orthogonal axes
         selection = list(self._index)
         # insert indices on parallel axes
-        selection.insert(self._getRowDim(), table_row)
-        selection.insert(self._getColumnDim(), table_col)
+        if row_dim is not None:
+            selection.insert(row_dim, table_row)
+        if col_dim is not None:
+            selection.insert(col_dim, table_col)
         return tuple(selection)
 
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
         """QAbstractTableModel method
         Return number of rows to be displayed in table"""
-        return self._array.shape[self._getRowDim()]
+        row_dim = self._getRowDim()
+        if row_dim is None:
+            # 0-D and 1-D arrays
+            return 1
+        return self._array.shape[row_dim]
 
     def columnCount(self, parent_idx=None):
         """QAbstractTableModel method
         Return number of columns to be displayed in table"""
-        return self._array.shape[self._getColumnDim()]
+        col_dim = self._getColumnDim()
+        if col_dim is None:
+            # 0-D array
+            return 1
+        return self._array.shape[col_dim]
 
     def data(self, index, role=qt.Qt.DisplayRole):
         """QAbstractTableModel method to access data values
@@ -245,17 +272,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
         self.setEditable(editable)
 
-        # remember original shape, for :meth:`getData`
-        self._original_shape = self._array.shape
-
-        # Ensure data is at least 2-dimensional
-        # numpy.reshape returns a view when possible,
-        # so this does not modify original data shape
-        if len(self._array.shape) < 1:
-            self._array = numpy.reshape(self._array, (1, 1))
-        elif len(self._array.shape) < 2:
-            self._array = numpy.reshape(self._array, (1, self._array.shape[0]))
-
         self._index = [0 for _i in range((len(self._array.shape) - 2))]
         self._perspective = tuple(perspective) if perspective is not None else\
             tuple(range(0, len(self._array.shape) - 2))
@@ -298,8 +314,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
             if *copy=False*
         """
         data = self._array if not copy else numpy.array(self._array, copy=True)
-        if not self._array.shape == self._original_shape:
-            data.shape = self._original_shape
         return data
 
     def setFrameIndex(self, index):

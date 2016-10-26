@@ -132,7 +132,7 @@ class ArrayTableWidget(qt.QWidget):
             browser = HorizontalSliderWithBrowser(self.browserContainer)
             self.browserLayout.addWidget(browser, i, 1)
             self._browserWidgets.append(browser)
-            browser.valueChanged.connect(self.browserSlot)
+            browser.valueChanged.connect(self._browserSlot)
             browser.setEnabled(False)
             browser.hide()
 
@@ -214,8 +214,8 @@ class ArrayTableWidget(qt.QWidget):
         for i in range(n_dimensions - 2):
             browser = self._browserWidgets[i]
             label = self._browserLabels[i]
-            browser.setRange(1, self._data_shape[perspective[i]])
-            browser.setValue(1)
+            browser.setRange(0, self._data_shape[perspective[i]] - 1)
+            browser.setValue(0)
             label.setText(self._dimensionLabelsText[perspective[i]])
 
     def setPerspective(self, perspective):
@@ -251,7 +251,7 @@ class ArrayTableWidget(qt.QWidget):
         perspective = tuple(set(range(0, n_dimensions)) - {row_axis, col_axis})
         self._resetBrowsers(perspective)
 
-    def browserSlot(self, value):
+    def _browserSlot(self, value):
         index = []
         for browser in self._browserWidgets:
             if browser.isEnabled():

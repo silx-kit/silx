@@ -57,30 +57,54 @@ class TestArrayWidget(TestCaseQt):
         self.qWaitForWindowExposed(self.aw)
 
     def testSetData0D(self):
-        """test for errors"""
         a = 1
         self.aw.setArrayData(a)
         b = self.aw.getData(copy=True)
 
         self.assertTrue(numpy.array_equal(a, b))
 
+        # scalar/0D data has no frame index
+        self.assertEqual(len(self.aw.model._index), 0)
+        # and no perspective
+        self.assertEqual(len(self.aw.model._perspective), 0)
+
     def testSetData1D(self):
-        """test for errors"""
         a = [1, 2]
         self.aw.setArrayData(a)
         b = self.aw.getData(copy=True)
 
         self.assertTrue(numpy.array_equal(a, b))
 
+        # 1D data has no frame index
+        self.assertEqual(len(self.aw.model._index), 0)
+        # and no perspective
+        self.assertEqual(len(self.aw.model._perspective), 0)
+
     def testSetData4D(self):
         """test for errors"""
         a = numpy.reshape(numpy.linspace(0.213, 1.234, 1250),
                           (5, 5, 5, 10))
         self.aw.setArrayData(a)
-        self.aw.setPerspective((1, 3))
-        b = self.aw.getData(copy=True)
 
+        # default perspective (0, 1)
+        self.assertEqual(list(self.aw.model._perspective),
+                         [0, 1])
+        self.aw.setPerspective((1, 3))
+        self.assertEqual(list(self.aw.model._perspective),
+                         [1, 3])
+
+        b = self.aw.getData(copy=True)
         self.assertTrue(numpy.array_equal(a, b))
+
+        # 4D data has a 2-tuple as frame index
+        self.assertEqual(len(self.aw.model._index), 2)
+        # default index is (0, 0)
+        self.assertEqual(list(self.aw.model._index),
+                         [0, 0])
+        self.aw.setFrameIndex((3, 1))
+
+        self.assertEqual(list(self.aw.model._index),
+                         [3, 1])
 
     def testFlagEditable(self):
         self.aw.setArrayData([[0]])
@@ -93,10 +117,7 @@ class TestArrayWidget(TestCaseQt):
         """when setting the data with copy=False and
         retrieving it with getData(copy=False), we should recover
         the same original object.
-
-        This only works for array with at least 2D. For 1D and 0D
-        arrays, a view is created at some point, which  in the case
-        of an hdf5 dataset creates a copy."""
+        """
         # n-D (n >=2)
         a0 = numpy.reshape(numpy.linspace(0.213, 1.234, 1000),
                            (10, 10, 10))
@@ -105,12 +126,11 @@ class TestArrayWidget(TestCaseQt):
 
         self.assertIs(a0, a1)
 
-        # 1D: we must compare the base attribute of the returned view
-        # This ensures the memory is shared.
+        # 1D
         b0 = numpy.linspace(0.213, 1.234, 1000)
         self.aw.setArrayData(b0, copy=False)
         b1 = self.aw.getData(copy=False)
-        self.assertIs(b0, b1.base)
+        self.assertIs(b0, b1)
 
 
 @unittest.skipIf(h5py is None, "Could not import h5py")
@@ -191,13 +211,6 @@ class TestH5pyArrayWidget(TestCaseQt):
         self.aw.setArrayData(a)
         b = self.aw.getData(copy=True)
 
-        # original data is 0-D (scalar)
-        self.assertTrue(len(a.shape) == 0)
-        # internal model data is 2D
-        self.assertTrue(len(self.aw.model._array.shape) == 2)
-        # original shape is preserved in returned array
-        self.assertTrue(len(a.shape) == len(b.shape))
-
         self.assertTrue(numpy.array_equal(a, b))
 
         h5f.close()
@@ -207,14 +220,6 @@ class TestH5pyArrayWidget(TestCaseQt):
         a = h5f["my_1D_array"]
         self.aw.setArrayData(a)
         b = self.aw.getData(copy=True)
-
-
-        # original data is 1-D
-        self.assertTrue(len(a.shape) == 1)
-        # internal model data is 2D
-        self.assertTrue(len(self.aw.model._array.shape) == 2)
-        # original shape is preserved in returned array
-        self.assertTrue(len(a.shape) == len(b.shape))
 
         self.assertTrue(numpy.array_equal(a, b))
 
@@ -229,12 +234,18 @@ class TestH5pyArrayWidget(TestCaseQt):
         arrays, a view is created at some point, which  in the case
         of an hdf5 dataset creates a copy."""
         h5f = h5py.File(self.h5_fname, "r+")
-        a0 = h5f["my_array"]
 
+        # n-D
+        a0 = h5f["my_array"]
         self.aw.setArrayData(a0, copy=False)
         a1 = self.aw.getData(copy=False)
-
         self.assertIs(a0, a1)
+
+        # 1D
+        b0 = h5f["my_1D_array"]
+        self.aw.setArrayData(b0, copy=False)
+        b1 = self.aw.getData(copy=False)
+        self.assertIs(b0, b1)
 
         h5f.close()
 
