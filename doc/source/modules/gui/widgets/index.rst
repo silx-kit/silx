@@ -13,4 +13,7 @@ Public modules:
    :maxdepth: 2
 
    arraytable.rst
+   framebrowser.rst
+   threadpoolpushbutton.rst
+   waitingpushbutton.rst
 
