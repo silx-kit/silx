@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -29,7 +30,6 @@
     to install it if you don't already have it.
 """
 
-import os
 import sys
 import numpy
 import logging

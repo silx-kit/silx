@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/05/2016"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -161,7 +161,6 @@ else:
             plt = sx.imshow(img, origin=(10, 10), scale=(2, 2),
                             title='origin=(10, 10), scale=(2, 2)')
             self._expose_and_close(plt)
-
 
     def suite():
         test_suite = unittest.TestSuite()

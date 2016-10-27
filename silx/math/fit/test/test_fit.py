@@ -190,14 +190,24 @@ class Test_leastsq(unittest.TestCase):
                             constraints_all_positive,
                             constraints_delta_position,
                             constraints_sum_position]
-        for constraints in constraints_list:
+
+        # for better code coverage, the warning recommending to set full_output
+        # to True when using constraints should be shown at least once
+        full_output = True
+        for index, constraints in enumerate(constraints_list):
+            if index == 2:
+                full_output = None
+            elif index == 3:
+                full_output = 0
             for model_deriv in [None, self.gauss_derivative]:
-                for sigma in [None, numpy.sqrt(y)]:
+                for sigma in [None, numpy.sqrt(y)]:                    
                     fittedpar, cov = self.instance(model_function, x, y,
                                                    parameters_estimate,
                                                    sigma=sigma,
                                                    constraints=constraints,
-                                                   model_deriv=model_deriv)
+                                                   model_deriv=model_deriv,
+                                                   full_output=full_output)[:2]
+                    full_output = True
 
         test_condition = numpy.allclose(parameters_actual, fittedpar)
         if not test_condition:

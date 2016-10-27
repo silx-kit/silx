@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# #########################################################################*/
+# ######################################################################### */
 """Collection of widgets used to build
 :class:`silx.gui.fit.FitWidget.FitWidget`"""
 
@@ -33,7 +33,7 @@ QTVERSION = qt.qVersion()
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/06/2016"
+__date__ = "13/10/2016"
 
 
 class FitActionsButtons(qt.QWidget):
@@ -109,12 +109,12 @@ class FitStatusLines(qt.QWidget):
     """
 
     def __init__(self, parent=None):
-        qt.QWidget.__init__(self,  parent)
+        qt.QWidget.__init__(self, parent)
 
         self.resize(535, 47)
 
         layout = qt.QHBoxLayout(self)
-        layout.setContentsMargins(11, 11, 11, 11)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
 
         self.StatusLabel = qt.QLabel(self)
@@ -139,7 +139,7 @@ class FitStatusLines(qt.QWidget):
 
 class FitConfigWidget(qt.QWidget):
     """Widget whose purpose is to select a fit theory and a background
-    theory, load a new fit theory definition file and open and provide
+    theory, load a new fit theory definition file and provide
     a "Configure" button to open an advanced configuration dialog.
 
     This is used in :class:`silx.gui.fit.FitWidget.FitWidget`, to offer
@@ -148,67 +148,60 @@ class FitConfigWidget(qt.QWidget):
       - select a fitting function through :attr:`FunComBox`
       - select a background function through :attr:`BkgComBox`
       - open a dialog for modifying advanced parameters through
-        :attr:`ConfigureButton`
+        :attr:`FunConfigureButton`
     """
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
 
         self.setWindowTitle("FitConfigGUI")
 
-        fitconfigguilayout = qt.QHBoxLayout(self)
-        fitconfigguilayout.setContentsMargins(11, 11, 11, 11)
-        fitconfigguilayout.setSpacing(6)
+        layout = qt.QGridLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
 
-        layout9 = qt.QHBoxLayout(None)
-        layout9.setContentsMargins(0, 0, 0, 0)
-        layout9.setSpacing(6)
-
-        layout2 = qt.QGridLayout(None)
-        layout2.setContentsMargins(0, 0, 0, 0)
-        layout2.setSpacing(6)
-
-        self.BkgComBox = qt.QComboBox(self)
-        # Not implemented (TODO?)
-        # self.BkgComBox.addItem("Add Background")
-        # self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background"),
-        #                            "Load background theories from a file",
-        #                            qt.Qt.ToolTipRole)
-
-        layout2.addWidget(self.BkgComBox, 1, 1)
-
-        self.BkgLabel = qt.QLabel(self)
-        self.BkgLabel.setText("Background")
-
-        layout2.addWidget(self.BkgLabel, 1, 0)
+        self.FunLabel = qt.QLabel(self)
+        self.FunLabel.setText("Function")
+        layout.addWidget(self.FunLabel, 0, 0)
 
         self.FunComBox = qt.QComboBox(self)
         self.FunComBox.addItem("Add Function(s)")
         self.FunComBox.setItemData(self.FunComBox.findText("Add Function(s)"),
                                    "Load fit theories from a file",
                                    qt.Qt.ToolTipRole)
+        layout.addWidget(self.FunComBox, 0, 1)
 
-        layout2.addWidget(self.FunComBox, 0, 1)
+        self.BkgLabel = qt.QLabel(self)
+        self.BkgLabel.setText("Background")
+        layout.addWidget(self.BkgLabel, 1, 0)
 
-        self.FunLabel = qt.QLabel(self)
-        self.FunLabel.setText("Function")
+        self.BkgComBox = qt.QComboBox(self)
+        self.BkgComBox.addItem("Add Background(s)")
+        self.BkgComBox.setItemData(self.BkgComBox.findText("Add Background(s)"),
+                                   "Load background theories from a file",
+                                   qt.Qt.ToolTipRole)
+        layout.addWidget(self.BkgComBox, 1, 1)
 
-        layout2.addWidget(self.FunLabel, 0, 0)
-        layout9.addLayout(layout2)
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Minimum)
-        layout9.addItem(spacer)
+        self.FunConfigureButton = qt.QPushButton(self)
+        self.FunConfigureButton.setText("Configure")
+        self.FunConfigureButton.setToolTip(
+                "Open a configuration dialog for the selected function")
+        layout.addWidget(self.FunConfigureButton, 0, 2)
 
-        layout5 = qt.QGridLayout(None)
-        layout5.setContentsMargins(0, 0, 0, 0)
-        layout5.setSpacing(6)
+        self.BgConfigureButton = qt.QPushButton(self)
+        self.BgConfigureButton.setText("Configure")
+        self.BgConfigureButton.setToolTip(
+                "Open a configuration dialog for the selected background")
+        layout.addWidget(self.BgConfigureButton, 1, 2)
 
-        self.ConfigureButton = qt.QPushButton(self)
-        self.ConfigureButton.setText("Configure")
+        self.WeightCheckBox = qt.QCheckBox(self)
+        self.WeightCheckBox.setText("Weighted fit")
+        self.WeightCheckBox.setToolTip(
+                "Enable usage of weights in the least-square problem.\n Use" +
+                " the uncertainties (sigma) if provided, else use sqrt(y).")
 
-        layout5.addWidget(self.ConfigureButton, 0, 0)
-        layout9.addLayout(layout5)
-        fitconfigguilayout.addLayout(layout9)
+        layout.addWidget(self.WeightCheckBox, 0, 3, 2, 1)
+
+        layout.setColumnStretch(4, 1)
 
 
 class ParametersTab(qt.QTabWidget):
@@ -288,6 +281,7 @@ class ParametersTab(qt.QTabWidget):
         """
         qt.QTabWidget.__init__(self, parent)
         self.setWindowTitle(name)
+        self.setContentsMargins(0, 0, 0, 0)
 
         self.views = OrderedDict()
         """Dictionary of views. Keys are view names,
@@ -516,7 +510,7 @@ def test():
     fit = fitmanager.FitManager(x=x, y=y1)
 
     fitfuns = fittheories.FitTheories()
-    fit.addtheory(theory="Gaussian",
+    fit.addtheory(name="Gaussian",
                   function=functions.sum_gauss,
                   parameters=("height", "peak center", "fwhm"),
                   estimate=fitfuns.estimate_height_position_fwhm)
@@ -540,7 +534,7 @@ def test():
     fit.setdata(x=x, y=y2)
 
     # Define new theory
-    fit.addtheory(theory="Asymetric gaussian",
+    fit.addtheory(name="Asymetric gaussian",
                   function=functions.sum_splitgauss,
                   parameters=("height", "peak center", "left fwhm", "right fwhm"),
                   estimate=fitfuns.estimate_splitgauss)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
@@ -31,7 +32,7 @@ value of y.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "20/09/2016"
+__date__ = "18/10/2016"
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -67,7 +68,7 @@ class ShiftUpAction(PlotAction):
             #  - legend is a unique text identifying a curve
             #  - info and params are dictionaries of additional data
             #    (user defined, curve style and color...)
-            x0, y0, legend, info, params = activeCurve
+            x0, y0, legend, info, _params = activeCurve
 
             # Add 1 to all values in the y array
             # and assign the result to a new array y1

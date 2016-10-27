@@ -95,6 +95,43 @@ class Test_smooth(unittest.TestCase):
             # Try various smoothing levels
             npts += 25
 
+    def testSmooth1d(self):
+        """Test the 1D smoothing against the formula
+        ys[i] = (y[i-1] + 2 * y[i] + y[i+1]) / 4   (for 1 < i < n-1)"""
+        smoothed_y = filters.smooth1d(self.y1)
+
+        for i in range(1, len(self.y1) - 1):
+            self.assertAlmostEqual(4 * smoothed_y[i],
+                                   self.y1[i-1] + 2 * self.y1[i] + self.y1[i+1])
+
+    def testSmooth2d(self):
+        """Test that a 2D smoothing is the same as two succesive and
+        orthogonal 1D smoothings"""
+        x = numpy.arange(10000)
+
+        noise = 2 * numpy.random.random(10000) - 1
+        noise *= 0.05
+        y = x * (1 + noise)
+
+        y.shape = (100, 100)
+
+        smoothed_y = filters.smooth2d(y)
+
+        intermediate_smooth = numpy.zeros_like(y)
+        expected_smooth = numpy.zeros_like(y)
+        # smooth along first dimension
+        for i in range(0, y.shape[0]):
+            intermediate_smooth[i, :] = filters.smooth1d(y[i, :])
+
+        # smooth along second dimension
+        for j in range(0, y.shape[1]):
+            expected_smooth[:, j] = filters.smooth1d(intermediate_smooth[:, j])
+
+        for i in range(0, y.shape[0]):
+            for j in range(0, y.shape[1]):
+                self.assertAlmostEqual(smoothed_y[i, j],
+                                       expected_smooth[i, j])
+
 
 test_cases = (Test_smooth,)
 

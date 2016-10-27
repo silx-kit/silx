@@ -32,12 +32,15 @@ Index of background extraction functions:
     - :func:`snip2d`
     - :func:`snip3d`
 
-Smoothing function:
--------------------
+Smoothing functions:
+--------------------
 
     - :func:`savitsky_golay`
+    - :func:`smooth1d`
+    - :func:`smooth2d`
+    - :func:`smooth3d`
 
-Full documentation:
+API documentation:
 -------------------
 
 """
@@ -101,7 +104,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
     output = numpy.empty(shape=(input_c.size,),
                          dtype=numpy.float64)
 
-    if anchors is not None:
+    if anchors is not None and len(anchors):
         # numpy.int_ is the same as C long (http://docs.scipy.org/doc/numpy/user/basics.types.html)
         anchors_c = numpy.array(anchors,
                                 copy=False,
@@ -109,7 +112,7 @@ def strip(data, w=1, niterations=1000, factor=1.0, anchors=None):
                                 order='C')
         len_anchors = anchors_c.size
     else:
-        # Make a dummy lenght-1 array, because if I use shape=(0,) I get the error
+        # Make a dummy length-1 array, because if I use shape=(0,) I get the error
         # IndexError: Out of bounds on buffer access (axis 0)
         anchors_c = numpy.empty(shape=(1,),
                                 dtype=numpy.int_)
@@ -176,24 +179,12 @@ def snip2d(data, snip_width):
     *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
     A401 (1997) 113-132.*
 
-    :param data: Data array, preferably 1D and of type *numpy.float64*.
-        Else, the data array will be flattened and converted to
-        *dtype=numpy.float64* prior to applying the snip filter.
-        If the data is a 2D array, ``nrows`` and ``ncolumns`` don't
-        need to be specified.
+    :param data: 2D array
     :type data: numpy.ndarray
     :param width: Width of the snip operator, in number of samples. A wider
         snip operator will result in a smoother result (lower frequency peaks
         will be clipped), and a longer computation time.
     :type width: int
-    :param nrows: Number of rows (second dimension) in array.
-        If ``None``, it will be inferred from the shape of the data if it
-        is a 2D array.
-    :type nrows: int or None
-    :param ncolumns: Number of columns (first dimension) in array
-        If ``None``, it will be inferred from the shape of the data if it
-        is a 2D array.
-    :type ncolumns: int or None
     :return: Baseline of the input array, as an array of the same shape.
     :rtype: numpy.ndarray
     """
@@ -201,10 +192,7 @@ def snip2d(data, snip_width):
         double[::1] data_c
 
     if not isinstance(data, numpy.ndarray):
-        if not hasattr(data, "__len__"):
-            raise TypeError("data must be a 2D sequence (list, tuple) " +
-                            "or a 2D numpy array")
-        if not hasattr(data[0], "__len__"):
+        if not hasattr(data, "__len__") or not hasattr(data[0], "__len__"):
             raise TypeError("data must be a 2D sequence (list, tuple) " +
                             "or a 2D numpy array")
         nrows = len(data)
@@ -237,28 +225,13 @@ def snip3d(data, snip_width):
     *Miroslav Morhac et al. Nucl. Instruments and Methods in Physics Research
     A401 (1997) 113-132.*
 
-    :param data: Data array, preferably 1D and of type *numpy.float64*.
-        Else, the data array will be flattened and converted to
-        *dtype=numpy.float64* prior to applying the snip filter.
-        If the data is a 3D array, arguments ``nx``, ``ny`` and ``nz`` can
-        be omitted.
+    :param data: 3D array
     :type data: numpy.ndarray
     :param width: Width of the snip operator, in number of samples. A wider
         snip operator will result in a smoother result (lower frequency peaks
         will be clipped), and a longer computation time.
     :type width: int
-    :param nx: Size of first dimension in array.
-        If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
-    :type nx: int or None
-    :param ny: Size of second dimension in array.
-        If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
-    :type ny: int or None
-    :param nz: Size of third dimension in array.
-        If ``None``, it can be inferred from the shape of the data if it
-        is a 3D array.
-    :type ny: int or None
+
     :return: Baseline of the input array, as an array of the same shape.
     :rtype: numpy.ndarray
     """
@@ -323,3 +296,126 @@ def savitsky_golay(data, npoints=5):
                       "than 3 and smaller than 100.")
 
     return numpy.asarray(output).reshape(data.shape)
+
+
+def smooth1d(data):
+    """smooth1d(data) -> numpy.ndarray
+    Simple smoothing for 1D data.
+
+    For a data array :math:`y` of length :math:`n`, the smoothed array
+    :math:`ys` is calculated as a weighted average of neighboring samples:
+
+    :math:`ys_0 = 0.75 y_0 + 0.25 y_1`
+
+    :math:`ys_i = 0.25 (y_{i-1} + 2 y_i + y_{i+1})` for :math:`0 < i < n-1`
+
+    :math:`ys_{n-1} = 0.25 y_{n-2} + 0.75 y_{n-1}`
+
+
+    :param data: 1D data array
+    :type data: numpy.ndarray
+    :return: Smoothed data
+    :rtype: numpy.ndarray(dtype=numpy.float64)
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__"):
+            raise TypeError("data must be a sequence (list, tuple) " +
+                            "or a numpy array")
+        data_shape = (len(data), )
+    else:
+        data_shape = data.shape
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    filters_wrapper.smooth1d(&data_c[0], data_c.size)
+
+    return numpy.asarray(data_c).reshape(data_shape)
+
+
+def smooth2d(data):
+    """smooth2d(data) -> numpy.ndarray
+    Simple smoothing for 2D data:
+    :func:`smooth1d` is applied succesively along both axis
+
+    :param data: 2D data array
+    :type data: numpy.ndarray
+    :return: Smoothed data
+    :rtype: numpy.ndarray(dtype=numpy.float64)
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__") or not hasattr(data[0], "__len__"):
+            raise TypeError("data must be a 2D sequence (list, tuple) " +
+                            "or a 2D numpy array")
+        nrows = len(data)
+        ncolumns = len(data[0])
+        data_shape = (len(data), len(data[0]))
+
+    else:
+        data_shape = data.shape
+        nrows =  data_shape[0]
+        if len(data_shape) == 2:
+            ncolumns = data_shape[1]
+        else:
+            raise TypeError("data array must be 2-dimensional")
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    filters_wrapper.smooth2d(&data_c[0], nrows, ncolumns)
+
+    return numpy.asarray(data_c).reshape(data_shape)
+
+
+def smooth3d(data):
+    """smooth3d(data) -> numpy.ndarray
+    Simple smoothing for 3D data:
+    :func:`smooth2d` is applied on each 2D slice of the data volume along all
+    3 axis
+
+    :param data: 2D data array
+    :type data: numpy.ndarray
+    :return: Smoothed data
+    :rtype: numpy.ndarray(dtype=numpy.float64)
+    """
+    cdef:
+        double[::1] data_c
+
+    if not isinstance(data, numpy.ndarray):
+        if not hasattr(data, "__len__") or not hasattr(data[0], "__len__") or\
+                not hasattr(data[0][0], "__len__"):
+            raise TypeError("data must be a 3D sequence (list, tuple) " +
+                            "or a 3D numpy array")
+        nx = len(data)
+        ny = len(data[0])
+        nz = len(data[0][0])
+        data_shape = (len(data), len(data[0]),  len(data[0][0]))
+    else:
+        data_shape = data.shape
+        nrows =  data_shape[0]
+        if len(data_shape) == 3:
+            nx =  data_shape[0]
+            ny = data_shape[1]
+            nz = data_shape[2]
+        else:
+            raise TypeError("data array must be 3-dimensional")
+
+    data_c =  numpy.array(data,
+                          copy=True,
+                          dtype=numpy.float64,
+                          order='C').reshape(-1)
+
+    filters_wrapper.smooth3d(&data_c[0], nx, ny, nz)
+
+    return numpy.asarray(data_c).reshape(data_shape)
+

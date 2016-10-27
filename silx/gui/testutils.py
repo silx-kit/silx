@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "02/03/2016"
+__date__ = "13/10/2016"
 
 
 import gc
@@ -136,7 +136,20 @@ class TestCaseQt(unittest.TestCase):
         self.allowedLeakingWidgets = 0
         self.__previousWidgets = self.qapp.allWidgets()
 
-    def tearDown(self):
+    def _currentTestSucceeded(self):
+        if hasattr(self, '_outcome'):
+            # For Python >= 3.4
+            result = self.defaultTestResult()  # these 2 methods have no side effects
+            self._feedErrorsToResult(result, self._outcome.errors)
+        else:
+            # For Python < 3.4
+            result = getattr(self, '_outcomeForDoCleanups', self._resultForDoCleanups)
+
+        error = self.id() in [case.id() for case, _ in result.errors]
+        failure = self.id() in [case.id() for case, _ in result.failures]
+        return not error and not failure
+
+    def _checkForUnreleasedWidgets(self):
         """Test fixture checking that no more widgets exists."""
         gc.collect()
 
@@ -158,6 +171,10 @@ class TestCaseQt(unittest.TestCase):
         if len(widgets) > allowedLeakingWidgets:
             raise RuntimeError(
                 "Test ended with widgets alive: %s" % str(widgets))
+
+    def tearDown(self):
+        if self._currentTestSucceeded():
+            self._checkForUnreleasedWidgets()
 
     @property
     def qapp(self):

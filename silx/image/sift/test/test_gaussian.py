@@ -41,7 +41,7 @@ import time
 import numpy
 import unittest
 import logging
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 try:
     import scipy
 except ImportError:
@@ -140,7 +140,7 @@ class TestGaussian(unittest.TestCase):
                                                     numpy.int32(size))  # const        int     SIZE
         g = g_gpu.get()
         if cls.PROFILE:
-            logger.info("execution time: %.3fms; Kernel took %.3fms and %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start)))
+            logger.info("execution time: %.3fms; Kernel took %.3fms and %.3fms", 1e3 * (time.time() - t0), 1e-6 * (evt1.profile.end - evt1.profile.start), 1e-6 * (evt2.profile.end - evt2.profile.start))
 
         return g
 
@@ -164,7 +164,7 @@ class TestGaussian(unittest.TestCase):
                                                numpy.int32(size))  # const        int     SIZE
         g = g_gpu.get()
         if cls.PROFILE:
-            logger.info("execution time: %.3fms; Kernel took %.3fms" % (1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start)))
+            logger.info("execution time: %.3fms; Kernel took %.3fms", 1e3 * (time.time() - t0), 1e-6 * (evt.profile.end - evt.profile.start))
         return g
 
     def test_v1_odd(self):
@@ -196,8 +196,9 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 27
         ref = gaussian_cpu(sigma, size)
-        if self.max_wg < size:
-            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        if max_wg < size:
+            logger.warning("Skipping test of WG=%s when maximum is %s", size, max_wg)
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res
@@ -210,8 +211,9 @@ class TestGaussian(unittest.TestCase):
         sigma = 3.0
         size = 28
         ref = gaussian_cpu(sigma, size)
-        if self.max_wg < size:
-            logger.warning("Skipping test of WG=%s when maximum is %s", size, self.max_wg)
+        max_wg = kernel_workgroup_size(self.kernels["gaussian"], "gaussian")
+        if max_wg < size:
+            logger.warning("Skipping test of WG=%s when maximum is %s", size, max_wg)
             return
         res = self.gaussian_gpu_v2(sigma, size)
         delta = ref - res

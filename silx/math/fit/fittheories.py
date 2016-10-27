@@ -53,8 +53,7 @@ a dictionary :const:`THEORY`: with the following structure::
                             parameters=('param name 1', 'param name 2', …),
                             estimate=estimation_function1,
                             configure=configuration_function1,
-                            derivative=derivative_function1,
-                            config_widget=MyConfigWidget),
+                            derivative=derivative_function1),
 
         'theory_name_2':  FitTheory(…),
     }
@@ -86,7 +85,7 @@ import logging
 
 from silx.math.fit import functions
 from silx.math.fit.peaks import peak_search, guess_fwhm
-from silx.math.fit.filters import strip
+from silx.math.fit.filters import strip, savitsky_golay
 from silx.math.fit.leastsq import leastsq
 from silx.math.fit.fittheory import FitTheory
 
@@ -95,7 +94,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/09/2016"
+__date__ = "03/10/2016"
 
 
 DEFAULT_CONFIG = {
@@ -144,8 +143,10 @@ DEFAULT_CONFIG = {
     'SameAreaRatioFlag': 1,
     # Strip bg removal
     'StripBackgroundFlag': True,
+    'SmoothingFlag': True,
+    'SmoothingWidth': 5,
     'StripWidth': 2,
-    'StripNIterations': 5000,
+    'StripIterations': 5000,
     'StripThresholdFactor': 1.0}
 """This dictionary defines default configuration parameters that have effects
 on fit functions and estimation functions, mainly on fit constraints.
@@ -196,45 +197,53 @@ class FitTheories(object):
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
 
-    def user_estimate(self, x, y, z):
-        """Interactive estimation function for gaussian parameters.
-        The user is prompted for the number of peaks and for his estimation
-        of *Height, Position, FWHM* for each gaussian peak in the data.
-
-        To conform to the estimation function signature expected by
-        :mod:`FitManager`, this function must be called with at least 3
-        and at most 5 arguments. All arguments are ignored.
-
-        :return: Tuple of estimated parameters and constraints. Parameters are
-            provided by the user. Fit constraints are set to 0 / FREE for all
-            parameters.
-        """
-        ngauss = input(' Number of Gaussians : ')
-        ngauss = int(ngauss)
-        if ngauss < 1:
-            ngauss = 1
-        newpar = []
-        for i in range(ngauss):
-            print("Defining Gaussian number %d " % (i + 1))
-            newpar.append(input('Height   = '))
-            newpar.append(input('Position = '))
-            newpar.append(input('FWHM     = '))
-        return newpar, numpy.zeros((len(newpar), 3), numpy.float)
-
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
         :attr:`config` dictionary (*StripBackgroundFlag, StripWidth,
-        StripNIterations, StripThresholdFactor*)"""
+        StripIterations, StripThresholdFactor*)"""
         remove_strip_bg = self.config.get('StripBackgroundFlag', False)
         if remove_strip_bg:
+            if self.config['SmoothingFlag']:
+                y = savitsky_golay(y, self.config['SmoothingWidth'])
             strip_width = self.config['StripWidth']
-            strip_niterations = self.config['StripNIterations']
+            strip_niterations = self.config['StripIterations']
             strip_thr_factor = self.config['StripThresholdFactor']
             return strip(y, w=strip_width,
                          niterations=strip_niterations,
                          factor=strip_thr_factor)
         else:
             return numpy.zeros_like(y)
+
+    def peak_search(self, y, fwhm, sensitivity):
+        """Search for peaks in y array, after padding the array and
+        multiplying its value by a scaling factor.
+
+        :param y: Data array
+        :param fwhm: Typical full width at half maximum for peaks,
+            in number of points. This parameter is used for smoothing the data
+            and calculating the noise.
+        :param sensitivity: Sensitivity parameter. This is a threshold factor
+            for peak detection. Only peaks larger than the standard deviation
+            of the noise multiplied by this sensitivity parameter are detected.
+        :return: List of peak indices
+        """
+        # # add padding and apply scaling factor
+        # ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
+        # ysearch[0:fwhm] = y[0] * self.config["Yscaling"]
+        # ysearch[-1:-fwhm - 1:-1] = y[len(y)-1] * self.config["Yscaling"]
+        # ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
+
+        ysearch = y
+
+        if len(ysearch) > 1.5 * fwhm:
+            peaks = peak_search(self.config["Yscaling"] * ysearch,
+                                fwhm=fwhm, sensitivity=sensitivity)
+            # # remove padding
+            # return [peak_index - fwhm - 1 for peak_index in peaks]
+            # # FIXME: investigate why we need - 1. Index problem in peak search algorithm?
+            return peaks
+        else:
+            return []
 
     def estimate_height_position_fwhm(self, x, y):
         """Estimation of *Height, Position, FWHM* of peaks, for gaussian-like
@@ -251,10 +260,6 @@ class FitTheories(object):
             *Height, Position, FWHM*.
             Fit constraints depend on :attr:`config`.
         """
-        yscaling = self.config.get('Yscaling', 1.0)
-        if yscaling == 0:
-            yscaling = 1.0
-
         fittedpar = []
 
         bg = self.strip_bg(y)
@@ -279,18 +284,17 @@ class FitTheories(object):
         npoints = len(y)
 
         # Find indices of peaks in data array
-        if npoints > 1.5 * search_fwhm:
-            peaks = peak_search(yscaling * numpy.fabs(y),
-                                fwhm=search_fwhm,
-                                sensitivity=search_sens)
-        else:
-            peaks = []
+        peaks = self.peak_search(y,
+                                 fwhm=search_fwhm,
+                                 sensitivity=search_sens)
 
         if not len(peaks):
             forcepeak = int(float(self.config.get('ForcePeakPresence', 0)))
             if forcepeak:
                 delta = y - bg
-                peaks = [int(numpy.nonzero(delta == delta.max())[0])]
+                # get index of global maximum
+                # (first one if several samples are equal to this value)
+                peaks = [numpy.nonzero(delta == delta.max())[0][0]]
 
         # Find index of largest peak in peaks array
         index_largest_peak = 0
@@ -1176,20 +1180,20 @@ THEORY = OrderedDict((
                   estimate=fitfuns.estimate_apvoigt,
                   configure=fitfuns.configure)),
     ('Split Gaussian',
-        FitTheory(description='Split gaussian functions',
+        FitTheory(description='Asymmetric gaussian functions',
                   function=functions.sum_splitgauss,
                   parameters=('Height', 'Position', 'LowFWHM',
                               'HighFWHM'),
                   estimate=fitfuns.estimate_splitgauss,
                   configure=fitfuns.configure)),
     ('Split Lorentz',
-        FitTheory(description='Split lorentzian functions',
+        FitTheory(description='Asymmetric lorentzian functions',
                   function=functions.sum_splitlorentz,
                   parameters=('Height', 'Position', 'LowFWHM', 'HighFWHM'),
                   estimate=fitfuns.estimate_splitgauss,
                   configure=fitfuns.configure)),
     ('Split Pseudo-Voigt',
-        FitTheory(description='Split pseudo-Voigt functions',
+        FitTheory(description='Asymmetric pseudo-Voigt functions',
                   function=functions.sum_splitpvoigt,
                   parameters=('Height', 'Position', 'LowFWHM',
                               'HighFWHM', 'Eta'),
@@ -1226,12 +1230,12 @@ THEORY = OrderedDict((
                               'ST_Slope', 'LT_Area', 'LT_Slope', 'Step_H'),
                   estimate=fitfuns.estimate_ahypermet,
                   configure=fitfuns.configure)),
-    ('Periodic Gaussians',
-        FitTheory(description='Periodic gaussian functions',
-                  function=functions.periodic_gauss,
-                  parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
-                  estimate=fitfuns.estimate_periodic_gauss,
-                  configure=fitfuns.configure))
+    # ('Periodic Gaussians',
+    #     FitTheory(description='Periodic gaussian functions',
+    #               function=functions.periodic_gauss,
+    #               parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
+    #               estimate=fitfuns.estimate_periodic_gauss,
+    #               configure=fitfuns.configure))
 ))
 """Dictionary of fit theories: fit functions and their associated estimation
 function, parameters list, configuration function and description.

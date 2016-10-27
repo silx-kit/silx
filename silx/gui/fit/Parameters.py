@@ -1,5 +1,5 @@
 # coding: utf-8
-#/*##########################################################################
+# /*##########################################################################
 # Copyright (C) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,12 +20,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
-# #########################################################################*/
+# ######################################################################### */
 """This module defines a table widget that is specialized in displaying fit
 parameter results and associated constraints."""
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "06/09/2016"
+__date__ = "13/10/2016"
 
 import sys
 from collections import OrderedDict
@@ -108,6 +108,7 @@ class Parameters(qt.QTableWidget):
     """
     def __init__(self, parent=None, paramlist=None):
         qt.QTableWidget.__init__(self, parent)
+        self.setContentsMargins(0, 0, 0, 0)
 
         labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',
                   'Constraints', 'Min/Parame', 'Max/Factor/Delta']
@@ -206,7 +207,7 @@ class Parameters(qt.QTableWidget):
         nlines = self.rowCount()
         self.__configuring = True
         if line >= nlines:
-            self.setRowCount(line+1)
+            self.setRowCount(line + 1)
 
         # default configuration for fit parameters
         self.parameters[param] = OrderedDict((('line', line),

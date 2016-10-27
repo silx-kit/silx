@@ -194,7 +194,7 @@ setting the interactive mode.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/02/2016"
+__date__ = "18/10/2016"
 
 
 from collections import Iterable, OrderedDict, namedtuple
@@ -266,6 +266,7 @@ class Plot(object):
     def __init__(self, parent=None, backend=None):
         self._autoreplot = False
         self._dirty = False
+        self._cursorInPlot = False
 
         if backend is None:
             backend = self.defaultBackend
@@ -395,7 +396,7 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for curve, info in self._curves.items():
+        for _curve, info in self._curves.items():
             # using numpy's separate min and max is faster than
             # a pure python minmax.
             if info['xmin'] is not None:
@@ -415,7 +416,7 @@ class Plot(object):
                     yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
-            for image, info in self._images.items():
+            for _image, info in self._images.items():
                 if info['data'] is not None:
                     height, width = info['data'].shape[:2]
                     params = info['params']
@@ -635,13 +636,13 @@ class Plot(object):
                     self._setDirtyPlot()
 
         # Filter-out values <= 0
-        xFiltered, yFiltered, color, xerror, yerror = self._logFilterData(
-            x, y, params['color'], params['xerror'], params['yerror'],
+        xFiltered, yFiltered, xerror, yerror = self._logFilterData(
+            x, y, params['xerror'], params['yerror'],
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
         if len(xFiltered) and not self.isCurveHidden(legend):
             handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                            color=color,
+                                            color=params['color'],
                                             symbol=params['symbol'],
                                             linestyle=params['linestyle'],
                                             linewidth=params['linewidth'],
@@ -2393,54 +2394,85 @@ class Plot(object):
     # Internal
 
     @staticmethod
-    def _logFilterData(x, y, color, xerror, yerror, xLog, yLog):
+    def _logFilterError(value, error):
+        """Filter/convert error values if they go <= 0.
+
+        Replace error leading to negative values by nan
+
+        :param numpy.ndarray value: 1D array of values
+        :param numpy.ndarray error:
+            Array of errors: scalar, N, Nx1 or 2xN or None.
+        :return: Filtered error so error bars are never negative
+        """
+        if error is not None:
+            # Convert Nx1 to N
+            if error.ndim == 2 and error.shape[1] == 1 and len(value) != 1:
+                error = numpy.ravel(error)
+
+            # Supports error being scalar, N or 2xN array
+            errorClipped = (value - numpy.atleast_2d(error)[0]) <= 0
+
+            if numpy.any(errorClipped):  # Need filtering
+
+                # expand errorbars to 2xN
+                if error.size == 1:  # Scalar
+                    error = numpy.full(
+                        (2, len(value)), error, dtype=numpy.float)
+
+                elif error.ndim == 1:  # N array
+                    newError = numpy.empty((2, len(value)),
+                                            dtype=numpy.float)
+                    newError[0, :] = error
+                    newError[1, :] = error
+                    error = newError
+
+                elif error.size == 2 * len(value):  # 2xN array
+                    error = numpy.array(
+                        error, copy=True, dtype=numpy.float)
+
+                else:
+                    _logger.error("Unhandled error array")
+                    return error
+
+                error[0, errorClipped] = numpy.nan
+
+        return error
+
+
+    @staticmethod
+    def _logFilterData(x, y, xerror, yerror, xLog, yLog):
         """Filter out values with x or y <= 0 on log axes
 
         All arrays are expected to have the same length.
 
         :param x: The x coords.
         :param y: The y coords.
-        :param color: The addCurve color arg (might not be an array).
-        :param xerror: The addCuve xerror arg (might not be an array).
-        :param yerror: The addCuve yerror arg (might not be an array).
+        :param xerror: The addCuve xerror arg (None or numpy array).
+        :param yerror: The addCuve yerror arg (None or numpy array).
         :param bool xLog: True to filter arrays according to X coords.
         :param bool yLog: True to filter arrays according to Y coords.
         :return: The filter arrays or unchanged object if
-        :rtype: (x, y, color, xerror, yerror)
+        :rtype: (x, y, xerror, yerror)
         """
-        if xLog and yLog:
-            idx = numpy.nonzero((x > 0) & (y > 0))[0]
-        elif yLog:
-            idx = numpy.nonzero(y > 0)[0]
-        elif xLog:
-            idx = numpy.nonzero(x > 0)[0]
-        else:
-            return x, y, color, xerror, yerror
+        if xLog or yLog:
+            xclipped = (x <= 0) if xLog else False
+            yclipped = (y <= 0) if yLog else False
+            clipped = numpy.logical_or(xclipped, yclipped)
 
-        x = numpy.take(x, idx)
-        y = numpy.take(y, idx)
+            if numpy.any(clipped):
+                # copy to keep original array and convert to float
+                x = numpy.array(x, copy=True, dtype=numpy.float)
+                x[clipped] = numpy.nan
+                y = numpy.array(y, copy=True, dtype=numpy.float)
+                y[clipped] = numpy.nan
 
-        if isinstance(color, numpy.ndarray) and len(color) == len(x):
-            # Nx(3 or 4) array (do not change RGBA color defined as an array)
-            color = numpy.take(color, idx, axis=0)
+                if xLog and xerror is not None:
+                    xerror = self._logFilterError(x, xerror)
 
-        if isinstance(xerror, numpy.ndarray):
-            if len(xerror) == len(x):
-                # N or Nx1 array
-                xerror = numpy.take(xerror, idx, axis=0)
-            elif len(xerror) == 2 and len(xerror.shape) == 2:
-                # 2xN array (+/- error)
-                xerror = xerror[:, idx]
+                if yLog and yerror is not None:
+                    yerror = self._logFilterError(y, yerror)
 
-        if isinstance(yerror, numpy.ndarray):
-            if len(yerror) == len(y):
-                # N or Nx1 array
-                yerror = numpy.take(yerror, idx, axis=0)
-            elif len(yerror) == 2 and len(yerror.shape) == 2:
-                # 2xN array (+/- error)
-                yerror = yerror[:, idx]
-
-        return x, y, color, xerror, yerror
+        return x, y, xerror, yerror
 
     def _update(self):
         _logger.debug("_update called")
@@ -2686,6 +2718,11 @@ class Plot(object):
         inXPixel, inYPixel = self._isPositionInPlotArea(xPixel, yPixel)
         isCursorInPlot = inXPixel == xPixel and inYPixel == yPixel
 
+        if self._cursorInPlot != isCursorInPlot:
+            self._cursorInPlot = isCursorInPlot
+            self._eventHandler.handleEvent(
+                'enter' if self._cursorInPlot else 'leave')
+
         if isCursorInPlot:
             # Signal mouse move event
             dataPos = self.pixelToData(inXPixel, inYPixel)
@@ -2728,6 +2765,12 @@ class Plot(object):
             self._eventHandler.handleEvent(
                 'wheel', xPixel, yPixel, angleInDegrees)
 
+    def onMouseLeaveWidget(self):
+        """Handle mouse leave widget event."""
+        if self._cursorInPlot:
+            self._cursorInPlot = False
+            self._eventHandler.handleEvent('leave')
+
     # Interaction modes #
 
     def getInteractiveMode(self):
@@ -2742,7 +2785,7 @@ class Plot(object):
 
     def setInteractiveMode(self, mode, color='black',
                            shape='polygon', label=None,
-                           zoomOnWheel=True, source=None):
+                           zoomOnWheel=True, source=None, width=None):
         """Switch the interactive mode.
 
         :param str mode: The name of the interactive mode.
@@ -2761,8 +2804,9 @@ class Plot(object):
                        that will be send in the interactiveModeChanged event,
                        to identify which object required a mode change.
                        Default: None
+        :param float width: Width of the pencil. Only for draw pencil mode.
         """
-        self._eventHandler.setInteractiveMode(mode, color, shape, label)
+        self._eventHandler.setInteractiveMode(mode, color, shape, label, width)
         self._eventHandler.zoomOnWheel = zoomOnWheel
 
         self.notify(

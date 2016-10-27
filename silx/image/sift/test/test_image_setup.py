@@ -77,7 +77,12 @@ def local_maxmin_setup():
     nb_keypoints = 1000  # constant size !
     doubleimsize = 0  # par.DoubleImSize = 0 by default
 
-    l2 = scipy.misc.ascent().astype(numpy.float32)  # [100:250,100:250] #use a part of the image to fasten tests
+    if hasattr(scipy.misc, "ascent"):
+        l2 = scipy.misc.ascent().astype(numpy.float32)
+    else:
+        l2 = scipy.misc.lena().astype(numpy.float32)
+
+
     l2 = numpy.ascontiguousarray(l2[0:507, 0:209]);
     # l2 = scipy.misc.imread("../aerial.tiff").astype(numpy.float32)
     l = normalize_image(l2)  # do not forget to normalize the image if you want to compare with sift.cpp

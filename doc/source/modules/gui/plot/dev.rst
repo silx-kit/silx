@@ -1,7 +1,7 @@
 Package structure
 =================
 
-The :mod:`silx.gui.plot` package provides a 1D, 2D plot widget that supports multiple backends.
+The :mod:`silx.gui.hdf5` package provides HDF5 widgets.
 This package is structured as follows.
 
 .. currentmodule:: silx.gui.plot

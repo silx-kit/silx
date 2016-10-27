@@ -38,14 +38,8 @@ The :class:`ImageView` uses :class:`PlotWindow` and also
 exposes :class:`silx.gui.plot.Plot` API for further control
 (plot title, axes labels, adding other images, ...).
 
-For an example of use, see the implementation of :class:`ImageViewMainWindow`.
-
-The ImageView module can also be used to open an EDF or TIFF file
-from the shell command line.
-To view an image file:
-``python -m silx.gui.plot.ImageView <file to open>``
-To get help:
-``python -m silx.gui.plot.ImageView -h``
+For an example of use, see the implementation of :class:`ImageViewMainWindow`,
+and `example/imageview.py`.
 """
 
 from __future__ import division
@@ -53,7 +47,7 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "13/10/2016"
 
 
 import logging
@@ -62,6 +56,7 @@ import numpy
 from .. import qt
 
 from . import PlotWindow, PlotWidget
+from . import PlotActions
 from .Colors import cursorColorForColormap
 from .PlotTools import ProfileToolBar, LimitsToolBar
 
@@ -816,8 +811,8 @@ class ImageViewMainWindow(ImageView):
         menu.addSeparator()
         menu.addAction(self.resetZoomAction)
         menu.addAction(self.colormapAction)
-        menu.addAction(self.keepDataAspectRatioAction)
-        menu.addAction(self.yAxisInvertedAction)
+        menu.addAction(PlotActions.KeepAspectRatioAction(self, self))
+        menu.addAction(PlotActions.YAxisInvertedAction(self, self))
 
         menu = self.menuBar().addMenu('Profile')
         menu.addAction(self.profile.browseAction)
@@ -860,106 +855,3 @@ class ImageViewMainWindow(ImageView):
         # Set the new image in ImageView widget
         super(ImageViewMainWindow, self).setImage(image, *args, **kwargs)
         self.setStatusBar(None)
-
-
-# main ########################################################################
-
-def main(argv=None):
-    """Display an image from a file in an :class:`ImageView` widget.
-
-    :param argv: list of command line arguments or None (the default)
-                 to use sys.argv.
-    :type argv: list of str
-    :return: Exit status code
-    :rtype: int
-    :raises IOError: if no image can be loaded from the file
-    """
-    import argparse
-    import os.path
-
-    from silx.third_party.EdfFile import EdfFile
-
-    # Command-line arguments
-    parser = argparse.ArgumentParser(
-        description='Browse the images of an EDF file.')
-    parser.add_argument(
-        '-o', '--origin', nargs=2,
-        type=float, default=(0., 0.),
-        help="""Coordinates of the origin of the image: (x, y).
-        Default: 0., 0.""")
-    parser.add_argument(
-        '-s', '--scale', nargs=2,
-        type=float, default=(1., 1.),
-        help="""Scale factors applied to the image: (sx, sy).
-        Default: 1., 1.""")
-    parser.add_argument(
-        '-l', '--log', action="store_true",
-        help="Use logarithm normalization for colormap, default: Linear.")
-    parser.add_argument(
-        'filename', nargs='?',
-        help='EDF filename of the image to open')
-    args = parser.parse_args(args=argv)
-
-    # Open the input file
-    if not args.filename:
-        _logger.warning('No image file provided, displaying dummy data')
-        edfFile = None
-        data = numpy.arange(1024 * 1024.).reshape(1024, 1024)
-        nbFrames = 1
-
-    else:
-        if not os.path.isfile(args.filename):
-            raise IOError('No input file: %s' % args.filename)
-
-        else:
-            edfFile = EdfFile(args.filename)
-            data = edfFile.GetData(0)
-
-            nbFrames = edfFile.GetNumImages()
-            if nbFrames == 0:
-                raise IOError(
-                    'Cannot read image(s) from file: %s' % args.filename)
-
-    global app  # QApplication must be global to avoid seg fault on quit
-    app = qt.QApplication([])
-
-    mainWindow = ImageViewMainWindow()
-    mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
-
-    if args.log:  # Use log normalization by default
-        colormap = mainWindow.getDefaultColormap()
-        colormap['normalization'] = 'log'
-        mainWindow.setColormap(colormap)
-
-    mainWindow.setImage(data,
-                        origin=args.origin,
-                        scale=args.scale)
-
-    if edfFile is not None and nbFrames > 1:
-        # Add a toolbar for multi-frame EDF support
-        multiFrameToolbar = qt.QToolBar('Multi-frame')
-        multiFrameToolbar.addWidget(qt.QLabel(
-            'Frame [0-%d]:' % (nbFrames - 1)))
-
-        spinBox = qt.QSpinBox()
-        spinBox.setRange(0, nbFrames - 1)
-
-        def updateImage(index):
-            mainWindow.setImage(edfFile.GetData(index),
-                                origin=args.origin,
-                                scale=args.scale,
-                                reset=False)
-        spinBox.valueChanged[int].connect(updateImage)
-        multiFrameToolbar.addWidget(spinBox)
-
-        mainWindow.addToolBar(multiFrameToolbar)
-
-    mainWindow.show()
-    mainWindow.setFocus(qt.Qt.OtherFocusReason)
-
-    return app.exec_()
-
-
-if __name__ == "__main__":
-    import sys
-    sys.exit(main(argv=sys.argv[1:]))

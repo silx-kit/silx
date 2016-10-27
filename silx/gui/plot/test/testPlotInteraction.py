@@ -26,16 +26,11 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "13/10/2016"
 
 
 import unittest
-
-import numpy
-
 from silx.gui import qt
-from silx.testutils import ParametricTestCase
-
 from silx.gui.plot.test.testPlotWidget import _PlotWidgetTest
 
 
@@ -63,7 +58,7 @@ class TestSelectPolygon(_PlotWidgetTest):
 
     def _draw(self, polygon):
         """Draw a polygon in the plot
-        
+
         :param polygon: List of points (x, y) of the polygon (not closed)
         """
         plot = self.plot.centralWidget()

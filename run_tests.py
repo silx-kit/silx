@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "03/10/2016"
+__date__ = "18/10/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -90,7 +90,7 @@ def get_project_name(root_dir):
     logger.debug("Getting project name in %s", root_dir)
     p = subprocess.Popen([sys.executable, "setup.py", "--name"],
                          shell=False, cwd=root_dir, stdout=subprocess.PIPE)
-    name, stderr_data = p.communicate()
+    name, _stderr_data = p.communicate()
     logger.debug("subprocess ended with rc= %s", p.returncode)
     return name.split()[-1].decode('ascii')
 
@@ -100,15 +100,19 @@ PROJECT_NAME = get_project_name(PROJECT_DIR)
 logger.info("Project name: %s", PROJECT_NAME)
 
 
-class TestResult(unittest.TestResult):
-    logger = logging.getLogger("memProf")
-    logger.setLevel(logging.DEBUG)
-    logger.handlers.append(logging.FileHandler("profile.log"))
+class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
+
+    def __init__(self, *arg, **kwarg):
+        unittest.TextTestRunner.resultclass.__init__(self, *arg, **kwarg)
+        self.logger = logging.getLogger("memProf")
+        self.logger.setLevel(min(logging.INFO, logging.root.level))
+        self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
         unittest.TestResult.startTest(self, test)
 
@@ -124,18 +128,8 @@ class TestResult(unittest.TestResult):
                         self.__mem_start) * ratio
         else:
             memusage = 0
-        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-            time.time() - self.__time_start, memusage, test.id()))
-
-
-if sys.hexversion < 34013184:  # 2.7
-    class ProfileTestRunner(unittest.TextTestRunner):
-        def _makeResult(self):
-            return TestResult()
-else:
-    class ProfileTestRunner(unittest.TextTestRunner):
-        def _makeResult(self):
-            return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
+        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
+            time.time() - self.__time_start, memusage, test.id())
 
 
 def report_rst(cov, package, version="0.0.0", base=""):
@@ -225,9 +219,14 @@ def build_project(name, root_dir):
 
 
 from argparse import ArgumentParser
-
+epilog = """Environment variables:
+WITH_QT_TEST=False to disable graphical tests,
+SILX_OPENCL=False to disable OpenCL tests.
+SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+GPU=False to disable the use of a GPU with OpenCL test
+"""
 parser = ArgumentParser(description='Run the tests.',
-                        epilog='To disable graphical tests, set WITH_QT_TEST environment variable to False')
+                        epilog=epilog)
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,
@@ -244,6 +243,18 @@ parser.add_argument("-v", "--verbose", default=0,
                     help="Increase verbosity. Option -v prints additional " +
                          "INFO messages. Use -vv for full verbosity, " +
                          "including debug messages and test help strings.")
+parser.add_argument("-x", "--no-gui", dest="gui", default=True,
+                    action="store_false",
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
+                    action="store_false",
+                    help="Disable the test of the OpenCL part")
+parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
+                    action="store_true",
+                    help="Disable test with large memory consumption (>100Mbyte")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
                     default=(default_test_name,),
@@ -261,6 +272,14 @@ elif options.verbose > 1:
     logger.info("Set log level: DEBUG")
     test_verbosity = 2
 
+if not options.gui:
+    os.environ["WITH_QT_TEST"] = "False"
+
+if not options.opencl:
+    os.environ["SILX_OPENCL"] = "False"
+
+if options.low_mem:
+    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
@@ -271,6 +290,19 @@ if options.coverage:
         cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
+if options.qt_binding:
+    binding = options.qt_binding.lower()
+    if binding == "pyqt4":
+        logger.info("Force using PyQt4")
+        import PyQt4  #noqa
+    elif binding == "pyqt5":
+        logger.info("Force using PyQt5")
+        import PyQt5  #noqa
+    elif binding == "pyside":
+        logger.info("Force using PySide")
+        import PySide  #noqa
+    else:
+        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
 # Prevent importing from source directory
 if (os.path.dirname(os.path.abspath(__file__)) ==
@@ -302,10 +334,11 @@ PROJECT_PATH = module.__path__[0]
 
 
 # Run the tests
+runnerArgs = {}
+runnerArgs["verbosity"] = test_verbosity
 if options.memprofile:
-    runner = ProfileTestRunner()
-else:
-    runner = unittest.TextTestRunner(verbosity=test_verbosity)
+    runnerArgs["resultclass"] = ProfileTextTestResult
+runner = unittest.TextTestRunner(**runnerArgs)
 
 logger.warning("Test %s %s from %s",
                PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)

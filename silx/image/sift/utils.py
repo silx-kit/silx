@@ -37,17 +37,7 @@ __status__ = "beta"
 
 from math import ceil
 import numpy
-from silx.resources import resource_filename
-
-
-def calc_size(shape, blocksize):
-    """
-    Calculate the optimal size for a kernel according to the workgroup size
-    """
-    if "__len__" in dir(blocksize):
-        return tuple((int(i) + int(j) - 1) & ~(int(j) - 1) for i, j in zip(shape, blocksize))
-    else:
-        return tuple((int(i) + int(blocksize) - 1) & ~(int(blocksize) - 1) for i in shape)
+from silx.opencl.utils import get_opencl_code, calc_size
 
 
 def kernel_size(sigma, odd=False, cutoff=4):
@@ -160,20 +150,3 @@ def bin2RGB(img):
     else:
         return out
 
-
-def get_opencl_code(name):
-    """Read the kernel source code  and return it.
-
-    :param str name: Filename of the kernel source,
-    :return: Corresponding surce code
-    :raises: ValueError when name is not known
-    """
-    if not name.endswith(".cl"):
-        name += ".cl"
-    try:
-        filename = resource_filename('opencl/sift/' + name)
-    except ValueError:
-        raise ValueError('Not an OpenCL kernel file: %s' % filename)
-    with open(filename, "r") as fileobj:
-        res = fileobj.read()
-    return res.strip()

@@ -8,19 +8,19 @@
 
 Snapshot of the widgets:
 
-.. |imgFitWidget1| image:: img/fitwidget1.png
+
+.. |imgFitWidget| image:: ../../../Tutorials/img/fitwidget4.png
    :height: 150px
    :align: middle
 
-.. |imgFitWidget2| image:: img/fitwidget2.png
+.. |imgBGWidget| image:: ./img/bgwidget.png
    :height: 150px
    :align: middle
 
-=================== ===================
-|imgFitWidget1|     |imgFitWidget2|
-:class:`FitWidget`  Fit configuration
-=================== ===================
-
+=================== ==========================
+|imgFitWidget|      |imgBGWidget|
+:class:`FitWidget`  :class:`BackgroundWidget`
+=================== ==========================
 
 Public modules:
 
@@ -28,4 +28,5 @@ Public modules:
    :maxdepth: 2
 
    fitwidget.rst
+   backgroundwidget.rst
 

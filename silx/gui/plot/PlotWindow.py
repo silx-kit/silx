@@ -30,13 +30,14 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "13/10/2016"
 
 import collections
 import logging
 
 from . import PlotWidget
-from .PlotActions import *  # noqa
+from . import PlotActions
+from . import PlotToolButtons
 from .PlotTools import PositionInfo, ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
@@ -68,8 +69,14 @@ class PlotWindow(PlotWidget):
     - curveStyleAction: Change curve line and markers style
     - colormapAction: Open a colormap dialog to change active image
       and default colormap.
-    - keepDataAspectRatioAction: Toggle keep aspect ratio
-    - yAxisInvertedAction: Toggle Y Axis direction
+    - keepDataAspectRatioButton: QToolButton to set keep data aspect ratio.
+    - keepDataAspectRatioAction: Action associated to keepDataAspectRatioButton.
+      Use this to change the visibility of keepDataAspectRatioButton in the
+      toolbar (See :meth:`QToolBar.addWidget` documentation).
+    - yAxisInvertedButton: QToolButton to set Y Axis direction.
+    - yAxisInvertedAction: Action associated to yAxisInvertedButton.
+      Use this to change the visibility yAxisInvertedButton in the toolbar.
+      (See :meth:`QToolBar.addWidget` documentation).
     - copyAction: Copy plot snapshot to clipboard
     - saveAction: Save plot
     - printAction: Print plot
@@ -87,8 +94,8 @@ class PlotWindow(PlotWidget):
     :param bool grid: Toggle visibility of grid mode action.
     :param bool curveStyle: Toggle visibility of curve style action.
     :param bool colormap: Toggle visibility of colormap action.
-    :param bool aspectRatio: Toggle visibility of aspect ration action.
-    :param bool yInverted: Toggle visibility of Y axis direction action.
+    :param bool aspectRatio: Toggle visibility of aspect ratio button.
+    :param bool yInverted: Toggle visibility of Y axis direction button.
     :param bool copy: Toggle visibility of copy action.
     :param bool save: Toggle visibility of save action.
     :param bool print_: Toggle visibility of print action.
@@ -122,48 +129,48 @@ class PlotWindow(PlotWidget):
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
 
-        self.resetZoomAction = self.group.addAction(ResetZoomAction(self))
+        self.resetZoomAction = self.group.addAction(PlotActions.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
 
-        self.zoomInAction = ZoomInAction(self)
+        self.zoomInAction = PlotActions.ZoomInAction(self)
         self.addAction(self.zoomInAction)
 
-        self.zoomOutAction = ZoomOutAction(self)
+        self.zoomOutAction = PlotActions.ZoomOutAction(self)
         self.addAction(self.zoomOutAction)
 
         self.xAxisAutoScaleAction = self.group.addAction(
-            XAxisAutoScaleAction(self))
+            PlotActions.XAxisAutoScaleAction(self))
         self.xAxisAutoScaleAction.setVisible(autoScale)
 
         self.yAxisAutoScaleAction = self.group.addAction(
-            YAxisAutoScaleAction(self))
+            PlotActions.YAxisAutoScaleAction(self))
         self.yAxisAutoScaleAction.setVisible(autoScale)
 
         self.xAxisLogarithmicAction = self.group.addAction(
-            XAxisLogarithmicAction(self))
+            PlotActions.XAxisLogarithmicAction(self))
         self.xAxisLogarithmicAction.setVisible(logScale)
 
         self.yAxisLogarithmicAction = self.group.addAction(
-            YAxisLogarithmicAction(self))
+            PlotActions.YAxisLogarithmicAction(self))
         self.yAxisLogarithmicAction.setVisible(logScale)
 
         self.gridAction = self.group.addAction(
-            GridAction(self, gridMode='both'))
+            PlotActions.GridAction(self, gridMode='both'))
         self.gridAction.setVisible(grid)
 
-        self.curveStyleAction = self.group.addAction(CurveStyleAction(self))
+        self.curveStyleAction = self.group.addAction(PlotActions.CurveStyleAction(self))
         self.curveStyleAction.setVisible(curveStyle)
 
-        self.colormapAction = self.group.addAction(ColormapAction(self))
+        self.colormapAction = self.group.addAction(PlotActions.ColormapAction(self))
         self.colormapAction.setVisible(colormap)
 
-        self.keepDataAspectRatioAction = self.group.addAction(
-            KeepAspectRatioAction(self))
-        self.keepDataAspectRatioAction.setVisible(aspectRatio)
+        self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
+            parent=self, plot=self)
+        self.keepDataAspectRatioButton.setVisible(aspectRatio)
 
-        self.yAxisInvertedAction = self.group.addAction(
-            YAxisInvertedAction(self))
-        self.yAxisInvertedAction.setVisible(yInverted)
+        self.yAxisInvertedButton = PlotToolButtons.YAxisOriginToolButton(
+            parent=self, plot=self)
+        self.yAxisInvertedButton.setVisible(yInverted)
 
         self.group.addAction(self.roiAction)
         self.roiAction.setVisible(roi)
@@ -175,16 +182,16 @@ class PlotWindow(PlotWidget):
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
 
-        self.copyAction = self.group.addAction(CopyAction(self))
+        self.copyAction = self.group.addAction(PlotActions.CopyAction(self))
         self.copyAction.setVisible(copy)
 
-        self.saveAction = self.group.addAction(SaveAction(self))
+        self.saveAction = self.group.addAction(PlotActions.SaveAction(self))
         self.saveAction.setVisible(save)
 
-        self.printAction = self.group.addAction(PrintAction(self))
+        self.printAction = self.group.addAction(PlotActions.PrintAction(self))
         self.printAction.setVisible(print_)
 
-        self.fitAction = self.group.addAction(FitAction(self))
+        self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
 
         if control or position:
@@ -225,7 +232,9 @@ class PlotWindow(PlotWidget):
             centralWidget.setLayout(layout)
             self.setCentralWidget(centralWidget)
 
-        self.addToolBar(self.toolBar())
+        # Creating the toolbar also create actions for toolbuttons
+        self._toolbar = self._createToolBar(title='Plot', parent=None)
+        self.addToolBar(self._toolbar)
 
     @property
     def legendsDockWidget(self):
@@ -310,26 +319,49 @@ class PlotWindow(PlotWidget):
     def crosshairAction(self):
         """Action toggling crosshair cursor mode (lazy-loaded)."""
         if not hasattr(self, '_crosshairAction'):
-            self._crosshairAction = CrosshairAction(self, color='red')
+            self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
         return self._crosshairAction
 
     @property
     def panWithArrowKeysAction(self):
         """Action toggling pan with arrow keys (lazy-loaded)."""
         if not hasattr(self, '_panWithArrowKeysAction'):
-            self._panWithArrowKeysAction = PanWithArrowKeysAction(self)
+            self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
 
-    def toolBar(self, title='Plot', parent=None):
-        """Return a QToolBar from the QAction of the PlotWindow.
+    def _createToolBar(self, title, parent):
+        """Create a QToolBar from the QAction of the PlotWindow.
 
         :param str title: The title of the QMenu
-        :param parent: See :class:`QToolBar`
+        :param qt.QWidget parent: See :class:`QToolBar`
         """
-        if not hasattr(self, '_toolbar'):
-            self._toolbar = qt.QToolBar(title, parent)
-            for action in self.group.actions():
-                self._toolbar.addAction(action)
+        toolbar = qt.QToolBar(title, parent)
+
+        # Order widgets with actions
+        objects = self.group.actions()
+
+        # Add push buttons to list
+        index = objects.index(self.colormapAction)
+        objects.insert(index + 1, self.keepDataAspectRatioButton)
+        objects.insert(index + 2, self.yAxisInvertedButton)
+
+        for obj in objects:
+            if isinstance(obj, qt.QAction):
+                toolbar.addAction(obj)
+            else:
+                # Add action for toolbutton in order to allow changing
+                # visibility (see doc QToolBar.addWidget doc)
+                if obj is self.keepDataAspectRatioButton:
+                    self.keepDataAspectRatioAction = toolbar.addWidget(obj)
+                elif obj is self.yAxisInvertedButton:
+                    self.yAxisInvertedAction = toolbar.addWidget(obj)
+                else:
+                    raise RuntimeError()
+        return toolbar
+
+    def toolBar(self):
+        """Return a QToolBar from the QAction of the PlotWindow.
+        """
         return self._toolbar
 
     def menu(self, title='Plot', parent=None):

@@ -55,18 +55,16 @@ else:
     import scipy.misc
     import scipy.ndimage
 
-# import pylab
-
 import unittest
-from utilstest import UtilsTest, getLogger, ctx
+import logging
+from utilstest import UtilsTest, ctx
 from test_image_functions import *  # for Python implementation of tested functions
 from test_image_setup import *
 import sift_pyocl as sift
-logger = getLogger(__file__)
+logger = logging.getLogger(__name__)
 if logger.getEffectiveLevel() <= logging.INFO:
     PROFILE = True
     queue = pyopencl.CommandQueue(ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-    import pylab
 else:
     PROFILE = False
     queue = pyopencl.CommandQueue(ctx)
@@ -142,6 +140,7 @@ class test_keypoints(unittest.TestCase):
         	gpu_keypoints.data, gpu_grad.data, gpu_ori.data, counter.data,
         	octsize, orisigma, nb_keypoints, keypoints_start, keypoints_end, grad_width, grad_height)
         res = gpu_keypoints.get()
+        del gpu_keypoints
         cnt = counter.get()
         t1 = time.time()
 
@@ -229,7 +228,7 @@ class test_keypoints(unittest.TestCase):
             keypoints_start, counter.data, grad_width, grad_height)
         res = gpu_descriptors.get()
         t1 = time.time()
-
+        del gpu_descriptors
         if (USE_CPP_SIFT):
             import feature
             sc = feature.SiftAlignment()

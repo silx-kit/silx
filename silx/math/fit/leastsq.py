@@ -42,6 +42,7 @@ from numpy.linalg import inv
 from numpy.linalg.linalg import LinAlgError
 import time
 import logging
+import copy
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ CIGNORED    = 7
 
 def leastsq(model, xdata, ydata, p0, sigma=None,
               constraints=None, model_deriv=None, epsfcn=None,
-              deltachi=None, full_output=0,
+              deltachi=None, full_output=None,
               check_finite=True,
               left_derivative=False,
               max_iter=100):
@@ -111,7 +112,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                         - Index of fitted parameter to which it is related
 
                      - constraints[i][2]
-                     
+
                         - Ignored if constraints[i][0] is 0, 1, 3
                         - Max value of the parameter if constraints[i][0] is CQUOTED
                         - Factor to apply to related parameter with index constraints[i][1]
@@ -129,7 +130,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
 
     :param epsfcn: float
         A variable used in determining a suitable parameter variation when
-        calculating the numerical derivatives (for model_deriv=None). 
+        calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-5 while default value
         is now numpy.finfo(numpy.float).eps as in scipy
@@ -141,7 +142,8 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     :type deltachi: *optional*, float
 
     :param full_output: bool, optional
-        non-zero to return all optional outputs. The default is 0
+        non-zero to return all optional outputs. The default is None what will give a warning in case
+        of a constrained fit without having set this kweyword.
 
     :param check_finite: bool, optional
             If True, check that the input arrays do not contain nans of infs,
@@ -166,7 +168,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
            of ``f(xdata, *popt) - ydata`` is minimized
          ``pcov``: 2d array
            If no constraints are applied, this array contains the estimated covariance
-           of popt. The diagonals provide the variance of the parameter estimate.
+           of popt. The diagonal provides the variance of the parameter estimate.
            To compute one standard deviation errors use ``perr = np.sqrt(np.diag(pcov))``.
            If constraints are applied, this array does not contain the estimated covariance of
            the parameters actually used during the fitting process but the uncertainties after
@@ -185,7 +187,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
             ``niter``
                 The number of iterations performed
             ``chisq``
-                The chi square ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )`` 
+                The chi square ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )``
             ``reduced_chisq``
                 The chi square ``np.sum( ((f(xdata, *popt) - ydata) / sigma)**2 )`` divided
                 by the number of degrees of freedom ``(M - number_of_free_parameters)``
@@ -241,7 +243,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
             # We can only hope that the sequence is properly arranged
             ydata = ydata[idx]
             xdata = xdata[idx]
-            sigma = sigma[idx]            
+            sigma = sigma[idx]
         idx = numpy.isfinite(xdata)
         filter_xdata = False
         if False in idx:
@@ -261,7 +263,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                         evaluation.shape = ydata.shape
                 if False in numpy.isfinite(evaluation):
                     msg = "Supplied function unable to handle non-finite x data"
-                    msg += "\nAttempting to filter out those x data values." 
+                    msg += "\nAttempting to filter out those x data values."
                     _logger.warning(msg)
                     filter_xdata = True
                 else:
@@ -295,6 +297,12 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     # check if constraints have been passed as text
     constrained_fit = False
     if constraints is not None:
+        # make sure we work with a list of lists
+        input_constraints = constraints
+        tmp_constraints = [None] * len(input_constraints)
+        for i in range(nparameters):
+            tmp_constraints[i] = list(input_constraints[i])
+        constraints = tmp_constraints
         for i in range(nparameters):
             if hasattr(constraints[i][0], "upper"):
                 txt = constraints[i][0].upper()
@@ -322,8 +330,9 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                     raise ValueError("Unknown constraint %s" % constraints[i][0])
             if constraints[i][0] > 0:
                 constrained_fit = True
-    if constrained_fit and (not full_output):
-        _logger.warning("Recommended to set full_output to True when using constraints")
+    if constrained_fit:
+        if full_output is None:
+            _logger.warning("Recommended to set full_output to True when using constraints")
 
     # Levenberg-Marquardt algorithm
     fittedpar = parameters.__copy__()
@@ -399,7 +408,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                                         B * numpy.sin(numpy.arcsin((fitparam[i] - A)/B)+ \
                                         deltapar [0] [i])
                         else:
-                            txt = "Error processing constrained fit\n" 
+                            txt = "Error processing constrained fit\n"
                             txt += "Parameter limits are %g and %g\n" % (pmin, pmax)
                             txt += "A = %g B = %g"  % (A, B)
                             raise ValueError("Invalid parameter limits")
@@ -443,7 +452,18 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
     if constraints is None:
         cov = cov0
     else:
-        # yet another call needed with all the parameters being free
+        # yet another call needed with all the parameters being free except those
+        # that are FIXED and that will be assigned a 100 % uncertainty.
+        new_constraints = copy.deepcopy(constraints)
+        flag_special = [0] * len(fittedpar)
+        for idx, constraint in enumerate(constraints):
+            if constraints[idx][0] in [CFIXED, CIGNORED]:
+                flag_special[idx] = constraints[idx][0]
+            else:
+                pass
+                new_constraints[idx][0] = CFREE
+                new_constraints[idx][1] = 0
+                new_constraints[idx][2] = 0
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
                                                  x, y, weight, constraints=None,
@@ -458,6 +478,12 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
         except LinAlgError:
             _logger.critical("Error calculating covariance matrix after successful fit")
             cov = None
+        if cov is not None:
+            for idx, value in enumerate(flag_special):
+                if value in [CFIXED, CIGNORED]:
+                    cov = numpy.insert(numpy.insert(cov, idx, 0, axis=1), idx, 0, axis=0)
+                    cov[idx, idx] = fittedpar[idx] * fittedpar[idx]
+
     if not full_output:
         return fittedpar, cov
     else:
@@ -522,7 +548,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
                         - Index of fitted parameter to which it is related
 
                      - constraints[i][2]
-                     
+
                         - Ignored if constraints[i][0] is 0, 1, 3
                         - Max value of the parameter if constraints[i][0] is CQUOTED
                         - Factor to apply to related parameter with index constraints[i][1]
@@ -540,7 +566,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
 
     :param epsfcn: float
         A variable used in determining a suitable parameter variation when
-        calculating the numerical derivatives (for model_deriv=None). 
+        calculating the numerical derivatives (for model_deriv=None).
         Normally the actual step length will be sqrt(epsfcn)*x
         Original Gefit module was using epsfcn 1.0e-10 while default value
         is now numpy.finfo(numpy.float).eps as in scipy
@@ -566,7 +592,7 @@ def chisq_alpha_beta(model, parameters, x, y, weight, constraints=None,
         ``fitparam``
             A sequence with the actual free parameters
         ``free_index``
-            Sequence with the indices of the free parameters in input parameters sequence. 
+            Sequence with the indices of the free parameters in input parameters sequence.
         ``noigno``
             Sequence with the indices of the original parameters considered in the calculations.
     """
@@ -764,7 +790,7 @@ def _get_sigma_parameters(parameters, sigma0, constraints):
     """
     Internal function propagating the uncertainty on the actually fitted parameters and related parameters to the
     final parameters considering the applied constraints.
-    
+
     Parameters
     ----------
         parameters : 1D sequence of length equal to the number of free parameters N

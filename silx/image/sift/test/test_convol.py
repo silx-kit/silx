@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "29/09/2016"
 
 import time
 import logging
@@ -49,7 +49,7 @@ else:
     import scipy.misc, scipy.ndimage
 
 import unittest
-from silx.opencl import ocl
+from silx.opencl import ocl, kernel_workgroup_size
 if ocl:
     import pyopencl, pyopencl.array
 from ..utils import calc_size, get_opencl_code
@@ -81,8 +81,8 @@ class TestConvol(unittest.TestCase):
             device = cls.ctx.devices[0]
             device_id = device.platform.get_devices().index(device)
             platform_id = pyopencl.get_platforms().index(device.platform)
-            cls.maxwg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
-#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.maxwg, platform_id, device_id)
+            cls.max_wg = ocl.platforms[platform_id].devices[device_id].max_work_group_size
+#             logger.warning("max_work_group_size: %s on (%s, %s)", cls.max_wg, platform_id, device_id)
 
     @classmethod
     def tearDownClass(cls):
@@ -93,7 +93,12 @@ class TestConvol(unittest.TestCase):
     def setUp(self):
         if scipy and ocl is None:
             return
-        self.input = scipy.misc.ascent().astype(numpy.float32)
+
+        if hasattr(scipy.misc, "ascent"):
+            self.input = scipy.misc.ascent().astype(numpy.float32)
+        else:
+            self.input = scipy.misc.lena().astype(numpy.float32)
+
         self.input = numpy.ascontiguousarray(self.input[0:507, 0:209])
 
         self.gpu_in = pyopencl.array.to_device(self.queue, self.input)
@@ -106,9 +111,9 @@ class TestConvol(unittest.TestCase):
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])
-        if self.maxwg < 512:
-            if self.maxwg > 1:
-                self.wg = (self.maxwg // 2, 2)
+        if self.max_wg < 512:
+            if self.max_wg > 1:
+                self.wg = (self.max_wg, 1)
             else:
                 self.wg = (1, 1)
         else:
@@ -147,19 +152,6 @@ class TestConvol(unittest.TestCase):
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-                import pylab
-                fig = pylab.figure()
-                fig.suptitle('convolution horizontal sigma=%s delta=%s' % (sigma, delta))
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
     @unittest.skipIf(scipy and ocl is None, "scipy or opencl not available")
     def test_convol_vert(self):
@@ -192,18 +184,6 @@ class TestConvol(unittest.TestCase):
             if self.PROFILE:
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
-                fig = pylab.figure()
-                fig.suptitle('convolution horizontal sigma=%s delta=%s' % (sigma, delta))
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
     def test_convol(self):
         """
@@ -236,18 +216,6 @@ class TestConvol(unittest.TestCase):
                 logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
                 logger.info("Horizontal convolution took %.3fms and vertical convolution took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start),
                                                                                           1e-6 * (k2.profile.end - k2.profile.start)))
-                fig = pylab.figure()
-                fig.suptitle('sigma=%s' % sigma)
-                sp1 = fig.add_subplot(221)
-                sp1.imshow(self.input, interpolation="nearest")
-                sp2 = fig.add_subplot(222)
-                sp2.imshow(ref, interpolation="nearest")
-                sp3 = fig.add_subplot(223)
-                sp3.imshow(ref - res, interpolation="nearest")
-                sp4 = fig.add_subplot(224)
-                sp4.imshow(res, interpolation="nearest")
-                fig.show()
-                raw_input("enter")
 
 
 def suite():

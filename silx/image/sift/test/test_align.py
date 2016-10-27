@@ -35,7 +35,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "29/09/2016"
 
 import unittest
 import logging
@@ -54,7 +54,7 @@ if ocl:
     import pyopencl.array
 
 from ..alignment import LinearAlign
-logger = logging.getLogger(__file__)
+logger = logging.getLogger(__name__)
 PRINT_KEYPOINTS = False
 
 
@@ -67,7 +67,6 @@ class TestLinalign(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -81,7 +80,13 @@ class TestLinalign(unittest.TestCase):
     def setUp(self):
         if scipy and ocl is None:
             return
-        self.lena = scipy.misc.ascent().astype(numpy.float32)
+
+        if hasattr(scipy.misc, "ascent"):
+            self.lena = scipy.misc.ascent().astype(numpy.float32)
+        else:
+            self.lena = scipy.misc.lena().astype(numpy.float32)
+
+
         self.shape = self.lena.shape
         self.extra = (10, 11)
 #        self.img = scipy.ndimage.shift(self.lena, (7, 5))
@@ -103,19 +108,9 @@ class TestLinalign(unittest.TestCase):
         out = out["result"]
 
         if self.PROFILE and out is not None:
-            fig = pylab.figure()
-            sp0 = fig.add_subplot(221)
-            im0 = sp0.imshow(self.lena)
-            sp1 = fig.add_subplot(222)
-            im1 = sp1.imshow(self.img)
-            sp2 = fig.add_subplot(223)
-            im2 = sp2.imshow(out)
-            sp3 = fig.add_subplot(224)
+
             delta = (out - self.lena)[100:400, 100:400]
-            im3 = sp3.imshow(delta)
-            print({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
-            pylab.show()
-            raw_input("enter")
+            logger.info({"min":delta.min(), "max:":delta.max(), "mean":delta.mean(), "std:":delta.std()})
 
 
 def suite():

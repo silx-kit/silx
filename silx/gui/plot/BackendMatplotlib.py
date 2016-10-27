@@ -32,35 +32,17 @@ __date__ = "15/09/2016"
 
 
 import logging
-import sys
 
 import numpy
 
 
 _logger = logging.getLogger(__name__)
 
-if 'matplotlib' in sys.modules:
-    _logger.warning(
-        'matplotlib already loaded, setting its backend may not work')
-
 
 from .. import qt
 
+from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
-
-if qt.BINDING == 'PySide':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt4':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt5':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-
 from matplotlib import cm
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -158,6 +140,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 errorbarColor = 'k'
             else:
                 errorbarColor = color
+
+            # On Debian 7 at least, Nx1 array yerr does not seems supported
+            if (yerror is not None and yerror.ndim == 2 and
+                    yerror.shape[1] == 1 and len(x) != 1):
+                yerror = numpy.ravel(yerror)
 
             errorbars = axes.errorbar(x, y, label=legend,
                                       xerr=xerror, yerr=yerror,
@@ -654,14 +641,14 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 dataRatio = (ymax - ymin) / (xmax - xmin)
                 if dataRatio < figureRatio:
                     # Increase y range
-                    ycenter = 0.5 * (newLimits[3] - newLimits[2])
+                    ycenter = 0.5 * (newLimits[3] + newLimits[2])
                     yrange = (xmax - xmin) * figureRatio
                     newLimits[2] = ycenter - 0.5 * yrange
                     newLimits[3] = ycenter + 0.5 * yrange
 
                 elif dataRatio > figureRatio:
                     # Increase x range
-                    xcenter = 0.5 * (newLimits[1] - newLimits[0])
+                    xcenter = 0.5 * (newLimits[1] + newLimits[0])
                     xrange_ = (ymax - ymin) / figureRatio
                     newLimits[0] = xcenter - 0.5 * xrange_
                     newLimits[1] = xcenter + 0.5 * xrange_
@@ -937,6 +924,10 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
 
     def _onMouseWheel(self, event):
         self._plot.onMouseWheel(event.x, event.y, event.step)
+
+    def leaveEvent(self, event):
+        """QWidget event handler"""
+        self._plot.onMouseLeaveWidget()
 
     # picking
 

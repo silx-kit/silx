@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "13/10/2016"
 
 
 from collections import OrderedDict
@@ -75,9 +75,7 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
-from ..fit.FitWidget import FitWidget
 from silx.io.utils import save1D, savespec
-
 
 
 _logger = logging.getLogger(__name__)
@@ -418,7 +416,6 @@ class ColormapAction(PlotAction):
 
 class KeepAspectRatioAction(PlotAction):
     """QAction controlling aspect ratio on a :class:`.PlotWidget`.
-
     :param plot: :class:`.PlotWidget` instance on which to operate
     :param parent: See :class:`QAction`
     """
@@ -964,8 +961,9 @@ class FitAction(PlotAction):
         super(FitAction, self).__init__(
             plot, icon='math-fit', text='Fit curve',
             tooltip='Open a fit dialog',
-            triggered=self._openFitWindow,
+            triggered=self._getFitWindow,
             checkable=False, parent=parent)
+        self.fit_window = None
 
     def _warningMessage(self, informativeText='', detailedText=''):
         """Display a warning message."""
@@ -975,13 +973,12 @@ class FitAction(PlotAction):
         msg.setDetailedText(detailedText)
         msg.exec_()
 
-    def _openFitWindow(self):
+    def _getFitWindow(self):
         curve = self.plot.getActiveCurve()
         if curve is None:
             curves = self.plot.getAllCurves()
             if len(curves) != 1:
-                self._warningMessage(
-                        "No curve selected")
+                self._warningMessage("No curve selected")
                 return
             curve = curves[0]
         self.xlabel = self.plot.getGraphXLabel()
@@ -989,15 +986,27 @@ class FitAction(PlotAction):
         self.x, self.y, self.legend = curve[0:3]
 
         # open a window with a FitWidget
-        mw = qt.QMainWindow(self.plot)
-        self.fit_widget = FitWidget(parent=mw)
+        if self.fit_window is None:
+            self.fit_window = qt.QMainWindow(self.plot)
+            # import done here rather than at module level to avoid circular import
+            # FitWidget -> BackgroundWidget -> PlotWindow -> PlotActions -> FitWidget
+            from ..fit.FitWidget import FitWidget
+            self.fit_widget = FitWidget(parent=self.fit_window)
+            self.fit_window.setCentralWidget(
+                    self.fit_widget)
+            self.fit_widget.guibuttons.DismissButton.clicked.connect(
+                    self.fit_window.close)
+            self.fit_widget.sigFitWidgetSignal.connect(
+                    self.handle_signal)
+            self.fit_window.show()
+        else:
+            if self.fit_window.isHidden():
+                self.fit_window.show()
+                self.fit_widget.show()
+            self.fit_window.raise_()
+
         self.fit_widget.setData(self.x, self.y)
-        self.fit_widget.show()
-        mw.setWindowTitle("Fitting " + self.legend)
-        mw.setCentralWidget(self.fit_widget)
-        self.fit_widget.guibuttons.DismissButton.clicked.connect(mw.close)
-        self.fit_widget.sigFitWidgetSignal.connect(self.handle_signal)
-        mw.show()
+        self.fit_window.setWindowTitle("Fitting " + self.legend)
 
     def handle_signal(self, ddict):
         if ddict["event"] == "EstimateFinished":

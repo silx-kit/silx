@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "13/10/2016"
 
 import logging
 from .. import qt
@@ -62,6 +62,7 @@ class _Wrapper(qt.QRunnable):
             holder.failed.emit(e)
         finally:
             holder.finished.emit()
+        holder._sigReleaseRunner.emit(self)
 
     def autoDelete(self):
         """Returns true to ask the QThreadPool to manage the life cycle of
@@ -120,8 +121,10 @@ class ThreadPoolPushButton(WaitingPushButton):
         self.__args = None
         self.__kwargs = None
         self.__runnerCount = 0
+        self.__runnerSet = set([])
         self.clicked.connect(self.executeCallable)
         self.finished.connect(self.__runnerFinished)
+        self._sigReleaseRunner.connect(self.__releaseRunner)
 
     beforeExecuting = qt.Signal()
     """Signal emitted just before execution of the callable by the main Qt
@@ -156,6 +159,9 @@ class ThreadPoolPushButton(WaitingPushButton):
 
     The parameter of the signal is the raised exception.
     """
+
+    _sigReleaseRunner = qt.Signal(object)
+    """Callback to release runners"""
 
     def __runnerStarted(self):
         """Called when a runner is started.
@@ -194,6 +200,10 @@ class ThreadPoolPushButton(WaitingPushButton):
         self.__runnerStarted()
         runner = self._createRunner(self.__callable, self.__args, self.__kwargs)
         qt.QThreadPool.globalInstance().start(runner)
+        self.__runnerSet.add(runner)
+
+    def __releaseRunner(self, runner):
+        self.__runnerSet.remove(runner)
 
     def _createRunner(self, function, args, kwargs):
         """Create a QRunnable from a callable object.
