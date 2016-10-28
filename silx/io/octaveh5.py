@@ -95,7 +95,6 @@ class Octaveh5(object):
 
             logger.info(reason)
             raise e
-            
 
     def get(self, struct_name):
         """Read octave equivalent structures in hdf5 file
