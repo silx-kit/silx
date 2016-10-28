@@ -123,7 +123,12 @@ class Octaveh5(object):
             if list(val.items())[0][1].value != np.string_('sq_string'):
                 data_dict[str(key)] = float(data_dict[str(key)])
             else:
-                data_dict[str(key)] = data_dict[str(key)].decode('UTF-8')
+                if list(val.items())[0][1].value == np.string_('sq_string'):
+                    # in the case the string has been stored has a nd array of char
+                    if type(data_dict[str(key)]) is np.ndarray:
+                        data_dict[str(key)]="".join(chr(item) for item in data_dict[str(key)])
+                    else:
+                        data_dict[str(key)] = data_dict[str(key)].decode('UTF-8')
 
                 # In the case Octave have added an extra character at the end
                 if self.octave_targetted_version < 3.8:
