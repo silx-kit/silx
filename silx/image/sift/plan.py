@@ -50,7 +50,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/09/2016"
+__date__ = "03/11/2016"
 __status__ = "beta"
 
 import time
@@ -99,8 +99,10 @@ class SiftPlan(object):
     converter = {numpy.dtype(numpy.uint8): "u8_to_float",
                  numpy.dtype(numpy.uint16): "u16_to_float",
                  numpy.dtype(numpy.uint32): "u32_to_float",
+                 numpy.dtype(numpy.uint64): "u64_to_float",
                  numpy.dtype(numpy.int32): "s32_to_float",
                  numpy.dtype(numpy.int64): "s64_to_float",
+                 # numpy.dtype(numpy.float64): "double_to_float",
                  }
 
     sigmaRatio = 2.0 ** (1.0 / par.Scales)
@@ -449,6 +451,16 @@ class SiftPlan(object):
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image)
                 if self.profile:
                     self.events.append(("copy H->D", evt))
+            elif self.dtype == numpy.float64:
+                # A preprocessing kernel double_to_float exists, but is commented (RUNS ONLY ON GPU WITH FP64)
+                # TODO: benchmark this kernel vs the current pure CPU format conversion with numpy.float32
+                #       and uncomment it if it proves faster (dubious, because of data transfer bottleneck)
+                if isinstance(image, pyopencl.array.Array):
+                    evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, numpy.float32(image.data))
+                else:
+                    evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, numpy.float32(image))
+                if self.profile:
+                    self.events.append(("copy H->D", evt))
             elif (len(image.shape) == 3) and (image.dtype == numpy.uint8) and (self.RGB):
                 if isinstance(image, pyopencl.array.Array):
                     evt = pyopencl.enqueue_copy(self.queue, self.buffers["raw"].data, image.data)
@@ -473,7 +485,7 @@ class SiftPlan(object):
                 if self.profile:
                     self.events.append(("convert -> float", evt))
             else:
-                raise RuntimeError("invalid input format error")
+                raise RuntimeError("invalid input format error (%s)" % (str(self.dtype)))
             
             wg1 = self.kernels["reductions.max_min_global_stage1"]
             wg2 = self.kernels["reductions.max_min_global_stage2"]
