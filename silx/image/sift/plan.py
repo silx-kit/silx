@@ -455,10 +455,7 @@ class SiftPlan(object):
                 # A preprocessing kernel double_to_float exists, but is commented (RUNS ONLY ON GPU WITH FP64)
                 # TODO: benchmark this kernel vs the current pure CPU format conversion with numpy.float32
                 #       and uncomment it if it proves faster (dubious, because of data transfer bottleneck)
-                if isinstance(image, pyopencl.array.Array):
-                    evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, numpy.float32(image.data))
-                else:
-                    evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, numpy.float32(image))
+                evt = pyopencl.enqueue_copy(self.queue, self.buffers[0].data, image.astype(numpy.float32))
                 if self.profile:
                     self.events.append(("copy H->D", evt))
             elif (len(image.shape) == 3) and (image.dtype == numpy.uint8) and (self.RGB):
