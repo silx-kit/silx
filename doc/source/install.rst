@@ -248,7 +248,7 @@ You can now build and install *silx* from its sources::
 Known issues
 ............
 
-There are specific issues related to MacOSX. If thou get this error::
+There are specific issues related to MacOSX. If you get this error::
 
   UnicodeDecodeError: 'ascii' codec can't decode byte 0xc3 in position 1335: ordinal not in range(128)
 
