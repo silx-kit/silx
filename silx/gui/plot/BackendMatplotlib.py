@@ -760,7 +760,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         default = super(BackendMatplotlib, self).getSupportedColormaps()
         maps = [m for m in cm.datad]
         maps.sort()
-        return default + maps
+        return default + tuple(maps)
 
     def __getColormap(self, name):
         if not self._colormaps:  # Lazy initialization of own colormaps
