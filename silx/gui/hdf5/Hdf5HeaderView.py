@@ -41,7 +41,7 @@ class Hdf5HeaderView(qt.QHeaderView):
     """
 
     def __init__(self, orientation, parent=None):
-        """\
+        """
         Constructor
 
         :param orientation qt.Qt.Orientation: Orientation of the header
