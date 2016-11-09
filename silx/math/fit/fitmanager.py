@@ -224,8 +224,7 @@ class FitManager(object):
     def addtheory(self, name, theory=None,
                   function=None, parameters=None,
                   estimate=None, configure=None, derivative=None,
-                  description=None, config_widget=None,
-                  pymca_legacy=False):
+                  description=None, pymca_legacy=False):
         """Add a new theory to dictionary :attr:`theories`.
 
         You can pass a name and a :class:`FitTheory` object as arguments, or
@@ -269,7 +268,6 @@ class FitManager(object):
                 estimate=estimate,
                 configure=configure,
                 derivative=derivative,
-                config_widget=config_widget,
                 pymca_legacy=pymca_legacy
             )
 
@@ -279,8 +277,8 @@ class FitManager(object):
 
     def addbgtheory(self, name, theory=None,
                     function=None, parameters=None,
-                    estimate=None, configure=None, derivative=None,
-                    description=None, config_widget=None):
+                    estimate=None, configure=None,
+                    derivative=None, description=None):
         """Add a new theory to dictionary :attr:`bgtheories`.
 
         You can pass a name and a :class:`FitTheory` object as arguments, or
@@ -305,8 +303,6 @@ class FitManager(object):
             :attr:`silx.math.fit.fittheory.FitTheory.derivative`
         :param str description: See documentation for
             :attr:`silx.math.fit.fittheory.FitTheory.description`
-        :param config_widget: See documentation for
-            :attr:`silx.math.fit.fittheory.FitTheory.config_widget`
         """
         if theory is not None:
             self.bgtheories[name] = theory
@@ -319,7 +315,7 @@ class FitManager(object):
                 estimate=estimate,
                 configure=configure,
                 derivative=derivative,
-                config_widget=config_widget,
+                is_background=True
             )
 
         else:
