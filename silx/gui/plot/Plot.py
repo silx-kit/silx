@@ -1717,7 +1717,7 @@ class Plot(object):
             or if there is no active curve, the lastest updated curve that is
             not hidden.
             is returned if there are curves in the plot.
-        :return: None or list [x, y, legend, parameters]
+        :return: None or list [x, y, legend, info, parameters]
         """
         if legend is None:
             legend = self.getActiveCurve(just_legend=True)
