@@ -14,6 +14,7 @@ You will find the simple instructions for each platform at the beginning of each
 
 For all platform, to install *silx* from the source, see `Installing from source`_.
 
+To install *silx* in a virtualenv, read :ref:`silx-venv`.
 
 Dependencies
 ------------
