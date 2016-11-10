@@ -80,7 +80,7 @@ def _prepare_hdf5_dataset(array_like):
 
 
 def dicttoh5(treedict, h5file, h5path='/',
-             mode="a", overwrite_data=False,
+             mode="w", overwrite_data=False,
              create_dataset_args=None):
     """Write a nested dictionary to a HDF5 file, using keys as member names.
 
@@ -235,7 +235,7 @@ def dicttojson(ddict, jsonfile, indent=None, mode="w"):
         jsonf.close()
 
 
-def dicttoini(ddict, inifile, mode="a"):
+def dicttoini(ddict, inifile, mode="w"):
     """Output dict as configuration file (similar to Microsoft Windows INI).
 
     :param dict: Dictionary of configuration parameters
@@ -255,15 +255,17 @@ def dicttoini(ddict, inifile, mode="a"):
         inif.close()
 
 
-def dump(ddict, ffile, fmat=None):
+def dump(ddict, ffile, mode="w", fmat=None):
     """Dump dictionary to a file
 
     :param ddict: Dictionary with string keys
     :param ffile: File name or file-like object with a ``write`` method
-    :param fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
+    :param str fmat: Output format: ``"json"``, ``"hdf5"`` or ``"ini"``.
         When None (the default), it uses the filename extension as the format.
         Dumping to a HDF5 file requires `h5py <http://www.h5py.org/>`_ to be
         installed.
+    :param str mode: File opening mode (``w``, ``a``, ``w+``…)
+        Default is *"w"*, write mode, overwrite if exists.
     :raises IOError: if file format is not supported
     """
     if fmat is None:
@@ -273,14 +275,14 @@ def dump(ddict, ffile, fmat=None):
     fmat = fmat.lower()
 
     if fmat == "json":
-        dicttojson(ddict, ffile, indent=2)
+        dicttojson(ddict, ffile, indent=2, mode=mode)
     elif fmat in ["hdf5", "h5"]:
         if h5py_missing:
             logger.error("Cannot dump to HDF5 format, missing h5py library")
             raise h5py_import_error
-        dicttoh5(ddict, ffile)
+        dicttoh5(ddict, ffile, mode=mode)
     elif fmat in ["ini", "cfg"]:
-        dicttoini(ddict, ffile)
+        dicttoini(ddict, ffile, mode=mode)
     else:
         raise IOError("Unknown format " + fmat)
 
