@@ -12,7 +12,7 @@ Prerequisites
 
 This guide assumes that your system meets the following requirements:
 
-   - a version of python compatible with *silx* is installed (python 2.7 or python > 3.4)
+   - a version of python compatible with *silx* is installed (python 2.7 or python >= 3.4)
    - the *pip* installer for python packages is installed
    - the Qt libraries is installed (optional, required for using ``silx.gui``)
 
@@ -45,7 +45,7 @@ a virtual environment named ``silx_venv``
     virtualenv silx_venv
 
 A virtualenv contains a copy of your default python interpreter with a few tools
-to install packages (pip, setuptools, wheel).
+to install packages (pip, setuptools).
 
 To use a different python interpreter, you can specify it on the command line.
 For example, to use python 3.4:
@@ -77,7 +77,7 @@ After activating *silx_venv*, you should upgrade *pip*:
 
 .. code-block:: bash
 
-    pip install -U pip
+    python -m pip install --upgrade pip
 
 Upgrade setuptools and wheel
 ****************************
