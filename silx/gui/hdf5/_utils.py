@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "07/11/2016"
 
 
 import logging
@@ -78,7 +78,7 @@ class Hdf5ContextMenuEvent(object):
 
         :rtype: H5Node
         """
-        return self.__menu
+        return self.__hoveredObject
 
 
 def htmlFromDict(dictionary):
