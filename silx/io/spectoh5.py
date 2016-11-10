@@ -229,7 +229,7 @@ def convert(specfile, h5file, mode="w-",
         lost), ``"w-"`` (write, fail if exists). This is ignored
         if ``h5file`` is a file handle.
     :param create_dataset_args: Dictionary of args you want to pass to
-        ``h5f.create_dataset``. This allows you to specify filters and
+        ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
 
     This is a convenience shortcut to call::
