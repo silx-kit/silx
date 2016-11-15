@@ -244,12 +244,15 @@ def chistogramnd(sample,
 
     # checking the weighted_histo array, if provided
     if weights_type is None:
+        # no weights provided, not creating the weighted_histo array
         weighted_histo = None
     elif weighted_histo is None:
+        # weights provided, but no weighted_histo, creating it
         if wh_dtype is None:
             wh_dtype = weights_type
         weighted_histo = np.zeros(output_shape, dtype=wh_dtype)
     else:
+        # weighted_histo provided, checking shape/dtype
         if weighted_histo.shape != output_shape:
             raise ValueError('Provided <weighted_histo> array doesn\'t have '
                              'a shape compatible with <n_bins> '
