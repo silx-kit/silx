@@ -440,6 +440,26 @@ class TestPlotGetCurveImage(unittest.TestCase):
         image = plot.getImage()
         self.assertEqual(image[1], 'image 1')  # Test image legend
 
+    def testGetAllImages(self):
+        """Plot.getAllImages test"""
+
+        plot = Plot(backend='none')
+
+        # No image
+        images = plot.getAllImages()
+        self.assertEqual(len(images), 0)
+
+        # 2 images
+        data = numpy.arange(100).reshape(10, 10)
+        plot.addImage(data, legend='1', replace=False)
+        plot.addImage(data, origin=(10, 10), legend='2', replace=False)
+        images = plot.getAllImages(just_legend=True)
+        self.assertEqual(list(images), ['1', '2'])
+        images = plot.getAllImages(just_legend=False)
+        self.assertEqual(len(images), 2)
+        self.assertEqual(images[0][1], '1')
+        self.assertEqual(images[1][1], '2')
+
 
 def suite():
     test_suite = unittest.TestSuite()
