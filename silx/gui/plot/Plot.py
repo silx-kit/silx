@@ -397,23 +397,24 @@ class Plot(object):
         xMax = yMaxLeft = yMaxRight = float('nan')
 
         for _curve, info in self._curves.items():
-            # using numpy's separate min and max is faster than
-            # a pure python minmax.
-            if info['xmin'] is not None:
-                xMin = numpy.nanmin([xMin, info['xmin']])
-            if info['xmax'] is not None:
-                xMax = numpy.nanmax([xMax, info['xmax']])
+            if _curve not in self._hiddenCurves:
+                # using numpy's separate min and max is faster than
+                # a pure python minmax.
+                if info['xmin'] is not None:
+                    xMin = numpy.nanmin([xMin, info['xmin']])
+                if info['xmax'] is not None:
+                    xMax = numpy.nanmax([xMax, info['xmax']])
 
-            if info['params']['yaxis'] == 'left':
-                if info['ymin'] is not None:
-                    yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                if info['ymax'] is not None:
-                    yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
-            else:
-                if info['ymin'] is not None:
-                    yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                if info['ymax'] is not None:
-                    yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+                if info['params']['yaxis'] == 'left':
+                    if info['ymin'] is not None:
+                        yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+                else:
+                    if info['ymin'] is not None:
+                        yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
             for _image, info in self._images.items():
@@ -1190,6 +1191,7 @@ class Plot(object):
             self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
                           **curve['params'])
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
 
     # Remove

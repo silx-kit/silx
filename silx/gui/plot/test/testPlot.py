@@ -365,6 +365,19 @@ class TestPlotRanges(ParametricTestCase):
                                 msg='{0} != {1}'.format(dataRange.y, yRange))
                 self.assertIsNone(dataRange.yright)
 
+    def testDataRangeHiddenCurve(self):
+        """curves with a hidden curve"""
+        plot = Plot(backend='none')
+        plot.addCurve((0, 1), (0, 1), legend='shown')
+        plot.addCurve((0, 1, 2), (5, 5, 5), legend='hidden')
+        range1 = plot.getDataRange()
+        self.assertEqual(range1.x, (0, 2))
+        self.assertEqual(range1.y, (0, 5))
+        plot.hideCurve('hidden')
+        range2 = plot.getDataRange()
+        self.assertEqual(range2.x, (0, 1))
+        self.assertEqual(range2.y, (0, 1))
+
 
 class TestPlotGetCurveImage(unittest.TestCase):
     """Test of plot getCurve and getImage methods"""
