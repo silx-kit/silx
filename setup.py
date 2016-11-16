@@ -25,7 +25,7 @@
 # ###########################################################################*/
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "04/10/2016"
+__date__ = "16/11/2016"
 __license__ = "MIT"
 
 
@@ -151,7 +151,7 @@ cmdclass['test'] = PyTest
 
 
 # ################### #
-# build_doc commandes #
+# build_doc command   #
 # ################### #
 
 try:
@@ -159,9 +159,9 @@ try:
     import sphinx.util.console
     sphinx.util.console.color_terminal = lambda: False
     from sphinx.setup_command import BuildDoc
-
 except ImportError:
-    class build_doc(Command):
+    sphinx = None
+    class SphinxExpectedCommand(Command):
         user_options = []
 
         def initialize_options(self):
@@ -175,9 +175,8 @@ except ImportError:
                 'Sphinx is required to build the documentation.\n'
                 'Please install Sphinx (http://www.sphinx-doc.org).')
 
-else:
-    # i.e. if sphinx:
-    class build_doc(BuildDoc):
+if sphinx is not None:
+    class BuildDocCommand(BuildDoc):
 
         def run(self):
             # make sure the python path is pointing to the newly built
@@ -200,15 +199,19 @@ else:
 #                         shutil.copy(src, idst)
 
             # Build the Users Guide in HTML and TeX format
-            for builder in ('html', 'latex'):
+            for builder in ['html', 'latex']:
                 self.builder = builder
                 self.builder_target_dir = os.path.join(self.build_dir, builder)
                 self.mkpath(self.builder_target_dir)
                 BuildDoc.run(self)
             sys.path.pop(0)
+else:
+    BuildDocCommand = SphinxExpectedCommand
+
+cmdclass['build_doc'] = BuildDocCommand
 
 
-cmdclass['build_doc'] = build_doc
+        http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
 
 
 # ############## #
