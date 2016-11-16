@@ -72,13 +72,13 @@ HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
 
 # First check for an already loaded wrapper
-if 'PySide' in sys.modules:
+if 'PySide.QtCore' in sys.modules:
     BINDING = 'PySide'
 
-elif 'PyQt5' in sys.modules:
+elif 'PyQt5.QtCore' in sys.modules:
     BINDING = 'PyQt5'
 
-elif 'PyQt4' in sys.modules:
+elif 'PyQt4.QtCore' in sys.modules:
     BINDING = 'PyQt4'
 
 else:  # Then try Qt bindings
