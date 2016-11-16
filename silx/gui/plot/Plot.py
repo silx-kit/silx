@@ -1738,6 +1738,39 @@ class Plot(object):
         else:
             return None
 
+    def getAllImages(self, just_legend=False):
+        """Returns all images legend or info and data.
+
+        It returns an empty list in case of not having any image.
+
+        If just_legend is False, it returns a list of the form:
+            [[data0, legend0, info0, pixmap0, params0],
+             [data1, legend1, info1, pixmap1, params1],
+             ...,
+             [datan, legendn, infon, pixmapn, paramsn]]
+        If just_legend is True, it returns a list of the form:
+            [legend0, legend1, ..., legendn]
+
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
+
+        :param bool just_legend: True to get the legend of the images,
+                                 False (the default) to get the images' data
+                                 and info.
+        :return: list of legends or list of
+            [image, legend, info, pixmap, info, params]
+        :rtype: list of str or list of list
+        """
+        output = []
+        for key in self._images:
+            if just_legend:
+                output.append(key)
+            else:
+                image = self._images[key]
+                output.append((image['data'], key, image['params']['info'] or {},
+                    image['pixmap'], image['params']))
+        return output
+
     def getImage(self, legend=None):
         """Get the data and info of a specific image.
 
@@ -1751,7 +1784,7 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the lastest updated image
             is returned if there are images in the plot.
-        :return: None or list [image, legend, info, pixmap, params]
+        :return: None or list [image, legend, info, pixmap, info, params]
         """
         if legend is None:
             legend = self.getActiveImage(just_legend=True)
