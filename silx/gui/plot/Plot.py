@@ -1739,7 +1739,7 @@ class Plot(object):
     def getAllImages(self, just_legend=False):
         """Returns all images legend or info and data.
 
-        It returns an empty list in case of not having any curve.
+        It returns an empty list in case of not having any image.
 
         If just_legend is False, it returns a list of the form:
             [[data0, legend0, info0, pixmap0, params0],
