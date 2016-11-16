@@ -68,7 +68,7 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "15/11/2016"
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -101,11 +101,6 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         sfh5 = SpecH5(specfile)
     else:
         sfh5 = specfile
-
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, mode)
-    else:
-        h5f = h5file
 
     if not h5path.endswith("/"):
         h5path += "/"
@@ -206,17 +201,23 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
                 link_name += "/info"
                 create_link(link_name, grp)
 
-    sfh5.visititems(append_spec_member_to_h5)
 
     # visititems didn't create attributes for the root group
-    root_grp = h5f[h5path]
-    for key in sfh5.attrs:
-        if overwrite_data or key not in root_grp.attrs:
-            root_grp.attrs.create(key, numpy.string_(sfh5.attrs[key]))
+    def _one_hdf5(h5f):
+        sfh5.visititems(append_spec_member_to_h5)
+        root_grp = h5f[h5path]
+        for key in sfh5.attrs:
+            if overwrite_data or key not in root_grp.attrs:
+                root_grp.attrs.create(key, numpy.string_(sfh5.attrs[key]))
 
     # Close file if it was opened in this function
     if not isinstance(h5file, h5py.File):
-        h5f.close()
+        with  h5py.File(h5file, mode) as h5f:
+            _one_hdf5(h5f)
+    else:
+        h5f = h5file
+        _one_hdf5(h5f)
+
 
 
 def convert(specfile, h5file, mode="w-",
