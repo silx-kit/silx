@@ -79,8 +79,8 @@ and dataset as it is.
 .. code-block:: python
 
    import h5py
-   h5 = h5py.File("test.py")
-   
+   h5 = h5py.File("test.h5")
+
    # We can use file
    model.insertH5pyObject(h5)
 
@@ -116,15 +116,17 @@ h5py objects with extra information.
 
    def my_action_callback(obj):
       # do what you want
+      pass
 
    def my_callback(event):
-      objects = event.source().selectedH5Nodes()
+      objects = list(event.source().selectedH5Nodes())
       obj = objects[0]  # for single selection
 
+      menu = event.menu()
       if obj.ntype is h5py.Dataset:
-         action = qt.QAction("My funky action on datasets only")
+         action = qt.QAction("My funky action on datasets only", menu)
          action.triggered.connect(lambda: my_action_callback(obj))
-         event.menu().addAction(action)
+         menu.addAction(action)
 
    treeview.addContextMenuCallback(my_callback)
 
@@ -155,10 +157,13 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
       was pressed on is specified by index. The signal is only emitted when the
       index is valid.
 
+The method :meth:`Hdf5TreeView.selectedH5Nodes` returns an iterator of :class:`H5Node`
+objects which wrap h5py objects with extra information.
+
 .. code-block:: python
 
    def my_callback(index):
-       objects = treeview.selectedH5Nodes()
+       objects = list(treeview.selectedH5Nodes())
        obj = objects[0]  # for single selection
 
        print(obj)
@@ -176,7 +181,8 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
        if obj.ntype is h5py.Dataset:
            print(obj.dtype)
            print(obj.shape)
-           print(obj.value)
+           print(obj.value)        # create a copy of data of the dataset
+           print(obj.h5py_object)  # reference to the Hdf5 dataset (or group)
 
    treeview.clicked.connect(my_callback)
 
