@@ -210,9 +210,36 @@ else:
 
 cmdclass['build_doc'] = BuildDocCommand
 
+# ################### #
+# test_doc command    #
+# ################### #
+
+if sphinx is not None:
+    class TestDocCommand(BuildDoc):
+        """Target to test the documentation using sphynx doctest.
 
         http://www.sphinx-doc.org/en/1.4.8/ext/doctest.html
+        """
 
+        def run(self):
+            # make sure the python path is pointing to the newly built
+            # code so that the documentation is built on this and not a
+            # previously installed version
+
+            build = self.get_finalized_command('build')
+            sys.path.insert(0, os.path.abspath(build.build_lib))
+
+            # Build the Users Guide in HTML and TeX format
+            for builder in ['doctest']:
+                self.builder = builder
+                self.builder_target_dir = os.path.join(self.build_dir, builder)
+                self.mkpath(self.builder_target_dir)
+                BuildDoc.run(self)
+            sys.path.pop(0)
+else:
+    TestDocCommand = SphinxExpectedCommand
+
+cmdclass['test_doc'] = TestDocCommand
 
 # ############## #
 # OpenMP support #

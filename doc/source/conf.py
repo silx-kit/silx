@@ -34,7 +34,13 @@ os.environ["PYTHONPATH"] = source_dir + os.pathsep + os.environ.get("PYTHONPATH"
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.coverage', 'sphinx.ext.mathjax', 'sphinx.ext.viewcode']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.doctest'
+]
 
 autodoc_member_order = 'bysource'
 
@@ -245,3 +251,6 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 # texinfo_show_urls = 'footnote'
+
+# Do not test code in >>> by default
+doctest_test_doctest_blocks = ''
