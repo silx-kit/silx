@@ -17,7 +17,16 @@ Import and create your tree view
 
 HDF5 widgets are all exposed by the package `silx.gui.hdf5`.
 
-.. code-block:: python
+.. testsetup:: *
+
+   from silx.gui import qt
+   app = qt.QApplication([])
+   import silx.gui.hdf5
+   treeview = silx.gui.hdf5.Hdf5TreeView()
+   header = treeview.header()
+   model = treeview.findHdf5TreeModel()
+
+.. testcode::
 
    import silx.gui.hdf5
    treeview = silx.gui.hdf5.Hdf5TreeView()
@@ -27,7 +36,7 @@ Custom your tree view
 
 The tree view can be customized to be sorted by default.
 
-.. code-block:: python
+.. testcode::
 
    # Sort content of files by time or name
    treeview.setSortingEnabled(True)
@@ -36,7 +45,7 @@ The model can be customized to support mouse interaction.
 A convenient method :meth:`Hdf5TreeView.findHdf5TreeModel` returns the main
 HDF5 model used through proxy models.
 
-.. code-block:: python
+.. testcode::
 
    model = treeview.findHdf5TreeModel()
 
@@ -49,7 +58,7 @@ HDF5 model used through proxy models.
 The tree view is also provided with a custom header which help to choose
 visible columns.
 
-.. code-block:: python
+.. testcode::
 
    header = treeview.header()
 
@@ -112,7 +121,7 @@ The callback receives a :class:`Hdf5ContextMenuEvent` every time the user
 requests the context menu. The event contains :class:`H5Node` objects which wrap
 h5py objects with extra information.
 
-.. code-block:: python
+.. testcode::
 
    def my_action_callback(obj):
       # do what you want
@@ -160,7 +169,7 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
 The method :meth:`Hdf5TreeView.selectedH5Nodes` returns an iterator of :class:`H5Node`
 objects which wrap h5py objects with extra information.
 
-.. code-block:: python
+.. testcode::
 
    def my_callback(index):
        objects = list(treeview.selectedH5Nodes())
