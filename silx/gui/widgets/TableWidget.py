@@ -41,7 +41,7 @@ else:
     newline = "\n"
 
 
-class CopyCellsAction(qt.QAction):
+class CopySelectedCellsAction(qt.QAction):
     """QAction to copy text from selected cells in a :class:`QTableWidget`
     into the clipboard.
 
@@ -63,8 +63,8 @@ class CopyCellsAction(qt.QAction):
         if not isinstance(table, qt.QTableWidget):
             raise ValueError('CopySelectedCellsAction must be initialised ' +
                              'with a QTableWidget.')
-        super(CopyCellsAction, self).__init__(table)
-        self.setText("Copy")
+        super(CopySelectedCellsAction, self).__init__(table)
+        self.setText("Copy selection")
         self.setShortcut(qt.QKeySequence('Ctrl+C'))
         self.triggered.connect(self.copyCellsToClipboard)
         self.table = table
@@ -102,12 +102,58 @@ class CopyCellsAction(qt.QAction):
         qapp.clipboard().setText(copied_text)
 
 
-class CutCellsAction(CopyCellsAction):
+class CopyAllCellsAction(qt.QAction):
+    """QAction to copy text from all cells in a :class:`QTableWidget`
+    into the clipboard.
+
+    The copied text will be a concatenation
+    of the texts in all cells, tabulated with tabulation and
+    newline characters.
+
+    :param table: :class:`QTableWidget` to which this action belongs.
+    """
+    def __init__(self, table):
+        if not isinstance(table, qt.QTableWidget):
+            raise ValueError('CopyAllCellsAction must be initialised ' +
+                             'with a QTableWidget.')
+        super(CopyAllCellsAction, self).__init__(table)
+        self.setText("Copy all")
+        self.triggered.connect(self.copyCellsToClipboard)
+        self.table = table
+        # self.cut = False
+
+    def copyCellsToClipboard(self):
+        """Concatenate the text content of all cells into a string
+        using tabulations and newlines to keep the table structure.
+        Put this text into the clipboard.
+        """
+        copied_text = ""
+        for row in range(self.table.rowCount()):
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item is not None:
+                    copied_text += item.text()
+                    # if self.cut and (item.flags() & qt.Qt.ItemIsEditable):
+                    #     item.setText("")
+                copied_text += "\t"
+            # remove the right-most tabulation
+            copied_text.rstrip("\t")
+            # add a newline
+            copied_text += newline
+        # remove final newline
+        copied_text.rstrip(newline)
+
+        # put this text into clipboard
+        qapp = qt.QApplication.instance()
+        qapp.clipboard().setText(copied_text)
+
+
+class CutSelectedCellsAction(CopySelectedCellsAction):
     """QAction to cut text from selected cells in a :class:`QTableWidget`
     into the clipboard.
 
     The text is deleted from the original table widget
-    (use :class:`CopyCellsAction` to preserve the original data).
+    (use :class:`CopySelectedCellsAction` to preserve the original data).
 
     If multiple cells are selected, the cut text will be a concatenation
     of the texts in all selected cells, tabulated with tabulation and
@@ -123,9 +169,11 @@ class CutCellsAction(CopyCellsAction):
 
     :param table: :class:`QTableWidget` to which this action belongs."""
     def __init__(self, table):
-        super(CutCellsAction, self).__init__(table)
+        super(CutSelectedCellsAction, self).__init__(table)
         self.setText("Cut")
         self.setShortcut(qt.QKeySequence('Ctrl+X'))
+        # cutting is already implemented in CopySelectedCellsAction (but
+        # it is disabled), we just need to enable it
         self.cut = True
 
 
@@ -162,7 +210,7 @@ class PasteCellsAction(qt.QAction):
     """
     def __init__(self, table):
         if not isinstance(table, qt.QTableWidget):
-            raise ValueError('CopySelectedCellsAction must be initialised ' +
+            raise ValueError('PasteCellsAction must be initialised ' +
                              'with a QTableWidget.')
         super(PasteCellsAction, self).__init__(table)
         self.table = table
@@ -229,18 +277,49 @@ class PasteCellsAction(qt.QAction):
 
 
 class TableWidget(qt.QTableWidget):
-    """:class:`QTableWidget` with a context menu displaying 3 actions:
+    """:class:`QTableWidget` with a context menu displaying 4 actions:
 
-        - :class:`CopyCellsAction`
-        - :class:`CutCellsAction`
+        - :class:`CopySelectedCellsAction`
+        - :class:`CopyAllCellsAction`
+        - :class:`CutSelectedCellsAction`
         - :class:`PasteCellsAction`
+
+    These actions interact with the clipboard and can be used to copy data
+    to or from an external application, or another widget.
+
+    The cut and paste actions are disabled by default, due to the risk of
+    overwriting data (no *Undo* action is available). Use :meth:`enablePaste`
+    and :meth:`enableCut` to activate them.
+
+    :param parent: Parent QWidget
+    :param bool cut: Enable cut action
+    :param bool paste: Enable paste action
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, cut=False, paste=False):
         super(TableWidget, self).__init__(parent)
-        for action in [CopyCellsAction(self), CutCellsAction(self),
-                       PasteCellsAction(self)]:
-            self.addAction(action)
+        self.addAction(CopySelectedCellsAction(self))
+        self.addAction(CopyAllCellsAction(self))
+        if cut:
+            self.enableCut()
+        if paste:
+            self.enablePaste()
+
         self.setContextMenuPolicy(qt.Qt.ActionsContextMenu)
+
+    def enablePaste(self):
+        """Enable paste action, to paste data from the clipboard into the
+        table.
+
+        This action can be triggered through the context menu (right-click)
+        or through the *Ctrl+V* key sequence."""
+        self.addAction(PasteCellsAction(self))
+
+    def enableCut(self):
+        """Enable cut action.
+
+        This action can be triggered through the context menu (right-click)
+        or through the *Ctrl+X* key sequence."""
+        self.addAction(CutSelectedCellsAction(self))
 
 
 if __name__ == "__main__":
