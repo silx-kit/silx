@@ -28,7 +28,7 @@ multiple cell selections.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "07/11/2016"
+__date__ = "23/11/2016"
 
 
 import sys
