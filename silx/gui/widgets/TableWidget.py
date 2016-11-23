@@ -328,6 +328,8 @@ if __name__ == "__main__":
     table = TableWidget()
     table.setColumnCount(10)
     table.setRowCount(7)
+    table.enablePaste()
+    table.enableCut()
     table.show()
     app.exec_()
 

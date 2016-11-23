@@ -43,6 +43,8 @@ class TestTableWidget(testutils.TestCaseQt):
         table = TableWidget()
         table.setColumnCount(10)
         table.setRowCount(7)
+        table.enableCut()
+        table.enablePaste()
         table.show()
         table.hide()
         self.qapp.processEvents()
