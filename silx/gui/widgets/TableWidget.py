@@ -36,9 +36,11 @@ from .. import qt
 
 
 if sys.platform.startswith("win"):
-    newline = "\r\n"
+    row_separator = "\r\n"
 else:
-    newline = "\n"
+    row_separator = "\n"
+
+col_separator = "\t"
 
 
 class CopySelectedCellsAction(qt.QAction):
@@ -65,10 +67,13 @@ class CopySelectedCellsAction(qt.QAction):
                              'with a QTableWidget.')
         super(CopySelectedCellsAction, self).__init__(table)
         self.setText("Copy selection")
+        self.setToolTip("Copy selected cells into the clipboard.")
         self.setShortcut(qt.QKeySequence('Ctrl+C'))
         self.triggered.connect(self.copyCellsToClipboard)
         self.table = table
         self.cut = False
+        """:attr:`cut` can be set to True by classes inheriting this action,
+        to do a cut action."""
 
     def copyCellsToClipboard(self):
         """Concatenate the text content of all selected cells into a string
@@ -81,21 +86,26 @@ class CopySelectedCellsAction(qt.QAction):
         selected_rows = [idx[0] for idx in selected_idx_tuples]
         selected_columns = [idx[1] for idx in selected_idx_tuples]
 
+        data_model = self.table.model()
+
         copied_text = ""
         for row in range(min(selected_rows), max(selected_rows) + 1):
             for col in range(min(selected_columns), max(selected_columns) + 1):
-                item = self.table.item(row, col)
-                if (row, col) in selected_idx_tuples and item is not None:
-                    copied_text += item.text()
-                    if self.cut and (item.flags() & qt.Qt.ItemIsEditable):
-                        item.setText("")
-                copied_text += "\t"
+                index = data_model.index(row, col)
+                cell_text = data_model.data(index)
+                flags = data_model.flags(index)
+
+                if (row, col) in selected_idx_tuples and cell_text is not None:
+                    copied_text += cell_text
+                    if self.cut and (flags & qt.Qt.ItemIsEditable):
+                        data_model.setData(index, "")
+                copied_text += col_separator
             # remove the right-most tabulation
-            copied_text.rstrip("\t")
+            copied_text = copied_text[:-len(col_separator)]
             # add a newline
-            copied_text += newline
+            copied_text += row_separator
         # remove final newline
-        copied_text.rstrip(newline)
+        copied_text = copied_text[:-len(row_separator)]
 
         # put this text into clipboard
         qapp = qt.QApplication.instance()
@@ -118,30 +128,34 @@ class CopyAllCellsAction(qt.QAction):
                              'with a QTableWidget.')
         super(CopyAllCellsAction, self).__init__(table)
         self.setText("Copy all")
+        self.setToolTip("Copy all cells into the clipboard.")
         self.triggered.connect(self.copyCellsToClipboard)
         self.table = table
-        # self.cut = False
+        self.cut = False
 
     def copyCellsToClipboard(self):
         """Concatenate the text content of all cells into a string
         using tabulations and newlines to keep the table structure.
         Put this text into the clipboard.
         """
+        data_model = self.table.model()
         copied_text = ""
         for row in range(self.table.rowCount()):
             for col in range(self.table.columnCount()):
-                item = self.table.item(row, col)
-                if item is not None:
-                    copied_text += item.text()
-                    # if self.cut and (item.flags() & qt.Qt.ItemIsEditable):
-                    #     item.setText("")
-                copied_text += "\t"
+                index = data_model.index(row, col)
+                cell_text = data_model.data(index)
+                flags = data_model.flags(index)
+                if cell_text is not None:
+                    copied_text += cell_text
+                    if self.cut and (flags & qt.Qt.ItemIsEditable):
+                        data_model.setData(index, "")
+                copied_text += col_separator
             # remove the right-most tabulation
-            copied_text.rstrip("\t")
+            copied_text = copied_text[:-len(col_separator)]
             # add a newline
-            copied_text += newline
+            copied_text += row_separator
         # remove final newline
-        copied_text.rstrip(newline)
+        copied_text = copied_text[:-len(row_separator)]
 
         # put this text into clipboard
         qapp = qt.QApplication.instance()
@@ -170,14 +184,33 @@ class CutSelectedCellsAction(CopySelectedCellsAction):
     :param table: :class:`QTableWidget` to which this action belongs."""
     def __init__(self, table):
         super(CutSelectedCellsAction, self).__init__(table)
-        self.setText("Cut")
+        self.setText("Cut selection")
         self.setShortcut(qt.QKeySequence('Ctrl+X'))
         # cutting is already implemented in CopySelectedCellsAction (but
         # it is disabled), we just need to enable it
         self.cut = True
 
 
-def _parseTextAsTable(text, record_separator=newline, field_separator="\t"):
+class CutAllCellsAction(CopyAllCellsAction):
+    """QAction to cut text from all cells in a :class:`QTableWidget`
+    into the clipboard.
+
+    The text is deleted from the original table widget
+    (use :class:`CopyAllCellsAction` to preserve the original data).
+
+    The cut text will be a concatenation
+    of the texts in all cells, tabulated with tabulation and
+    newline characters.
+
+    :param table: :class:`QTableWidget` to which this action belongs."""
+    def __init__(self, table):
+        super(CutAllCellsAction, self).__init__(table)
+        self.setText("Cut all")
+        self.setToolTip("Cut all cells into the clipboard.")
+        self.cut = True
+
+
+def _parseTextAsTable(text, row_separator=row_separator, col_separator=col_separator):
     """Parse text into list of lists (2D sequence).
 
     The input text must be tabulated using tabulation characters and
@@ -190,9 +223,9 @@ def _parseTextAsTable(text, record_separator=newline, field_separator="\t"):
         as a field/column separator.
     :return: 2D sequence of strings
     """
-    rows = text.split(newline)
-    table = [row.split("\t") for row in rows]
-    return table
+    rows = text.split(row_separator)
+    table_data = [row.split(col_separator) for row in rows]
+    return table_data
 
 
 class PasteCellsAction(qt.QAction):
@@ -216,6 +249,8 @@ class PasteCellsAction(qt.QAction):
         self.table = table
         self.setText("Paste")
         self.setShortcut(qt.QKeySequence('Ctrl+V'))
+        self.setToolTip("Paste data. The selected cell is the top-left" +
+                        "corner of the paste area.")
         self.triggered.connect(self.pasteCellFromClipboard)
 
     def pasteCellFromClipboard(self):
@@ -229,6 +264,8 @@ class PasteCellsAction(qt.QAction):
             msgBox.setText("A single cell must be selected to paste data")
             msgBox.exec_()
             return False
+
+        data_model = self.table.model()
 
         selected_row = selected_idx[0].row()
         selected_col = selected_idx[0].column()
@@ -251,20 +288,16 @@ class PasteCellsAction(qt.QAction):
                     out_of_range_cells += 1
                     continue
 
-                item = self.table.item(target_row,
-                                       target_col)
-                # item may not exist for empty cells
-                if item is None:
-                    item = qt.QTableWidgetItem()
-                    self.table.setItem(target_row,
-                                       target_col,
-                                       item)
+                index = data_model.index(target_row, target_col)
+                flags = data_model.flags(index)
+
                 # ignore empty strings
                 if table_data[row_offset][col_offset] != "":
-                    if not item.flags() & qt.Qt.ItemIsEditable:
+                    if not flags & qt.Qt.ItemIsEditable:
                         protected_cells += 1
                         continue
-                    item.setText(table_data[row_offset][col_offset])
+                    data_model.setData(index, table_data[row_offset][col_offset])
+                    # item.setText(table_data[row_offset][col_offset])
 
         if protected_cells or out_of_range_cells:
             msgBox = qt.QMessageBox(parent=self.table)
@@ -277,11 +310,12 @@ class PasteCellsAction(qt.QAction):
 
 
 class TableWidget(qt.QTableWidget):
-    """:class:`QTableWidget` with a context menu displaying 4 actions:
+    """:class:`QTableWidget` with a context menu displaying up to 5 actions:
 
         - :class:`CopySelectedCellsAction`
         - :class:`CopyAllCellsAction`
         - :class:`CutSelectedCellsAction`
+        - :class:`CutAllCellsAction`
         - :class:`PasteCellsAction`
 
     These actions interact with the clipboard and can be used to copy data
@@ -320,6 +354,7 @@ class TableWidget(qt.QTableWidget):
         This action can be triggered through the context menu (right-click)
         or through the *Ctrl+X* key sequence."""
         self.addAction(CutSelectedCellsAction(self))
+        self.addAction(CutAllCellsAction(self))
 
 
 if __name__ == "__main__":
@@ -328,8 +363,8 @@ if __name__ == "__main__":
     table = TableWidget()
     table.setColumnCount(10)
     table.setRowCount(7)
-    table.enablePaste()
     table.enableCut()
+    table.enablePaste()
     table.show()
     app.exec_()
 
