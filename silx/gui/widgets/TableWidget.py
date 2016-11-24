@@ -62,7 +62,7 @@ class CopySelectedCellsAction(qt.QAction):
     :param table: :class:`QTableWidget` to which this action belongs.
     """
     def __init__(self, table):
-        if not isinstance(table, qt.QTableWidget):
+        if not isinstance(table, qt.QTableView):
             raise ValueError('CopySelectedCellsAction must be initialised ' +
                              'with a QTableWidget.')
         super(CopySelectedCellsAction, self).__init__(table)
@@ -123,7 +123,7 @@ class CopyAllCellsAction(qt.QAction):
     :param table: :class:`QTableWidget` to which this action belongs.
     """
     def __init__(self, table):
-        if not isinstance(table, qt.QTableWidget):
+        if not isinstance(table, qt.QTableView):
             raise ValueError('CopyAllCellsAction must be initialised ' +
                              'with a QTableWidget.')
         super(CopyAllCellsAction, self).__init__(table)
@@ -140,8 +140,8 @@ class CopyAllCellsAction(qt.QAction):
         """
         data_model = self.table.model()
         copied_text = ""
-        for row in range(self.table.rowCount()):
-            for col in range(self.table.columnCount()):
+        for row in range(data_model.rowCount()):
+            for col in range(data_model.columnCount()):
                 index = data_model.index(row, col)
                 cell_text = data_model.data(index)
                 flags = data_model.flags(index)
@@ -242,7 +242,7 @@ class PasteCellsAction(qt.QAction):
     :param table: :class:`QTableWidget` to which this action belongs.
     """
     def __init__(self, table):
-        if not isinstance(table, qt.QTableWidget):
+        if not isinstance(table, qt.QTableView):
             raise ValueError('PasteCellsAction must be initialised ' +
                              'with a QTableWidget.')
         super(PasteCellsAction, self).__init__(table)
@@ -283,8 +283,8 @@ class PasteCellsAction(qt.QAction):
                 target_row = selected_row + row_offset
                 target_col = selected_col + col_offset
 
-                if target_row >= self.table.rowCount() or\
-                   target_col >= self.table.columnCount():
+                if target_row >= data_model.rowCount() or\
+                   target_col >= data_model.columnCount():
                     out_of_range_cells += 1
                     continue
 
@@ -357,14 +357,83 @@ class TableWidget(qt.QTableWidget):
         self.addAction(CutAllCellsAction(self))
 
 
+class TableView(qt.QTableView):
+    """:class:`QTableView` with a context menu displaying up to 5 actions:
+
+        - :class:`CopySelectedCellsAction`
+        - :class:`CopyAllCellsAction`
+        - :class:`CutSelectedCellsAction`
+        - :class:`CutAllCellsAction`
+        - :class:`PasteCellsAction`
+
+    These actions interact with the clipboard and can be used to copy data
+    to or from an external application, or another widget.
+
+    The cut and paste actions are disabled by default, due to the risk of
+    overwriting data (no *Undo* action is available). Use :meth:`enablePaste`
+    and :meth:`enableCut` to activate them.
+
+    .. note::
+
+        These actions will be available only after a model is associated
+        with this view, using :meth:`setModel`.
+
+    :param parent: Parent QWidget
+    :param bool cut: Enable cut action
+    :param bool paste: Enable paste action
+    """
+    def __init__(self, parent=None, cut=False, paste=False):
+        super(TableView, self).__init__(parent)
+        self.cut = cut
+        self.paste = paste
+
+    def setModel(self, model):
+        super(TableView, self).setModel(model)
+
+        self.addAction(CopySelectedCellsAction(self))
+        self.addAction(CopyAllCellsAction(self))
+        if self.cut:
+            self.enableCut()
+        if self.paste:
+            self.enablePaste()
+
+        self.setContextMenuPolicy(qt.Qt.ActionsContextMenu)
+
+    def enablePaste(self):
+        """Enable paste action, to paste data from the clipboard into the
+        table.
+
+        This action can be triggered through the context menu (right-click)
+        or through the *Ctrl+V* key sequence."""
+        self.addAction(PasteCellsAction(self))
+
+    def enableCut(self):
+        """Enable cut action.
+
+        This action can be triggered through the context menu (right-click)
+        or through the *Ctrl+X* key sequence."""
+        self.addAction(CutSelectedCellsAction(self))
+        self.addAction(CutAllCellsAction(self))
+
+
 if __name__ == "__main__":
     app = qt.QApplication([])
 
-    table = TableWidget()
-    table.setColumnCount(10)
-    table.setRowCount(7)
-    table.enableCut()
-    table.enablePaste()
-    table.show()
+    tablewidget = TableWidget()
+    tablewidget.setWindowTitle("TableWidget")
+    tablewidget.setColumnCount(10)
+    tablewidget.setRowCount(7)
+    tablewidget.enableCut()
+    tablewidget.enablePaste()
+    tablewidget.show()
+
+    tableview = TableView(cut=True, paste=True)
+    tableview.setWindowTitle("TableView")
+    model = qt.QStandardItemModel()
+    model.setColumnCount(10)
+    model.setRowCount(7)
+    tableview.setModel(model)
+    tableview.show()
+
     app.exec_()
 
