@@ -172,7 +172,7 @@ except ImportError:
 
         def run(self):
             raise RuntimeError(
-                'Sphinx is required to build the documentation.\n'
+                'Sphinx is required to build or test the documentation.\n'
                 'Please install Sphinx (http://www.sphinx-doc.org).')
 
 if sphinx is not None:
