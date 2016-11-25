@@ -27,7 +27,7 @@ number of dimensions as 2D frames (images, slices) in a table view.
 The dimensions not displayed in the table can be browsed using improved
 sliders.
 
-The widget uses a standard QTableView that relies on a custom abstract table
+The widget uses a TableView that relies on a custom abstract item
 model: :class:`silx.gui.widgets.ArrayTableModel`.
 """
 from __future__ import division
