@@ -31,7 +31,7 @@ The widget uses a standard QTableView that relies on a custom abstract table
 model: :class:`silx.gui.widgets.ArrayTableModel`.
 """
 from __future__ import division
-import numpy
+import sys
 
 from silx.gui import qt
 from .ArrayTableModel import ArrayTableModel
@@ -39,7 +39,7 @@ from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "25/11/2016"
 
 
 class HorizontalSpacer(qt.QWidget):
@@ -49,9 +49,57 @@ class HorizontalSpacer(qt.QWidget):
                                           qt.QSizePolicy.Fixed))
 
 
-# TODO: color the cells according to the value?
-# (subclass QItemDelegate, overload its paint method, then
-# table.setItemDelegate(...))
+def _get_shape(array_like):
+    """Return shape of an array like object.
+
+    In case the object is a nested sequence (list of lists, tuples...),
+    the size of each dimension is assumed to be uniform, and is deduced from
+    the length of the first sequence.
+
+    :param array_like: Array like object: numpy array, hdf5 dataset,
+        multi-dimensional sequence
+    :return: Shape of array, as a tuple of integers
+    """
+    if hasattr(array_like, "shape"):
+        return array_like.shape
+
+    shape = []
+    subsequence = array_like
+    while hasattr(subsequence, "__len__"):
+        shape.append(len(subsequence))
+        subsequence = subsequence[0]
+
+    return tuple(shape)
+
+
+def _data_is_text(array_like):
+    """Return True if data in array like object is text.
+
+    :param array_like: Array like object: numpy array, hdf5 dataset,
+        multi-dimensional sequence
+    :return: True if array contains string, False otherwise.
+    """
+    if hasattr(array_like, "dtype"):
+        t = "%s" % array_like.dtype
+        if '|' in t:
+            return True
+        else:
+            return False
+
+    subsequence = array_like
+    while hasattr(subsequence, "__len__"):
+        subsequence = subsequence[0]
+    else:
+        first_element = subsequence
+
+    if type(first_element) in [str, bytes]:
+        return True
+    if not sys.version_info[0] == 3:
+        if type(first_element) == unicode:
+            return True
+    return False
+
+
 class ArrayTableWidget(qt.QWidget):
     """This widget is designed to display data of 2D frames (images, slices)
     in a table view. The widget can load any n-dimensional array, and display
@@ -110,8 +158,7 @@ class ArrayTableWidget(qt.QWidget):
             same methods).
         :param bool editable: Flag to enable editing data. Default *True*.
         """
-        data_as_array = numpy.array(data)
-        self._data_shape = data_as_array.shape
+        self._data_shape = _get_shape(data)
 
         n_widgets = len(self._browserWidgets)
         n_dimensions = len(self._data_shape)
@@ -161,11 +208,11 @@ class ArrayTableWidget(qt.QWidget):
                 label.hide()
 
         # set model
-        t = "%s" % numpy.array(data).dtype
-        if '|' in t:
+        if _data_is_text(data):
             fmt = "%s"
         else:
             fmt = "%g"
+
         self.model.setFormat(fmt)
         self.model.setArrayData(data, copy=copy, editable=editable)
         # some linux distributions need this call

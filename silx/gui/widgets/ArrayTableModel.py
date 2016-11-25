@@ -33,7 +33,7 @@ from silx.gui import qt
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "25/10/2016"
+__date__ = "25/11/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -260,11 +260,14 @@ class ArrayTableModel(qt.QAbstractTableModel):
             # copy requested (default)
             self._array = numpy.array(data, copy=True)
         elif not _is_array(data):
-            # copy not requested, but necessary
-            _logger.warning(
-                    "data is not an array-like object. " +
-                    "Data must be copied.")
-            self._array = numpy.array(data, copy=True)
+            raise TypeError("data is not a proper array. Try setting" +
+                            " copy=True to convert it into a numpy array" +
+                            " (this will cause the data to be copied!)")
+            # # copy not requested, but necessary
+            # _logger.warning(
+            #         "data is not an array-like object. " +
+            #         "Data must be copied.")
+            # self._array = numpy.array(data, copy=True)
         else:
             # Copy explicitly disabled & data implements required attributes.
             # We can use a reference.
