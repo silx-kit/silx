@@ -1012,21 +1012,6 @@ class FitAction(PlotAction):
                 "Fitting " + self.legend +
                 " on x range %f-%f" % (self.xmin, self.xmax))
 
-    # # Uncomment to adjust fit range when the zoom is changed
-    #     self.plot.setCallback(self.update_x_limits)
-    #
-    # def update_x_limits(self, ddict=None):
-    #     # call the default callback (handles curve selection)
-    #     self.plot.graphCallback(ddict)
-    #     # additional callback
-    #     if ddict.get("event") == "limitsChanged":
-    #         self.xmin, self.xmax = ddict["xdata"]
-    #         self.fit_widget.setData(self.x, self.y,
-    #                                 xmin=self.xmin, xmax=self.xmax)
-    #     self.fit_window.setWindowTitle(
-    #             "Fitting " + self.legend +
-    #             " on x range %f-%f" % (self.xmin, self.xmax))
-
     def handle_signal(self, ddict):
         if ddict["event"] == "EstimateFinished":
             pass
