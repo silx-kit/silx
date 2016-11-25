@@ -10,10 +10,11 @@
 Public modules:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   arraytable.rst
-   framebrowser.rst
-   threadpoolpushbutton.rst
-   waitingpushbutton.rst
+    arraytable.rst
+    framebrowser.rst
+    tablewidget.rst
+    threadpoolpushbutton.rst
+    waitingpushbutton.rst
 

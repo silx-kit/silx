@@ -22,8 +22,30 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a QTableWidget handling cut, copy and paste for
-multiple cell selections.
+"""This module provides table widgets handling cut, copy and paste for
+multiple cell selections. These actions can be triggered using keyboard
+shortcuts or through a context menu (right-click).
+
+:class:`TableView` is a subclass of :class:`QTableView`. The added features
+are made available to users after a model is added to the widget, using
+:meth:`TableView.setModel`.
+
+:class:`TableWidget` is a subclass of :class:`qt.QTableWidget`, a table view
+with a built-in standard data model. The added features are available as soon as
+the widget is initialized.
+
+The cut, copy and paste actions are implemented as QActions:
+
+    - :class:`CopySelectedCellsAction` (*Ctrl+C*)
+    - :class:`CopyAllCellsAction`
+    - :class:`CutSelectedCellsAction` (*Ctrl+X*)
+    - :class:`CutAllCellsAction`
+    - :class:`PasteCellsAction` (*Ctrl+V*)
+
+The copy actions are enabled by default. The cut and paste actions must be
+explicitly enabled, by passing parameters ``cut=True, paste=True`` when
+creating the widgets, or later by calling their :meth:`enableCut` and
+:meth:`enablePaste` methods.
 """
 
 __authors__ = ["P. Knobel"]
@@ -59,7 +81,7 @@ class CopySelectedCellsAction(qt.QAction):
     target table to be deleted, even though you didn't necessarily select the
     corresponding cell in the origin table.
 
-    :param table: :class:`QTableWidget` to which this action belongs.
+    :param table: :class:`QTableView` to which this action belongs.
     """
     def __init__(self, table):
         if not isinstance(table, qt.QTableView):
@@ -120,7 +142,7 @@ class CopyAllCellsAction(qt.QAction):
     of the texts in all cells, tabulated with tabulation and
     newline characters.
 
-    :param table: :class:`QTableWidget` to which this action belongs.
+    :param table: :class:`QTableView` to which this action belongs.
     """
     def __init__(self, table):
         if not isinstance(table, qt.QTableView):
@@ -181,7 +203,7 @@ class CutSelectedCellsAction(CopySelectedCellsAction):
     target table to be deleted, even though you didn't necessarily select the
     corresponding cell in the origin table.
 
-    :param table: :class:`QTableWidget` to which this action belongs."""
+    :param table: :class:`QTableView` to which this action belongs."""
     def __init__(self, table):
         super(CutSelectedCellsAction, self).__init__(table)
         self.setText("Cut selection")
@@ -202,7 +224,7 @@ class CutAllCellsAction(CopyAllCellsAction):
     of the texts in all cells, tabulated with tabulation and
     newline characters.
 
-    :param table: :class:`QTableWidget` to which this action belongs."""
+    :param table: :class:`QTableView` to which this action belongs."""
     def __init__(self, table):
         super(CutAllCellsAction, self).__init__(table)
         self.setText("Cut all")
@@ -239,7 +261,7 @@ class PasteCellsAction(qt.QAction):
     If a cell content is an empty string in the original text, it is
     ignored: the destination cell's text will not be deleted.
 
-    :param table: :class:`QTableWidget` to which this action belongs.
+    :param table: :class:`QTableView` to which this action belongs.
     """
     def __init__(self, table):
         if not isinstance(table, qt.QTableView):
@@ -344,15 +366,20 @@ class TableWidget(qt.QTableWidget):
         """Enable paste action, to paste data from the clipboard into the
         table.
 
-        This action can be triggered through the context menu (right-click)
-        or through the *Ctrl+V* key sequence."""
+        .. warning::
+
+            This action can cause data to be overwritten.
+            There is currently no *Undo* action to retrieve lost data.
+        """
         self.addAction(PasteCellsAction(self))
 
     def enableCut(self):
         """Enable cut action.
 
-        This action can be triggered through the context menu (right-click)
-        or through the *Ctrl+X* key sequence."""
+        .. warning::
+
+            This action can cause data to be deleted.
+            There is currently no *Undo* action to retrieve lost data."""
         self.addAction(CutSelectedCellsAction(self))
         self.addAction(CutAllCellsAction(self))
 
@@ -388,6 +415,11 @@ class TableView(qt.QTableView):
         self.paste = paste
 
     def setModel(self, model):
+        """Set the data model for the table view, activate the actions
+        and the context menu.
+
+        :param model: :class:`qt.QAbstractItemModel` object
+        """
         super(TableView, self).setModel(model)
 
         self.addAction(CopySelectedCellsAction(self))
@@ -403,15 +435,21 @@ class TableView(qt.QTableView):
         """Enable paste action, to paste data from the clipboard into the
         table.
 
-        This action can be triggered through the context menu (right-click)
-        or through the *Ctrl+V* key sequence."""
+        .. warning::
+
+            This action can cause data to be overwritten.
+            There is currently no *Undo* action to retrieve lost data.
+        """
         self.addAction(PasteCellsAction(self))
 
     def enableCut(self):
         """Enable cut action.
 
-        This action can be triggered through the context menu (right-click)
-        or through the *Ctrl+X* key sequence."""
+        .. warning::
+
+            This action can cause data to be deleted.
+            There is currently no *Undo* action to retrieve lost data.
+        """
         self.addAction(CutSelectedCellsAction(self))
         self.addAction(CutAllCellsAction(self))
 
