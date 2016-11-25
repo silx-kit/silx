@@ -49,9 +49,9 @@ The following QAction are available:
 from __future__ import division
 
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "25/11/2016"
 
 
 from collections import OrderedDict
@@ -984,6 +984,7 @@ class FitAction(PlotAction):
         self.xlabel = self.plot.getGraphXLabel()
         self.ylabel = self.plot.getGraphYLabel()
         self.x, self.y, self.legend = curve[0:3]
+        self.xmin, self.xmax = self.plot.getGraphXLimits()
 
         # open a window with a FitWidget
         if self.fit_window is None:
@@ -1005,14 +1006,35 @@ class FitAction(PlotAction):
                 self.fit_widget.show()
             self.fit_window.raise_()
 
-        self.fit_widget.setData(self.x, self.y)
-        self.fit_window.setWindowTitle("Fitting " + self.legend)
+        self.fit_widget.setData(self.x, self.y,
+                                xmin=self.xmin, xmax=self.xmax)
+        self.fit_window.setWindowTitle(
+                "Fitting " + self.legend +
+                " on x range %f-%f" % (self.xmin, self.xmax))
+
+    # # Uncomment to adjust fit range when the zoom is changed
+    #     self.plot.setCallback(self.update_x_limits)
+    #
+    # def update_x_limits(self, ddict=None):
+    #     # call the default callback (handles curve selection)
+    #     self.plot.graphCallback(ddict)
+    #     # additional callback
+    #     if ddict.get("event") == "limitsChanged":
+    #         self.xmin, self.xmax = ddict["xdata"]
+    #         self.fit_widget.setData(self.x, self.y,
+    #                                 xmin=self.xmin, xmax=self.xmax)
+    #     self.fit_window.setWindowTitle(
+    #             "Fitting " + self.legend +
+    #             " on x range %f-%f" % (self.xmin, self.xmax))
 
     def handle_signal(self, ddict):
         if ddict["event"] == "EstimateFinished":
             pass
         if ddict["event"] == "FitFinished":
+            x_fit = self.x[self.xmin <= self.x]
+            x_fit = x_fit[x_fit <= self.xmax]
             y_fit = self.fit_widget.fitmanager.gendata()
-            self.plot.addCurve(self.x, y_fit,
+            self.plot.addCurve(x_fit, y_fit,
                                "Fit <%s>" % self.legend,
-                               xlabel=self.xlabel, ylabel=self.ylabel)
+                               xlabel=self.xlabel, ylabel=self.ylabel,
+                               resetzoom=False)
