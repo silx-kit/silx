@@ -23,7 +23,7 @@
 # ############################################################################*/
 """Tests for spech5"""
 import gc
-from numpy import float32, array_equal
+from numpy import array_equal
 import os
 import sys
 import tempfile
@@ -41,7 +41,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "28/11/2016"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -477,11 +477,11 @@ class TestSpecH5(unittest.TestCase):
         self.assertEqual(len(dataset_name_list), 57)
 
     def testNotSpecH5(self):
-        tmp = tempfile.NamedTemporaryFile()
-        tmp.file.write(b"Not a spec file!")
-        tmp.file.flush()
-        self.assertRaises(IOError, SpecH5, tmp.name)
-
+        fd, fname = tempfile.mkstemp()
+        os.write(fd, b"Not a spec file!")
+        os.close(fd)
+        self.assertRaises(IOError, SpecH5, fname)
+        os.unlink(fname)
 
 sftext_multi_mca_headers = """
 #S 1 aaaaaa
