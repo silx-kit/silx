@@ -44,10 +44,160 @@ __date__ = "25/11/2016"
 
 
 class HorizontalSpacer(qt.QWidget):
+    """Blank widget expanding horizontally"""
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding,
                                           qt.QSizePolicy.Fixed))
+
+
+class AxesSelector(qt.QWidget):
+    """Widget with two combo-boxes to select two dimensions among
+    all possible dimensions of an n-dimensional array.
+
+    The first combobox contains values from :math:`0` to :math:`n-2`.
+
+    The choices in the 2nd CB depend on the value selected in the first one.
+    If the value selected in the first CB is :math:`m`, the second one lets you
+    select values from :math:`m+1` to :math:`n-1`.
+
+    The two axes can be used to select the row axis and the column axis t
+    display a slice of the array data in a table view.
+    """
+    sigDimensionsChanged = qt.Signal(int, int)
+    """Signal emitted whenever one of the comboboxes is changed.
+    The signal carries the two selected dimensions."""
+
+    def __init__(self, parent=None, n=None):
+        qt.QWidget.__init__(self, parent)
+        self.layout = qt.QHBoxLayout(self)
+        self.layout.setContentsMargins(0, 2, 0, 2)
+        self.layout.setSpacing(10)
+
+        self.rowsCB = qt.QComboBox(self)
+        self.columnsCB = qt.QComboBox(self)
+
+        self.layout.addWidget(qt.QLabel("Rows dimension", self))
+        self.layout.addWidget(self.rowsCB)
+        self.layout.addWidget(qt.QLabel("    ", self))
+        self.layout.addWidget(qt.QLabel("Columns dimension", self))
+        self.layout.addWidget(self.columnsCB)
+        self.layout.addWidget(HorizontalSpacer(self))
+
+        self._slotsAreConnected = False
+        if n is not None:
+            self.setNDimensions(n)
+
+    def setNDimensions(self, n):
+        """Initialize combo-boxes depending on number of dimensions of array.
+        Initially, the rows dimension is the second-to-last one, and the
+        columns dimension is the last one.
+
+        Link the CBs together. MAke them emit a signal when their value is
+        changed.
+
+        :param int n: Number of dimensions of array
+        """
+        # remember the number of dimensions and the rows dimension
+        self.n = n
+        self._rowsDim = n - 2
+
+        # ensure slots are disconnected before (re)initializing widget
+        if self._slotsAreConnected:
+            self.rowsCB.currentIndexChanged.disconnect(self._rowDimChanged)
+            self.columnsCB.currentIndexChanged.disconnect(self._colDimChanged)
+
+        self._clear()
+        self.rowsCB.addItems([str(i) for i in range(n - 1)])
+        self.rowsCB.setCurrentIndex(n - 2)
+        self.columnsCB.addItem(str(n - 1))
+
+        # reconnect slots
+        self.rowsCB.currentIndexChanged.connect(self._rowDimChanged)
+        self.columnsCB.currentIndexChanged.connect(self._colDimChanged)
+        self._slotsAreConnected = True
+
+        # emit new dimensions
+        self.sigDimensionsChanged.emit(n - 2, n - 1)
+
+    def setDimensions(self, row_dim, col_dim):
+        """Set the rows and columns dimensions.
+
+        The rows dimension must be lower than the columns dimension.
+
+        :param int row_dim: Rows dimension
+        :param int col_dim: Columns dimension
+        """
+        if row_dim >= col_dim:
+            raise IndexError("Row dimension must be lower than column dimension")
+        if not (0 <= row_dim < self.n - 1):
+            raise IndexError("Row dimension must be between 0 and %d" % (self.n - 2))
+        if not (row_dim < col_dim <= self.n - 1):
+            raise IndexError("Col dimension must be between %d and %d" % (row_dim + 1, self.n - 1))
+
+        # set the rows dimension; this triggers an update of columnsCB
+        self.rowsCB.setCurrentIndex(row_dim)
+        # columnsCB first item is "row_dim + 1". So index of "col_dim" is
+        # col_dim - (row_dim + 1)
+        self.columnsCB.setCurrentIndex(col_dim - row_dim - 1)
+
+    def getDimensions(self):
+        """Return a 2-tuple of the rows dimension and the columns dimension.
+
+        :return: 2-tuple of axes numbers (row_dimension, col_dimension)
+        """
+        return self._getRowDim(), self._getColDim()
+
+    def _clear(self):
+        """Empty the combo-boxes"""
+        self.rowsCB.clear()
+        self.columnsCB.clear()
+
+    def _getRowDim(self):
+        """Get rows dimension, selected in :attr:`rowsCB`
+        """
+        # rows combobox contains elements "0", ..."n-2",
+        # so the selected dim is always equal to the index
+        return self.rowsCB.currentIndex()
+
+    def _getColDim(self):
+        """Get columns dimension, selected in :attr:`columnsCB`"""
+        # columns combobox contains elements "row_dim+1", "row_dim+2", ..., "n-1"
+        # so the selected dim is equal to row_dim + 1 + index
+        return self._rowsDim + 1 + self.columnsCB.currentIndex()
+
+    def _rowDimChanged(self):
+        """Update columns combobox when the rows dimension is changed.
+
+        Emit :attr:`sigDimensionsChanged`"""
+        old_col_dim = self._getColDim()
+        new_row_dim = self._getRowDim()
+
+        # clear cols CB
+        self.columnsCB.currentIndexChanged.disconnect(self._colDimChanged)
+        self.columnsCB.clear()
+        # refill cols CB
+        for i in range(new_row_dim + 1, self.n):
+            self.columnsCB.addItem(str(i))
+
+        # keep previous col dimension if possible
+        new_col_cb_idx = old_col_dim - (new_row_dim + 1)
+        if new_col_cb_idx < 0:
+            # if row_dim is now greater than the previous col_dim,
+            # we select a new col_dim = row_dim + 1 (first element in cols CB)
+            new_col_cb_idx = 0
+        self.columnsCB.setCurrentIndex(new_col_cb_idx)
+
+        # reconnect slot
+        self.columnsCB.currentIndexChanged.connect(self._colDimChanged)
+
+        self._rowsDim = new_row_dim
+
+        self.sigDimensionsChanged.emit(self._getRowDim(), self._getColDim())
+
+    def _colDimChanged(self):
+        """Emit :attr:`sigDimensionsChanged`"""
+        self.sigDimensionsChanged.emit(self._getRowDim(), self._getColDim())
 
 
 def _get_shape(array_like):
@@ -138,8 +288,12 @@ class ArrayTableWidget(qt.QWidget):
         self._browserWidgets = []
         """List of HorizontalSliderWithBrowser widgets."""
 
+        self.axesSelector = AxesSelector(self)
+
         self.view = TableView(self)
+
         self.mainLayout.addWidget(self.browserContainer)
+        self.mainLayout.addWidget(self.axesSelector)
         self.mainLayout.addWidget(self.view)
 
         self.model = ArrayTableModel(self)
@@ -221,6 +375,10 @@ class ArrayTableWidget(qt.QWidget):
         if editable:
             self.view.enableCut()
             self.view.enablePaste()
+
+        # initialize & connect axesSelector
+        self.axesSelector.setNDimensions(n_dimensions)
+        self.axesSelector.sigDimensionsChanged.connect(self.setFrameAxes)
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
