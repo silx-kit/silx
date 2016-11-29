@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "18/10/2016"
+__date__ = "29/11/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -109,15 +109,15 @@ class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
         self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
+        unittest.TextTestRunner.resultclass.startTest(self, test)
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
-        unittest.TestResult.startTest(self, test)
 
     def stopTest(self, test):
-        unittest.TestResult.stopTest(self, test)
+        unittest.TextTestRunner.resultclass.stopTest(self, test)
         # see issue 311. For other platform, get size of ru_maxrss in "man getrusage"
         if sys.platform == "darwin":
             ratio = 1e-6
