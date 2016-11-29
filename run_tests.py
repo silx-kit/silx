@@ -266,6 +266,7 @@ test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
+    test_verbosity = 2
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
