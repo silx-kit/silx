@@ -235,7 +235,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
                        d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
                 evt.wait()
             except Exception as error:
-                logger.info("%s on device %s for WG=%s/%s" % (error, device.name, wg, shape))
+                logger.info("%s on device %s for WG=%s/%s" , error, device.name, wg, shape)
                 program = queue = d_res = d_data_1 = d_data = None
                 break
             else:
@@ -245,7 +245,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
                     if wg > max_valid_wg:
                         max_valid_wg = wg
                 else:
-                    logger.warn("ArithmeticError on %s for WG=%s/%s" % (wg, device.name, shape))
+                    logger.warning("ArithmeticError on %s for WG=%s/%s", wg, device.name, shape)
 
     return max_valid_wg
 
