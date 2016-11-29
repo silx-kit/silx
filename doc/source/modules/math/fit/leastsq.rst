@@ -5,6 +5,7 @@
 --------------------------------------------------------------------
 
 .. automodule:: silx.math.fit.leastsq
+    :noindex:
 
 For a tutorial on how to use :func:`leastsq`, see :ref:`leastsq-tutorial`.
 
