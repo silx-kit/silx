@@ -382,15 +382,6 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
 class TestHdf5(testutils.TestCaseQt):
     """Test to check that icons module."""
 
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        cls.tmp.file.close()
-
-        cls.h5 = h5py.File(cls.tmp.name, "w")
-        g = cls.h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-
     def setUp(self):
         super(TestHdf5, self).setUp()
         if h5py is None:
