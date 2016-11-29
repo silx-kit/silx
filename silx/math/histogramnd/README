@@ -1,0 +1,47 @@
+How to add support for new types (sample and weights).
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!! Dont forget to update the tests !!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Files to edit :
+- histogramnd_c.c
+- histogramnd_c.h
+- histogramnd_c.pxd
+
+* In histogramnd_c.c:
+    add the following lines to define a new histogramnd function :
+        #ifdef HISTO_SAMPLE_T
+        #undef HISTO_SAMPLE_T
+        #endif
+        #define HISTO_SAMPLE_T sample_type
+        #ifdef HISTO_WEIGHT_T
+        #undef HISTO_WEIGHT_T
+        #endif
+        #define HISTO_WEIGHT_T weights_type
+        #ifdef HISTO_CUMUL_T
+        #undef HISTO_CUMUL_T
+        #endif
+        #define HISTO_CUMUL_T cumul_type
+        #include "histogramnd_template.c"
+    with sample_type, weights_type and cumul_type being a valid c type. You may
+    have to use a typedef if your type name is more than one word long
+    (e.g typedef long int longint)
+
+
+* In histogramnd_c.h:
+    add the declaration for the new function. There are declared
+    explicitly (instead of using a macro like in histogramnd_c.c)
+    because I think it will be easier for potential users
+    to find what functions are available.
+
+* In histogramnd_c.pxd:
+    add the new function declaration.
+    
+* In histogramnd_c.pyx:
+    add the call to the new function
+
+And...
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!! Dont forget to update the tests !!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -1,0 +1,5 @@
+version=3
+opts=repacksuffix=+dfsg,\
+uversionmangle=s/(rc|a|b|c)/~$1/,\
+dversionmangle=s/\+dfsg// \
+http://pypi.debian.net/silx/silx-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))

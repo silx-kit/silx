@@ -1,4 +1,0 @@
-
-ScIentific Library for eXperimentalists
-=======================================
-
