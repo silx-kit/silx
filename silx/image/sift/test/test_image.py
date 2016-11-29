@@ -47,7 +47,8 @@ if ocl:
 
 import unittest
 from ..utils import calc_size, get_opencl_code
-from .test_image_setup import my_gradient, my_local_maxmin, my_interp_keypoint, interpolation_setup, local_maxmin_setup
+from .test_image_setup import my_gradient, my_local_maxmin, my_interp_keypoint, \
+    interpolation_setup, local_maxmin_setup, scipy
 from .test_image_functions import norm_L1
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,7 @@ class TestImage(unittest.TestCase):
         self.mat = None
         self.program = None
 
+    @unittest.skipIf(scipy is None, "scipy missing")
     def test_gradient(self):
         """
         tests the gradient kernel (norm and orientation)
@@ -125,6 +127,7 @@ class TestImage(unittest.TestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Gradient computation took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
+    @unittest.skipIf(scipy is None, "scipy missing")
     def test_local_maxmin(self):
         """
         tests the local maximum/minimum detection kernel
@@ -184,6 +187,7 @@ class TestImage(unittest.TestCase):
             logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
             logger.info("Local extrema search took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
 
+    @unittest.skipIf(scipy is None, "scipy missing")
     def test_interpolation(self):
         """
         tests the keypoints interpolation kernel
