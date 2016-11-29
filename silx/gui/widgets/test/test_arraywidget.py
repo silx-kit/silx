@@ -106,11 +106,26 @@ class TestArrayWidget(TestCaseQt):
         self.assertEqual(list(self.aw.model._index),
                          [3, 1])
 
-    def testFlagEditable(self):
+    def testDefaultFlagNotEditable(self):
+        """editable should be False by default, in setArrayData"""
         self.aw.setArrayData([[0]])
         idx = self.aw.model.createIndex(0, 0)
         # model is editable
+        self.assertFalse(
+                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+
+    def testFlagEditable(self):
+        self.aw.setArrayData([[0]], editable=True)
+        idx = self.aw.model.createIndex(0, 0)
+        # model is editable
         self.assertTrue(
+                self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+
+    def testFlagNotEditable(self):
+        self.aw.setArrayData([[0]], editable=False)
+        idx = self.aw.model.createIndex(0, 0)
+        # model is editable
+        self.assertFalse(
                 self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
 
     def testReferenceReturned(self):

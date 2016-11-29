@@ -22,21 +22,40 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-import unittest
+"""Test TableWidget"""
 
-from . import test_threadpoolpushbutton
-from . import test_tablewidget
-from . import test_arraywidget
-
-__authors__ = ["V. Valls", "P. Knobel"]
+__authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/10/2016"
+__date__ = "23/11/2016"
+
+
+import unittest
+from silx.gui import testutils
+from silx.gui.widgets.TableWidget import TableWidget
+
+
+class TestTableWidget(testutils.TestCaseQt):
+    def setUp(self):
+        super(TestTableWidget, self).setUp()
+        self._result = []
+
+    def testShow(self):
+        table = TableWidget()
+        table.setColumnCount(10)
+        table.setRowCount(7)
+        table.enableCut()
+        table.enablePaste()
+        table.show()
+        table.hide()
+        self.qapp.processEvents()
 
 
 def suite():
     test_suite = unittest.TestSuite()
-    test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_arraywidget.suite()])
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestTableWidget))
     return test_suite
+
+
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

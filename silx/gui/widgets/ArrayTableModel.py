@@ -218,7 +218,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
     # Public methods
     def setArrayData(self, data, copy=True,
-                     fmt=None, perspective=None, editable=True):
+                     fmt=None, perspective=None, editable=False):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
@@ -243,7 +243,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
         :param perspective: See documentation of :meth:`setPerspective`.
             If None, the default perspective is the list of the first ``n-2``
             dimensions, to view frames parallel to the last two axes.
-        :param bool editable: Flag to enable editing data. Default *True*.
+        :param bool editable: Flag to enable editing data. Default *False*.
         """
         if qt.qVersion() > "4.6":
             self.beginResetModel()
@@ -290,7 +290,16 @@ class ArrayTableModel(qt.QAbstractTableModel):
             If the data is a reference to a h5py dataset open in read-only
             mode, setting *editable=True* will fail and print a warning.
 
-        :param bool editable: Flag to enable editing data. Default *True*.
+        .. warning::
+
+            Making the data editable means that the underlying data structure
+            in this data model will be modified.
+            If the data is a reference to a public object (open with
+            ``copy=False``), this could have side effects. If it is a
+            reference to an HDF5 dataset, this means the file will be
+            modified.
+
+        :param bool editable: Flag to enable editing data.
         :return: True if setting desired flag succeeded, False if it failed.
         """
         self._editable = editable

@@ -27,13 +27,14 @@ number of dimensions as 2D frames (images, slices) in a table view.
 The dimensions not displayed in the table can be browsed using improved
 sliders.
 
-The widget uses a standard QTableView that relies on a custom abstract table
+The widget uses a TableView that relies on a custom abstract item
 model: :class:`silx.gui.widgets.ArrayTableModel`.
 """
 from __future__ import division
 import sys
 
 from silx.gui import qt
+from .TableWidget import TableView
 from .ArrayTableModel import ArrayTableModel
 from .FrameBrowser import HorizontalSliderWithBrowser
 
@@ -137,14 +138,14 @@ class ArrayTableWidget(qt.QWidget):
         self._browserWidgets = []
         """List of HorizontalSliderWithBrowser widgets."""
 
-        self.view = qt.QTableView(self)
+        self.view = TableView(self)
         self.mainLayout.addWidget(self.browserContainer)
         self.mainLayout.addWidget(self.view)
 
         self.model = ArrayTableModel(self)
         self.view.setModel(self.model)
 
-    def setArrayData(self, data, labels=None, copy=True, editable=True):
+    def setArrayData(self, data, labels=None, copy=True, editable=False):
         """Set the data array. Update frame browsers and labels.
 
         :param data: Numpy array or similar object (e.g. nested sequence,
@@ -156,7 +157,7 @@ class ArrayTableWidget(qt.QWidget):
             *False*, store a reference to *data* if possible (only possible if
             *data* is a proper numpy array or an object that implements the
             same methods).
-        :param bool editable: Flag to enable editing data. Default *True*.
+        :param bool editable: Flag to enable editing data. Default is *False*
         """
         self._data_shape = _get_shape(data)
 
@@ -217,6 +218,9 @@ class ArrayTableWidget(qt.QWidget):
         self.model.setArrayData(data, copy=copy, editable=editable)
         # some linux distributions need this call
         self.view.setModel(self.model)
+        if editable:
+            self.view.enableCut()
+            self.view.enablePaste()
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
