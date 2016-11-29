@@ -27,8 +27,8 @@ import numpy
 import os.path
 import sys
 import time
-
 import logging
+from silx.utils.decorators import deprecated
 
 try:
     import h5py
@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "29/11/2016"
 
 
 logger = logging.getLogger(__name__)
@@ -362,7 +362,7 @@ def h5ls(h5group, lvl=0):
     return h5repr
 
 
-def load(filename):
+def open(filename):  # pylint:disable=redefined-builtin
     """
     Load a file as an `h5py.File`-like object.
 
@@ -390,3 +390,23 @@ def load(filename):
         logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
 
     raise IOError("File '%s' can't be read as HDF5" % filename)
+
+
+@deprecated
+def load(filename):
+    """
+    Load a file as an `h5py.File`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - Spec files if `SpecFile` module is installed
+
+    .. deprecated:: 0.4
+        Use :meth:`open`, or :meth:`silx.io.open`. Will be removed in
+        Silx 0.5.
+
+    :param str filename: A filename
+    :raises: IOError if the file can't be loaded as an h5py.File like object
+    :rtype: h5py.File
+    """
+    return open(filename)
