@@ -85,6 +85,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
             model.appendFile(filename)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testAppendBadFilename(self):
         model = hdf5.Hdf5TreeModel()
@@ -96,6 +100,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
             model.insertFile(filename)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testInsertFilenameAsync(self):
         with self.h5TempFile() as filename:
@@ -110,6 +118,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testInsertObject(self):
         h5 = _mock.File("/foo/bar/1.mock")
@@ -145,6 +157,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             time.sleep(0.1)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
@@ -187,6 +203,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             time.sleep(0.1)
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def getRowDataAsDict(self, model, row):
         displayed = {}
