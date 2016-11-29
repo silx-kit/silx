@@ -43,7 +43,7 @@ import sys as _sys
 # Probe ipython
 try:
     from IPython import get_ipython as _get_ipython
-except(NameError, ImportError):    
+except (NameError, ImportError):
     _get_ipython = None
 
 # Probe ipython/jupyter notebook
