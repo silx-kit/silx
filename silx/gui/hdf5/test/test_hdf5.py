@@ -26,10 +26,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/10/2016"
+__date__ = "29/11/2016"
 
 
 import time
+import os
 import unittest
 import tempfile
 import numpy
@@ -62,14 +63,17 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
 
     @contextmanager
     def h5TempFile(self):
-        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        tmp.file.close()
-
-        self.h5 = h5py.File(tmp.name, "w")
-        g = self.h5.create_group("arrays")
+        # create tmp file
+        fd, tmp_name = tempfile.mkstemp(suffix=".h5")
+        os.close(fd)
+        # create h5 data
+        h5file = h5py.File(tmp_name, "w")
+        g = h5file.create_group("arrays")
         g.create_dataset("scalar", data=10)
-        self.h5.close()
-        yield tmp.name
+        h5file.close()
+        yield tmp_name
+        # clean up
+        os.unlink(tmp_name)
 
     def testCreate(self):
         model = hdf5.Hdf5TreeModel()
