@@ -383,10 +383,6 @@ class ArrayTableWidget(qt.QWidget):
         self.axesSelector.setNDimensions(n_dimensions)
         self.axesSelector.sigDimensionsChanged.connect(self.setFrameAxes)
 
-        # initialize & connect axesSelector
-        self.axesSelector.setNDimensions(n_dimensions)
-        self.axesSelector.sigDimensionsChanged.connect(self.setFrameAxes)
-
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
 
