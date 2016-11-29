@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.math.fit
 
-:func:`silx.math.fit.leastsq`: Levenberg Marquardt with constraints
---------------------------------------------------------------------
+:mod:`leastsq`: Levenberg Marquardt with constraints
+-----------------------------------------------------
 
 .. automodule:: silx.math.fit.leastsq
     :noindex:
