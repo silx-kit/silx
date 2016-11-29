@@ -109,7 +109,9 @@ class AxesSelector(qt.QWidget):
         self._clear()
         self.rowsCB.addItems([str(i) for i in range(n - 1)])
         self.rowsCB.setCurrentIndex(n - 2)
-        self.columnsCB.addItem(str(n - 1))
+        if n >= 1:
+            self.columnsCB.addItem(str(n - 1))
+            self.columnsCB.setCurrentIndex(0)
 
         # reconnect slots
         self.rowsCB.currentIndexChanged.connect(self._rowDimChanged)
@@ -117,7 +119,8 @@ class AxesSelector(qt.QWidget):
         self._slotsAreConnected = True
 
         # emit new dimensions
-        self.sigDimensionsChanged.emit(n - 2, n - 1)
+        if n >= 2:
+            self.sigDimensionsChanged.emit(n - 2, n - 1)
 
     def setDimensions(self, row_dim, col_dim):
         """Set the rows and columns dimensions.
