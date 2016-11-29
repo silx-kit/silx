@@ -139,6 +139,12 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             index = model.index(0, 0, qt.QModelIndex())
             node2 = model.nodeFromIndex(index)
             self.assertIsNot(node1, node2)
+            # after sync
+            time.sleep(0.1)
+            self.qapp.processEvents()
+            time.sleep(0.1)
+            index = model.index(0, 0, qt.QModelIndex())
+            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
 
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
@@ -175,6 +181,12 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             mimeData.setUrls([qt.QUrl.fromLocalFile(filename)])
             model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # after sync
+            time.sleep(0.1)
+            self.qapp.processEvents()
+            time.sleep(0.1)
+            index = model.index(0, 0, qt.QModelIndex())
+            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
 
     def getRowDataAsDict(self, model, row):
         displayed = {}
