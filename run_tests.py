@@ -113,7 +113,6 @@ class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
 
     def stopTest(self, test):
