@@ -52,8 +52,8 @@ from math import ceil
 
 
 def my_blur(img, sigma):
-    if not scipy:
-        return
+    if scipy is None:
+        raise ImportError("scipy required")
     ksize = int(ceil(8 * sigma + 1))
     if (ksize % 2 == 0):
         ksize += 1
@@ -65,8 +65,8 @@ def my_blur(img, sigma):
 
 
 def local_maxmin_setup():
-    if not scipy:
-        return
+    if scipy is None:
+        raise ImportError("scipy required")
 
     border_dist = numpy.int32(5)  # SIFT
     peakthresh = numpy.float32(255.0 * 0.04 / 3.0)  # SIFT uses 255.0 * 0.04 / 3.0
