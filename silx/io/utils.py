@@ -41,12 +41,14 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "29/11/2016"
+__date__ = "30/11/2016"
 
 
 logger = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+
+builtin_open = open
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
@@ -215,7 +217,7 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html
     """
     if not hasattr(fname, "name"):
-        ffile = open(fname, 'wb')
+        ffile = builtin_open(fname, 'wb')
     else:
         ffile = fname
 
@@ -282,7 +284,7 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
                          "two format strings")
 
     if not hasattr(specfile, "write"):
-        f = open(specfile, mode)
+        f = builtin_open(specfile, mode)
     else:
         f = specfile
 
