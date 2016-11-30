@@ -50,5 +50,12 @@ see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
 provides the namespace of PyQt5 over PyQt4 and PySide.
 """
 
+import sys
 from ._qt import *  # noqa
 from ._utils import *  # noqa
+
+
+if sys.platform == "darwin":
+    if BINDING in ["PySide", "PyQt4"]:
+        import _macosx
+        _macosx.patch_QUrl_toLocalFile()
