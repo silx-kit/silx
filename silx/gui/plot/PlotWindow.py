@@ -118,7 +118,8 @@ class PlotWindow(PlotWidget):
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  control=False, position=False,
-                 roi=True, mask=True, fit=False):
+                 roi=True, mask=True, fit=False,
+                 pixelsIntensities=True):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -193,6 +194,9 @@ class PlotWindow(PlotWidget):
 
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
+
+        self.pixIntensitiesAction = self.group.addAction(PixelIntensitiesHistoAction(self))
+        self.pixIntensitiesAction.setVisible(pixelsIntensities)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -432,7 +436,8 @@ class Plot1D(PlotWindow):
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
-                                     roi=True, mask=False, fit=True)
+                                     roi=True, mask=False, fit=True,
+                                     pixelsIntensities=False)
         if parent is None:
             self.setWindowTitle('Plot1D')
         self.setGraphXLabel('X')
@@ -461,7 +466,8 @@ class Plot2D(PlotWindow):
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
                                      control=False, position=posInfo,
-                                     roi=False, mask=True)
+                                     roi=False, mask=True,
+                                     pixelsIntensities=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
         self.setGraphXLabel('Columns')
@@ -494,3 +500,42 @@ class Plot2D(PlotWindow):
                 if (row < data.shape[0] and col < data.shape[1]):
                     return data[row, col]
         return '-'
+
+from silx.math.histogram import Histogramnd
+class PixelIntensitiesHistoAction(PlotActions.PlotAction):
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`    
+    """
+
+    def __init__(self, plot, parent=None):
+        PlotActions.PlotAction.__init__(self,
+                            plot,
+                            icon='shape-circle',
+                            text='pixels intensity',
+                            tooltip='Compute image intensity distribution',
+                            triggered=self.computeIntensityDistribution,
+                            parent=parent)
+        self.plotHistogram=None
+
+    def computeIntensityDistribution(self):
+        """Get the active image and compute the image 
+        intensity distribution"""
+        activeImage = self.plot.getActiveImage()
+
+        if activeImage is not None:
+
+            if self.plotHistogram is None :
+                self.plotHistogram = Plot1D()
+
+            # how to make sure we are in grey reference and in 0:256 ?
+            
+            histo, w_histo, edges = Histogramnd(activeImage[0].flatten(), 
+                                                n_bins=256, 
+                                                histo_range=[0,256])
+            
+            self.plotHistogram.addCurve(range(256), 
+                                        histo, 
+                                        legend='pixel intensity')
+            self.plotHistogram.show()    

@@ -1023,3 +1023,5 @@ class FitAction(PlotAction):
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel,
                                resetzoom=False)
+
+
