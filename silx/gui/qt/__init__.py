@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,33 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
-__license__ = "MIT"
-__date__ = "30/11/2016"
+"""Common wrapper over Python Qt bindings:
 
+- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
+- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
+- `PySide <http://www.pyside.org>`_.
 
-from numpy.distutils.misc_util import Configuration
+If a Qt binding is already loaded, it will use it, otherwise the different
+Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
 
+The name of the loaded Qt binding is stored in the BINDING variable.
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('gui', parent_package, top_path)
-    config.add_subpackage('qt')
-    config.add_subpackage('plot')
-    config.add_subpackage('fit')
-    config.add_subpackage('hdf5')
-    config.add_subpackage('widgets')
-    config.add_subpackage('test')
+This module provides a flat namespace over Qt bindings by importing
+all symbols from **QtCore** and **QtGui** packages and if available
+from **QtOpenGL** and **QtSvg** packages.
+For **PyQt5**, it also imports all symbols from **QtWidgets** and
+**QtPrintSupport** packages.
 
-    return config
+Example of using :mod:`silx.gui.qt` module:
 
+>>> from silx.gui import qt
+>>> app = qt.QApplication([])
+>>> widget = qt.QWidget()
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
+For an alternative solution providing a structured namespace,
+see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
+provides the namespace of PyQt5 over PyQt4 and PySide.
+"""
 
-    setup(configuration=configuration)
+from ._qt import *  # noqa
+from ._utils import *  # noqa
