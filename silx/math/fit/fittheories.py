@@ -94,7 +94,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "30/11/2016"
 
 
 DEFAULT_CONFIG = {
@@ -104,6 +104,8 @@ DEFAULT_CONFIG = {
     'SameFwhmFlag': False,
     'QuotedPositionFlag': False,  # peak not outside data range
     'QuotedEtaFlag': False,  # force 0 < eta < 1
+    # Peak detection
+    'AutoScaling': False,
     'Yscaling': 1.0,
     'FwhmPoints': 8,
     'AutoFwhm': True,
@@ -214,6 +216,33 @@ class FitTheories(object):
         else:
             return numpy.zeros_like(y)
 
+    def guess_yscaling(self, y):
+        """Estimate scaling for y prior to peak search.
+        A smoothing filter is applied to y to estimate the noise level
+        (chi-squared)
+
+        :param y: Data array
+        :return: Scaling factor
+        """
+        # ensure y is an array
+        yy = numpy.array(y, copy=False)
+
+        # smooth
+        convolution_kernel = numpy.ones(shape=(3,)) / 3.
+        ysmooth = numpy.convolve(y, convolution_kernel, mode="same")
+
+        # remove zeros
+        idx_array = numpy.fabs(y) > 0.0
+        yy = yy[idx_array]
+        ysmooth = ysmooth[idx_array]
+
+        # compute scaling factor
+        chisq = numpy.mean((yy - ysmooth)**2 / numpy.fabs(yy))
+        if chisq > 0:
+            return 1. / chisq
+        else:
+            return 1.0
+
     def peak_search(self, y, fwhm, sensitivity):
         """Search for peaks in y array, after padding the array and
         multiplying its value by a scaling factor.
@@ -235,8 +264,10 @@ class FitTheories(object):
 
         ysearch = y
 
+        scaling = self.guess_yscaling(y) if self.config["AutoScaling"] else self.config["Yscaling"]
+
         if len(ysearch) > 1.5 * fwhm:
-            peaks = peak_search(self.config["Yscaling"] * ysearch,
+            peaks = peak_search(scaling * ysearch,
                                 fwhm=fwhm, sensitivity=sensitivity)
             # # remove padding
             # return [peak_index - fwhm - 1 for peak_index in peaks]
