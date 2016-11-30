@@ -24,10 +24,11 @@
 
 __authors__ = ["J. Kieffer"]
 __license__ = "MIT"
-__date__ = "31/08/2016"
+__date__ = "29/11/2016"
 
 import unittest
 from . import test_addition
+
 
 def suite():
     testSuite = unittest.TestSuite()
