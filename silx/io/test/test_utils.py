@@ -44,7 +44,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "30/11/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -244,8 +244,8 @@ class TestH5Ls(unittest.TestCase):
                 lines)
 
 
-class TestLoad(unittest.TestCase):
-    """Test `silx.io.utils.load` function."""
+class TestOpen(unittest.TestCase):
+    """Test `silx.io.utils.open` function."""
 
     def testH5(self):
         if h5py_missing:
@@ -260,9 +260,10 @@ class TestLoad(unittest.TestCase):
         h5.close()
 
         # load it
-        f = utils.load(tmp.name)
+        f = utils.open(tmp.name)
         self.assertIsNotNone(f)
         self.assertIsInstance(f, h5py.File)
+        f.close()
 
     def testSpec(self):
         # create a file
@@ -272,9 +273,10 @@ class TestLoad(unittest.TestCase):
                        fmt=["%d", "%.2f"], close_file=True, scan_number=1)
 
         # load it
-        f = utils.load(tmp.name)
+        f = utils.open(tmp.name)
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
+        f.close()
 
     def testUnsupported(self):
         # create a file
@@ -283,11 +285,11 @@ class TestLoad(unittest.TestCase):
         tmp.close()
 
         # load it
-        self.assertRaises(IOError, utils.load, tmp.name)
+        self.assertRaises(IOError, utils.open, tmp.name)
 
     def testNotExists(self):
         # load it
-        self.assertRaises(IOError, utils.load, "#$.")
+        self.assertRaises(IOError, utils.open, "#$.")
 
 
 def suite():
@@ -297,7 +299,7 @@ def suite():
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
     test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestLoad))
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestOpen))
     return test_suite
 
 
