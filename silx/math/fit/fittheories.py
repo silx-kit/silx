@@ -247,32 +247,28 @@ class FitTheories(object):
         """Search for peaks in y array, after padding the array and
         multiplying its value by a scaling factor.
 
-        :param y: Data array
-        :param fwhm: Typical full width at half maximum for peaks,
+        :param y: 1-D data array
+        :param int fwhm: Typical full width at half maximum for peaks,
             in number of points. This parameter is used for smoothing the data
             and calculating the noise.
-        :param sensitivity: Sensitivity parameter. This is a threshold factor
+        :param float sensitivity: Sensitivity parameter. This is a threshold factor
             for peak detection. Only peaks larger than the standard deviation
             of the noise multiplied by this sensitivity parameter are detected.
         :return: List of peak indices
         """
-        # # add padding and apply scaling factor
-        # ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
-        # ysearch[0:fwhm] = y[0] * self.config["Yscaling"]
-        # ysearch[-1:-fwhm - 1:-1] = y[len(y)-1] * self.config["Yscaling"]
-        # ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
-
-        ysearch = y
+        # add padding
+        ysearch = numpy.ones((len(y) + 2 * fwhm,), numpy.float)
+        ysearch[0:fwhm] = y[0]
+        ysearch[-1:-fwhm - 1:-1] = y[len(y)-1]
+        ysearch[fwhm:fwhm + len(y)] = y[:]
 
         scaling = self.guess_yscaling(y) if self.config["AutoScaling"] else self.config["Yscaling"]
 
         if len(ysearch) > 1.5 * fwhm:
             peaks = peak_search(scaling * ysearch,
                                 fwhm=fwhm, sensitivity=sensitivity)
-            # # remove padding
-            # return [peak_index - fwhm - 1 for peak_index in peaks]
-            # # FIXME: investigate why we need - 1. Index problem in peak search algorithm?
-            return peaks
+            return [peak_index - fwhm for peak_index in peaks
+                    if 0 <= peak_index - fwhm < len(y)]
         else:
             return []
 
