@@ -396,9 +396,8 @@ class ArrayTableModel(qt.QAbstractTableModel):
         are parallel to :math:`\vec{x}\vec{y}`.
 
         In the n-D case, this parameter is a sequence of :math:`n-2` axes
-        numbers. The first axis is numbered :math:`0` and the last axis is
-        numbered :math:`n-2`.
-        So for instance if you want to display 2-D frames whose axes are the
+        numbers.
+        For instance if you want to display 2-D frames whose axes are the
         second and third dimensions of a 5-D array, set the perspective to
         ``(0, 3, 4)``.
 

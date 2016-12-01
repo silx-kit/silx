@@ -9,8 +9,6 @@
 Widget
 ++++++
 
-.. automodule:: silx.gui.widgets.ArrayTableWidget
-
 .. autoclass:: silx.gui.widgets.ArrayTableWidget.ArrayTableWidget
    :members:
 
