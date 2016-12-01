@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,27 +22,23 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+"""This module provides convenient functions related to Qt.
+"""
+
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "30/11/2016"
 
-
-from numpy.distutils.misc_util import Configuration
-
-
-def configuration(parent_package='', top_path=None):
-    config = Configuration('gui', parent_package, top_path)
-    config.add_subpackage('qt')
-    config.add_subpackage('plot')
-    config.add_subpackage('fit')
-    config.add_subpackage('hdf5')
-    config.add_subpackage('widgets')
-    config.add_subpackage('test')
-
-    return config
+import sys
+from ._qt import QImageReader
 
 
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+def supportedImageFormats():
+    """Return a set of string of file format extensions supported by the
+    Qt runtime."""
+    if sys.version_info[0] < 3:
+        convert = str
+    else:
+        convert = lambda data: str(data, 'ascii')
+    formats = QImageReader.supportedImageFormats()
+    return set([convert(data) for data in formats])
