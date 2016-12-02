@@ -82,7 +82,6 @@ class TestSmooth(unittest.TestCase):
                             "smoothed data is > 5%% (%f %%)" % (diff * 100))
 
             # Try various smoothing levels
-            print(npts, diff)
             npts += 25
 
     def testSmooth1d(self):
