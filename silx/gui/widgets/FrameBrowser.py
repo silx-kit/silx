@@ -74,14 +74,14 @@ class FrameBrowser(qt.QWidget):
         self.lastButton = qt.QPushButton(self)
         self.lastButton.setIcon(icon_last)
 
-        self.layout.addStretch(1)
+        self.mainLayout.addStretch(1)
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)
         self.mainLayout.addWidget(self.lineEdit)
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.nextButton)
         self.mainLayout.addWidget(self.lastButton)
-        self.layout.addStretch(1)
+        self.mainLayout.addStretch(1)
 
         if n is None:
             first = qt.QSlider().minimum()
