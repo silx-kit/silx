@@ -26,18 +26,18 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
 import time
 from silx.gui import qt
-from silx.gui import testutils
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.testutils import TestLogging
+from silx.test.utils import TestLogging
 
 
-class TestThreadPoolPushButton(testutils.TestCaseQt):
+class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
         super(TestThreadPoolPushButton, self).setUp()

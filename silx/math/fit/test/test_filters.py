@@ -25,7 +25,7 @@ import numpy
 import unittest
 from silx.math.fit import filters
 from silx.math.fit import functions
-from silx.testutils import add_relative_noise
+from silx.test.utils import add_relative_noise
 
 
 class TestSmooth(unittest.TestCase):

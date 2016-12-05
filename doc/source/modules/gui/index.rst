@@ -20,7 +20,6 @@ Available modules:
    qt.rst
    icons.rst
    console.rst
-   testutils.rst
 
 
 How-to:

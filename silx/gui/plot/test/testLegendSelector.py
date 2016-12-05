@@ -26,14 +26,14 @@
 
 __authors__ = ["T. Rueter", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "05/12/2016"
 
 
 import logging
 import unittest
 
 from silx.gui import qt
-from silx.gui.testutils import TestCaseQt
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.plot import LegendSelector
 
 
