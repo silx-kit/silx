@@ -165,7 +165,8 @@ class PeriodicTableItem(object):
 
     You can subclass this class to add additional information.
     """
-    def __init__(self, symbol, Z, col, row, name, mass):
+    def __init__(self, symbol, Z, col, row, name, mass,
+                 bgcolor=None):
         """
 
         :param str symbol: Atomic symbol (e.g. H, He, Li...)
@@ -174,6 +175,7 @@ class PeriodicTableItem(object):
         :param int row: 1-based row index of element in periodic table
         :param str name: PeriodicTableItem name ("hydrogen", ...)
         :param float mass: Atomic mass (gram per mol)
+        :param QColor bgcolor: Background color
         """
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
@@ -187,6 +189,10 @@ class PeriodicTableItem(object):
         """PeriodicTableItem name ("hydrogen", ...)"""
         self.mass = mass
         """Atomic mass (gram per mol)"""
+
+        self.bgcolor = bgcolor
+        """Background color of element in the periodic table.
+        Set to None for no color."""
 
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
@@ -233,13 +239,19 @@ class _ElementButton(qt.QPushButton):
         self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding,
                                           qt.QSizePolicy.Expanding))
 
-        self.selected = 0
-        self.current = 0
-        self.colors = [qt.QColor(qt.Qt.yellow),
-                       qt.QColor(qt.Qt.darkYellow),
-                       qt.QColor(qt.Qt.gray)]
+        self.selected = False
+        self.current = False
+
+        # selection colors
+        self.selected_color = qt.QColor(qt.Qt.yellow)
+        self.current_color = qt.QColor(qt.Qt.gray)
+        self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
+
+        # default colors
+        self.bgcolor = item.bgcolor
 
         self.brush = qt.QBrush()
+        self.__setBrush()
 
         self.clicked.connect(self.clickedSlot)
 
@@ -279,18 +291,23 @@ class _ElementButton(qt.QPushButton):
     def __setBrush(self):
         """Selected cells are yellow when not current.
         The current cell is dark yellow when selected or grey when not
-        selected."""
-        role = self.backgroundRole()
+        selected.
+        Other cells have no bg color by default, unless specified at
+        instantiation (:attr:`bgcolor`)"""
         palette = self.palette()
         if self.current and self.selected:
-            self.brush = qt.QBrush(self.colors[1])
+            self.brush = qt.QBrush(self.selected_current_color)
         elif self.selected:
-            self.brush = qt.QBrush(self.colors[0])
+            self.brush = qt.QBrush(self.selected_color)
         elif self.current:
-            self.brush = qt.QBrush(self.colors[2])
+            self.brush = qt.QBrush(self.current_color)
+        elif self.bgcolor is not None:
+            self.brush = qt.QBrush(self.bgcolor)
         else:
             self.brush = qt.QBrush()
-        palette.setBrush(role, self.brush)
+        palette.setBrush(self.backgroundRole(),
+                         self.brush)
+        self.setPalette(palette)
         self.update()
 
     def paintEvent(self, pEvent):
