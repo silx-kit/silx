@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Periodic table widget"""
+"""Periodic table widgets"""
 
 __authors__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
@@ -164,19 +164,17 @@ class PeriodicTableItem(object):
         - row of element in periodic table
 
     You can subclass this class to add additional information.
+
+    :param str symbol: Atomic symbol (e.g. H, He, Li...)
+    :param int Z: Proton number
+    :param int col: 1-based column index of element in periodic table
+    :param int row: 1-based row index of element in periodic table
+    :param str name: PeriodicTableItem name ("hydrogen", ...)
+    :param float mass: Atomic mass (gram per mol)
+    :param QColor bgcolor: Background color
     """
     def __init__(self, symbol, Z, col, row, name, mass,
                  bgcolor=None):
-        """
-
-        :param str symbol: Atomic symbol (e.g. H, He, Li...)
-        :param int Z: Proton number
-        :param int col: 1-based column index of element in periodic table
-        :param int row: 1-based row index of element in periodic table
-        :param str name: PeriodicTableItem name ("hydrogen", ...)
-        :param float mass: Atomic mass (gram per mol)
-        :param QColor bgcolor: Background color
-        """
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
         self.Z = Z
@@ -192,7 +190,7 @@ class PeriodicTableItem(object):
 
         self.bgcolor = bgcolor
         """Background color of element in the periodic table.
-        Set to None for no color."""
+        Set to None for no color, or assign a :class:`qt.QColor`"""
 
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
@@ -381,22 +379,21 @@ class PeriodicTable(qt.QWidget):
 
             pt = PeriodicTable()
             pt.sigElementClicked.connect(pt.elementToggle)
+
+
+    :param parent: parent QWidget
+    :param str name: Widget window title
+    :param elements: List of items (:class:`PeriodicTableItem` objects) to
+        be represented in the table. By default, take elements from
+        a predefined list with minimal information (symbol, atomic number,
+        name, mass).
+    :param bool selectable: If *True*, multiple elements can be
+        selected by clicking with the mouse. If *False* (default),
+        selection is only possible with method :meth:`setSelection`.
     """
 
     def __init__(self, parent=None, name="PeriodicTable", elements=None,
                  selectable=False):
-        """
-
-        :param parent: parent QWidget
-        :param str name: Widget window title
-        :param elements: List of items (:class:`PeriodicTableItem` objects) to
-            be represented in the table. By default, take elements from
-            a predefined list with minimal information (symbol, atomic number,
-            name, mass).
-        :param bool selectable: If *True*, multiple elements can be
-            selected by clicking with the mouse. If *False* (default),
-            selection is only possible with method :meth:`setSelection`.
-        """
         self.selectable = selectable
         qt.QWidget.__init__(self, parent)
         self.setWindowTitle(name)
@@ -417,10 +414,10 @@ class PeriodicTable(qt.QWidget):
         self.eltLabel.setAlignment(qt.Qt.AlignHCenter)
         self.gridLayout.addWidget(self.eltLabel, 1, 1, 3, 10)
 
-        self.eltCurrent = None
+        self._eltCurrent = None
         """Current :class:`_ElementButton` (last clicked)"""
 
-        self.eltButtons = OrderedDict()
+        self._eltButtons = OrderedDict()
         """Dictionary of all :class:`_ElementButton`. Keys are the symbols
         ("H", "He", "Li"...)"""
 
@@ -436,7 +433,7 @@ class PeriodicTable(qt.QWidget):
         b = _ElementButton(elmt, self)
         b.setAutoDefault(False)
 
-        self.eltButtons[elmt.symbol] = b
+        self._eltButtons[elmt.symbol] = b
         self.gridLayout.addWidget(b, elmt.row, elmt.col)
 
         b.sigElementEnter.connect(self.elementEnter)
@@ -456,12 +453,12 @@ class PeriodicTable(qt.QWidget):
         self.eltLabel.setText("")
 
     def elementClicked(self, item):
-        """Emit :attr:`sigElementClicked`, set :attr:`eltCurrent`,
+        """Emit :attr:`sigElementClicked`, set :attr:`_eltCurrent`,
         toggle selected state of element"""
-        if self.eltCurrent is not None:
-            self.eltCurrent.setCurrent(False)
-        self.eltButtons[item.symbol].setCurrent(True)
-        self.eltCurrent = self.eltButtons[item.symbol]
+        if self._eltCurrent is not None:
+            self._eltCurrent.setCurrent(False)
+        self._eltButtons[item.symbol].setCurrent(True)
+        self._eltCurrent = self._eltButtons[item.symbol]
         if self.selectable:
             self.elementToggle(item)
         self.sigElementClicked.emit(item)
@@ -472,7 +469,7 @@ class PeriodicTable(qt.QWidget):
         :return: Selected items
         :rtype: list(PeriodicTableItem)
         """
-        return [b.item for b in self.eltButtons.values() if b.isSelected()]
+        return [b.item for b in self._eltButtons.values() if b.isSelected()]
 
     def setSelection(self, symbols):
         """Set selected elements.
@@ -483,7 +480,7 @@ class PeriodicTable(qt.QWidget):
         :param list(str) symbols: List of symbols of elements to be selected
             (e.g. *["Fe", "Hg", "Li"]*)
         """
-        for (e, b) in self.eltButtons.items():
+        for (e, b) in self._eltButtons.items():
             b.setSelected(e in symbols)
         self.sigSelectionChanged.emit(self.getSelection())
 
@@ -493,7 +490,7 @@ class PeriodicTable(qt.QWidget):
         :param str symbol: PeriodicTableItem symbol to be selected
         :param bool state: *True* to select, *False* to unselect
         """
-        self.eltButtons[symbol].setSelected(state)
+        self._eltButtons[symbol].setSelected(state)
         self.sigSelectionChanged.emit(self.getSelection())
 
     def isElementSelected(self, symbol):
@@ -502,14 +499,14 @@ class PeriodicTable(qt.QWidget):
         :param str symbol: PeriodicTableItem symbol
         :return: *True* if element is selected, else *False*
         """
-        return self.eltButtons[symbol].isSelected()
+        return self._eltButtons[symbol].isSelected()
 
     def elementToggle(self, item):
         """Toggle selected/unselected state for element
 
         :param item: PeriodicTableItem object
         """
-        b = self.eltButtons[item.symbol]
+        b = self._eltButtons[item.symbol]
         b.setSelected(not b.isSelected())
         self.sigSelectionChanged.emit(self.getSelection())
 
@@ -517,21 +514,21 @@ class PeriodicTable(qt.QWidget):
 class PeriodicCombo(qt.QComboBox):
     """
     Combo list with all atomic elements of the periodic table
+
+    :param bool detailed: True (default) display element symbol, Z and name.
+        False display only element symbol and Z.
+    :param elements: List of items (:class:`PeriodicTableItem` objects) to
+        be represented in the table. By default, take elements from
+        a predefined list with minimal information (symbol, atomic number,
+        name, mass).
     """
     sigSelectionChanged = qt.pyqtSignal(object)
     """Signal emitted when the selection changes. Send
     :class:`PeriodicTableItem` object representing selected
-    element"""
+    element
+    """
 
     def __init__(self, parent=None, detailed=True, elements=None):
-        """
-        :param bool detailed: True (default) display element symbol, Z and name.
-            False display only element symbol and Z.
-        :param elements: List of items (:class:`PeriodicTableItem` objects) to
-            be represented in the table. By default, take elements from
-            a predefined list with minimal information (symbol, atomic number,
-            name, mass).
-        """
         qt.QComboBox.__init__(self, parent)
 
         # add all elements from global list
@@ -570,6 +567,12 @@ class PeriodicCombo(qt.QComboBox):
 
 class PeriodicList(qt.QTreeWidget):
     """List of atomic elements in a :class:`QTreeView`
+
+    :param QWidget parent: Parent widget
+    :param bool detailed: True (default) display element symbol, Z and name.
+        False display only element symbol and Z.
+    :param single: *True* for single element selection with mouse click,
+        *False* for multiple element selection mode.
     """
     sigSelectionChanged = qt.pyqtSignal(object)
     """When any element is selected/unselected in the widget, it emits
@@ -578,13 +581,6 @@ class PeriodicList(qt.QTreeWidget):
     """
 
     def __init__(self, parent=None, detailed=True, single=False, elements=None):
-        """
-        :param QWidget parent: Parent widget
-        :param bool detailed: True (default) display element symbol, Z and name.
-            False display only element symbol and Z.
-        :param single: *True* for single element selection with mouse click,
-            *False* for multiple element selection mode.
-        """
         qt.QTreeWidget.__init__(self, parent)
 
         self.detailed = detailed
