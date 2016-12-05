@@ -506,15 +506,21 @@ class PeriodicCombo(qt.QComboBox):
     :class:`PeriodicTableItem` object representing selected
     element"""
 
-    def __init__(self, parent=None, detailed=True):
+    def __init__(self, parent=None, detailed=True, elements=None):
         """
         :param bool detailed: True (default) display element symbol, Z and name.
             False display only element symbol and Z.
+        :param elements: List of items (:class:`PeriodicTableItem` objects) to
+            be represented in the table. By default, take elements from
+            a predefined list with minimal information (symbol, atomic number,
+            name, mass).
         """
         qt.QComboBox.__init__(self, parent)
 
         # add all elements from global list
-        for i, elmt in enumerate(_defaultTableItems):
+        if elements is None:
+            elements = _defaultTableItems
+        for i, elmt in enumerate(elements):
             if detailed:
                 txt = "%2s (%d) - %s" % (elmt.symbol, elmt.Z, elmt.name)
             else:
