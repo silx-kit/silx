@@ -37,6 +37,7 @@ from silx.gui import qt
 import silx.gui.hdf5
 import silx.utils.html
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
+from silx.gui.widgets.DataViewer import DataViewer
 import h5py
 import tempfile
 
@@ -304,14 +305,19 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.setWindowTitle("Silx HDF5 widget example")
 
         self.__asyncload = False
-        self.__treeview = silx.gui.hdf5.Hdf5TreeView()
+        self.__treeview = silx.gui.hdf5.Hdf5TreeView(self)
         """Silx HDF5 TreeView"""
         self.__text = qt.QTextEdit(self)
         """Widget displaying information"""
 
-        spliter = qt.QSplitter()
+        self.__dataViewer = DataViewer(self)
+        vSpliter = qt.QSplitter(qt.Qt.Vertical)
+        vSpliter.addWidget(self.__dataViewer)
+        vSpliter.addWidget(self.__text)
+
+        spliter = qt.QSplitter(self)
         spliter.addWidget(self.__treeview)
-        spliter.addWidget(self.__text)
+        spliter.addWidget(vSpliter)
         spliter.setStretchFactor(1, 1)
 
         main_panel = qt.QWidget(self)
@@ -327,6 +333,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         for file_name in filenames:
             self.__treeview.findHdf5TreeModel().appendFile(file_name)
 
+        self.__treeview.activated.connect(self.displayData)
         self.__treeview.activated.connect(lambda index: self.displayEvent("activated", index))
         self.__treeview.clicked.connect(lambda index: self.displayEvent("clicked", index))
         self.__treeview.doubleClicked.connect(lambda index: self.displayEvent("doubleClicked", index))
@@ -339,6 +346,12 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         # you have to store it first
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
+
+    def displayData(self):
+        selected = list(self.__treeview.selectedH5Nodes())
+        if len(selected) == 1:
+            data = selected[0]
+            self.__dataViewer.setData(data.h5py_object)
 
     def displayEvent(self, eventName, index):
 
