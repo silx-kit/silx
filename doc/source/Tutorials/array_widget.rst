@@ -198,19 +198,23 @@ of RGB colors.
    data.shape = 256, 256, 256
 
    # RGB colors array
-   colors = numpy.empty((256, 256, 256, 3))
+   bcolors = numpy.empty((256, 256, 256, 3), dtype=numpy.uint8)
    # fill red channel
-   colors[..., 0] = data[:] & 255
+   bcolors[..., 0] = data[:] & 255
    # green
-   colors[..., 1] = (data[:] & (255 << 8)) >> 8
+   bcolors[..., 1] = (data[:] & (255 << 8)) >> 8
    # blue
-   colors[..., 2] = (data[:] & (255 << 16)) >> 16
+   bcolors[..., 2] = (data[:] & (255 << 16)) >> 16
+
+   # make text contrast with background (XOR)
+   fcolors = numpy.bitwise_xor(bcolors, 255)
 
    app = qt.QApplication([])
 
    atw = ArrayTableWidget()
    atw.setArrayData(data, copy=False)
-   atw.setArrayColors(colors)
+   atw.setArrayColors(bgcolors=bcolors,
+                      fgcolors=fcolors)
    atw.show()
 
    app.exec_()

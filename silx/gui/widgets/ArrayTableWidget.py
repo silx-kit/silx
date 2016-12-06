@@ -375,8 +375,8 @@ class ArrayTableWidget(qt.QWidget):
         self.axesSelector.setNDimensions(n_dimensions)
         self.axesSelector.sigDimensionsChanged.connect(self.setFrameAxes)
 
-    def setArrayColors(self, colors):
-        """Set the background colors for all table cells by passing an array
+    def setArrayColors(self, bgcolors=None, fgcolors=None):
+        """Set the colors for all table cells by passing an array
         of RGB or RGBA values (integers between 0 and 255).
 
         The shape of the colors array must be consistent with the data shape.
@@ -384,12 +384,14 @@ class ArrayTableWidget(qt.QWidget):
         If the data array is n-dimensional, the colors array must be
         (n+1)-dimensional, with the first n-dimensions identical to the data
         array dimensions, and the last dimension length-3 (RGB) or
-        length-4 (RGBA)
+        length-4 (RGBA).
 
-        :param colors: RGB or RGBA colors array, defining the color for each
-            cell in the table.
+        :param bgcolors: RGB or RGBA colors array, defining the background color
+            for each cell in the table.
+        :param fgcolors: RGB or RGBA colors array, defining the foreground color
+            (text color) for each cell in the table.
         """
-        self.model.setArrayColors(colors)
+        self.model.setArrayColors(bgcolors, fgcolors)
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
