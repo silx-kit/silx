@@ -74,14 +74,12 @@ class FrameBrowser(qt.QWidget):
         self.lastButton = qt.QPushButton(self)
         self.lastButton.setIcon(icon_last)
 
-        self.mainLayout.addStretch(1)
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)
         self.mainLayout.addWidget(self.lineEdit)
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.nextButton)
         self.mainLayout.addWidget(self.lastButton)
-        self.mainLayout.addStretch(1)
 
         if n is None:
             first = qt.QSlider().minimum()
@@ -223,7 +221,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
         self._browser = FrameBrowser(self)
 
-        self.mainLayout.addWidget(self._slider)
+        self.mainLayout.addWidget(self._slider, 1)
         self.mainLayout.addWidget(self._browser)
 
         self._slider.valueChanged[int].connect(self._sliderSlot)
