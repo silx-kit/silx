@@ -40,15 +40,7 @@ from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/11/2016"
-
-
-class HorizontalSpacer(qt.QWidget):
-    """Blank widget expanding horizontally"""
-    def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent)
-        self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding,
-                                          qt.QSizePolicy.Fixed))
+__date__ = "05/12/2016"
 
 
 class AxesSelector(qt.QWidget):
@@ -82,7 +74,7 @@ class AxesSelector(qt.QWidget):
         self.layout.addWidget(qt.QLabel("    ", self))
         self.layout.addWidget(qt.QLabel("Columns dimension", self))
         self.layout.addWidget(self.columnsCB)
-        self.layout.addWidget(HorizontalSpacer(self))
+        self.layout.addStretch(1)
 
         self._slotsAreConnected = False
         if n is not None:

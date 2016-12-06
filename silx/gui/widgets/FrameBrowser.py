@@ -36,20 +36,13 @@ from silx.gui import icons
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/10/2016"
+__date__ = "05/12/2016"
 
 
 icon_first = icons.getQIcon("first")
 icon_previous = icons.getQIcon("previous")
 icon_next = icons.getQIcon("next")
 icon_last = icons.getQIcon("last")
-
-
-class HorizontalSpacer(qt.QWidget):
-    def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent)
-        self.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Expanding,
-                                          qt.QSizePolicy.Fixed))
 
 
 class FrameBrowser(qt.QWidget):
@@ -81,14 +74,12 @@ class FrameBrowser(qt.QWidget):
         self.lastButton = qt.QPushButton(self)
         self.lastButton.setIcon(icon_last)
 
-        self.mainLayout.addWidget(HorizontalSpacer(self))
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)
         self.mainLayout.addWidget(self.lineEdit)
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.nextButton)
         self.mainLayout.addWidget(self.lastButton)
-        self.mainLayout.addWidget(HorizontalSpacer(self))
 
         if n is None:
             first = qt.QSlider().minimum()
@@ -230,7 +221,7 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
         self._browser = FrameBrowser(self)
 
-        self.mainLayout.addWidget(self._slider)
+        self.mainLayout.addWidget(self._slider, 1)
         self.mainLayout.addWidget(self._browser)
 
         self._slider.valueChanged[int].connect(self._sliderSlot)
