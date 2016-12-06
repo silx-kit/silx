@@ -33,7 +33,7 @@ from silx.gui import qt
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "25/11/2016"
+__date__ = "06/12/2016"
 
 
 _logger = logging.getLogger(__name__)
@@ -78,6 +78,11 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
         self._array = None
         """n-dimensional numpy array"""
+
+        self._colors = None
+        """(n+1)-dimensional numpy array containing RGB color data
+        in the last dimension if the length of the last dimension is
+        3, or RGBA color data if it is 4."""
 
         self._format = fmt
         """Format string (default "%g")"""
@@ -172,10 +177,20 @@ class ArrayTableModel(qt.QAbstractTableModel):
     def data(self, index, role=qt.Qt.DisplayRole):
         """QAbstractTableModel method to access data values
         in the format ready to be displayed"""
-        if index.isValid() and role == qt.Qt.DisplayRole:
+        if index.isValid():
             selection = self._getIndexTuple(index.row(),
                                             index.column())
-            return self._format % self._array[selection]
+            if role == qt.Qt.DisplayRole:
+                return self._format % self._array[selection]
+            if role == qt.Qt.BackgroundRole and self._colors is not None:
+                r = self._colors[selection][0]
+                g = self._colors[selection][1]
+                b = self._colors[selection][2]
+                if self._colors.shape[-1] == 3:
+                    return qt.QColor(r, g, b)
+                if self._colors.shape[-1] == 4:
+                    a = self._colors[selection][3]
+                    return qt.QColor(r, g, b, a)
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
@@ -253,6 +268,12 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if fmt is not None:
             self._format = fmt
 
+        # reset colors to None if new data shape is inconsistent
+        if self._colors is not None:
+            valid_color_shapes = (data.shape + (3,), data.shape + (4,))
+            if self._colors.shape not in valid_color_shapes:
+                self._colors = None
+
         if data is None:
             # empty array
             self._array = numpy.array([])
@@ -281,6 +302,30 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
+
+    def setArrayColors(self, colors):
+        """Set the background colors for all table cells by passing an array
+        of RGB or RGBA values (integers between 0 and 255).
+
+        The shape of the colors array must be consistent with the data shape.
+
+        If the data array is n-dimensional, the colors array must be
+        (n+1)-dimensional, with the first n-dimensions identical to the data
+        array dimensions, and the last dimension length-3 (RGB) or
+        length-4 (RGBA).
+
+        :param colors: RGB or RGBA colors array, defining the color for each
+            cell in the table.
+        """
+        if not _is_array(colors):
+            colors = numpy.array(colors)
+
+        # colors array must be RGB or RGBA
+        valid_shapes = (self._array.shape + (3,), self._array.shape + (4,))
+        errmsg = "Inconsistent shape for color array, should be %s or %s" % valid_shapes
+        assert colors.shape in valid_shapes, errmsg
+
+        self._colors = colors
 
     def setEditable(self, editable):
         """Set flags to make the data editable.
@@ -491,7 +536,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
 
 if __name__ == "__main__":
-    a = qt.QApplication([])
+    app = qt.QApplication([])
     w = qt.QTableView()
     d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
@@ -504,4 +549,4 @@ if __name__ == "__main__":
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))
     w.show()
-    a.exec_()
+    app.exec_()
