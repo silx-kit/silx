@@ -187,25 +187,33 @@ class ArrayTableModel(qt.QAbstractTableModel):
                                             index.column())
             if role == qt.Qt.DisplayRole:
                 return self._format % self._array[selection]
+
             if role == qt.Qt.BackgroundRole and self._bgcolors is not None:
-                r = self._bgcolors[selection][0]
-                g = self._bgcolors[selection][1]
-                b = self._bgcolors[selection][2]
+                r, g, b = self._bgcolors[selection][0:3]
                 if self._bgcolors.shape[-1] == 3:
                     return qt.QColor(r, g, b)
                 if self._bgcolors.shape[-1] == 4:
                     a = self._bgcolors[selection][3]
                     return qt.QColor(r, g, b, a)
-            if role == qt.Qt.ForegroundRole and self._fgcolors is not None:
-                r = self._fgcolors[selection][0]
-                g = self._fgcolors[selection][1]
-                b = self._fgcolors[selection][2]
-                if self._fgcolors.shape[-1] == 3:
-                    return qt.QColor(r, g, b)
-                if self._fgcolors.shape[-1] == 4:
-                    a = self._fgcolors[selection][3]
-                    return qt.QColor(r, g, b, a)
-        return None
+
+            if role == qt.Qt.ForegroundRole:
+                if self._fgcolors is not None:
+                    r, g, b = self._fgcolors[selection][0:3]
+                    if self._fgcolors.shape[-1] == 3:
+                        return qt.QColor(r, g, b)
+                    if self._fgcolors.shape[-1] == 4:
+                        a = self._fgcolors[selection][3]
+                        return qt.QColor(r, g, b, a)
+
+                # no fg color given, use black or white
+                # based on luminosity threshold
+                elif self._bgcolors is not None:
+                    r, g, b = self._bgcolors[selection][0:3]
+                    lum = 0.21 * r + 0.72 * g + 0.07 * b
+                    if lum < 128:
+                        return qt.QColor(qt.Qt.white)
+                    else:
+                        return qt.QColor(qt.Qt.black)
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """QAbstractTableModel method
