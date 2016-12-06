@@ -22,7 +22,56 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Periodic table widgets"""
+"""Periodic table widgets
+
+
+Example of usage
+----------------
+
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.widgets.PeriodicTable import PeriodicTable, \
+        PeriodicCombo, PeriodicList
+
+    a = qt.QApplication([])
+
+    w = qt.QTabWidget()
+
+    ptable = PeriodicTable(w, selectable=True)
+    pcombo = PeriodicCombo(w)
+    plist = PeriodicList(w)
+
+    w.addTab(ptable, "PeriodicTable")
+    w.addTab(plist, "PeriodicList")
+    w.addTab(pcombo, "PeriodicCombo")
+
+    ptable.setSelection(['H', 'Fe', 'Si'])
+    plist.setSelectedElements(['H', 'Be', 'F'])
+    pcombo.setSelection("Li")
+
+    def change_list(items):
+        print("New list selection:", [item.symbol for item in items])
+
+    def change_combo(item):
+        print("New combo selection:", item.symbol)
+
+    def click_table(item):
+        print("New table click:", item.symbol)
+
+    def change_table(items):
+        print("New table selection:", [item.symbol for item in items])
+
+    ptable.sigElementClicked.connect(click_table)
+    ptable.sigSelectionChanged.connect(change_table)
+    plist.sigSelectionChanged.connect(change_list)
+    pcombo.sigSelectionChanged.connect(change_combo)
+
+    w.show()
+    a.exec_()
+
+
+"""
 
 __authors__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
