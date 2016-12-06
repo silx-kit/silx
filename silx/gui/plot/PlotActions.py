@@ -990,7 +990,7 @@ def _getOneCurve(plt, mode="unique"):
     curves = plt.getAllCurves()
     if len(curves) == 0:
         _warningMessage("No curve on this plot.",
-                parent=plt)
+                        parent=plt)
         return None
 
     if len(curves) == 1:
