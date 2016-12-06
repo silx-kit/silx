@@ -112,7 +112,7 @@ class AxesSelector(qt.QWidget):
         self._slotsAreConnected = True
 
         # emit new dimensions
-        if n >= 2:
+        if n > 2:
             self.sigDimensionsChanged.emit(n - 2, n - 1)
 
     def setDimensions(self, row_dim, col_dim):
