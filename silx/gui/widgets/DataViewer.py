@@ -42,9 +42,10 @@ except ImportError:
 from silx.gui import qt
 from silx.gui import plot
 from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
+from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
 
 
-class DataViewer(qt.QStackedWidget):
+class DataViewer(qt.QWidget):
     """Widget to display any kind of data"""
 
     EMPTY_MODE = 0
@@ -63,6 +64,14 @@ class DataViewer(qt.QStackedWidget):
         """Constructor"""
         super(DataViewer, self).__init__(parent)
 
+        self.__stack = qt.QStackedWidget(self)
+        self.__numpySelection = NumpyAxesSelector(self)
+        self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
+
+        self.setLayout(qt.QVBoxLayout(self))
+        self.layout().addWidget(self.__stack, 1)
+        self.layout().addWidget(self.__numpySelection)
+
         self.__displayMode = None
         self.__data = None
         self.__plot1d = plot.Plot1D()
@@ -72,13 +81,23 @@ class DataViewer(qt.QStackedWidget):
         self.__text.setAlignment(qt.Qt.AlignCenter)
         self.__empty = qt.QLabel()
 
-        self.__index1d = self.addWidget(self.__plot1d)
-        self.__index2d = self.addWidget(self.__plot2d)
-        self.__indexArray = self.addWidget(self.__array)
-        self.__indexText = self.addWidget(self.__text)
-        self.__indexEmpty = self.addWidget(self.__empty)
+        self.__index1d = self.__stack.addWidget(self.__plot1d)
+        self.__index2d = self.__stack.addWidget(self.__plot2d)
+        self.__indexArray = self.__stack.addWidget(self.__array)
+        self.__indexText = self.__stack.addWidget(self.__text)
+        self.__indexEmpty = self.__stack.addWidget(self.__empty)
 
+        self.__axesNames = [
+            [],
+            ["y"],
+            ["x", "y"],
+            [],
+            ["col", "row"],
+        ]
         self.displayNothing()
+
+    def viewAxisExpected(self, displayMode):
+        return len(self.__axesNames[displayMode])
 
     def clear(self):
         self.setData(None)
@@ -99,9 +118,24 @@ class DataViewer(qt.QStackedWidget):
         else:
             raise Exception("Unsupported mode")
 
-    def __displayData(self, data):
-        if data is None:
-            return
+    def __updateNumpySelectionAxis(self):
+        self.__numpySelection.clear()
+        axisNames = self.__axesNames[self.__displayMode]
+        if len(axisNames) > 0:
+            previous = self.__numpySelection.blockSignals(True)
+            self.__numpySelection.setVisible(True)
+            self.__numpySelection.setAxisNames(axisNames)
+            self.__numpySelection.setData(self.__data)
+            self.__numpySelection.blockSignals(previous)
+        else:
+            self.__numpySelection.setVisible(False)
+
+    def __updateDataInView(self):
+        if self.__numpySelection.isVisible():
+            data = self.__numpySelection.selectedData()
+        else:
+            data = self.__data
+
         if self.__displayMode == self.EMPTY_MODE:
             pass
         elif self.__displayMode == self.TEXT_MODE:
@@ -120,17 +154,19 @@ class DataViewer(qt.QStackedWidget):
             return
         self.__clearCurrentView()
         self.__displayMode = mode
-        self.__displayData(self.__data)
+        self.__updateNumpySelectionAxis()
+        self.__updateDataInView()
+
         if self.__displayMode == self.EMPTY_MODE:
-            self.setCurrentIndex(self.__indexEmpty)
+            self.__stack.setCurrentIndex(self.__indexEmpty)
         elif self.__displayMode == self.TEXT_MODE:
-            self.setCurrentIndex(self.__indexText)
+            self.__stack.setCurrentIndex(self.__indexText)
         elif self.__displayMode == self.PLOT1D_MODE:
-            self.setCurrentIndex(self.__index1d)
+            self.__stack.setCurrentIndex(self.__index1d)
         elif self.__displayMode == self.PLOT2D_MODE:
-            self.setCurrentIndex(self.__index2d)
+            self.__stack.setCurrentIndex(self.__index2d)
         elif self.__displayMode == self.ARRAY_MODE:
-            self.setCurrentIndex(self.__indexArray)
+            self.__stack.setCurrentIndex(self.__indexArray)
         else:
             raise Exception("Unsupported mode")
         self.displayModeChanged.emit(mode)
@@ -185,7 +221,11 @@ class DataViewer(qt.QStackedWidget):
         self.__data = data
         self.dataChanged.emit()
         self.__updateView()
-        self.__displayData(data)
+        self.__updateNumpySelectionAxis()
+        self.__updateDataInView()
+
+    def __numpySelectionChanged(self):
+        self.__updateDataInView()
 
     def data(self):
         return self.__data

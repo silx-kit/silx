@@ -180,23 +180,17 @@ class DataViewerSelector(qt.QWidget):
                 isArray = isArray or (isinstance(data, h5py.Dataset) and data.shape != tuple())
 
                 if isArray:
-                    isAtomic = len(data.shape) == 0
+                    dimensionCount = len(data.shape)
                     isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-                    isCurve = len(data.shape) == 1
-                    isImage = len(data.shape) == 2
                 else:
-                    isAtomic = True
+                    dimensionCount = 0
                     isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-                    isCurve = False
-                    isImage = False
             else:
                 isArray = False
-                isAtomic = False
                 isNumeric = False
-                isCurve = False
-                isImage = False
+                dimensionCount = None
 
-            self.__button1D.setVisible(isCurve and isNumeric)
-            self.__button2D.setVisible(isImage and isNumeric)
-            self.__buttonArray.setVisible(isArray)
-            self.__buttonText.setVisible(isAtomic)
+            self.__button1D.setVisible(dimensionCount >= 1 and isNumeric)
+            self.__button2D.setVisible(dimensionCount >= 2 and isNumeric)
+            self.__buttonArray.setVisible(dimensionCount >= 2)
+            self.__buttonText.setVisible(dimensionCount == 0)
