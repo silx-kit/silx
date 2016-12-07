@@ -204,6 +204,9 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
     The default value is the default :class:`QSlider` value (0),
     and the default range is the default QSlider range (0 -- 99)
 
+    The signal emitted when the value is changed is the usual QAbstractSlider
+    signal :attr:`valueChanged`. The signal carries the value (as an integer).
+
     :param QWidget parent: Optional parent widget
     """
     sigIndexChanged = qt.pyqtSignal(object)
