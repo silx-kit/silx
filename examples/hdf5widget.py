@@ -37,6 +37,7 @@ from silx.gui import qt
 import silx.gui.hdf5
 import silx.utils.html
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
+from silx.gui.widgets.DataViewerSelector import DataViewerSelector
 from silx.gui.widgets.DataViewer import DataViewer
 import h5py
 import tempfile
@@ -311,8 +312,13 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         """Widget displaying information"""
 
         self.__dataViewer = DataViewer(self)
+        self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
+        widget = qt.QWidget()
+        widget.setLayout(qt.QVBoxLayout())
+        widget.layout().addWidget(self.__dataViewer, 1)
+        widget.layout().addWidget(self.__dataViewerSelector)
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
-        vSpliter.addWidget(self.__dataViewer)
+        vSpliter.addWidget(widget)
         vSpliter.addWidget(self.__text)
 
         spliter = qt.QSplitter(self)
