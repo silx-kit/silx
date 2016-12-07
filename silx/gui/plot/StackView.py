@@ -40,6 +40,11 @@ exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
 
 
 """
+
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "07/12/2016"
+
 import numpy
 
 from silx.gui import qt
@@ -47,6 +52,8 @@ from silx.gui.plot import Plot2D   # ??? or PlotWindow, to redefine ProfileToolB
 # from silx.gui.plot.PlotTools import ProfileToolBar
 from silx.gui.plot.Colors import cursorColorForColormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
+
+
 
 
 # TODO: Methods to be referenced from plot
