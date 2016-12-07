@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "07/12/2016"
 
 import numpy
 
@@ -47,10 +47,23 @@ from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
 class DataViewer(qt.QStackedWidget):
     """Widget to display any kind of data"""
 
+    EMPTY_MODE = 0
+    PLOT1D_MODE = 1
+    PLOT2D_MODE = 2
+    TEXT_MODE = 3
+    ARRAY_MODE = 4
+
+    displayModeChanged = qt.Signal(int)
+    """Emitted when the display mode change"""
+
+    dataChanged = qt.Signal()
+    """Emitted when the data change"""
+
     def __init__(self, parent=None):
         """Constructor"""
         super(DataViewer, self).__init__(parent)
 
+        self.__displayMode = None
         self.__data = None
         self.__plot1d = plot.Plot1D()
         self.__plot2d = plot.Plot2D()
@@ -64,46 +77,85 @@ class DataViewer(qt.QStackedWidget):
         self.__indexArray = self.addWidget(self.__array)
         self.__indexText = self.addWidget(self.__text)
         self.__indexEmpty = self.addWidget(self.__empty)
-        self.setCurrentIndex(self.__indexEmpty)
+
+        self.displayNothing()
 
     def clear(self):
-        self.__data = None
-        self.__plot1d.clear()
-        self.__plot2d.clear()
-        self.__text.setText("")
-        self.__array.setArrayData(numpy.array([[]]))
+        self.setData(None)
+
+    def __clearCurrentView(self):
+        if self.__displayMode is None:
+            pass
+        elif self.__displayMode == self.EMPTY_MODE:
+            pass
+        elif self.__displayMode == self.TEXT_MODE:
+            self.__text.setText("")
+        elif self.__displayMode == self.PLOT1D_MODE:
+            self.__plot1d.clear()
+        elif self.__displayMode == self.PLOT2D_MODE:
+            self.__plot2d.clear()
+        elif self.__displayMode == self.ARRAY_MODE:
+            self.__array.setArrayData(numpy.array([[]]))
+        else:
+            raise Exception("Unsupported mode")
+
+    def __displayData(self, data):
+        if data is None:
+            return
+        if self.__displayMode == self.EMPTY_MODE:
+            pass
+        elif self.__displayMode == self.TEXT_MODE:
+            self.__text.setText(str(data))
+        elif self.__displayMode == self.PLOT1D_MODE:
+            self.__plot1d.addCurve(legend="data", x=range(len(data)), y=data)
+        elif self.__displayMode == self.PLOT2D_MODE:
+            self.__plot2d.addImage(legend="data", data=data)
+        elif self.__displayMode == self.ARRAY_MODE:
+            self.__array.setArrayData(data)
+        else:
+            raise Exception("Unsupported mode")
+
+    def setDisplayMode(self, mode):
+        if self.__displayMode == mode:
+            return
+        self.__clearCurrentView()
+        self.__displayMode = mode
+        self.__displayData(self.__data)
+        if self.__displayMode == self.EMPTY_MODE:
+            self.setCurrentIndex(self.__indexEmpty)
+        elif self.__displayMode == self.TEXT_MODE:
+            self.setCurrentIndex(self.__indexText)
+        elif self.__displayMode == self.PLOT1D_MODE:
+            self.setCurrentIndex(self.__index1d)
+        elif self.__displayMode == self.PLOT2D_MODE:
+            self.setCurrentIndex(self.__index2d)
+        elif self.__displayMode == self.ARRAY_MODE:
+            self.setCurrentIndex(self.__indexArray)
+        else:
+            raise Exception("Unsupported mode")
+        self.displayModeChanged.emit(mode)
 
     def displayNothing(self):
         """Display no data"""
-        self.setCurrentIndex(self.__indexEmpty)
+        self.setDisplayMode(self.EMPTY_MODE)
 
-    def displayAsString(self):
+    def displayAsText(self):
         """Display a data using text"""
-        data = self.__data
-        if isinstance(data, h5py.Dataset):
-            data = data.value
-        self.__text.setText(str(data))
-        self.setCurrentIndex(self.__indexText)
+        self.setDisplayMode(self.TEXT_MODE)
 
     def displayAs1d(self):
         """Display a data using `silx.plot.Plot1D`"""
-        self.__plot1d.clear()
-        data = self.__data
-        self.__plot1d.addCurve(legend="data", x=range(len(data)), y=data)
-        self.setCurrentIndex(self.__index1d)
+        self.setDisplayMode(self.PLOT1D_MODE)
 
     def displayAs2d(self):
         """Display a data using `silx.plot.Plot2D`"""
-        self.__plot2d.clear()
-        self.__plot2d.addImage(legend="data", data=self.__data)
-        self.setCurrentIndex(self.__index2d)
+        self.setDisplayMode(self.PLOT2D_MODE)
 
     def displayAsArray(self):
         """Display the data using `silx.gui.widgets.ArrayTableWidget`"""
-        self.__array.setArrayData(self.__data)
-        self.setCurrentIndex(self.__indexArray)
+        self.setDisplayMode(self.ARRAY_MODE)
 
-    def updateView(self):
+    def __updateView(self):
         """Display the data using the widget which fit the best"""
         data = self.__data
 
@@ -111,6 +163,7 @@ class DataViewer(qt.QStackedWidget):
         isArray = isArray or (isinstance(data, h5py.Dataset) and data.shape != tuple())
 
         if data is None:
+            self.__clearCurrentView()
             self.displayNothing()
         elif isArray:
             isAtomic = len(data.shape) == 0
@@ -118,7 +171,7 @@ class DataViewer(qt.QStackedWidget):
             isCurve = len(data.shape) == 1
             isImage = len(data.shape) == 2
             if isAtomic:
-                self.displayAsString()
+                self.displayAsText()
             if isCurve and isNumeric:
                 self.displayAs1d()
             elif isImage and isNumeric:
@@ -126,11 +179,16 @@ class DataViewer(qt.QStackedWidget):
             else:
                 self.displayAsArray()
         else:
-            self.displayAsString()
+            self.displayAsText()
 
     def setData(self, data):
         self.__data = data
-        self.updateView()
+        self.dataChanged.emit()
+        self.__updateView()
+        self.__displayData(data)
 
     def data(self):
         return self.__data
+
+    def getDisplayMode(self):
+        return self.__displayMode
