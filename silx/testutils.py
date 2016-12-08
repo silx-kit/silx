@@ -40,6 +40,7 @@ __date__ = "21/06/2016"
 import contextlib
 import functools
 import logging
+import numpy
 import shutil
 import sys
 import tempfile
@@ -223,3 +224,48 @@ def temp_dir():
         yield tmp_dir
     finally:
         shutil.rmtree(tmp_dir)
+
+
+# Synthetic data and random noise #############################################
+def add_gaussian_noise(y, stdev=1., mean=0.):
+    """Add random gaussian noise to synthetic data.
+
+    :param ndarray y: Array of synthetic data
+    :param float mean: Mean of the gaussian distribution of noise.
+    :param float stdev: Standard deviation of the gaussian distribution of
+        noise.
+    :return: Array of data with noise added
+    """
+    noise = numpy.random.normal(mean, stdev, size=y.size)
+    noise.shape = y.shape
+    return y + noise
+
+
+def add_poisson_noise(y):
+    """Add random noise from a poisson distribution to synthetic data.
+
+    :param ndarray y: Array of synthetic data
+    :return: Array of data with noise added
+    """
+    yn = numpy.random.poisson(y)
+    yn.shape = y.shape
+    return yn
+
+
+def add_relative_noise(y, max_noise=5.):
+    """Add relative random noise to synthetic data. The maximum noise level
+    is given in percents.
+
+    An array of noise in the interval [-max_noise, max_noise] (continuous
+    uniform distribution) is generated, and applied to the data the
+    following way:
+
+    :math:`yn = y * (1. + noise / 100.)`
+
+    :param ndarray y: Array of synthetic data
+    :param float max_noise: Maximum percentage of noise
+    :return: Array of data with noise added
+    """
+    noise = max_noise * (2 * numpy.random.random(size=y.size) - 1)
+    noise.shape = y.shape
+    return y * (1. + noise / 100.)

@@ -32,12 +32,13 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "27/09/2016"
+__date__ = "29/11/2016"
 __status__ = "beta"
 
 import numpy
 from ..resources import resource_filename
 from math import log, ceil
+
 
 def calc_size(shape, blocksize):
     """
@@ -50,12 +51,12 @@ def calc_size(shape, blocksize):
 
 
 def nextpower(n):
-    """calculate the power of two
-    
+    """Calculate the power of two
+
     :param n: an integer, for example 100
     :return: another integer, 100-> 128
     """
-    return 1<<int(ceil(log(n,2)))
+    return 1 << int(ceil(log(n, 2)))
 
 
 def sizeof(shape, dtype="uint8"):
@@ -91,5 +92,3 @@ def get_opencl_code(name):
     with open(filename, "r") as fileobj:
         res = fileobj.read()
     return res.strip()
-
-

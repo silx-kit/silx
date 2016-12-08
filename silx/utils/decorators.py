@@ -22,27 +22,31 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent"]
+"""Bunch of useful decorators"""
+
+from __future__ import absolute_import, print_function, division
+
+__authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "29/11/2016"
+
+import os
+import sys
+import traceback
+import logging
+import functools
 
 
-from numpy.distutils.misc_util import Configuration
+depreclog = logging.getLogger("DEPRECATION")
 
 
-def configuration(parent_package='', top_path=None):
-    config = Configuration('gui', parent_package, top_path)
-    config.add_subpackage('qt')
-    config.add_subpackage('plot')
-    config.add_subpackage('fit')
-    config.add_subpackage('hdf5')
-    config.add_subpackage('widgets')
-    config.add_subpackage('test')
-
-    return config
-
-
-if __name__ == "__main__":
-    from numpy.distutils.core import setup
-
-    setup(configuration=configuration)
+def deprecated(func):
+    """
+    Decorator that deprecates the use of a function
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.func_name if sys.version_info[0] < 3 else func.__name__
+        depreclog.warning("%s is Deprecated !!! %s", name, os.linesep.join([""] + traceback.format_stack()[:-1]))
+        return func(*args, **kwargs)
+    return wrapper

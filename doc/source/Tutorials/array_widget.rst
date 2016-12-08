@@ -10,6 +10,7 @@ ArrayTableWidget
 ----------
 
 Let's look at a simple usage example::
+
     >>> from silx.gui import qt
     >>> from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
     >>> import numpy
@@ -42,6 +43,7 @@ For a 3D array, there are 3 possible perspectives: *[0, ]* (the default perspect
 *[1, ]* and *[2, ]*.
 
 Lets change the perspective::
+
     >>> w.setPerspective([1])
 
 .. |imgArray1| image:: img/arraywidget3D_1.png
@@ -55,6 +57,7 @@ to select one of 10 available frames. The label is updated accordingly to show *
 
 To select a different frame programmatically, without using the browser, you can
 use the :meth:`ArrayTableWidget.setIndex` method. To select the 9-th frame, use::
+
     >>> w.setIndex([8])
 
 More dimensions
@@ -62,6 +65,7 @@ More dimensions
 
 This widget can be used for arrays with any numbers of dimensions. Let's create
 a 5-dimensional array and display it::
+
     >>> array = numpy.arange(10000)
     >>> array.shape = (5, 2, 10, 5, 20)
     >>> w.setArrayData(array, labels=True)
@@ -77,6 +81,7 @@ We now have 3 frames browsers, one for each one of the orthogonal dimensions.
 Let's look at a frame whose axes are along the second
 and the fourth dimension, by setting the orthogonal axes to the first,
 third and fifth dimensions::
+
    >>> w.setPerspective([0, 2, 4])
 
 .. |imgArray3| image:: img/arraywidget5D_1.png
@@ -90,6 +95,7 @@ Listing all the orthogonal dimensions might not feel very convenient for arrays
 with more than 3 or 4 dimensions.
 Fortunately, you can use the opposite approach of defining the two axes
 parallel to the frame, using :meth:`ArrayTableWidget.setFrameAxes`::
+
    >>> w.setFrameAxes(row_axis=1, col_axis=3)
 
 This achieves the exact same result as ``w.setPerspective([0, 2, 4])``.
@@ -107,6 +113,7 @@ This achieves the exact same result as ``w.setPerspective([0, 2, 4])``.
 
 To select a frame programmaticaly, you can again use :meth:`setFrameIndex`.
 This time you must provide 3 unique indices::
+
     >>> w.setIndex([2, 5, 14])
 
 The 3 indices relate to the first, third and fifth dimensions.
@@ -121,12 +128,14 @@ By default, the data displayed in the table view can be edited. If you modify
 a cell with a valid value, it will be modified in the internal data model.
 
 You can get the modified data with the following line::
+
     >>> newdata = w.getData()
 
 This will give you a copy of the data, by default.
 
 If you want the data to be read-only, not editable, you must specify it when
 you set the data::
+
     >>> w.setDataArray(array, editable=False)
 
 More performances
@@ -138,6 +147,7 @@ modified when a cell of the table is changed interactively in the widget.
 
 This behavior has a negative impact on performances, especially for large data arrays.
 To avoid this, you can explicitely disable the copy operation when setting the data::
+
     >>> w.setArrayData(array, copy=False)
 
 The internal data array used by the widget is then a reference
@@ -151,6 +161,7 @@ is not duplicated.
 
 Similarly, you can pass *copy=False* to the :meth:`getData` method, to avoid
 doing a data copy operation::
+
     >>> newdata = w.getData(copy=False)
 
 The variable *newdata* is then a reference to the internal widget data.
