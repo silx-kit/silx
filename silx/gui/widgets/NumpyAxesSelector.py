@@ -57,7 +57,7 @@ class _Axis(qt.QWidget):
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
-        self.__slider = HorizontalSliderWithBrowser(, self)
+        self.__slider = HorizontalSliderWithBrowser(self)
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
 
         self.setLayout(qt.QHBoxLayout(self))
@@ -132,6 +132,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__axis = []
         self.__axisNames = []
         self.setLayout(qt.QVBoxLayout())
+        self.layout().setMargin(0)
 
     def clear(self):
         self.setData(None)

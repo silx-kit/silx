@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/12/2016"
+__date__ = "08/12/2016"
 
 import numpy
 
@@ -58,6 +58,7 @@ class DataViewerSelector(qt.QWidget):
         self.__dataViewer = None
         self.__group = qt.QButtonGroup(self)
         self.setLayout(qt.QHBoxLayout())
+        self.layout().setMargin(0)
 
         button = qt.QPushButton("1D")
         button.setCheckable(True)
@@ -117,6 +118,13 @@ class DataViewerSelector(qt.QWidget):
             self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
             self.__displayModeChanged(self.__dataViewer.getDisplayMode())
         self.__dataChanged()
+
+    def setFlat(self, isFlat):
+        self.__buttonText.setFlat(isFlat)
+        self.__button1D.setFlat(isFlat)
+        self.__button2D.setFlat(isFlat)
+        self.__buttonArray.setFlat(isFlat)
+        self.__buttonDummy.setFlat(isFlat)
 
     def __displayModeChanged(self, mode):
         """Called on display mode changed"""

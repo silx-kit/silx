@@ -167,7 +167,7 @@ class _TextView(DataView):
         self.getWidget().setText(str(data))
 
 
-class DataViewer(qt.QWidget):
+class DataViewer(qt.QFrame):
     """Widget to display any kind of data"""
 
     EMPTY_MODE = 0
@@ -192,7 +192,14 @@ class DataViewer(qt.QWidget):
 
         self.setLayout(qt.QVBoxLayout(self))
         self.layout().addWidget(self.__stack, 1)
-        self.layout().addWidget(self.__numpySelection)
+
+        group = qt.QGroupBox(self)
+        group.setLayout(qt.QVBoxLayout())
+        group.layout().addWidget(self.__numpySelection)
+        group.setTitle("Axis selection")
+        self.__axisSelection = group
+
+        self.layout().addWidget(self.__axisSelection)
 
         self.__displayMode = None
         self.__data = None
@@ -231,12 +238,12 @@ class DataViewer(qt.QWidget):
         axisNames = view.axiesNames()
         if len(axisNames) > 0:
             previous = self.__numpySelection.blockSignals(True)
-            self.__numpySelection.setVisible(True)
+            self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setData(self.__data)
             self.__numpySelection.blockSignals(previous)
         else:
-            self.__numpySelection.setVisible(False)
+            self.__axisSelection.setVisible(False)
 
     def __updateDataInView(self):
         if self.__numpySelection.isVisible():

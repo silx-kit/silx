@@ -311,12 +311,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__text = qt.QTextEdit(self)
         """Widget displaying information"""
 
-        self.__dataViewer = DataViewer(self)
-        self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
-        widget = qt.QWidget()
-        widget.setLayout(qt.QVBoxLayout())
-        widget.layout().addWidget(self.__dataViewer, 1)
-        widget.layout().addWidget(self.__dataViewerSelector)
+        widget = self.createDataViewer()
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
         vSpliter.addWidget(widget)
         vSpliter.addWidget(self.__text)
@@ -347,11 +342,25 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__treeview.pressed.connect(lambda index: self.displayEvent("pressed", index))
 
         self.__treeview.addContextMenuCallback(self.customContextMenu)
-        # lamba function will never be called cause we store it as weakref
+        # lambda function will never be called cause we store it as weakref
         self.__treeview.addContextMenuCallback(lambda event: None)
         # you have to store it first
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
+
+    def createDataViewer(self):
+        self.__dataViewer = DataViewer(self)
+        self.__dataViewer.setFrameShape(qt.QFrame.StyledPanel)
+        self.__dataViewer.setFrameShadow(qt.QFrame.Sunken)
+        self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
+        self.__dataViewerSelector.setFlat(True)
+        widget = qt.QWidget()
+        widget.setLayout(qt.QVBoxLayout())
+        widget.layout().setMargin(0)
+        widget.layout().setSpacing(0)
+        widget.layout().addWidget(self.__dataViewer, 1)
+        widget.layout().addWidget(self.__dataViewerSelector)
+        return widget
 
     def displayData(self):
         selected = list(self.__treeview.selectedH5Nodes())
