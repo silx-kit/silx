@@ -25,12 +25,13 @@
 parameter results and associated constraints."""
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "25/11/2016"
 
 import sys
 from collections import OrderedDict
 
 from silx.gui import qt
+from silx.gui.widgets.TableWidget import TableWidget
 
 
 def float_else_zero(sstring):
@@ -92,8 +93,8 @@ class QCheckBoxItem(qt.QCheckBox):
         self.sigCellChanged.emit(self._row, self._col)
 
 
-class Parameters(qt.QTableWidget):
-    """:class:`qt.QTableWidget` customized to display fit results
+class Parameters(TableWidget):
+    """:class:`TableWidget` customized to display fit results
     and to interact with :class:`FitManager` objects.
 
     Data and references to cell widgets are kept in a dictionary
@@ -107,7 +108,7 @@ class Parameters(qt.QTableWidget):
     :type paramlist: list[str] or None
     """
     def __init__(self, parent=None, paramlist=None):
-        qt.QTableWidget.__init__(self, parent)
+        TableWidget.__init__(self, parent)
         self.setContentsMargins(0, 0, 0, 0)
 
         labels = ['Parameter', 'Estimation', 'Fit Value', 'Sigma',

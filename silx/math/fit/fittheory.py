@@ -64,7 +64,7 @@ class FitTheory(object):
             See documentation for :attr:`description`
         :param bool pymca_legacy: Flag to indicate that the theory is a PyMca
             legacy theory. See documentation for :attr:`pymca_legacy`
-        :param bool background: Flag to indicate that the theory is a
+        :param bool is_background: Flag to indicate that the theory is a
             background theory. This has implications regarding the function's
             signature, as explained in the documentation for :attr:`function`.
         """

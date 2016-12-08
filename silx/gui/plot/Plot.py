@@ -397,23 +397,24 @@ class Plot(object):
         xMax = yMaxLeft = yMaxRight = float('nan')
 
         for _curve, info in self._curves.items():
-            # using numpy's separate min and max is faster than
-            # a pure python minmax.
-            if info['xmin'] is not None:
-                xMin = numpy.nanmin([xMin, info['xmin']])
-            if info['xmax'] is not None:
-                xMax = numpy.nanmax([xMax, info['xmax']])
+            if _curve not in self._hiddenCurves:
+                # using numpy's separate min and max is faster than
+                # a pure python minmax.
+                if info['xmin'] is not None:
+                    xMin = numpy.nanmin([xMin, info['xmin']])
+                if info['xmax'] is not None:
+                    xMax = numpy.nanmax([xMax, info['xmax']])
 
-            if info['params']['yaxis'] == 'left':
-                if info['ymin'] is not None:
-                    yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                if info['ymax'] is not None:
-                    yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
-            else:
-                if info['ymin'] is not None:
-                    yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                if info['ymax'] is not None:
-                    yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+                if info['params']['yaxis'] == 'left':
+                    if info['ymin'] is not None:
+                        yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+                else:
+                    if info['ymin'] is not None:
+                        yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
             for _image, info in self._images.items():
@@ -1190,6 +1191,7 @@ class Plot(object):
             self.addCurve(curve['x'], curve['y'], legend, resetzoom=False,
                           **curve['params'])
 
+        self._invalidateDataRange()
         self._setDirtyPlot()
 
     # Remove
@@ -1717,7 +1719,7 @@ class Plot(object):
             or if there is no active curve, the lastest updated curve that is
             not hidden.
             is returned if there are curves in the plot.
-        :return: None or list [x, y, legend, parameters]
+        :return: None or list [x, y, legend, info, parameters]
         """
         if legend is None:
             legend = self.getActiveCurve(just_legend=True)
@@ -1736,6 +1738,39 @@ class Plot(object):
         else:
             return None
 
+    def getAllImages(self, just_legend=False):
+        """Returns all images legend or info and data.
+
+        It returns an empty list in case of not having any image.
+
+        If just_legend is False, it returns a list of the form:
+            [[data0, legend0, info0, pixmap0, params0],
+             [data1, legend1, info1, pixmap1, params1],
+             ...,
+             [datan, legendn, infon, pixmapn, paramsn]]
+        If just_legend is True, it returns a list of the form:
+            [legend0, legend1, ..., legendn]
+
+        Warning: Returned values MUST not be modified.
+        Make a copy if you need to modify them.
+
+        :param bool just_legend: True to get the legend of the images,
+                                 False (the default) to get the images' data
+                                 and info.
+        :return: list of legends or list of
+            [image, legend, info, pixmap, info, params]
+        :rtype: list of str or list of list
+        """
+        output = []
+        for key in self._images:
+            if just_legend:
+                output.append(key)
+            else:
+                image = self._images[key]
+                output.append((image['data'], key, image['params']['info'] or {},
+                    image['pixmap'], image['params']))
+        return output
+
     def getImage(self, legend=None):
         """Get the data and info of a specific image.
 
@@ -1749,7 +1784,7 @@ class Plot(object):
             If not provided or None (the default), the active image is returned
             or if there is no active image, the lastest updated image
             is returned if there are images in the plot.
-        :return: None or list [image, legend, info, pixmap, params]
+        :return: None or list [image, legend, info, pixmap, info, params]
         """
         if legend is None:
             legend = self.getActiveImage(just_legend=True)

@@ -5,4 +5,4 @@
 -----------------------------------------------------
 
 .. automodule:: silx.io.spectoh5
-    :members:
+    :members: write_spec_to_h5, convert

@@ -128,7 +128,7 @@ script:
         then
         export SILX_TEST_LOW_MEM=True;
         fi
-    - python run_tests.py -m
+    - python run_tests.py -v
 
     # Mac OS X specific cleanup
     - travis_osx_run_end

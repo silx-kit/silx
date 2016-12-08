@@ -116,8 +116,12 @@ class TestFitWidget(TestCaseQt):
         fw.configdialogs["foo"].accept()
         self.assertTrue(fw.configdialogs["foo"].result())
 
+        # todo: figure out how to click fw.configdialog.ok to close dialog
+        # open dialog
         # self.mouseClick(fw.guiConfig.FunConfigureButton, qt.Qt.LeftButton)
-        # todo: figure out how to click fw.guiconfigdialog.ok to close dialog
+        # clove dialog
+        # self.mouseClick(fw.configdialogs["foo"].ok, qt.Qt.LeftButton)
+        # self.qapp.processEvents()
 
 
 def suite():

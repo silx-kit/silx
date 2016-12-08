@@ -13,3 +13,4 @@ Tutorials and cookbooks:
    Tutorials/specfile_to_hdf5.rst
    modules/gui/hdf5/getting_started.rst
    Tutorials/fit.rst
+   Tutorials/array_widget.rst

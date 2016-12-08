@@ -68,7 +68,158 @@ from .spech5 import SpecH5, SpecH5Group, SpecH5Dataset, \
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "24/11/2016"
+
+
+def _create_link(h5f, link_name, target,
+                 link_type="hard", overwrite_data=False):
+    """Create a link in a HDF5 file
+
+    If member with name ``link_name`` already exists, delete it first or
+    ignore link depending on global param ``overwrite_data``.
+
+    :param h5f: :class:`h5py.File` object
+    :param link_name: Link path
+    :param target: Handle for target group or dataset
+    """
+    if link_name not in h5f:
+        _logger.debug("Creating link " + link_name + " -> " + target.name)
+    elif overwrite_data:
+        _logger.warn("Overwriting " + link_name + " with link to" +
+                     target.name)
+        del h5f[link_name]
+    else:
+        _logger.warn(link_name + " already exist. Can't create link to " +
+                     target.name)
+        return None
+
+    if link_type == "hard":
+        h5f[link_name] = target
+    elif link_type == "soft":
+        h5f[link_name] = h5py.SoftLink(target.name)
+    else:
+        raise ValueError("link_type  must be 'hard' or 'soft'")
+
+
+class SpecToHdf5Writer(object):
+    """Converter class to write a Spec file to a HDF5 file."""
+    def __init__(self,
+                 h5path='/',
+                 overwrite_data=False,
+                 link_type="hard",
+                 create_dataset_args=None):
+        """
+
+        :param h5path: Target path where the scan groups will be written
+            in the output HDF5 file.
+        :param bool overwrite_data:
+            See documentation of :func:`write_spec_to_h5`
+        :param str link_type: ``"hard"`` (default) or ``"soft"``
+        :param dict create_dataset_args: Dictionary of args you want to pass to
+            ``h5py.File.create_dataset``.
+            See documentation of :func:`write_spec_to_h5`
+        """
+        self.h5path = h5path
+
+        if create_dataset_args is None:
+            create_dataset_args = {}
+        self.create_dataset_args = create_dataset_args
+
+        self.overwrite_data = overwrite_data
+
+        self.link_type = link_type
+
+    def write(self, sfh5, h5f):
+        """Do the conversion from :attr:`sfh5` (Spec file) to *h5f* (HDF5)
+
+        All the parameters needed for the conversion have been initialized
+        in the constructor.
+
+        :param sfh5: :class:`SpecH5` object
+        :param h5f: :class:`h5py.File` instance
+        """
+        # Recurse through all groups and datasets to add them to the HDF5
+        self.sfh5 = sfh5
+        self.h5f = h5f
+        self.sfh5.visititems(self.append_spec_member_to_h5)
+
+        # Handle the attributes of the root group
+        root_grp = h5f[self.h5path]
+        for key in self.sfh5.attrs:
+            if self.overwrite_data or key not in root_grp.attrs:
+                root_grp.attrs.create(key,
+                                      numpy.string_(self.sfh5.attrs[key]))
+
+    def append_spec_member_to_h5(self, spec_h5_name, obj):
+        """Add one group or one dataset to :attr:`h5f`"""
+        h5_name = self.h5path + spec_h5_name.lstrip("/")
+
+        if isinstance(obj, SpecH5LinkToGroup) or\
+                isinstance(obj, SpecH5LinkToDataset):
+            # links are created at the same time as their targets
+            _logger.debug("Ignoring link: " + h5_name)
+            pass
+
+        elif isinstance(obj, SpecH5Dataset):
+            _logger.debug("Saving dataset: " + h5_name)
+
+            member_initially_exists = h5_name in self.h5f
+
+            if self.overwrite_data and member_initially_exists:
+                _logger.warn("Overwriting dataset: " + h5_name)
+                del self.h5f[h5_name]
+
+            if self.overwrite_data or not member_initially_exists:
+                # fancy arguments don't apply to scalars (shape==())
+                if obj.shape == ():
+                    ds = self.h5f.create_dataset(h5_name, data=obj.value)
+                else:
+                    ds = self.h5f.create_dataset(h5_name, data=obj.value,
+                                                 **self.create_dataset_args)
+            else:
+                ds = self.h5f[h5_name]
+
+            # add HDF5 attributes
+            for key in obj.attrs:
+                if self.overwrite_data or key not in ds.attrs:
+                    ds.attrs.create(key, numpy.string_(obj.attrs[key]))
+
+            # link:
+            #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
+                        h5_name):
+                link_name = h5_name.replace("instrument", "measurement")
+                _create_link(self.h5f, link_name, ds,
+                             link_type=self.link_type,
+                             overwrite_data=self.overwrite_data)
+
+            # this has to be at the end if we want link creation and
+            # dataset creation to remain independent for odd cases
+            # where dataset exists but not the link
+            if not self.overwrite_data and member_initially_exists:
+                _logger.warn("Ignoring existing dataset: " + h5_name)
+
+        elif isinstance(obj, SpecH5Group):
+            if h5_name not in self.h5f:
+                _logger.debug("Creating group: " + h5_name)
+                grp = self.h5f.create_group(h5_name)
+            else:
+                grp = self.h5f[h5_name]
+
+            # add HDF5 attributes
+            for key in obj.attrs:
+                if self.overwrite_data or key not in grp.attrs:
+                    grp.attrs.create(key, numpy.string_(obj.attrs[key]))
+
+            # link:
+            # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
+            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
+                        h5_name):
+                link_name = h5_name.replace("instrument", "measurement")
+                link_name += "/info"
+                _create_link(self.h5f, link_name, grp,
+                             link_type=self.link_type,
+                             overwrite_data=self.overwrite_data)
 
 
 def write_spec_to_h5(specfile, h5file, h5path='/',
@@ -76,8 +227,9 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
                      link_type="hard", create_dataset_args=None):
     """Write content of a SpecFile in a HDF5 file.
 
-    :param specfile: Path of input SpecFile or :class:`SpecH5` instance
+    :param specfile: Path of input SpecFile or :class:`SpecH5` object
     :param h5file: Path of output HDF5 file or HDF5 file handle
+        (`h5py.File` object)
     :param h5path: Target path in HDF5 file in which scan groups are created.
         Default is root (``"/"``)
     :param mode: Can be ``"r+"`` (read/write, file must exist),
@@ -89,7 +241,7 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
         relevant if ``file_mode`` is ``"r+"`` or ``"a"``.
     :param link_type: ``"hard"`` (default) or ``"soft"``
     :param create_dataset_args: Dictionary of args you want to pass to
-        ``h5f.create_dataset``. This allows you to specify filters and
+        ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
         These arguments don't apply to scalar datasets.
 
@@ -101,121 +253,20 @@ def write_spec_to_h5(specfile, h5file, h5path='/',
     else:
         sfh5 = specfile
 
-    if not isinstance(h5file, h5py.File):
-        h5f = h5py.File(h5file, mode)
-    else:
-        h5f = h5file
-
     if not h5path.endswith("/"):
         h5path += "/"
 
-    if create_dataset_args is None:
-        create_dataset_args = {}
+    writer = SpecToHdf5Writer(h5path=h5path,
+                              overwrite_data=overwrite_data,
+                              link_type=link_type,
+                              create_dataset_args=create_dataset_args)
 
-    def create_link(link_name, target):
-        """Create link
-
-        If member with name ``link_name`` already exists, delete it first or
-        ignore link depending on global param ``overwrite_data``.
-
-        :param link_name: Link path
-        :param target: Handle for target group or dataset
-        """
-        if link_name not in h5f:
-            _logger.debug("Creating link " + link_name + " -> " + target.name)
-        elif overwrite_data:
-            _logger.warn("Overwriting " + link_name + " with link to" +
-                         target.name)
-            del h5f[link_name]
-        else:
-            _logger.warn(link_name + " already exist. Can't create link to " +
-                         target.name)
-            return None
-
-        if link_type == "hard":
-            h5f[link_name] = target
-        elif link_type == "soft":
-            h5f[link_name] = h5py.SoftLink(target.name)
-        else:
-            raise ValueError("link_type  must be 'hard' or 'soft'")
-
-    def append_spec_member_to_h5(spec_h5_name, obj):
-        h5_name = h5path + spec_h5_name.lstrip("/")
-
-        if isinstance(obj, SpecH5LinkToGroup) or\
-                isinstance(obj, SpecH5LinkToDataset):
-            # links are created at the same time as their targets
-            _logger.debug("Ignoring link: " + h5_name)
-            pass
-
-        elif isinstance(obj, SpecH5Dataset):
-            _logger.debug("Saving dataset: " + h5_name)
-
-            member_initially_exists = h5_name in h5f
-
-            if overwrite_data and member_initially_exists:
-                _logger.warn("Overwriting dataset: " + h5_name)
-                del h5f[h5_name]
-
-            if overwrite_data or not member_initially_exists:
-                # fancy arguments don't apply to scalars (shape==())
-                if obj.shape == ():
-                    ds = h5f.create_dataset(h5_name, data=obj.value)
-                else:
-                    ds = h5f.create_dataset(h5_name, data=obj.value,
-                                            **create_dataset_args)
-            else:
-                ds = h5f[h5_name]
-
-            # add HDF5 attributes
-            for key in obj.attrs:
-                if overwrite_data or key not in ds.attrs:
-                    ds.attrs.create(key, numpy.string_(obj.attrs[key]))
-
-            # link:
-            #  /1.1/measurement/mca_0/data  --> /1.1/instrument/mca_0/data
-            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?data$",
-                        h5_name):
-                link_name = h5_name.replace("instrument", "measurement")
-                create_link(link_name, ds)
-
-            # this has to be at the end if we want link creation and
-            # dataset creation to remain independent for odd cases
-            # where dataset exists but not the link
-            if not overwrite_data and member_initially_exists:
-                _logger.warn("Ignoring existing dataset: " + h5_name)
-
-        elif isinstance(obj, SpecH5Group):
-            if h5_name not in h5f:
-                _logger.debug("Creating group: " + h5_name)
-                grp = h5f.create_group(h5_name)
-            else:
-                grp = h5f[h5_name]
-
-            # add HDF5 attributes
-            for key in obj.attrs:
-                if overwrite_data or key not in grp.attrs:
-                    grp.attrs.create(key, numpy.string_(obj.attrs[key]))
-
-            # link:
-            # /1.1/measurement/mca_0/info  --> /1.1/instrument/mca_0/
-            if re.match(r".*/([0-9]+\.[0-9]+)/instrument/mca_([0-9]+)/?$",
-                        h5_name):
-                link_name = h5_name.replace("instrument", "measurement")
-                link_name += "/info"
-                create_link(link_name, grp)
-
-    sfh5.visititems(append_spec_member_to_h5)
-
-    # visititems didn't create attributes for the root group
-    root_grp = h5f[h5path]
-    for key in sfh5.attrs:
-        if overwrite_data or key not in root_grp.attrs:
-            root_grp.attrs.create(key, numpy.string_(sfh5.attrs[key]))
-
-    # Close file if it was opened in this function
     if not isinstance(h5file, h5py.File):
-        h5f.close()
+        # If h5file is a file path, open and close it
+        with h5py.File(h5file, mode) as h5f:
+            writer.write(sfh5, h5f)
+    else:
+        writer.write(sfh5, h5file)
 
 
 def convert(specfile, h5file, mode="w-",
@@ -223,13 +274,13 @@ def convert(specfile, h5file, mode="w-",
     """Convert a SpecFile into an HDF5 file, write scans into the root (``/``)
     group.
 
-    :param specfile: Path of input SpecFile or :class:`SpecH5` instance
-    :param h5file: Path of output HDF5 file or HDF5 file handle
+    :param specfile: Path of input SpecFile or :class:`SpecH5` object
+    :param h5file: Path of output HDF5 file, or h5py.File object
     :param mode: Can be ``"w"`` (write, existing file is
         lost), ``"w-"`` (write, fail if exists). This is ignored
         if ``h5file`` is a file handle.
     :param create_dataset_args: Dictionary of args you want to pass to
-        ``h5f.create_dataset``. This allows you to specify filters and
+        ``h5py.File.create_dataset``. This allows you to specify filters and
         compression parameters. Don't specify ``name`` and ``data``.
 
     This is a convenience shortcut to call::

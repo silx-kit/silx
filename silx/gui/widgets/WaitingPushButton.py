@@ -40,8 +40,6 @@ class WaitingPushButton(qt.QPushButton):
     The component is graphically disabled when it is in waiting. Then we
     overwrite the enabled method to dissociate the 2 concepts:
     graphically enabled/disabled, and enabled/disabled
-
-    .. image:: /images/widget/qt/WaitingPushButton.png
     """
 
     def __init__(self, parent=None, text=None, icon=None):
@@ -107,7 +105,7 @@ class WaitingPushButton(qt.QPushButton):
         the application (the one displayed when the widget is not in
         waiting state).
 
-        :rtpye: qt.QIcon
+        :rtype: qt.QIcon
         """
         return self.__icon
 
@@ -138,7 +136,7 @@ class WaitingPushButton(qt.QPushButton):
     def isEnabled(self):
         """Returns the enabled state of the widget.
 
-        :rtpye: bool
+        :rtype: bool
         """
         return self.__enabled
 
@@ -176,7 +174,7 @@ class WaitingPushButton(qt.QPushButton):
     def isWaiting(self):
         """Returns true if the widget is in waiting state.
 
-        :rtpye: bool"""
+        :rtype: bool"""
         return self.__waiting
 
     @qt.Slot()

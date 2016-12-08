@@ -35,9 +35,8 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "26/09/2016"
+__date__ = "29/11/2016"
 
-import time
 import logging
 import numpy
 
@@ -61,7 +60,6 @@ class TestAddition(unittest.TestCase):
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
                 cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
-                import pylab
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
@@ -70,17 +68,17 @@ class TestAddition(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         super(TestAddition, cls).tearDownClass()
-        print("Maximum valid workgroup size %s on device %s"%(cls.max_valid_wg, cls.ctx.devices[0]))
+        print("Maximum valid workgroup size %s on device %s" % (cls.max_valid_wg, cls.ctx.devices[0]))
         cls.ctx = None
         cls.queue = None
 
     def setUp(self):
-        if  ocl is None:
+        if ocl is None:
             return
         self.shape = 4096
         self.data = numpy.random.random(self.shape).astype(numpy.float32)
         self.d_array_img = pyopencl.array.to_device(self.queue, self.data)
-        self.d_array_5 = pyopencl.array.zeros_like(self.d_array_img)-5
+        self.d_array_5 = pyopencl.array.zeros_like(self.d_array_img) - 5
         self.program = pyopencl.Program(self.ctx, get_opencl_code("addition")).build()
 
     def tearDown(self):
@@ -101,14 +99,14 @@ class TestAddition(unittest.TestCase):
                        self.d_array_img.data, self.d_array_5.data, d_array_result.data, numpy.int32(self.shape))
                 evt.wait()
             except Exception as error:
-                print("Error %s on WG=%s"%(error, wg))
+                print("Error %s on WG=%s" % (error, wg))
                 break
             else:
                 res = d_array_result.get()
                 good = numpy.allclose(res, self.data - 5)
                 if good and wg>self.max_valid_wg:
                     self.__class__.max_valid_wg = wg
-                self.assert_(good, "calculation is correct for WG=%s"%wg)
+                self.assert_(good, "calculation is correct for WG=%s" % wg)
 
     @unittest.skipUnless(ocl, "pyopencl is missing")
     def test_measurement(self):
@@ -117,10 +115,10 @@ class TestAddition(unittest.TestCase):
         """
         for pid, platform in ocl.platforms:
             for did, device in ocl.devices:
-                meas = measure_workgroup_size((pid,did))
-                self.assertEqual(meas, device.max_work_group_size, 
-                                 "Workgroup size for %s/%s: %s == %s"%(platform, device, meas, device.max_work_group_size))
-                
+                meas = measure_workgroup_size((pid, did))
+                self.assertEqual(meas, device.max_work_group_size,
+                                 "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
+
 
 def suite():
     testSuite = unittest.TestSuite()
