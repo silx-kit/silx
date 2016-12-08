@@ -36,7 +36,7 @@ from silx.gui import icons
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "08/12/2016"
 
 
 class FrameBrowser(qt.QWidget):
@@ -95,7 +95,6 @@ class FrameBrowser(qt.QWidget):
         self.nextButton.clicked.connect(self._nextClicked)
         self.lastButton.clicked.connect(self._lastClicked)
         self.lineEdit.editingFinished.connect(self._textChangedSlot)
-
 
     def _firstClicked(self):
         """Select first/lowest frame number"""
