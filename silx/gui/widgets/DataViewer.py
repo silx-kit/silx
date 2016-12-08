@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/12/2016"
+__date__ = "08/12/2016"
 
 import numpy
 
@@ -43,6 +43,128 @@ from silx.gui import qt
 from silx.gui import plot
 from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
 from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
+
+
+class DataView(object):
+    """Holder for the data view.
+    """
+
+    def __init__(self, parent):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        self.__parent = parent
+        self.__widget = None
+
+    def axiesNames(self):
+        """Returns names of the expected axes of the view"""
+        return []
+
+    def getWidget(self):
+        """Returns the widget hold in the view and displaying the data.
+
+        :returns: qt.QWidget
+        """
+        if self.__widget is None:
+            self.__widget = self.createWidget(self.__parent)
+        return self.__widget
+
+    def createWidget(self, parent):
+        """Create the the widget displaying the data
+
+        :param qt.QWidget parent: Parent of the widget
+        :returns: qt.QWidget
+        """
+        raise NotImplementedError()
+
+    def clear(self):
+        """Clear the data from the view"""
+        return None
+
+    def setData(self, data):
+        """Set the data displayed by the view
+
+        :param data: Data to display
+        :type data: numpy.ndarray or h5py.Dataset
+        """
+        return None
+
+
+class _EmptyView(DataView):
+    """Dummy view to display nothing"""
+
+    def axiesNames(self):
+        return []
+
+    def createWidget(self, parent):
+        return qt.QLabel(parent)
+
+
+class _Plot1dView(DataView):
+    """View displaying data using a 1d plot"""
+
+    def axiesNames(self):
+        return ["y"]
+
+    def createWidget(self, parent):
+        return plot.Plot1D(parent=parent)
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        self.getWidget().addCurve(legend="data", x=range(len(data)), y=data)
+
+
+class _Plot2dView(DataView):
+    """View displaying data using a 2d plot"""
+
+    def axiesNames(self):
+        return ["x", "y"]
+
+    def createWidget(self, parent):
+        return plot.Plot2D(parent=parent)
+
+    def clear(self):
+        self.getWidget().clear()
+
+    def setData(self, data):
+        self.getWidget().addImage(legend="data", data=data)
+
+
+class _ArrayView(DataView):
+    """View displaying data using a 2d table"""
+
+    def axiesNames(self):
+        return ["col", "row"]
+
+    def createWidget(self, parent):
+        return ArrayTableWidget(parent)
+
+    def clear(self):
+        self.getWidget().setArrayData(numpy.array([[]]))
+
+    def setData(self, data):
+        self.getWidget().setArrayData(data)
+
+
+class _TextView(DataView):
+    """View displaying data using text"""
+
+    def axiesNames(self):
+        return []
+
+    def createWidget(self, parent):
+        widget = qt.QLabel(parent)
+        widget.setAlignment(qt.Qt.AlignCenter)
+        return widget
+
+    def clear(self):
+        self.getWidget().setText("")
+
+    def setData(self, data):
+        self.getWidget().setText(str(data))
 
 
 class DataViewer(qt.QWidget):
@@ -74,53 +196,39 @@ class DataViewer(qt.QWidget):
 
         self.__displayMode = None
         self.__data = None
-        self.__plot1d = plot.Plot1D()
-        self.__plot2d = plot.Plot2D()
-        self.__array = ArrayTableWidget()
-        self.__text = qt.QLabel()
-        self.__text.setAlignment(qt.Qt.AlignCenter)
-        self.__empty = qt.QLabel()
 
-        self.__index1d = self.__stack.addWidget(self.__plot1d)
-        self.__index2d = self.__stack.addWidget(self.__plot2d)
-        self.__indexArray = self.__stack.addWidget(self.__array)
-        self.__indexText = self.__stack.addWidget(self.__text)
-        self.__indexEmpty = self.__stack.addWidget(self.__empty)
+        self.__views = {}
+        self.__views[self.EMPTY_MODE] = _EmptyView(self.__stack)
+        self.__views[self.PLOT1D_MODE] = _Plot1dView(self.__stack)
+        self.__views[self.PLOT2D_MODE] = _Plot2dView(self.__stack)
+        self.__views[self.TEXT_MODE] = _TextView(self.__stack)
+        self.__views[self.ARRAY_MODE] = _ArrayView(self.__stack)
 
-        self.__axesNames = [
-            [],
-            ["y"],
-            ["x", "y"],
-            [],
-            ["col", "row"],
-        ]
+        # feed the stack widget
+        self.__index = {}
+        for modeId, view in self.__views.items():
+            widget = view.getWidget()
+            index = self.__stack.addWidget(widget)
+            self.__index[modeId] = index
+
         self.displayNothing()
 
     def viewAxisExpected(self, displayMode):
-        return len(self.__axesNames[displayMode])
+        view = self.__views[displayMode]
+        return len(view.axiesNames())
 
     def clear(self):
         self.setData(None)
 
     def __clearCurrentView(self):
-        if self.__displayMode is None:
-            pass
-        elif self.__displayMode == self.EMPTY_MODE:
-            pass
-        elif self.__displayMode == self.TEXT_MODE:
-            self.__text.setText("")
-        elif self.__displayMode == self.PLOT1D_MODE:
-            self.__plot1d.clear()
-        elif self.__displayMode == self.PLOT2D_MODE:
-            self.__plot2d.clear()
-        elif self.__displayMode == self.ARRAY_MODE:
-            self.__array.setArrayData(numpy.array([[]]))
-        else:
-            raise Exception("Unsupported mode")
+        view = self.__views.get(self.__displayMode, None)
+        if view is not None:
+            view.clear()
 
     def __updateNumpySelectionAxis(self):
         self.__numpySelection.clear()
-        axisNames = self.__axesNames[self.__displayMode]
+        view = self.__views[self.__displayMode]
+        axisNames = view.axiesNames()
         if len(axisNames) > 0:
             previous = self.__numpySelection.blockSignals(True)
             self.__numpySelection.setVisible(True)
@@ -136,40 +244,19 @@ class DataViewer(qt.QWidget):
         else:
             data = self.__data
 
-        if self.__displayMode == self.EMPTY_MODE:
-            pass
-        elif self.__displayMode == self.TEXT_MODE:
-            self.__text.setText(str(data))
-        elif self.__displayMode == self.PLOT1D_MODE:
-            self.__plot1d.addCurve(legend="data", x=range(len(data)), y=data)
-        elif self.__displayMode == self.PLOT2D_MODE:
-            self.__plot2d.addImage(legend="data", data=data)
-        elif self.__displayMode == self.ARRAY_MODE:
-            self.__array.setArrayData(data)
-        else:
-            raise Exception("Unsupported mode")
+        view = self.__views[self.__displayMode]
+        view.setData(data)
 
-    def setDisplayMode(self, mode):
-        if self.__displayMode == mode:
+    def setDisplayMode(self, modeId):
+        if self.__displayMode == modeId:
             return
         self.__clearCurrentView()
-        self.__displayMode = mode
+        self.__displayMode = modeId
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
-
-        if self.__displayMode == self.EMPTY_MODE:
-            self.__stack.setCurrentIndex(self.__indexEmpty)
-        elif self.__displayMode == self.TEXT_MODE:
-            self.__stack.setCurrentIndex(self.__indexText)
-        elif self.__displayMode == self.PLOT1D_MODE:
-            self.__stack.setCurrentIndex(self.__index1d)
-        elif self.__displayMode == self.PLOT2D_MODE:
-            self.__stack.setCurrentIndex(self.__index2d)
-        elif self.__displayMode == self.ARRAY_MODE:
-            self.__stack.setCurrentIndex(self.__indexArray)
-        else:
-            raise Exception("Unsupported mode")
-        self.displayModeChanged.emit(mode)
+        index = self.__index[modeId]
+        self.__stack.setCurrentIndex(index)
+        self.displayModeChanged.emit(modeId)
 
     def displayNothing(self):
         """Display no data"""
