@@ -197,6 +197,7 @@ class PlotWindow(PlotWidget):
 
         self.pixIntensitiesAction = self.group.addAction(PixelIntensitiesHistoAction(self))
         self.pixIntensitiesAction.setVisible(pixelsIntensities)
+        self.sigActiveImageChanged.connect(self.pixIntensitiesAction.computeIntensityDistribution)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -515,9 +516,18 @@ class PixelIntensitiesHistoAction(PlotActions.PlotAction):
                             icon='shape-circle',
                             text='pixels intensity',
                             tooltip='Compute image intensity distribution',
-                            triggered=self.computeIntensityDistribution,
-                            parent=parent)
+                            triggered=self.updateIntensityDistribution,
+                            parent=parent,
+                            checkable=True)
         self.plotHistogram=None
+
+    def updateIntensityDistribution(self, checked):
+        """Update the plot of the histogram visibility status
+        """
+        if checked:
+            self.plotHistogram.show()    
+        else:
+            self.plotHistogram.hide()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image 
@@ -525,12 +535,10 @@ class PixelIntensitiesHistoAction(PlotActions.PlotAction):
         activeImage = self.plot.getActiveImage()
 
         if activeImage is not None:
-
             if self.plotHistogram is None :
                 self.plotHistogram = Plot1D()
+                self.plotHistogram.closeEvent() = types.MethodType(closeEvent, widget)
 
-            # how to make sure we are in grey reference and in 0:256 ?
-            
             histo, w_histo, edges = Histogramnd(activeImage[0].flatten(), 
                                                 n_bins=256, 
                                                 histo_range=[0,256])
@@ -538,4 +546,26 @@ class PixelIntensitiesHistoAction(PlotActions.PlotAction):
             self.plotHistogram.addCurve(range(256), 
                                         histo, 
                                         legend='pixel intensity')
-            self.plotHistogram.show()    
+
+    def createCloseSignal(widget):
+        """     Create a Qt close signal to the widget as sigClosed attribute     :type widget: Qt.QWidget     """
+
+        if hasattr(widget, "sigClosed"):
+            if isinstance(widget.sigClosed, SimulatedSignal):
+                return
+            raise Exception("Attribute sigClose already exists and is not a Qt signal")
+
+        def closeEvent(self, event):
+            widget.sigClosed.emit()
+
+            self._createCloseSignal_oldCloseEvent(event)
+            widget.sigClosed = SimulatedSignal()
+            widget._createCloseSignal_oldCloseEvent = widget.closeEvent
+            widget.closeEvent = types.MethodType(closeEvent, widget)
+
+    def hide(self):
+        """hide the window"""
+        if not self.plotHistogram is None :
+            self.plotHistogram.hide()
+
+            # TODO : emit unchecked signal on quit
