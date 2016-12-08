@@ -33,6 +33,7 @@ __date__ = "08/12/2016"
 
 import numpy
 import functools
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 try:
     import h5py
@@ -56,7 +57,7 @@ class _Axis(qt.QWidget):
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
-        self.__slider = qt.QSlider(qt.Qt.Horizontal, self)
+        self.__slider = HorizontalSliderWithBrowser(, self)
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
 
         self.setLayout(qt.QHBoxLayout(self))
