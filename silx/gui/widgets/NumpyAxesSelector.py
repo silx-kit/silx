@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/12/2016"
+__date__ = "08/12/2016"
 
 import numpy
 import functools
@@ -243,10 +243,13 @@ class NumpyAxesSelector(qt.QWidget):
         # order axis as expected
         source = []
         destination = []
+        order = []
         for index, name in enumerate(self.__axisNames):
             destination.append(index)
             source.append(axisNames.index(name))
-        view = numpy.moveaxis(view, source, destination)
+        for _, s in sorted(zip(destination, source)):
+            order.append(s)
+        view = numpy.transpose(view, order)
 
         self.__selectedData = view
         self.selectionChanged.emit()
