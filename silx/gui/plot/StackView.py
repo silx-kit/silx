@@ -41,7 +41,7 @@ exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
 
 """
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
 __date__ = "07/12/2016"
 
@@ -49,7 +49,6 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot import Plot2D   # ??? or PlotWindow, to redefine ProfileToolBar
-# from silx.gui.plot.PlotTools import ProfileToolBar
 from silx.gui.plot.Colors import cursorColorForColormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
@@ -80,7 +79,7 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 #    in the complete volume, not just vmin/vmax of the 2D slice
 
 class StackView(qt.QWidget):
-    """
+    """Simple stack view 
 
     """
     def __init__(self, parent=None):
@@ -88,7 +87,9 @@ class StackView(qt.QWidget):
 
         self._imageLegend = '__StackView__image' + str(id(self))
         self._volume = None
+        self._volumeview = None
         self._autoscaleCmap = True
+        self.__perspective = 0 # dimension browse
 
         self._plot = Plot2D(self)
 
@@ -96,12 +97,50 @@ class StackView(qt.QWidget):
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
 
         layout = qt.QVBoxLayout(self)
+
+        planeSelction = DockPlanes(self._plot)
+        planeSelction.sigPlaneSelectionChanged.connect(self.__setPerspective)
+        self._plot._introduceNewDockWidget(planeSelction)
         layout.addWidget(self._plot)
         layout.addWidget(self._browser)
 
+
+    def __setPerspective(self, perspective):
+        if perspective == self.__perspective:
+            return
+        else:
+            if perspective > 2 or perspective < 0:
+                raise ValueError('Can\'t set persepective')
+
+            self.__perspective=perspective
+            self.__createVolumeView()
+            self.__updateFrameNumber(self._browser.value()) 
+
+
+    def __createVolumeView(self):
+        """Create the new view on the volume depending on the perspective (axis browse on the viewer)
+        """
+        assert(not self._volume is None)
+        assert(self.__perspective >=0 and self.__perspective < 3)
+        if self.__perspective == 0:
+            self._volumeview = self._volume.view()
+        if self.__perspective == 1:
+            self._volumeview = numpy.rollaxis(self._volume, 1)
+        if self.__perspective == 2:
+            self._volumeview = numpy.rollaxis(self._volume, 2)
+
+        self._browser.setRange(0, self._volumeview.shape[0]-1)            
+
+
     def __updateFrameNumber(self, index):
-        self._plot.addImage(self._volume[index, :, :],     # TODO: depends on perspective
-                            legend=self._imageLegend)
+        """Update the current image displayed
+
+        :param index: index of the image to display
+        :param init: is it a new volume to be displayed ?
+        """
+        assert(not self._volumeview is None)
+        self._plot.addImage(self._volumeview[index, :, :], legend=self._imageLegend)
+
 
     # public API
     def setVolume(self, volume, origin=(0, 0), scale=(1., 1.),
@@ -139,6 +178,7 @@ class StackView(qt.QWidget):
         assert len(data.shape) == 3, "data must be 3D"
 
         self._volume = data
+        self.__createVolumeView()    
 
         # This call to setColormap takes redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
@@ -146,20 +186,20 @@ class StackView(qt.QWidget):
             self.setColormap(autoscale=True)
 
         # init plot
-        self._plot.addImage(data[0, :, :],         # TODO: depends on perspective
+        self._plot.addImage(self._volumeview[0, :, :], 
                             legend=self._imageLegend,
                             origin=origin, scale=scale,
                             colormap=self.getColormap(),
                             replace=False)
+
         self._plot.setActiveImage(self._imageLegend)
 
         if reset:
             self._plot.resetZoom()
 
         # enable and init browser
-        nframes, height, width = data.shape  # TODO: depends on perspective
-        self._browser.setRange(0, nframes - 1)
         self._browser.setEnabled(True)
+
 
     def getColormap(self):
         """Get the current colormap description.
@@ -170,6 +210,7 @@ class StackView(qt.QWidget):
         """
         # default colormap used by addImage
         return self._plot.getDefaultColormap()
+
 
     def setColormap(self, colormap=None, normalization=None,
                     autoscale=None, vmin=None, vmax=None, colors=None):
@@ -258,6 +299,66 @@ class StackView(qt.QWidget):
                                 colormap=self.getColormap(),
                                 replace=False)
 
+
+class DockPlanes(qt.QDockWidget):
+    """Dock widget for the plane selection
+    """
+    sigPlaneSelectionChanged = qt.Signal(int)
+
+    def __init__(self, parent):
+        super(DockPlanes, self).__init__(parent)
+
+        planeGB = qt.QGroupBox(self)
+        planeGBLayout = qt.QVBoxLayout()
+        planeGB.setLayout(planeGBLayout)
+        spacer = qt.QSpacerItem(20, 20,
+                                qt.QSizePolicy.Expanding,
+                                qt.QSizePolicy.Expanding)
+
+        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-Dim1', planeGB)
+        self._qrbDim1Dim2 = qt.QRadioButton('Dim1-Dim2', planeGB)
+        self._qrbDim0Dim2 = qt.QRadioButton('Dim0-Dim2', planeGB)
+        self._qrbDim1Dim2.setChecked(True)
+
+        self._qrbDim1Dim2.toggled.connect(self.__planeSelectionChanged)
+        self._qrbDim0Dim1.toggled.connect(self.__planeSelectionChanged)
+        self._qrbDim0Dim2.toggled.connect(self.__planeSelectionChanged)
+
+        planeGBLayout.addWidget(self._qrbDim0Dim1)
+        planeGBLayout.addWidget(self._qrbDim1Dim2)
+        planeGBLayout.addWidget(self._qrbDim0Dim2)
+        planeGBLayout.addItem(spacer)
+        planeGBLayout.setContentsMargins(0, 0, 0, 0)
+        self.setWidget(planeGB)
+
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.setWindowTitle('Planes')
+
+        self.setFeatures(qt.QDockWidget.DockWidgetMovable)
+
+
+    def __planeSelectionChanged(self):
+        """Callback function when the radio button change
+        """
+        self.sigPlaneSelectionChanged.emit(self.getPlaneSelected())
+
+
+    def getPlaneSelected(self):
+        """Return the plane selected following the convention : 
+        - dimension : Dim1Dim2 : 0
+        - dimension : Dim0Dim2 : 1
+        - dimension : Dim0Dim1 : 2
+        """
+        if self._qrbDim1Dim2.isChecked():
+            return 0
+        if self._qrbDim0Dim2.isChecked():
+            return 1
+        if self._qrbDim0Dim1.isChecked():
+            return 2
+
+        raise RuntimeError('No plane selected')
+
+
 # fixme: move demo to silx/examples when complete
 if __name__ == "__main__":
     import sys
@@ -265,7 +366,7 @@ if __name__ == "__main__":
 
     mycube = numpy.fromfunction(
         lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2*numpy.sin(k/6.),
-        (256, 256, 256)
+        (100, 256, 256)
     )
 
     sv = StackView()
@@ -275,3 +376,5 @@ if __name__ == "__main__":
     sv.show()
 
     app.exec_()
+
+
