@@ -495,7 +495,6 @@ class ArrayTableWidget(qt.QWidget):
 
 def main():
     import numpy
-    import sys
     a = qt.QApplication([])
     d = numpy.random.normal(0, 1, (4, 5, 1000, 1000))
     for j in range(4):
