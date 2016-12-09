@@ -79,10 +79,10 @@ __date__ = "05/12/2016"
 
 from collections import OrderedDict
 import logging
-import sys
 from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
+
 
 #   Symbol  Atomic Number   col row ( positions on table ) name  mass
 _elements = [
@@ -342,12 +342,13 @@ class _ElementButton(qt.QPushButton):
         Other cells have no bg color by default, unless specified at
         instantiation (:attr:`bgcolor`)"""
         palette = self.palette()
-        if self.current and self.selected:
-            self.brush = qt.QBrush(self.selected_current_color)
-        elif self.selected:
+        # if self.current and self.selected:
+        #     self.brush = qt.QBrush(self.selected_current_color)
+        # el
+        if self.selected:
             self.brush = qt.QBrush(self.selected_color)
-        elif self.current:
-            self.brush = qt.QBrush(self.current_color)
+        # elif self.current:
+        #     self.brush = qt.QBrush(self.current_color)
         elif self.bgcolor is not None:
             self.brush = qt.QBrush(self.bgcolor)
         else:
@@ -358,17 +359,23 @@ class _ElementButton(qt.QPushButton):
         self.update()
 
     def paintEvent(self, pEvent):
-        p = qt.QPainter(self)
-        wr = self.rect()
-        pr = qt.QRect(wr.left() + 1,
-                      wr.top() + 1,
-                      wr.width() - 2,
-                      wr.height() - 2)
+        # get button geometry
+        widgGeom = self.rect()
+        paintGeom = qt.QRect(widgGeom.left() + 1,
+                             widgGeom.top() + 1,
+                             widgGeom.width() - 2,
+                             widgGeom.height() - 2)
+
+        # paint background color
+        painter = qt.QPainter(self)
         if self.brush is not None:
-            p.fillRect(pr, self.brush)
-        p.setPen(qt.Qt.black)
-        p.drawRect(pr)
-        p.end()
+            painter.fillRect(paintGeom, self.brush)
+        # paint frame
+        pen = qt.QPen(qt.Qt.black)
+        pen.setWidth(1 if not self.current else 5)
+        painter.setPen(pen)
+        painter.drawRect(paintGeom)
+        painter.end()
         qt.QPushButton.paintEvent(self, pEvent)
 
     def enterEvent(self, e):
