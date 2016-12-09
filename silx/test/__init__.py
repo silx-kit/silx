@@ -24,13 +24,15 @@
 # ###########################################################################*/
 """Full silx test suite.
 
-silx.gui tests depends on Qt.
-To disable them, set WITH_QT_TEST environement variable to 'False'.
+
+It is possible to disable tests depending on Qt by setting
+:envvar:`WITH_QT_TEST` environment variable to 'False'.
+It will skip all tests from :mod:`silx.test.gui`.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "09/12/2016"
 
 
 import logging
