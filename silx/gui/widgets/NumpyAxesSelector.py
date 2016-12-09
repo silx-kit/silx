@@ -61,7 +61,7 @@ class _Axis(qt.QWidget):
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
 
         self.setLayout(qt.QHBoxLayout(self))
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self.__label)
         self.layout().addWidget(self.__axes)
         self.layout().addWidget(self.__slider, 10000)
@@ -135,7 +135,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__axis = []
         self.__axisNames = []
         self.setLayout(qt.QVBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
     def clear(self):
         self.setData(None)

@@ -59,7 +59,7 @@ class DataViewerSelector(qt.QWidget):
         self.__dataViewer = None
         self.__group = qt.QButtonGroup(self)
         self.setLayout(qt.QHBoxLayout())
-        self.layout().setMargin(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
 
         iconSize = qt.QSize(16, 16)
 

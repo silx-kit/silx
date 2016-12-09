@@ -356,7 +356,7 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__dataViewerSelector.setFlat(True)
         widget = qt.QWidget()
         widget.setLayout(qt.QVBoxLayout())
-        widget.layout().setMargin(0)
+        widget.layout().setContentsMargins(0, 0, 0, 0)
         widget.layout().setSpacing(0)
         widget.layout().addWidget(self.__dataViewer, 1)
         widget.layout().addWidget(self.__dataViewerSelector)
