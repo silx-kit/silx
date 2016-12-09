@@ -40,7 +40,7 @@ from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "14/12/2016"
 
 
 class AxesSelector(qt.QWidget):
@@ -392,6 +392,13 @@ class ArrayTableWidget(qt.QWidget):
             (text color) for each cell in the table.
         """
         self.model.setArrayColors(bgcolors, fgcolors)
+
+    def displayAxesSelector(self, isVisible):
+        """Allow to display or hide the axes selector.
+
+        :param bool isVisible: True to display the axes selector.
+        """
+        self.axesSelector.setVisible(isVisible)
 
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.

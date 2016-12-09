@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2016"
+__date__ = "09/12/2016"
 
 import numpy
 
@@ -140,7 +140,9 @@ class _ArrayView(DataView):
         return ["col", "row"]
 
     def createWidget(self, parent):
-        return ArrayTableWidget(parent)
+        widget = ArrayTableWidget(parent)
+        widget.displayAxesSelector(False)
+        return widget
 
     def clear(self):
         self.getWidget().setArrayData(numpy.array([[]]))
