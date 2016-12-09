@@ -71,8 +71,12 @@ class StackView(qt.QWidget):
 
         self.__imageLegend = '__StackView__image' + str(id(self))
         self.__autoscaleCmap = True
-        """Flag to disable/enable colormap autoscaling
+        """Flag to disable/enable colormap auto-scaling
         based on the 3D volume"""
+        self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
+                                   "Dimension 2"]
+        """These labels are displayed on the X and Y axes.
+        :meth:`setLabels` updates this attribute."""
 
         self._plot = PlotWindow(parent=self, backend=None,
                                 resetzoom=True, autoScale=False,
@@ -103,26 +107,34 @@ class StackView(qt.QWidget):
         layout.addWidget(self._browser)
 
     def __setPerspective(self, perspective):
-        """Function called when the dimension browse changes
+        """Function called when the browsed/orthogonal dimension changes
 
-        :param persepective: the new dimension browse
+        :param perspective: the new browsed dimension
         """
         if perspective == self.__perspective:
             return
         else:
             if perspective > 2 or perspective < 0:
-                raise ValueError('Can\'t set persepective')
+                raise ValueError("Can't set perspective")
 
             self.__perspective = perspective
             self.__createVolumeView()
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
+            self.__updatePlotLabels()
+
+    def __updatePlotLabels(self):
+        """Update plot axes labels depending on perspective"""
+        y, x = (1, 2) if self.__perspective == 0 else \
+            (0, 2) if self.__perspective == 1 else (0, 1)
+        self.setGraphXLabel(self.__dimensionsLabels[x])
+        self.setGraphYLabel(self.__dimensionsLabels[y])
 
     def __createVolumeView(self):
         """Create the new view on the volume depending on the perspective
         (set orthogonal axis browsed on the viewer as first dimension)
         """
-        assert not self._volume is None
+        assert self._volume is not None
         assert 0 <= self.__perspective < 3
         if self.__perspective == 0:
             self.__volumeview = self._volume.view()
@@ -162,7 +174,9 @@ class StackView(qt.QWidget):
                       It is the size of a pixel in the coordinates of the axes.
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
-        :param bool copy: Whether to copy volume data (default) or not.
+        :param bool copy: Whether to copy data (default) or use a reference.
+             A reference is created only if *numpy.array(..., copy=False)* can
+             return a view, else a copy is made even with ``copy=False``.
         :param bool reset: Whether to reset zoom or not.
         """
         assert len(origin) == 2
@@ -181,7 +195,7 @@ class StackView(qt.QWidget):
         self._volume = data
         self.__createVolumeView()    
 
-        # This call to setColormap takes redefines the meaning of autoscale
+        # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
         if self.__autoscaleCmap:
             self.setColormap(autoscale=True)
@@ -191,8 +205,8 @@ class StackView(qt.QWidget):
                             legend=self.__imageLegend,
                             origin=origin, scale=scale,
                             colormap=self.getColormap())
-
         self._plot.setActiveImage(self.__imageLegend)
+        self.__updatePlotLabels()
 
         if reset:
             self._plot.resetZoom()
@@ -228,30 +242,50 @@ class StackView(qt.QWidget):
         """
         return self._plot.setGraphTitle(title)
 
+    def setLabels(self, labels=None):
+        """Set the labels to be displayed on the plot axes.
+
+        You must provide a sequence of 3 strings, corresponding to the 3
+        dimensions of the data volume.
+        The proper label will automatically selected for each plot axis when
+        the perspective is changed.
+
+        :param list(str) labels: 3 labels corresponding to the 3 dimensions
+             of the data volumes.
+        """
+        if labels is None:
+            labels = ["Dimension 0", "Dimension 1", "Dimension 2"]
+        self.__dimensionsLabels = labels
+        self.__updatePlotLabels()
+
     def getGraphXLabel(self):
-        """Return the current X axis label as a str."""
+        """Return the current horizontal axis label as a str."""
         return self._plot.getGraphXLabel()
 
-    def setGraphXLabel(self, label="X"):
-        """Set the plot X axis label.
+    def setGraphXLabel(self, label=None):
+        """Set the plot horizontal axis label.
 
-        :param str label: The X axis label (default: 'X')
+        :param str label: The horizontal axis label
         """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self.__perspective == 2 else 2]
         self._plot.setGraphXLabel(label)
 
     def getGraphYLabel(self, axis='left'):
-        """Return the current Y axis label as a str.
+        """Return the current vertical axis label as a str.
 
         :param str axis: The Y axis for which to get the label (left or right)
         """
         return self._plot.getGraphYLabel(axis)
 
-    def setGraphYLabel(self, label="Y", axis='left'):
-        """Set the plot Y axis label.
+    def setGraphYLabel(self, label=None, axis='left'):
+        """Set the vertical axis label on the plot.
 
-        :param str label: The Y axis label (default: 'Y')
+        :param str label: The Y axis label
         :param str axis: The Y axis for which to set the label (left or right)
         """
+        if label is None:
+            label = self.__dimensionsLabels[1 if self.__perspective == 0 else 0]
         self._plot.setGraphYLabel(label, axis)
 
     def setYAxisInverted(self, flag=True):
@@ -521,7 +555,7 @@ class Profile3DAction(PlotActions.PlotAction):
                 plot=plot,
                 icon='cube',
                 text='3D profile',
-                tooltip='If activated, will compute the profile on the dimension browsed',
+                tooltip='If activated, compute the profile on the stack of images',
                 triggered=self.__compute3DProfile,
                 checkable=True,
                 parent=parent)
@@ -539,13 +573,14 @@ if __name__ == "__main__":
 
     mycube = numpy.fromfunction(
         lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2*numpy.sin(k/6.),
-        (100, 256, 256)
+        (100, 200, 300)
     )
 
     sv = StackView()
     sv.setColormap("jet", autoscale=True)
     sv.setVolume(mycube)
-
+    sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
+                  "3rd dim (0-299)"])
     sv.show()
 
     app.exec_()
