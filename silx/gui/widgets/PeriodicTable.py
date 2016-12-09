@@ -486,8 +486,8 @@ class PeriodicTable(qt.QWidget):
         self.gridLayout.addWidget(b, elmt.row, elmt.col)
 
         b.sigElementEnter.connect(self.elementEnter)
-        b.sigElementLeave.connect(self.elementLeave)
-        b.sigElementClicked.connect(self.elementClicked)
+        b.sigElementLeave.connect(self._elementLeave)
+        b.sigElementClicked.connect(self._elementClicked)
 
     def elementEnter(self, item):
         """Update label with element info (e.g. "Nb(41) - niobium")
@@ -497,13 +497,19 @@ class PeriodicTable(qt.QWidget):
         """
         self.eltLabel.setText("%s(%d) - %s" % (item.symbol, item.Z, item.name))
 
-    def elementLeave(self, item):
-        """Clear label when the cursor leaves the cell"""
+    def _elementLeave(self, item):
+        """Clear label when the cursor leaves the cell
+
+        :param PeriodicTableItem item: Element left
+        """
         self.eltLabel.setText("")
 
-    def elementClicked(self, item):
+    def _elementClicked(self, item):
         """Emit :attr:`sigElementClicked`, set :attr:`_eltCurrent`,
-        toggle selected state of element"""
+        toggle selected state of element
+        
+        :param PeriodicTableItem item: Element clicked
+        """
         if self._eltCurrent is not None:
             self._eltCurrent.setCurrent(False)
         self._eltButtons[item.symbol].setCurrent(True)
@@ -695,6 +701,20 @@ class PeriodicList(qt.QTreeWidget):
             self.tree_items[idx].setSelected(_defaultTableItems[idx].symbol in symbolList)
 
 
+def createComboBoxWidget(parent):
+    def change_combo(item):
+        print("New combo selection:", item.symbol)
+
+    widget = qt.QWidget(parent)
+    widget.setLayout(qt.QVBoxLayout())
+    widget.pc = PeriodicCombo(widget)
+    widget.layout().addWidget(widget.pc)
+
+    widget.pc.setSelection("Li")
+    widget.pc.sigSelectionChanged.connect(change_combo)
+
+    return widget
+
 def main():
     a = qt.QApplication(sys.argv)
     a.lastWindowClosed.connect(a.quit)
@@ -702,7 +722,7 @@ def main():
     w = qt.QTabWidget()
 
     pt = PeriodicTable(w, selectable=True)
-    pc = PeriodicCombo(w)
+    pc = createComboBoxWidget(w)
     pl = PeriodicList(w)
 
     w.addTab(pt, "PeriodicTable")
@@ -711,13 +731,10 @@ def main():
 
     pt.setSelection(['H', 'Fe', 'Si'])
     pl.setSelectedElements(['H', 'Be', 'F'])
-    pc.setSelection("Li")
 
     def change_list(items):
         print("New list selection:", [item.symbol for item in items])
 
-    def change_combo(item):
-        print("New combo selection:", item.symbol)
 
     def click_table(item):
         print("New table click:", item.symbol)
@@ -728,7 +745,6 @@ def main():
     pt.sigElementClicked.connect(click_table)
     pt.sigSelectionChanged.connect(change_table)
     pl.sigSelectionChanged.connect(change_list)
-    pc.sigSelectionChanged.connect(change_combo)
 
     w.show()
     a.exec_()
