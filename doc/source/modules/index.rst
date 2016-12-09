@@ -9,3 +9,4 @@ API Reference
    image/index.rst
    math/index.rst
    resources.rst
+   test/index.rst
