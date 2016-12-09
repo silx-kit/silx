@@ -417,9 +417,9 @@ class StackView(qt.QWidget):
 
 
 class DockPlanes(qt.QDockWidget):
-    """Dock widget for the plane selection
+    """Dock widget for the plane/perspective selection
 
-    :param parent: the Qt parent
+    :param parent: the parent QWidget
     """
     sigPlaneSelectionChanged = qt.Signal(int)
 
@@ -450,20 +450,22 @@ class DockPlanes(qt.QDockWidget):
         self.setWidget(planeGB)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWindowTitle('Planes')
+        self.setWindowTitle('Select slice axes')
 
         self.setFeatures(qt.QDockWidget.DockWidgetMovable)
 
     def __planeSelectionChanged(self):
-        """Callback function when the radio button change
+        """Callback function when the radio buttons change
         """
-        self.sigPlaneSelectionChanged.emit(self.getPlaneSelected())
+        self.sigPlaneSelectionChanged.emit(self.getPerspective())
 
-    def getPlaneSelected(self):
-        """Return the plane selected following the convention : 
-        - dimension : Dim1Dim2 : 0
-        - dimension : Dim0Dim2 : 1
-        - dimension : Dim0Dim1 : 2
+    def getPerspective(self):
+        """Return the dimension number orthogonal to the slice plane,
+        following the convention:
+
+          - slice plane Dim1-Dim2: perspective 0
+          - slice plane Dim0-Dim2: perspective 1
+          - slice plane Dim0-Dim1: perspective 2
         """
         if self._qrbDim1Dim2.isChecked():
             return 0
@@ -480,7 +482,7 @@ class Profile3DToolBar(ProfileToolBar):
                  title='Profile Selection', volume=None):
         """QToolBar providing profile tools for 2D and 3D.
 
-        :param parent: the Qt parent
+        :param parent: the parent QWidget
         :param plot: :class:`PlotWindow` instance on which to operate.
         :param profileWindow: :class:`ProfileScanWidget` instance where to
                               display the profile curve or None to create one.
@@ -491,10 +493,10 @@ class Profile3DToolBar(ProfileToolBar):
         """
         super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
         self._volume = volume
-        self.profil3DAction = self.__create3DProfilAction(volume)
+        self.profile3DAction = self.__create3DProfileAction()
         self._setComputeIn3D(False)
 
-    def __create3DProfilAction(self, volume):
+    def __create3DProfileAction(self):
         """Initialize the Profile3DAction action 
         """
         self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
@@ -502,24 +504,30 @@ class Profile3DToolBar(ProfileToolBar):
         self.addAction(self.profile3d)
 
     def updateVolume(self, volume):
-        """Update the volume browse
+        """Update the volume view.
 
-        ..note ::We will always browse through the first dimension
+        When the perspective is changed (the volume is rotated),
+        a new view is created with the new depth dimension as first
+        dimension.
 
-        :param volume: the new volume epxlored
+        :param volume: a view on the data array with the dimension sorted
+            to have the depth as first dimension
         """
         self._volume = volume
 
-    def _setComputeIn3D(self, b):
-        """Set if we want to compute the profile in 2D or in 3D
+    def _setComputeIn3D(self, flag):
+        """Set flag to *True* to compute the profile in 3D, else
+        the profile is computed in 2D on the active image.
 
-        :param b:boolean
+        :param bool flag: Flag used when toggling 2D/3D profile mode
         """
-        self._computeIn3D = b
+        self._computeIn3D = flag
         self.updateProfile()
 
     def updateProfile(self):
-        """Redefine the one from :class:`ProfileToolBar`
+        """Method overloaded from :class:`ProfileToolBar`
+
+        In 2D profile mode, use the regular parent method.
         """
         if self._computeIn3D is False:
             super(Profile3DToolBar, self).updateProfile()
@@ -538,7 +546,7 @@ class Profile3DToolBar(ProfileToolBar):
 
 
 class Profile3DAction(PlotActions.PlotAction):
-    """Base class for QAction that operates on a PlotWidget.
+    """PlotAction that emits a signal when checked, to notify
 
     :param plot: :class:`.PlotWidget` instance on which to operate.
     :param icon: QIcon or str name of icon to use
@@ -550,6 +558,7 @@ class Profile3DAction(PlotActions.PlotAction):
     :param parent: See :class:`QAction`.
     """
     sigChange3DProfile = qt.Signal(bool)
+
     def __init__(self, plot, parent=None):
         super(Profile3DAction, self).__init__(
                 plot=plot,
