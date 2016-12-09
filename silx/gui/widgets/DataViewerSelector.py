@@ -29,9 +29,10 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2016"
+__date__ = "09/12/2016"
 
 import numpy
+import silx.gui.icons
 
 try:
     import h5py
@@ -60,7 +61,11 @@ class DataViewerSelector(qt.QWidget):
         self.setLayout(qt.QHBoxLayout())
         self.layout().setMargin(0)
 
+        iconSize = qt.QSize(16, 16)
+
         button = qt.QPushButton("1D")
+        button.setIcon(silx.gui.icons.getQIcon("view-1d"))
+        button.setIconSize(iconSize)
         button.setCheckable(True)
         button.clicked.connect(self.__displayAs1d)
         self.layout().addWidget(button)
@@ -68,6 +73,8 @@ class DataViewerSelector(qt.QWidget):
         self.__button1D = button
 
         button = qt.QPushButton("2D")
+        button.setIcon(silx.gui.icons.getQIcon("view-2d"))
+        button.setIconSize(iconSize)
         button.setCheckable(True)
         button.clicked.connect(self.__displayAs2d)
         self.layout().addWidget(button)
@@ -75,6 +82,8 @@ class DataViewerSelector(qt.QWidget):
         self.__button2D = button
 
         button = qt.QPushButton("Raw")
+        button.setIcon(silx.gui.icons.getQIcon("view-raw"))
+        button.setIconSize(iconSize)
         button.setCheckable(True)
         button.clicked.connect(self.__displayAsArray)
         self.layout().addWidget(button)
@@ -82,6 +91,8 @@ class DataViewerSelector(qt.QWidget):
         self.__buttonArray = button
 
         button = qt.QPushButton("Text")
+        button.setIcon(silx.gui.icons.getQIcon("view-text"))
+        button.setIconSize(iconSize)
         button.setCheckable(True)
         button.clicked.connect(self.__displayAsText)
         self.layout().addWidget(button)
