@@ -233,9 +233,11 @@ class PeriodicTableItem(object):
     :param float mass: Atomic mass (gram per mol)
     :param str subcategory: Subcategory, based on physical properties
         (e.g. "alkali metal", "noble gas"...)
+    :param QColor bgcolor: Custom background color for element in
+        periodic table
     """
     def __init__(self, symbol, Z, col, row, name, mass,
-                 subcategory=""):
+                 subcategory="", bgcolor=None):
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
         self.Z = Z
@@ -255,6 +257,10 @@ class PeriodicTableItem(object):
         self.bgcolor = COLORS.get(subcategory, qt.QColor("#FFFFFF"))
         """Background color of element in the periodic table,
         based on its subcategory."""
+
+        # possible custom color
+        if bgcolor is not None:
+            self.bgcolor = bgcolor
 
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
