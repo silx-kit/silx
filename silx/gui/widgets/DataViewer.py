@@ -214,6 +214,7 @@ class DataViewer(qt.QFrame):
 
         self.__stack = qt.QStackedWidget(self)
         self.__numpySelection = NumpyAxesSelector(self)
+        self.__numpySelection.selectedAxisChanged.connect(self.__numpyAxisChanged)
         self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
 
         self.setLayout(qt.QVBoxLayout(self))
@@ -343,6 +344,9 @@ class DataViewer(qt.QFrame):
         self.__updateView()
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
+
+    def __numpyAxisChanged(self):
+        self.__clearCurrentView()
 
     def __numpySelectionChanged(self):
         self.__updateDataInView()

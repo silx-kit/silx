@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "08/12/2016"
+__date__ = "09/12/2016"
 
 import numpy
 import functools
@@ -120,6 +120,9 @@ class NumpyAxesSelector(qt.QWidget):
     dataChanged = qt.Signal()
     """Emitted when the data change"""
 
+    selectedAxisChanged = qt.Signal()
+    """Emitted when the selected axis change"""
+
     selectionChanged = qt.Signal()
     """Emitted when the selected data change"""
 
@@ -192,6 +195,8 @@ class NumpyAxesSelector(qt.QWidget):
         else:
             raise Exception("Unexpected state")
 
+        axisChanged = True
+
         if axis.axisName() == "":
             # set the removed label to another widget if it is possible
             availableWidget = None
@@ -203,6 +208,7 @@ class NumpyAxesSelector(qt.QWidget):
                     break
             if availableWidget is None:
                 # If there is no other solution we set the name at the same place
+                axisChanged = False
                 availableWidget = axis
             previous = availableWidget.blockSignals(True)
             availableWidget.setAxisName(missingName)
@@ -223,6 +229,10 @@ class NumpyAxesSelector(qt.QWidget):
             dupWidget.setAxisName(missingName)
             dupWidget.blockSignals(previous)
 
+        if self.__data is None:
+            return
+        if axisChanged:
+            self.selectedAxisChanged.emit()
         self.__updateSelectedData()
 
     def __updateSelectedData(self):
