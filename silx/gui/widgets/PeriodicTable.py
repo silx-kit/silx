@@ -83,119 +83,130 @@ from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
 
+#             Symbol  Atomic Number   col row  name  mass subcategory
+_elements = [("H", 1, 1, 1, "hydrogen", 1.00800, "diatomic nonmetal"),
+             ("He", 2, 18, 1, "helium", 4.0030, "noble gas"),
+             ("Li", 3, 1, 2, "lithium", 6.94000, "alkali metal"),
+             ("Be", 4, 2, 2, "beryllium", 9.01200, "alkaline earth metal"),
+             ("B", 5, 13, 2, "boron", 10.8110, "metalloid"),
+             ("C", 6, 14, 2, "carbon", 12.0100, "polyatomic nonmetal"),
+             ("N", 7, 15, 2, "nitrogen", 14.0080, "diatomic nonmetal"),
+             ("O", 8, 16, 2, "oxygen", 16.0000, "diatomic nonmetal"),
+             ("F", 9, 17, 2, "fluorine", 19.0000, "diatomic nonmetal"),
+             ("Ne", 10, 18, 2, "neon", 20.1830, "noble gas"),
+             ("Na", 11, 1, 3, "sodium", 22.9970, "alkali metal"),
+             ("Mg", 12, 2, 3, "magnesium", 24.3200, "alkaline earth metal"),
+             ("Al", 13, 13, 3, "aluminium", 26.9700, "post transition metal"),
+             ("Si", 14, 14, 3, "silicon", 28.0860, "metalloid"),
+             ("P", 15, 15, 3, "phosphorus", 30.9750, "polyatomic nonmetal"),
+             ("S", 16, 16, 3, "sulphur", 32.0660, "polyatomic nonmetal"),
+             ("Cl", 17, 17, 3, "chlorine", 35.4570, "diatomic nonmetal"),
+             ("Ar", 18, 18, 3, "argon", 39.9440, "noble gas"),
+             ("K", 19, 1, 4, "potassium", 39.1020, "alkali metal"),
+             ("Ca", 20, 2, 4, "calcium", 40.0800, "alkaline earth metal"),
+             ("Sc", 21, 3, 4, "scandium", 44.9600, "transition metal"),
+             ("Ti", 22, 4, 4, "titanium", 47.9000, "transition metal"),
+             ("V", 23, 5, 4, "vanadium", 50.9420, "transition metal"),
+             ("Cr", 24, 6, 4, "chromium", 51.9960, "transition metal"),
+             ("Mn", 25, 7, 4, "manganese", 54.9400, "transition metal"),
+             ("Fe", 26, 8, 4, "iron", 55.8500, "transition metal"),
+             ("Co", 27, 9, 4, "cobalt", 58.9330, "transition metal"),
+             ("Ni", 28, 10, 4, "nickel", 58.6900, "transition metal"),
+             ("Cu", 29, 11, 4, "copper", 63.5400, "transition metal"),
+             ("Zn", 30, 12, 4, "zinc", 65.3800, "transition metal"),
+             ("Ga", 31, 13, 4, "gallium", 69.7200, "post transition metal"),
+             ("Ge", 32, 14, 4, "germanium", 72.5900, "metalloid"),
+             ("As", 33, 15, 4, "arsenic", 74.9200, "metalloid"),
+             ("Se", 34, 16, 4, "selenium", 78.9600, "polyatomic nonmetal"),
+             ("Br", 35, 17, 4, "bromine", 79.9200, "diatomic nonmetal"),
+             ("Kr", 36, 18, 4, "krypton", 83.8000, "noble gas"),
+             ("Rb", 37, 1, 5, "rubidium", 85.4800, "alkali metal"),
+             ("Sr", 38, 2, 5, "strontium", 87.6200, "alkaline earth metal"),
+             ("Y", 39, 3, 5, "yttrium", 88.9050, "transition metal"),
+             ("Zr", 40, 4, 5, "zirconium", 91.2200, "transition metal"),
+             ("Nb", 41, 5, 5, "niobium", 92.9060, "transition metal"),
+             ("Mo", 42, 6, 5, "molybdenum", 95.9500, "transition metal"),
+             ("Tc", 43, 7, 5, "technetium", 99.0000, "transition metal"),
+             ("Ru", 44, 8, 5, "ruthenium", 101.0700, "transition metal"),
+             ("Rh", 45, 9, 5, "rhodium", 102.9100, "transition metal"),
+             ("Pd", 46, 10, 5, "palladium", 106.400, "transition metal"),
+             ("Ag", 47, 11, 5, "silver", 107.880, "transition metal"),
+             ("Cd", 48, 12, 5, "cadmium", 112.410, "transition metal"),
+             ("In", 49, 13, 5, "indium", 114.820, "post transition metal"),
+             ("Sn", 50, 14, 5, "tin", 118.690, "post transition metal"),
+             ("Sb", 51, 15, 5, "antimony", 121.760, "metalloid"),
+             ("Te", 52, 16, 5, "tellurium", 127.600, "metalloid"),
+             ("I", 53, 17, 5, "iodine", 126.910, "diatomic nonmetal"),
+             ("Xe", 54, 18, 5, "xenon", 131.300, "noble gas"),
+             ("Cs", 55, 1, 6, "caesium", 132.910, "alkali metal"),
+             ("Ba", 56, 2, 6, "barium", 137.360, "alkaline earth metal"),
+             ("La", 57, 3, 6, "lanthanum", 138.920, "lanthanide"),
+             ("Ce", 58, 4, 9, "cerium", 140.130, "lanthanide"),
+             ("Pr", 59, 5, 9, "praseodymium", 140.920, "lanthanide"),
+             ("Nd", 60, 6, 9, "neodymium", 144.270, "lanthanide"),
+             ("Pm", 61, 7, 9, "promethium", 147.000, "lanthanide"),
+             ("Sm", 62, 8, 9, "samarium", 150.350, "lanthanide"),
+             ("Eu", 63, 9, 9, "europium", 152.000, "lanthanide"),
+             ("Gd", 64, 10, 9, "gadolinium", 157.260, "lanthanide"),
+             ("Tb", 65, 11, 9, "terbium", 158.930, "lanthanide"),
+             ("Dy", 66, 12, 9, "dysprosium", 162.510, "lanthanide"),
+             ("Ho", 67, 13, 9, "holmium", 164.940, "lanthanide"),
+             ("Er", 68, 14, 9, "erbium", 167.270, "lanthanide"),
+             ("Tm", 69, 15, 9, "thulium", 168.940, "lanthanide"),
+             ("Yb", 70, 16, 9, "ytterbium", 173.040, "lanthanide"),
+             ("Lu", 71, 17, 9, "lutetium", 174.990, "lanthanide"),
+             ("Hf", 72, 4, 6, "hafnium", 178.500, "transition metal"),
+             ("Ta", 73, 5, 6, "tantalum", 180.950, "transition metal"),
+             ("W", 74, 6, 6, "tungsten", 183.920, "transition metal"),
+             ("Re", 75, 7, 6, "rhenium", 186.200, "transition metal"),
+             ("Os", 76, 8, 6, "osmium", 190.200, "transition metal"),
+             ("Ir", 77, 9, 6, "iridium", 192.200, "transition metal"),
+             ("Pt", 78, 10, 6, "platinum", 195.090, "transition metal"),
+             ("Au", 79, 11, 6, "gold", 197.200, "transition metal"),
+             ("Hg", 80, 12, 6, "mercury", 200.610, "transition metal"),
+             ("Tl", 81, 13, 6, "thallium", 204.390, "post transition metal"),
+             ("Pb", 82, 14, 6, "lead", 207.210, "post transition metal"),
+             ("Bi", 83, 15, 6, "bismuth", 209.000, "post transition metal"),
+             ("Po", 84, 16, 6, "polonium", 209.000, "post transition metal"),
+             ("At", 85, 17, 6, "astatine", 210.000, "metalloid"),
+             ("Rn", 86, 18, 6, "radon", 222.000, "noble gas"),
+             ("Fr", 87, 1, 7, "francium", 223.000, "alkali metal"),
+             ("Ra", 88, 2, 7, "radium", 226.000, "alkaline earth metal"),
+             ("Ac", 89, 3, 7, "actinium", 227.000, "actinide"),
+             ("Th", 90, 4, 10, "thorium", 232.000, "actinide"),
+             ("Pa", 91, 5, 10, "proactinium", 231.03588, "actinide"),
+             ("U", 92, 6, 10, "uranium", 238.070, "actinide"),
+             ("Np", 93, 7, 10, "neptunium", 237.000, "actinide"),
+             ("Pu", 94, 8, 10, "plutonium", 239.100, "actinide"),
+             ("Am", 95, 9, 10, "americium", 243, "actinide"),
+             ("Cm", 96, 10, 10, "curium", 247, "actinide"),
+             ("Bk", 97, 11, 10, "berkelium", 247, "actinide"),
+             ("Cf", 98, 12, 10, "californium", 251, "actinide"),
+             ("Es", 99, 13, 10, "einsteinium", 252, "actinide"),
+             ("Fm", 100, 14, 10, "fermium", 257, "actinide"),
+             ("Md", 101, 15, 10, "mendelevium", 258, "actinide"),
+             ("No", 102, 16, 10, "nobelium", 259, "actinide"),
+             ("Lr", 103, 17, 10, "lawrencium", 262, "actinide"),
+             ("Rf", 104, 4, 7, "rutherfordium", 261, "transition metal"),
+             ("Db", 105, 5, 7, "dubnium", 262, "transition metal"),
+             ("Sg", 106, 6, 7, "seaborgium", 266, "transition metal"),
+             ("Bh", 107, 7, 7, "bohrium", 264, "transition metal"),
+             ("Hs", 108, 8, 7, "hassium", 269, "transition metal"),
+             ("Mt", 109, 9, 7, "meitnerium", 268)]
 
-#   Symbol  Atomic Number   col row ( positions on table ) name  mass
-_elements = [
-    ("H", 1, 1, 1, "hydrogen", 1.00800),
-    ("He", 2, 18, 1, "helium", 4.00300),
-    ("Li", 3, 1, 2, "lithium", 6.94000),
-    ("Be", 4, 2, 2, "beryllium", 9.01200),
-    ("B", 5, 13, 2, "boron", 10.8110),
-    ("C", 6, 14, 2, "carbon", 12.0100),
-    ("N", 7, 15, 2, "nitrogen", 14.0080),
-    ("O", 8, 16, 2, "oxygen", 16.0000),
-    ("F", 9, 17, 2, "fluorine", 19.0000),
-    ("Ne", 10, 18, 2, "neon", 20.1830),
-    ("Na", 11, 1, 3, "sodium", 22.9970),
-    ("Mg", 12, 2, 3, "magnesium", 24.3200),
-    ("Al", 13, 13, 3, "aluminium", 26.9700),
-    ("Si", 14, 14, 3, "silicon", 28.0860),
-    ("P", 15, 15, 3, "phosphorus", 30.9750),
-    ("S", 16, 16, 3, "sulphur", 32.0660),
-    ("Cl", 17, 17, 3, "chlorine", 35.4570),
-    ("Ar", 18, 18, 3, "argon", 39.9440),
-    ("K", 19, 1, 4, "potassium", 39.1020),
-    ("Ca", 20, 2, 4, "calcium", 40.0800),
-    ("Sc", 21, 3, 4, "scandium", 44.9600),
-    ("Ti", 22, 4, 4, "titanium", 47.9000),
-    ("V", 23, 5, 4, "vanadium", 50.9420),
-    ("Cr", 24, 6, 4, "chromium", 51.9960),
-    ("Mn", 25, 7, 4, "manganese", 54.9400),
-    ("Fe", 26, 8, 4, "iron", 55.8500),
-    ("Co", 27, 9, 4, "cobalt", 58.9330),
-    ("Ni", 28, 10, 4, "nickel", 58.6900),
-    ("Cu", 29, 11, 4, "copper", 63.5400),
-    ("Zn", 30, 12, 4, "zinc", 65.3800),
-    ("Ga", 31, 13, 4, "gallium", 69.7200),
-    ("Ge", 32, 14, 4, "germanium", 72.5900),
-    ("As", 33, 15, 4, "arsenic", 74.9200),
-    ("Se", 34, 16, 4, "selenium", 78.9600),
-    ("Br", 35, 17, 4, "bromine", 79.9200),
-    ("Kr", 36, 18, 4, "krypton", 83.8000),
-    ("Rb", 37, 1, 5, "rubidium", 85.4800),
-    ("Sr", 38, 2, 5, "strontium", 87.6200),
-    ("Y", 39, 3, 5, "yttrium", 88.9050),
-    ("Zr", 40, 4, 5, "zirconium", 91.2200),
-    ("Nb", 41, 5, 5, "niobium", 92.9060),
-    ("Mo", 42, 6, 5, "molybdenum", 95.9500),
-    ("Tc", 43, 7, 5, "technetium", 99.0000),
-    ("Ru", 44, 8, 5, "ruthenium", 101.0700),
-    ("Rh", 45, 9, 5, "rhodium", 102.9100),
-    ("Pd", 46, 10, 5, "palladium", 106.400),
-    ("Ag", 47, 11, 5, "silver", 107.880),
-    ("Cd", 48, 12, 5, "cadmium", 112.410),
-    ("In", 49, 13, 5, "indium", 114.820),
-    ("Sn", 50, 14, 5, "tin", 118.690),
-    ("Sb", 51, 15, 5, "antimony", 121.760),
-    ("Te", 52, 16, 5, "tellurium", 127.600),
-    ("I", 53, 17, 5, "iodine", 126.910),
-    ("Xe", 54, 18, 5, "xenon", 131.300),
-    ("Cs", 55, 1, 6, "caesium", 132.910),
-    ("Ba", 56, 2, 6, "barium", 137.360),
-    ("La", 57, 3, 6, "lanthanum", 138.920),
-    ("Ce", 58, 4, 9, "cerium", 140.130),
-    ("Pr", 59, 5, 9, "praseodymium", 140.920),
-    ("Nd", 60, 6, 9, "neodymium", 144.270),
-    ("Pm", 61, 7, 9, "promethium", 147.000),
-    ("Sm", 62, 8, 9, "samarium", 150.350),
-    ("Eu", 63, 9, 9, "europium", 152.000),
-    ("Gd", 64, 10, 9, "gadolinium", 157.260),
-    ("Tb", 65, 11, 9, "terbium", 158.930),
-    ("Dy", 66, 12, 9, "dysprosium", 162.510),
-    ("Ho", 67, 13, 9, "holmium", 164.940),
-    ("Er", 68, 14, 9, "erbium", 167.270),
-    ("Tm", 69, 15, 9, "thulium", 168.940),
-    ("Yb", 70, 16, 9, "ytterbium", 173.040),
-    ("Lu", 71, 17, 9, "lutetium", 174.990),
-    ("Hf", 72, 4, 6, "hafnium", 178.500),
-    ("Ta", 73, 5, 6, "tantalum", 180.950),
-    ("W", 74, 6, 6, "tungsten", 183.920),
-    ("Re", 75, 7, 6, "rhenium", 186.200),
-    ("Os", 76, 8, 6, "osmium", 190.200),
-    ("Ir", 77, 9, 6, "iridium", 192.200),
-    ("Pt", 78, 10, 6, "platinum", 195.090),
-    ("Au", 79, 11, 6, "gold", 197.200),
-    ("Hg", 80, 12, 6, "mercury", 200.610),
-    ("Tl", 81, 13, 6, "thallium", 204.390),
-    ("Pb", 82, 14, 6, "lead", 207.210),
-    ("Bi", 83, 15, 6, "bismuth", 209.000),
-    ("Po", 84, 16, 6, "polonium", 209.000),
-    ("At", 85, 17, 6, "astatine", 210.000),
-    ("Rn", 86, 18, 6, "radon", 222.000),
-    ("Fr", 87, 1, 7, "francium", 223.000),
-    ("Ra", 88, 2, 7, "radium", 226.000),
-    ("Ac", 89, 3, 7, "actinium", 227.000),
-    ("Th", 90, 4, 10, "thorium", 232.000),
-    ("Pa", 91, 5, 10, "proactinium", 231.03588),
-    ("U", 92, 6, 10, "uranium", 238.070),
-    ("Np", 93, 7, 10, "neptunium", 237.000),
-    ("Pu", 94, 8, 10, "plutonium", 239.100),
-    ("Am", 95, 9, 10, "americium", 243),
-    ("Cm", 96, 10, 10, "curium", 247),
-    ("Bk", 97, 11, 10, "berkelium", 247),
-    ("Cf", 98, 12, 10, "californium", 251),
-    ("Es", 99, 13, 10, "einsteinium", 252),
-    ("Fm", 100, 14, 10, "fermium", 257),
-    ("Md", 101, 15, 10, "mendelevium", 258),
-    ("No", 102, 16, 10, "nobelium", 259),
-    ("Lr", 103, 17, 10, "lawrencium", 262),
-    ("Rf", 104, 4, 7, "rutherfordium", 261),
-    ("Db", 105, 5, 7, "dubnium", 262),
-    ("Sg", 106, 6, 7, "seaborgium", 266),
-    ("Bh", 107, 7, 7, "bohrium", 264),
-    ("Hs", 108, 8, 7, "hassium", 269),
-    ("Mt", 109, 9, 7, "meitnerium", 268),
-]
+COLORS = {
+    "diatomic nonmetal": qt.QColor("#7FFF00"),       # chartreuse
+    "noble gas": qt.QColor("#00FFFF"),               # cyan
+    "alkali metal": qt.QColor("#FFE4B5"),            # Moccasin
+    "alkaline earth metal": qt.QColor("#FFA500"),    # orange
+    "polyatomic nonmetal": qt.QColor("#7FFFD4"), 	 # aquamarine
+    "transition metal": qt.QColor("#FFA07A"),        # light salmon
+    "metalloid": qt.QColor("#8FBC8F"),               # Dark Sea Green
+    "post transition metal": qt.QColor("#D3D3D3"),   # light gray
+    "lanthanide": qt.QColor("#FFB6C1"),              # light pink
+    "actinide": qt.QColor("#F08080"),                # Light Coral
+    "": qt.QColor("#FFFFFF"),                        # white
+}
 
 
 class PeriodicTableItem(object):
@@ -220,10 +231,11 @@ class PeriodicTableItem(object):
     :param int row: 1-based row index of element in periodic table
     :param str name: PeriodicTableItem name ("hydrogen", ...)
     :param float mass: Atomic mass (gram per mol)
-    :param QColor bgcolor: Background color
+    :param str subcategory: Subcategory, based on physical properties
+        (e.g. "alkali metal", "noble gas"...)
     """
     def __init__(self, symbol, Z, col, row, name, mass,
-                 bgcolor=None):
+                 subcategory=""):
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
         self.Z = Z
@@ -236,10 +248,13 @@ class PeriodicTableItem(object):
         """PeriodicTableItem name ("hydrogen", ...)"""
         self.mass = mass
         """Atomic mass (gram per mol)"""
+        self.subcategory = subcategory
+        """Subcategory, based on physical properties
+        (e.g. "alkali metal", "noble gas"...)"""
 
-        self.bgcolor = bgcolor
-        """Background color of element in the periodic table.
-        Set to None for no color, or assign a :class:`qt.QColor`"""
+        self.bgcolor = COLORS.get(subcategory, qt.QColor("#FFFFFF"))
+        """Background color of element in the periodic table,
+        based on its subcategory."""
 
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
@@ -291,8 +306,8 @@ class _ElementButton(qt.QPushButton):
 
         # selection colors
         self.selected_color = qt.QColor(qt.Qt.yellow)
-        # self.current_color = qt.QColor(qt.Qt.gray)
-        # self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
+        self.current_color = qt.QColor(qt.Qt.gray)
+        self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
 
         # default colors
         self.bgcolor = item.bgcolor
@@ -305,20 +320,20 @@ class _ElementButton(qt.QPushButton):
     def sizeHint(self):
         return qt.QSize(40, 40)
 
-    # def setCurrent(self, b):
-    #     """Set this element button as current.
-    #     Multiple buttons can be selected.
-    #
-    #     :param b: boolean
-    #     """
-    #     self.current = b
-    #     self.__setBrush()
-    #
-    # def isCurrent(self):
-    #     """
-    #     :return: True if element button is current
-    #     """
-    #     return self.current
+    def setCurrent(self, b):
+        """Set this element button as current.
+        Multiple buttons can be selected.
+
+        :param b: boolean
+        """
+        self.current = b
+        self.__setBrush()
+
+    def isCurrent(self):
+        """
+        :return: True if element button is current
+        """
+        return self.current
 
     def isSelected(self):
         """
@@ -372,7 +387,7 @@ class _ElementButton(qt.QPushButton):
             painter.fillRect(paintGeom, self.brush)
         # paint frame
         pen = qt.QPen(qt.Qt.black)
-        # pen.setWidth(1 if not self.isCurrent else 5)
+        pen.setWidth(1 if not self.isCurrent() else 5)
         painter.setPen(pen)
         painter.drawRect(paintGeom)
         painter.end()
@@ -470,8 +485,8 @@ class PeriodicTable(qt.QWidget):
         self.eltLabel.setAlignment(qt.Qt.AlignHCenter)
         self.gridLayout.addWidget(self.eltLabel, 1, 1, 3, 10)
 
-        # self._eltCurrent = None
-        # """Current :class:`_ElementButton` (last clicked)"""
+        self._eltCurrent = None
+        """Current :class:`_ElementButton` (last clicked)"""
 
         self._eltButtons = OrderedDict()
         """Dictionary of all :class:`_ElementButton`. Keys are the symbols
@@ -517,10 +532,10 @@ class PeriodicTable(qt.QWidget):
         
         :param PeriodicTableItem item: Element clicked
         """
-        # if self._eltCurrent is not None:
-        #     self._eltCurrent.setCurrent(False)
-        # self._eltButtons[item.symbol].setCurrent(True)
-        # self._eltCurrent = self._eltButtons[item.symbol]
+        if self._eltCurrent is not None:
+            self._eltCurrent.setCurrent(False)
+        self._eltButtons[item.symbol].setCurrent(True)
+        self._eltCurrent = self._eltButtons[item.symbol]
         if self.selectable:
             self.elementToggle(item)
         self.sigElementClicked.emit(item)
