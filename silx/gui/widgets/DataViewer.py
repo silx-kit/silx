@@ -159,6 +159,7 @@ class _TextView(DataView):
 
     def createWidget(self, parent):
         widget = qt.QLabel(parent)
+        widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
         widget.setAlignment(qt.Qt.AlignCenter)
         return widget
 
@@ -166,6 +167,8 @@ class _TextView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
+        if isinstance(data, h5py.Dataset):
+            data = data[...]
         self.getWidget().setText(str(data))
 
 
