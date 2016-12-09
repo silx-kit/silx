@@ -74,6 +74,7 @@ from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
+from silx.math.histogram import Histogramnd
 
 from silx.io.utils import save1D, savespec
 
@@ -1025,3 +1026,65 @@ class FitAction(PlotAction):
                                resetzoom=False)
 
 
+class PixelIntensitiesHistoAction(PlotAction):
+    """QAction to plot the pixels intensities diagram"""
+
+    def __init__(self, plot, parent=None):
+        """
+
+        :param plot: :class:`.PlotWidget` instance on which to operate
+        :param parent: See :class:`QAction`
+        """
+        PlotAction.__init__(self,
+                            plot,
+                            icon='shape-circle',
+                            text='pixels intensity',
+                            tooltip='Compute image intensity distribution',
+                            triggered=self.updateIntensityDistribution,
+                            parent=parent,
+                            checkable=True)
+        self.plotHistogram=None
+
+    def updateIntensityDistribution(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        if checked:
+            self.plotHistogram.show()
+        else:
+            self.plotHistogram.hide()
+
+    def computeIntensityDistribution(self):
+        """Get the active image and compute the image
+        intensity distribution"""
+        from silx.gui.plot.PlotWindow import PixelIntensityHistogram
+
+        activeImage = self.plot.getActiveImage()
+
+        if activeImage is not None:
+            if self.plotHistogram is None :
+                self.plotHistogram = PixelIntensityHistogram()
+                self.plotHistogram.sigClose.connect(self.unCheck)
+
+            histo, w_histo, edges = Histogramnd(activeImage[0].flatten(),
+                                                n_bins=256,
+                                                histo_range=[0,256])
+            
+            self.plotHistogram.addCurve(range(256),
+                                        histo,
+                                        legend='pixel intensity')
+
+
+    def unCheck(self):
+        """Uncheck the action
+        """
+        if not self.plotHistogram is None:
+            self.plotHistogram.hide()
+        self.setChecked(False)
+
+
+    def hide(self):
+        """hide the window"""
+        if not self.plotHistogram is None :
+            self.plotHistogram.hide()
