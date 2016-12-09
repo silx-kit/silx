@@ -291,8 +291,8 @@ class _ElementButton(qt.QPushButton):
 
         # selection colors
         self.selected_color = qt.QColor(qt.Qt.yellow)
-        self.current_color = qt.QColor(qt.Qt.gray)
-        self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
+        # self.current_color = qt.QColor(qt.Qt.gray)
+        # self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
 
         # default colors
         self.bgcolor = item.bgcolor
@@ -305,20 +305,20 @@ class _ElementButton(qt.QPushButton):
     def sizeHint(self):
         return qt.QSize(40, 40)
 
-    def setCurrent(self, b):
-        """Set this element button as current.
-        Multiple buttons can be selected.
-
-        :param b: boolean
-        """
-        self.current = b
-        self.__setBrush()
-
-    def isCurrent(self):
-        """
-        :return: True if element button is current
-        """
-        return self.current
+    # def setCurrent(self, b):
+    #     """Set this element button as current.
+    #     Multiple buttons can be selected.
+    #
+    #     :param b: boolean
+    #     """
+    #     self.current = b
+    #     self.__setBrush()
+    #
+    # def isCurrent(self):
+    #     """
+    #     :return: True if element button is current
+    #     """
+    #     return self.current
 
     def isSelected(self):
         """
@@ -372,7 +372,7 @@ class _ElementButton(qt.QPushButton):
             painter.fillRect(paintGeom, self.brush)
         # paint frame
         pen = qt.QPen(qt.Qt.black)
-        pen.setWidth(1 if not self.current else 5)
+        # pen.setWidth(1 if not self.isCurrent else 5)
         painter.setPen(pen)
         painter.drawRect(paintGeom)
         painter.end()
@@ -470,8 +470,8 @@ class PeriodicTable(qt.QWidget):
         self.eltLabel.setAlignment(qt.Qt.AlignHCenter)
         self.gridLayout.addWidget(self.eltLabel, 1, 1, 3, 10)
 
-        self._eltCurrent = None
-        """Current :class:`_ElementButton` (last clicked)"""
+        # self._eltCurrent = None
+        # """Current :class:`_ElementButton` (last clicked)"""
 
         self._eltButtons = OrderedDict()
         """Dictionary of all :class:`_ElementButton`. Keys are the symbols
@@ -512,15 +512,15 @@ class PeriodicTable(qt.QWidget):
         self.eltLabel.setText("")
 
     def _elementClicked(self, item):
-        """Emit :attr:`sigElementClicked`, set :attr:`_eltCurrent`,
+        """Emit :attr:`sigElementClicked`,
         toggle selected state of element
         
         :param PeriodicTableItem item: Element clicked
         """
-        if self._eltCurrent is not None:
-            self._eltCurrent.setCurrent(False)
-        self._eltButtons[item.symbol].setCurrent(True)
-        self._eltCurrent = self._eltButtons[item.symbol]
+        # if self._eltCurrent is not None:
+        #     self._eltCurrent.setCurrent(False)
+        # self._eltButtons[item.symbol].setCurrent(True)
+        # self._eltCurrent = self._eltButtons[item.symbol]
         if self.selectable:
             self.elementToggle(item)
         self.sigElementClicked.emit(item)
