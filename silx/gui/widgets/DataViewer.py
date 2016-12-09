@@ -104,6 +104,10 @@ class _EmptyView(DataView):
 class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
+    def __init__(self, parent):
+        super(_Plot1dView, self).__init__(parent)
+        self.__resetZoomNextTime = True
+
     def axiesNames(self):
         return ["y"]
 
@@ -112,25 +116,40 @@ class _Plot1dView(DataView):
 
     def clear(self):
         self.getWidget().clear()
+        self.__resetZoomNextTime = True
 
     def setData(self, data):
-        self.getWidget().addCurve(legend="data", x=range(len(data)), y=data)
+        self.getWidget().addCurve(legend="data",
+                                  x=range(len(data)),
+                                  y=data,
+                                  resetzoom=self.__resetZoomNextTime)
+        self.__resetZoomNextTime = False
 
 
 class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
+    def __init__(self, parent):
+        super(_Plot2dView, self).__init__(parent)
+        self.__resetZoomNextTime = True
+
     def axiesNames(self):
         return ["x", "y"]
 
     def createWidget(self, parent):
-        return plot.Plot2D(parent=parent)
+        widget = plot.Plot2D(parent=parent)
+        widget.setKeepDataAspectRatio(True)
+        return widget
 
     def clear(self):
         self.getWidget().clear()
+        self.__resetZoomNextTime = True
 
     def setData(self, data):
-        self.getWidget().addImage(legend="data", data=data)
+        self.getWidget().addImage(legend="data",
+                                  data=data,
+                                  resetzoom=self.__resetZoomNextTime)
+        self.__resetZoomNextTime = False
 
 
 class _ArrayView(DataView):
