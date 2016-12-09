@@ -134,11 +134,13 @@ class _Plot2dView(DataView):
         self.__resetZoomNextTime = True
 
     def axiesNames(self):
-        return ["x", "y"]
+        return ["y", "x"]
 
     def createWidget(self, parent):
         widget = plot.Plot2D(parent=parent)
         widget.setKeepDataAspectRatio(True)
+        widget.setGraphXLabel('X')
+        widget.setGraphYLabel('Y')
         return widget
 
     def clear(self):
