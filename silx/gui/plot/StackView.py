@@ -48,10 +48,10 @@ __date__ = "07/12/2016"
 import numpy
 
 from silx.gui import qt
-from silx.gui.plot import PlotWindow, PlotActions
+from silx.gui.plot import PlotWindow
 from silx.gui.plot.Colors import cursorColorForColormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
-from silx.gui.plot.PlotTools import ProfileToolBar
+from silx.gui.plot.PlotTools import Profile3DToolBar
 
 
 class StackView(qt.QWidget):
@@ -100,7 +100,7 @@ class StackView(qt.QWidget):
 
         layout = qt.QVBoxLayout(self)
 
-        planeSelction = DockPlanes(self._plot)
+        planeSelction = PlanesDockWidget(self._plot)
         planeSelction.sigPlaneSelectionChanged.connect(self.__setPerspective)
         self._plot._introduceNewDockWidget(planeSelction)
         layout.addWidget(self._plot)
@@ -179,6 +179,7 @@ class StackView(qt.QWidget):
              return a view, else a copy is made even with ``copy=False``.
         :param bool reset: Whether to reset zoom or not.
         """
+        # todo: no copy for h5py datasets
         assert len(origin) == 2
         assert len(scale) == 2
         assert scale[0] > 0
@@ -416,7 +417,7 @@ class StackView(qt.QWidget):
         self._plot.setKeepDataAspectRatio(flag)
 
 
-class DockPlanes(qt.QDockWidget):
+class PlanesDockWidget(qt.QDockWidget):
     """Dock widget for the plane/perspective selection
 
     :param parent: the parent QWidget
@@ -424,7 +425,7 @@ class DockPlanes(qt.QDockWidget):
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(DockPlanes, self).__init__(parent)
+        super(PlanesDockWidget, self).__init__(parent)
 
         planeGB = qt.QGroupBox(self)
         planeGBLayout = qt.QVBoxLayout()
@@ -475,104 +476,6 @@ class DockPlanes(qt.QDockWidget):
             return 2
 
         raise RuntimeError('No plane selected')
-
-
-class Profile3DToolBar(ProfileToolBar):
-    def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title='Profile Selection', volume=None):
-        """QToolBar providing profile tools for 2D and 3D.
-
-        :param parent: the parent QWidget
-        :param plot: :class:`PlotWindow` instance on which to operate.
-        :param profileWindow: :class:`ProfileScanWidget` instance where to
-                              display the profile curve or None to create one.
-        :param str title: See :class:`QToolBar`.
-        :param parent: See :class:`QToolBar`.
-        :param volume: the 3D volume. Always compute the profile across
-            the first axis
-        """
-        super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
-        self._volume = volume
-        self.profile3DAction = self.__create3DProfileAction()
-        self._setComputeIn3D(False)
-
-    def __create3DProfileAction(self):
-        """Initialize the Profile3DAction action 
-        """
-        self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
-        self.profile3d.sigChange3DProfile.connect(self._setComputeIn3D)
-        self.addAction(self.profile3d)
-
-    def updateVolume(self, volume):
-        """Update the volume view.
-
-        When the perspective is changed (the volume is rotated),
-        a new view is created with the new depth dimension as first
-        dimension.
-
-        :param volume: a view on the data array with the dimension sorted
-            to have the depth as first dimension
-        """
-        self._volume = volume
-
-    def _setComputeIn3D(self, flag):
-        """Set flag to *True* to compute the profile in 3D, else
-        the profile is computed in 2D on the active image.
-
-        :param bool flag: Flag used when toggling 2D/3D profile mode
-        """
-        self._computeIn3D = flag
-        self.updateProfile()
-
-    def updateProfile(self):
-        """Method overloaded from :class:`ProfileToolBar`
-
-        In 2D profile mode, use the regular parent method.
-        """
-        if self._computeIn3D is False:
-            super(Profile3DToolBar, self).updateProfile()
-        else:
-            self.plot.remove(self._POLYGON_LEGEND, kind='item')
-            self.profileWindow.clear()
-            self.profileWindow.setGraphTitle('')
-            self.profileWindow.setGraphXLabel('X')
-            self.profileWindow.setGraphYLabel('Y')
-
-            # TODO : should we add a different color gradation relative to slices ?
-            data = self.plot.getActiveImage()
-            super(Profile3DToolBar, self)._createProfile(currentData=self._volume[0, :, :], 
-                                                         params=self.plot.getActiveImage()[4],
-                                                         volume=self._volume)
-
-
-class Profile3DAction(PlotActions.PlotAction):
-    """PlotAction that emits a signal when checked, to notify
-
-    :param plot: :class:`.PlotWidget` instance on which to operate.
-    :param icon: QIcon or str name of icon to use
-    :param str text: The name of this action to be used for menu label
-    :param str tooltip: The text of the tooltip
-    :param triggered: The callback to connect to the action's triggered
-                      signal or None for no callback.
-    :param bool checkable: True for checkable action, False otherwise (default)
-    :param parent: See :class:`QAction`.
-    """
-    sigChange3DProfile = qt.Signal(bool)
-
-    def __init__(self, plot, parent=None):
-        super(Profile3DAction, self).__init__(
-                plot=plot,
-                icon='cube',
-                text='3D profile',
-                tooltip='If activated, compute the profile on the stack of images',
-                triggered=self.__compute3DProfile,
-                checkable=True,
-                parent=parent)
-
-    def __compute3DProfile(self):
-        """Callback when the QAction is activated
-        """
-        self.sigChange3DProfile.emit(self.isChecked())
 
 
 # fixme: move demo to silx/examples when complete

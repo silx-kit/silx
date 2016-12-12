@@ -43,6 +43,7 @@ from .. import icons
 from .. import qt
 from silx.image.bilinear import BilinearImage
 from .Colors import cursorColorForColormap
+from .PlotActions import PlotAction
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -546,7 +547,7 @@ class ProfileToolBar(qt.QToolBar):
         # Convert from plot to image coords
         imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
 
-        if axis == 1:  # Vertical profile
+        if axis == 1:  # Vertical profile                             # fixme (volume)
             # Transpose image to always do a horizontal profile
             image = numpy.transpose(image)
 
@@ -564,17 +565,14 @@ class ProfileToolBar(qt.QToolBar):
                 profile = image[max(0, start):min(end, height), :].mean(
                     axis=0, dtype=numpy.float32)
             else:
-                profile = {}
-                for slice in range(volume.shape[0]):
-                    profile[slice] = (volume[slice, max(0, start):min(end, height), :].mean(
-                    axis=0, dtype=numpy.float32))
+                profile = (volume[:, max(0, start):min(end, height), :].mean(
+                    axis=1, dtype=numpy.float32))
+
         else:  # No ROI/image intersection
             if volume is None:
                 profile = numpy.zeros((width,), dtype=numpy.float32)
             else:
-                profile = {}
-                for slice in range(volume.shape[0]):
-                    profile[slice] = (numpy.zeros((width,), dtype=numpy.float32))
+                profile = numpy.zeros((width, volume.shape[0]), dtype=numpy.float32)
 
         # Compute effective ROI in plot coords
         profileBounds = numpy.array(
@@ -628,19 +626,16 @@ class ProfileToolBar(qt.QToolBar):
         colStart = min(max(0, colRange[0]), width)
         colEnd = min(max(0, colRange[1]), width)
 
-        if not volume is None:
-            profile = {}
-            for slice in range(volume.shape[0]):
-                imgProfile = numpy.mean(volume[slice, rowStart:rowEnd, colStart:colEnd],
-                                        axis=axis, dtype=numpy.float32)
+        if volume is not None:
+            imgProfile = numpy.mean(volume[:, rowStart:rowEnd, colStart:colEnd],
+                                    axis=axis+1, dtype=numpy.float32)
 
-                # Profile including out of bound area
-                lProfile = numpy.zeros(profileLength, dtype=numpy.float32)
+            # Profile including out of bound area
+            profile = numpy.zeros((volume.shape[0], profileLength), dtype=numpy.float32)
 
-                # Place imgProfile in full profile
-                offset = - min(0, profileRange[0])
-                lProfile[offset:offset + len(imgProfile)] = imgProfile
-                profile[slice] = lProfile
+            # Place imgProfile in full profile
+            offset = - min(0, profileRange[0])
+            profile[:, offset:offset + len(imgProfile)] = imgProfile
         else:
             imgProfile = numpy.mean(image[rowStart:rowEnd, colStart:colEnd],
                                     axis=axis, dtype=numpy.float32)
@@ -659,7 +654,7 @@ class ProfileToolBar(qt.QToolBar):
 
         This uses the current active image of the plot and the current ROI.
         """
-        imageData=self.plot.getActiveImage()
+        imageData = self.plot.getActiveImage()
         if imageData is None:
             return
         
@@ -696,7 +691,8 @@ class ProfileToolBar(qt.QToolBar):
 
         if lineProjectionMode == 'X':  # Horizontal profile on the whole image
             profile, area = self._alignedFullProfile(
-                currentData, origin, scale, roiStart[1], roiWidth, axis=0, volume=volume)
+                    currentData, origin, scale, roiStart[1], roiWidth,
+                    axis=0, volume=volume)
 
             yMin, yMax = min(area[1]), max(area[1]) - 1
             if roiWidth <= 1:
@@ -707,7 +703,8 @@ class ProfileToolBar(qt.QToolBar):
 
         elif lineProjectionMode == 'Y':  # Vertical profile on the whole image
             profile, area = self._alignedFullProfile(
-                currentData, origin, scale, roiStart[0], roiWidth, axis=1, volume=volume)
+                    currentData, origin, scale, roiStart[0], roiWidth,
+                    axis=1, volume=volume)
 
             xMin, xMax = min(area[0]), max(area[0]) - 1
             if roiWidth <= 1:
@@ -777,18 +774,19 @@ class ProfileToolBar(qt.QToolBar):
                         (endPt[0] - 0.5, endPt[1] - 0.5),
                         roiWidth)
                 else:
-                    profile = {}
+                    profile = []
 
-                    for slice in range(volume.shape[0]):
-                        bilinear = BilinearImage(volume[slice, :, :])
+                    for slice_idx in range(volume.shape[0]):
+                        bilinear = BilinearImage(volume[slice_idx, :, :])
 
                         # Offset start/end positions of 0.5 pixel to use pixel center
                         # rather than pixel lower left corner for interpolation
                         # This is only valid if image is displayed with nearest.
-                        profile[slice] = bilinear.profile_line(
-                                                    (startPt[0] - 0.5, startPt[1] - 0.5),
-                                                    (endPt[0] - 0.5, endPt[1] - 0.5),
-                                                    roiWidth)
+                        profile.append(bilinear.profile_line(
+                                                (startPt[0] - 0.5, startPt[1] - 0.5),
+                                                (endPt[0] - 0.5, endPt[1] - 0.5),
+                                                roiWidth))
+                    profile = numpy.array(profile)
 
                 # Extend ROI with half a pixel on each end, and
                 # Convert back to plot coords (x, y)
@@ -826,7 +824,7 @@ class ProfileToolBar(qt.QToolBar):
                 profileName = 'y = %g * x %+g ; width=%d' % (m, b, roiWidth)
             xLabel = 'Distance'
 
-        if type(profile) is dict:
+        if len(profile.shape) > 1:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
         else:
             coords = numpy.arange(len(profile), dtype=numpy.float32)
@@ -834,12 +832,10 @@ class ProfileToolBar(qt.QToolBar):
         # TODO coords in plot coords?
 
         self.profileWindow.setGraphTitle(profileName)
-        if type(profile) is dict:
-            for slice in profile:
-                self.profileWindow.addCurve(coords, profile[slice],
-                                            legend=profileName + str(slice),
-                                            xlabel=xLabel,
-                                            color=self.overlayColor)
+        if len(profile.shape) > 1:
+            self.profileWindow.addImage(profile,
+                                        legend=profileName,
+                                        xlabel=xLabel)
         else:
             self.profileWindow.addCurve(coords, profile,
                                         legend=profileName,
@@ -872,4 +868,103 @@ class ProfileToolBar(qt.QToolBar):
                 self.profileWindow.move(
                     max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
-            self.profileWindow.show()
+        self.profileWindow.show()
+
+
+class Profile3DAction(PlotAction):
+    """PlotAction that emits a signal when checked, to notify
+
+    :param plot: :class:`.PlotWidget` instance on which to operate.
+    :param icon: QIcon or str name of icon to use
+    :param str text: The name of this action to be used for menu label
+    :param str tooltip: The text of the tooltip
+    :param triggered: The callback to connect to the action's triggered
+                      signal or None for no callback.
+    :param bool checkable: True for checkable action, False otherwise (default)
+    :param parent: See :class:`QAction`.
+    """
+    sigChange3DProfile = qt.Signal(bool)
+
+    def __init__(self, plot, parent=None):
+        super(Profile3DAction, self).__init__(
+                plot=plot,
+                icon='cube',
+                text='3D profile',
+                tooltip='If activated, compute the profile on the stack of images',
+                triggered=self.__compute3DProfile,
+                checkable=True,
+                parent=parent)
+
+    def __compute3DProfile(self):
+        """Callback when the QAction is activated
+        """
+        self.sigChange3DProfile.emit(self.isChecked())
+
+
+class Profile3DToolBar(ProfileToolBar):
+    def __init__(self, parent=None, plot=None, profileWindow=None,
+                 title='Profile Selection', volume=None):
+        """QToolBar providing profile tools for 2D and 3D.
+
+        :param parent: the parent QWidget
+        :param plot: :class:`PlotWindow` instance on which to operate.
+        :param profileWindow: :class:`ProfileScanWidget` instance where to
+                              display the profile curve or None to create one.
+        :param str title: See :class:`QToolBar`.
+        :param parent: See :class:`QToolBar`.
+        :param volume: the 3D volume. Always compute the profile across
+            the first axis
+        """
+        super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
+        self._volume = volume
+        self.__create3DProfileAction()
+        self._setComputeIn3D(False)
+
+    def __create3DProfileAction(self):
+        """Initialize the Profile3DAction action
+        """
+        self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
+        self.profile3d.sigChange3DProfile.connect(self._setComputeIn3D)
+        self.addAction(self.profile3d)
+
+    def updateVolume(self, volume):
+        """Update the volume view.
+
+        When the perspective is changed (the volume is rotated),
+        a new view is created with the new depth dimension as first
+        dimension.
+
+        :param volume: a view on the data array with the dimension sorted
+            to have the depth as first dimension
+        """
+        self._volume = volume
+
+    def _setComputeIn3D(self, flag):
+        """Set flag to *True* to compute the profile in 3D, else
+        the profile is computed in 2D on the active image.
+
+        :param bool flag: Flag used when toggling 2D/3D profile mode
+        """
+        self._computeIn3D = flag
+        # super(Profile3DToolBar, self)._toggleProfileWindow3D()   # TODO
+        self.updateProfile()
+
+    def updateProfile(self):
+        """Method overloaded from :class:`ProfileToolBar`
+
+        In 2D profile mode, use the regular parent method.
+        """
+        if self._computeIn3D is False:
+            super(Profile3DToolBar, self).updateProfile()
+        else:
+            self.plot.remove(self._POLYGON_LEGEND, kind='item')
+            self.profileWindow.clear()
+            self.profileWindow.setGraphTitle('')
+            self.profileWindow.setGraphXLabel('X')
+            self.profileWindow.setGraphYLabel('Y')
+
+            # TODO : should we add a different color gradation relative to slices ?
+            # data = self.plot.getActiveImage()
+            super(Profile3DToolBar, self)._createProfile(currentData=self._volume[0, :, :],
+                                                         params=self.plot.getActiveImage()[4],
+                                                         volume=self._volume)
