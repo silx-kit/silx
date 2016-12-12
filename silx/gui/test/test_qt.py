@@ -26,14 +26,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "12/09/2016"
+__date__ = "05/12/2016"
 
 
 import os.path
 import unittest
 
-from silx.testutils import temp_dir
-from silx.gui.testutils import TestCaseQt
+from silx.test.utils import temp_dir
+from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 
