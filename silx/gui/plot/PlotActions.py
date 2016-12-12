@@ -1067,7 +1067,7 @@ class PixelIntensitiesHistoAction(PlotAction):
                 self.plotHistogram = PixelIntensityHistogram()
                 self.plotHistogram.sigClose.connect(self.unCheck)
 
-            histo, w_histo, edges = Histogramnd(activeImage[0].flatten(),
+            histo, w_histo, edges = Histogramnd(activeImage[0].ravel(),
                                                 n_bins=256,
                                                 histo_range=[0,256])
             
