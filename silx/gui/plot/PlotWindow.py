@@ -118,8 +118,7 @@ class PlotWindow(PlotWidget):
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  control=False, position=False,
-                 roi=True, mask=True, fit=False,
-                 pixelsIntensities=True):
+                 roi=True, mask=True, fit=False ):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -195,9 +194,13 @@ class PlotWindow(PlotWidget):
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
 
-        self.pixIntensitiesAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
-        self.pixIntensitiesAction.setVisible(pixelsIntensities)
-        self.sigActiveImageChanged.connect(self.pixIntensitiesAction.computeIntensityDistribution)
+        self._separator2 = qt.QAction('separator', self)
+        self._separator2.setSeparator(True)
+        self.group.addAction(self._separator2)
+
+        self._intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
+        self.sigActiveImageChanged.connect(self._intensityHistoAction.computeIntensityDistribution)
+        self.fitAction.setVisible(False)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -421,6 +424,21 @@ class PlotWindow(PlotWidget):
                                   dock_widget)
 
 
+    def showPixelIntensitiesAction(self, b=True):
+        """Activate the pixel intensities action
+
+        :param boolean b: True if we want to add this action to the toolBar
+        """
+        self.fitAction.setVisible(b)
+
+
+    def getIntensityHistogramAction(self):
+        """Action toggling the histogram intensity Dock widget"""
+        if not hasattr(self, '_intensityHistoAction'):
+            self._intensityHistoAction = PlotActions.PixelIntensitiesHistoAction(self)
+        return self._intensityHistoAction
+
+
 class Plot1D(PlotWindow):
     """PlotWindow with tools specific for curves.
 
@@ -437,8 +455,7 @@ class Plot1D(PlotWindow):
                                      aspectRatio=False, yInverted=False,
                                      copy=True, save=True, print_=True,
                                      control=True, position=True,
-                                     roi=True, mask=False, fit=True,
-                                     pixelsIntensities=False)
+                                     roi=True, mask=False, fit=True)
         if parent is None:
             self.setWindowTitle('Plot1D')
         self.setGraphXLabel('X')
@@ -467,8 +484,7 @@ class Plot2D(PlotWindow):
                                      aspectRatio=True, yInverted=True,
                                      copy=True, save=True, print_=True,
                                      control=False, position=posInfo,
-                                     roi=False, mask=True,
-                                     pixelsIntensities=True)
+                                     roi=False, mask=True)
         if parent is None:
             self.setWindowTitle('Plot2D')
         self.setGraphXLabel('Columns')

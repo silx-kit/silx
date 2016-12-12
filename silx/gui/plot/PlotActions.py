@@ -1037,7 +1037,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         """
         PlotAction.__init__(self,
                             plot,
-                            icon='shape-circle',
+                            icon='pixel-intensities',
                             text='pixels intensity',
                             tooltip='Compute image intensity distribution',
                             triggered=self.updateIntensityDistribution,
