@@ -110,7 +110,7 @@ DEFAULT_CONFIG = {
     'FwhmPoints': 8,
     'AutoFwhm': True,
     'Sensitivity': 2.5,
-    'ForcePeakPresence': False,
+    'ForcePeakPresence': True,
     # Hypermet
     'HypermetTails': 15,
     'QuotedFwhmFlag': 0,
