@@ -81,7 +81,6 @@ class TestArrayWidget(TestCaseQt):
         self.assertEqual(len(self.aw.model._perspective), 0)
 
     def testSetData4D(self):
-        """test for errors"""
         a = numpy.reshape(numpy.linspace(0.213, 1.234, 1250),
                           (5, 5, 5, 10))
         self.aw.setArrayData(a)
@@ -105,6 +104,48 @@ class TestArrayWidget(TestCaseQt):
 
         self.assertEqual(list(self.aw.model._index),
                          [3, 1])
+
+    def testColors(self):
+        a = numpy.arange(256, dtype=numpy.uint8)
+        self.aw.setArrayData(a)
+
+        bgcolor = numpy.empty(a.shape + (3,), dtype=numpy.uint8)
+        # Black & white palette
+        bgcolor[..., 0] = a
+        bgcolor[..., 1] = a
+        bgcolor[..., 2] = a
+
+        fgcolor = numpy.bitwise_xor(bgcolor, 255)
+
+        self.aw.setArrayColors(bgcolor, fgcolor)
+
+        # test colors are as expected in model
+        for i in range(256):
+            # all RGB channels for BG equal to data value
+            self.assertEqual(
+                self.aw.model.data(self.aw.model.index(0, i),
+                                   role=qt.Qt.BackgroundRole),
+                qt.QColor(i, i, i),
+                "Unexpected background color"
+            )
+
+            # all RGB channels for FG equal to XOR(data value, 255)
+            self.assertEqual(
+                self.aw.model.data(self.aw.model.index(0, i),
+                                   role=qt.Qt.ForegroundRole),
+                qt.QColor(i ^ 255, i ^ 255, i ^ 255),
+                "Unexpected text color"
+            )
+
+        # test colors are reset to None when a new data array is loaded
+        # with different shape
+        self.aw.setArrayData(numpy.arange(300))
+
+        for i in range(300):
+            # all RGB channels for BG equal to data value
+            self.assertIsNone(
+                self.aw.model.data(self.aw.model.index(0, i),
+                                   role=qt.Qt.BackgroundRole))
 
     def testDefaultFlagNotEditable(self):
         """editable should be False by default, in setArrayData"""
