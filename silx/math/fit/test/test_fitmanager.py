@@ -27,7 +27,6 @@ Tests for fitmanager module
 
 import unittest
 import numpy
-import os
 import os.path
 
 from silx.math.fit import fitmanager
@@ -35,7 +34,7 @@ from silx.math.fit import fittheories
 from silx.math.fit.fittheory import FitTheory
 from silx.math.fit.functions import sum_gauss, sum_stepdown, sum_stepup
 
-from silx.testutils import temp_dir
+from silx.test.utils import temp_dir
 
 custom_function_definition = """
 import copy
