@@ -199,7 +199,6 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self._separator2)
 
         self._intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
-        self.sigActiveImageChanged.connect(self._intensityHistoAction.computeIntensityDistribution)
         self.fitAction.setVisible(False)
 
         if control or position:
@@ -430,6 +429,10 @@ class PlotWindow(PlotWidget):
         :param boolean b: True if we want to add this action to the toolBar
         """
         self.fitAction.setVisible(b)
+        if b:
+            self.sigActiveImageChanged.connect(self._intensityHistoAction.computeIntensityDistribution)
+        else:
+            self.sigActiveImageChanged.disconnect(self._intensityHistoAction.computeIntensityDistribution)
 
 
     def getIntensityHistogramAction(self):
