@@ -1,7 +1,7 @@
 Package structure
 =================
 
-The :mod:`silx.gui.hdf5` package provides HDF5 widgets.
+The :mod:`silx.gui.plot` package provides plot widgets.
 This package is structured as follows.
 
 .. currentmodule:: silx.gui.plot
@@ -47,6 +47,11 @@ It is splitted in two classes:
 
 - :class:`BackendMatplotlib` that provides a matplotlib backend without a specific canvas.
 - :class:`BackendMatplotlibQt` which inherits from :class:`BackendMatplotlib` and adds a Qt canvas, and Qt specific functionalities.
+
+.. |Plot and backend| image:: img/plot_and_backend.png
+   :align: middle
+
+|Plot and backend|
 
 Modules
 =======

@@ -17,7 +17,16 @@ Import and create your tree view
 
 HDF5 widgets are all exposed by the package `silx.gui.hdf5`.
 
-.. code-block:: python
+.. testsetup:: *
+
+   from silx.gui import qt
+   app = qt.QApplication([])
+   import silx.gui.hdf5
+   treeview = silx.gui.hdf5.Hdf5TreeView()
+   header = treeview.header()
+   model = treeview.findHdf5TreeModel()
+
+.. testcode::
 
    import silx.gui.hdf5
    treeview = silx.gui.hdf5.Hdf5TreeView()
@@ -27,7 +36,7 @@ Custom your tree view
 
 The tree view can be customized to be sorted by default.
 
-.. code-block:: python
+.. testcode::
 
    # Sort content of files by time or name
    treeview.setSortingEnabled(True)
@@ -36,7 +45,7 @@ The model can be customized to support mouse interaction.
 A convenient method :meth:`Hdf5TreeView.findHdf5TreeModel` returns the main
 HDF5 model used through proxy models.
 
-.. code-block:: python
+.. testcode::
 
    model = treeview.findHdf5TreeModel()
 
@@ -49,7 +58,7 @@ HDF5 model used through proxy models.
 The tree view is also provided with a custom header which help to choose
 visible columns.
 
-.. code-block:: python
+.. testcode::
 
    header = treeview.header()
 
@@ -79,8 +88,8 @@ and dataset as it is.
 .. code-block:: python
 
    import h5py
-   h5 = h5py.File("test.py")
-   
+   h5 = h5py.File("test.h5")
+
    # We can use file
    model.insertH5pyObject(h5)
 
@@ -112,19 +121,21 @@ The callback receives a :class:`Hdf5ContextMenuEvent` every time the user
 requests the context menu. The event contains :class:`H5Node` objects which wrap
 h5py objects with extra information.
 
-.. code-block:: python
+.. testcode::
 
    def my_action_callback(obj):
       # do what you want
+      pass
 
    def my_callback(event):
-      objects = event.source().selectedH5Nodes()
+      objects = list(event.source().selectedH5Nodes())
       obj = objects[0]  # for single selection
 
+      menu = event.menu()
       if obj.ntype is h5py.Dataset:
-         action = qt.QAction("My funky action on datasets only")
+         action = qt.QAction("My funky action on datasets only", menu)
          action.triggered.connect(lambda: my_action_callback(obj))
-         event.menu().addAction(action)
+         menu.addAction(action)
 
    treeview.addContextMenuCallback(my_callback)
 
@@ -155,10 +166,13 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
       was pressed on is specified by index. The signal is only emitted when the
       index is valid.
 
-.. code-block:: python
+The method :meth:`Hdf5TreeView.selectedH5Nodes` returns an iterator of :class:`H5Node`
+objects which wrap h5py objects with extra information.
+
+.. testcode::
 
    def my_callback(index):
-       objects = treeview.selectedH5Nodes()
+       objects = list(treeview.selectedH5Nodes())
        obj = objects[0]  # for single selection
 
        print(obj)
@@ -176,7 +190,8 @@ The :class:`Hdf5TreeView` widget provides default Qt signals inherited from
        if obj.ntype is h5py.Dataset:
            print(obj.dtype)
            print(obj.shape)
-           print(obj.value)
+           print(obj.value)        # create a copy of data of the dataset
+           print(obj.h5py_object)  # reference to the Hdf5 dataset (or group)
 
    treeview.clicked.connect(my_callback)
 

@@ -559,6 +559,28 @@ def _string_to_char_star(string_):
     return string_
 
 
+def is_specfile(filename):
+    """Test if a file is a SPEC file, by checking if one of the first two
+    lines starts with *#F* (SPEC file header) or *#S* (scan header).
+
+    :param str filename: File path
+    :return: *True* if file is a SPEC file, *False* if it is not a SPEC file
+    :rtype: bool
+    """
+    if not os.path.isfile(filename):
+        return False
+    # test for presence of #S or #F in first two lines
+    f = open(filename)
+    for i, line in enumerate(f):
+        if line.startswith("#S") or line.startswith("#F"):
+            f.close()
+            return True
+        if i >= 1:
+            break
+    f.close()
+    return False
+
+
 cdef class SpecFile(object):
     """``SpecFile(filename)``
 
@@ -572,14 +594,12 @@ cdef class SpecFile(object):
         specfile_wrapper.SpecFileHandle *handle
         str filename
         int __open_failed
-    
    
     def __cinit__(self, filename):
         cdef int error = SF_ERR_NO_ERRORS
         self.__open_failed = 0
 
-
-        if os.path.isfile(filename):
+        if is_specfile(filename):
             filename = _string_to_char_star(filename)
             self.handle =  specfile_wrapper.SfOpen(filename, &error)
         else:

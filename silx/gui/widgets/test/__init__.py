@@ -25,9 +25,10 @@
 import unittest
 
 from . import test_threadpoolpushbutton
+from . import test_tablewidget
+from . import test_arraywidget
 
-
-__authors__ = ["V. Valls"]
+__authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
 __date__ = "11/10/2016"
 
@@ -35,5 +36,7 @@ __date__ = "11/10/2016"
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [test_threadpoolpushbutton.suite()])
+        [test_threadpoolpushbutton.suite(),
+         test_tablewidget.suite(),
+         test_arraywidget.suite()])
     return test_suite

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "23/09/2016"
+__date__ = "08/11/2016"
 
 
 from .. import qt
@@ -41,7 +41,7 @@ class Hdf5HeaderView(qt.QHeaderView):
     """
 
     def __init__(self, orientation, parent=None):
-        """\
+        """
         Constructor
 
         :param orientation qt.Qt.Orientation: Orientation of the header
@@ -188,5 +188,5 @@ class Hdf5HeaderView(qt.QHeaderView):
             current_pos = self.visualIndex(column_id)
             self.moveSection(current_pos, pos)
             self.setSectionHidden(column_id, False)
-        for column_id in set(self.model().COLUMN_IDS) - set(logicalIndexes):
+        for column_id in set(range(self.model().columnCount())) - set(logicalIndexes):
             self.setSectionHidden(column_id, True)

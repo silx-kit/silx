@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "30/11/2016"
 
 
 import logging
@@ -34,3 +34,8 @@ import logging
 
 # Init logging once for the whole module
 logging.basicConfig()
+
+from .utils import open  # pylint:disable=redefined-builtin
+from .utils import save1D
+
+__all__ = ["save1D"] # avoid to import open with "import *"

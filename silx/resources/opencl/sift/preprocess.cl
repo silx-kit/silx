@@ -89,7 +89,7 @@ u16_to_float(__global unsigned short  *array_int,
 /**
  * \brief cast values of an array of uint32 into a float output array.
  *
- * :param array_int:    Pointer to global memory with the input data as unsigned16 array
+ * :param array_int:    Pointer to global memory with the input data as unsigned32 array
  * :param array_float:  Pointer to global memory with the output data as float array
  * :param IMAGE_W:        Width of the image
  * :param IMAGE_H:         Height of the image
@@ -105,6 +105,28 @@ u32_to_float(__global unsigned int  *array_int,
     if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
     	int i = get_global_id(0) + IMAGE_W * get_global_id(1);
     	array_float[i]=(float)array_int[i];
+    }
+}//end kernel
+
+/**
+ * \brief cast values of an array of uint64 into a float output array.
+ *
+ * :param array_int:    Pointer to global memory with the input data as unsigned64 array
+ * :param array_float:  Pointer to global memory with the output data as float array
+ * :param IMAGE_W:        Width of the image
+ * :param IMAGE_H:         Height of the image
+ */
+__kernel void
+u64_to_float(__global unsigned long  *array_int,
+             __global float *array_float,
+             const int IMAGE_W,
+             const int IMAGE_H
+)
+{
+    //Global memory guard for padding
+    if ((get_global_id(0)<IMAGE_W) && (get_global_id(1) < IMAGE_H)){
+        int i = get_global_id(0) + IMAGE_W * get_global_id(1);
+        array_float[i]=(float)array_int[i];
     }
 }//end kernel
 

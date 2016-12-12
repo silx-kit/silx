@@ -270,6 +270,90 @@ class TestPreproc(unittest.TestCase):
             logger.info("--------------------------------------")
         self.assert_(delta < 1e-4, "delta=%s" % delta)
 
+    def test_uint32(self):
+        """
+        tests the uint32 kernel
+        """
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_uint32: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
+            return
+
+        lint = self.input.astype(numpy.uint32)
+        t0 = time.time()
+        au8 = pyopencl.array.to_device(self.queue, lint)
+        k1 = self.program.u32_to_float(self.queue, self.shape, self.wg, au8.data, self.gpudata.data, self.IMAGE_W, self.IMAGE_H)
+        k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
+                                                  self.gpudata.data,
+                                                  self.buffers_max_min.data,
+                                                  (self.IMAGE_W * self.IMAGE_H))
+        k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
+                                                  self.buffers_max_min.data,
+                                                  self.buffers_max.data,
+                                                  self.buffers_min.data)
+        k4 = self.program.normalizes(self.queue, self.shape, self.wg,
+                                     self.gpudata.data,
+                                     self.buffers_min.data,
+                                     self.buffers_max.data,
+                                     self.twofivefive.data,
+                                     self.IMAGE_W, self.IMAGE_H)
+        k4.wait()
+        res = self.gpudata.get()
+        t1 = time.time()
+        ref = normalize(lint)
+        t2 = time.time()
+        delta = abs(ref - res).max()
+        if self.PROFILE:
+            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
+            logger.info("Conversion uint32->float took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.info("Reduction stage1 took         %.3fms" % (1e-6 * (k2.profile.end - k2.profile.start)))
+            logger.info("Reduction stage2 took         %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
+            logger.info("Normalization                 %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
+            logger.info("--------------------------------------")
+        self.assert_(delta < 1e-4, "delta=%s" % delta)
+
+    def test_uint64(self):
+        """
+        tests the uint64 kernel
+        """
+        max_wg = kernel_workgroup_size(self.reduction, "max_min_global_stage1")
+        if max_wg < self.red_size:
+            logger.warning("test_uint64: Skipping test of WG=%s when maximum is %s (%s)", self.red_size, max_wg, self.max_wg)
+            return
+
+        lint = self.input.astype(numpy.uint64)
+        t0 = time.time()
+        au8 = pyopencl.array.to_device(self.queue, lint)
+        k1 = self.program.u64_to_float(self.queue, self.shape, self.wg, au8.data, self.gpudata.data, self.IMAGE_W, self.IMAGE_H)
+        k2 = self.reduction.max_min_global_stage1(self.queue, (self.red_size * self.red_size,), (self.red_size,),
+                                                  self.gpudata.data,
+                                                  self.buffers_max_min.data,
+                                                  (self.IMAGE_W * self.IMAGE_H))
+        k3 = self.reduction.max_min_global_stage2(self.queue, (self.red_size,), (self.red_size,),
+                                                  self.buffers_max_min.data,
+                                                  self.buffers_max.data,
+                                                  self.buffers_min.data)
+        k4 = self.program.normalizes(self.queue, self.shape, self.wg,
+                                     self.gpudata.data,
+                                     self.buffers_min.data,
+                                     self.buffers_max.data,
+                                     self.twofivefive.data,
+                                     self.IMAGE_W, self.IMAGE_H)
+        k4.wait()
+        res = self.gpudata.get()
+        t1 = time.time()
+        ref = normalize(lint)
+        t2 = time.time()
+        delta = abs(ref - res).max()
+        if self.PROFILE:
+            logger.info("Global execution time: CPU %.3fms, GPU: %.3fms." % (1000.0 * (t2 - t1), 1000.0 * (t1 - t0)))
+            logger.info("Conversion uint64->float took %.3fms" % (1e-6 * (k1.profile.end - k1.profile.start)))
+            logger.info("Reduction stage1 took         %.3fms" % (1e-6 * (k2.profile.end - k2.profile.start)))
+            logger.info("Reduction stage2 took         %.3fms" % (1e-6 * (k3.profile.end - k3.profile.start)))
+            logger.info("Normalization                 %.3fms" % (1e-6 * (k4.profile.end - k4.profile.start)))
+            logger.info("--------------------------------------")
+        self.assert_(delta < 1e-4, "delta=%s" % delta)
+
     def test_int32(self):
         """
         tests the int32 kernel
@@ -452,6 +536,8 @@ def suite():
     testSuite = unittest.TestSuite()
     testSuite.addTest(TestPreproc("test_uint8"))
     testSuite.addTest(TestPreproc("test_uint16"))
+    testSuite.addTest(TestPreproc("test_uint32"))
+    testSuite.addTest(TestPreproc("test_uint64"))
     testSuite.addTest(TestPreproc("test_int32"))
     testSuite.addTest(TestPreproc("test_int64"))
     testSuite.addTest(TestPreproc("test_rgb"))

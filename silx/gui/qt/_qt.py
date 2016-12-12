@@ -33,18 +33,6 @@ Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
 
 The name of the loaded Qt binding is stored in the BINDING variable.
 
-This module provides a flat namespace over Qt bindings by importing
-all symbols from **QtCore** and **QtGui** packages and if available
-from **QtOpenGL** and **QtSvg** packages.
-For **PyQt5**, it also imports all symbols from **QtWidgets** and
-**QtPrintSupport** packages.
-
-Example of using :mod:`silx.gui.qt` module:
-
->>> from silx.gui import qt
->>> app = qt.QApplication([])
->>> widget = qt.QWidget()
-
 For an alternative solution providing a structured namespace,
 see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
 provides the namespace of PyQt5 over PyQt4 and PySide.
@@ -52,7 +40,7 @@ provides the namespace of PyQt5 over PyQt4 and PySide.
 
 __authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "30/11/2016"
 
 
 import logging
@@ -72,13 +60,13 @@ HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
 
 # First check for an already loaded wrapper
-if 'PySide' in sys.modules:
+if 'PySide.QtCore' in sys.modules:
     BINDING = 'PySide'
 
-elif 'PyQt5' in sys.modules:
+elif 'PyQt5.QtCore' in sys.modules:
     BINDING = 'PyQt5'
 
-elif 'PyQt4' in sys.modules:
+elif 'PyQt4.QtCore' in sys.modules:
     BINDING = 'PyQt4'
 
 else:  # Then try Qt bindings
@@ -198,14 +186,3 @@ elif BINDING == 'PyQt5':
 
 else:
     raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
-
-
-def supportedImageFormats():
-    """Return a set of string of file format extensions supported by the
-    Qt runtime."""
-    if sys.version_info[0] < 3:
-        convert = str
-    else:
-        convert = lambda data: str(data, 'ascii')
-    formats = QImageReader.supportedImageFormats()
-    return set([convert(data) for data in formats])

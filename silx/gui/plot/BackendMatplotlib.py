@@ -32,35 +32,17 @@ __date__ = "15/09/2016"
 
 
 import logging
-import sys
 
 import numpy
 
 
 _logger = logging.getLogger(__name__)
 
-if 'matplotlib' in sys.modules:
-    _logger.warning(
-        'matplotlib already loaded, setting its backend may not work')
-
 
 from .. import qt
 
+from ._matplotlib import FigureCanvasQTAgg
 import matplotlib
-
-if qt.BINDING == 'PySide':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt4':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg
-
-elif qt.BINDING == 'PyQt5':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-
 from matplotlib import cm
 from matplotlib.container import Container
 from matplotlib.figure import Figure
@@ -158,6 +140,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 errorbarColor = 'k'
             else:
                 errorbarColor = color
+
+            # On Debian 7 at least, Nx1 array yerr does not seems supported
+            if (yerror is not None and yerror.ndim == 2 and
+                    yerror.shape[1] == 1 and len(x) != 1):
+                yerror = numpy.ravel(yerror)
 
             errorbars = axes.errorbar(x, y, label=legend,
                                       xerr=xerror, yerr=yerror,
@@ -773,7 +760,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
         default = super(BackendMatplotlib, self).getSupportedColormaps()
         maps = [m for m in cm.datad]
         maps.sort()
-        return default + maps
+        return default + tuple(maps)
 
     def __getColormap(self, name):
         if not self._colormaps:  # Lazy initialization of own colormaps
@@ -902,8 +889,6 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
         self.mpl_connect('button_release_event', self._onMouseRelease)
         self.mpl_connect('motion_notify_event', self._onMouseMove)
         self.mpl_connect('scroll_event', self._onMouseWheel)
-        self.mpl_connect('axes_enter_event', self._onMouseEnter)
-        self.mpl_connect('axes_leave_event', self._onMouseLeave)
 
     def postRedisplay(self):
         self._sigPostRedisplay.emit()
@@ -940,11 +925,9 @@ class BackendMatplotlibQt(FigureCanvasQTAgg, BackendMatplotlib):
     def _onMouseWheel(self, event):
         self._plot.onMouseWheel(event.x, event.y, event.step)
 
-    def _onMouseEnter(self, event):
-        self._plot.onMouseEnter(event.x, event.y)
-
-    def _onMouseLeave(self, event):
-        self._plot.onMouseLeave(event.x, event.y)
+    def leaveEvent(self, event):
+        """QWidget event handler"""
+        self._plot.onMouseLeaveWidget()
 
     # picking
 

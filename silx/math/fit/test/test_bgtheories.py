@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 #
 # ############################################################################*/
+import copy
 import unittest
 import numpy
 import random
@@ -95,7 +96,8 @@ class TestBgTheories(unittest.TestCase):
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
         # we really want to strip away the narrow peak
-        for idx in anchors_indices:
+        anchors_indices_copy = copy.deepcopy(anchors_indices)
+        for idx in anchors_indices_copy:
             if abs(idx - self.narrow_peak_index) < 5:
                 anchors_indices.remove(idx)
                 anchors.remove(self.x[idx])
@@ -126,7 +128,8 @@ class TestBgTheories(unittest.TestCase):
         anchors_indices = [list(self.x).index(a) for a in anchors]
 
         # we want to strip away the narrow peak, so remove nearby anchors
-        for idx in anchors_indices:
+        anchors_indices_copy = copy.deepcopy(anchors_indices)
+        for idx in anchors_indices_copy:
             if abs(idx - self.narrow_peak_index) < 5:
                 anchors_indices.remove(idx)
                 anchors.remove(self.x[idx])
@@ -137,7 +140,8 @@ class TestBgTheories(unittest.TestCase):
 
         # assert peak amplitude has been decreased
         self.assertLess(bg[self.narrow_peak_index],
-                        self.y[self.narrow_peak_index])
+                        self.y[self.narrow_peak_index],
+                        "Snip didn't decrease the peak amplitude.")
 
         # anchored data must remain fixed
         for i in anchors_indices:

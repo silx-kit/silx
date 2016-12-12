@@ -26,10 +26,11 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/10/2016"
+__date__ = "29/11/2016"
 
 
 import time
+import os
 import unittest
 import tempfile
 import numpy
@@ -62,14 +63,17 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
 
     @contextmanager
     def h5TempFile(self):
-        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        tmp.file.close()
-
-        self.h5 = h5py.File(tmp.name, "w")
-        g = self.h5.create_group("arrays")
+        # create tmp file
+        fd, tmp_name = tempfile.mkstemp(suffix=".h5")
+        os.close(fd)
+        # create h5 data
+        h5file = h5py.File(tmp_name, "w")
+        g = h5file.create_group("arrays")
         g.create_dataset("scalar", data=10)
-        self.h5.close()
-        yield tmp.name
+        h5file.close()
+        yield tmp_name
+        # clean up
+        os.unlink(tmp_name)
 
     def testCreate(self):
         model = hdf5.Hdf5TreeModel()
@@ -81,6 +85,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
             model.appendFile(filename)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testAppendBadFilename(self):
         model = hdf5.Hdf5TreeModel()
@@ -92,6 +100,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             self.assertEquals(model.rowCount(qt.QModelIndex()), 0)
             model.insertFile(filename)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testInsertFilenameAsync(self):
         with self.h5TempFile() as filename:
@@ -106,6 +118,10 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             index = model.index(0, 0, qt.QModelIndex())
             self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testInsertObject(self):
         h5 = _mock.File("/foo/bar/1.mock")
@@ -135,6 +151,16 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             index = model.index(0, 0, qt.QModelIndex())
             node2 = model.nodeFromIndex(index)
             self.assertIsNot(node1, node2)
+            # after sync
+            time.sleep(0.1)
+            self.qapp.processEvents()
+            time.sleep(0.1)
+            index = model.index(0, 0, qt.QModelIndex())
+            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def testFileMoveState(self):
         model = hdf5.Hdf5TreeModel()
@@ -171,6 +197,16 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
             mimeData.setUrls([qt.QUrl.fromLocalFile(filename)])
             model.dropMimeData(mimeData, qt.Qt.CopyAction, 0, 0, qt.QModelIndex())
             self.assertEquals(model.rowCount(qt.QModelIndex()), 1)
+            # after sync
+            time.sleep(0.1)
+            self.qapp.processEvents()
+            time.sleep(0.1)
+            index = model.index(0, 0, qt.QModelIndex())
+            self.assertIsInstance(model.nodeFromIndex(index), hdf5.Hdf5Item.Hdf5Item)
+            # clean up
+            index = model.index(0, 0, qt.QModelIndex())
+            h5File = model.data(index, role=hdf5.Hdf5TreeModel.H5PY_OBJECT_ROLE)
+            h5File.close()
 
     def getRowDataAsDict(self, model, row):
         displayed = {}
@@ -381,15 +417,6 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
 
 class TestHdf5(testutils.TestCaseQt):
     """Test to check that icons module."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-        cls.tmp.file.close()
-
-        cls.h5 = h5py.File(cls.tmp.name, "w")
-        g = cls.h5.create_group("arrays")
-        g.create_dataset("scalar", data=10)
 
     def setUp(self):
         super(TestHdf5, self).setUp()

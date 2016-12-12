@@ -226,9 +226,10 @@ class Histogramnd(object):
             the LAST bin to be closed.
         :type last_bin_closed: *optional*, :class:`python.boolean`
 
-        :param wh_dtype: type of the weighted histogram array. If not provided, the
-            weighted histogram array will contain values of the same type as
-            *weights*. Allowed values are : `numpy.double` and `numpy.float32`
+        :param wh_dtype: type of the weighted histogram array.
+            If not provided, the weighted histogram array will contain values
+            of type numpy.double. Allowed values are : `numpy.double` and
+            `numpy.float32`
         :type wh_dtype: *optional*, numpy data type
         """
 

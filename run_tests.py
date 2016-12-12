@@ -32,7 +32,7 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "14/10/2016"
+__date__ = "29/11/2016"
 __license__ = "MIT"
 
 import distutils.util
@@ -109,15 +109,14 @@ class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
         self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
+        unittest.TextTestRunner.resultclass.startTest(self, test)
         if resource:
             self.__mem_start = \
                 resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        self.logger.debug("Start %s", test.id())
         self.__time_start = time.time()
-        unittest.TestResult.startTest(self, test)
 
     def stopTest(self, test):
-        unittest.TestResult.stopTest(self, test)
+        unittest.TextTestRunner.resultclass.stopTest(self, test)
         # see issue 311. For other platform, get size of ru_maxrss in "man getrusage"
         if sys.platform == "darwin":
             ratio = 1e-6
@@ -252,6 +251,8 @@ parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
 parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
                     action="store_true",
                     help="Disable test with large memory consumption (>100Mbyte")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
 
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
@@ -265,6 +266,7 @@ test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
+    test_verbosity = 2
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
@@ -288,6 +290,19 @@ if options.coverage:
         cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
+if options.qt_binding:
+    binding = options.qt_binding.lower()
+    if binding == "pyqt4":
+        logger.info("Force using PyQt4")
+        import PyQt4  #noqa
+    elif binding == "pyqt5":
+        logger.info("Force using PyQt5")
+        import PyQt5  #noqa
+    elif binding == "pyside":
+        logger.info("Force using PySide")
+        import PySide  #noqa
+    else:
+        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
 # Prevent importing from source directory
 if (os.path.dirname(os.path.abspath(__file__)) ==
