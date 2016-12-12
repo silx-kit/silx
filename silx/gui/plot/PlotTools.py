@@ -350,8 +350,10 @@ class ProfileToolBar(qt.QToolBar):
 
         if profileWindow is None:
             # Import here to avoid cyclic import
-            from .PlotWindow import Plot1D  # noqa
-            self.profileWindow = Plot1D()
+            from .PlotWindow import Plot1D      # noqa
+            self._profileWindow1D = Plot1D()
+            self._profileWindow2D = None     # created on request
+            self.profileWindow = self._profileWindow1D
             self._ownProfileWindow = True
         else:
             self.profileWindow = profileWindow
@@ -430,6 +432,29 @@ class ProfileToolBar(qt.QToolBar):
         self.setEnabled(self.plot.getActiveImage(just_legend=True) is not None)
         self.plot.sigActiveImageChanged.connect(
             self._activeImageChanged)
+
+    def _profile3DActionToggled(self, checked):
+        if not self._ownProfileWindow:
+            # profile window handled by user
+            return
+
+        isVisible = self.profileWindow.isVisible()
+
+        if checked:
+            if self._profileWindow2D is None:
+                from .PlotWindow import Plot2D      # noqa
+                self._profileWindow2D = Plot2D()
+            self.profileWindow = self._profileWindow2D
+
+            if isVisible:
+                self._profileWindow1D.hide()
+                self._profileWindow2D.show()
+        else:
+            self.profileWindow = self._profileWindow1D
+
+            if isVisible:
+                self._profileWindow2D.hide()
+                self._profileWindow1D.show()
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
@@ -946,7 +971,7 @@ class Profile3DToolBar(ProfileToolBar):
         :param bool flag: Flag used when toggling 2D/3D profile mode
         """
         self._computeIn3D = flag
-        # super(Profile3DToolBar, self)._toggleProfileWindow3D()   # TODO
+        super(Profile3DToolBar, self)._profile3DActionToggled(flag)
         self.updateProfile()
 
     def updateProfile(self):
@@ -963,8 +988,6 @@ class Profile3DToolBar(ProfileToolBar):
             self.profileWindow.setGraphXLabel('X')
             self.profileWindow.setGraphYLabel('Y')
 
-            # TODO : should we add a different color gradation relative to slices ?
-            # data = self.plot.getActiveImage()
             super(Profile3DToolBar, self)._createProfile(currentData=self._volume[0, :, :],
                                                          params=self.plot.getActiveImage()[4],
                                                          volume=self._volume)
