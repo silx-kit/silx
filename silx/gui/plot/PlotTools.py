@@ -528,28 +528,30 @@ class ProfileToolBar(qt.QToolBar):
         self.updateProfile()
 
     @staticmethod
-    def _alignedFullProfile(image, origin, scale, position, roiWidth, axis, volume=None):
-        """Get a profile along one axis on the active image
+    def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
+        """Get a profile along one axis on a stack of images
 
-        :param numpy.ndarray image: 2D image
+        :param numpy.ndarray data: 3D volume (stack of 2D images)
+            The first dimension is the image index.
         :param origin: Origin of image in plot (ox, oy)
         :param scale: Scale of image in plot (sx, sy)
         :param float position: Position of profile line in plot coords
                                on the axis orthogonal to the profile direction.
         :param int roiWidth: Width of the profile in image pixels.
         :param int axis: 0 for horizontal profile, 1 for vertical.
-        :return: profile curve + effective ROI area corners in plot coords
+        :return: profile image + effective ROI area corners in plot coords
         """
         assert axis in (0, 1)
+        assert len(data.shape) == 3
 
         # Convert from plot to image coords
         imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
 
         if axis == 1:  # Vertical profile
             # Transpose image to always do a horizontal profile
-            image = numpy.transpose(image)
+            data = numpy.transpose(data, (0, 2, 1))
 
-        height, width = image.shape
+        nimages, height, width = data.shape
 
         roiWidth = min(height, roiWidth)  # Clip roi width to image size
 
@@ -559,11 +561,10 @@ class ProfileToolBar(qt.QToolBar):
         end = start + roiWidth
 
         if start < height and end > 0:
-            profile = image[max(0, start):min(end, height), :].mean(
-                axis=0, dtype=numpy.float32)
-
+            profile = data[:, max(0, start):min(end, height), :].mean(
+                axis=1, dtype=numpy.float32)
         else:
-            profile = numpy.zeros((width,), dtype=numpy.float32)
+            profile = numpy.zeros((nimages, width), dtype=numpy.float32)
 
         # Compute effective ROI in plot coords
         profileBounds = numpy.array(
@@ -581,13 +582,14 @@ class ProfileToolBar(qt.QToolBar):
         return profile, area
 
     @staticmethod
-    def _alignedPartialProfile(image, rowRange, colRange, axis, volume=None):
-        """Mean of a rectangular region (ROI) of an image along a given axis.
+    def _alignedPartialProfile(data, rowRange, colRange, axis):
+        """Mean of a rectangular region (ROI) of a stack of images
+        along a given axis.
 
         Returned values and all parameters are in image coordinates.
 
-        :param image: 2D data.
-        :type image: numpy.ndarray with 2 dimensions.
+        :param numpy.ndarray data: 3D volume (stack of 2D images)
+            The first dimension is the image index.
         :param rowRange: [min, max[ of ROI rows (upper bound excluded).
         :type rowRange: 2-tuple of int (min, max) with min < max
         :param colRange: [min, max[ of ROI columns (upper bound excluded).
@@ -595,16 +597,15 @@ class ProfileToolBar(qt.QToolBar):
         :param int axis: The axis along which to take the profile of the ROI.
                          0: Sum rows along columns.
                          1: Sum columns along rows.
-        :param numpy.ndarray volume: None if we want to compute the profile in 2D, otherwise the targetted volume. 
-                                     The profile we always be computed along the first axis                         
-        :return: Profile curve along the ROI as the mean of the intersection
+        :return: Profile image along the ROI as the mean of the intersection
                  of the ROI and the image.
         """
         assert axis in (0, 1)
+        assert len(data.shape) == 3
         assert rowRange[0] < rowRange[1]
         assert colRange[0] < colRange[1]
 
-        height, width = image.shape
+        nimages, height, width = data.shape
 
         # Range aligned with the integration direction
         profileRange = colRange if axis == 0 else rowRange
@@ -617,26 +618,15 @@ class ProfileToolBar(qt.QToolBar):
         colStart = min(max(0, colRange[0]), width)
         colEnd = min(max(0, colRange[1]), width)
 
-        if volume is not None:
-            imgProfile = numpy.mean(volume[:, rowStart:rowEnd, colStart:colEnd],
-                                    axis=axis+1, dtype=numpy.float32)
+        imgProfile = numpy.mean(data[:, rowStart:rowEnd, colStart:colEnd],
+                                axis=axis+1, dtype=numpy.float32)
 
-            # Profile including out of bound area
-            profile = numpy.zeros((volume.shape[0], profileLength), dtype=numpy.float32)
+        # Profile including out of bound area
+        profile = numpy.zeros((nimages, profileLength), dtype=numpy.float32)
 
-            # Place imgProfile in full profile
-            offset = - min(0, profileRange[0])
-            profile[:, offset:offset + len(imgProfile)] = imgProfile
-        else:
-            imgProfile = numpy.mean(image[rowStart:rowEnd, colStart:colEnd],
-                                    axis=axis, dtype=numpy.float32)
-
-            # Profile including out of bound area
-            profile = numpy.zeros(profileLength, dtype=numpy.float32)
-
-            # Place imgProfile in full profile
-            offset = - min(0, profileRange[0])
-            profile[offset:offset + len(imgProfile)] = imgProfile
+        # Place imgProfile in full profile
+        offset = - min(0, profileRange[0])
+        profile[:, offset:offset + len(imgProfile)] = imgProfile
 
         return profile
 
@@ -661,8 +651,8 @@ class ProfileToolBar(qt.QToolBar):
     def _createProfile(self, currentData, params):
         """Create the profile line for the the given image.
 
-        :param numpy.ndarray currentData: the image or the volume on which
-            we compute the profile
+        :param numpy.ndarray currentData: the image or the stack of images
+            on which we compute the profile
         :param params: parameters of the plot as origin and scale
         """
         if self._roiInfo is None:
@@ -672,6 +662,11 @@ class ProfileToolBar(qt.QToolBar):
             return
 
         dataIs3D = len(currentData.shape) > 2
+        # the rest of the method works on 3D data (stack of images)
+        if len(currentData.shape) == 2:
+            currentData3D = currentData.reshape((1,) + currentData.shape)
+        elif len(currentData.shape) == 3:
+            currentData3D = currentData
 
         origin, scale = params['origin'], params['scale']
         zActiveImage = params['z']
@@ -681,9 +676,10 @@ class ProfileToolBar(qt.QToolBar):
         roiStart, roiEnd, lineProjectionMode = self._roiInfo
 
         if lineProjectionMode == 'X':  # Horizontal profile on the whole image
-            profile, area = self._alignedFullProfile(
-                    currentData, origin, scale, roiStart[1], roiWidth,
-                    axis=0)
+            profile, area = self._alignedFullProfile(currentData3D,
+                                                     origin, scale,
+                                                     roiStart[1], roiWidth,
+                                                     axis=0)
 
             yMin, yMax = min(area[1]), max(area[1]) - 1
             if roiWidth <= 1:
@@ -693,9 +689,10 @@ class ProfileToolBar(qt.QToolBar):
             xLabel = 'Columns'
 
         elif lineProjectionMode == 'Y':  # Vertical profile on the whole image
-            profile, area = self._alignedFullProfile(
-                    currentData, origin, scale, roiStart[0], roiWidth,
-                    axis=1)
+            profile, area = self._alignedFullProfile(currentData3D,
+                                                     origin, scale,
+                                                     roiStart[0], roiWidth,
+                                                     axis=1)
 
             xMin, xMax = min(area[0]), max(area[0]) - 1
             if roiWidth <= 1:
@@ -728,15 +725,17 @@ class ProfileToolBar(qt.QToolBar):
                     rowRange = (int(startPt[0] + 0.5 - 0.5 * roiWidth),
                                 int(startPt[0] + 0.5 + 0.5 * roiWidth))
                     colRange = startPt[1], endPt[1] + 1
-                    profile = self._alignedPartialProfile(
-                        currentData, rowRange, colRange, axis=0)
+                    profile = self._alignedPartialProfile(currentData3D,
+                                                          rowRange, colRange,
+                                                          axis=0)
 
                 else:  # Column aligned
                     rowRange = startPt[0], endPt[0] + 1
                     colRange = (int(startPt[1] + 0.5 - 0.5 * roiWidth),
                                 int(startPt[1] + 0.5 + 0.5 * roiWidth))
-                    profile = self._alignedPartialProfile(
-                        currentData, rowRange, colRange, axis=1)
+                    profile = self._alignedPartialProfile(currentData3D,
+                                                          rowRange, colRange,
+                                                          axis=1)
 
                 # Convert ranges to plot coords to draw ROI area
                 area = (
@@ -754,26 +753,15 @@ class ProfileToolBar(qt.QToolBar):
                         startPt[1] == endPt[1] and startPt[0] > endPt[0])):
                     startPt, endPt = endPt, startPt
 
-                if not dataIs3D:
-                    bilinear = BilinearImage(currentData)
+                profile = []
+                for slice_idx in range(currentData3D.shape[0]):
+                    bilinear = BilinearImage(currentData3D[slice_idx, :, :])
 
-                    # Offset start/end positions of 0.5 pixel to use pixel center
-                    # rather than pixel lower left corner for interpolation
-                    # This is only valid if image is displayed with nearest.
-                    profile = bilinear.profile_line(
-                        (startPt[0] - 0.5, startPt[1] - 0.5),
-                        (endPt[0] - 0.5, endPt[1] - 0.5),
-                        roiWidth)
-                else:
-                    profile = []
-                    for slice_idx in range(currentData.shape[0]):
-                        bilinear = BilinearImage(currentData[slice_idx, :, :])
-
-                        profile.append(bilinear.profile_line(
-                                                (startPt[0] - 0.5, startPt[1] - 0.5),
-                                                (endPt[0] - 0.5, endPt[1] - 0.5),
-                                                roiWidth))
-                    profile = numpy.array(profile)
+                    profile.append(bilinear.profile_line(
+                                            (startPt[0] - 0.5, startPt[1] - 0.5),
+                                            (endPt[0] - 0.5, endPt[1] - 0.5),
+                                            roiWidth))
+                profile = numpy.array(profile)
 
 
                 # Extend ROI with half a pixel on each end, and
@@ -822,8 +810,8 @@ class ProfileToolBar(qt.QToolBar):
                                         xlabel=xLabel,
                                         colormap=colorMap)
         else:
-            coords = numpy.arange(len(profile), dtype=numpy.float32)
-            self.profileWindow.addCurve(coords, profile,
+            coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
+            self.profileWindow.addCurve(coords, profile[0],
                                         legend=profileName,
                                         xlabel=xLabel,
                                         color=self.overlayColor)
@@ -964,114 +952,9 @@ class Profile3DToolBar(ProfileToolBar):
                 self._profileWindow2D.hide()
                 self._profileWindow1D.show()
 
-    @staticmethod
-    def _alignedFullProfile3D(volume, origin, scale, position, roiWidth, axis):
-        """Get a profile along one axis on the stack of images.
-
-        The first dimension of the volume is the image index. The second
-        dimension is the vertical dimension and the third dimension is
-        the horizontal dimension.
-
-        :param numpy.ndarray volume: 3D volume
-        :param origin: Origin of image currently plotted (ox, oy)
-        :param scale: Scale of image in plot (sx, sy)
-        :param float position: Position of profile line in plot coords
-                               on the axis orthogonal to the profile direction.
-        :param int roiWidth: Width of the profile in image pixels.
-        :param int axis: 0 for horizontal profile, 1 for vertical.
-        :return: profile curve + effective ROI area corners in plot coords
-        """
-        assert axis in (0, 1)
-
-        # Convert from plot to image coords
-        imgPos = int((position - origin[1 - axis]) / scale[1 - axis])
-
-        if axis == 1:  # Vertical profile
-            # Transpose image to always do a horizontal profile
-            volume = numpy.transpose(volume, (0, 2, 1))
-
-        nimages, height, width = volume.shape
-
-        roiWidth = min(height, roiWidth)  # Clip roi width to image size
-
-        # Get [start, end[ coords of the roi in the data
-        start = int(int(imgPos) + 0.5 - roiWidth / 2.)
-        start = min(max(0, start), height - roiWidth)
-        end = start + roiWidth
-
-        if start < height and end > 0:
-            profile = volume[:, max(0, start):min(end, height), :].mean(
-                    axis=1, dtype=numpy.float32)
-
-        else:  # No ROI/image intersection
-            profile = numpy.zeros((volume.shape[0], width), dtype=numpy.float32)
-
-        # Compute effective ROI in plot coords
-        profileBounds = numpy.array(
-            (0, width, width, 0),
-            dtype=numpy.float32) * scale[axis] + origin[axis]
-        roiBounds = numpy.array(
-            (start, start, end, end),
-            dtype=numpy.float32) * scale[1 - axis] + origin[1 - axis]
-
-        if axis == 0:  # Horizontal profile
-            area = profileBounds, roiBounds
-        else:  # vertical profile
-            area = roiBounds, profileBounds
-
-        return profile, area
-
-    @staticmethod
-    def _alignedPartialProfile3D(volume, rowRange, colRange, axis):
-        """Mean of a rectangular region (ROI) of an image along a given axis.
-
-        Returned values and all parameters are in image coordinates.
-
-        :param image: 2D data.
-        :type image: numpy.ndarray with 2 dimensions.
-        :param rowRange: [min, max[ of ROI rows (upper bound excluded).
-        :type rowRange: 2-tuple of int (min, max) with min < max
-        :param colRange: [min, max[ of ROI columns (upper bound excluded).
-        :type colRange: 2-tuple of int (min, max) with min < max
-        :param int axis: The axis along which to take the profile of the ROI.
-                         0: Sum rows along columns.
-                         1: Sum columns along rows.
-        :param numpy.ndarray volume: None if we want to compute the profile in 2D, otherwise the targetted volume.
-                                     The profile we always be computed along the first axis
-        :return: Profile curve along the ROI as the mean of the intersection
-                 of the ROI and the image.
-        """
-        assert axis in (0, 1)
-        assert rowRange[0] < rowRange[1]
-        assert colRange[0] < colRange[1]
-
-        nimages, height, width = volume.shape
-
-        # Range aligned with the integration direction
-        profileRange = colRange if axis == 0 else rowRange
-
-        profileLength = abs(profileRange[1] - profileRange[0])
-
-        # Subset of the image to use as intersection of ROI and image
-        rowStart = min(max(0, rowRange[0]), height)
-        rowEnd = min(max(0, rowRange[1]), height)
-        colStart = min(max(0, colRange[0]), width)
-        colEnd = min(max(0, colRange[1]), width)
-
-        imgProfile = numpy.mean(volume[:, rowStart:rowEnd, colStart:colEnd],
-                                axis=axis+1, dtype=numpy.float32)
-
-        # Profile including out of bound area
-        profile = numpy.zeros((volume.shape[0], profileLength), dtype=numpy.float32)
-
-        # Place imgProfile in full profile
-        offset = - min(0, profileRange[0])
-        profile[:, offset:offset + len(imgProfile)] = imgProfile
-
-        return profile
-
     def updateProfile(self):
-        """Method overloaded from :class:`ProfileToolBar`
+        """Method overloaded from :class:`ProfileToolBar`,
+        to pass the stack of images instead of just the active image.
 
         In 2D profile mode, use the regular parent method.
         """
@@ -1084,23 +967,7 @@ class Profile3DToolBar(ProfileToolBar):
             self.profileWindow.setGraphXLabel('X')
             self.profileWindow.setGraphYLabel('Y')
 
+            # fixme: implement StackView.getVolume, which must return a numpy array
+            #        (plot._volume might be a list of lists or a dataset)
             self._createProfile(currentData=self._volume,
                                 params=self.plot.getActiveImage()[4])
-
-    def _createProfile(self, currentData, params):
-        """Create the profile line for the the given image.
-        If a volume is given then compute the 3D profile along the first axis of the volume
-
-        :param numpy.ndarray currentData: the image of reference on which
-            we compute the profile, or the data volume for a 3D profile
-        :param params: parameters of the plot as origin and scale
-        """
-        # assign adequate alignedProfile methods depending on dimensionality
-        if len(currentData.shape) > 2:
-            self._alignedFullProfile = self._alignedFullProfile3D
-            self._alignedPartialProfile = self._alignedPartialProfile3D
-        else:
-            self._alignedFullProfile = ProfileToolBar._alignedFullProfile
-            self._alignedPartialProfile = ProfileToolBar._alignedPartialProfile
-
-        super(Profile3DToolBar, self)._createProfile(currentData, params)
