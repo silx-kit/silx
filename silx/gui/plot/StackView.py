@@ -86,9 +86,12 @@ class StackView(qt.QWidget):
                                 copy=True, save=True, print_=True,
                                 control=False, position=None,
                                 roi=False, mask=False)
+        self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
+        self.sigActiveImageChanged = self._plot.sigActiveImageChanged
+        self.sigPlotSignal = self._plot.sigPlotSignal
 
         self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              plot=self._plot,
+                                              plot=self,
                                               volume=self.__volumeview)
         self._plot.addToolBar(self._plot.profile)
         self._plot.setGraphXLabel('Columns')
@@ -144,8 +147,6 @@ class StackView(qt.QWidget):
             self.__volumeview = numpy.rollaxis(self._volume, 2)
 
         self._browser.setRange(0, self.__volumeview.shape[0] - 1)
-
-        self._plot.profile.updateVolume(self.__volumeview)
 
     def __updateFrameNumber(self, index):
         """Update the current image displayed
@@ -214,6 +215,42 @@ class StackView(qt.QWidget):
 
         # enable and init browser
         self._browser.setEnabled(True)
+
+    def getVolume(self, copy=True, returnNumpyArray=False):
+        """Get the stack of images
+
+        Default output has the form: [data, params]
+        where params is a dictionary containing display parameters.
+
+        :param bool copy: If True (default), then the object is copied
+            and returned as a numpy array.
+            Else, a reference to original data is returned, if possible.
+            If the original data is not a numpy array and parameter
+            returnNumpyArray is True, a copy will be made anyway.
+        :param bool returnNumpyArray: If True, the returned object is
+            guaranteed to be a numpy array.
+        :return: Stack of images and parameters.
+        :rtype: (numpy.ndarray, dict)
+        """
+        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+        if returnNumpyArray or copy:
+            return numpy.array(self.__volumeview, copy=copy), params
+        return self.__volumeview, params
+
+    def getActiveImage(self, just_legend=False):
+        """Returns the currently active image.
+
+        It returns None in case of not having an active image.
+
+        Default output has the form: [data, legend, info, pixmap, params]
+        where params is a dictionary containing image parameters.
+
+        :param bool just_legend: True to get the legend of the image,
+            False (the default) to get the image data and info.
+        :return: legend of active image or [data, legend, info, pixmap, params]
+        :rtype: str or list
+        """
+        return self._plot.getActiveImage(just_legend=just_legend)
 
     def clear(self):
         """Clear the widget:
@@ -415,6 +452,25 @@ class StackView(qt.QWidget):
         :param bool flag: True to respect data aspect ratio
         """
         self._plot.setKeepDataAspectRatio(flag)
+
+    # kind of internal, but needed by Profile
+    def remove(self, legend=None,
+               kind=('curve', 'image', 'item', 'marker')):
+        """See :meth:`Plot.Plot.remove`"""
+        self._plot.remove(legend, kind)
+
+    def setInteractiveMode(self, *args, **kwargs):
+        """
+        See :meth:`Plot.Plot.setInteractiveMode`
+        """
+        self._plot.setInteractiveMode(*args, **kwargs)
+
+    def addItem(self, *args, **kwargs):
+        """
+        See :meth:`Plot.Plot.addItem`
+        """
+        self._plot.addItem(*args, **kwargs)
+
 
 
 class PlanesDockWidget(qt.QDockWidget):

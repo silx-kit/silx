@@ -653,7 +653,8 @@ class ProfileToolBar(qt.QToolBar):
 
         :param numpy.ndarray currentData: the image or the stack of images
             on which we compute the profile
-        :param params: parameters of the plot as origin and scale
+        :param params: parameters of the plot, such as origin, scale
+            and colormap
         """
         if self._roiInfo is None:
             return
@@ -897,7 +898,6 @@ class Profile3DToolBar(ProfileToolBar):
             self._profileWindow1D = self.profileWindow
             from .PlotWindow import Plot2D      # noqa
             self._profileWindow2D = Plot2D()
-        self._volume = volume
         self.__create3DProfileAction()
         self._setComputeIn3D(False)
 
@@ -907,18 +907,6 @@ class Profile3DToolBar(ProfileToolBar):
         self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
         self.profile3d.sigChange3DProfile.connect(self._setComputeIn3D)
         self.addAction(self.profile3d)
-
-    def updateVolume(self, volume):
-        """Update the volume view.
-
-        When the perspective is changed (the volume is rotated),
-        a new view is created with the new depth dimension as first
-        dimension.
-
-        :param volume: a view on the data array with the dimension sorted
-            to have the depth as first dimension
-        """
-        self._volume = volume
 
     def _setComputeIn3D(self, flag):
         """Set flag to *True* to compute the profile in 3D, else
@@ -961,13 +949,13 @@ class Profile3DToolBar(ProfileToolBar):
         if not self._computeIn3D:
             super(Profile3DToolBar, self).updateProfile()
         else:
+            volumeData = self.plot.getVolume(copy=False,
+                                             returnNumpyArray=True)
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.profileWindow.clear()
             self.profileWindow.setGraphTitle('')
             self.profileWindow.setGraphXLabel('X')
             self.profileWindow.setGraphYLabel('Y')
 
-            # fixme: implement StackView.getVolume, which must return a numpy array
-            #        (plot._volume might be a list of lists or a dataset)
-            self._createProfile(currentData=self._volume,
-                                params=self.plot.getActiveImage()[4])
+            self._createProfile(currentData=volumeData[0],
+                                params=volumeData[1])
