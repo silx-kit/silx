@@ -90,16 +90,114 @@ class Node(object):
         return self.__name
 
 
+class Dataset(Node):
+    """Class which handle a numpy data as a mimick of a h5py.Dataset.
+    """
+
+    def __init__(self, name, data, parent=None):
+        self.__data = data
+        Node.__init__(self, name, parent)
+
+    @property
+    def h5py_class(self):
+        return h5py.Dataset
+
+    @property
+    def dtype(self):
+        return self.__data.dtype
+
+    @property
+    def shape(self):
+        return self.__data.shape
+
+    @property
+    def value(self):
+        return self.__data
+
+
+class FrameData(Node):
+
+    def __init__(self, name, fabio_file, parent=None):
+        Node.__init__(self, name, parent)
+        self.__data = None
+        self.__fabio_file = fabio_file
+
+    def __init_data(self):
+        """Initialize hold data by merging all frames into a single cube.
+
+        Choose the cube size which fit the best the data. If some images are
+        smaller than expected, the empty space is set to 0.
+
+        The computation is cached into the class, and only done ones.
+        """
+        if self.__data is not None:
+            return
+
+        images = []
+        for frame in range(self.__fabio_file.nframes):
+            if self.__fabio_file.nframes == 1:
+                image = self.__fabio_file.data
+            else:
+                image = self.__fabio_file.getframe(frame).data
+            images.append(image)
+
+        # get the max size
+        max_shape = [0, 0]
+        for image in images:
+            if image.shape[0] > max_shape[0]:
+                max_shape[0] = image.shape[0]
+            if image.shape[1] > max_shape[1]:
+                max_shape[1] = image.shape[1]
+        max_shape = tuple(max_shape)
+
+        # fix smallest images
+        for index, image in enumerate(images):
+            if image.shape == max_shape:
+                continue
+            right_image = numpy.zeros(max_shape)
+            right_image[0:image.shape[0], 0:image.shape[1]] = image
+            images[index] = right_image
+
+        # create a cube
+        self.__data = numpy.array(images)
+
+    @property
+    def h5py_class(self):
+        return h5py.Dataset
+
+    @property
+    def dtype(self):
+        self.__init_data()
+        return self.__data.dtype
+
+    @property
+    def shape(self):
+        self.__init_data()
+        return self.__data.shape
+
+    @property
+    def value(self):
+        self.__init_data()
+        return self.__data
+
+
 class Group(Node):
     """Class which mimick a sinple h5py group."""
 
-    def __init__(self, name, parent):
+    def __init__(self, name, parent=None, attrs=None):
         Node.__init__(self, name, parent)
         self.__items = collections.OrderedDict()
+        if attrs is None:
+            attrs = {}
+        self.__attrs = attrs
 
-    def add_node(self, group):
-        self.__items[group.name] = group
-        group._set_parent(self)
+    def add_node(self, node):
+        self.__items[node.name] = node
+        node._set_parent(self)
+
+    @property
+    def h5py_attrs(self):
+        return self.__attrs
 
     @property
     def h5py_class(self):
@@ -131,7 +229,7 @@ class Group(Node):
             node = self.__items[name]
 
         if getclass:
-            obj = node.__class__
+            obj = node.h5py_class
         else:
             obj = node
         return obj
@@ -182,13 +280,149 @@ class Group(Node):
 
 
 class MetadataGroup(Group):
+    """Abstract class for groups containing a reference to a fabio image.
+    """
+
+    def __init__(self, name, metadata_reader, kind, parent=None, attrs=None):
+        Group.__init__(self, name, parent, attrs)
+        self.__metadata_reader = metadata_reader
+        self.__kind = kind
+        self._create_child()
+
+    def _create_child(self):
+        keys = self.__metadata_reader.get_keys(self.__kind)
+        for name in keys:
+            data = self.__metadata_reader.get_value(self.__kind, name)
+            dataset = Dataset(name, data)
+            self.add_node(dataset)
+
+    @property
+    def _metadata_reader(self):
+        return self.__metadata_reader
+
+
+class MetadataReader(object):
     """Class which contains all metadata from a fabio image."""
 
-    def __init__(self, fabio_file, parent):
-        Group.__init__(self, "metadata", parent)
-        self.__fabio_image = fabio_file
-        header = self.__fabio_image.getheader()
-        self._create_child(header)
+    MEASUREMENT = 0
+    COUNTER = 1
+    POSITIONER = 2
+
+    def __init__(self, fabio_file):
+        self.__fabio_file = fabio_file
+        self.__counters = {}
+        self.__positioners = {}
+        self.__measurements = {}
+        self.__frame_count = self.__fabio_file.nframes
+        self._read(self.__fabio_file)
+
+    def _get_dict(self, kind):
+        if kind == self.MEASUREMENT:
+            return self.__measurements
+        elif kind == self.COUNTER:
+            return self.__counters
+        elif kind == self.POSITIONER:
+            return self.__positioners
+        else:
+            raise Exception("Unexpected kind %s", kind)
+
+    def get_keys(self, kind):
+        return self._get_dict(kind).keys()
+
+    def get_value(self, kind, name):
+        value = self._get_dict(kind)[name]
+        if not isinstance(value, numpy.ndarray):
+            value = self._convert_metadata_vector(value)
+            self._get_dict(kind)[name] = value
+        return value
+
+    def _set_counter_value(self, frame_id, name, value):
+        if name not in self.__counters:
+            self.__counters[name] = [None] * self.__frame_count
+        self.__counters[name][frame_id] = value
+
+    def _set_positioner_value(self, frame_id, name, value):
+        if name not in self.__positioners:
+            self.__positioners[name] = [None] * self.__frame_count
+        self.__positioners[name][frame_id] = value
+
+    def _set_measurement_value(self, frame_id, name, value):
+        if name not in self.__measurements:
+            self.__measurements[name] = [None] * self.__frame_count
+        self.__measurements[name][frame_id] = value
+
+    def _read(self, fabio_file):
+        for frame in range(fabio_file.nframes):
+            if fabio_file.nframes == 1:
+                header = fabio_file.header
+            else:
+                header = fabio_file.getframe(frame).header
+            self._read_frame(frame, header)
+
+    def _read_frame(self, frame_id, header):
+        for key, value in header.items():
+            self._read_key(frame_id, key, value)
+
+    def _read_key(self, frame_id, name, value):
+        self._set_measurement_value(frame_id, name, value)
+
+    def _convert_metadata_vector(self, values):
+        converted = []
+        types = set([])
+        for v in values:
+            if v is None:
+                converted.append(None)
+                types.add("None")
+            else:
+                c = self._convert_value(v)
+                converted.append(c)
+                types.add(c.dtype.kind)
+
+        if len(types - set(["b", "i", "u", "f", "None"])) > 0:
+            # use the raw data to create the array
+            result = values
+            result_type = "S"
+        else:
+            result = converted
+            for t in ["f", "i", "u", "b"]:
+                if t in types:
+                    result_type = t
+                    break
+
+        if "None" in types:
+            # Fix missing data according to the array type
+            if result_type == "S":
+                none_value = ""
+            elif result_type == "f":
+                none_value = numpy.float("NaN")
+            elif result_type == "i":
+                none_value = numpy.int(0)
+            elif result_type == "u":
+                none_value = numpy.int(0)
+            elif result_type == "b":
+                none_value = numpy.bool(False)
+            else:
+                none_value = None
+
+            for index, r in enumerate(result):
+                if r is not None:
+                    continue
+                result[index] = none_value
+
+            if "None" in types:
+                result = ["" if r is None else r for r in result]
+
+            if "None" in types:
+                result = ["" if r is None else r for r in result]
+
+        return numpy.array(result)
+
+    def _convert_value(self, value):
+        if " " in value:
+            result = self._convert_list(value)
+        else:
+            result = self._convert_scalar_value(value)
+        return result
 
     def _convert_scalar_value(self, value):
         try:
@@ -220,58 +454,32 @@ class MetadataGroup(Group):
         except ValueError:
             return numpy.string_(value)
 
-    def _convert_value(self, value):
-        if " " in value:
-            result = self._convert_list(value)
-        else:
-            result = self._convert_scalar_value(value)
-        return result
 
-    def _ignore_key(self, key):
-        return False
-
-    def _create_child(self, header):
-        for key, value in header.items():
-            if self._ignore_key(key):
-                continue
-            numpy_value = self._convert_value(value)
-            dataset = Dataset(key, numpy_value, self)
-            self.add_node(dataset)
-
-
-class EdfMetadataGroup(MetadataGroup):
+class EdfMetadataReader(MetadataReader):
     """Class which contains all metadata from a fabio EDF image.
 
     It is mostly the same as MetadataGroup, but counter_mne and
-    motor_mne have there own sub groups.
+    motor_mne are parsed with a special way.
     """
 
-    def _ignore_key(self, key):
-        return key in self.__ignore_keys
-
-    def _create_child(self, header):
-        self.__ignore_keys = set([])
-
+    def _read_frame(self, frame_id, header):
+        self.__catch_keys = set([])
         if "motor_pos" in header and "motor_mne" in header:
-            try:
-                group = self._create_mnemonic_group(header, "motor")
-                self.add_node(group)
-                self.__ignore_keys.add("motor_pos")
-                self.__ignore_keys.add("motor_mne")
-            except ValueError:
-                pass
+            self.__catch_keys.add("motor_pos")
+            self.__catch_keys.add("motor_mne")
+            self._read_mnemonic_key(frame_id, "motor", header)
         if "counter_pos" in header and "counter_mne" in header:
-            try:
-                group = self._create_mnemonic_group(header, "counter")
-                self.add_node(group)
-                self.__ignore_keys.add("counter_pos")
-                self.__ignore_keys.add("counter_mne")
-            except ValueError:
-                pass
+            self.__catch_keys.add("counter_pos")
+            self.__catch_keys.add("counter_mne")
+            self._read_mnemonic_key(frame_id, "counter", header)
+        MetadataReader._read_frame(self, frame_id, header)
 
-        MetadataGroup._create_child(self, header)
+    def _read_key(self, frame_id, name, value):
+        if name in self.__catch_keys:
+            return
+        MetadataReader._read_key(self, frame_id, name, value)
 
-    def _create_mnemonic_group(self, header, base_key):
+    def _read_mnemonic_key(self, frame_id, base_key, header):
         mnemonic_values_key = base_key + "_mne"
         mnemonic_values = header.get(mnemonic_values_key, "")
         mnemonic_values = mnemonic_values.split()
@@ -279,44 +487,28 @@ class EdfMetadataGroup(MetadataGroup):
         pos_values = header.get(pos_values_key, "")
         pos_values = pos_values.split()
 
-        group = Group(base_key, self)
+        is_counter = base_key == "counter"
+        is_positioner = base_key == "motor"
+
         nbitems = max(len(mnemonic_values), len(pos_values))
         for i in range(nbitems):
             if i < len(mnemonic_values):
                 mnemonic = mnemonic_values[i]
             else:
-                mnemonic = "_"
+                # skip the element
+                continue
 
             if i < len(pos_values):
                 pos = pos_values[i]
             else:
-                pos = "_"
-            numpy_pos = self._convert_value(pos)
-            dataset = Dataset(mnemonic, numpy_pos, group)
-            group.add_node(dataset)
+                pos = None
 
-        return group
-
-
-class FrameGroup(Group):
-    """Class which contains all frames from a fabio image.
-    """
-
-    def __init__(self, fabio_file, parent):
-        Group.__init__(self, "frames", parent)
-        self.__fabio_image = fabio_file
-        self._create_child()
-
-    def _create_child(self):
-
-        for frame in range(self.__fabio_image.nframes):
-            if self.__fabio_image.nframes == 1:
-                data = self.__fabio_image.data
+            if is_counter:
+                self._set_counter_value(frame_id, mnemonic, pos)
+            elif is_positioner:
+                self._set_positioner_value(frame_id, mnemonic, pos)
             else:
-                data = self.__fabio_image.getframe(frame).data
-
-            dataset = Dataset("frame_%i" % (frame + 1), data, self)
-            self.add_node(dataset)
+                raise Exception("State unexpected (base_key: %s)" % base_key)
 
 
 class File(Group):
@@ -324,25 +516,42 @@ class File(Group):
     """
 
     def __init__(self, file_name=None, fabio_image=None):
+        self.__must_be_closed = False
         if file_name is not None and fabio_image is not None:
             raise TypeError("Parameters file_name and fabio_image are mutually exclusive.")
         if file_name is not None:
             self.__fabio_image = fabio.open(file_name)
+            self.__must_be_closed = True
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
         Group.__init__(self, os.path.basename(self.__fabio_image.filename), None)
-        self.add_node(self.create_metadata_group(self.__fabio_image))
-        self.add_node(self.create_frame_group(self.__fabio_image))
+        self.__metadata_reader = self.create_metadata_reader(self.__fabio_image)
+        scan = self.create_scan_group(self.__fabio_image, self.__metadata_reader)
+        self.add_node(scan)
 
-    def create_metadata_group(self, fabio_file):
+    def create_scan_group(self, fabio_image, metadata_reader):
+        scan = Group("scan", attrs={"NX_class": "NXentry"})
+        instrument = Group("instrument", attrs={"NX_class": "NXinstrument"})
+        measurement = Group("measurement", attrs={"NX_class": "NXcollection"})
+        positioners = MetadataGroup("positioners", self.__metadata_reader, MetadataReader.POSITIONER, attrs={"NX_class": "NXcollection"})
+        others = MetadataGroup("others", self.__metadata_reader, MetadataReader.MEASUREMENT, attrs={"NX_class": "NXcollection"})
+        counters = MetadataGroup("counters", self.__metadata_reader, MetadataReader.COUNTER, attrs={"NX_class": "NXcollection"})
+        data = FrameData("data", fabio_image, self)
+
+        scan.add_node(instrument)
+        instrument.add_node(positioners)
+        scan.add_node(measurement)
+        measurement.add_node(others)
+        measurement.add_node(counters)
+        measurement.add_node(data)
+        return scan
+
+    def create_metadata_reader(self, fabio_file):
         if isinstance(fabio_file, fabio.edfimage.EdfImage):
-            metadata = EdfMetadataGroup(fabio_file, self)
+            metadata = EdfMetadataReader(fabio_file)
         else:
-            metadata = MetadataGroup(fabio_file, self)
+            metadata = MetadataReader(fabio_file)
         return metadata
-
-    def create_frame_group(self, fabio_file):
-        return FrameGroup(fabio_file, self)
 
     @property
     def h5py_class(self):
@@ -352,34 +561,28 @@ class File(Group):
     def filename(self):
         return self.__fabio_image.filename
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, tb):  # pylint: disable=W0622
+        """Called at the end of a `with` statement.
+
+        It will close the internal FabioImage only if the FabioImage was
+        created by the class itself. The reference to the FabioImage is anyway
+        broken.
+        """
+        if self.__must_be_closed:
+            self.close()
+        else:
+            self.__fabio_image = None
+
     def close(self):
         """Close the object, and free up associated resources.
 
+        The associated FabioImage is closed anyway the object was created from
+        a filename or from a FabioImage.
+
         After calling this method, attempts to use the object may fail.
         """
+        self.__fabio_image.close()
         self.__fabio_image = None
-
-
-class Dataset(Node):
-    """Class which handle a numpy data as a mimick of a h5py.Dataset.
-    """
-
-    def __init__(self, name, data, parent):
-        self.__data = data
-        Node.__init__(self, name, parent)
-
-    @property
-    def h5py_class(self):
-        return h5py.Dataset
-
-    @property
-    def dtype(self):
-        return self.__data.dtype
-
-    @property
-    def shape(self):
-        return self.__data.shape
-
-    @property
-    def value(self):
-        return self.__data
