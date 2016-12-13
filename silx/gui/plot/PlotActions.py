@@ -1051,40 +1051,46 @@ class PixelIntensitiesHistoAction(PlotAction):
         :param bool checked: status  of the action button
         """
         if checked:
-            self.plotHistogram.show()
+            self.getHistogram().show()
         else:
-            self.plotHistogram.hide()
+            self.getHistogram().hide()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image
         intensity distribution"""
-        from silx.gui.plot.PlotWindow import PixelIntensityHistogram
-
         activeImage = self.plot.getActiveImage()
 
         if activeImage is not None:
-            if self.plotHistogram is None :
-                self.plotHistogram = PixelIntensityHistogram()
-                self.plotHistogram.sigClose.connect(self.unCheck)
+            
 
             histo, w_histo, edges = Histogramnd(activeImage[0].ravel(),
                                                 n_bins=256,
                                                 histo_range=[0,256])
             
-            self.plotHistogram.addCurve(range(256),
+            self.getHistogram().addCurve(range(256),
                                         histo,
                                         legend='pixel intensity')
 
+    def eventFilter(self, qobject, event):
+        """Observe when the close event is emitted then 
+        simply uncheck the action button
 
-    def unCheck(self):
-        """Uncheck the action
+        :param qobject: the object observe
+        :param event: the event received by qobject
         """
-        if not self.plotHistogram is None:
-            self.plotHistogram.hide()
-        self.setChecked(False)
+        if event.type() == qt.QEvent.Close:
+            if not self.plotHistogram is None:
+                self.plotHistogram.hide()
+            self.setChecked(False)
 
+        return PlotAction.eventFilter(self, qobject, event)
 
-    def hide(self):
-        """hide the window"""
-        if not self.plotHistogram is None :
-            self.plotHistogram.hide()
+    def getHistogram(self):
+        """Return the histogram of the pixel intensities
+        """
+        from silx.gui.plot.PlotWindow import Plot1D
+        if self.plotHistogram is None :
+            self.plotHistogram = Plot1D()
+            self.plotHistogram.installEventFilter(self)
+
+        return self.plotHistogram

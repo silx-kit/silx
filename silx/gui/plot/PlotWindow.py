@@ -194,12 +194,13 @@ class PlotWindow(PlotWidget):
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
 
-        self._separator2 = qt.QAction('separator', self)
-        self._separator2.setSeparator(True)
-        self.group.addAction(self._separator2)
+        self._separatorToIntenistyHisto = qt.QAction('separator', self)
+        self._separatorToIntenistyHisto.setSeparator(True)
+        self._separatorToIntenistyHisto.setVisible(False)
+        self.group.addAction(self._separatorToIntenistyHisto)
 
         self._intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
-        self.fitAction.setVisible(False)
+        self._intensityHistoAction.setVisible(False)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -428,7 +429,8 @@ class PlotWindow(PlotWidget):
 
         :param boolean b: True if we want to add this action to the toolBar
         """
-        self.fitAction.setVisible(b)
+        self._separatorToIntenistyHisto.setVisible(b)
+        self._intensityHistoAction.setVisible(b)
         if b:
             self.sigActiveImageChanged.connect(self._intensityHistoAction.computeIntensityDistribution)
         else:
@@ -520,24 +522,3 @@ class Plot2D(PlotWindow):
                 if (row < data.shape[0] and col < data.shape[1]):
                     return data[row, col]
         return '-'
-
-
-class PixelIntensityHistogram(Plot1D):
-    """Simple Plot1D emitting a signal on close
-    """
-    sigClose = qt.Signal()
-
-    def __init__(self, parent=None):
-        """
-
-        :param parent: The pqrent Qt widget
-        """
-        super(PixelIntensityHistogram, self).__init__(parent)
-
-    def closeEvent(self, event):
-        """
-
-        Redefine the qt widget to emit a signal when closing
-        """
-        self.sigClose.emit()
-        super(PixelIntensityHistogram, self).closeEvent(event)
