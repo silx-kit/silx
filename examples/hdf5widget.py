@@ -37,8 +37,7 @@ from silx.gui import qt
 import silx.gui.hdf5
 import silx.utils.html
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.gui.widgets.DataViewerSelector import DataViewerSelector
-from silx.gui.widgets.DataViewer import DataViewer
+from silx.gui.widgets.DataViewerFrame import DataViewerFrame
 import h5py
 import tempfile
 
@@ -311,10 +310,11 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__text = qt.QTextEdit(self)
         """Widget displaying information"""
 
-        widget = self.createDataViewer()
+        self.__dataViewer = DataViewerFrame(self)
         vSpliter = qt.QSplitter(qt.Qt.Vertical)
-        vSpliter.addWidget(widget)
+        vSpliter.addWidget(self.__dataViewer)
         vSpliter.addWidget(self.__text)
+        vSpliter.setSizes([10, 0])
 
         spliter = qt.QSplitter(self)
         spliter.addWidget(self.__treeview)
@@ -347,20 +347,6 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         # you have to store it first
         self.__store_lambda = lambda event: self.closeAndSyncCustomContextMenu(event)
         self.__treeview.addContextMenuCallback(self.__store_lambda)
-
-    def createDataViewer(self):
-        self.__dataViewer = DataViewer(self)
-        self.__dataViewer.setFrameShape(qt.QFrame.StyledPanel)
-        self.__dataViewer.setFrameShadow(qt.QFrame.Sunken)
-        self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
-        self.__dataViewerSelector.setFlat(True)
-        widget = qt.QWidget()
-        widget.setLayout(qt.QVBoxLayout())
-        widget.layout().setContentsMargins(0, 0, 0, 0)
-        widget.layout().setSpacing(0)
-        widget.layout().addWidget(self.__dataViewer, 1)
-        widget.layout().addWidget(self.__dataViewerSelector)
-        return widget
 
     def displayData(self):
         selected = list(self.__treeview.selectedH5Nodes())
