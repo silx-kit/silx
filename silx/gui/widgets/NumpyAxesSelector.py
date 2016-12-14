@@ -34,13 +34,6 @@ __date__ = "09/12/2016"
 import numpy
 import functools
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-
 from silx.gui import qt
 
 

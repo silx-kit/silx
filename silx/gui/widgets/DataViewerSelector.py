@@ -29,16 +29,11 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/12/2016"
+__date__ = "14/12/2016"
 
 import numpy
 import silx.gui.icons
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
+import silx.io
 
 from silx.gui import qt
 from silx.gui.widgets.DataViewer import DataViewer
@@ -187,7 +182,7 @@ class DataViewerSelector(qt.QWidget):
             self.__button2D.setVisible(False)
             self.__buttonArray.setVisible(False)
             self.__buttonText.setVisible(False)
-        elif isinstance(self.__dataViewer.data(), h5py.Group):
+        elif silx.io.is_group(self.__dataViewer.data()):
             self.__button1D.setVisible(False)
             self.__button2D.setVisible(False)
             self.__buttonArray.setVisible(False)
@@ -196,7 +191,7 @@ class DataViewerSelector(qt.QWidget):
             data = self.__dataViewer.data()
             if data is not None:
                 isArray = isinstance(data, numpy.ndarray)
-                isArray = isArray or (isinstance(data, h5py.Dataset) and data.shape != tuple())
+                isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
 
                 if isArray:
                     dimensionCount = len(data.shape)

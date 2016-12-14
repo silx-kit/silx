@@ -29,16 +29,11 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/12/2016"
+__date__ = "14/12/2016"
 
 import numpy
 
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-
+import silx.io
 from silx.gui import qt
 from silx.gui import plot
 from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
@@ -188,7 +183,7 @@ class _TextView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
-        if isinstance(data, h5py.Dataset):
+        if silx.io.is_dataset(data):
             data = data[...]
         self.getWidget().setText(str(data))
 
@@ -317,7 +312,7 @@ class DataViewer(qt.QFrame):
         data = self.__data
 
         isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (isinstance(data, h5py.Dataset) and data.shape != tuple())
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
 
         if data is None:
             self.__clearCurrentView()
