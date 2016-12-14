@@ -22,8 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Numpy-array-like object, implementing common numpy array features
-for datasets or nested sequences, while trying to avoid copying data."""
+"""Functions and classes for array-like objects, implementing common numpy
+array features for datasets or nested sequences, while trying to avoid copying
+data."""
 
 from __future__ import absolute_import, print_function, division
 import numpy

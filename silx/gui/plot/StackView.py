@@ -61,18 +61,18 @@ class StackView(qt.QWidget):
     """
     def __init__(self, parent=None):
         qt.QWidget.__init__(self, parent)
-        self._volume = None
-        """Loaded data volume, as a numpy array"""
-        self.__volumeview = None
-        """View on :attr:`_volume` with the axes sorted, to have
+        self._stack = None
+        """Loaded stack of images, as a 3D array or 3D dataset"""
+        self.__transposed_view = None
+        """View on :attr:`_stack` with the axes sorted, to have
         the orthogonal dimension first"""
         self.__perspective = 0
-        """Orthogonal dimension (depth) in :attr:`_volume`"""
+        """Orthogonal dimension (depth) in :attr:`_stack`"""
 
         self.__imageLegend = '__StackView__image' + str(id(self))
         self.__autoscaleCmap = True
         """Flag to disable/enable colormap auto-scaling
-        based on the 3D volume"""
+        based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
                                    "Dimension 2"]
         """These labels are displayed on the X and Y axes.
@@ -91,8 +91,7 @@ class StackView(qt.QWidget):
         self.sigPlotSignal = self._plot.sigPlotSignal
 
         self._plot.profile = Profile3DToolBar(parent=self._plot,
-                                              plot=self,
-                                              volume=self.__volumeview)
+                                              plot=self)
         self._plot.addToolBar(self._plot.profile)
         self._plot.setGraphXLabel('Columns')
         self._plot.setGraphYLabel('Rows')
@@ -121,7 +120,7 @@ class StackView(qt.QWidget):
                 raise ValueError("Can't set perspective")
 
             self.__perspective = perspective
-            self.__createVolumeView()
+            self.__createTransposedView()
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
@@ -133,38 +132,38 @@ class StackView(qt.QWidget):
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])
 
-    def __createVolumeView(self):
-        """Create the new view on the volume depending on the perspective
+    def __createTransposedView(self):
+        """Create the new view on the stack depending on the perspective
         (set orthogonal axis browsed on the viewer as first dimension)
         """
-        assert self._volume is not None
+        assert self._stack is not None
         assert 0 <= self.__perspective < 3
         if self.__perspective == 0:
-            self.__volumeview = self._volume.view()
+            self.__transposed_view = self._stack.view()
         if self.__perspective == 1:
-            self.__volumeview = numpy.rollaxis(self._volume, 1)
+            self.__transposed_view = numpy.rollaxis(self._stack, 1)
         if self.__perspective == 2:
-            self.__volumeview = numpy.rollaxis(self._volume, 2)
+            self.__transposed_view = numpy.rollaxis(self._stack, 2)
 
-        self._browser.setRange(0, self.__volumeview.shape[0] - 1)
+        self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
 
     def __updateFrameNumber(self, index):
         """Update the current image displayed
 
         :param index: index of the image to display
         """
-        assert self.__volumeview is not None
-        self._plot.addImage(self.__volumeview[index, :, :],
+        assert self.__transposed_view is not None
+        self._plot.addImage(self.__transposed_view[index, :, :],
                             legend=self.__imageLegend,
                             resetzoom=False)
 
     # public API
-    def setStack(self, volume, origin=(0, 0), scale=(1., 1.),
+    def setStack(self, stack, origin=(0, 0), scale=(1., 1.),
                  copy=True, reset=True):
         """Set the stack of images to display.
 
-        :param volume: A 3D array representing the image or None to clear plot.
-        :type volume: numpy.ndarray-like with 3 dimensions or None.
+        :param stack: A 3D array representing the image or None to clear plot.
+        :type stack: numpy.ndarray-like with 3 dimensions or None.
         :param origin: The (x, y) position of the origin of the image.
                        Default: (0, 0).
                        The origin is the lower left corner of the image when
@@ -186,16 +185,16 @@ class StackView(qt.QWidget):
         assert scale[0] > 0
         assert scale[1] > 0
 
-        if volume is None:
+        if stack is None:
             self.clear()
             return
 
-        data = numpy.array(volume, order='C', copy=copy)
+        data = numpy.array(stack, order='C', copy=copy)
         assert data.size != 0
         assert len(data.shape) == 3, "data must be 3D"
 
-        self._volume = data
-        self.__createVolumeView()    
+        self._stack = data
+        self.__createTransposedView()
 
         # This call to setColormap redefines the meaning of autoscale
         # for 3D volume: take global min/max rather than frame min/max
@@ -203,7 +202,7 @@ class StackView(qt.QWidget):
             self.setColormap(autoscale=True)
 
         # init plot
-        self._plot.addImage(self.__volumeview[0, :, :],
+        self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
                             origin=origin, scale=scale,
                             colormap=self.getColormap())
@@ -239,8 +238,8 @@ class StackView(qt.QWidget):
         """
         _img, _legend, _info, _pixmap, params = self.getActiveImage()
         if returnNumpyArray or copy:
-            return numpy.array(self.__volumeview, copy=copy), params
-        return self.__volumeview, params
+            return numpy.array(self.__transposed_view, copy=copy), params
+        return self.__transposed_view, params
 
     def getActiveImage(self, just_legend=False):
         """Returns the currently active image.
@@ -263,8 +262,8 @@ class StackView(qt.QWidget):
          - clear the plot
          - clear the loaded data volume
         """
-        self._volume = None
-        self.__volumeview = None
+        self._stack = None
+        self.__transposed_view = None
         self.__perspective = 0
         self._browser.setEnabled(False)
         self._plot.clear()
@@ -425,9 +424,9 @@ class StackView(qt.QWidget):
             # and not change them when browsing slides
             cmapDict['autoscale'] = False
             self.__autoscaleCmap = autoscale
-            if autoscale and (self._volume is not None):
-                cmapDict['vmin'] = self._volume.min()
-                cmapDict['vmax'] = self._volume.max()
+            if autoscale and (self._stack is not None):
+                cmapDict['vmin'] = self._stack.min()
+                cmapDict['vmax'] = self._stack.max()
             else:
                 if vmin is not None:
                     cmapDict['vmin'] = vmin

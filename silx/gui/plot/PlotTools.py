@@ -881,8 +881,8 @@ class Profile3DAction(PlotAction):
 
 class Profile3DToolBar(ProfileToolBar):
     def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title='Profile Selection', volume=None):
-        """QToolBar providing profile tools for 2D and 3D.
+                 title='Profile Selection'):
+        """QToolBar providing profile tools for an image or a stack of images.
 
         :param parent: the parent QWidget
         :param plot: :class:`PlotWindow` instance on which to operate.
@@ -890,8 +890,6 @@ class Profile3DToolBar(ProfileToolBar):
                               display the profile curve or None to create one.
         :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
-        :param volume: the 3D volume. Always compute the profile across
-            the first axis
         """
         super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
         if profileWindow is None:
@@ -949,13 +947,13 @@ class Profile3DToolBar(ProfileToolBar):
         if not self._computeIn3D:
             super(Profile3DToolBar, self).updateProfile()
         else:
-            volumeData = self.plot.getStack(copy=False,
-                                            returnNumpyArray=True)
+            stackData = self.plot.getStack(copy=False,
+                                           returnNumpyArray=True)
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.profileWindow.clear()
             self.profileWindow.setGraphTitle('')
             self.profileWindow.setGraphXLabel('X')
             self.profileWindow.setGraphYLabel('Y')
 
-            self._createProfile(currentData=volumeData[0],
-                                params=volumeData[1])
+            self._createProfile(currentData=stackData[0],
+                                params=stackData[1])
