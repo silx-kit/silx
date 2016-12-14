@@ -14,6 +14,7 @@ Public modules:
 
     arraytable.rst
     framebrowser.rst
+    periodictable.rst
     tablewidget.rst
     threadpoolpushbutton.rst
     waitingpushbutton.rst

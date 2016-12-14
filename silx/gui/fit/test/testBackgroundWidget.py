@@ -24,13 +24,13 @@
 # ###########################################################################*/
 import unittest
 
-from ...testutils import TestCaseQt
+from ...test.utils import TestCaseQt
 
 from .. import BackgroundWidget
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/10/2016"
+__date__ = "05/12/2016"
 
 
 class TestBackgroundWidget(TestCaseQt):

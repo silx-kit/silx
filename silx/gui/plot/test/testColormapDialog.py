@@ -26,13 +26,13 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "30/03/2016"
+__date__ = "05/12/2016"
 
 
 import doctest
 import unittest
 
-from silx.gui.testutils import qWaitForWindowExposedAndActivate
+from silx.gui.test.utils import qWaitForWindowExposedAndActivate
 from silx.gui import qt
 from silx.gui.plot import ColormapDialog
 

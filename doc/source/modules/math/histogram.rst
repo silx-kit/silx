@@ -8,7 +8,7 @@
 
 
 Classes
--------
++++++++
 
 .. autoclass:: silx.math.histogram.Histogramnd
     :members:

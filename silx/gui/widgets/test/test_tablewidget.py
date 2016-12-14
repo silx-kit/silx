@@ -26,15 +26,15 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/11/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
-from silx.gui import testutils
+from silx.gui.test.utils import TestCaseQt
 from silx.gui.widgets.TableWidget import TableWidget
 
 
-class TestTableWidget(testutils.TestCaseQt):
+class TestTableWidget(TestCaseQt):
     def setUp(self):
         super(TestTableWidget, self).setUp()
         self._result = []
