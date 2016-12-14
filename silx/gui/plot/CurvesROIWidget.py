@@ -49,7 +49,7 @@ class CurvesROIWidget(qt.QWidget):
     """Widget displaying a table of ROI information.
 
     :param parent: See :class:`QWidget`
-    :paran str name: The title of this widget
+    :param str name: The title of this widget
     """
 
     sigROIWidgetSignal = qt.Signal(object)
