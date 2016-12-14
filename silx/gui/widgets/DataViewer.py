@@ -41,16 +41,20 @@ from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
 
 
 class DataView(object):
-    """Holder for the data view.
-    """
+    """Holder for the data view."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, modeId):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
         """
         self.__parent = parent
         self.__widget = None
+        self.__modeId = modeId
+
+    def modeId(self):
+        """Returns the mode id"""
+        return self.__modeId
 
     def axiesNames(self):
         """Returns names of the expected axes of the view"""
@@ -85,6 +89,20 @@ class DataView(object):
         """
         return None
 
+    def getDataPriority(self, data):
+        """
+        Returns the priority of using this view according to a data.
+
+        - `-1` means this view can't display this data
+        - `0` means this view can display the data if there is no other choices
+        - `1` means this view can display the data
+        - `100` means this view should be used for this data
+        - ...
+
+        :rtype: int
+        """
+        return -1
+
 
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
@@ -95,12 +113,15 @@ class _EmptyView(DataView):
     def createWidget(self, parent):
         return qt.QLabel(parent)
 
+    def getDataPriority(self, data):
+        return -1
+
 
 class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
-    def __init__(self, parent):
-        super(_Plot1dView, self).__init__(parent)
+    def __init__(self, parent, modeId):
+        super(_Plot1dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
     def axiesNames(self):
@@ -120,12 +141,27 @@ class _Plot1dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) == 1:
+            return 100
+        else:
+            return 10
+
 
 class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
-    def __init__(self, parent):
-        super(_Plot2dView, self).__init__(parent)
+    def __init__(self, parent, modeId):
+        super(_Plot2dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
     def axiesNames(self):
@@ -148,6 +184,23 @@ class _Plot2dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) < 2:
+            return -1
+        if len(data.shape) == 2:
+            return 100
+        else:
+            return 10
+
 
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
@@ -165,6 +218,15 @@ class _ArrayView(DataView):
 
     def setData(self, data):
         self.getWidget().setArrayData(data)
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        return 50
 
 
 class _TextView(DataView):
@@ -187,6 +249,9 @@ class _TextView(DataView):
             data = data[...]
         self.getWidget().setText(str(data))
 
+    def getDataPriority(self, data):
+        return 0
+
 
 class DataViewer(qt.QFrame):
     """Widget to display any kind of data"""
@@ -202,6 +267,10 @@ class DataViewer(qt.QFrame):
 
     dataChanged = qt.Signal()
     """Emitted when the data change"""
+
+    currentAvailableViewsChanged = qt.Signal()
+    """Emitted when the current available views (which support the current
+    data) change"""
 
     def __init__(self, parent=None):
         """Constructor"""
@@ -223,15 +292,20 @@ class DataViewer(qt.QFrame):
 
         self.layout().addWidget(self.__axisSelection)
 
+        self.__currentAvailableViews = []
         self.__displayMode = None
         self.__data = None
 
+        views = [
+            _EmptyView(self.__stack, self.EMPTY_MODE),
+            _Plot1dView(self.__stack, self.PLOT1D_MODE),
+            _Plot2dView(self.__stack, self.PLOT2D_MODE),
+            _TextView(self.__stack, self.TEXT_MODE),
+            _ArrayView(self.__stack, self.ARRAY_MODE),
+        ]
         self.__views = {}
-        self.__views[self.EMPTY_MODE] = _EmptyView(self.__stack)
-        self.__views[self.PLOT1D_MODE] = _Plot1dView(self.__stack)
-        self.__views[self.PLOT2D_MODE] = _Plot2dView(self.__stack)
-        self.__views[self.TEXT_MODE] = _TextView(self.__stack)
-        self.__views[self.ARRAY_MODE] = _ArrayView(self.__stack)
+        for v in views:
+            self.__views[v.modeId()] = v
 
         # feed the stack widget
         self.__index = {}
@@ -240,7 +314,7 @@ class DataViewer(qt.QFrame):
             index = self.__stack.addWidget(widget)
             self.__index[modeId] = index
 
-        self.displayNothing()
+        self.setDisplayMode(self.EMPTY_MODE)
 
     def viewAxisExpected(self, displayMode):
         view = self.__views[displayMode]
@@ -255,17 +329,17 @@ class DataViewer(qt.QFrame):
             view.clear()
 
     def __updateNumpySelectionAxis(self):
+        previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
         view = self.__views[self.__displayMode]
         axisNames = view.axiesNames()
         if len(axisNames) > 0:
-            previous = self.__numpySelection.blockSignals(True)
             self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setData(self.__data)
-            self.__numpySelection.blockSignals(previous)
         else:
             self.__axisSelection.setVisible(False)
+        self.__numpySelection.blockSignals(previous)
 
     def __updateDataInView(self):
         if self.__numpySelection.isVisible():
@@ -275,6 +349,13 @@ class DataViewer(qt.QFrame):
 
         view = self.__views[self.__displayMode]
         view.setData(data)
+
+    def _displayView(self, view):
+        for currentMode, currentView in self.__views.items():
+            if currentView is view:
+                self.setDisplayMode(currentMode)
+                return
+        self.setDisplayMode(self.EMPTY_MODE)
 
     def setDisplayMode(self, modeId):
         if self.__displayMode == modeId:
@@ -287,58 +368,50 @@ class DataViewer(qt.QFrame):
         self.__stack.setCurrentIndex(index)
         self.displayModeChanged.emit(modeId)
 
-    def displayNothing(self):
-        """Display no data"""
-        self.setDisplayMode(self.EMPTY_MODE)
-
-    def displayAsText(self):
-        """Display a data using text"""
-        self.setDisplayMode(self.TEXT_MODE)
-
-    def displayAs1d(self):
-        """Display a data using `silx.plot.Plot1D`"""
-        self.setDisplayMode(self.PLOT1D_MODE)
-
-    def displayAs2d(self):
-        """Display a data using `silx.plot.Plot2D`"""
-        self.setDisplayMode(self.PLOT2D_MODE)
-
-    def displayAsArray(self):
-        """Display the data using `silx.gui.widgets.ArrayTableWidget`"""
-        self.setDisplayMode(self.ARRAY_MODE)
-
     def __updateView(self):
         """Display the data using the widget which fit the best"""
         data = self.__data
 
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        # sort available views according to priority
+        priorities = [v.getDataPriority(data) for v in self.__views.values()]
+        views = zip(priorities, self.__views.values())
+        views = filter(lambda t: t[0] >= 0, views)
+        views.sort(reverse=True)
 
-        if data is None:
-            self.__clearCurrentView()
-            self.displayNothing()
-        elif isArray:
-            isAtomic = len(data.shape) == 0
-            isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-            isCurve = len(data.shape) == 1
-            isImage = len(data.shape) == 2
-            if isAtomic:
-                self.displayAsText()
-            if isCurve and isNumeric:
-                self.displayAs1d()
-            elif isImage and isNumeric:
-                self.displayAs2d()
-            else:
-                self.displayAsArray()
+        # store available views
+        if len(views) == 0:
+            self.__setCurrentAvailableViews([])
         else:
-            self.displayAsText()
+            if views[0][0] != 0:
+                # remove 0-priority, if other are available
+                views = filter(lambda t: t[0] != 0, views)
+            available = [v[1] for v in views]
+            self.__setCurrentAvailableViews(available)
+
+        # display the view with the most priority (the default view)
+        if len(views) > 0:
+            view = views[0][1]
+        else:
+            view = None
+        self.__clearCurrentView()
+        self._displayView(view)
+
+    def __setCurrentAvailableViews(self, availableViews):
+        self.__currentAvailableViews = availableViews
+        self.currentAvailableViewsChanged.emit()
+
+    def currentAvailableViews(self):
+        return self.__currentAvailableViews
+
+    def availableViews(self):
+        return self.__views.values()
 
     def setData(self, data):
         self.__data = data
-        self.dataChanged.emit()
         self.__updateView()
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
+        self.dataChanged.emit()
 
     def __numpyAxisChanged(self):
         self.__clearCurrentView()
