@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "13/12/2016"
 
 
 import logging
@@ -38,4 +38,8 @@ logging.basicConfig()
 from .utils import open  # pylint:disable=redefined-builtin
 from .utils import save1D
 
-__all__ = ["save1D"] # avoid to import open with "import *"
+from .utils import is_dataset
+from .utils import is_file
+from .utils import is_group
+
+__all__ = ["save1D", "is_dataset", "is_file", "is_group"] # avoid to import open with "import *"
