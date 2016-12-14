@@ -47,11 +47,18 @@ __date__ = "07/12/2016"
 
 import numpy
 
+try:
+    import h5py
+except ImportError:
+    h5py = None
+
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot.Colors import cursorColorForColormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui.plot.PlotTools import Profile3DToolBar
+
+from silx.utils.array_like import TransposedDatasetView
 
 
 class StackView(qt.QWidget):
@@ -138,12 +145,22 @@ class StackView(qt.QWidget):
         """
         assert self._stack is not None
         assert 0 <= self.__perspective < 3
-        if self.__perspective == 0:
-            self.__transposed_view = self._stack.view()
-        if self.__perspective == 1:
-            self.__transposed_view = numpy.rollaxis(self._stack, 1)
-        if self.__perspective == 2:
-            self.__transposed_view = numpy.rollaxis(self._stack, 2)
+        if isinstance(self._stack, numpy.ndarray):
+            if self.__perspective == 0:
+                self.__transposed_view = self._stack
+            if self.__perspective == 1:
+                self.__transposed_view = numpy.rollaxis(self._stack, 1)
+            if self.__perspective == 2:
+                self.__transposed_view = numpy.rollaxis(self._stack, 2)
+        elif h5py is not None and isinstance(self._stack, h5py.Dataset):
+            if self.__perspective == 0:
+                self.__transposed_view = self._stack
+            if self.__perspective == 1:
+                self.__transposed_view = TransposedDatasetView(self._stack,
+                                                               transposition=(1, 0, 2))
+            if self.__perspective == 2:
+                self.__transposed_view = TransposedDatasetView(self._stack,
+                                                               transposition=(2, 0, 1))
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
 
@@ -159,7 +176,7 @@ class StackView(qt.QWidget):
 
     # public API
     def setStack(self, stack, origin=(0, 0), scale=(1., 1.),
-                 copy=True, reset=True):
+                 reset=True):
         """Set the stack of images to display.
 
         :param stack: A 3D array representing the image or None to clear plot.
@@ -174,9 +191,6 @@ class StackView(qt.QWidget):
                       It is the size of a pixel in the coordinates of the axes.
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
-        :param bool copy: Whether to copy data (default) or use a reference.
-             A reference is created only if *numpy.array(..., copy=False)* can
-             return a view, else a copy is made even with ``copy=False``.
         :param bool reset: Whether to reset zoom or not.
         """
         # todo: no copy for h5py datasets
@@ -189,11 +203,9 @@ class StackView(qt.QWidget):
             self.clear()
             return
 
-        data = numpy.array(stack, order='C', copy=copy)
-        assert data.size != 0
-        assert len(data.shape) == 3, "data must be 3D"
+        assert len(stack.shape) == 3, "data must be 3D"
 
-        self._stack = data
+        self._stack = stack
         self.__createTransposedView()
 
         # This call to setColormap redefines the meaning of autoscale
@@ -387,8 +399,9 @@ class StackView(qt.QWidget):
             Or the description of the colormap as a dict.
         :type colormap: dict or str.
         :param str normalization: Colormap mapping: 'linear' or 'log'.
-        :param bool autoscale: Whether to use autoscale (True)
-                               or [vmin, vmax] range (False).
+        :param bool autoscale: Whether to use autoscale or [vmin, vmax] range.
+            Default value of autoscale is True if data is a numpy array,
+            False if data is a h5py dataset.
         :param float vmin: The minimum value of the range to use if
                            'autoscale' is False.
         :param float vmax: The maximum value of the range to use if
@@ -396,6 +409,14 @@ class StackView(qt.QWidget):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
+        if autoscale and isinstance(self._stack, h5py.Dataset):
+            raise RuntimeError(
+                "Cannot autoscale colormap for a h5py dataset")
+        if autoscale is None and isinstance(self._stack, numpy.ndarray):
+            autoscale = True
+        else:
+            autoscale = False
+
         cmapDict = self.getColormap()
 
         if isinstance(colormap, dict):
