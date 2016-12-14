@@ -227,11 +227,31 @@ class TransposedDatasetView(object):
         self.size = size
         """Number of elements in the array."""
 
-        self.transposition = transposition or list(range(self.ndim))
+        self.transposition = list(range(self.ndim))
         """List of dimension numbers. By default this is simply
         [0, ..., self.ndim], but it can be changed by using
         :meth:`transpose`, to control the indices order when using
         nD indexing or nD slicing."""
+
+        if transposition is not None:
+            assert len(transposition) == self.ndim
+            assert set(transposition) == set(list(range(self.ndim))), \
+                "Transposition must be a list containing all dimensions"
+            self.transposition = transposition
+
+            self._sort_shape()
+
+    def _sort_shape(self):
+        """Sort shape in the order defined in :attr:`transposition`
+        """
+        old_shape = self.shape
+        new_shape = []
+        for dimension in self.transposition:
+            new_shape.append(old_shape[dimension])
+        assert len(old_shape) == len(new_shape)
+        assert set(old_shape) == set(new_shape)
+
+        self.shape = tuple(new_shape)
 
     def __getitem__(self, item):
         """Handle fancy indexing with regards to the dimension order as
@@ -302,10 +322,10 @@ class TransposedDatasetView(object):
                                self.transposition)
 
     def transpose(self, transposition=None):
-        """Re-order (permute) the order of the array.
+        """Return a re-ordered (permutated) :class:`TransposedDatasetView`.
 
-        The returned object is a :class:`TransposedDatasetView` pointing to the same dataset
-        but with a different :attr:`transposition`
+        The returned object is a :class:`TransposedDatasetView` referring to
+        the same dataset but with a different :attr:`transposition`.
 
         :param list[int] transposition: List of dimension numbers in the wanted order
         :return: Transposed TransposedDatasetView
