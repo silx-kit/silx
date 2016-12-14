@@ -949,8 +949,8 @@ class Profile3DToolBar(ProfileToolBar):
         if not self._computeIn3D:
             super(Profile3DToolBar, self).updateProfile()
         else:
-            volumeData = self.plot.getVolume(copy=False,
-                                             returnNumpyArray=True)
+            volumeData = self.plot.getStack(copy=False,
+                                            returnNumpyArray=True)
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.profileWindow.clear()
             self.profileWindow.setGraphTitle('')

@@ -23,7 +23,7 @@
 #
 # ###########################################################################*/
 """Numpy-array-like object, implementing common numpy array features
-for datasets or nested sequences, without need for a copy."""
+for datasets or nested sequences, while trying to avoid copying data."""
 
 from __future__ import absolute_import, print_function, division
 import numpy
@@ -137,7 +137,6 @@ def get_array_type(array_like):
     return numpy.dtype(type(subsequence))
 
 
-
 class ArrayLike(object):
     """
 
@@ -150,6 +149,9 @@ class ArrayLike(object):
         """
         super(ArrayLike, self).__init__()
         self.array_like = array_like
+        """original object"""
+        self._cache = None
+        """data as a numpy array (created when/if needed)"""
 
         if is_array(array_like):
             self.shape = array_like.shape
@@ -160,6 +162,13 @@ class ArrayLike(object):
 
         self.array_type = get_array_type(array_like)
 
+    @property
+    def cached_array(self):
+        """data as a numpy array (created when/if needed)"""
+        if self._cache is None:
+            self._cache = numpy.asarray(self.array_like)
+        return self._cache
+
     def __len__(self):
         return len(self.array_like)
 
@@ -169,19 +178,15 @@ class ArrayLike(object):
         if self.array_type in ["numpy array", "h5py dataset"]:
             return self.array_like[item]
 
-        # from now on, we assume array_like is a nested sequence
-
-        # regular indexing
-        if isinstance(item, int):
+        # From now on, we assume array_like is a nested sequence.
+        # Regular int indexing or simple slice
+        if isinstance(item, (int, slice)):
             return self.array_like[item]
 
-        # simple slice
-        if isinstance(item, slice):
-            return [self[i] for i in range(item.start, item.stop, item.step)]
-
-        # sequence: recursive exploration
+        # multidimensional/fancy slicing: numpy array needed
         if hasattr(item, "__len__"):
-            return [self.__getitem__(subitem) for subitem in item]
+            return self.cached_array[item]
+            # TODO: implement nD slicing without array casting
 
 
 

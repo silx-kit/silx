@@ -32,7 +32,7 @@ Basic usage of :class:`StackView` is through the following methods:
 
 - :meth:`StackView.getColormap`, :meth:`StackView.setColormap` to update the
   default colormap to use and update the currently displayed image.
-- :meth:`StackView.setVolume` to update the displayed image.
+- :meth:`StackView.setStack` to update the displayed image.
 
 The :class:`StackView` uses :class:`PlotWindow` and also
 exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
@@ -103,9 +103,9 @@ class StackView(qt.QWidget):
 
         layout = qt.QVBoxLayout(self)
 
-        planeSelction = PlanesDockWidget(self._plot)
-        planeSelction.sigPlaneSelectionChanged.connect(self.__setPerspective)
-        self._plot._introduceNewDockWidget(planeSelction)
+        planeSelection = PlanesDockWidget(self._plot)
+        planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+        self._plot._introduceNewDockWidget(planeSelection)
         layout.addWidget(self._plot)
         layout.addWidget(self._browser)
 
@@ -159,8 +159,8 @@ class StackView(qt.QWidget):
                             resetzoom=False)
 
     # public API
-    def setVolume(self, volume, origin=(0, 0), scale=(1., 1.),
-                  copy=True, reset=True):
+    def setStack(self, volume, origin=(0, 0), scale=(1., 1.),
+                 copy=True, reset=True):
         """Set the stack of images to display.
 
         :param volume: A 3D array representing the image or None to clear plot.
@@ -216,8 +216,13 @@ class StackView(qt.QWidget):
         # enable and init browser
         self._browser.setEnabled(True)
 
-    def getVolume(self, copy=True, returnNumpyArray=False):
-        """Get the stack of images
+    def getStack(self, copy=True, returnNumpyArray=False):
+        """Get the stack of images, as a 3D array or dataset.
+
+        The first index of the returned stack is always the image
+        index. If the perspective has been changed in the widget since the
+        data was first loaded, this will be reflected in the order of the
+        dimensions of the returned object.
 
         Default output has the form: [data, params]
         where params is a dictionary containing display parameters.
@@ -472,7 +477,6 @@ class StackView(qt.QWidget):
         self._plot.addItem(*args, **kwargs)
 
 
-
 class PlanesDockWidget(qt.QDockWidget):
     """Dock widget for the plane/perspective selection
 
@@ -546,7 +550,7 @@ if __name__ == "__main__":
 
     sv = StackView()
     sv.setColormap("jet", autoscale=True)
-    sv.setVolume(mycube)
+    sv.setStack(mycube)
     sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
                   "3rd dim (0-299)"])
     sv.show()
