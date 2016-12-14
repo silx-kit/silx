@@ -230,6 +230,9 @@ class NumpyAxesSelector(qt.QWidget):
 
     def __updateSelectedData(self):
         if self.__data is None:
+            if self.__selectedData is not None:
+                self.__selectedData = None
+                self.selectionChanged.emit()
             return
 
         selection = []
