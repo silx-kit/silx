@@ -22,14 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a widget designed to display data using to most adapted
-view from available ones from silx.
+"""This module defines a widget able to convert a numpy array from n-dimensions
+to a numpy array with less dimensions.
 """
 from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "09/12/2016"
+__date__ = "14/12/2016"
 
 import numpy
 import functools
@@ -38,14 +38,24 @@ from silx.gui import qt
 
 
 class _Axis(qt.QWidget):
+    """Widget displaying an axis.
+
+    It allows to display and scroll in the axis, and provide a widget to
+    map the axis with a named axis (the one from the view).
+    """
 
     valueChanged = qt.Signal(int)
+    """Emitted when the location on the axis change."""
 
     axisNameChanged = qt.Signal(object)
+    """Emitted when the user change the name of the axis."""
 
     def __init__(self, parent):
-        """Constructor"""
-        super(_Axis, self).__init__(parent)
+        """Constructor
+
+        :param parent: Parent of the widget
+        """
+        super(_Axis, self).__init__(parent=None)
         self.__axisNumber = None
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
@@ -61,14 +71,33 @@ class _Axis(qt.QWidget):
         self.layout().addStretch(1)
 
     def setAxis(self, number, position, size):
+        """Set axis information.
+
+        :param int number: The number of the axis (from the original numpy
+            array)
+        :param int position: The current position in the axis (for a slicing)
+        :param int size: The size of this axis (0..n)
+        """
         self.__label.setText("Dimension %s" % number)
         self.__axisNumber = number
         self.__slider.setMaximum(size - 1)
 
     def axisNumber(self):
+        """Returns the axis number.
+
+        :rtype: int
+        """
         return self.__axisNumber
 
     def setAxisName(self, axisName):
+        """Set the current used axis name.
+
+        If this name is not available an exception is raised. An empty string
+        means that no name is selected.
+
+        :param str axisName: The new name of the axis
+        :raise ValueError: When the name is not available
+        """
         if axisName == "" and self.__axes.count() == 0:
             self.__axes.setCurrentIndex(-1)
             self.__slider.setVisible(True)
@@ -78,15 +107,25 @@ class _Axis(qt.QWidget):
                 self.__slider.setVisible(name == "")
                 self.__axes.setCurrentIndex(index)
                 return
-        raise Exception("Axis name '%s' not found", axisName)
+        raise ValueError("Axis name '%s' not found", axisName)
 
     def axisName(self):
+        """Returns the selected axis name.
+
+        If no names are selected, an empty string is retruned.
+
+        :rtype: str
+        """
         index = self.__axes.currentIndex()
         if index == -1:
             return ""
         return self.__axes.itemData(index)
 
     def setAxisNames(self, axesNames):
+        """Set the available list of names for the axis.
+
+        :param list[str] axesNames: List of available names
+        """
         self.__axes.clear()
         previous = self.__axes.blockSignals(True)
         self.__axes.addItem(" ", "")
@@ -96,22 +135,49 @@ class _Axis(qt.QWidget):
         self.__slider.setVisible(True)
 
     def __axisMappingChanged(self, index):
+        """Called when the selected name change.
+
+        :param int index: Selected index
+        """
         name = self.axisName()
         self.__slider.setVisible(name == "")
         self.axisNameChanged.emit(name)
 
     def value(self):
+        """Returns the current selected position in the axis.
+
+        :rtype: int
+        """
         return self.__slider.value()
 
     def __sliderValueChanged(self, value):
+        """Called when the selected position in the axis change.
+
+        :param int value: Position of the axis
+        """
         self.valueChanged.emit(value)
 
 
 class NumpyAxesSelector(qt.QWidget):
-    """Widget to select a view from a numpy array"""
+    """Widget to select a view from a numpy array.
+
+    .. image:: img/NumpyAxesSelector.png
+
+    The widget is set with an input data using :meth:`setData`, and a requested
+    output dimension using :meth:`setAxisNames`.
+
+    Widgets are provided to selected expected input axis, and a slice on the
+    non-selected axis.
+
+    The final selected array can be reached using the getter
+    :meth:`selectedData`, and the event `selectionChanged`.
+
+    If the input data is a HDF5 Dataset, the selected output data will be a
+    new numpy array.
+    """
 
     dataChanged = qt.Signal()
-    """Emitted when the data change"""
+    """Emitted when the input data change"""
 
     selectedAxisChanged = qt.Signal()
     """Emitted when the selected axis change"""
@@ -120,7 +186,10 @@ class NumpyAxesSelector(qt.QWidget):
     """Emitted when the selected data change"""
 
     def __init__(self, parent=None):
-        """Constructor"""
+        """Constructor
+
+        :param parent: Parent of the widget
+        """
         super(NumpyAxesSelector, self).__init__(parent)
 
         self.__data = None
@@ -131,15 +200,18 @@ class NumpyAxesSelector(qt.QWidget):
         self.layout().setContentsMargins(0, 0, 0, 0)
 
     def clear(self):
+        """Clear the widget."""
         self.setData(None)
 
     def setAxisNames(self, axesNames):
         """Set the axis names of the output selected data.
 
+        Axis names are defined from slower to faster axis.
+
         The size of the list will constrain the dimension of the resulting
         array.
 
-        :param list axesNames: List of string identifying axis names
+        :param list[str] axesNames: List of string identifying axis names
         """
         self.__axisNames = list(axesNames)
         for index, axis in enumerate(self.__axis):
@@ -152,6 +224,10 @@ class NumpyAxesSelector(qt.QWidget):
             axis.blockSignals(previous)
 
     def setData(self, data):
+        """Set the input data unsed by the widget.
+
+        :param numpy.ndarray data: The input data
+        """
         if data is not None:
             # clean up
             for widget in self.__axis:
@@ -179,6 +255,11 @@ class NumpyAxesSelector(qt.QWidget):
         self.__updateSelectedData()
 
     def __axisNameChanged(self, axis, name):
+        """Called when an axis name change.
+
+        :param _Axis axis: The changed axis
+        :param str name: The new name of the axis
+        """
         names = [x.axisName() for x in self.__axis]
         missingName = set(self.__axisNames) - set(names) - set("")
         if len(missingName) == 0:
@@ -229,6 +310,10 @@ class NumpyAxesSelector(qt.QWidget):
         self.__updateSelectedData()
 
     def __updateSelectedData(self):
+        """Update the selected data according to the state of the widget.
+
+        It fires a `selectionChanged` event.
+        """
         if self.__data is None:
             if self.__selectedData is not None:
                 self.__selectedData = None
@@ -246,6 +331,8 @@ class NumpyAxesSelector(qt.QWidget):
                 axisNames.append(name)
 
         # get a view with few fixed dimensions
+        # with a h5py dataset, it create a copy
+        # TODO we can reuse the same memory in case of a copy
         view = self.__data[tuple(selection)]
 
         # order axis as expected
@@ -263,7 +350,15 @@ class NumpyAxesSelector(qt.QWidget):
         self.selectionChanged.emit()
 
     def data(self):
+        """Returns the input data.
+
+        :rtype: numpy.ndarray
+        """
         return self.__data
 
     def selectedData(self):
+        """Returns the output data.
+
+        :rtype: numpy.ndarray
+        """
         return self.__selectedData

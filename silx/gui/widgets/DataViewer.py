@@ -254,7 +254,31 @@ class _TextView(DataView):
 
 
 class DataViewer(qt.QFrame):
-    """Widget to display any kind of data"""
+    """Widget to display any kind of data
+
+    .. image:: img/DataViewer.png
+
+    The method :meth:`setData` allow to set any data to the widget. Mostly
+    `numpy.array` and `h5py.Dataset` are supported with adated views. Other
+    data are displayed using text viewer.
+
+    A default view is automatically selected when a data is set. The method
+    :meth:`setDisplayMode` allow to change the view. To have a graphical tool
+    to select the view, prefer using the widget :class:`DataViewerFrame`.
+
+    The dimension of the input data and the expected dimension of the selected
+    view can differ. For example to display an image (2D) from the 4 dimensions
+    data. In this case a :class:`NumpyAxesSelector` is displayed to allow the
+    user to select the axis mapping and the slicing of other axis.
+
+    .. code-block:: python
+
+        import numpy
+        data = numpy.random.rand(500,500)
+        viewer = DataViewer()
+        viewer.setData(data)
+        viewer.setVisible(True)
+    """
 
     EMPTY_MODE = 0
     PLOT1D_MODE = 1
@@ -273,7 +297,10 @@ class DataViewer(qt.QFrame):
     data) change"""
 
     def __init__(self, parent=None):
-        """Constructor"""
+        """Constructor
+
+        :param QWidget parent: The parent of the widget
+        """
         super(DataViewer, self).__init__(parent)
 
         self.__stack = qt.QStackedWidget(self)
@@ -316,19 +343,20 @@ class DataViewer(qt.QFrame):
 
         self.setDisplayMode(self.EMPTY_MODE)
 
-    def viewAxisExpected(self, displayMode):
-        view = self.__views[displayMode]
-        return len(view.axiesNames())
-
     def clear(self):
+        """Clear the widget"""
         self.setData(None)
 
     def __clearCurrentView(self):
+        """Clear the current selected view"""
         view = self.__views.get(self.__displayMode, None)
         if view is not None:
             view.clear()
 
     def __updateNumpySelectionAxis(self):
+        """
+        Update the numpy-selector according to the needed axis names
+        """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
         view = self.__views[self.__displayMode]
@@ -342,6 +370,9 @@ class DataViewer(qt.QFrame):
         self.__numpySelection.blockSignals(previous)
 
     def __updateDataInView(self):
+        """
+        Update the views using the current data
+        """
         if self.__numpySelection.isVisible():
             data = self.__numpySelection.selectedData()
         else:
@@ -350,7 +381,13 @@ class DataViewer(qt.QFrame):
         view = self.__views[self.__displayMode]
         view.setData(data)
 
-    def _displayView(self, view):
+    def __displayView(self, view):
+        """Set the displayed view.
+
+        Change the displayed view according to the view itself.
+
+        :param DataView view: The DataView to use to display the data
+        """
         for currentMode, currentView in self.__views.items():
             if currentView is view:
                 self.setDisplayMode(currentMode)
@@ -358,6 +395,18 @@ class DataViewer(qt.QFrame):
         self.setDisplayMode(self.EMPTY_MODE)
 
     def setDisplayMode(self, modeId):
+        """Set the displayed view using display mode.
+
+        Change the displayed view according to the requested mode.
+
+        :param int modeId: Display mode, one of
+
+            - `EMPTY_MODE`: display nothing
+            - `PLOT1D_MODE`: display the data as a curve
+            - `PLOT2D_MODE`: display the data as an image
+            - `TEXT_MODE`: display the data as a text
+            - `ARRAY_MODE`: display the data as a table
+        """
         if self.__displayMode == modeId:
             return
         self.__clearCurrentView()
@@ -394,19 +443,38 @@ class DataViewer(qt.QFrame):
         else:
             view = None
         self.__clearCurrentView()
-        self._displayView(view)
+        self.__displayView(view)
 
     def __setCurrentAvailableViews(self, availableViews):
+        """Set the current available viewa
+
+        :param List[DataView] availableViews: Current available viewa
+        """
         self.__currentAvailableViews = availableViews
         self.currentAvailableViewsChanged.emit()
 
     def currentAvailableViews(self):
+        """Returns the list of available views for the current data
+
+        :rtype: List[DataView]
+        """
         return self.__currentAvailableViews
 
     def availableViews(self):
+        """Returns the list of registered views
+
+        :rtype: List[DataView]
+        """
         return self.__views.values()
 
     def setData(self, data):
+        """Set the data to view.
+
+        It mostly can be a h5py.Dataset or a numpy.ndarray. Other kind of
+        objects will be displayed as text rendering.
+
+        :param numpy.ndarray data: The data.
+        """
         self.__data = data
         self.__updateView()
         self.__updateNumpySelectionAxis()
@@ -414,13 +482,21 @@ class DataViewer(qt.QFrame):
         self.dataChanged.emit()
 
     def __numpyAxisChanged(self):
+        """
+        Called when axis selection of the numpy-selector changed
+        """
         self.__clearCurrentView()
 
     def __numpySelectionChanged(self):
+        """
+        Called when data selection of the numpy-selector changed
+        """
         self.__updateDataInView()
 
     def data(self):
+        """Returns the data"""
         return self.__data
 
-    def getDisplayMode(self):
+    def displayMode(self):
+        """Returns the current display mode"""
         return self.__displayMode

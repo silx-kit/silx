@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module contains a DataViewer all in one in a frame.
+"""This module contains a DataViewer with a view selector.
 """
 
 __authors__ = ["V. Valls"]
@@ -36,13 +36,36 @@ from .DataViewerSelector import DataViewerSelector
 
 class DataViewerFrame(qt.QWidget):
     """
-    A DataViewer with a view selector
+    A :class:`DataViewer` with a view selector.
+
+    .. image:: img/DataViewerFrame.png
+
+    This widget provides the same API than :class:`DataViewer`. Then for more
+    documentation take a look at the documentation of the class
+    :class:`DataViewer`.
+
+    .. code-block:: python
+
+        import numpy
+        data = numpy.random.rand(500,500)
+        viewer = DataViewerFrame()
+        viewer.setData(data)
+        viewer.setVisible(True)
+
     """
+
+    displayModeChanged = qt.Signal(int)
+    """Emitted when the display mode change"""
 
     dataChanged = qt.Signal()
     """Emitted when the data changed"""
 
     def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param qt.QWidget parent:
+        """
         super(DataViewerFrame, self).__init__(parent)
 
         self.__dataViewer = DataViewer(self)
@@ -58,12 +81,44 @@ class DataViewerFrame(qt.QWidget):
         self.layout().addWidget(self.__dataViewerSelector)
 
         self.__dataViewer.dataChanged.connect(self.__dataChanged)
+        self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
 
     def __dataChanged(self):
+        """Called when the data is changed"""
         self.dataChanged.emit()
 
+    def __displayModeChanged(self):
+        """Called when the display mode changed"""
+        self.displayModeChanged.emit()
+
     def setData(self, data):
+        """Set the data to view.
+
+        It mostly can be a h5py.Dataset or a numpy.ndarray. Other kind of
+        objects will be displayed as text rendering.
+
+        :param numpy.ndarray data: The data.
+        """
         self.__dataViewer.setData(data)
 
     def data(self):
+        """Returns the data"""
         return self.__dataViewer.data()
+
+    def displayMode(self):
+        return self.__dataViewer.displayMode()
+
+    def setDisplayMode(self, modeId):
+        """Set the displayed view using display mode.
+
+        Change the displayed view according to the requested mode.
+
+        :param int modeId:  Display mode, one of
+
+            - `EMPTY_MODE`: display nothing
+            - `PLOT1D_MODE`: display the data as a curve
+            - `PLOT2D_MODE`: display the data as an image
+            - `TEXT_MODE`: display the data as a text
+            - `ARRAY_MODE`: display the data as a table
+        """
+        return self.__dataViewer.setDisplayMode(modeId)

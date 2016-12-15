@@ -22,8 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module defines a widget designed to display data using to most adapted
-view from available ones from silx.
+"""This module defines a widget to be able to select the available view
+of the DataViewer.
 """
 from __future__ import division
 
@@ -100,10 +100,14 @@ class DataViewerSelector(qt.QWidget):
         if self.__dataViewer is not None:
             self.__dataViewer.dataChanged.connect(self.__dataChanged)
             self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
-            self.__displayModeChanged(self.__dataViewer.getDisplayMode())
+            self.__displayModeChanged(self.__dataViewer.displayMode())
         self.__dataChanged()
 
     def setFlat(self, isFlat):
+        """Set the flat state of all the buttons.
+
+        :param bool isFlat: True to display the buttons flatten.
+        """
         for b in self.__buttons.values():
             b.setFlat(isFlat)
         self.__buttonDummy.setFlat(isFlat)
