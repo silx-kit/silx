@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "21/06/2016"
+__date__ = "05/12/2016"
 
 
 import logging
@@ -36,8 +36,8 @@ import unittest
 import numpy
 
 from silx.gui import qt
-from silx.testutils import temp_dir
-from silx.gui.testutils import TestCaseQt, getQToolButtonFromAction
+from silx.test.utils import temp_dir
+from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
 
 

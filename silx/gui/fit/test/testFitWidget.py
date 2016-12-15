@@ -26,7 +26,7 @@
 
 import unittest
 
-from ...testutils import TestCaseQt
+from ...test.utils import TestCaseQt
 
 from ... import qt
 from .. import FitWidget
@@ -36,7 +36,7 @@ from ....math.fit.fitmanager import FitManager
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "21/07/2016"
+__date__ = "05/12/2016"
 
 
 class TestFitWidget(TestCaseQt):

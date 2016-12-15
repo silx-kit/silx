@@ -24,13 +24,15 @@
 # ###########################################################################*/
 """Full silx test suite.
 
-silx.gui tests depends on Qt.
-To disable them, set WITH_QT_TEST environement variable to 'False'.
+
+It is possible to disable tests depending on Qt by setting
+:envvar:`WITH_QT_TEST` environment variable to 'False'.
+It will skip all tests from :mod:`silx.test.gui`.
 """
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "31/08/2016"
+__date__ = "09/12/2016"
 
 
 import logging
@@ -41,25 +43,24 @@ import unittest
 logger = logging.getLogger(__name__)
 
 
-from .test_version import suite as test_version_suite
-from .test_resources import suite as test_resources_suite
-from ..io.test import suite as test_io_suite
-from ..math.test import suite as test_math_suite
-from ..image.test import suite as test_image_suite
-from ..gui.test import suite as test_gui_suite
-from ..utils.test import suite as test_utils_suite
-from . import test_sx
-
-
 def suite():
+    from . import test_version
+    from . import test_resources
+    from . import test_sx
+    from ..io import test as test_io
+    from ..math import test as test_math
+    from ..image import test as test_image
+    from ..gui import test as test_gui
+    from ..utils import test as test_utils
+
     test_suite = unittest.TestSuite()
-    test_suite.addTest(test_version_suite())
-    test_suite.addTest(test_resources_suite())
-    test_suite.addTest(test_gui_suite())
-    test_suite.addTest(test_utils_suite())
-    test_suite.addTest(test_io_suite())
-    test_suite.addTest(test_math_suite())
-    test_suite.addTest(test_image_suite())
+    test_suite.addTest(test_version.suite())
+    test_suite.addTest(test_resources.suite())
+    test_suite.addTest(test_gui.suite())
+    test_suite.addTest(test_utils.suite())
+    test_suite.addTest(test_io.suite())
+    test_suite.addTest(test_math.suite())
+    test_suite.addTest(test_image.suite())
     test_suite.addTest(test_sx.suite())
     return test_suite
 

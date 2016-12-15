@@ -27,13 +27,13 @@ from __future__ import division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "07/09/2016"
+__date__ = "05/12/2016"
 
 import unittest
 
 import numpy
 
-from silx.testutils import ParametricTestCase
+from silx.test.utils import ParametricTestCase
 
 from silx.math import marchingcubes
 

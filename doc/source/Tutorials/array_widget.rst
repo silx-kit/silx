@@ -171,8 +171,52 @@ The variable *newdata* is then a reference to the internal widget data.
     Modifying the internal data used by the widget can have unpredictable
     consequences.
 
+Background color
+----------------
 
+You can set the background color for each cell by passing a numpy array of
+RGB colors to the :meth:`setArrayColors` method.
 
+The colors array must have one more dimension than the data array. This dimension
+must be of length 3 for RGB colors or length 4 for RGBA colors.
 
+The colors array associates 3 (or 4) integers between 0 and 255 to each value
+in the data array. The values represent the red, green, blue and alpha (opacity)
+channels.
+
+In the following examples, we create a table displaying a complete palette
+of RGB colors.
+
+.. code-block:: python
+
+   import numpy
+   from silx.gui import qt
+   from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
+
+   # data array
+   data = numpy.arange(256**3)
+   data.shape = 256, 256, 256
+
+   # RGB colors array
+   bcolors = numpy.empty((256, 256, 256, 3), dtype=numpy.uint8)
+   # fill red channel
+   bcolors[..., 0] = data[:] & 255
+   # green
+   bcolors[..., 1] = (data[:] & (255 << 8)) >> 8
+   # blue
+   bcolors[..., 2] = (data[:] & (255 << 16)) >> 16
+
+   # make text contrast with background (XOR)
+   fcolors = numpy.bitwise_xor(bcolors, 255)
+
+   app = qt.QApplication([])
+
+   atw = ArrayTableWidget()
+   atw.setArrayData(data, copy=False)
+   atw.setArrayColors(bgcolors=bcolors,
+                      fgcolors=fcolors)
+   atw.show()
+
+   app.exec_()
 
 

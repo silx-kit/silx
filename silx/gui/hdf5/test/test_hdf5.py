@@ -26,7 +26,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/11/2016"
+__date__ = "05/12/2016"
 
 
 import time
@@ -36,7 +36,7 @@ import tempfile
 import numpy
 from contextlib import contextmanager
 from silx.gui import qt
-from silx.gui import testutils
+from silx.gui.test.utils import TestCaseQt
 from silx.gui import hdf5
 from . import _mock
 
@@ -54,7 +54,7 @@ class _Holder(object):
         _called += 1
 
 
-class TestHdf5TreeModel(testutils.TestCaseQt):
+class TestHdf5TreeModel(TestCaseQt):
 
     def setUp(self):
         super(TestHdf5TreeModel, self).setUp()
@@ -304,7 +304,7 @@ class TestHdf5TreeModel(testutils.TestCaseQt):
         self.assertEquals(index, qt.QModelIndex())
 
 
-class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
+class TestNexusSortFilterProxyModel(TestCaseQt):
 
     def getChildNames(self, model, index):
         count = model.rowCount(index)
@@ -415,7 +415,7 @@ class TestNexusSortFilterProxyModel(testutils.TestCaseQt):
         self.assertListEqual(names, ["100aaa", "aaa100"])
 
 
-class TestHdf5(testutils.TestCaseQt):
+class TestHdf5(TestCaseQt):
     """Test to check that icons module."""
 
     def setUp(self):
