@@ -1027,14 +1027,13 @@ class FitAction(PlotAction):
 
 
 class PixelIntensitiesHistoAction(PlotAction):
-    """QAction to plot the pixels intensities diagram"""
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
 
     def __init__(self, plot, parent=None):
-        """
-
-        :param plot: :class:`.PlotWidget` instance on which to operate
-        :param parent: See :class:`QAction`
-        """
         PlotAction.__init__(self,
                             plot,
                             icon='pixel-intensities',
@@ -1056,13 +1055,11 @@ class PixelIntensitiesHistoAction(PlotAction):
             self.getHistogram().hide()
 
     def computeIntensityDistribution(self):
-        """Get the active image and compute the image
-        intensity distribution"""
+        """Get the active image and compute the image intensity distribution
+        """
         activeImage = self.plot.getActiveImage()
 
         if activeImage is not None:
-            
-
             histo, w_histo, edges = Histogramnd(activeImage[0].ravel(),
                                                 n_bins=256,
                                                 histo_range=[0,256])
@@ -1089,7 +1086,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         """Return the histogram of the pixel intensities
         """
         from silx.gui.plot.PlotWindow import Plot1D
-        if self.plotHistogram is None :
+        if self.plotHistogram is None:
             self.plotHistogram = Plot1D()
             self.plotHistogram.installEventFilter(self)
 
