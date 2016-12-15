@@ -322,7 +322,7 @@ class DataViewer(qt.QFrame):
         self.layout().addWidget(self.__axisSelection)
 
         self.__currentAvailableViews = []
-        self.__displayMode = None
+        self.__currentView = None
         self.__data = None
         self.__useAxisSelection = False
 
@@ -337,12 +337,8 @@ class DataViewer(qt.QFrame):
         for v in views:
             self.__views[v.modeId()] = v
 
-        # feed the stack widget
+        # store stack index for each views
         self.__index = {}
-        for modeId, view in self.__views.items():
-            widget = view.getWidget()
-            index = self.__stack.addWidget(widget)
-            self.__index[modeId] = index
 
         self.setDisplayMode(self.EMPTY_MODE)
 
@@ -350,9 +346,22 @@ class DataViewer(qt.QFrame):
         """Clear the widget"""
         self.setData(None)
 
+    def __getStackIndex(self, view):
+        """Get the stack index containing the view.
+
+        :param DataView view: The view
+        """
+        if view not in self.__index:
+            widget = view.getWidget()
+            index = self.__stack.addWidget(widget)
+            self.__index[view] = index
+        else:
+            index = self.__index[view]
+        return index
+
     def __clearCurrentView(self):
         """Clear the current selected view"""
-        view = self.__views.get(self.__displayMode, None)
+        view = self.__currentView
         if view is not None:
             view.clear()
 
@@ -362,8 +371,7 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        view = self.__views[self.__displayMode]
-        axisNames = view.axiesNames()
+        axisNames = self.__currentView.axiesNames()
         if len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__axisSelection.setVisible(True)
@@ -383,21 +391,24 @@ class DataViewer(qt.QFrame):
         else:
             data = self.__data
 
-        view = self.__views[self.__displayMode]
-        view.setData(data)
+        self.__currentView.setData(data)
 
-    def __displayView(self, view):
+    def __setDisplayedView(self, view):
         """Set the displayed view.
 
         Change the displayed view according to the view itself.
 
         :param DataView view: The DataView to use to display the data
         """
-        for currentMode, currentView in self.__views.items():
-            if currentView is view:
-                self.setDisplayMode(currentMode)
-                return
-        self.setDisplayMode(self.EMPTY_MODE)
+        if self.__currentView is view:
+            return
+        self.__clearCurrentView()
+        self.__currentView = view
+        self.__updateNumpySelectionAxis()
+        self.__updateDataInView()
+        stackIndex = self.__getStackIndex(self.__currentView)
+        self.__stack.setCurrentIndex(stackIndex)
+        self.displayModeChanged.emit(view.modeId())
 
     def setDisplayMode(self, modeId):
         """Set the displayed view using display mode.
@@ -412,15 +423,11 @@ class DataViewer(qt.QFrame):
             - `TEXT_MODE`: display the data as a text
             - `ARRAY_MODE`: display the data as a table
         """
-        if self.__displayMode == modeId:
-            return
-        self.__clearCurrentView()
-        self.__displayMode = modeId
-        self.__updateNumpySelectionAxis()
-        self.__updateDataInView()
-        index = self.__index[modeId]
-        self.__stack.setCurrentIndex(index)
-        self.displayModeChanged.emit(modeId)
+        try:
+            view = self.__views[modeId]
+        except KeyError:
+            raise ValueError("Display mode %s is unknown" % modeId)
+        self.__setDisplayedView(view)
 
     def __updateView(self):
         """Display the data using the widget which fit the best"""
@@ -446,9 +453,9 @@ class DataViewer(qt.QFrame):
         if len(views) > 0:
             view = views[0][1]
         else:
-            view = None
+            view = self.__views[DataViewer.EMPTY_MODE]
         self.__clearCurrentView()
-        self.__displayView(view)
+        self.__setDisplayedView(view)
 
     def __setCurrentAvailableViews(self, availableViews):
         """Set the current available viewa
@@ -504,4 +511,4 @@ class DataViewer(qt.QFrame):
 
     def displayMode(self):
         """Returns the current display mode"""
-        return self.__displayMode
+        return self.__currentView.modeId()
