@@ -194,7 +194,6 @@ class StackView(qt.QWidget):
         :type scale: Tuple of 2 floats: (scale x, scale y).
         :param bool reset: Whether to reset zoom or not.
         """
-        # todo: no copy for h5py datasets
         assert len(origin) == 2
         assert len(scale) == 2
         assert scale[0] > 0
@@ -424,14 +423,6 @@ class StackView(qt.QWidget):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        if autoscale and isinstance(self._stack, h5py.Dataset):
-            raise RuntimeError(
-                "Cannot autoscale colormap for a h5py dataset")
-        if autoscale is None and isinstance(self._stack, numpy.ndarray):
-            autoscale = True
-        else:
-            autoscale = False
-
         cmapDict = self.getColormap()
 
         if isinstance(colormap, dict):
@@ -443,8 +434,7 @@ class StackView(qt.QWidget):
             assert vmin is None, errmsg
             assert vmax is None, errmsg
             assert colors is None, errmsg
-            for key, value in colormap.items():
-                cmapDict[key] = value
+            cmapDict.update(colormap)
 
         else:
             if colormap is not None:
@@ -456,9 +446,22 @@ class StackView(qt.QWidget):
 
             # Default meaning of autoscale is to reset min and max
             # each time a new image is added to the plot.
-            # Here, we want to use min and max of global volume,
+            # We want to use min and max of global volume,
             # and not change them when browsing slides
             cmapDict['autoscale'] = False
+
+            if autoscale is None:
+                # set default
+                if isinstance(self._stack, numpy.ndarray):
+                    autoscale = True
+                else:                    # h5py.Dataset
+                    autoscale = False
+            elif autoscale and isinstance(self._stack, h5py.Dataset):
+                # h5py dataset has no min()/max() method
+                raise RuntimeError(
+                        "Cannot auto-scale colormap for a h5py dataset")
+            else:
+                autoscale = autoscale
             self.__autoscaleCmap = autoscale
             if autoscale and (self._stack is not None):
                 cmapDict['vmin'] = self._stack.min()
