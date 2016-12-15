@@ -101,6 +101,9 @@ class DataView(object):
         """
         return -1
 
+    def __lt__(self, other):
+        return str(self) < str(other)
+
 
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
@@ -440,7 +443,7 @@ class DataViewer(qt.QFrame):
         priorities = [v.getDataPriority(data) for v in self.__views.values()]
         views = zip(priorities, self.__views.values())
         views = filter(lambda t: t[0] >= 0, views)
-        views.sort(reverse=True)
+        views = sorted(views, reverse=True)
 
         # store available views
         if len(views) == 0:
@@ -448,7 +451,7 @@ class DataViewer(qt.QFrame):
         else:
             if views[0][0] != 0:
                 # remove 0-priority, if other are available
-                views = filter(lambda t: t[0] != 0, views)
+                views = list(filter(lambda t: t[0] != 0, views))
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 
