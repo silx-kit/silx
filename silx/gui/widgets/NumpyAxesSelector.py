@@ -214,11 +214,14 @@ class NumpyAxesSelector(qt.QWidget):
         :param list[str] axesNames: List of string identifying axis names
         """
         self.__axisNames = list(axesNames)
+        delta = len(self.__axis) - len(self.__axisNames)
+        if delta < 0:
+            delta = 0
         for index, axis in enumerate(self.__axis):
             previous = axis.blockSignals(True)
             axis.setAxisNames(self.__axisNames)
-            if index < len(self.__axisNames):
-                axis.setAxisName(self.__axisNames[index])
+            if index >= delta and index - delta < len(self.__axisNames):
+                axis.setAxisName(self.__axisNames[index - delta])
             else:
                 axis.setAxisName("")
             axis.blockSignals(previous)
@@ -241,12 +244,13 @@ class NumpyAxesSelector(qt.QWidget):
         if data is not None:
             # create expected axes
             dimensionNumber = len(data.shape)
-            for number in range(dimensionNumber):
+            delta = dimensionNumber - len(self.__axisNames)
+            for index in range(dimensionNumber):
                 axis = _Axis(self)
-                axis.setAxis(number, 0, data.shape[number])
+                axis.setAxis(index, 0, data.shape[index])
                 axis.setAxisNames(self.__axisNames)
-                if number < len(self.__axisNames):
-                    axis.setAxisName(self.__axisNames[number])
+                if index >= delta and index - delta < len(self.__axisNames):
+                    axis.setAxisName(self.__axisNames[index - delta])
                 axis.valueChanged.connect(self.__updateSelectedData)
                 axis.axisNameChanged.connect(functools.partial(self.__axisNameChanged, axis))
                 self.layout().addWidget(axis)
