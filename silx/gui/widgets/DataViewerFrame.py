@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "15/12/2016"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -74,11 +74,12 @@ class DataViewerFrame(qt.QWidget):
         self.__dataViewerSelector = DataViewerSelector(self, self.__dataViewer)
         self.__dataViewerSelector.setFlat(True)
 
-        self.setLayout(qt.QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.layout().setSpacing(0)
-        self.layout().addWidget(self.__dataViewer, 1)
-        self.layout().addWidget(self.__dataViewerSelector)
+        layout = qt.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.__dataViewer, 1)
+        layout.addWidget(self.__dataViewerSelector)
+        self.setLayout(layout)
 
         self.__dataViewer.dataChanged.connect(self.__dataChanged)
         self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
