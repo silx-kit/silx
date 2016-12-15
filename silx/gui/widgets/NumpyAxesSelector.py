@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "15/12/2016"
 
 import numpy
 import functools
@@ -51,25 +51,25 @@ class _Axis(qt.QWidget):
     axisNameChanged = qt.Signal(object)
     """Emitted when the user change the name of the axis."""
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         """Constructor
 
         :param parent: Parent of the widget
         """
-        super(_Axis, self).__init__(parent=None)
+        super(_Axis, self).__init__(parent)
         self.__axisNumber = None
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
         self.__slider = HorizontalSliderWithBrowser(self)
         self.__slider.valueChanged[int].connect(self.__sliderValueChanged)
-
-        self.setLayout(qt.QHBoxLayout(self))
-        self.layout().setContentsMargins(0, 0, 0, 0)
-        self.layout().addWidget(self.__label)
-        self.layout().addWidget(self.__axes)
-        self.layout().addWidget(self.__slider, 10000)
-        self.layout().addStretch(1)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.__label)
+        layout.addWidget(self.__axes)
+        layout.addWidget(self.__slider, 10000)
+        layout.addStretch(1)
+        self.setLayout(layout)
 
     def setAxis(self, number, position, size):
         """Set axis information.
@@ -197,8 +197,9 @@ class NumpyAxesSelector(qt.QWidget):
         self.__selectedData = None
         self.__axis = []
         self.__axisNames = []
-        self.setLayout(qt.QVBoxLayout())
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        layout = qt.QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
     def clear(self):
         """Clear the widget."""
