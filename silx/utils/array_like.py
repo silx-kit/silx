@@ -24,7 +24,24 @@
 # ###########################################################################*/
 """Functions and classes for array-like objects, implementing common numpy
 array features for datasets or nested sequences, while trying to avoid copying
-data."""
+data.
+
+Classes:
+
+    - :class:`TransposedDatasetView`: Similar to a numpy view, to access
+      a h5py dataset as if it was transposed, but without having to cast
+      it into a numpy array (this lets h5py handle reading the data from the
+      file into memory, as needed).
+
+Functions:
+
+    - :func:`is_array`
+    - :func:`is_nested_sequence`
+    - :func:`get_shape`
+    - :func:`get_dtype`
+    - :func:`get_array_type`
+
+"""
 
 from __future__ import absolute_import, print_function, division
 import numpy
@@ -39,13 +56,14 @@ def is_array(obj):
     """Return True if object implements necessary attributes to be
     considered similar to a numpy array.
 
-    Attributes needed are "shape" and "dtype".
+    Attributes needed are "shape", "dtype", "__getitem__"
+    and "__array__".
 
     :param obj: Array-like object (numpy array, h5py dataset...)
     :return: boolean
     """
     # add more required attribute if necessary
-    for attr in ("shape", "dtype"):
+    for attr in ("shape", "dtype", "__array__", "__getitem__"):
         if not hasattr(obj, attr):
             return False
     return True
@@ -194,12 +212,14 @@ class TransposedDatasetView(object):
     """
     This class provides a way to transpose a dataset without
     casting it into a numpy array. This way, the dataset in a file need not
-    necessarily be integrally read into memory to access data slices.
+    necessarily be integrally read into memory to view it in a different
+    transposition.
 
-    The read performance depends a lot on the way the dataset was written
-    to file. Depending on the chunking strategy, reading a complete 2D slice
-    in an unfavorable direction may still require the entire dataset to
-    be read from disk.
+    .. note::
+        The performances depend a lot on the way the dataset was written
+        to file. Depending on the chunking strategy, reading a complete 2D slice
+        in an unfavorable direction may still require the entire dataset to
+        be read from disk.
 
     :param dataset: h5py dataset
     :param transposition: List of dimension numbers in the wanted order
@@ -228,10 +248,14 @@ class TransposedDatasetView(object):
         """Number of elements in the array."""
 
         self.transposition = list(range(self.ndim))
-        """List of dimension numbers. By default this is simply
-        [0, ..., self.ndim], but it can be changed by using
-        :meth:`transpose`, to control the indices order when using
-        nD indexing or nD slicing."""
+        """List of dimension indices, in an order depending on the
+        specified transposition. By default this is simply
+        [0, ..., self.ndim], but it can be changed by specifying a different
+        `transposition` parameter at initialization.
+
+        Use :meth:`transpose`, to create a new :class:`TransposedDatasetView`
+        with a different :attr:`transposition`.
+        """
 
         if transposition is not None:
             assert len(transposition) == self.ndim
@@ -326,9 +350,10 @@ class TransposedDatasetView(object):
                                self.transposition)
 
     def transpose(self, transposition=None):
-        """Return a re-ordered (permutated) :class:`TransposedDatasetView`.
+        """Return a re-ordered (dimensions permutated)
+        :class:`TransposedDatasetView`.
 
-        The returned object is a :class:`TransposedDatasetView` referring to
+        The returned object refers to
         the same dataset but with a different :attr:`transposition`.
 
         :param list[int] transposition: List of dimension numbers in the wanted order
