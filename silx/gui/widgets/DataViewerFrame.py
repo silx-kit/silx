@@ -87,9 +87,9 @@ class DataViewerFrame(qt.QWidget):
         """Called when the data is changed"""
         self.dataChanged.emit()
 
-    def __displayModeChanged(self):
+    def __displayModeChanged(self, modeId):
         """Called when the display mode changed"""
-        self.displayModeChanged.emit()
+        self.displayModeChanged.emit(modeId)
 
     def setData(self, data):
         """Set the data to view.
