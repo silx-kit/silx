@@ -29,14 +29,12 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "15/12/2016"
 
 import numpy
 
 import silx.io
 from silx.gui import qt
-from silx.gui import plot
-from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
 from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
 
 
@@ -128,6 +126,7 @@ class _Plot1dView(DataView):
         return ["y"]
 
     def createWidget(self, parent):
+        from silx.gui import plot
         return plot.Plot1D(parent=parent)
 
     def clear(self):
@@ -168,6 +167,7 @@ class _Plot2dView(DataView):
         return ["y", "x"]
 
     def createWidget(self, parent):
+        from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
         widget.setKeepDataAspectRatio(True)
         widget.setGraphXLabel('X')
@@ -209,6 +209,7 @@ class _ArrayView(DataView):
         return ["col", "row"]
 
     def createWidget(self, parent):
+        from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
         widget.displayAxesSelector(False)
         return widget
