@@ -238,20 +238,26 @@ class TransposedDatasetView(object):
             assert set(transposition) == set(list(range(self.ndim))), \
                 "Transposition must be a list containing all dimensions"
             self.transposition = transposition
+            self.__sort_shape()
 
-            self._sort_shape()
-
-    def _sort_shape(self):
+    def __sort_shape(self):
         """Sort shape in the order defined in :attr:`transposition`
         """
-        old_shape = self.shape
-        new_shape = []
-        for dimension in self.transposition:
-            new_shape.append(old_shape[dimension])
-        assert len(old_shape) == len(new_shape)
-        assert set(old_shape) == set(new_shape)
+        new_shape = tuple(self.shape[dim] for dim in self.transposition)
+        self.shape = new_shape
 
-        self.shape = tuple(new_shape)
+    def __sort_indices(self, indices):
+        """Return array indices sorted in the order needed
+        to access data in the original non-transposed dataset.
+
+        :param indices: Tuple of ndim indices, in the order needed
+            to access the view
+        :return: Sorted tuple of indices, to access original data
+        """
+        assert len(indices) == self.ndim
+        sorted_indices = tuple(idx for (_, idx) in
+                               sorted(zip(self.transposition, indices)))
+        return sorted_indices
 
     def __getitem__(self, item):
         """Handle fancy indexing with regards to the dimension order as
@@ -286,11 +292,9 @@ class TransposedDatasetView(object):
                 "Needed dimensions: %d" % self.ndim)
 
         # get list of indices sorted in the original dataset order
-        new_indices = []
-        for dimension in self.transposition:
-            new_indices.append(item[dimension])
+        sorted_indices = self.__sort_indices(item)
 
-        output_data_not_transposed = self.dataset[new_indices]
+        output_data_not_transposed = self.dataset[sorted_indices]
 
         # now we must transpose the output data
         output_dimensions = []
@@ -317,7 +321,7 @@ class TransposedDatasetView(object):
         """Cast the dataset into a numpy array, and return it.
 
         If a transposition has been done on this dataset, return
-        a transposed view of a numpy array.a"""
+        a transposed view of a numpy array."""
         return numpy.transpose(numpy.array(self.dataset, dtype=dtype),
                                self.transposition)
 
