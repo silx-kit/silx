@@ -50,5 +50,7 @@ from . import _matplotlib  # noqa
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
 from .ImageView import ImageView  # noqa
+from .StackView import StackView  # noqa
 
-__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
+           'StackView']
