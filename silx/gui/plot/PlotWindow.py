@@ -199,8 +199,8 @@ class PlotWindow(PlotWidget):
         self._separatorToIntenistyHisto.setVisible(False)
         self.group.addAction(self._separatorToIntenistyHisto)
 
-        self._intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
-        self._intensityHistoAction.setVisible(False)
+        self.intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
+        self.intensityHistoAction.setVisible(False)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -430,18 +430,18 @@ class PlotWindow(PlotWidget):
         :param boolean b: True if we want to add this action to the toolBar
         """
         self._separatorToIntenistyHisto.setVisible(b)
-        self._intensityHistoAction.setVisible(b)
+        self.intensityHistoAction.setVisible(b)
         if b:
-            self.sigActiveImageChanged.connect(self._intensityHistoAction.computeIntensityDistribution)
+            self.sigActiveImageChanged.connect(self.intensityHistoAction.computeIntensityDistribution)
         else:
-            self.sigActiveImageChanged.disconnect(self._intensityHistoAction.computeIntensityDistribution)
+            self.sigActiveImageChanged.disconnect(self.intensityHistoAction.computeIntensityDistribution)
 
 
     def getIntensityHistogramAction(self):
         """Action toggling the histogram intensity Dock widget"""
-        if not hasattr(self, '_intensityHistoAction'):
-            self._intensityHistoAction = PlotActions.PixelIntensitiesHistoAction(self)
-        return self._intensityHistoAction
+        if not hasattr(self, 'intensityHistoAction'):
+            self.intensityHistoAction = PlotActions.PixelIntensitiesHistoAction(self)
+        return self.intensityHistoAction
 
 
 class Plot1D(PlotWindow):
