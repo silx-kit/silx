@@ -232,7 +232,7 @@ class NumpyAxesSelector(qt.QWidget):
 
         :param numpy.ndarray data: The input data
         """
-        if data is not None:
+        if self.__data is not None:
             # clean up
             for widget in self.__axis:
                 self.layout().removeWidget(widget)
