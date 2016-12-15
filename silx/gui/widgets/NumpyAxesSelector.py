@@ -35,6 +35,7 @@ import numpy
 import functools
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui import qt
+import silx.utils.weakref
 
 
 class _Axis(qt.QWidget):
@@ -252,7 +253,9 @@ class NumpyAxesSelector(qt.QWidget):
                 if index >= delta and index - delta < len(self.__axisNames):
                     axis.setAxisName(self.__axisNames[index - delta])
                 axis.valueChanged.connect(self.__updateSelectedData)
-                axis.axisNameChanged.connect(functools.partial(self.__axisNameChanged, axis))
+                # this weak method was expected to be able to delete sub widget
+                callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis)
+                axis.axisNameChanged.connect(callback)
                 self.layout().addWidget(axis)
                 self.__axis.append(axis)
 

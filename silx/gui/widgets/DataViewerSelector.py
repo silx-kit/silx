@@ -29,13 +29,14 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "15/12/2016"
 
 from collections import OrderedDict
 import functools
 import silx.gui.icons
 from silx.gui import qt
 from silx.gui.widgets.DataViewer import DataViewer
+import silx.utils.weakref
 
 
 class DataViewerSelector(qt.QWidget):
@@ -69,7 +70,9 @@ class DataViewerSelector(qt.QWidget):
             button.setIcon(silx.gui.icons.getQIcon(iconName))
             button.setIconSize(iconSize)
             button.setCheckable(True)
-            button.clicked.connect(functools.partial(self.__setDisplayMode, modeId))
+            # the weakmethod is needed to be able to destroy the widget safely
+            callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__setDisplayMode), modeId)
+            button.clicked.connect(callback)
             self.layout().addWidget(button)
             self.__group.addButton(button)
             self.__buttons[modeId] = button
@@ -117,10 +120,11 @@ class DataViewerSelector(qt.QWidget):
         selectedButton = self.__buttons.get(mode, self.__buttonDummy)
         selectedButton.setChecked(True)
 
-    def __setDisplayMode(self, modeId):
+    def __setDisplayMode(self, modeId, clickEvent=None):
         """Display a data using requested mode
 
         :param int modeId: Requested mode id
+        :param clickEvent: Event sent by the clicked event
         """
         if self.__dataViewer is None:
             return
