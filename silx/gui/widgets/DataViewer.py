@@ -322,6 +322,7 @@ class DataViewer(qt.QFrame):
         self.__currentAvailableViews = []
         self.__displayMode = None
         self.__data = None
+        self.__useAxisSelection = False
 
         views = [
             _EmptyView(self.__stack, self.EMPTY_MODE),
@@ -362,10 +363,12 @@ class DataViewer(qt.QFrame):
         view = self.__views[self.__displayMode]
         axisNames = view.axiesNames()
         if len(axisNames) > 0:
+            self.__useAxisSelection = True
             self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setData(self.__data)
         else:
+            self.__useAxisSelection = False
             self.__axisSelection.setVisible(False)
         self.__numpySelection.blockSignals(previous)
 
@@ -373,7 +376,7 @@ class DataViewer(qt.QFrame):
         """
         Update the views using the current data
         """
-        if self.__numpySelection.isVisible():
+        if self.__useAxisSelection:
             data = self.__numpySelection.selectedData()
         else:
             data = self.__data
