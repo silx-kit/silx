@@ -575,25 +575,3 @@ class PlanesDockWidget(qt.QDockWidget):
             return 2
 
         raise RuntimeError('No plane selected')
-
-
-# fixme: move demo to silx/examples when complete
-if __name__ == "__main__":
-    import sys
-    app = qt.QApplication(sys.argv[1:])
-
-    mycube = numpy.fromfunction(
-        lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2*numpy.sin(k/6.),
-        (100, 200, 300)
-    )
-
-    sv = StackView()
-    sv.setColormap("jet", autoscale=True)
-    sv.setStack(mycube)
-    sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
-                  "3rd dim (0-299)"])
-    sv.show()
-
-    app.exec_()
-
-
