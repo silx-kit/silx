@@ -218,11 +218,50 @@ class TestProfileToolBar(TestCaseQt, ParametricTestCase):
 
                 self.plot.clear()
 
+import time
+from silx.gui.plot.PlotWindow import Plot2D
+
+class TestPixelIntensitiesHisto(TestCaseQt):
+    """Tests for ProfileToolBar widget."""
+
+    def setUp(self):
+        super(TestPixelIntensitiesHisto, self).setUp()
+        image=numpy.random.rand(100, 100)
+        self.plotImage=Plot2D()
+        self.plotImage.showPixelIntensitiesAction()
+        self.plotImage.addImage(image, origin=(0, 0), legend='sino')
+
+    def tearDown(self):
+        del self.plotImage.getIntensityHistogramAction().plotHistogram
+        del self.plotImage
+        super(TestPixelIntensitiesHisto, self).tearDown()
+
+    def testShowAndHide(self):
+        """Simple test that the plot is showing and hidding when activing the
+        action"""
+        self.plotImage.show()
+        # test the pixel intensity diagram is showing
+        button = getQToolButtonFromAction(self.plotImage.getIntensityHistogramAction())
+        self.assertIsNot(button, None)
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        self.assertTrue(
+            self.plotImage.getIntensityHistogramAction().plotHistogram.isVisible())
+
+        # test the pixel intensity diagram is hidding
+        self.qapp.setActiveWindow(self.plotImage)
+        self.qapp.processEvents()
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        self.assertFalse(
+            self.plotImage.getIntensityHistogramAction().plotHistogram.isVisible())
 
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo, TestProfileToolBar):
+    for testClass in (TestPositionInfo, TestProfileToolBar, TestPixelIntensitiesHisto):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite
