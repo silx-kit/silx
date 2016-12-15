@@ -180,7 +180,8 @@ class StackView(qt.QWidget):
         """Set the stack of images to display.
 
         :param stack: A 3D array representing the image or None to clear plot.
-        :type stack: numpy.ndarray-like with 3 dimensions or None.
+        :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
+            numpy arrays, or None.
         :param origin: The (x, y) position of the origin of the image.
                        Default: (0, 0).
                        The origin is the lower left corner of the image when
@@ -202,6 +203,20 @@ class StackView(qt.QWidget):
         if stack is None:
             self.clear()
             return
+
+        # convert list of images to 3D array
+        if not isinstance(stack, numpy.ndarray):
+            if h5py is None or not isinstance(stack, h5py.Dataset):
+                try:
+                    assert hasattr(stack, "__len__")
+                    for img in stack:
+                        assert hasattr(img, "shape")
+                        assert len(img.shape) == 2
+                except AssertionError:
+                    raise ValueError(
+                        "Stack must be a 3D array/dataset or a list of " +
+                        "2D arrays.")
+                stack = numpy.array(stack)
 
         assert len(stack.shape) == 3, "data must be 3D"
 
