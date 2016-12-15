@@ -28,10 +28,11 @@ from . import test_threadpoolpushbutton
 from . import test_tablewidget
 from . import test_arraywidget
 from . import test_periodictable
+from . import test_numpyaxesselector
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/10/2016"
+__date__ = "15/12/2016"
 
 
 def suite():
@@ -40,5 +41,7 @@ def suite():
         [test_threadpoolpushbutton.suite(),
          test_tablewidget.suite(),
          test_arraywidget.suite(),
-         test_periodictable.suite()])
+         test_periodictable.suite(),
+         test_numpyaxesselector.suite(),
+         ])
     return test_suite
