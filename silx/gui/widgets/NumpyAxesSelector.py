@@ -222,6 +222,7 @@ class NumpyAxesSelector(qt.QWidget):
             else:
                 axis.setAxisName("")
             axis.blockSignals(previous)
+        self.__updateSelectedData()
 
     def setData(self, data):
         """Set the input data unsed by the widget.
