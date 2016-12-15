@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "13/12/2016"
 
 import collections
 import logging
@@ -196,13 +196,17 @@ class PlotWindow(PlotWidget):
 
         if control or position:
             hbox = qt.QHBoxLayout()
-            hbox.setSpacing(0)
             hbox.setContentsMargins(0, 0, 0, 0)
 
             if control:
-                self.controlButton = qt.QPushButton("Options")
-                self.controlButton.setAutoDefault(False)
-                self.controlButton.clicked.connect(self._controlButtonClicked)
+                self.controlButton = qt.QToolButton()
+                self.controlButton.setText("Options")
+                self.controlButton.setToolButtonStyle(qt.Qt.ToolButtonTextBesideIcon)
+                self.controlButton.setAutoRaise(True)
+                self.controlButton.setPopupMode(qt.QToolButton.InstantPopup)
+                menu = qt.QMenu(self)
+                menu.aboutToShow.connect(self._customControlButtonMenu)
+                self.controlButton.setMenu(menu)
 
                 hbox.addWidget(self.controlButton)
 
@@ -375,9 +379,10 @@ class PlotWindow(PlotWidget):
             menu.addAction(action)
         return menu
 
-    def _controlButtonClicked(self):
+    def _customControlButtonMenu(self):
         """Display Options button sub-menu."""
-        controlMenu = qt.QMenu()
+        controlMenu = self.controlButton.menu()
+        controlMenu.clear()
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.roiAction)
         controlMenu.addAction(self.maskAction)
@@ -391,7 +396,6 @@ class PlotWindow(PlotWidget):
         controlMenu.addSeparator()
         controlMenu.addAction(self.crosshairAction)
         controlMenu.addAction(self.panWithArrowKeysAction)
-        controlMenu.exec_(self.cursor().pos())
 
     def _introduceNewDockWidget(self, dock_widget):
         """Maintain a list of dock widgets, in the order in which they are
