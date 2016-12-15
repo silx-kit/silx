@@ -250,6 +250,8 @@ class _TextView(DataView):
         self.getWidget().setText(str(data))
 
     def getDataPriority(self, data):
+        if data is None:
+            return -1
         return 0
 
 
