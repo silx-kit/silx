@@ -314,9 +314,10 @@ class StackView(qt.QWidget):
         """Set the labels to be displayed on the plot axes.
 
         You must provide a sequence of 3 strings, corresponding to the 3
-        dimensions of the data volume.
-        The proper label will automatically selected for each plot axis when
-        the perspective is changed.
+        dimensions of the original data volume.
+        The proper label will automatically be selected for each plot axis
+        when the volume is rotated (when different axes are selected as the
+        X and Y axes).
 
         :param list(str) labels: 3 labels corresponding to the 3 dimensions
              of the data volumes.
