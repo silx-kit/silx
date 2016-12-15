@@ -29,6 +29,7 @@ from . import test_tablewidget
 from . import test_arraywidget
 from . import test_periodictable
 from . import test_numpyaxesselector
+from . import test_dataviewer
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -43,5 +44,6 @@ def suite():
          test_arraywidget.suite(),
          test_periodictable.suite(),
          test_numpyaxesselector.suite(),
+         test_dataviewer.suite(),
          ])
     return test_suite
