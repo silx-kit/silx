@@ -226,6 +226,8 @@ class _ArrayView(DataView):
         isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
         if not isArray:
             return -1
+        if len(data.shape) < 2:
+            return -1
         return 50
 
 
