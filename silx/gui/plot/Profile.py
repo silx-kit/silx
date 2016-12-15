@@ -130,7 +130,7 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
 
     # Place imgProfile in full profile
     offset = - min(0, profileRange[0])
-    profile[:, offset:offset + profileLength] = imgProfile
+    profile[:, offset:offset + imgProfile.shape[1]] = imgProfile
 
     return profile
 
@@ -138,34 +138,46 @@ def _alignedPartialProfile(data, rowRange, colRange, axis):
 def createProfile(roiInfo, currentData, params, lineWidth):
     """Create the profile line for the the given image.
 
-    :param roiInfo: information about the ROI (Store start and end points and type)
-    :param numpy.ndarray currentData: the image or the stack of images
-        on which we compute the profile
-    :param params: parameters of the plot, such as origin, scale
+    :param roiInfo: information about the ROI: start point, end point and
+        type ("X", "Y", "D")
+    :param numpy.ndarray currentData: the 2D image or the 3D stack of images
+        on which we compute the profile.
+    :param dict params: parameters of the plot, such as origin, scale
         and colormap
     :param int lineWidth: width of the profile line
+    :return: `profile, area, profileName, xLabel`, where:
+        - profile is a 2D array of the profiles of the stack of images.
+          For a single image, the profile is a curve, so this parameter
+          has a shape *(1, len(curve))*
+        - area is a tuple of two 1D arrays with 4 values each. They represent
+          the effective ROI area corners in plot coords.
+        - profileName is a string describing the ROI, meant to be used as
+          title of the profile plot
+        - xLabel is a string describing the meaning of the X axis on the
+          profile plot ("rows", "columns", "distance")
+
+    :rtype: tuple(ndarray, (ndarray, ndarray), str, str)
     """
-    if currentData is None or params is None or roiInfo is None or lineWidth is None:
+    if currentData is None or params is None or\
+        roiInfo is None or lineWidth is None:
         return
 
-    dataIs3D = len(currentData.shape) > 2
-    # the rest of the method works on 3D data (stack of images)
+    # force 3D data (stack of images)
     if len(currentData.shape) == 2:
         currentData3D = currentData.reshape((1,) + currentData.shape)
     elif len(currentData.shape) == 3:
         currentData3D = currentData
 
     origin, scale = params['origin'], params['scale']
-    zActiveImage = params['z']
 
     roiWidth = max(1, lineWidth)
     roiStart, roiEnd, lineProjectionMode = roiInfo
 
     if lineProjectionMode == 'X':  # Horizontal profile on the whole image
         profile, area = _alignedFullProfile(currentData3D,
-                                                 origin, scale,
-                                                 roiStart[1], roiWidth,
-                                                 axis=0)
+                                            origin, scale,
+                                            roiStart[1], roiWidth,
+                                            axis=0)
 
         yMin, yMax = min(area[1]), max(area[1]) - 1
         if roiWidth <= 1:
@@ -176,9 +188,9 @@ def createProfile(roiInfo, currentData, params, lineWidth):
 
     elif lineProjectionMode == 'Y':  # Vertical profile on the whole image
         profile, area = _alignedFullProfile(currentData3D,
-                                                 origin, scale,
-                                                 roiStart[0], roiWidth,
-                                                 axis=1)
+                                            origin, scale,
+                                            roiStart[0], roiWidth,
+                                            axis=1)
 
         xMin, xMax = min(area[0]), max(area[0]) - 1
         if roiWidth <= 1:
@@ -212,16 +224,16 @@ def createProfile(roiInfo, currentData, params, lineWidth):
                             int(startPt[0] + 0.5 + 0.5 * roiWidth))
                 colRange = startPt[1], endPt[1] + 1
                 profile = _alignedPartialProfile(currentData3D,
-                                                      rowRange, colRange,
-                                                      axis=0)
+                                                 rowRange, colRange,
+                                                 axis=0)
 
             else:  # Column aligned
                 rowRange = startPt[0], endPt[0] + 1
                 colRange = (int(startPt[1] + 0.5 - 0.5 * roiWidth),
                             int(startPt[1] + 0.5 + 0.5 * roiWidth))
                 profile = _alignedPartialProfile(currentData3D,
-                                                      rowRange, colRange,
-                                                      axis=1)
+                                                 rowRange, colRange,
+                                                 axis=1)
 
             # Convert ranges to plot coords to draw ROI area
             area = (

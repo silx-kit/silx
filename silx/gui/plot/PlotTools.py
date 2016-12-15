@@ -545,7 +545,6 @@ class ProfileToolBar(qt.QToolBar):
 
         self._createProfile(currentData=imageData[0], params=imageData[4])
 
-    # TODO henri : create a function wich will be a get of this
     def _createProfile(self, currentData, params):
         """Create the profile line for the the given image.
 
@@ -558,11 +557,14 @@ class ProfileToolBar(qt.QToolBar):
         if self._roiInfo is None:
             return
 
-        profile, area, profileName, xLabel = createProfile( roiInfo=self._roiInfo, 
-                                                            currentData=currentData, 
-                                                            params=params,
-                                                            lineWidth=self.lineWidthSpinBox.value())
+        profile, area, profileName, xLabel = createProfile(
+                roiInfo=self._roiInfo,
+                currentData=currentData,
+                params=params,
+                lineWidth=self.lineWidthSpinBox.value())
         colorMap = params['colormap']
+
+        self.profileWindow.setGraphTitle(profileName)
 
         dataIs3D = len(currentData.shape) > 2
         if dataIs3D:
