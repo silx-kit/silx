@@ -626,7 +626,7 @@ class ProfileToolBar(qt.QToolBar):
 
         # Place imgProfile in full profile
         offset = - min(0, profileRange[0])
-        profile[:, offset:offset + len(imgProfile)] = imgProfile
+        profile[:, offset:offset + profileLength] = imgProfile
 
         return profile
 
