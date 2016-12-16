@@ -24,9 +24,7 @@
 # ###########################################################################*/
 """QWidget displaying a 3D volume as a stack of 2D images.
 
-The :class:`StackView` implements this widget, and
-:class:`StackViewMainWindow` provides a main window with additional toolbar
-and status bar.
+The :class:`StackView` class implements this widget.
 
 Basic usage of :class:`StackView` is through the following methods:
 
@@ -38,6 +36,30 @@ The :class:`StackView` uses :class:`PlotWindow` and also
 exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
 (plot title, axes labels, ...).
 
+Example::
+
+    import numpy
+    import sys
+    from silx.gui import qt
+    from silx.gui.plot import StackView
+
+
+    app = qt.QApplication(sys.argv[1:])
+
+    # synthetic data, stack of 100 images of size 200x300
+    mystack = numpy.fromfunction(
+        lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
+        (100, 200, 300)
+    )
+
+    sv = StackView()
+    sv.setColormap("jet", autoscale=True)
+    sv.setStack(mystack)
+    sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
+                  "3rd dim (0-299)"])
+    sv.show()
+
+    app.exec_()
 
 """
 
@@ -527,13 +549,15 @@ class PlanesDockWidget(qt.QDockWidget):
         super(PlanesDockWidget, self).__init__(parent)
 
         planeGB = qt.QGroupBox(self)
-        planeGBLayout = qt.QVBoxLayout()
-        planeGB.setLayout(planeGBLayout)
+        planeGB.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Minimum))
+        self.planeGBLayout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
+        planeGB.setLayout(self.planeGBLayout)
         spacer = qt.QSpacerItem(20, 20,
                                 qt.QSizePolicy.Expanding,
                                 qt.QSizePolicy.Expanding)
 
-        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-Dim1', planeGB)
+        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-'
+                                            'Dim1', planeGB)
         self._qrbDim1Dim2 = qt.QRadioButton('Dim1-Dim2', planeGB)
         self._qrbDim0Dim2 = qt.QRadioButton('Dim0-Dim2', planeGB)
         self._qrbDim1Dim2.setChecked(True)
@@ -542,17 +566,33 @@ class PlanesDockWidget(qt.QDockWidget):
         self._qrbDim0Dim1.toggled.connect(self.__planeSelectionChanged)
         self._qrbDim0Dim2.toggled.connect(self.__planeSelectionChanged)
 
-        planeGBLayout.addWidget(self._qrbDim0Dim1)
-        planeGBLayout.addWidget(self._qrbDim1Dim2)
-        planeGBLayout.addWidget(self._qrbDim0Dim2)
-        planeGBLayout.addItem(spacer)
-        planeGBLayout.setContentsMargins(0, 0, 0, 0)
+        self.planeGBLayout.addWidget(self._qrbDim0Dim1)
+        self.planeGBLayout.addWidget(self._qrbDim1Dim2)
+        self.planeGBLayout.addWidget(self._qrbDim0Dim2)
+        self.planeGBLayout.addItem(spacer)
+        self.planeGBLayout.setContentsMargins(0, 0, 0, 0)
         self.setWidget(planeGB)
 
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWindowTitle('Select slice axes')
+        self.setWindowTitle('Image axes')
 
         self.setFeatures(qt.QDockWidget.DockWidgetMovable)
+
+        self.dockLocationChanged.connect(self.__updateLayoutDirection)
+
+    def __updateLayoutDirection(self, dockWidgetArea):
+        """Update layout orientation if the dock widget is dragged to a
+        different area.
+
+        :param Qt.DockWidgetArea dockWidgetArea: Current dock widget location
+            (left, right, top, bottom)
+        """
+        if dockWidgetArea in [qt.Qt.TopDockWidgetArea,
+                              qt.Qt.BottomDockWidgetArea]:
+            self.planeGBLayout.setDirection(qt.QBoxLayout.LeftToRight)
+        elif dockWidgetArea in [qt.Qt.LeftDockWidgetArea,
+                                qt.Qt.RightDockWidgetArea]:
+            self.planeGBLayout.setDirection(qt.QBoxLayout.TopToBottom)
 
     def __planeSelectionChanged(self):
         """Callback function when the radio buttons change
