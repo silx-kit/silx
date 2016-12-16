@@ -22,9 +22,24 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Widget to handle regions of interest on curves displayed in a PlotWindow.
+"""Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
 
 This widget is meant to work with :class:`PlotWindow`.
+
+ROI are defined by :
+    - a name (ROI column)
+    - a Type (origin of the ROI : default, ...)
+    - From : the x coordinate of the left limit
+    - To : the x coordinate of the rigth limit
+    - Raw counts : integral of the curve between the
+        min ROI point and the max ROI point to the y = 0 line
+
+        .. image:: img/rawCounts.png
+        
+    - Raw counts : the integral of the curve between the
+        min ROI point and the max ROI point to [ROI min Point, Roi max Point] segment
+
+        .. image:: img/netCounts.png
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]

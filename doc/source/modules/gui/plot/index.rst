@@ -74,6 +74,7 @@ Public modules
    imageview.rst
    plot.rst
    plotactions.rst
+   roi.rst
 
 Internals
 ---------
