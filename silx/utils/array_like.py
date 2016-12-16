@@ -322,21 +322,25 @@ class TransposedDatasetView(object):
 
         # now we must transpose the output data
         output_dimensions = []
-        fixed_dimensions = []
+        frozen_dimensions = []
         for i, idx in enumerate(item):
             # slices and sequences
             if not isinstance(idx, int):
                 output_dimensions.append(self.transposition[i])
             # regular integer index
             else:
-                # whenever a dimension is fixed, the rank of following
-                # dimensions is decremented
-                fixed_dimensions.append(self.transposition[i])
-                for i2, od in enumerate(output_dimensions):
-                    if od > self.transposition[i]:
-                        output_dimensions[i2] -= 1
+                # whenever a dimension is fixed (indexed by an integer)
+                # the number of output dimension is reduced
+                frozen_dimensions.append(self.transposition[i])
 
-        assert (len(output_dimensions) + len(fixed_dimensions)) == self.ndim
+        # decrement output dimensions that are above frozen dimensions
+        for frozen_dim in reversed(sorted(frozen_dimensions)):
+            for i, out_dim in enumerate(output_dimensions):
+                if out_dim > frozen_dim:
+                    output_dimensions[i] -= 1
+
+        assert (len(output_dimensions) + len(frozen_dimensions)) == self.ndim
+        assert set(output_dimensions) == set(range(len(output_dimensions)))
 
         return numpy.transpose(output_data_not_transposed,
                                axes=output_dimensions)
