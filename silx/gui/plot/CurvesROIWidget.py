@@ -97,10 +97,13 @@ class CurvesROIWidget(qt.QWidget):
 
         self.addButton = qt.QPushButton(hbox)
         self.addButton.setText("Add ROI")
+        self.addButton.setToolTip('Create a new ROI')
         self.delButton = qt.QPushButton(hbox)
         self.delButton.setText("Delete ROI")
+        self.addButton.setToolTip('Remove the selected ROI')
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
+        self.addButton.setToolTip('Clear all create ROI. We only let the default ROI')
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
@@ -110,8 +113,10 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton = qt.QPushButton(hbox)
         self.loadButton.setText("Load")
+        self.loadButton.setToolTip('Load ROIs a .ini file')
         self.saveButton = qt.QPushButton(hbox)
         self.saveButton.setText("Save")
+        self.loadButton.setToolTip('Save ROIs to a .ini file')
         hboxlayout.addWidget(self.loadButton)
         hboxlayout.addWidget(self.saveButton)
         layout.setStretchFactor(self.headerLabel, 0)
@@ -326,6 +331,24 @@ class ROITable(qt.QTableWidget):
         self.cellChanged[(int, int)].connect(self._cellChangedSlot)
         verticalHeader = self.verticalHeader()
         verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
+
+        self.__setTooltip()
+
+    def __setTooltip(self):
+        assert(self.labels[0] == 'ROI')
+        self.horizontalHeaderItem(0).setToolTip('ROI ID')
+        assert(self.labels[1] == 'Type')
+        self.horizontalHeaderItem(1).setToolTip('TYPE of the tooltip')
+        assert(self.labels[2] == 'From')
+        self.horizontalHeaderItem(2).setToolTip('x value of the min point')
+        assert(self.labels[3] == 'To')
+        self.horizontalHeaderItem(3).setToolTip('x value of the max point')
+        assert(self.labels[4] == 'Raw Counts')
+        self.horizontalHeaderItem(4).setToolTip('Estimation of the integrale \
+            between y=0 and the selected curve')
+        assert(self.labels[5] == 'Net Counts')
+        self.horizontalHeaderItem(5).setToolTip('Estimation of the integrale \
+            between the segment [maxPt, minPt] and the selected curve')
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
         """Set the ROIs
