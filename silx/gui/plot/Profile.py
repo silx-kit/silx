@@ -22,7 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Utility functions,  to create profile on images and stacks of images"""
+"""Utility functions, toolbars and actions  to create profile on images
+and stacks of images"""
 
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
