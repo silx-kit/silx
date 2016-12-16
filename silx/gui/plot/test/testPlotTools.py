@@ -226,10 +226,9 @@ class TestPixelIntensitiesHisto(TestCaseQt):
 
     def setUp(self):
         super(TestPixelIntensitiesHisto, self).setUp()
-        image=numpy.random.rand(100, 100)
+        self.image=numpy.random.rand(100, 100)
         self.plotImage=Plot2D()
         self.plotImage.showPixelIntensitiesAction()
-        self.plotImage.addImage(image, origin=(0, 0), legend='sino')
 
     def tearDown(self):
         del self.plotImage.getIntensityHistogramAction().plotHistogram
@@ -239,6 +238,7 @@ class TestPixelIntensitiesHisto(TestCaseQt):
     def testShowAndHide(self):
         """Simple test that the plot is showing and hidding when activing the
         action"""
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
         self.plotImage.show()
         # test the pixel intensity diagram is showing
         button = getQToolButtonFromAction(self.plotImage.getIntensityHistogramAction())
@@ -257,6 +257,21 @@ class TestPixelIntensitiesHisto(TestCaseQt):
         self.qapp.processEvents()
         self.assertFalse(
             self.plotImage.getIntensityHistogramAction().plotHistogram.isVisible())
+
+    def testImageFormatInput(self):
+        """Test multiple type as image imput"""
+        typesToTest = [ numpy.uint8, numpy.int8, numpy.int16, numpy.int32, 
+            numpy.float32, numpy.float64]
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.show()
+        button = getQToolButtonFromAction(self.plotImage.getIntensityHistogramAction())
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        for typeToTest in typesToTest:
+            self.plotImage.addImage(self.image.astype(typeToTest), origin=(0, 0), legend='sino')
+
+
 
 def suite():
     test_suite = unittest.TestSuite()
