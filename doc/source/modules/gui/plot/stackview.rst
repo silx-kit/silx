@@ -8,9 +8,17 @@
 
 .. currentmodule:: silx.gui.plot.StackView
 
-:class:`ImageView` class
+:class:`StackView` class
 ------------------------
 
 .. autoclass:: StackView
    :members:
    :exclude-members: remove, setInteractiveMode, addItem
+
+:class:`StackViewMainWindow` class
+----------------------------------
+
+.. autoclass:: StackViewMainWindow
+   :show-inheritance:
+   :members:
+

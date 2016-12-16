@@ -36,6 +36,9 @@ The :class:`StackView` uses :class:`PlotWindow` and also
 exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
 (plot title, axes labels, ...).
 
+The :class:`StackViewMainWindow` class implements a widget that adds a status
+bar displaying the 3D index and the value under the mouse cursor.
+
 Example::
 
     import numpy
@@ -331,7 +334,7 @@ class StackView(qt.QMainWindow):
         data was first loaded, this will be reflected in the order of the
         dimensions of the returned object.
 
-        Default output has the form: [data, params]
+        The output has the form: [data, params]
         where params is a dictionary containing display parameters.
 
         :param bool copy: If True (default), then the object is copied
@@ -680,8 +683,11 @@ class PlanesDockWidget(qt.QDockWidget):
 
 
 class StackViewMainWindow(StackView):
-    """
+    """This class is a :class:`StackView` with a menu, an additional toolbar
+    to set the plot limits, and a status bar to display the value and 3D
+    index of the data samples hovered by the mouse cursor.
 
+    :param QWidget parent: Parent widget, or None
     """
     def __init__(self, parent=None):
         self._dataInfo = None
