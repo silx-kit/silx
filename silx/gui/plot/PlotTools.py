@@ -571,6 +571,7 @@ class ProfileToolBar(qt.QToolBar):
             self.profileWindow.addImage(profile,
                                         legend=profileName,
                                         xlabel=xLabel,
+                                        ylabel="Image index",
                                         colormap=colorMap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
