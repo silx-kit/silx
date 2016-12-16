@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +22,40 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""I/O modules"""
+"""Common wrapper over Python Qt bindings:
 
-__authors__ = ["P. Knobel"]
-__license__ = "MIT"
-__date__ = "13/12/2016"
+- `PyQt5 <http://pyqt.sourceforge.net/Docs/PyQt5/>`_,
+- `PyQt4 <http://pyqt.sourceforge.net/Docs/PyQt4/>`_ or
+- `PySide <http://www.pyside.org>`_.
+
+If a Qt binding is already loaded, it will use it, otherwise the different
+Qt bindings are tried in this order: PyQt4, PySide, PyQt5.
+
+The name of the loaded Qt binding is stored in the BINDING variable.
+
+This module provides a flat namespace over Qt bindings by importing
+all symbols from **QtCore** and **QtGui** packages and if available
+from **QtOpenGL** and **QtSvg** packages.
+For **PyQt5**, it also imports all symbols from **QtWidgets** and
+**QtPrintSupport** packages.
+
+Example of using :mod:`silx.gui.qt` module:
+
+>>> from silx.gui import qt
+>>> app = qt.QApplication([])
+>>> widget = qt.QWidget()
+
+For an alternative solution providing a structured namespace,
+see `qtpy <https://pypi.python.org/pypi/QtPy/>`_ which
+provides the namespace of PyQt5 over PyQt4 and PySide.
+"""
+
+import sys
+from ._qt import *  # noqa
+from ._utils import *  # noqa
 
 
-import logging
-
-
-# Init logging once for the whole module
-logging.basicConfig()
-
-from .utils import open  # pylint:disable=redefined-builtin
-from .utils import save1D
-
-from .utils import is_dataset
-from .utils import is_file
-from .utils import is_group
-
-__all__ = ["save1D", "is_dataset", "is_file", "is_group"] # avoid to import open with "import *"
+if sys.platform == "darwin":
+    if BINDING in ["PySide", "PyQt4"]:
+        import _macosx
+        _macosx.patch_QUrl_toLocalFile()

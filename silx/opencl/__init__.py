@@ -34,7 +34,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "09/09/2016"
+__date__ = "29/11/2016"
 __status__ = "stable"
 
 import os
@@ -93,15 +93,15 @@ class Device(object):
                  extensions="", memory=None, available=None,
                  cores=None, frequency=None, flop_core=None, idx=0, workgroup=1):
         """
-        Simple container with some important data for the OpenCL device description:
-        
+        Simple container with some important data for the OpenCL device description.
+
         :param name: name of the device
         :param dtype: device type: CPU/GPU/ACC...
         :param version: driver version
-        :param driver_version: 
+        :param driver_version:
         :param extensions: List of opencl extensions
         :param memory: maximum memory available on the device
-        :param available: is the device desactivated or not 
+        :param available: is the device deactivated or not
         :param cores: number of SM/cores
         :param frequency: frequency of the device
         :param flop_cores: Flopating Point operation per core per cycle
@@ -132,8 +132,8 @@ class Device(object):
     def pretty_print(self):
         """
         Complete device description
-        
-        @return: string
+
+        :return: string
         """
         lst = ["Name\t\t:\t%s" % self.name,
                "Type\t\t:\t%s" % self.type,
@@ -153,7 +153,7 @@ class Platform(object):
     def __init__(self, name="None", vendor="None", version=None, extensions=None, idx=0):
         """
         Class containing all descriptions of a platform and all devices description within that platform.
-        
+
         :param name: platform name
         :param vendor: name of the brand/vendor
         :param version:
@@ -183,7 +183,7 @@ class Platform(object):
         Return a device according to key
 
         :param key: identifier for a device, either it's id (int) or it's name
-        @type key: int or str
+        :type key: int or str
         """
         out = None
         try:
@@ -200,7 +200,7 @@ class Platform(object):
 
 def _measure_workgroup_size(device_or_context, fast=False):
     """Mesure the maximal work group size of the given device
-    
+
     :param device: instance of pyopencl.Device or pyopencl.Context
     :param fast: ask the kernel the valid value, don't probe it
     :return: maximum size for the workgroup
@@ -208,12 +208,12 @@ def _measure_workgroup_size(device_or_context, fast=False):
     if isinstance(device_or_context, pyopencl.Device):
         ctx = pyopencl.Context(devices=[device_or_context])
         device = device_or_context
-    elif  isinstance(device_or_context, pyopencl.Context):
+    elif isinstance(device_or_context, pyopencl.Context):
         ctx = device_or_context
         device = device_or_context.devices[0]
     shape = device.max_work_group_size
     # get the context
-    
+
     assert ctx is not None
     queue = pyopencl.CommandQueue(ctx)
 
@@ -227,7 +227,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
         max_valid_wg = program.addition.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, device)
     else:
         maxi = int(round(numpy.log2(shape)))
-        for i in range(maxi+1):
+        for i in range(maxi + 1):
             d_res = pyopencl.array.empty_like(d_data)
             wg = 1 << i
             try:
@@ -235,18 +235,18 @@ def _measure_workgroup_size(device_or_context, fast=False):
                        d_data.data, d_data_1.data, d_res.data, numpy.int32(shape))
                 evt.wait()
             except Exception as error:
-                logger.info("%s on device %s for WG=%s/%s"%(error, device.name, wg, shape))
+                logger.info("%s on device %s for WG=%s/%s" , error, device.name, wg, shape)
                 program = queue = d_res = d_data_1 = d_data = None
-                break;
+                break
             else:
                 res = d_res.get()
-                good = numpy.allclose(res, data + 1 )
+                good = numpy.allclose(res, data + 1)
                 if good:
-                    if wg>max_valid_wg:
+                    if wg > max_valid_wg:
                         max_valid_wg = wg
                 else:
-                    logger.warn("ArithmeticError on %s for WG=%s/%s"%(wg, device.name, shape))
-                
+                    logger.warning("ArithmeticError on %s for WG=%s/%s", wg, device.name, shape)
+
     return max_valid_wg
 
 
@@ -255,7 +255,7 @@ class OpenCL(object):
     Simple class that wraps the structure ocl_tools_extended.h
 
     This is a static class.
-    ocl should be the only instance and shared among all python modules. 
+    ocl should be the only instance and shared among all python modules.
     """
     platforms = []
     nb_devices = 0
@@ -293,7 +293,7 @@ class OpenCL(object):
                     logger.warning("For Apple's OpenCL on CPU: Measuring actual valid max_work_goup_size.")
                     workgroup = _measure_workgroup_size(device, fast=True)
                 if (devtype == "GPU") and os.environ.get("GPU") == "False":
-                    #Environment variable to disable GPU devices 
+                    # Environment variable to disable GPU devices
                     continue
                 pydev = Device(device.name, devtype, device.version, device.driver_version, extensions,
                                device.global_mem_size, bool(device.available), device.max_compute_units,
@@ -314,7 +314,7 @@ class OpenCL(object):
         Return a platform according
 
         :param key: identifier for a platform, either an Id (int) or it's name
-        @type key: int or str
+        :type key: int or str
         """
         out = None
         try:
@@ -375,7 +375,7 @@ class OpenCL(object):
         :param useFp64: boolean specifying if double precision will be used
         :param platformid: integer
         :param devid: integer
-        @return: OpenCL context on the selected device
+        :return: OpenCL context on the selected device
         """
         if (platformid is not None) and (deviceid is not None):
             platformid = int(platformid)
@@ -403,9 +403,9 @@ class OpenCL(object):
     def device_from_context(self, context):
         """
         Retrieves the Device from the context
-        
+
         :param context: OpenCL context
-        @return: instance of Device  
+        :return: instance of Device
         """
         odevice = context.devices[0]
         oplat = odevice.platform
@@ -424,7 +424,7 @@ else:
 def release_cl_buffers(cl_buffers):
     """
     :param cl_buffer: the buffer you want to release
-    @type cl_buffer: dict(str, pyopencl.Buffer)
+    :type cl_buffer: dict(str, pyopencl.Buffer)
 
     This method release the memory of the buffers store in the dict
     """
@@ -447,9 +447,9 @@ def release_cl_buffers(cl_buffers):
 def allocate_cl_buffers(buffers, device=None, context=None):
     """
     :param buffers: the buffers info use to create the pyopencl.Buffer
-    @type buffer: list(std, flag, numpy.dtype, int)
-    @return: a dict containing the instanciated pyopencl.Buffer
-    @rtype: dict(str, pyopencl.Buffer)
+    :type buffer: list(std, flag, numpy.dtype, int)
+    :return: a dict containing the instanciated pyopencl.Buffer
+    :rtype: dict(str, pyopencl.Buffer)
 
     This method instanciate the pyopencl.Buffer from the buffers
     description.
@@ -483,24 +483,24 @@ def allocate_cl_buffers(buffers, device=None, context=None):
 
 def measure_workgroup_size(device):
     """Measure the actual size of the workgroup
-    
+
     :param device: device or context or 2-tuple with indexes
     :return: the actual measured workgroup size
 
     if device is "all", returns a dict with all devices with their ids as keys.
     """
-    if (ocl is None) or (device is None) :
+    if (ocl is None) or (device is None):
         return None
-    
+
     if isinstance(device, tuple) and (len(device) == 2):
-        #this is probably a tuple (platformid, deviceid)
+        # this is probably a tuple (platformid, deviceid)
         device = ocl.create_context(platformid=device[0], deviceid=device[1])
-    
+
     if device == "all":
         res = {}
         for pid, platform in enumerate(ocl.platforms):
-            for did, devices in enumerate(platform.devices):
-                tup = (pid,did)
+            for did, _devices in enumerate(platform.devices):
+                tup = (pid, did)
                 res[tup] = measure_workgroup_size(tup)
     else:
         res = _measure_workgroup_size(device)
@@ -509,7 +509,7 @@ def measure_workgroup_size(device):
 
 def kernel_workgroup_size(program, kernel):
     """Extract the compile time maximum workgroup size
-    
+
     :param program: OpenCL program
     :param kernel: kernel or name of the kernel
     :return: the maximum acceptable workgroup size for the given kernel

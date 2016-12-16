@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,24 +22,23 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""I/O modules"""
+"""This module provides convenient functions related to Qt.
+"""
 
-__authors__ = ["P. Knobel"]
+__authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "30/11/2016"
+
+import sys
+from ._qt import QImageReader
 
 
-import logging
-
-
-# Init logging once for the whole module
-logging.basicConfig()
-
-from .utils import open  # pylint:disable=redefined-builtin
-from .utils import save1D
-
-from .utils import is_dataset
-from .utils import is_file
-from .utils import is_group
-
-__all__ = ["save1D", "is_dataset", "is_file", "is_group"] # avoid to import open with "import *"
+def supportedImageFormats():
+    """Return a set of string of file format extensions supported by the
+    Qt runtime."""
+    if sys.version_info[0] < 3:
+        convert = str
+    else:
+        convert = lambda data: str(data, 'ascii')
+    formats = QImageReader.supportedImageFormats()
+    return set([convert(data) for data in formats])

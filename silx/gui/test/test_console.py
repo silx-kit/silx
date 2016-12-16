@@ -28,12 +28,12 @@ from __future__ import print_function
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "19/05/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
 
-from silx.gui.testutils import TestCaseQt
+from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 try:

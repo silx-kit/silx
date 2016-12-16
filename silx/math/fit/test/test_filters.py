@@ -25,15 +25,10 @@ import numpy
 import unittest
 from silx.math.fit import filters
 from silx.math.fit import functions
+from silx.test.utils import add_relative_noise
 
-# TODO:
-#     - snip1d
-#     - snip2d
 
-#     - snip3d
-#     - strip
-
-class Test_smooth(unittest.TestCase):
+class TestSmooth(unittest.TestCase):
     """
     Unit tests of smoothing functions.
 
@@ -53,10 +48,7 @@ class Test_smooth(unittest.TestCase):
 
         self.y1 = functions.sum_slit(x, *slit_params)
         # 5% noise
-        noise1 = 2 * numpy.random.random(5000) - 1
-        noise1 *= 0.05
-        self.y1 *= (1 + noise1)
-
+        self.y1 = add_relative_noise(self.y1, 5.)
 
         # (height1, center1, fwhm1...)
         step_params = (50, 500, 200,
@@ -68,15 +60,11 @@ class Test_smooth(unittest.TestCase):
 
         self.y2 = functions.sum_stepup(x, *step_params)
         # 5% noise
-        noise2 = 2 * numpy.random.random(5000) - 1
-        noise2 *= 0.05
-        self.y2 *= (1 + noise2)
+        self.y2 = add_relative_noise(self.y2, 5.)
 
         self.y3 = functions.sum_stepdown(x, *step_params)
         # 5% noise
-        noise3 = 2 * numpy.random.random(5000) - 1
-        noise3 *= 0.05
-        self.y3 *= (1 + noise3)
+        self.y3 = add_relative_noise(self.y3, 5.)
 
     def tearDown(self):
         pass
@@ -92,6 +80,7 @@ class Test_smooth(unittest.TestCase):
             self.assertLess(diff, 0.05,
                             "Difference between data with 5%% noise and " +
                             "smoothed data is > 5%% (%f %%)" % (diff * 100))
+
             # Try various smoothing levels
             npts += 25
 
@@ -105,7 +94,7 @@ class Test_smooth(unittest.TestCase):
                                    self.y1[i-1] + 2 * self.y1[i] + self.y1[i+1])
 
     def testSmooth2d(self):
-        """Test that a 2D smoothing is the same as two succesive and
+        """Test that a 2D smoothing is the same as two successive and
         orthogonal 1D smoothings"""
         x = numpy.arange(10000)
 
@@ -133,7 +122,7 @@ class Test_smooth(unittest.TestCase):
                                        expected_smooth[i, j])
 
 
-test_cases = (Test_smooth,)
+test_cases = (TestSmooth,)
 
 
 def suite():

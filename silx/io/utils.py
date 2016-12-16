@@ -27,8 +27,8 @@ import numpy
 import os.path
 import sys
 import time
-
 import logging
+from silx.utils.decorators import deprecated
 
 try:
     import h5py
@@ -41,12 +41,14 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "27/09/2016"
+__date__ = "13/12/2016"
 
 
 logger = logging.getLogger(__name__)
 
 string_types = (basestring,) if sys.version_info[0] == 2 else (str,)  # noqa
+
+builtin_open = open
 
 
 def save1D(fname, x, y, xlabel=None, ylabels=None, filetype=None,
@@ -215,7 +217,7 @@ def savetxt(fname, X, fmt="%.7g", delimiter=";", newline="\n",
     http://docs.scipy.org/doc/numpy-1.10.0/reference/generated/numpy.savetxt.html
     """
     if not hasattr(fname, "name"):
-        ffile = open(fname, 'wb')
+        ffile = builtin_open(fname, 'wb')
     else:
         ffile = fname
 
@@ -282,7 +284,7 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
                          "two format strings")
 
     if not hasattr(specfile, "write"):
-        f = open(specfile, mode)
+        f = builtin_open(specfile, mode)
     else:
         f = specfile
 
@@ -362,7 +364,7 @@ def h5ls(h5group, lvl=0):
     return h5repr
 
 
-def load(filename):
+def open(filename):  # pylint:disable=redefined-builtin
     """
     Load a file as an `h5py.File`-like object.
 
@@ -390,3 +392,87 @@ def load(filename):
         logger.debug("File '%s' can't be read as spec file.", filename, exc_info=True)
 
     raise IOError("File '%s' can't be read as HDF5" % filename)
+
+
+@deprecated
+def load(filename):
+    """
+    Load a file as an `h5py.File`-like object.
+
+    Format supported:
+    - h5 files, if `h5py` module is installed
+    - Spec files if `SpecFile` module is installed
+
+    .. deprecated:: 0.4
+        Use :meth:`open`, or :meth:`silx.io.open`. Will be removed in
+        Silx 0.5.
+
+    :param str filename: A filename
+    :raises: IOError if the file can't be loaded as an h5py.File like object
+    :rtype: h5py.File
+    """
+    return open(filename)
+
+
+def get_h5py_class(obj):
+    """Returns the h5py class from an object.
+
+    If it is an h5py object or an h5py-like object, an h5py class is returned.
+    If the object is not an h5py-like object, None is returned.
+
+    :param obj: An object
+    :return: An h5py object
+    """
+    if hasattr(obj, "h5py_class"):
+        return obj.h5py_class
+    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset)):
+        return obj.__class__
+    else:
+        return None
+
+
+def is_file(obj):
+    """
+    True is the object is an h5py.File-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.File)
+
+
+def is_group(obj):
+    """
+    True is the object is an h5py.Group-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.Group)
+
+
+def is_dataset(obj):
+    """
+    True is the object is an h5py.Dataset-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.Dataset)
+
+
+if h5py_missing:
+    def raise_h5py_missing(obj):
+        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
+        raise h5py_import_error
+
+    get_h5py_class = raise_h5py_missing
+    is_file = raise_h5py_missing
+    is_group = raise_h5py_missing
+    is_dataset = raise_h5py_missing

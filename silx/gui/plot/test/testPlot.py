@@ -26,12 +26,12 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
 from functools import reduce
-from silx.testutils import ParametricTestCase
+from silx.test.utils import ParametricTestCase
 
 import numpy
 

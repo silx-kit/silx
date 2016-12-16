@@ -22,24 +22,31 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""I/O modules"""
+"""Bunch of useful decorators"""
 
-__authors__ = ["P. Knobel"]
+from __future__ import absolute_import, print_function, division
+
+__authors__ = ["Jerome Kieffer"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "29/11/2016"
 
-
+import os
+import sys
+import traceback
 import logging
+import functools
 
 
-# Init logging once for the whole module
-logging.basicConfig()
+depreclog = logging.getLogger("DEPRECATION")
 
-from .utils import open  # pylint:disable=redefined-builtin
-from .utils import save1D
 
-from .utils import is_dataset
-from .utils import is_file
-from .utils import is_group
-
-__all__ = ["save1D", "is_dataset", "is_file", "is_group"] # avoid to import open with "import *"
+def deprecated(func):
+    """
+    Decorator that deprecates the use of a function
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        name = func.func_name if sys.version_info[0] < 3 else func.__name__
+        depreclog.warning("%s is Deprecated !!! %s", name, os.linesep.join([""] + traceback.format_stack()[:-1]))
+        return func(*args, **kwargs)
+    return wrapper

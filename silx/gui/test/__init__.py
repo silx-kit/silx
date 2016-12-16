@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/10/2016"
+__date__ = "05/12/2016"
 
 
 import logging
@@ -36,53 +36,50 @@ import unittest
 _logger = logging.getLogger(__name__)
 
 
-if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
-    # On linux and no DISPLAY available (e.g., ssh without -X)
-    _logger.warning('silx.gui tests disabled (DISPLAY env. variable not set)')
+def suite():
 
-    class SkipGUITest(unittest.TestCase):
-        def runTest(self):
-            self.skipTest(
-                'silx.gui tests disabled (DISPLAY env. variable not set)')
+    test_suite = unittest.TestSuite()
 
-    def suite():
-        suite = unittest.TestSuite()
-        suite.addTest(SkipGUITest())
-        return suite
+    if sys.platform.startswith('linux') and not os.environ.get('DISPLAY', ''):
+        # On Linux and no DISPLAY available (e.g., ssh without -X)
+        _logger.warning('silx.gui tests disabled (DISPLAY env. variable not set)')
 
-elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
-    # Explicitly disabled tests
-    _logger.warning(
-        "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        class SkipGUITest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest(
+                    'silx.gui tests disabled (DISPLAY env. variable not set)')
 
-    class SkipGUITest(unittest.TestCase):
-        def runTest(self):
-            self.skipTest(
-                "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+        test_suite.addTest(SkipGUITest())
+        return test_suite
 
-    def suite():
-        suite = unittest.TestSuite()
-        suite.addTest(SkipGUITest())
-        return suite
+    elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
+        # Explicitly disabled tests
+        _logger.warning(
+            "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
 
-else:
+        class SkipGUITest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest(
+                    "silx.gui tests disabled (env. variable WITH_QT_TEST=False)")
+
+        test_suite.addTest(SkipGUITest())
+        return test_suite
+
     # Import here to avoid loading QT if tests are disabled
 
-    from ..plot.test import suite as test_plot_suite
-    from ..fit.test import suite as test_fit_suite
-    from ..hdf5.test import suite as test_hdf5_suite
-    from ..widgets.test import suite as test_widgets_suite
-    from .test_qt import suite as test_qt_suite
-    from .test_console import suite as test_console_suite
-    from .test_icons import suite as test_icons_suite
+    from ..plot import test as test_plot
+    from ..fit import test as test_fit
+    from ..hdf5 import test as test_hdf5
+    from ..widgets import test as test_widgets
+    from . import test_qt
+    from . import test_console
+    from . import test_icons
 
-    def suite():
-        test_suite = unittest.TestSuite()
-        test_suite.addTest(test_qt_suite())
-        test_suite.addTest(test_plot_suite())
-        test_suite.addTest(test_fit_suite())
-        test_suite.addTest(test_hdf5_suite())
-        test_suite.addTest(test_widgets_suite())
-        test_suite.addTest(test_console_suite())
-        test_suite.addTest(test_icons_suite())
-        return test_suite
+    test_suite.addTest(test_qt.suite())
+    test_suite.addTest(test_plot.suite())
+    test_suite.addTest(test_fit.suite())
+    test_suite.addTest(test_hdf5.suite())
+    test_suite.addTest(test_widgets.suite())
+    test_suite.addTest(test_console.suite())
+    test_suite.addTest(test_icons.suite())
+    return test_suite

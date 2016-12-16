@@ -2,7 +2,7 @@
 .. py:module:: silx.io
 
 :mod:`silx.io`: Input-output
-=============================
+============================
 
 .. toctree::
    :maxdepth: 1
@@ -16,5 +16,5 @@
    spectoh5.rst
    utils.rst
 
-
-
+.. autofunction:: silx.io.open
+.. autofunction:: silx.io.save1D
