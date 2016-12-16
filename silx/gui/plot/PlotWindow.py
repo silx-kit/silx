@@ -38,7 +38,8 @@ import logging
 from . import PlotWidget
 from . import PlotActions
 from . import PlotToolButtons
-from .PlotTools import PositionInfo, ProfileToolBar
+from .PlotTools import PositionInfo
+from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget

@@ -82,9 +82,9 @@ from silx.gui import qt
 from . import PlotWindow
 from . import PlotActions
 from .Colors import cursorColorForColormap
-from .PlotTools import Profile3DToolBar, LimitsToolBar
+from .PlotTools import LimitsToolBar
+from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
-
 
 from silx.utils.array_like import TransposedDatasetView
 
