@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "19/12/2016"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -731,7 +731,9 @@ class SpecH5Dataset(object):
 
     def __getitem__(self, item):
         if not isinstance(self.value, numpy.ndarray):
-            if item == Ellipsis or item == tuple():
+            if item == Ellipsis:
+                return numpy.array(self.value)
+            elif item == tuple():
                 return self.value
             else:
                 raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
