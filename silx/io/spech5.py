@@ -749,7 +749,7 @@ class SpecH5Dataset(object):
     def __dir__(self):
         attrs = set(dir(self.value) +
                     ["value", "name", "parent", "file",
-                     "attrs",  "shape", "dtype", "size",
+                     "attrs", "shape", "dtype", "size",
                      "h5py_class"])
         return sorted(attrs)
 
@@ -914,7 +914,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         array_like = "\n".join(scan.file_header)
 
     elif scan_header_data_pattern.match(name):
-        #array_like = _fixed_length_strings(scan.scan_header)
+        # array_like = _fixed_length_strings(scan.scan_header)
         array_like = "\n".join(scan.scan_header)
 
     elif positioners_data_pattern.match(name):
