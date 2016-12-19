@@ -211,6 +211,29 @@ class Hdf5Item(Hdf5Node):
             return icon
         return None
 
+    def _humanReadableShape(self, dataset):
+        if dataset.shape == tuple():
+            return "scalar"
+        shape = [str(i) for i in dataset.shape]
+        text = u" \u00D7 ".join(shape)
+        return text
+
+    def _humanReadableValue(self, dataset):
+        if dataset.shape == tuple():
+            numpy_object = dataset[()]
+            text = str(numpy_object)
+        else:
+            if dataset.size < 5 and dataset.compression is None:
+                numpy_object = dataset[0:5]
+                text = str(numpy_object)
+            else:
+                dimension = len(dataset.shape)
+                if dataset.compression is not None:
+                    text = "Compressed %dD data" % dimension
+                else:
+                    text = "%dD data" % dimension
+        return text
+
     def _getDefaultTooltip(self):
         """Returns the default tooltip
 
@@ -224,12 +247,8 @@ class Hdf5Item(Hdf5Node):
         attrs = {}
         if issubclass(class_, h5py.Dataset):
             attrs = dict(self.obj.attrs)
-            if self.obj.shape == ():
-                attrs["shape"] = "scalar"
-                attrs["value"] = self.obj.value
-            else:
-                attrs["shape"] = self.obj.shape
-                attrs["value"] = self.obj.value
+            attrs["shape"] = self._humanReadableShape(self.obj)
+            attrs["value"] = self._humanReadableValue(self.obj)
             attrs["dtype"] = self.obj.dtype
         elif isinstance(self.obj, h5py.ExternalLink):
             attrs["linked path"] = self.obj.path
@@ -289,9 +308,7 @@ class Hdf5Item(Hdf5Node):
             class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
                 return ""
-            shape = [str(i) for i in self.obj.shape]
-            text = u" \u00D7 ".join(shape)
-            return text
+            return self._humanReadableShape(self.obj)
         return None
 
     def dataValue(self, role):
@@ -303,26 +320,9 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            class_ = self.h5pyClass
-            if not issubclass(class_, h5py.Dataset):
+            if not issubclass(self.h5pyClass, h5py.Dataset):
                 return ""
-
-            numpy_object = self.obj.value
-
-            if self.obj.dtype.type == numpy.object_:
-                text = str(numpy_object)
-            elif self.obj.dtype.type == numpy.string_:
-                text = str(numpy_object)
-            else:
-                size = 1
-                for dim in numpy_object.shape:
-                    size = size * dim
-
-                if size > 5:
-                    text = "..."
-                else:
-                    text = str(numpy_object)
-            return text
+            return self._humanReadableValue(self.obj)
         return None
 
     def dataDescription(self, role):

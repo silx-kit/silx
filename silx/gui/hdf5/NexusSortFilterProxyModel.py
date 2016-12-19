@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/10/2016"
+__date__ = "20/12/2016"
 
 
 import logging
@@ -133,8 +133,8 @@ class NexusSortFilterProxyModel(qt.QSortFilterProxyModel):
         :rtype: bool
         """
         try:
-            left_time = left.obj[childName].value
-            right_time = right.obj[childName].value
+            left_time = left.obj[childName][()]
+            right_time = right.obj[childName][()]
             if isinstance(left_time, numpy.ndarray):
                 return left_time[0] < right_time[0]
             return left_time < right_time
