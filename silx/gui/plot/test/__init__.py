@@ -41,6 +41,7 @@ from .testPlotWidget import suite as testPlotWidgetSuite
 from .testPlotWindow import suite as testPlotWindowSuite
 from .testPlot import suite as testPlotSuite
 from .testProfile import suite as testProfileSuite
+from .testStackView import suite as testStackViewSuite
 
 
 def suite():
@@ -57,5 +58,6 @@ def suite():
          testPlotToolsSuite(),
          testPlotWidgetSuite(),
          testPlotWindowSuite(),
-         testProfileSuite()])
+         testProfileSuite(),
+         testStackViewSuite()])
     return test_suite
