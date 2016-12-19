@@ -32,9 +32,9 @@ __date__ = "05/12/2016"
 import numpy
 import unittest
 
-from silx.test.utils import ParametricTestCase, TestLogging
+from silx.test.utils import TestLogging
 from silx.gui.test.utils import (
-    qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
+    qWaitForWindowExposedAndActivate, TestCaseQt)
 from silx.gui import qt
 from silx.gui.plot import PlotWindow, PlotTools
 
