@@ -153,6 +153,9 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
     H5PY_OBJECT_ROLE = qt.Qt.UserRole + 1
     """Role to reach h5py object from an item index"""
 
+    USER_ROLE = qt.Qt.UserRole + 2
+    """Start of range of available user role for derivative models"""
+
     NAME_COLUMN = 0
     """Column id containing HDF5 node names"""
 
