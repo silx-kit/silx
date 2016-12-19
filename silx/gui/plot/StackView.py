@@ -98,6 +98,28 @@ class StackView(qt.QMainWindow):
     and display the result as a slice.
 
     :param QWidget parent: the Qt parent, or None
+    :param backend: The backend to use for the plot.
+                    The default is to use matplotlib.
+    :type backend: str or :class:`BackendBase.BackendBase`
+    :param bool resetzoom: Toggle visibility of reset zoom action.
+    :param bool autoScale: Toggle visibility of axes autoscale actions.
+    :param bool logScale: Toggle visibility of axes log scale actions.
+    :param bool grid: Toggle visibility of grid mode action.
+    :param bool colormap: Toggle visibility of colormap action.
+    :param bool aspectRatio: Toggle visibility of aspect ratio button.
+    :param bool yInverted: Toggle visibility of Y axis direction button.
+    :param bool copy: Toggle visibility of copy action.
+    :param bool save: Toggle visibility of save action.
+    :param bool print_: Toggle visibility of print action.
+    :param bool control: True to display an Options button with a sub-menu
+                         to show legends, toggle crosshair and pan with arrows.
+                         (Default: False)
+    :param position: True to display widget with (x, y) mouse position
+                     (Default: False).
+                     It also supports a list of (name, funct(x, y)->value)
+                     to customize the displayed values.
+                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
+    :param bool mask: Toggle visibilty of mask action.
     """
     # Qt signals
     valueChanged = qt.Signal(float, float, float)
@@ -116,8 +138,11 @@ class StackView(qt.QMainWindow):
         - 2: axis Y is the 1st dimension, axis X is the 2nd dimension
     """
 
-
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, resetzoom=True, backend=None,
+                 autoScale=False, logScale=False, grid=False,
+                 colormap=True, aspectRatio=True, yinverted=True,
+                 copy=True, save=True, print_=True, control=False,
+                 position=None, mask=True):
         qt.QMainWindow.__init__(self, parent)
         self._stack = None
         """Loaded stack of images, as a 3D array or 3D dataset"""
@@ -128,7 +153,7 @@ class StackView(qt.QMainWindow):
         """Orthogonal dimension (depth) in :attr:`_stack`"""
 
         self.__imageLegend = '__StackView__image' + str(id(self))
-        self.__autoscaleCmap = True
+        self.__autoscaleCmap = False
         """Flag to disable/enable colormap auto-scaling
         based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
@@ -138,14 +163,14 @@ class StackView(qt.QMainWindow):
 
         central_widget = qt.QWidget(self)
 
-        self._plot = PlotWindow(parent=central_widget, backend=None,
-                                resetzoom=True, autoScale=False,
-                                logScale=False, grid=False,
-                                curveStyle=False, colormap=True,
-                                aspectRatio=True, yInverted=True,
-                                copy=True, save=True, print_=True,
-                                control=False, position=None,
-                                roi=False, mask=False)
+        self._plot = PlotWindow(parent=central_widget, backend=backend,
+                                resetzoom=resetzoom, autoScale=autoScale,
+                                logScale=logScale, grid=grid,
+                                curveStyle=False, colormap=colormap,
+                                aspectRatio=aspectRatio, yInverted=yinverted,
+                                copy=copy, save=save, print_=print_,
+                                control=control, position=position,
+                                roi=False, mask=mask)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
@@ -538,12 +563,14 @@ class StackView(qt.QMainWindow):
 
             if autoscale is None:
                 # set default
-                if isinstance(self._stack, numpy.ndarray):
-                    autoscale = True
-                else:                    # h5py.Dataset
-                    autoscale = False
+                autoscale = False
+                # TODO: assess cost of computing min/max for large 3D array
+                # if isinstance(self._stack, numpy.ndarray):
+                #     autoscale = True
+                # else:                    # h5py.Dataset
+                #     autoscale = False
             elif autoscale and isinstance(self._stack, h5py.Dataset):
-                # h5py dataset has no min()/max() method
+                # h5py dataset has no min()/max() methods
                 raise RuntimeError(
                         "Cannot auto-scale colormap for a h5py dataset")
             else:
