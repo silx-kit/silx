@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "19/12/2016"
 
 import numpy
 
@@ -252,7 +252,7 @@ class _TextView(DataView):
 
     def setData(self, data):
         if silx.io.is_dataset(data):
-            data = data[...]
+            data = data[()]
         self.getWidget().setText(str(data))
 
     def getDataPriority(self, data):
