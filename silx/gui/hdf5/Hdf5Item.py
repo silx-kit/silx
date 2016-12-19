@@ -132,14 +132,14 @@ class Hdf5Item(Hdf5Node):
                 # that's a broken link
                 self.__obj = parent_obj.get(self.__key, getlink=True)
 
-                # TODO monkeypatch file (ask that in h5py for consistancy)
+                # TODO monkey-patch file (ask that in h5py for consistency)
                 if not hasattr(self.__obj, "name"):
                     parent_name = parent_obj.name
                     if parent_name == "/":
                         self.__obj.name = "/" + self.__key
                     else:
                         self.__obj.name = parent_name + "/" + self.__key
-                # TODO monkeypatch file (ask that in h5py for consistancy)
+                # TODO monkey-patch file (ask that in h5py for consistency)
                 if not hasattr(self.__obj, "file"):
                     self.__obj.file = parent_obj.file
 
@@ -226,13 +226,11 @@ class Hdf5Item(Hdf5Node):
             attrs = dict(self.obj.attrs)
             if self.obj.shape == ():
                 attrs["shape"] = "scalar"
-            else:
-                attrs["shape"] = self.obj.shape
-            attrs["dtype"] = self.obj.dtype
-            if self.obj.shape == ():
                 attrs["value"] = self.obj.value
             else:
-                attrs["value"] = "..."
+                attrs["shape"] = self.obj.shape
+                attrs["value"] = self.obj.value
+            attrs["dtype"] = self.obj.dtype
         elif isinstance(self.obj, h5py.ExternalLink):
             attrs["linked path"] = self.obj.path
             attrs["linked file"] = self.obj.filename
