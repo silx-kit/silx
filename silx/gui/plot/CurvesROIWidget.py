@@ -27,24 +27,25 @@
 This widget is meant to work with :class:`PlotWindow`.
 
 ROI are defined by :
-    - a name (ROI column)
-    - a Type (origin of the ROI : default, ...)
-    - From : the x coordinate of the left limit
-    - To : the x coordinate of the rigth limit
-    - Raw counts : integral of the curve between the
-        min ROI point and the max ROI point to the y = 0 line
 
-        .. image:: img/rawCounts.png
-        
-    - Raw counts : the integral of the curve between the
-        min ROI point and the max ROI point to [ROI min Point, Roi max Point] segment
+- A name (`ROI` column)
+- A type (origin of the ROI: default...)
+- The x coordinate of the left limit (`from` column)
+- The x coordinate of the right limit (`to` column)
+- Raw counts : integral of the curve between the
+  min ROI point and the max ROI point to the y = 0 line
 
-        .. image:: img/netCounts.png
+  .. image:: img/rawCounts.png
+
+- Net counts: the integral of the curve between the
+  min ROI point and the max ROI point to [ROI min point, ROI max point] segment
+
+  .. image:: img/netCounts.png
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "19/12/2016"
 
 
 import logging
@@ -118,7 +119,7 @@ class CurvesROIWidget(qt.QWidget):
         self.addButton.setToolTip('Remove the selected ROI')
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
-        self.addButton.setToolTip('Clear all create ROI. We only let the default ROI')
+        self.addButton.setToolTip('Clear all created ROIs. We only let the default ROI')
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
@@ -128,10 +129,10 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton = qt.QPushButton(hbox)
         self.loadButton.setText("Load")
-        self.loadButton.setToolTip('Load ROIs a .ini file')
+        self.loadButton.setToolTip('Load ROIs from an ini file')
         self.saveButton = qt.QPushButton(hbox)
         self.saveButton.setText("Save")
-        self.loadButton.setToolTip('Save ROIs to a .ini file')
+        self.loadButton.setToolTip('Save ROIs to an ini file')
         hboxlayout.addWidget(self.loadButton)
         hboxlayout.addWidget(self.saveButton)
         layout.setStretchFactor(self.headerLabel, 0)
@@ -351,18 +352,18 @@ class ROITable(qt.QTableWidget):
 
     def __setTooltip(self):
         assert(self.labels[0] == 'ROI')
-        self.horizontalHeaderItem(0).setToolTip('ROI ID')
+        self.horizontalHeaderItem(0).setToolTip('Region of interest identifier')
         assert(self.labels[1] == 'Type')
-        self.horizontalHeaderItem(1).setToolTip('TYPE of the tooltip')
+        self.horizontalHeaderItem(1).setToolTip('Type of the ROI')
         assert(self.labels[2] == 'From')
-        self.horizontalHeaderItem(2).setToolTip('x value of the min point')
+        self.horizontalHeaderItem(2).setToolTip('X-value of the min point')
         assert(self.labels[3] == 'To')
-        self.horizontalHeaderItem(3).setToolTip('x value of the max point')
+        self.horizontalHeaderItem(3).setToolTip('X-value of the max point')
         assert(self.labels[4] == 'Raw Counts')
-        self.horizontalHeaderItem(4).setToolTip('Estimation of the integrale \
+        self.horizontalHeaderItem(4).setToolTip('Estimation of the integral \
             between y=0 and the selected curve')
         assert(self.labels[5] == 'Net Counts')
-        self.horizontalHeaderItem(5).setToolTip('Estimation of the integrale \
+        self.horizontalHeaderItem(5).setToolTip('Estimation of the integral \
             between the segment [maxPt, minPt] and the selected curve')
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
