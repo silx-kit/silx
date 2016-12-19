@@ -286,7 +286,7 @@ class StackView(qt.QMainWindow):
 
     # public API
     def setStack(self, stack, origin=(0, 0), scale=(1., 1.),
-                 reset=True):
+                 perspective=0, reset=True):
         """Set the stack of images to display.
 
         :param stack: A 3D array representing the image or None to clear plot.
@@ -302,6 +302,11 @@ class StackView(qt.QMainWindow):
                       It is the size of a pixel in the coordinates of the axes.
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
+        :param int perspective: Dimension for the image index: 0, 1 or 2.
+            By default, the dimension for the image index is the first
+            dimension of the 3D stack (``perspective=0``). You can also choose
+            to consider the second (``perspective=1``) or the third
+            (``perspective=2``) dimensions as the image index.
         :param bool reset: Whether to reset zoom or not.
         """
         assert len(origin) == 2
@@ -350,6 +355,9 @@ class StackView(qt.QMainWindow):
 
         # enable and init browser
         self._browser.setEnabled(True)
+
+        if perspective != self._perspective:
+            self.__setPerspective(perspective)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the stack of images, as a 3D array or dataset.
