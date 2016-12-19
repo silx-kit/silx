@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "19/12/2016"
 
 
 import numpy
@@ -34,6 +34,7 @@ from .. import qt
 from .. import icons
 from . import _utils
 from .Hdf5Node import Hdf5Node
+import silx.io.utils
 
 _logger = logging.getLogger(__name__)
 
@@ -84,10 +85,7 @@ class Hdf5Item(Hdf5Node):
         :rtype: h5py.File or h5py.Dataset or h5py.Group
         """
         if self.__h5pyClass is None:
-            if hasattr(self.obj, "h5py_class"):
-                self.__h5pyClass = self.obj.h5py_class
-            else:
-                self.__h5pyClass = self.obj.__class__
+            self.__h5pyClass = silx.io.utils.get_h5py_class(self.obj)
         return self.__h5pyClass
 
     def isGroupObj(self):

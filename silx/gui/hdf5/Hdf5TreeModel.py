@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "19/12/2016"
 
 
 import os
@@ -39,12 +39,6 @@ from . import _utils
 from ... import io as silx_io
 
 _logger = logging.getLogger(__name__)
-
-try:
-    import h5py
-except ImportError as e:
-    _logger.error("Module %s requires h5py", __name__)
-    raise e
 
 """Helpers to take care of None objects as signal parameters.
 PySide crash if a signal with a None parameter is emitted between threads.
@@ -113,12 +107,7 @@ class LoadingItemRunnable(qt.QRunnable):
         :param h5py.File h5obj: The h5py object to display in the GUI
         :rtpye: Hdf5Node
         """
-        if hasattr(h5obj, "h5py_class"):
-            class_ = h5obj.h5py_class
-        else:
-            class_ = h5obj.__class__
-
-        if class_ is h5py.File:
+        if silx_io.is_file(h5obj):
             text = os.path.basename(h5obj.filename)
         else:
             filename = os.path.basename(h5obj.file.filename)
@@ -544,12 +533,7 @@ class Hdf5TreeModel(qt.QAbstractItemModel):
             or any other class of h5py file structure.
         """
         if text is None:
-            if hasattr(h5pyObject, "h5py_class"):
-                class_ = h5pyObject.h5py_class
-            else:
-                class_ = h5pyObject.__class__
-
-            if class_ is h5py.File:
+            if silx_io.is_file(h5pyObject):
                 text = os.path.basename(h5pyObject.filename)
             else:
                 filename = os.path.basename(h5pyObject.file.filename)

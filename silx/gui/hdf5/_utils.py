@@ -28,11 +28,12 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/11/2016"
+__date__ = "19/12/2016"
 
 
 import logging
 from .. import qt
+import silx.io.utils
 
 _logger = logging.getLogger(__name__)
 
@@ -143,10 +144,7 @@ class H5Node(object):
         :rtype:
             :class:`h5py.File`, :class:`h5py.Group` or :class:`h5py.Dataset`
         """
-        if hasattr(self.__h5py_object, "h5py_class"):
-            return self.__h5py_object.h5py_class
-        else:
-            return self.__h5py_object.__class__
+        return silx.io.utils.get_h5py_class(self.__h5py_object)
 
     @property
     def basename(self):
