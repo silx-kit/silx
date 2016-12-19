@@ -29,7 +29,8 @@ widget.
 import numpy
 import sys
 from silx.gui import qt
-from silx.gui.plot import StackView
+# from silx.gui.plot import StackView
+from silx.gui.plot.StackView import StackViewMainWindow
 
 
 app = qt.QApplication(sys.argv[1:])
@@ -40,7 +41,8 @@ mystack = numpy.fromfunction(
     (100, 200, 300)
 )
 
-sv = StackView()
+# sv = StackView()
+sv = StackViewMainWindow()
 sv.setColormap("jet", autoscale=True)
 sv.setStack(mystack)
 sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
