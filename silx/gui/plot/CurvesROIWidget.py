@@ -32,7 +32,7 @@ ROI are defined by :
 - A type (origin of the ROI: default...)
 - The x coordinate of the left limit (`from` column)
 - The x coordinate of the right limit (`to` column)
-- Raw counts : integral of the curve between the
+- Raw counts: integral of the curve between the
   min ROI point and the max ROI point to the y = 0 line
 
   .. image:: img/rawCounts.png
