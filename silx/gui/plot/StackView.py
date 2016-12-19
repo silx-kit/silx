@@ -647,7 +647,7 @@ class PlanesDockWidget(qt.QDockWidget):
         super(PlanesDockWidget, self).__init__(parent)
 
         self.planeGB = qt.QGroupBox(self)
-        self.planeGB.setSizePolicy(qt.QSizePolicy(qt.QSizePolicy.Minimum))
+        self.planeGB.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
         self.planeGBLayout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
         self.planeGB.setLayout(self.planeGBLayout)
         spacer = qt.QSpacerItem(20, 20,
