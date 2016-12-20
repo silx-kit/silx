@@ -41,14 +41,14 @@ import numpy
 ctypedef fused _number:
     float
     double
-    char
-    short
-    int
-    long
+    signed char
+    signed short
+    signed int
+    signed long
     unsigned char
     unsigned short
     unsigned int
-    unsigned long
+    unsigned long long
 
 
 class _MinMaxResult(object):
