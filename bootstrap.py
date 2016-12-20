@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "20/12/2016"
 
 
 import sys
@@ -51,15 +51,21 @@ if sys.version_info[0] >= 3:  # Python3
     def execfile(fullpath):
         "Python3 implementation for execfile"
         with open(fullpath) as f:
-            code = compile(f.read(), fullpath, 'exec')
-            exec(code)
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                raise SyntaxError("Not a Python script")
+            code = compile(data, fullpath, 'exec')
+            exec(code, globals, locals)
 
 
 def runfile(fname):
     try:
+        logger.info("Execute target using exec")
         execfile(fname)
     except SyntaxError as error:
-        print(error)
+        logger.error(error)
+        logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
                     "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
