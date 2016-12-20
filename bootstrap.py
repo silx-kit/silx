@@ -48,7 +48,7 @@ def _get_available_scripts(path):
 
 
 if sys.version_info[0] >= 3:  # Python3
-    def execfile(fullpath):
+    def execfile(fullpath, globals=None, locals=None):
         "Python3 implementation for execfile"
         with open(fullpath) as f:
             try:
@@ -62,7 +62,11 @@ if sys.version_info[0] >= 3:  # Python3
 def runfile(fname):
     try:
         logger.info("Execute target using exec")
-        execfile(fname)
+        # execfile is considered as a local call.
+        # Providing globals() as locals will force to feed the file into
+        # globals() (for examples imports).
+        # Without this any function call from the executed file loses imports
+        execfile(fname, globals(), globals())
     except SyntaxError as error:
         logger.error(error)
         logger.info("Execute target using subprocess")
