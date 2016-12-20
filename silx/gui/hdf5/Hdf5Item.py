@@ -234,6 +234,29 @@ class Hdf5Item(Hdf5Node):
                     text = "%dD data" % dimension
         return text
 
+    def _humanReadableDType(self, dtype, full=False):
+        if dtype.type == numpy.string_:
+            text = "string"
+        elif dtype.type == numpy.object_:
+            text = "object"
+        elif dtype.type == numpy.bool_:
+            text = "bool"
+        elif dtype.type == numpy.void:
+            if dtype.fields is None:
+                text = "raw"
+            else:
+                if not full:
+                    text = "compound"
+                else:
+                    compound = [d[0] for d in dtype.fields.values()]
+                    compound = [self._humanReadableDType(d) for d in compound]
+                    text = "compound(%s)" % ", ".join(compound)
+        else:
+            text = str(dtype)
+        return text
+
+    def _humanReadableType(self, dataset, full=False):
+        return self._humanReadableDType(dataset.dtype, full)
     def _getDefaultTooltip(self):
         """Returns the default tooltip
 
@@ -286,10 +309,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             class_ = self.h5pyClass
             if issubclass(class_, h5py.Dataset):
-                if self.obj.dtype.type == numpy.string_:
-                    text = "string"
-                else:
-                    text = str(self.obj.dtype)
+                text = self._humanReadableType(self.obj)
             else:
                 text = ""
             return text
