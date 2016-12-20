@@ -34,6 +34,7 @@ __date__ = "20/12/2016"
 import logging
 from .. import qt
 import silx.io.utils
+from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
 
@@ -98,10 +99,10 @@ def htmlFromDict(dictionary, title=None):
         <body>
         """
     if title is not None:
-        result += "<b>%s</b>" % title
+        result += "<b>%s</b>" % escape(title)
     result += "<ul>"
     for key, value in dictionary.items():
-        result += "<li><b>%s</b>: %s</li>" % (key, value)
+        result += "<li><b>%s</b>: %s</li>" % (escape(key), escape(value))
     result += "</ul>"
     result += "</body></html>"
     return result
