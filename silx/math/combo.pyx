@@ -25,7 +25,7 @@
 """This module provides combination of statistics as single operation.
 
 For now it provides min/max (and optionally positive min) and indices
-of first occurences in a single pass.
+of first occurences (i.e., argmin/argmax) in a single pass.
 """
 
 __authors__ = ["T. Vincent"]
