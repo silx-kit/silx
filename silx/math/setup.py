@@ -96,6 +96,12 @@ def configuration(parent_package='', top_path=None):
                          language='c++',
                          extra_link_args=extra_link_args,
                          extra_compile_args=extra_compile_args)
+
+    # min/max
+    config.add_extension('combo',
+                         sources=["combo.pyx"],
+                         language='c')
+
     return config
 
 
