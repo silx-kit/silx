@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "20/12/2016"
 
 
 import logging
@@ -82,16 +82,28 @@ class Hdf5ContextMenuEvent(object):
         return self.__hoveredObject
 
 
-def htmlFromDict(dictionary):
+def htmlFromDict(dictionary, title=None):
     """Generate a readable HTML from a dictionary
 
     :param dict dictionary: A Dictionary
     :rtype: str
     """
-    result = "<html><ul>"
+    result = """<html>
+        <head>
+        <style type="text/css">
+        ul { -qt-list-indent: 0; list-style: none; }
+        li > b {display: inline-block; min-width: 4em; font-weight: bold; }
+        </style>
+        </head>
+        <body>
+        """
+    if title is not None:
+        result += "<b>%s</b>" % title
+    result += "<ul>"
     for key, value in dictionary.items():
         result += "<li><b>%s</b>: %s</li>" % (key, value)
-    result += "</ul></html>"
+    result += "</ul>"
+    result += "</body></html>"
     return result
 
 
