@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/12/2016"
+__date__ = "21/12/2016"
 
 
 import numpy
@@ -222,11 +222,11 @@ class Hdf5Item(Hdf5Node):
     def _humanReadableValue(self, dataset):
         if dataset.shape == tuple():
             numpy_object = dataset[()]
-            text = str(numpy_object)
+            text = _utils.toString(numpy_object)
         else:
             if dataset.size < 5 and dataset.compression is None:
                 numpy_object = dataset[0:5]
-                text = str(numpy_object)
+                text = _utils.toString(numpy_object)
             else:
                 dimension = len(dataset.shape)
                 if dataset.compression is not None:
