@@ -86,7 +86,7 @@ from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
-from silx.utils.array_like import TransposedDatasetView
+from silx.utils.array_like import TransposedDatasetView, TransposedListOfImages
 
 
 class StackView(qt.QMainWindow):
@@ -273,7 +273,8 @@ class StackView(qt.QMainWindow):
                 self.__transposed_view = numpy.rollaxis(self._stack, 1)
             if self._perspective == 2:
                 self.__transposed_view = numpy.rollaxis(self._stack, 2)
-        elif h5py is not None and isinstance(self._stack, h5py.Dataset):
+        elif h5py is not None and isinstance(self._stack, h5py.Dataset) or \
+                isinstance(self._stack, TransposedDatasetView):
             if self._perspective == 0:
                 self.__transposed_view = self._stack
             if self._perspective == 1:
@@ -281,6 +282,15 @@ class StackView(qt.QMainWindow):
                                                                transposition=(1, 0, 2))
             if self._perspective == 2:
                 self.__transposed_view = TransposedDatasetView(self._stack,
+                                                               transposition=(2, 0, 1))
+        elif isinstance(self._stack, TransposedListOfImages):
+            if self._perspective == 0:
+                self.__transposed_view = self._stack
+            if self._perspective == 1:
+                self.__transposed_view = TransposedListOfImages(self._stack.images,
+                                                               transposition=(1, 0, 2))
+            if self._perspective == 2:
+                self.__transposed_view = TransposedListOfImages(self._stack.images,
                                                                transposition=(2, 0, 1))
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
@@ -331,7 +341,7 @@ class StackView(qt.QMainWindow):
             self.sigStackChanged.emit(0)
             return
 
-        # convert list of images to 3D array
+        # stack as list of 2D arrays: must be converted into an array_like
         if not isinstance(stack, numpy.ndarray):
             if h5py is None or not isinstance(stack, h5py.Dataset):
                 try:
@@ -343,7 +353,7 @@ class StackView(qt.QMainWindow):
                     raise ValueError(
                         "Stack must be a 3D array/dataset or a list of " +
                         "2D arrays.")
-                stack = numpy.array(stack)
+                stack = TransposedListOfImages(stack)
 
         assert len(stack.shape) == 3, "data must be 3D"
 
