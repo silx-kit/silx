@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "22/12/2016"
 
 
 import numpy 
@@ -661,19 +661,44 @@ class Profile3DToolBar(ProfileToolBar):
         :param parent: See :class:`QToolBar`.
         """
         super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
+
         if profileWindow is None:
             self._profileWindow1D = self.profileWindow
             from .PlotWindow import Plot2D  # noqa
             self._profileWindow2D = Plot2D()
-        self.__create3DProfileAction()
-        self._setComputeIn3D(False)
 
-    def __create3DProfileAction(self):
-        """Initialize the Profile3DAction action
-        """
         self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
         self.profile3d.sigChange3DProfile.connect(self._setComputeIn3D)
         self.addAction(self.profile3d)
+
+        self.plot.sigStackChanged.connect(
+                self._stackChanged)
+
+        self._setComputeIn3D(False)
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change (for 1D profile):
+
+        toggle enabled toolbar, update curve"""
+        if not self._computeIn3D:
+            self.setEnabled(legend is not None)
+            if legend is not None:
+                # Update default profile color
+                activeImage = self.plot.getActiveImage()
+                if activeImage is not None:
+                    self._defaultOverlayColor = cursorColorForColormap(
+                            activeImage[4]['colormap']['name'])
+
+                self.updateProfile()
+
+    def _stackChanged(self, size):
+        """Handle stack change (for 2D profile):
+        toggle enabled toolbar, update profile image.
+        """
+        if self._computeIn3D:
+            self.setEnabled(size)
+            if size:
+                self.updateProfile()
 
     def _setComputeIn3D(self, flag):
         """Set flag to *True* to compute the profile in 3D, else

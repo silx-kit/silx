@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "07/12/2016"
+__date__ = "22/12/2016"
 
 import numpy
 
@@ -136,6 +136,16 @@ class StackView(qt.QMainWindow):
         - 0: axis Y is the 2nd dimension, axis X is the 3rd dimension
         - 1: axis Y is the 1st dimension, axis X is the 3rd dimension
         - 2: axis Y is the 1st dimension, axis X is the 2nd dimension
+    """
+
+    sigStackChanged = qt.Signal(int)
+    """Signal emitted when the image stack is changed.
+    This happens when a new volume is loaded, or when the current volume
+    is transposed (change in perspective).
+
+    The signal provides the size (number of pixels) of the stack.
+    This will be 0 if the stack is cleared, else it will be a positive
+    integer.
     """
 
     def __init__(self, parent=None, resetzoom=True, backend=None,
@@ -240,6 +250,8 @@ class StackView(qt.QMainWindow):
             self.__updatePlotLabels()
 
             self.sigPlaneSelectionChanged.emit(perspective)
+            self.sigStackChanged.emit(self._stack.size if
+                                      self._stack is not None else 0)
 
     def __updatePlotLabels(self):
         """Update plot axes labels depending on perspective"""
@@ -316,6 +328,7 @@ class StackView(qt.QMainWindow):
 
         if stack is None:
             self.clear()
+            self.sigStackChanged.emit(0)
             return
 
         # convert list of images to 3D array
@@ -358,6 +371,8 @@ class StackView(qt.QMainWindow):
 
         if perspective != self._perspective:
             self.__setPerspective(perspective)
+
+        self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the stack of images, as a 3D array or dataset.
