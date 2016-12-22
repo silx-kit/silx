@@ -402,6 +402,20 @@ class TransposedListOfImages(object):
             return numpy.transpose(numpy.array(output_stack),
                                    axes=output_dimensions)
 
+    def min(self):
+        min_value = self.images[0].min()
+        if len(self.images) > 1:
+            for img in self.images[1:]:
+                min_value = min(min_value, img.min())
+        return min_value
+
+    def max(self):
+        max_value = self.images[0].max()
+        if len(self.images) > 1:
+            for img in self.images[1:]:
+                max_value = max(max_value, img.max())
+        return max_value
+
 
 class TransposedDatasetView(object):
     """This class provides a way to transpose a dataset without
