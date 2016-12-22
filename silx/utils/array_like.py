@@ -133,6 +133,21 @@ def get_dtype(array_like):
     return numpy.dtype(type(subsequence))
 
 
+def get_concatenated_dtype(arrays):
+    """Return dtype of array resulting of concatenation
+    of a list of arrays (without actually concatenating
+    them).
+
+    :param arrays: list of numpy arrays
+    :return: resulting dtype after concatenating arrays
+    """
+    dtypes = {a.dtype for a in arrays}
+    dummy = []
+    for dt in dtypes:
+        dummy.append(numpy.zeros((1, 1), dtype=dt))
+    return numpy.array(dummy).dtype
+
+
 def get_array_type(array_like):
     """Return "numpy array", "h5py dataset" or "sequence"
 
@@ -208,9 +223,188 @@ def get_array_type(array_like):
 #             # TODO: implement nD slicing without array casting
 
 
-class TransposedDatasetView(object):
+class TransposedListOfImages(object):
+    """This class provides a way to access values and slices in a stack of
+    images stored as a list of 2D numpy arrays, without creating a 3D numpy
+    array first.
+
+    A transposition can be specified, as a 3-tuple of dimensions in the wanted
+    order. For example, to transpose from ``xyz`` ``(0, 1, 2)`` into ``yzx``,
+    the transposition tuple is ``(1, 2, 0)``
+
+    All the 2D arrays in the list must have the same shape.
+    The global dtype of the stack of images is assumed to be the same as the
+    one of the first image.
+
+    :param images: list of 2D numpy arrays
+    :param transposition: Tuple of dimension numbers in the wanted order
     """
-    This class provides a way to transpose a dataset without
+    def __init__(self, images, transposition=None):
+        """
+
+        """
+        super(TransposedListOfImages, self).__init__()
+
+        # test stack of images is as expected
+        assert hasattr(images, "__len__"), \
+            "Image stack must be a list of arrays"
+        assert isinstance(images[0],  numpy.ndarray), \
+            "Images must be numpy arrays"
+        image0_shape = images[0].shape
+        for image in images:
+            assert isinstance(image,  numpy.ndarray) and image.ndim == 2, \
+                "Images must be 2D numpy arrays"
+            assert image.shape == image0_shape, \
+                "All images must have the same shape"
+
+        self.images = images
+        """original images"""
+
+        self.shape = (len(images), ) + image0_shape
+        """Tuple of array dimensions"""
+        self.dtype = get_concatenated_dtype(images)
+        """Data-type of the global array"""
+        self.ndim = 3
+        """Number of array dimensions"""
+
+        self.size = len(images) * image0_shape[0] * image0_shape[1]
+        """Number of elements in the array."""
+
+        self.transposition = list(range(self.ndim))
+        """List of dimension indices, in an order depending on the
+        specified transposition. By default this is simply
+        [0, ..., self.ndim], but it can be changed by specifying a different
+        `transposition` parameter at initialization.
+
+        Use :meth:`transpose`, to create a new :class:`TransposedListOfImages`
+        with a different :attr:`transposition`.
+        """
+
+        if transposition is not None:
+            assert len(transposition) == self.ndim
+            assert set(transposition) == set(list(range(self.ndim))), \
+                "Transposition must be a sequence containing all dimensions"
+            self.transposition = transposition
+            self.__sort_shape()
+
+    def __sort_shape(self):
+        """Sort shape in the order defined in :attr:`transposition`
+        """
+        new_shape = tuple(self.shape[dim] for dim in self.transposition)
+        self.shape = new_shape
+
+    def __sort_indices(self, indices):
+        """Return array indices sorted in the order needed
+        to access data in the original non-transposed images.
+
+        :param indices: Tuple of ndim indices, in the order needed
+            to access the transposed view
+        :return: Sorted tuple of indices, to access original data
+        """
+        assert len(indices) == self.ndim
+        sorted_indices = tuple(idx for (_, idx) in
+                               sorted(zip(self.transposition, indices)))
+        return sorted_indices
+
+    def __array__(self, dtype=None):
+        """Cast the images into a numpy array, and return it.
+
+        If a transposition has been done on this images, return
+        a transposed view of a numpy array."""
+        return numpy.transpose(numpy.array(self.images, dtype=dtype),
+                               self.transposition)
+
+    def __len__(self):
+        return self.shape[0]
+
+    def transpose(self, transposition=None):
+        """Return a re-ordered (dimensions permutated)
+        :class:`TransposedListOfImages`.
+
+        The returned object refers to
+        the same images but with a different :attr:`transposition`.
+
+        :param list[int] transposition: List/tuple of dimension numbers in the
+            wanted order
+        :return: new :class:`TransposedListOfImages` object
+        """
+        # by default, reverse the dimensions
+        if transposition is None:
+            transposition = list(reversed(self.transposition))
+
+        return TransposedListOfImages(self.images,
+                                      transposition)
+
+    def __getitem__(self, item):
+        """Handle a subset of numpy indexing with regards to the dimension
+        order as specified in :attr:`transposition`
+
+        Following features are **not supported**:
+
+            - fancy indexing using numpy arrays
+            - using ellipsis objects
+
+        :param item: Index
+        :return: value or slice as a numpy array
+        """
+        # 1-D slicing -> n-D slicing (n=1)
+        if not hasattr(item, "__len__"):
+            # first dimension index is given
+            item = [item]
+            # following dimensions are indexed with : (all elements)
+            item += [slice(0, sys.maxint, 1) for _i in range(self.ndim - 1)]
+
+        # n-dimensional slicing
+        if len(item) != self.ndim:
+            raise IndexError(
+                "N-dim slicing requires a tuple of N indices/slices. " +
+                "Needed dimensions: %d" % self.ndim)
+
+        # get list of indices sorted in the original images order
+        sorted_indices = self.__sort_indices(item)
+        list_idx, array_idx = sorted_indices[0], sorted_indices[1:]
+
+        images_selection = self.images[list_idx]
+
+        # now we must transpose the output data
+        output_dimensions = []
+        frozen_dimensions = []
+        for i, idx in enumerate(item):
+            # slices and sequences
+            if not isinstance(idx, int):
+                output_dimensions.append(self.transposition[i])
+            # regular integer index
+            else:
+                # whenever a dimension is fixed (indexed by an integer)
+                # the number of output dimension is reduced
+                frozen_dimensions.append(self.transposition[i])
+
+        # decrement output dimensions that are above frozen dimensions
+        for frozen_dim in reversed(sorted(frozen_dimensions)):
+            for i, out_dim in enumerate(output_dimensions):
+                if out_dim > frozen_dim:
+                    output_dimensions[i] -= 1
+
+        assert (len(output_dimensions) + len(frozen_dimensions)) == self.ndim
+        assert set(output_dimensions) == set(range(len(output_dimensions)))
+
+        # single list elements selected
+        if isinstance(images_selection, numpy.ndarray):
+            return numpy.transpose(images_selection[array_idx],
+                                   axes=output_dimensions)
+        # muliple list elements selected
+        else:
+            # apply selection first
+            output_stack = []
+            for img in images_selection:
+                output_stack.append(img[array_idx])
+            # then cast into a numpy array, and transpose
+            return numpy.transpose(numpy.array(output_stack),
+                                   axes=output_dimensions)
+
+
+class TransposedDatasetView(object):
+    """This class provides a way to transpose a dataset without
     casting it into a numpy array. This way, the dataset in a file need not
     necessarily be integrally read into memory to view it in a different
     transposition.
@@ -352,6 +546,9 @@ class TransposedDatasetView(object):
         a transposed view of a numpy array."""
         return numpy.transpose(numpy.array(self.dataset, dtype=dtype),
                                self.transposition)
+
+    def __len__(self):
+        return self.shape[0]
 
     def transpose(self, transposition=None):
         """Return a re-ordered (dimensions permutated)

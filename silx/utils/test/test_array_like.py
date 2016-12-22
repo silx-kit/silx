@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "22/12/2016"
 
 try:
     import h5py
@@ -38,7 +38,7 @@ import os
 import tempfile
 import unittest
 
-from ..array_like import TransposedDatasetView
+from ..array_like import TransposedDatasetView, TransposedListOfImages
 
 
 @unittest.skipIf(h5py is None,
@@ -107,12 +107,26 @@ class TestTransposedDatasetView(unittest.TestCase):
                              sorted(zip(transposition, a.shape)))
         self.assertEqual(sorted_shape, self.original_shape)
 
-        # test the TransposedDatasetView.__array__ method
+        a_as_array = numpy.array(self.h5f["volume"]).transpose(transposition)
+
+        # test the __array__ method
         self.assertTrue(numpy.array_equal(
                 numpy.array(a),
-                numpy.array(self.h5f["volume"]).transpose(transposition)))
+                a_as_array))
 
-        # test the TransposedDatasetView.__getitem__
+        # test slicing
+        for selection in [(2, slice(None), slice(None)),
+                          (slice(None), 1, slice(0, 8)),
+                          (slice(0, 3), slice(None), 3),
+                          (1, 3, slice(None)),
+                          (slice(None), 2, 1),
+                          (4, slice(1, 9, 2), 2)]:
+            self.assertIsInstance(a[selection], numpy.ndarray)
+            self.assertTrue(numpy.array_equal(
+                    a[selection],
+                    a_as_array[selection]))
+
+        # test the TransposedDatasetView.__getitem__ for single values
         # (step adjusted to test at least 3 indices in each dimension)
         for i in range(0, a.shape[0], a.shape[0] // 3):
             for j in range(0, a.shape[1], a.shape[1] // 3):
@@ -150,10 +164,128 @@ class TestTransposedDatasetView(unittest.TestCase):
         self._testTransposition((2, 1, 0))
 
 
+class TestTransposedListOfImages(unittest.TestCase):
+    def setUp(self):
+        # images attributes
+        self.ndim = 3
+        self.original_shape = (5, 10, 20)
+        self.size = 1
+        for dim in self.original_shape:
+            self.size *= dim
+
+        volume = numpy.arange(self.size).reshape(self.original_shape)
+
+        self.images = []
+        for i in range(self.original_shape[0]):
+            self.images.append(
+                    volume[i])
+
+    def tearDown(self):
+        pass
+
+    def _testSize(self, obj):
+        """These assertions apply to all following test cases"""
+        self.assertEqual(obj.ndim, self.ndim)
+        self.assertEqual(obj.size, self.size)
+        size_from_shape = 1
+        for dim in obj.shape:
+            size_from_shape *= dim
+        self.assertEqual(size_from_shape, self.size)
+
+        for dim in self.original_shape:
+            self.assertIn(dim, obj.shape)
+
+    def testNoTransposition(self):
+        """no transposition (transposition = (0, 1, 2))"""
+        a = TransposedListOfImages(self.images)
+
+        self.assertEqual(a.shape, self.original_shape)
+        self._testSize(a)
+
+        for i in range(a.shape[0]):
+            for j in range(a.shape[1]):
+                for k in range(a.shape[2]):
+                    self.assertEqual(self.images[i][j, k],
+                                     a[i, j, k])
+
+    def _testTransposition(self, transposition):
+        """test transposed dataset
+
+        :param tuple transposition: List of dimensions (0... n-1) sorted
+            in the desired order
+        """
+        a = TransposedListOfImages(self.images,
+                                   transposition=transposition)
+        self._testSize(a)
+
+        # sort shape of transposed object, to hopefully find the original shape
+        sorted_shape = tuple(dim_size for (_, dim_size) in
+                             sorted(zip(transposition, a.shape)))
+        self.assertEqual(sorted_shape, self.original_shape)
+
+        a_as_array = numpy.array(self.images).transpose(transposition)
+
+        # test the TransposedDatasetView.__array__ method
+        self.assertTrue(numpy.array_equal(
+                numpy.array(a),
+                a_as_array))
+
+        # test slicing
+        for selection in [(2, slice(None), slice(None)),
+                          (slice(None), 1, slice(0, 8)),
+                          (slice(0, 3), slice(None), 3),
+                          (1, 3, slice(None)),
+                          (slice(None), 2, 1),
+                          (4, slice(1, 9, 2), 2)]:
+            self.assertIsInstance(a[selection], numpy.ndarray)
+            self.assertTrue(numpy.array_equal(
+                    a[selection],
+                    a_as_array[selection]))
+
+        # test the TransposedDatasetView.__getitem__ for single values
+        # (step adjusted to test at least 3 indices in each dimension)
+        for i in range(0, a.shape[0], a.shape[0] // 3):
+            for j in range(0, a.shape[1], a.shape[1] // 3):
+                for k in range(0, a.shape[2], a.shape[2] // 3):
+                    viewed_value = a[i, j, k]
+                    sorted_indices = tuple(idx for (_, idx) in
+                                           sorted(zip(transposition, [i, j, k])))
+                    corresponding_original_value = self.images[sorted_indices[0]][sorted_indices[1:]]
+                    self.assertEqual(viewed_value,
+                                     corresponding_original_value)
+
+    def testTransposition012(self):
+        """transposition = (0, 1, 2)
+        (should be the same as testNoTransposition)"""
+        self._testTransposition((0, 1, 2))
+
+    def testTransposition021(self):
+        """transposition = (0, 2, 1)"""
+        self._testTransposition((0, 2, 1))
+
+    def testTransposition102(self):
+        """transposition = (1, 0, 2)"""
+        self._testTransposition((1, 0, 2))
+
+    def testTransposition120(self):
+        """transposition = (1, 2, 0)"""
+        self._testTransposition((1, 2, 0))
+
+    def testTransposition201(self):
+        """transposition = (2, 0, 1)"""
+        self._testTransposition((2, 0, 1))
+
+    def testTransposition210(self):
+        """transposition = (2, 1, 0)"""
+        self._testTransposition((2, 1, 0))
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedDatasetView))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedListOfImages))
     return test_suite
 
 
