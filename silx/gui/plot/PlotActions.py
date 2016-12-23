@@ -950,6 +950,67 @@ class PanWithArrowKeysAction(PlotAction):
         self.plot.setPanWithArrowKeys(checked)
 
 
+def _warningMessage(informativeText='', detailedText='', parent=None):
+    """Display a popup warning message."""
+    msg = qt.QMessageBox(parent)
+    msg.setIcon(qt.QMessageBox.Warning)
+    msg.setInformativeText(informativeText)
+    msg.setDetailedText(detailedText)
+    msg.exec_()
+
+
+def _getOneCurve(plt, mode="unique"):
+    """Get a single curve from the plot.
+    By default, get the active curve if any, else if a single curve is plotted
+    get it, else return None and display a warning popup.
+
+    This behavior can be adjusted by modifying the *mode* parameter: always
+    return the active curve if any, but adjust the behavior in case no curve
+    is active.
+
+    :param plt: :class:`.PlotWidget` instance on which to operate
+    :param mode: Parameter defining the behavior when no curve is active.
+        Possible modes:
+            - "none": return None (enforce curve activation)
+            - "unique": return the unique curve or None if multiple curves
+            - "first": return first curve
+            - "last": return last curve (most recently added one)
+    :return: return value of plt.getActiveCurve(), or plt.getAllCurves()[0],
+        or plt.getAllCurves()[-1], or None
+    """
+    curve = plt.getActiveCurve()
+    if curve is not None:
+        return curve
+
+    if mode is None or mode.lower() == "none":
+        _warningMessage("You must activate a curve!",
+                        parent=plt)
+        return None
+
+    curves = plt.getAllCurves()
+    if len(curves) == 0:
+        _warningMessage("No curve on this plot.",
+                        parent=plt)
+        return None
+
+    if len(curves) == 1:
+        return curves[0]
+
+    if len(curves) > 1:
+        if mode == "unique":
+            _warningMessage("Multiple curves are plotted. " +
+                            "Please activate the one you want to use.",
+                            parent=plt)
+            return None
+        if mode.lower() == "first":
+            return curves[0]
+        if mode.lower() == "last":
+            return curves[-1]
+
+    raise ValueError("Illegal value for parameter 'mode'." +
+                     " Allowed values: 'none', 'unique', 'first', 'last'.")
+
+
 class FitAction(PlotAction):
     """QAction to open a :class:`FitWidget` and set its data to the
     active curve if any, or to the first curve..
@@ -965,22 +1026,10 @@ class FitAction(PlotAction):
             checkable=False, parent=parent)
         self.fit_window = None
 
-    def _warningMessage(self, informativeText='', detailedText=''):
-        """Display a warning message."""
-        msg = qt.QMessageBox(self.plot)
-        msg.setIcon(qt.QMessageBox.Warning)
-        msg.setInformativeText(informativeText)
-        msg.setDetailedText(detailedText)
-        msg.exec_()
-
     def _getFitWindow(self):
-        curve = self.plot.getActiveCurve()
+        curve = _getOneCurve(self.plot)
         if curve is None:
-            curves = self.plot.getAllCurves()
-            if len(curves) != 1:
-                self._warningMessage("No curve selected")
-                return
-            curve = curves[0]
+            return
         self.xlabel = self.plot.getGraphXLabel()
         self.ylabel = self.plot.getGraphYLabel()
         self.x, self.y, self.legend = curve[0:3]

@@ -26,18 +26,19 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "15/12/2016"
 
 
 import unittest
 import time
 from silx.gui import qt
-from silx.gui import testutils
+from silx.gui.test.utils import TestCaseQt
+from silx.gui.test.utils import SignalListener
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.testutils import TestLogging
+from silx.test.utils import TestLogging
 
 
-class TestThreadPoolPushButton(testutils.TestCaseQt):
+class TestThreadPoolPushButton(TestCaseQt):
 
     def setUp(self):
         super(TestThreadPoolPushButton, self).setUp()
@@ -83,33 +84,38 @@ class TestThreadPoolPushButton(testutils.TestCaseQt):
         self.qapp.processEvents()
 
     def testSuccess(self):
+        listener = SignalListener()
         button = ThreadPoolPushButton()
         button.setCallable(self._compute)
-        button.beforeExecuting.connect(lambda: self._result.append("be"))
-        button.started.connect(lambda: self._result.append("s"))
-        button.succeeded.connect(lambda r: self._result.append(r))
-        button.failed.connect(lambda e: self.fail("Unexpected exception"))
-        button.finished.connect(lambda: self._result.append("f"))
+        button.beforeExecuting.connect(listener.partial(test="be"))
+        button.started.connect(listener.partial(test="s"))
+        button.succeeded.connect(listener.partial(test="result"))
+        button.failed.connect(listener.partial(test="Unexpected exception"))
+        button.finished.connect(listener.partial(test="f"))
         button.executeCallable()
         self.qapp.processEvents()
         time.sleep(0.1)
         self.qapp.processEvents()
-        self.assertListEqual(self._result, ["be", "s", "result", "f"])
+        result = listener.karguments(argumentName="test")
+        self.assertListEqual(result, ["be", "s", "result", "f"])
 
     def testFail(self):
+        listener = SignalListener()
         button = ThreadPoolPushButton()
         button.setCallable(self._computeFail)
-        button.beforeExecuting.connect(lambda: self._result.append("be"))
-        button.started.connect(lambda: self._result.append("s"))
-        button.succeeded.connect(lambda r: self.fail("Unexpected success"))
-        button.failed.connect(lambda e: self._result.append(str(e)))
-        button.finished.connect(lambda: self._result.append("f"))
+        button.beforeExecuting.connect(listener.partial(test="be"))
+        button.started.connect(listener.partial(test="s"))
+        button.succeeded.connect(listener.partial(test="Unexpected success"))
+        button.failed.connect(listener.partial(test="exception"))
+        button.finished.connect(listener.partial(test="f"))
         with TestLogging('silx.gui.widgets.ThreadPoolPushButton', error=1):
             button.executeCallable()
             self.qapp.processEvents()
             time.sleep(0.1)
             self.qapp.processEvents()
-        self.assertListEqual(self._result, ["be", "s", "exception", "f"])
+        result = listener.karguments(argumentName="test")
+        self.assertListEqual(result, ["be", "s", "exception", "f"])
+        listener.clear()
 
 
 def suite():

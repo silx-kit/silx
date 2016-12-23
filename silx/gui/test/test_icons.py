@@ -26,16 +26,16 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
 from silx.gui import qt
-from silx.gui import testutils
+from silx.gui.test.utils import TestCaseQt
 from silx.gui import icons
 
 
-class TestIcons(testutils.TestCaseQt):
+class TestIcons(TestCaseQt):
     """Test to check that icons module."""
 
     def testSvgIcon(self):
@@ -74,7 +74,7 @@ class TestIcons(testutils.TestCaseQt):
         self.assertNotEquals(icon1_id, icon2_id)
 
 
-class TestAnimatedIcons(testutils.TestCaseQt):
+class TestAnimatedIcons(TestCaseQt):
     """Test to check that icons module."""
 
     def testProcessWorking(self):
