@@ -223,3 +223,58 @@ class YAxisOriginToolButton(PlotToolButton):
         icon, toolTip = self.STATE[isUpward, "icon"], self.STATE[isUpward, "state"]
         self.setIcon(icon)
         self.setToolTip(toolTip)
+
+
+class ProfileToolButton(PlotToolButton):
+
+    STATE = None
+    """Lazy loaded states used to feed ProfileToolButton"""
+
+    sigDimensionChanged = qt.Signal(int)
+
+    def __init__(self, parent=None, plot=None):
+        if self.STATE is None:
+            self.STATE = {}
+            # dont keep ratio
+            self.STATE[1, "icon"] = icons.getQIcon('profile1D')
+            self.STATE[1, "state"] = "Profile computed is 1D"
+            self.STATE[1, "action"] = "Compute 1D profile"
+            # keep ratio
+            self.STATE[2, "icon"] = icons.getQIcon('profile2D')
+            self.STATE[2, "state"] = "Profile is computed in 2D"
+            self.STATE[2, "action"] = "Compute profile in 2D"
+
+        super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
+
+        profile1DAction = self._createAction(1)
+        profile1DAction.triggered.connect(self.computeProfileIn1D)
+        profile1DAction.setIconVisibleInMenu(True)
+
+        profile2DAction = self._createAction(2)
+        profile2DAction.triggered.connect(self.computeProfileIn2D)
+        profile2DAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(profile1DAction)
+        menu.addAction(profile2DAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+
+    def _createAction(self, profileDimension):
+        icon = self.STATE[profileDimension, "icon"]
+        text = self.STATE[profileDimension, "action"]
+        return qt.QAction(icon, text, self)
+
+    def _profileDimensionChanged(self, profileDimension):
+        """Handle Plot set keep aspect ratio signal"""
+        icon, toolTip = self.STATE[profileDimension, "icon"], self.STATE[profileDimension, "state"]
+        self.setIcon(icon)
+        self.setToolTip(toolTip)
+        self.sigDimensionChanged.emit(profileDimension)
+
+    def computeProfileIn1D(self):
+        self._profileDimensionChanged(1)
+
+    def computeProfileIn2D(self):
+        self._profileDimensionChanged(2)
+

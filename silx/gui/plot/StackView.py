@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ from silx.gui.plot import PlotWindow
 from silx.gui.plot.Colors import cursorColorForColormap
 from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 from silx.gui.plot.PlotTools import Profile3DToolBar
+from  silx.gui.plot import PlotToolButtons
 
 from silx.utils.array_like import TransposedDatasetView
 
@@ -248,6 +249,8 @@ class StackView(qt.QWidget):
         :return: Stack of images and parameters.
         :rtype: (numpy.ndarray, dict)
         """
+        if self.getActiveImage() is None:
+            return None
         _img, _legend, _info, _pixmap, params = self.getActiveImage()
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
