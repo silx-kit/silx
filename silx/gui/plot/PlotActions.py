@@ -1109,7 +1109,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         activeImage = self.plot.getActiveImage()
 
         if activeImage is not None:
-            histo, w_histo, edges = Histogramnd(activeImage[0].ravel(),
+            histo, w_histo, edges = Histogramnd(activeImage[0].ravel().astype(numpy.float32),
                                                 n_bins=256,
                                                 histo_range=[0,256])
             
