@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,6 @@ Functions:
     - :func:`get_shape`
     - :func:`get_dtype`
     - :func:`get_concatenated_dtype`
-    - :func:`get_array_type`
 
 """
 
@@ -51,12 +50,14 @@ from __future__ import absolute_import, print_function, division
 import numpy
 import sys
 
+try:
+    from silx.third_party.six import string_types, binary_type
+except ImportError:
+    from six import string_types, binary_type
+
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "04/01/2017"
-
-string_types = (str,) if sys.version_info[0] == 3 else (basestring,)
-binary_types = (bytes,) if sys.version_info[0] == 3 else (str,)
 
 
 def is_array(obj):
@@ -79,13 +80,17 @@ def is_array(obj):
 def is_nested_sequence(obj):
     """Return True if object is a nested sequence.
 
-    Numpy arrays, h5py datasets, lists/tuples of lists/tuples are
-    considered to be nested sequences.
+    Numpy arrays and h5py datasets are not considered to be nested sequences.
+
+    To test if an object is a nested sequence in a more general sense,
+    including arrays and datasets, use::
+
+        is_nested_sequence(obj) or is_array(obj)
 
     :param obj: nested sequence (numpy array, h5py dataset...)
     :return: boolean"""
     if is_array(obj):
-        return True
+        return False
     if hasattr(obj, "__len__"):
         return True
     return False
@@ -110,7 +115,7 @@ def get_shape(array_like):
     while hasattr(subsequence, "__len__"):
         shape.append(len(subsequence))
         # strings cause infinite loops
-        if isinstance(subsequence, string_types + binary_types):
+        if isinstance(subsequence, string_types + (binary_type, )):
             break
         subsequence = subsequence[0]
 
@@ -130,14 +135,10 @@ def get_dtype(array_like):
     if hasattr(array_like, "dtype"):
         return array_like.dtype
 
-    # don't try the while loop with strings or bytes (infinite loop)
-    if isinstance(array_like, string_types + binary_types):
-        return numpy.dtype(array_like)
-
     subsequence = array_like
     while hasattr(subsequence, "__len__"):
         # strings cause infinite loops
-        if isinstance(subsequence, string_types + binary_types):
+        if isinstance(subsequence, string_types + (binary_type, )):
             break
         subsequence = subsequence[0]
 
@@ -157,77 +158,6 @@ def get_concatenated_dtype(arrays):
     for dt in dtypes:
         dummy.append(numpy.zeros((1, 1), dtype=dt))
     return numpy.array(dummy).dtype
-
-
-def get_array_type(array_like):
-    """Return "numpy array", "h5py dataset" or "sequence"
-
-    :param array_like: Array like object: numpy array, hdf5 dataset,
-        multi-dimensional nested sequence
-    :return: Type of array
-    """
-    if isinstance(array_like, numpy.ndarray):
-        return "numpy array"
-    if is_array(array_like):
-        if hasattr(array_like, "file"):
-            return "h5py dataset"
-    if is_nested_sequence(array_like):
-        return "sequence"
-    raise TypeError("Could not detect type of array like object")
-
-
-# class ArrayLike(object):
-#     """Generic array like object. A numpy array is created and cached only
-#     if fancy numpy indexing is used.
-#
-#     :param array_like: Array, dataset or nested sequence.
-#          Nested sequences must be rectangular and of homogeneous type.
-#     """
-#     def __init__(self, array_like):
-#         """
-#
-#         """
-#         super(ArrayLike, self).__init__()
-#         self.array_like = array_like
-#         """original object"""
-#         self._cache = None
-#         """data as a numpy array (created when/if needed)"""
-#
-#         if is_array(array_like):
-#             self.shape = array_like.shape
-#             self.dtype = array_like.dtype
-#         elif is_nested_sequence(array_like):
-#             self.shape = get_shape(array_like)
-#             self.dtype = get_dtype(array_like)
-#
-#         self.array_type = get_array_type(array_like)
-#
-#     @property
-#     def cached_array(self):
-#         """data as a numpy array (created when/if needed)"""
-#         if self._cache is None:
-#             self._cache = numpy.asarray(self.array_like)
-#         return self._cache
-#
-#     def __len__(self):
-#         return len(self.array_like)
-#
-#     def __getitem__(self, item):
-#         """Implement slicing and fancy indexing for sequences"""
-#         # arrays and datasets already support slicing and fancy indexing
-#         if self.array_type in ["numpy array", "h5py dataset"]:
-#             return self.array_like[item]
-#
-#         # From now on, we assume array_like is a nested sequence.
-#         # Regular int indexing or simple slice
-#         if isinstance(item, (int, slice)):
-#             return self.array_like[item]
-#
-#         # multidimensional/fancy slicing: numpy array needed
-#         if hasattr(item, "__len__"):
-#             #
-#             return self.cached_array[item]
-#             # TODO: implement nD slicing without array casting
 
 
 class TransposedListOfImages(object):
