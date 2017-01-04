@@ -39,6 +39,8 @@ import tempfile
 import unittest
 
 from ..array_like import DatasetView, ListOfImages
+from ..array_like import get_dtype, get_concatenated_dtype, get_shape,\
+    is_array, is_nested_sequence, is_list_of_arrays
 
 
 @unittest.skipIf(h5py is None,
@@ -280,12 +282,77 @@ class TestTransposedListOfImages(unittest.TestCase):
         self._testTransposition((2, 1, 0))
 
 
+class TestFunctions(unittest.TestCase):
+    """Test functions to guess the dtype and shape of an array_like
+    object"""
+    def testListOfLists(self):
+        l = [[0, 1, 2], [2, 3, 4]]
+        self.assertEqual(get_dtype(l),
+                         numpy.dtype(int))
+        self.assertEqual(get_shape(l),
+                         (2, 3))
+        self.assertTrue(is_nested_sequence(l))
+        self.assertFalse(is_array(l))
+        self.assertFalse(is_list_of_arrays(l))
+
+        l = [[0., 1.], [2., 3.]]
+        self.assertEqual(get_dtype(l),
+                         numpy.dtype(float))
+        self.assertEqual(get_shape(l),
+                         (2, 2))
+        self.assertTrue(is_nested_sequence(l))
+        self.assertFalse(is_array(l))
+        self.assertFalse(is_list_of_arrays(l))
+
+        # concatenated dtype of int and float
+        l = [numpy.array([[0, 1, 2], [2, 3, 4]]),
+             numpy.array([[0., 1., 2.], [2., 3., 4.]])]
+
+        self.assertEqual(get_concatenated_dtype(l),
+                         numpy.array(l).dtype)
+        self.assertEqual(get_shape(l),
+                         (2, 2, 3))
+        self.assertFalse(is_nested_sequence(l))
+        self.assertFalse(is_array(l))
+        self.assertTrue(is_list_of_arrays(l))
+
+    def testNumpyArray(self):
+        a = numpy.array([[0, 1], [2, 3]])
+        self.assertEqual(get_dtype(a),
+                         a.dtype)
+        self.assertFalse(is_nested_sequence(a))
+        self.assertTrue(is_array(a))
+        self.assertFalse(is_list_of_arrays(a))
+
+    @unittest.skipIf(h5py is None,
+                     "h5py is needed for this test")
+    def testH5pyDataset(self):
+        a = numpy.array([[0, 1], [2, 3]])
+
+        tempdir = tempfile.mkdtemp()
+        h5_fname = os.path.join(tempdir, "tempfile.h5")
+        with h5py.File(h5_fname, "w") as h5f:
+            h5f["dataset"] = a
+            d = h5f["dataset"]
+
+            self.assertEqual(get_dtype(d),
+                             numpy.dtype(int))
+            self.assertFalse(is_nested_sequence(d))
+            self.assertTrue(is_array(d))
+            self.assertFalse(is_list_of_arrays(d))
+
+        os.unlink(h5_fname)
+        os.rmdir(tempdir)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedDatasetView))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestTransposedListOfImages))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestFunctions))
     return test_suite
 
 

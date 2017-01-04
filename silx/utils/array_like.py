@@ -39,6 +39,7 @@ Classes:
 Functions:
 
     - :func:`is_array`
+    - :func:`is_list_of_arrays`
     - :func:`is_nested_sequence`
     - :func:`get_shape`
     - :func:`get_dtype`
@@ -77,8 +78,32 @@ def is_array(obj):
     return True
 
 
+def is_list_of_arrays(obj):
+    """Return True if object is a sequence of numpy arrays,
+    e.g. a list of images as 2D arrays.
+
+    :param obj: list of arrays
+    :return: boolean"""
+    # object must not be a numpy array
+    if is_array(obj):
+        return False
+
+    # object must have a __len__ method
+    if not hasattr(obj, "__len__"):
+        return False
+
+    # all elements in sequence must be arrays
+    for arr in obj:
+        if not is_array(arr):
+            return False
+
+    return True
+
+
 def is_nested_sequence(obj):
     """Return True if object is a nested sequence.
+
+    A simple 1D sequence is considered to be a nested sequence.
 
     Numpy arrays and h5py datasets are not considered to be nested sequences.
 
@@ -89,11 +114,25 @@ def is_nested_sequence(obj):
 
     :param obj: nested sequence (numpy array, h5py dataset...)
     :return: boolean"""
+    # object must not be a numpy array
     if is_array(obj):
         return False
-    if hasattr(obj, "__len__"):
-        return True
-    return False
+
+    if not hasattr(obj, "__len__"):
+        return False
+
+    # obj must not be a list of (lists of) numpy arrays
+    subsequence = obj
+    while hasattr(subsequence, "__len__"):
+        if is_array(subsequence):
+            return False
+        # strings cause infinite loops
+        if isinstance(subsequence, string_types + (binary_type, )):
+            return True
+        subsequence = subsequence[0]
+
+    # object has __len__ and is not an array
+    return True
 
 
 def get_shape(array_like):
@@ -184,13 +223,11 @@ class ListOfImages(object):
         super(ListOfImages, self).__init__()
 
         # test stack of images is as expected
-        assert hasattr(images, "__len__"), \
+        assert is_list_of_arrays(images), \
             "Image stack must be a list of arrays"
-        assert isinstance(images[0],  numpy.ndarray), \
-            "Images must be numpy arrays"
         image0_shape = images[0].shape
         for image in images:
-            assert isinstance(image,  numpy.ndarray) and image.ndim == 2, \
+            assert image.ndim == 2, \
                 "Images must be 2D numpy arrays"
             assert image.shape == image0_shape, \
                 "All images must have the same shape"
