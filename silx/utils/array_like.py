@@ -29,9 +29,12 @@ data.
 Classes:
 
     - :class:`TransposedDatasetView`: Similar to a numpy view, to access
-      a h5py dataset as if it was transposed, but without having to cast
-      it into a numpy array (this lets h5py handle reading the data from the
+      a h5py dataset as if it was transposed, without casting it into a
+      numpy array (this lets h5py handle reading the data from the
       file into memory, as needed).
+    - :class:`TransposedListOfImages`: Similar to a numpy view, to access
+      a list of 2D numpy arrays as if it was a 3D array (possibly transposed),
+      without casting it into a numpy array.
 
 Functions:
 
@@ -40,6 +43,7 @@ Functions:
     - :func:`get_shape`
     - :func:`get_dtype`
     - :func:`get_array_type`
+    - :func:`get_concatenated_type`
 
 """
 
@@ -49,7 +53,10 @@ import sys
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "04/01/2017"
+
+string_types = (str,) if sys.version_info[0] == 3 else (basestring,)
+binary_types = (bytes,) if sys.version_info[0] == 3 else (str,)
 
 
 def is_array(obj):
@@ -87,9 +94,9 @@ def is_nested_sequence(obj):
 def get_shape(array_like):
     """Return shape of an array like object.
 
-    In case the object is a nested sequence (list of lists, tuples...),
-    the size of each dimension is assumed to be uniform, and is deduced from
-    the length of the first sequence.
+    In case the object is a nested sequence but not an array or dataset
+    (list of lists, tuples...), the size of each dimension is assumed to be
+    uniform, and is deduced from the length of the first sequence.
 
     :param array_like: Array like object: numpy array, hdf5 dataset,
         multi-dimensional sequence
@@ -102,6 +109,9 @@ def get_shape(array_like):
     subsequence = array_like
     while hasattr(subsequence, "__len__"):
         shape.append(len(subsequence))
+        # strings cause infinite loops
+        if isinstance(subsequence, string_types + binary_types):
+            break
         subsequence = subsequence[0]
 
     return tuple(shape)
@@ -121,13 +131,14 @@ def get_dtype(array_like):
         return array_like.dtype
 
     # don't try the while loop with strings or bytes (infinite loop)
-    string_types =  (str,) if sys.version_info[0] == 3 else (basestring,)
-    binary_types = (bytes,) if sys.version_info[0] == 3 else (str,)
     if isinstance(array_like, string_types + binary_types):
         return numpy.dtype(array_like)
 
     subsequence = array_like
     while hasattr(subsequence, "__len__"):
+        # strings cause infinite loops
+        if isinstance(subsequence, string_types + binary_types):
+            break
         subsequence = subsequence[0]
 
     return numpy.dtype(type(subsequence))
@@ -162,16 +173,12 @@ def get_array_type(array_like):
             return "h5py dataset"
     if is_nested_sequence(array_like):
         return "sequence"
+    raise TypeError("Could not detect type of array like object")
 
-    subsequence = array_like
-    while hasattr(subsequence, "__len__"):
-        subsequence = subsequence[0]
 
-    return numpy.dtype(type(subsequence))
-
-#
 # class ArrayLike(object):
-#     """
+#     """Generic array like object. A numpy array is created and cached only
+#     if fancy numpy indexing is used.
 #
 #     :param array_like: Array, dataset or nested sequence.
 #          Nested sequences must be rectangular and of homogeneous type.
@@ -233,8 +240,9 @@ class TransposedListOfImages(object):
     the transposition tuple is ``(1, 2, 0)``
 
     All the 2D arrays in the list must have the same shape.
-    The global dtype of the stack of images is assumed to be the same as the
-    one of the first image.
+
+    The global dtype of the stack of images is the one that would be obtained
+    by casting the list of 2D arrays into a 3D numpy array.
 
     :param images: list of 2D numpy arrays
     :param transposition: Tuple of dimension numbers in the wanted order
@@ -258,7 +266,7 @@ class TransposedListOfImages(object):
                 "All images must have the same shape"
 
         self.images = images
-        """original images"""
+        """List of images"""
 
         self.shape = (len(images), ) + image0_shape
         """Tuple of array dimensions"""
@@ -274,7 +282,7 @@ class TransposedListOfImages(object):
         """List of dimension indices, in an order depending on the
         specified transposition. By default this is simply
         [0, ..., self.ndim], but it can be changed by specifying a different
-        `transposition` parameter at initialization.
+        ``transposition`` parameter at initialization.
 
         Use :meth:`transpose`, to create a new :class:`TransposedListOfImages`
         with a different :attr:`transposition`.
@@ -504,17 +512,17 @@ class TransposedDatasetView(object):
             - ellipsis objects are not supported
 
         :param item: Index, possibly fancy index (must be supported by h5py)
-        :return:
+        :return: Sliced numpy array or numpy scalar
         """
         # no transposition, let the original dataset handle indexing
         if self.transposition == list(range(self.ndim)):
             return self.dataset[item]
 
-        # 1-D slicing -> n-D slicing (n=1)
+        # 1-D slicing: create a list of indices to switch to n-D slicing
         if not hasattr(item, "__len__"):
-            # first dimension index is given
+            # first dimension index (list index) is given
             item = [item]
-            # following dimensions are indexed with : (all elements)
+            # following dimensions are indexed with slices representing all elements
             item += [slice(0, sys.maxint, 1) for _i in range(self.ndim - 1)]
 
         # n-dimensional slicing
@@ -580,4 +588,3 @@ class TransposedDatasetView(object):
 
         return TransposedDatasetView(self.dataset,
                                      transposition)
-
