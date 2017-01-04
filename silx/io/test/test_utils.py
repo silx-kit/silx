@@ -44,7 +44,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "13/12/2016"
 
 
 expected_spec1 = r"""#F .*
@@ -292,6 +292,93 @@ class TestOpen(unittest.TestCase):
         self.assertRaises(IOError, utils.open, "#$.")
 
 
+class TestNodes(unittest.TestCase):
+    """Test `silx.io.utils.is_` functions."""
+    def test_real_h5py_objects(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        name = tempfile.mktemp(suffix=".h5")
+        try:
+            with h5py.File(name, "w") as h5file:
+                h5group = h5file.create_group("arrays")
+                h5dataset = h5group.create_dataset("scalar", data=10)
+
+                self.assertTrue(utils.is_file(h5file))
+                self.assertTrue(utils.is_group(h5file))
+                self.assertFalse(utils.is_dataset(h5file))
+
+                self.assertFalse(utils.is_file(h5group))
+                self.assertTrue(utils.is_group(h5group))
+                self.assertFalse(utils.is_dataset(h5group))
+
+                self.assertFalse(utils.is_file(h5dataset))
+                self.assertFalse(utils.is_group(h5dataset))
+                self.assertTrue(utils.is_dataset(h5dataset))
+        finally:
+            os.unlink(name)
+
+    def test_h5py_like_file(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        class Foo(object):
+            def __init__(self):
+                self.h5py_class = h5py.File
+        obj = Foo()
+        self.assertTrue(utils.is_file(obj))
+        self.assertTrue(utils.is_group(obj))
+        self.assertFalse(utils.is_dataset(obj))
+
+    def test_h5py_like_group(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        class Foo(object):
+            def __init__(self):
+                self.h5py_class = h5py.Group
+        obj = Foo()
+        self.assertFalse(utils.is_file(obj))
+        self.assertTrue(utils.is_group(obj))
+        self.assertFalse(utils.is_dataset(obj))
+
+    def test_h5py_like_dataset(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        class Foo(object):
+            def __init__(self):
+                self.h5py_class = h5py.Dataset
+        obj = Foo()
+        self.assertFalse(utils.is_file(obj))
+        self.assertFalse(utils.is_group(obj))
+        self.assertTrue(utils.is_dataset(obj))
+
+    def test_bad(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        class Foo(object):
+            def __init__(self):
+                pass
+        obj = Foo()
+        self.assertFalse(utils.is_file(obj))
+        self.assertFalse(utils.is_group(obj))
+        self.assertFalse(utils.is_dataset(obj))
+
+    def test_bad_api(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        class Foo(object):
+            def __init__(self):
+                self.h5py_class = int
+        obj = Foo()
+        self.assertFalse(utils.is_file(obj))
+        self.assertFalse(utils.is_group(obj))
+        self.assertFalse(utils.is_dataset(obj))
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
@@ -300,6 +387,8 @@ def suite():
         unittest.defaultTestLoader.loadTestsFromTestCase(TestH5Ls))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestOpen))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestNodes))
     return test_suite
 
 

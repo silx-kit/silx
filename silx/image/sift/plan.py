@@ -341,7 +341,7 @@ class SiftPlan(object):
 
         self.buffers[name] = gaussian_gpu
         return gaussian_gpu
-        
+
     def _free_buffers(self):
         """free all memory allocated on the device
         """
@@ -442,6 +442,9 @@ class SiftPlan(object):
             descriptors = []
             assert image.shape[:2] == self.shape
             assert image.dtype in [self.dtype, numpy.float32]
+            # old versions of pyopencl do not check for data contiguity
+            if not(isinstance(image, pyopencl.array.Array)) and not(image.flags["C_CONTIGUOUS"]):
+                image = numpy.ascontiguousarray(image)
             t0 = time.time()
 
             if image.dtype == numpy.float32:
@@ -483,7 +486,7 @@ class SiftPlan(object):
                     self.events.append(("convert -> float", evt))
             else:
                 raise RuntimeError("invalid input format error (%s)" % (str(self.dtype)))
-            
+
             wg1 = self.kernels["reductions.max_min_global_stage1"]
             wg2 = self.kernels["reductions.max_min_global_stage2"]
             if min(wg1, wg2) < self.red_size:
@@ -514,7 +517,7 @@ class SiftPlan(object):
                                self.buffers["max_min"].data,
                                self.buffers["max"].data,
                                self.buffers["min"].data)
-                
+
                 if self.profile:
                     self.events.append(("max_min_stage1", k1))
                     self.events.append(("max_min_stage2", k2))
