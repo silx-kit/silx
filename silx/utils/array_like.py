@@ -28,11 +28,11 @@ data.
 
 Classes:
 
-    - :class:`TransposedDatasetView`: Similar to a numpy view, to access
+    - :class:`DatasetView`: Similar to a numpy view, to access
       a h5py dataset as if it was transposed, without casting it into a
       numpy array (this lets h5py handle reading the data from the
       file into memory, as needed).
-    - :class:`TransposedListOfImages`: Similar to a numpy view, to access
+    - :class:`ListOfImages`: Similar to a numpy view, to access
       a list of 2D numpy arrays as if it was a 3D array (possibly transposed),
       without casting it into a numpy array.
 
@@ -160,7 +160,7 @@ def get_concatenated_dtype(arrays):
     return numpy.array(dummy).dtype
 
 
-class TransposedListOfImages(object):
+class ListOfImages(object):
     """This class provides a way to access values and slices in a stack of
     images stored as a list of 2D numpy arrays, without creating a 3D numpy
     array first.
@@ -181,7 +181,7 @@ class TransposedListOfImages(object):
         """
 
         """
-        super(TransposedListOfImages, self).__init__()
+        super(ListOfImages, self).__init__()
 
         # test stack of images is as expected
         assert hasattr(images, "__len__"), \
@@ -214,7 +214,7 @@ class TransposedListOfImages(object):
         [0, ..., self.ndim], but it can be changed by specifying a different
         ``transposition`` parameter at initialization.
 
-        Use :meth:`transpose`, to create a new :class:`TransposedListOfImages`
+        Use :meth:`transpose`, to create a new :class:`ListOfImages`
         with a different :attr:`transposition`.
         """
 
@@ -257,21 +257,21 @@ class TransposedListOfImages(object):
 
     def transpose(self, transposition=None):
         """Return a re-ordered (dimensions permutated)
-        :class:`TransposedListOfImages`.
+        :class:`ListOfImages`.
 
         The returned object refers to
         the same images but with a different :attr:`transposition`.
 
         :param list[int] transposition: List/tuple of dimension numbers in the
             wanted order
-        :return: new :class:`TransposedListOfImages` object
+        :return: new :class:`ListOfImages` object
         """
         # by default, reverse the dimensions
         if transposition is None:
             transposition = list(reversed(self.transposition))
 
-        return TransposedListOfImages(self.images,
-                                      transposition)
+        return ListOfImages(self.images,
+                            transposition)
 
     def __getitem__(self, item):
         """Handle a subset of numpy indexing with regards to the dimension
@@ -361,7 +361,7 @@ class TransposedListOfImages(object):
         return max_value
 
 
-class TransposedDatasetView(object):
+class DatasetView(object):
     """This class provides a way to transpose a dataset without
     casting it into a numpy array. This way, the dataset in a file need not
     necessarily be integrally read into memory to view it in a different
@@ -380,7 +380,7 @@ class TransposedDatasetView(object):
         """
 
         """
-        super(TransposedDatasetView, self).__init__()
+        super(DatasetView, self).__init__()
         self.dataset = dataset
         """original dataset"""
 
@@ -405,7 +405,7 @@ class TransposedDatasetView(object):
         [0, ..., self.ndim], but it can be changed by specifying a different
         `transposition` parameter at initialization.
 
-        Use :meth:`transpose`, to create a new :class:`TransposedDatasetView`
+        Use :meth:`transpose`, to create a new :class:`DatasetView`
         with a different :attr:`transposition`.
         """
 
@@ -510,17 +510,17 @@ class TransposedDatasetView(object):
 
     def transpose(self, transposition=None):
         """Return a re-ordered (dimensions permutated)
-        :class:`TransposedDatasetView`.
+        :class:`DatasetView`.
 
         The returned object refers to
         the same dataset but with a different :attr:`transposition`.
 
         :param list[int] transposition: List of dimension numbers in the wanted order
-        :return: Transposed TransposedDatasetView
+        :return: Transposed DatasetView
         """
         # by default, reverse the dimensions
         if transposition is None:
             transposition = list(reversed(self.transposition))
 
-        return TransposedDatasetView(self.dataset,
-                                     transposition)
+        return DatasetView(self.dataset,
+                           transposition)

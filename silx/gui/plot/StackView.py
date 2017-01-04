@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "22/12/2016"
+__date__ = "04/01/2016"
 
 import numpy
 
@@ -86,7 +86,7 @@ from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
 from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
-from silx.utils.array_like import TransposedDatasetView, TransposedListOfImages
+from silx.utils.array_like import DatasetView, ListOfImages
 
 
 class StackView(qt.QMainWindow):
@@ -274,24 +274,24 @@ class StackView(qt.QMainWindow):
             if self._perspective == 2:
                 self.__transposed_view = numpy.rollaxis(self._stack, 2)
         elif h5py is not None and isinstance(self._stack, h5py.Dataset) or \
-                isinstance(self._stack, TransposedDatasetView):
+                isinstance(self._stack, DatasetView):
             if self._perspective == 0:
                 self.__transposed_view = self._stack
             if self._perspective == 1:
-                self.__transposed_view = TransposedDatasetView(self._stack,
-                                                               transposition=(1, 0, 2))
+                self.__transposed_view = DatasetView(self._stack,
+                                                     transposition=(1, 0, 2))
             if self._perspective == 2:
-                self.__transposed_view = TransposedDatasetView(self._stack,
-                                                               transposition=(2, 0, 1))
-        elif isinstance(self._stack, TransposedListOfImages):
+                self.__transposed_view = DatasetView(self._stack,
+                                                     transposition=(2, 0, 1))
+        elif isinstance(self._stack, ListOfImages):
             if self._perspective == 0:
                 self.__transposed_view = self._stack
             if self._perspective == 1:
-                self.__transposed_view = TransposedListOfImages(self._stack.images,
-                                                               transposition=(1, 0, 2))
+                self.__transposed_view = ListOfImages(self._stack.images,
+                                                      transposition=(1, 0, 2))
             if self._perspective == 2:
-                self.__transposed_view = TransposedListOfImages(self._stack.images,
-                                                               transposition=(2, 0, 1))
+                self.__transposed_view = ListOfImages(self._stack.images,
+                                                      transposition=(2, 0, 1))
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
@@ -353,7 +353,7 @@ class StackView(qt.QMainWindow):
                     raise ValueError(
                         "Stack must be a 3D array/dataset or a list of " +
                         "2D arrays.")
-                stack = TransposedListOfImages(stack)
+                stack = ListOfImages(stack)
 
         assert len(stack.shape) == 3, "data must be 3D"
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,11 @@ import os
 import tempfile
 import unittest
 
-from ..array_like import TransposedDatasetView, TransposedListOfImages
+from ..array_like import DatasetView, ListOfImages
 
 
 @unittest.skipIf(h5py is None,
-                 "h5py is needed to test TransposedDatasetView")
+                 "h5py is needed to test DatasetView")
 class TestTransposedDatasetView(unittest.TestCase):
 
     def setUp(self):
@@ -81,7 +81,7 @@ class TestTransposedDatasetView(unittest.TestCase):
 
     def testNoTransposition(self):
         """no transposition (transposition = (0, 1, 2))"""
-        a = TransposedDatasetView(self.h5f["volume"])
+        a = DatasetView(self.h5f["volume"])
 
         self.assertEqual(a.shape, self.original_shape)
         self._testSize(a)
@@ -98,8 +98,8 @@ class TestTransposedDatasetView(unittest.TestCase):
         :param tuple transposition: List of dimensions (0... n-1) sorted
             in the desired order
         """
-        a = TransposedDatasetView(self.h5f["volume"],
-                                  transposition=transposition)
+        a = DatasetView(self.h5f["volume"],
+                        transposition=transposition)
         self._testSize(a)
 
         # sort shape of transposed object, to hopefully find the original shape
@@ -126,7 +126,7 @@ class TestTransposedDatasetView(unittest.TestCase):
                     a[selection],
                     a_as_array[selection]))
 
-        # test the TransposedDatasetView.__getitem__ for single values
+        # test the DatasetView.__getitem__ for single values
         # (step adjusted to test at least 3 indices in each dimension)
         for i in range(0, a.shape[0], a.shape[0] // 3):
             for j in range(0, a.shape[1], a.shape[1] // 3):
@@ -197,7 +197,7 @@ class TestTransposedListOfImages(unittest.TestCase):
 
     def testNoTransposition(self):
         """no transposition (transposition = (0, 1, 2))"""
-        a = TransposedListOfImages(self.images)
+        a = ListOfImages(self.images)
 
         self.assertEqual(a.shape, self.original_shape)
         self._testSize(a)
@@ -214,8 +214,8 @@ class TestTransposedListOfImages(unittest.TestCase):
         :param tuple transposition: List of dimensions (0... n-1) sorted
             in the desired order
         """
-        a = TransposedListOfImages(self.images,
-                                   transposition=transposition)
+        a = ListOfImages(self.images,
+                         transposition=transposition)
         self._testSize(a)
 
         # sort shape of transposed object, to hopefully find the original shape
@@ -225,7 +225,7 @@ class TestTransposedListOfImages(unittest.TestCase):
 
         a_as_array = numpy.array(self.images).transpose(transposition)
 
-        # test the TransposedDatasetView.__array__ method
+        # test the DatasetView.__array__ method
         self.assertTrue(numpy.array_equal(
                 numpy.array(a),
                 a_as_array))
@@ -242,7 +242,7 @@ class TestTransposedListOfImages(unittest.TestCase):
                     a[selection],
                     a_as_array[selection]))
 
-        # test the TransposedDatasetView.__getitem__ for single values
+        # test the DatasetView.__getitem__ for single values
         # (step adjusted to test at least 3 indices in each dimension)
         for i in range(0, a.shape[0], a.shape[0] // 3):
             for j in range(0, a.shape[1], a.shape[1] // 3):
