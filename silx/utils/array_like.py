@@ -42,8 +42,8 @@ Functions:
     - :func:`is_nested_sequence`
     - :func:`get_shape`
     - :func:`get_dtype`
+    - :func:`get_concatenated_dtype`
     - :func:`get_array_type`
-    - :func:`get_concatenated_type`
 
 """
 
@@ -411,6 +411,9 @@ class TransposedListOfImages(object):
                                    axes=output_dimensions)
 
     def min(self):
+        """
+        :return: Global minimum value
+        """
         min_value = self.images[0].min()
         if len(self.images) > 1:
             for img in self.images[1:]:
@@ -418,6 +421,9 @@ class TransposedListOfImages(object):
         return min_value
 
     def max(self):
+        """
+        :return: Global maximum value
+        """
         max_value = self.images[0].max()
         if len(self.images) > 1:
             for img in self.images[1:]:
