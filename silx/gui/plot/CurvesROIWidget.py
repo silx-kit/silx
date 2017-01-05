@@ -129,10 +129,10 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton = qt.QPushButton(hbox)
         self.loadButton.setText("Load")
-        self.loadButton.setToolTip('Load ROIs from an ini file')
+        self.loadButton.setToolTip('Load ROIs from a .ini file')
         self.saveButton = qt.QPushButton(hbox)
         self.saveButton.setText("Save")
-        self.loadButton.setToolTip('Save ROIs to an ini file')
+        self.loadButton.setToolTip('Save ROIs to a .ini file')
         hboxlayout.addWidget(self.loadButton)
         hboxlayout.addWidget(self.saveButton)
         layout.setStretchFactor(self.headerLabel, 0)
