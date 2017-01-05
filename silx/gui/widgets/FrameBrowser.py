@@ -39,12 +39,6 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
-icon_first = icons.getQIcon("first")
-icon_previous = icons.getQIcon("previous")
-icon_next = icons.getQIcon("next")
-icon_last = icons.getQIcon("last")
-
-
 class FrameBrowser(qt.QWidget):
     """Frame browser widget, with 4 buttons/icons and a line edit to provide
     a way of selecting a frame index in a stack of images.
@@ -63,16 +57,16 @@ class FrameBrowser(qt.QWidget):
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         self.firstButton = qt.QPushButton(self)
-        self.firstButton.setIcon(icon_first)
+        self.firstButton.setIcon(icons.getQIcon("first"))
         self.previousButton = qt.QPushButton(self)
-        self.previousButton.setIcon(icon_previous)
+        self.previousButton.setIcon(icons.getQIcon("previous"))
         self.lineEdit = qt.QLineEdit(self)
 
         self.label = qt.QLabel(self)
         self.nextButton = qt.QPushButton(self)
-        self.nextButton.setIcon(icon_next)
+        self.nextButton.setIcon(icons.getQIcon("next"))
         self.lastButton = qt.QPushButton(self)
-        self.lastButton.setIcon(icon_last)
+        self.lastButton.setIcon(icons.getQIcon("last"))
 
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)

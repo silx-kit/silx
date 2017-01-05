@@ -259,6 +259,7 @@ class ProfileToolButton(PlotToolButton):
         menu.addAction(profile2DAction)
         self.setMenu(menu)
         self.setPopupMode(qt.QToolButton.InstantPopup)
+        menu.setTitle('Select profile dimension')
 
     def _createAction(self, profileDimension):
         icon = self.STATE[profileDimension, "icon"]

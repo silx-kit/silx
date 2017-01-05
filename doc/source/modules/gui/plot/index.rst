@@ -40,6 +40,10 @@ Widgets gallery
    :height: 150px
    :align: middle
 
+.. |imgStackView| image:: img/StackView.png
+   :height: 150px
+   :align: middle
+
 .. list-table::
    :widths: 1 4
    :header-rows: 1
@@ -61,6 +65,11 @@ Widgets gallery
        for images.
    * - |imgImageView|
      - :class:`ImageView` adds side histograms to a :class:`.Plot2D` widget.
+   * - |imgStackView|
+     - :class:`StackView` is a widget designed to display an image from a
+       stack of images in a :class:`PlotWindow` widget, with a frame browser
+       to navigate in the stack. The profile tool can do a 2D profile on the
+       stack of images.
 
 
 Public modules
@@ -72,6 +81,7 @@ Public modules
    plotwidget.rst
    plotwindow.rst
    imageview.rst
+   stackview.rst
    plot.rst
    plotactions.rst
 

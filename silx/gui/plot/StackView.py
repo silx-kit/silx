@@ -24,9 +24,7 @@
 # ###########################################################################*/
 """QWidget displaying a 3D volume as a stack of 2D images.
 
-The :class:`StackView` implements this widget, and
-:class:`StackViewMainWindow` provides a main window with additional toolbar
-and status bar.
+The :class:`StackView` class implements this widget.
 
 Basic usage of :class:`StackView` is through the following methods:
 
@@ -38,12 +36,40 @@ The :class:`StackView` uses :class:`PlotWindow` and also
 exposes a subset of the :class:`silx.gui.plot.Plot` API for further control
 (plot title, axes labels, ...).
 
+The :class:`StackViewMainWindow` class implements a widget that adds a status
+bar displaying the 3D index and the value under the mouse cursor.
+
+Example::
+
+    import numpy
+    import sys
+    from silx.gui import qt
+    from silx.gui.plot.StackView import StackViewMainWindow
+
+
+    app = qt.QApplication(sys.argv[1:])
+
+    # synthetic data, stack of 100 images of size 200x300
+    mystack = numpy.fromfunction(
+        lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
+        (100, 200, 300)
+    )
+
+
+    sv = StackViewMainWindow()
+    sv.setColormap("jet", autoscale=True)
+    sv.setStack(mystack)
+    sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
+                  "3rd dim (0-299)"])
+    sv.show()
+
+    app.exec_()
 
 """
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "07/12/2016"
+__date__ = "04/01/2016"
 
 import numpy
 
@@ -53,32 +79,92 @@ except ImportError:
     h5py = None
 
 from silx.gui import qt
-from silx.gui.plot import PlotWindow
-from silx.gui.plot.Colors import cursorColorForColormap
-from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
-from silx.gui.plot.PlotTools import Profile3DToolBar
-from  silx.gui.plot import PlotToolButtons
+from . import PlotWindow
+from . import PlotActions
+from . import PlotToolButtons
+from .Colors import cursorColorForColormap
+from .PlotTools import LimitsToolBar
+from .Profile import Profile3DToolBar
+from ..widgets.FrameBrowser import HorizontalSliderWithBrowser
 
-from silx.utils.array_like import TransposedDatasetView
+from silx.utils.array_like import DatasetView, ListOfImages
 
 
-class StackView(qt.QWidget):
-    """Simple stack view 
+class StackView(qt.QMainWindow):
+    """Stack view widget, to display and browse through stack of
+    images.
 
-    :param parent: the Qt parent
+    The profile tool can be switched to "3D" mode, to compute the profile
+    on each image of the stack (not only the active image currently displayed)
+    and display the result as a slice.
+
+    :param QWidget parent: the Qt parent, or None
+    :param backend: The backend to use for the plot.
+                    The default is to use matplotlib.
+    :type backend: str or :class:`BackendBase.BackendBase`
+    :param bool resetzoom: Toggle visibility of reset zoom action.
+    :param bool autoScale: Toggle visibility of axes autoscale actions.
+    :param bool logScale: Toggle visibility of axes log scale actions.
+    :param bool grid: Toggle visibility of grid mode action.
+    :param bool colormap: Toggle visibility of colormap action.
+    :param bool aspectRatio: Toggle visibility of aspect ratio button.
+    :param bool yInverted: Toggle visibility of Y axis direction button.
+    :param bool copy: Toggle visibility of copy action.
+    :param bool save: Toggle visibility of save action.
+    :param bool print_: Toggle visibility of print action.
+    :param bool control: True to display an Options button with a sub-menu
+                         to show legends, toggle crosshair and pan with arrows.
+                         (Default: False)
+    :param position: True to display widget with (x, y) mouse position
+                     (Default: False).
+                     It also supports a list of (name, funct(x, y)->value)
+                     to customize the displayed values.
+                     See :class:`silx.gui.plot.PlotTools.PositionInfo`.
+    :param bool mask: Toggle visibilty of mask action.
     """
-    def __init__(self, parent=None):
-        qt.QWidget.__init__(self, parent)
+    # Qt signals
+    valueChanged = qt.Signal(float, float, float)
+    """Signals that the data value under the cursor has changed.
+
+    It provides: row, column, data value.
+    """
+
+    sigPlaneSelectionChanged = qt.Signal(int)
+    """Signal emitted when there is a change is perspective/displayed axes.
+
+    It provides the perspective as an integer, with the following meaning:
+
+        - 0: axis Y is the 2nd dimension, axis X is the 3rd dimension
+        - 1: axis Y is the 1st dimension, axis X is the 3rd dimension
+        - 2: axis Y is the 1st dimension, axis X is the 2nd dimension
+    """
+
+    sigStackChanged = qt.Signal(int)
+    """Signal emitted when the image stack is changed.
+    This happens when a new volume is loaded, or when the current volume
+    is transposed (change in perspective).
+
+    The signal provides the size (number of pixels) of the stack.
+    This will be 0 if the stack is cleared, else it will be a positive
+    integer.
+    """
+
+    def __init__(self, parent=None, resetzoom=True, backend=None,
+                 autoScale=False, logScale=False, grid=False,
+                 colormap=True, aspectRatio=True, yinverted=True,
+                 copy=True, save=True, print_=True, control=False,
+                 position=None, mask=True):
+        qt.QMainWindow.__init__(self, parent)
         self._stack = None
         """Loaded stack of images, as a 3D array or 3D dataset"""
         self.__transposed_view = None
         """View on :attr:`_stack` with the axes sorted, to have
         the orthogonal dimension first"""
-        self.__perspective = 0
+        self._perspective = 0
         """Orthogonal dimension (depth) in :attr:`_stack`"""
 
         self.__imageLegend = '__StackView__image' + str(id(self))
-        self.__autoscaleCmap = True
+        self.__autoscaleCmap = False
         """Flag to disable/enable colormap auto-scaling
         based on the min/max values of the entire 3D volume"""
         self.__dimensionsLabels = ["Dimension 0", "Dimension 1",
@@ -86,14 +172,16 @@ class StackView(qt.QWidget):
         """These labels are displayed on the X and Y axes.
         :meth:`setLabels` updates this attribute."""
 
-        self._plot = PlotWindow(parent=self, backend=None,
-                                resetzoom=True, autoScale=False,
-                                logScale=False, grid=False,
-                                curveStyle=False, colormap=True,
-                                aspectRatio=True, yInverted=True,
-                                copy=True, save=True, print_=True,
-                                control=False, position=None,
-                                roi=False, mask=False)
+        central_widget = qt.QWidget(self)
+
+        self._plot = PlotWindow(parent=central_widget, backend=backend,
+                                resetzoom=resetzoom, autoScale=autoScale,
+                                logScale=logScale, grid=grid,
+                                curveStyle=False, colormap=colormap,
+                                aspectRatio=aspectRatio, yInverted=yinverted,
+                                copy=copy, save=save, print_=print_,
+                                control=control, position=position,
+                                roi=False, mask=mask)
         self.sigInteractiveModeChanged = self._plot.sigInteractiveModeChanged
         self.sigActiveImageChanged = self._plot.sigActiveImageChanged
         self.sigPlotSignal = self._plot.sigPlotSignal
@@ -103,40 +191,73 @@ class StackView(qt.QWidget):
         self._plot.addToolBar(self._plot.profile)
         self._plot.setGraphXLabel('Columns')
         self._plot.setGraphYLabel('Rows')
+        self._plot.sigPlotSignal.connect(self._imagePlotCB)
 
-        self._browser = HorizontalSliderWithBrowser(self)
+        self._browser = HorizontalSliderWithBrowser(central_widget)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        layout = qt.QVBoxLayout(self)
+        layout = qt.QVBoxLayout()
 
         planeSelection = PlanesDockWidget(self._plot)
         planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+
         self._plot._introduceNewDockWidget(planeSelection)
+
         layout.addWidget(self._plot)
         layout.addWidget(self._browser)
+
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+
+    def _imagePlotCB(self, eventDict):
+        """Callback for plot events.
+
+        Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
+        cursor location in the plot."""
+        if eventDict['event'] == 'mouseMoved':
+            activeImage = self.getActiveImage()
+            if activeImage is not None:
+                data = activeImage[0]
+                height, width = data.shape
+
+                # Get corresponding coordinate in image
+                origin = activeImage[4]['origin']
+                scale = activeImage[4]['scale']
+                if (eventDict['x'] >= origin[0] and
+                        eventDict['y'] >= origin[1]):
+                    x = int((eventDict['x'] - origin[0]) / scale[0])
+                    y = int((eventDict['y'] - origin[1]) / scale[1])
+
+                    if 0 <= x < width and 0 <= y < height:
+                        self.valueChanged.emit(float(x), float(y),
+                                               data[y][x])
 
     def __setPerspective(self, perspective):
         """Function called when the browsed/orthogonal dimension changes
 
         :param perspective: the new browsed dimension
         """
-        if perspective == self.__perspective:
+        if perspective == self._perspective:
             return
         else:
             if perspective > 2 or perspective < 0:
                 raise ValueError("Can't set perspective")
 
-            self.__perspective = perspective
+            self._perspective = perspective
             self.__createTransposedView()
             self.__updateFrameNumber(self._browser.value())
             self._plot.resetZoom()
             self.__updatePlotLabels()
 
+            self.sigPlaneSelectionChanged.emit(perspective)
+            self.sigStackChanged.emit(self._stack.size if
+                                      self._stack is not None else 0)
+
     def __updatePlotLabels(self):
         """Update plot axes labels depending on perspective"""
-        y, x = (1, 2) if self.__perspective == 0 else \
-            (0, 2) if self.__perspective == 1 else (0, 1)
+        y, x = (1, 2) if self._perspective == 0 else \
+            (0, 2) if self._perspective == 1 else (0, 1)
         self.setGraphXLabel(self.__dimensionsLabels[x])
         self.setGraphYLabel(self.__dimensionsLabels[y])
 
@@ -145,25 +266,36 @@ class StackView(qt.QWidget):
         (set orthogonal axis browsed on the viewer as first dimension)
         """
         assert self._stack is not None
-        assert 0 <= self.__perspective < 3
+        assert 0 <= self._perspective < 3
         if isinstance(self._stack, numpy.ndarray):
-            if self.__perspective == 0:
+            if self._perspective == 0:
                 self.__transposed_view = self._stack
-            if self.__perspective == 1:
+            if self._perspective == 1:
                 self.__transposed_view = numpy.rollaxis(self._stack, 1)
-            if self.__perspective == 2:
+            if self._perspective == 2:
                 self.__transposed_view = numpy.rollaxis(self._stack, 2)
-        elif h5py is not None and isinstance(self._stack, h5py.Dataset):
-            if self.__perspective == 0:
+        elif h5py is not None and isinstance(self._stack, h5py.Dataset) or \
+                isinstance(self._stack, DatasetView):
+            if self._perspective == 0:
                 self.__transposed_view = self._stack
-            if self.__perspective == 1:
-                self.__transposed_view = TransposedDatasetView(self._stack,
-                                                               transposition=(1, 0, 2))
-            if self.__perspective == 2:
-                self.__transposed_view = TransposedDatasetView(self._stack,
-                                                               transposition=(2, 0, 1))
+            if self._perspective == 1:
+                self.__transposed_view = DatasetView(self._stack,
+                                                     transposition=(1, 0, 2))
+            if self._perspective == 2:
+                self.__transposed_view = DatasetView(self._stack,
+                                                     transposition=(2, 0, 1))
+        elif isinstance(self._stack, ListOfImages):
+            if self._perspective == 0:
+                self.__transposed_view = self._stack
+            if self._perspective == 1:
+                self.__transposed_view = ListOfImages(self._stack.images,
+                                                      transposition=(1, 0, 2))
+            if self._perspective == 2:
+                self.__transposed_view = ListOfImages(self._stack.images,
+                                                      transposition=(2, 0, 1))
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
+        self._browser.setValue(0)
 
     def __updateFrameNumber(self, index):
         """Update the current image displayed
@@ -177,11 +309,12 @@ class StackView(qt.QWidget):
 
     # public API
     def setStack(self, stack, origin=(0, 0), scale=(1., 1.),
-                 reset=True):
+                 perspective=0, reset=True):
         """Set the stack of images to display.
 
         :param stack: A 3D array representing the image or None to clear plot.
-        :type stack: numpy.ndarray-like with 3 dimensions or None.
+        :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
+            numpy arrays, or None.
         :param origin: The (x, y) position of the origin of the image.
                        Default: (0, 0).
                        The origin is the lower left corner of the image when
@@ -192,9 +325,13 @@ class StackView(qt.QWidget):
                       It is the size of a pixel in the coordinates of the axes.
                       Scales must be positive numbers.
         :type scale: Tuple of 2 floats: (scale x, scale y).
+        :param int perspective: Dimension for the image index: 0, 1 or 2.
+            By default, the dimension for the image index is the first
+            dimension of the 3D stack (``perspective=0``). You can also choose
+            to consider the second (``perspective=1``) or the third
+            (``perspective=2``) dimensions as the image index.
         :param bool reset: Whether to reset zoom or not.
         """
-        # todo: no copy for h5py datasets
         assert len(origin) == 2
         assert len(scale) == 2
         assert scale[0] > 0
@@ -202,7 +339,22 @@ class StackView(qt.QWidget):
 
         if stack is None:
             self.clear()
+            self.sigStackChanged.emit(0)
             return
+
+        # stack as list of 2D arrays: must be converted into an array_like
+        if not isinstance(stack, numpy.ndarray):
+            if h5py is None or not isinstance(stack, h5py.Dataset):
+                try:
+                    assert hasattr(stack, "__len__")
+                    for img in stack:
+                        assert hasattr(img, "shape")
+                        assert len(img.shape) == 2
+                except AssertionError:
+                    raise ValueError(
+                        "Stack must be a 3D array/dataset or a list of " +
+                        "2D arrays.")
+                stack = ListOfImages(stack)
 
         assert len(stack.shape) == 3, "data must be 3D"
 
@@ -228,6 +380,11 @@ class StackView(qt.QWidget):
         # enable and init browser
         self._browser.setEnabled(True)
 
+        if perspective != self._perspective:
+            self.__setPerspective(perspective)
+
+        self.sigStackChanged.emit(stack.size)
+
     def getStack(self, copy=True, returnNumpyArray=False):
         """Get the stack of images, as a 3D array or dataset.
 
@@ -236,7 +393,7 @@ class StackView(qt.QWidget):
         data was first loaded, this will be reflected in the order of the
         dimensions of the returned object.
 
-        Default output has the form: [data, params]
+        The output has the form: [data, params]
         where params is a dictionary containing display parameters.
 
         :param bool copy: If True (default), then the object is copied
@@ -279,7 +436,7 @@ class StackView(qt.QWidget):
         """
         self._stack = None
         self.__transposed_view = None
-        self.__perspective = 0
+        self._perspective = 0
         self._browser.setEnabled(False)
         self._plot.clear()
 
@@ -303,9 +460,10 @@ class StackView(qt.QWidget):
         """Set the labels to be displayed on the plot axes.
 
         You must provide a sequence of 3 strings, corresponding to the 3
-        dimensions of the data volume.
-        The proper label will automatically selected for each plot axis when
-        the perspective is changed.
+        dimensions of the original data volume.
+        The proper label will automatically be selected for each plot axis
+        when the volume is rotated (when different axes are selected as the
+        X and Y axes).
 
         :param list(str) labels: 3 labels corresponding to the 3 dimensions
              of the data volumes.
@@ -325,7 +483,7 @@ class StackView(qt.QWidget):
         :param str label: The horizontal axis label
         """
         if label is None:
-            label = self.__dimensionsLabels[1 if self.__perspective == 2 else 2]
+            label = self.__dimensionsLabels[1 if self._perspective == 2 else 2]
         self._plot.setGraphXLabel(label)
 
     def getGraphYLabel(self, axis='left'):
@@ -342,7 +500,7 @@ class StackView(qt.QWidget):
         :param str axis: The Y axis for which to set the label (left or right)
         """
         if label is None:
-            label = self.__dimensionsLabels[1 if self.__perspective == 0 else 0]
+            label = self.__dimensionsLabels[1 if self._perspective == 0 else 0]
         self._plot.setGraphYLabel(label, axis)
 
     def setYAxisInverted(self, flag=True):
@@ -412,14 +570,6 @@ class StackView(qt.QWidget):
         :param numpy.ndarray colors: Only used if name is None.
             Custom colormap colors as Nx3 or Nx4 RGB or RGBA arrays
         """
-        if autoscale and isinstance(self._stack, h5py.Dataset):
-            raise RuntimeError(
-                "Cannot autoscale colormap for a h5py dataset")
-        if autoscale is None and isinstance(self._stack, numpy.ndarray):
-            autoscale = True
-        else:
-            autoscale = False
-
         cmapDict = self.getColormap()
 
         if isinstance(colormap, dict):
@@ -431,8 +581,7 @@ class StackView(qt.QWidget):
             assert vmin is None, errmsg
             assert vmax is None, errmsg
             assert colors is None, errmsg
-            for key, value in colormap.items():
-                cmapDict[key] = value
+            cmapDict.update(colormap)
 
         else:
             if colormap is not None:
@@ -444,9 +593,24 @@ class StackView(qt.QWidget):
 
             # Default meaning of autoscale is to reset min and max
             # each time a new image is added to the plot.
-            # Here, we want to use min and max of global volume,
+            # We want to use min and max of global volume,
             # and not change them when browsing slides
             cmapDict['autoscale'] = False
+
+            if autoscale is None:
+                # set default
+                autoscale = False
+                # TODO: assess cost of computing min/max for large 3D array
+                # if isinstance(self._stack, numpy.ndarray):
+                #     autoscale = True
+                # else:                    # h5py.Dataset
+                #     autoscale = False
+            elif autoscale and isinstance(self._stack, h5py.Dataset):
+                # h5py dataset has no min()/max() methods
+                raise RuntimeError(
+                        "Cannot auto-scale colormap for a h5py dataset")
+            else:
+                autoscale = autoscale
             self.__autoscaleCmap = autoscale
             if autoscale and (self._stack is not None):
                 cmapDict['vmin'] = self._stack.min()
@@ -510,33 +674,53 @@ class PlanesDockWidget(qt.QDockWidget):
     def __init__(self, parent):
         super(PlanesDockWidget, self).__init__(parent)
 
-        planeGB = qt.QGroupBox(self)
-        planeGBLayout = qt.QVBoxLayout()
-        planeGB.setLayout(planeGBLayout)
+        self.planeGB = qt.QGroupBox(self)
+        self.planeGB.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        self.planeGBLayout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
+        self.planeGB.setLayout(self.planeGBLayout)
         spacer = qt.QSpacerItem(20, 20,
                                 qt.QSizePolicy.Expanding,
                                 qt.QSizePolicy.Expanding)
 
-        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-Dim1', planeGB)
-        self._qrbDim1Dim2 = qt.QRadioButton('Dim1-Dim2', planeGB)
-        self._qrbDim0Dim2 = qt.QRadioButton('Dim0-Dim2', planeGB)
+        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-'
+                                            'Dim1', self.planeGB)
+        self._qrbDim1Dim2 = qt.QRadioButton('Dim1-Dim2', self.planeGB)
+        self._qrbDim0Dim2 = qt.QRadioButton('Dim0-Dim2', self.planeGB)
         self._qrbDim1Dim2.setChecked(True)
 
         self._qrbDim1Dim2.toggled.connect(self.__planeSelectionChanged)
         self._qrbDim0Dim1.toggled.connect(self.__planeSelectionChanged)
         self._qrbDim0Dim2.toggled.connect(self.__planeSelectionChanged)
 
-        planeGBLayout.addWidget(self._qrbDim0Dim1)
-        planeGBLayout.addWidget(self._qrbDim1Dim2)
-        planeGBLayout.addWidget(self._qrbDim0Dim2)
-        planeGBLayout.addItem(spacer)
-        planeGBLayout.setContentsMargins(0, 0, 0, 0)
-        self.setWidget(planeGB)
+        self.planeGBLayout.addWidget(self._qrbDim0Dim1)
+        self.planeGBLayout.addWidget(self._qrbDim1Dim2)
+        self.planeGBLayout.addWidget(self._qrbDim0Dim2)
+        self.planeGBLayout.addItem(spacer)
+        self.planeGBLayout.setContentsMargins(0, 0, 0, 0)
 
+        self.setWidget(self.planeGB)
         self.layout().setContentsMargins(0, 0, 0, 0)
-        self.setWindowTitle('Select slice axes')
+
+        self.setWindowTitle('Image axes')
 
         self.setFeatures(qt.QDockWidget.DockWidgetMovable)
+                         #| qt.QDockWidget.DockWidgetFloatable)
+
+        self.dockLocationChanged.connect(self.__updateLayoutDirection)
+
+    def __updateLayoutDirection(self, dockWidgetArea):
+        """Update layout orientation if the dock widget is dragged to a
+        different area.
+
+        :param Qt.DockWidgetArea dockWidgetArea: Current dock widget location
+            (left, right, top, bottom)
+        """
+        if dockWidgetArea in [qt.Qt.TopDockWidgetArea,
+                              qt.Qt.BottomDockWidgetArea]:
+            self.planeGBLayout.setDirection(qt.QBoxLayout.LeftToRight)
+        elif dockWidgetArea in [qt.Qt.LeftDockWidgetArea,
+                                qt.Qt.RightDockWidgetArea]:
+            self.planeGBLayout.setDirection(qt.QBoxLayout.TopToBottom)
 
     def __planeSelectionChanged(self):
         """Callback function when the radio buttons change
@@ -561,23 +745,84 @@ class PlanesDockWidget(qt.QDockWidget):
         raise RuntimeError('No plane selected')
 
 
-# fixme: move demo to silx/examples when complete
-if __name__ == "__main__":
-    import sys
-    app = qt.QApplication(sys.argv[1:])
+class StackViewMainWindow(StackView):
+    """This class is a :class:`StackView` with a menu, an additional toolbar
+    to set the plot limits, and a status bar to display the value and 3D
+    index of the data samples hovered by the mouse cursor.
 
-    mycube = numpy.fromfunction(
-        lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2*numpy.sin(k/6.),
-        (100, 200, 300)
-    )
+    :param QWidget parent: Parent widget, or None
+    """
+    def __init__(self, parent=None):
+        self._dataInfo = None
+        super(StackViewMainWindow, self).__init__(parent)
+        self.setWindowFlags(qt.Qt.Window)
 
-    sv = StackView()
-    sv.setColormap("jet", autoscale=True)
-    sv.setStack(mycube)
-    sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
-                  "3rd dim (0-299)"])
-    sv.show()
+        # Add toolbars and status bar
+        self.addToolBar(qt.Qt.BottomToolBarArea,
+                        LimitsToolBar(plot=self._plot))
 
-    app.exec_()
+        self.statusBar()
 
+        menu = self.menuBar().addMenu('File')
+        menu.addAction(self._plot.saveAction)
+        menu.addAction(self._plot.printAction)
+        menu.addSeparator()
+        action = menu.addAction('Quit')
+        action.triggered[bool].connect(qt.QApplication.instance().quit)
 
+        menu = self.menuBar().addMenu('Edit')
+        menu.addAction(self._plot.copyAction)
+        menu.addSeparator()
+        menu.addAction(self._plot.resetZoomAction)
+        menu.addAction(self._plot.colormapAction)
+        menu.addAction(PlotActions.KeepAspectRatioAction(self._plot, self))
+        menu.addAction(PlotActions.YAxisInvertedAction(self._plot, self))
+
+        menu = self.menuBar().addMenu('Profile')
+        menu.addAction(self._plot.profile.browseAction)
+        menu.addAction(self._plot.profile.hLineAction)
+        menu.addAction(self._plot.profile.vLineAction)
+        menu.addAction(self._plot.profile.lineAction)
+        menu.addAction(self._plot.profile.clearAction)
+
+        self._plot.profile.profile3dAction.computeProfileIn2D()
+        menu.addMenu(self._plot.profile.profile3dAction.menu())
+
+        # Connect to StackView's signal
+        self.valueChanged.connect(self._statusBarSlot)
+
+    def _statusBarSlot(self, row, column, value):
+        """Update status bar with coordinates/value from plots."""
+        img_idx = self._browser.value()
+
+        if self._perspective == 0:
+            dim0, dim1, dim2 = img_idx, int(column), int(row)
+        elif self._perspective == 1:
+            dim0, dim1, dim2 = int(column), img_idx, int(row)
+        elif self._perspective == 2:
+            dim0, dim1, dim2 = int(column), int(row), img_idx
+
+        msg = 'Position: (%d, %d, %d)' % (dim0, dim1, dim2)
+        msg += ', Value: %g' % value
+        if self._dataInfo is not None:
+            msg = self._dataInfo + ', ' + msg
+
+        self.statusBar().showMessage(msg)
+
+    def setStack(self, stack, *args, **kwargs):
+        """Set the displayed stack.
+
+        See :meth:`StackView.setStack` for details.
+        """
+        if hasattr(stack, 'dtype') and hasattr(stack, 'shape'):
+            assert len(stack.shape) == 3
+            nimages, height, width = stack.shape
+            self._dataInfo = 'Data: %dx%dx%d (%s)' % (nimages, height, width,
+                                                      str(stack.dtype))
+            self.statusBar().showMessage(self._dataInfo)
+        else:
+            self._dataInfo = None
+
+        # Set the new stack in StackView widget
+        super(StackViewMainWindow, self).setStack(stack, *args, **kwargs)
+        self.setStatusBar(None)
