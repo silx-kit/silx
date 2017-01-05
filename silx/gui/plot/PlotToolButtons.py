@@ -238,12 +238,12 @@ class ProfileToolButton(PlotToolButton):
             self.STATE = {}
             # Compute 1D profile
             self.STATE[1, "icon"] = icons.getQIcon('profile1D')
-            self.STATE[1, "state"] = "Profile computed is 1D"
-            self.STATE[1, "action"] = "Compute 1D profile"
+            self.STATE[1, "state"] = "1D profile is computed on visible image"
+            self.STATE[1, "action"] = "1D profile on visible image"
             # Compute 2D profile
             self.STATE[2, "icon"] = icons.getQIcon('profile2D')
-            self.STATE[2, "state"] = "Profile is computed in 2D"
-            self.STATE[2, "action"] = "Compute profile in 2D"
+            self.STATE[2, "state"] = "2D profile is computed, one 1D profile for each image in the stack"
+            self.STATE[2, "action"] = "2D profile on image stack"
 
         super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
 
