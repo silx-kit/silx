@@ -24,21 +24,6 @@
 # ###########################################################################*/
 from __future__ import absolute_import
 
-__authors__ = ["Jérôme Kieffer"]
+__authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "23/05/2016"
-
-import os as _os
-import logging as _logging
-
-_logging.basicConfig()  # Make sure logging is initialised
-
-project = _os.path.basename(_os.path.dirname(_os.path.abspath(__file__)))
-
-try:
-    from ._version import __date__ as date  # noqa
-    from ._version import version, version_info, hexversion, strictversion  # noqa
-except ImportError:
-    raise RuntimeError(
-        "Do NOT use %s from its sources: build it and use the built version" %
-        project)
+__date__ = "05/01/2017"
