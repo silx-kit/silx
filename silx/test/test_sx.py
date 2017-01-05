@@ -70,9 +70,10 @@ elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
 else:
     # Import here to avoid loading QT if tests are disabled
 
-    from silx import sx
     from silx.gui import qt
+    # load TestCaseQt before sx
     from silx.gui.test.utils import TestCaseQt
+    from silx import sx
 
     class SXTest(TestCaseQt):
         """Test the sx module"""
