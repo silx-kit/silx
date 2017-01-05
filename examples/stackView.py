@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +23,30 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-__authors__ = ["T. Vincent", "P. Knobel"]
-__license__ = "MIT"
-__date__ = "19/09/2016"
+"""This script is a simple example to illustrate how to use the StackView
+widget.
+"""
+import numpy
+import sys
+from silx.gui import qt
+# from silx.gui.plot import StackView
+from silx.gui.plot.StackView import StackViewMainWindow
 
 
-import unittest
-from .test_weakref import suite as test_weakref_suite
-from .test_html import suite as test_html_suite
-from .test_array_like import suite as test_array_like_suite
+app = qt.QApplication(sys.argv[1:])
 
+# synthetic data, stack of 100 images of size 200x300
+mystack = numpy.fromfunction(
+    lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
+    (100, 200, 300)
+)
 
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(test_weakref_suite())
-    test_suite.addTest(test_html_suite())
-    test_suite.addTest(test_array_like_suite())
-    return test_suite
+# sv = StackView()
+sv = StackViewMainWindow()
+sv.setColormap("jet", autoscale=True)
+sv.setStack(mystack)
+sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
+              "3rd dim (0-299)"])
+sv.show()
+
+app.exec_()
