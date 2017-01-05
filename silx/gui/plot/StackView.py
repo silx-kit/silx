@@ -265,32 +265,24 @@ class StackView(qt.QMainWindow):
         """
         assert self._stack is not None
         assert 0 <= self._perspective < 3
+
+        # ensure we have the stack encapsulated in an array like object
+        # having a transpose() method
         if isinstance(self._stack, numpy.ndarray):
-            if self._perspective == 0:
-                self.__transposed_view = self._stack
-            if self._perspective == 1:
-                self.__transposed_view = numpy.rollaxis(self._stack, 1)
-            if self._perspective == 2:
-                self.__transposed_view = numpy.rollaxis(self._stack, 2)
+            self.__transposed_view = self._stack
+
         elif h5py is not None and isinstance(self._stack, h5py.Dataset) or \
                 isinstance(self._stack, DatasetView):
-            if self._perspective == 0:
-                self.__transposed_view = self._stack
-            if self._perspective == 1:
-                self.__transposed_view = DatasetView(self._stack,
-                                                     transposition=(1, 0, 2))
-            if self._perspective == 2:
-                self.__transposed_view = DatasetView(self._stack,
-                                                     transposition=(2, 0, 1))
+            self.__transposed_view = DatasetView(self._stack)
+
         elif isinstance(self._stack, ListOfImages):
-            if self._perspective == 0:
-                self.__transposed_view = self._stack
-            if self._perspective == 1:
-                self.__transposed_view = ListOfImages(self._stack.images,
-                                                      transposition=(1, 0, 2))
-            if self._perspective == 2:
-                self.__transposed_view = ListOfImages(self._stack.images,
-                                                      transposition=(2, 0, 1))
+            self.__transposed_view = ListOfImages(self._stack)
+
+        # transpose the array like object if necessary
+        if self._perspective == 1:
+            self.__transposed_view = self.__transposed_view.transpose((1, 0, 2))
+        elif self._perspective == 2:
+            self.__transposed_view = self.__transposed_view.transpose((2, 0, 1))
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
