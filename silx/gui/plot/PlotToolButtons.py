@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,14 @@
 The following QToolButton are available:
 
 - :class:`AspectToolButton`
-- :class:`YAxiesOriginToolButton`
+- :class:`YAxisOriginToolButton`
+- :class:`ProfileToolButton`
+
 """
 
-__authors__ = ["V. Valls"]
+__authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "04/10/2016"
+__date__ = "05/01/2016"
 
 
 import logging
@@ -56,8 +58,6 @@ class PlotToolButton(qt.QToolButton):
     def plot(self):
         """
         Returns the plot connected to the widget.
-
-        :param plot: :class:`.PlotWidget` instance on which to operate.
         """
         return self._plot
 
@@ -226,7 +226,8 @@ class YAxisOriginToolButton(PlotToolButton):
 
 
 class ProfileToolButton(PlotToolButton):
-
+    """Button used in Profile3DToolbar to switch between 2D profile
+    and 1D profile."""
     STATE = None
     """Lazy loaded states used to feed ProfileToolButton"""
 
@@ -235,11 +236,11 @@ class ProfileToolButton(PlotToolButton):
     def __init__(self, parent=None, plot=None):
         if self.STATE is None:
             self.STATE = {}
-            # dont keep ratio
+            # Compute 1D profile
             self.STATE[1, "icon"] = icons.getQIcon('profile1D')
             self.STATE[1, "state"] = "Profile computed is 1D"
             self.STATE[1, "action"] = "Compute 1D profile"
-            # keep ratio
+            # Compute 2D profile
             self.STATE[2, "icon"] = icons.getQIcon('profile2D')
             self.STATE[2, "state"] = "Profile is computed in 2D"
             self.STATE[2, "action"] = "Compute profile in 2D"
@@ -267,10 +268,9 @@ class ProfileToolButton(PlotToolButton):
         return qt.QAction(icon, text, self)
 
     def _profileDimensionChanged(self, profileDimension):
-        """Handle Plot set keep aspect ratio signal"""
-        icon, toolTip = self.STATE[profileDimension, "icon"], self.STATE[profileDimension, "state"]
-        self.setIcon(icon)
-        self.setToolTip(toolTip)
+        """Update icon in toolbar, emit number of dimensions for profile"""
+        self.setIcon(self.STATE[profileDimension, "icon"])
+        self.setToolTip(self.STATE[profileDimension, "state"])
         self.sigDimensionChanged.emit(profileDimension)
 
     def computeProfileIn1D(self):

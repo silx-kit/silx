@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ from .. import icons
 from .. import qt
 from .Colors import cursorColorForColormap
 from .PlotActions import PlotAction
+from .PlotToolButtons import ProfileToolButton
 
 
 def _alignedFullProfile(data, origin, scale, position, roiWidth, axis):
@@ -617,6 +618,7 @@ class ProfileToolBar(qt.QToolBar):
 
         self.profileWindow.show()
 
+
 class Profile3DAction(PlotAction):
     """PlotAction that emits a signal when checked, to notify
 
@@ -678,15 +680,15 @@ class Profile3DToolBar(ProfileToolBar):
     def __create3DProfileAction(self):
         """Initialize the Profile3DAction action
         """
-        from  silx.gui.plot import PlotToolButtons
 
-        self.profile3dAction = PlotToolButtons.ProfileToolButton(
+        self.profile3dAction = ProfileToolButton(
             parent=self, plot=self.plot)
 
         # initial profile dimension is 3D
         self.profile3dAction.computeProfileIn2D()
         self._profileDimension = 2
         self._profileWindow1D.hide()
+        self._profileWindow2D.hide()
 
         self.profile3dAction.setVisible(True)
         self.addWidget(self.profile3dAction)

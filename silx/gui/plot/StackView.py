@@ -82,7 +82,6 @@ from silx.gui import qt
 from .. import icons
 from . import PlotWindow
 from . import PlotActions
-from . import PlotToolButtons
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -751,8 +750,8 @@ class StackViewMainWindow(StackView):
         menu.addAction(self._plot.profile.hLineAction)
         menu.addAction(self._plot.profile.vLineAction)
         menu.addAction(self._plot.profile.lineAction)
+        menu.addSeparator()
         menu.addAction(self._plot.profile.clearAction)
-
         self._plot.profile.profile3dAction.computeProfileIn2D()
         menu.addMenu(self._plot.profile.profile3dAction.menu())
 
