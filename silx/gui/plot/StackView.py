@@ -79,6 +79,7 @@ except ImportError:
     h5py = None
 
 from silx.gui import qt
+from .. import icons
 from . import PlotWindow
 from . import PlotActions
 from .Colors import cursorColorForColormap
@@ -196,15 +197,13 @@ class StackView(qt.QMainWindow):
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        layout = qt.QVBoxLayout()
-
-        planeSelection = PlanesDockWidget(self._plot)
+        planeSelection = PlanesWidget(self._plot)
         planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
-        self._plot._introduceNewDockWidget(planeSelection)
-
-        layout.addWidget(self._plot)
-        layout.addWidget(self._browser)
+        layout = qt.QGridLayout()
+        layout.addWidget(self._plot, 0, 0, 1, 2)
+        layout.addWidget(planeSelection, 1, 0)
+        layout.addWidget(self._browser, 1, 1)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
@@ -661,85 +660,54 @@ class StackView(qt.QMainWindow):
         self._plot.addItem(*args, **kwargs)
 
 
-class PlanesDockWidget(qt.QDockWidget):
-    """Dock widget for the plane/perspective selection
+class PlanesWidget(qt.QWidget):
+    """Widget for the plane/perspective selection
 
     :param parent: the parent QWidget
     """
     sigPlaneSelectionChanged = qt.Signal(int)
 
     def __init__(self, parent):
-        super(PlanesDockWidget, self).__init__(parent)
+        super(PlanesWidget, self).__init__(parent)
 
-        self.planeGB = qt.QGroupBox(self)
-        self.planeGB.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
-        self.planeGBLayout = qt.QBoxLayout(qt.QBoxLayout.LeftToRight)
-        self.planeGB.setLayout(self.planeGBLayout)
-        spacer = qt.QSpacerItem(20, 20,
-                                qt.QSizePolicy.Expanding,
-                                qt.QSizePolicy.Expanding)
+        self.setSizePolicy(qt.QSizePolicy.Minimum, qt.QSizePolicy.Minimum)
+        layout0 = qt.QHBoxLayout()
+        self.setLayout(layout0)
+        layout0.setContentsMargins(0, 0, 0, 0)
 
-        self._qrbDim0Dim1 = qt.QRadioButton('Dim0-'
-                                            'Dim1', self.planeGB)
-        self._qrbDim1Dim2 = qt.QRadioButton('Dim1-Dim2', self.planeGB)
-        self._qrbDim0Dim2 = qt.QRadioButton('Dim0-Dim2', self.planeGB)
-        self._qrbDim1Dim2.setChecked(True)
+        layout0.addWidget(qt.QLabel("Axes selection:"))
 
-        self._qrbDim1Dim2.toggled.connect(self.__planeSelectionChanged)
-        self._qrbDim0Dim1.toggled.connect(self.__planeSelectionChanged)
-        self._qrbDim0Dim2.toggled.connect(self.__planeSelectionChanged)
+        # By default, the first dimension (dim0) is the image index/depth/z,
+        # the second dimension is the image row number/y axis
+        # and the third dimension is the image column index/x axis
 
-        self.planeGBLayout.addWidget(self._qrbDim0Dim1)
-        self.planeGBLayout.addWidget(self._qrbDim1Dim2)
-        self.planeGBLayout.addWidget(self._qrbDim0Dim2)
-        self.planeGBLayout.addItem(spacer)
-        self.planeGBLayout.setContentsMargins(0, 0, 0, 0)
+        # 1
+        # | 0
+        # |/__2
 
-        self.setWidget(self.planeGB)
-        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.qcbAxisSelection = qt.QComboBox(self)
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-front"),
+                                      'Dim1-Dim2')
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-bottom"),
+                                      'Dim0-Dim2')
+        self.qcbAxisSelection.addItem(icons.getQIcon("cube-left"),
+                                      'Dim0-Dim1')
+        self.qcbAxisSelection.currentIndexChanged[int].connect(
+                self.__planeSelectionChanged)
 
-        self.setWindowTitle('Image axes')
+        layout0.addWidget(self.qcbAxisSelection)
 
-        self.setFeatures(qt.QDockWidget.DockWidgetMovable)
-                         #| qt.QDockWidget.DockWidgetFloatable)
+    def __planeSelectionChanged(self, idx):
+        """Callback function when the combobox selection changes
 
-        self.dockLocationChanged.connect(self.__updateLayoutDirection)
-
-    def __updateLayoutDirection(self, dockWidgetArea):
-        """Update layout orientation if the dock widget is dragged to a
-        different area.
-
-        :param Qt.DockWidgetArea dockWidgetArea: Current dock widget location
-            (left, right, top, bottom)
-        """
-        if dockWidgetArea in [qt.Qt.TopDockWidgetArea,
-                              qt.Qt.BottomDockWidgetArea]:
-            self.planeGBLayout.setDirection(qt.QBoxLayout.LeftToRight)
-        elif dockWidgetArea in [qt.Qt.LeftDockWidgetArea,
-                                qt.Qt.RightDockWidgetArea]:
-            self.planeGBLayout.setDirection(qt.QBoxLayout.TopToBottom)
-
-    def __planeSelectionChanged(self):
-        """Callback function when the radio buttons change
-        """
-        self.sigPlaneSelectionChanged.emit(self.getPerspective())
-
-    def getPerspective(self):
-        """Return the dimension number orthogonal to the slice plane,
+        idx is the dimension number orthogonal to the slice plane,
         following the convention:
 
           - slice plane Dim1-Dim2: perspective 0
           - slice plane Dim0-Dim2: perspective 1
           - slice plane Dim0-Dim1: perspective 2
         """
-        if self._qrbDim1Dim2.isChecked():
-            return 0
-        if self._qrbDim0Dim2.isChecked():
-            return 1
-        if self._qrbDim0Dim1.isChecked():
-            return 2
-
-        raise RuntimeError('No plane selected')
+        self.sigPlaneSelectionChanged.emit(idx)
 
 
 class StackViewMainWindow(StackView):
