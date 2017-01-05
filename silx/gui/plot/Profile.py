@@ -617,132 +617,128 @@ class ProfileToolBar(qt.QToolBar):
 
         self.profileWindow.show()
 
-
 class Profile3DAction(PlotAction):
     """PlotAction that emits a signal when checked, to notify
 
     :param plot: :class:`.PlotWidget` instance on which to operate.
-    :param icon: QIcon or str name of icon to use
-    :param str text: The name of this action to be used for menu label
-    :param str tooltip: The text of the tooltip
-    :param triggered: The callback to connect to the action's triggered
-                      signal or None for no callback.
-    :param bool checkable: True for checkable action, False otherwise (default)
     :param parent: See :class:`QAction`.
     """
-    sigChange3DProfile = qt.Signal(bool)
+    sigProfileDimensionChanged = qt.Signal(int)
 
     def __init__(self, plot, parent=None):
+        # Uses two images for checked/unchecked states
+        self._states = {
+            1: (icons.getQIcon('profile1D'),
+                    "Compute 1D profile"),
+            2: (icons.getQIcon('profile2D'),
+                   "Compute 2D profile")
+        }
+
+        icon, tooltip = self._states[True]
         super(Profile3DAction, self).__init__(
                 plot=plot,
-                icon='cube',
-                text='3D profile',
-                tooltip='If activated, compute the profile on the stack of images',
+                icon=icon,
+                text='Profile',
+                tooltip=tooltip,
                 triggered=self.__compute3DProfile,
-                checkable=True,
+                checkable=False,
                 parent=parent)
 
-    def __compute3DProfile(self):
+    def __compute3DProfile(self, profileDimension):
         """Callback when the QAction is activated
         """
-        self.sigChange3DProfile.emit(self.isChecked())
+        icon, tooltip = self._states[profileDimension]
+        self.setIcon(icon)
+        self.setToolTip(tooltip)
+        self.sigProfileDimensionChanged.emit(profileDimension)
 
 
 class Profile3DToolBar(ProfileToolBar):
-    def __init__(self, parent=None, plot=None, profileWindow=None,
-                 title='Profile Selection'):
+    def __init__(self, parent=None, plot=None, title='Profile Selection'):
         """QToolBar providing profile tools for an image or a stack of images.
 
         :param parent: the parent QWidget
         :param plot: :class:`PlotWindow` instance on which to operate.
-        :param profileWindow: :class:`ProfileScanWidget` instance where to
-                              display the profile curve or None to create one.
         :param str title: See :class:`QToolBar`.
         :param parent: See :class:`QToolBar`.
         """
-        super(Profile3DToolBar, self).__init__(parent, plot, profileWindow, title)
+        from .PlotWindow import Plot1D, Plot2D      # noqa
+        super(Profile3DToolBar, self).__init__(parent, plot, title)
+        # create the main widget
+        self.ndProfileWindow = qt.QWidget()
+        self.ndProfileWindow.setWindowTitle('Profile window')
+        self.ndProfileWindow.setLayout(qt.QVBoxLayout())
+        self._profileWindow1D = Plot1D(self.ndProfileWindow)
+        self._profileWindow2D = Plot2D(self.ndProfileWindow)
+        self.ndProfileWindow.layout().addWidget(self._profileWindow1D)
+        self.ndProfileWindow.layout().addWidget(self._profileWindow2D)
+        # create the 3D toolbar
+        self.__create3DProfileAction()
 
-        if profileWindow is None:
-            self._profileWindow1D = self.profileWindow
-            from .PlotWindow import Plot2D  # noqa
-            self._profileWindow2D = Plot2D()
-
-        self.profile3d = Profile3DAction(plot=self.plot, parent=self.plot)
-        self.profile3d.sigChange3DProfile.connect(self._setComputeIn3D)
-        self.addAction(self.profile3d)
-
-        self.plot.sigStackChanged.connect(
-                self._stackChanged)
-
-        self._setComputeIn3D(False)
-
-    def _activeImageChanged(self, previous, legend):
-        """Handle active image change (for 1D profile):
-
-        toggle enabled toolbar, update curve"""
-        if not self._computeIn3D:
-            self.setEnabled(legend is not None)
-            if legend is not None:
-                # Update default profile color
-                activeImage = self.plot.getActiveImage()
-                if activeImage is not None:
-                    self._defaultOverlayColor = cursorColorForColormap(
-                            activeImage[4]['colormap']['name'])
-
-                self.updateProfile()
-
-    def _stackChanged(self, size):
-        """Handle stack change (for 2D profile):
-        toggle enabled toolbar, update profile image.
+    def __create3DProfileAction(self):
+        """Initialize the Profile3DAction action
         """
-        if self._computeIn3D:
-            self.setEnabled(size)
-            if size:
-                self.updateProfile()
+        from  silx.gui.plot import PlotToolButtons
 
-    def _setComputeIn3D(self, flag):
-        """Set flag to *True* to compute the profile in 3D, else
-        the profile is computed in 2D on the active image.
+        self.profile3dAction = PlotToolButtons.ProfileToolButton(
+            parent=self, plot=self.plot)
 
-        :param bool flag: Flag used when toggling 2D/3D profile mode
+        # initial profile dimension is 3D
+        self.profile3dAction.computeProfileIn2D()
+        self._profileDimension = 2
+        self._profileWindow1D.hide()
+
+        self.profile3dAction.setVisible(True)
+        self.addWidget(self.profile3dAction)
+
+        self.profile3dAction.sigDimensionChanged.connect(self._setProfileDimension)
+        self._setProfileDimension(self._profileDimension)
+
+    def _setProfileDimension(self, dimension):
+        """Set the dimension in which we want to compute the profile.
+        Valid values are 1 and 2 for now
+
+        :param int dimension: dimension of the profile
         """
-        self._computeIn3D = flag
-        self._usePlot2DProfile(flag)
-        self.updateProfile()
-
-    def _usePlot2DProfile(self, flag):
-        """When 3D action is toggled, switch to 3D mode:
-        use a Plot2D to display the profile.
-
-        :param bool flag: Flag used when toggling 2D/3D profile mode
-        """
-        if not self._ownProfileWindow:
-            # profile window handled by user
-            return
-
-        profileIsVisible = self.profileWindow.isVisible()
-        if flag:
-            self.profileWindow = self._profileWindow2D
+        self._setActiveProfileWindow(dimension)
+        profileIsVisible = self.ndProfileWindow.isVisible()
+        if dimension is 2:
             if profileIsVisible:
                 self._profileWindow1D.hide()
                 self._profileWindow2D.show()
-        else:
-            self.profileWindow = self._profileWindow1D
+        elif dimension is 1:
             if profileIsVisible:
                 self._profileWindow2D.hide()
                 self._profileWindow1D.show()
+
+        self.updateProfile()
+
+    def _setActiveProfileWindow(self, dimension):
+        """Set the active profile window depending on the dimension of
+        the profile
+
+        :param int dimesion: dimension of the profile"""
+        self._profileDimension = dimension
+        if dimension is 2:
+            self.profileWindow = self._profileWindow2D
+        elif dimension is 1:
+            self.profileWindow = self._profileWindow1D
+        else:
+            self.profileWindow = None
 
     def updateProfile(self):
         """Method overloaded from :class:`ProfileToolBar`,
         to pass the stack of images instead of just the active image.
 
-        In 2D profile mode, use the regular parent method.
+        In 1D profile mode, use the regular parent method.
         """
-        if not self._computeIn3D:
+        if self._profileDimension is 1:
             super(Profile3DToolBar, self).updateProfile()
-        else:
+        elif self._profileDimension is 2:
             stackData = self.plot.getStack(copy=False,
                                            returnNumpyArray=True)
+            if stackData is None:
+                return
             self.plot.remove(self._POLYGON_LEGEND, kind='item')
             self.profileWindow.clear()
             self.profileWindow.setGraphTitle('')
@@ -751,3 +747,14 @@ class Profile3DToolBar(ProfileToolBar):
 
             self._createProfile(currentData=stackData[0],
                                 params=stackData[1])
+        else:
+            raise ValueError('Can\'t compute profile for data in %s'% dimension)
+
+    def _showProfileWindow(self):
+        """If profile window was created in this widget,
+        it tries to avoid overlapping this widget when shown
+        In Profile3DToolBar we have a widget grouping profile windows for 1D and 2D.
+        So we also have to manage this one
+        """
+        super(Profile3DToolBar, self)._showProfileWindow()
+        self.ndProfileWindow.show()
