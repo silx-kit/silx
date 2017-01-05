@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -219,10 +219,11 @@ def build_project(name, root_dir):
 
 from argparse import ArgumentParser
 epilog = """Environment variables:
-WITH_QT_TEST=False to disable graphical tests,
-SILX_OPENCL=False to disable OpenCL tests.
+WITH_QT_TEST=False to disable graphical tests
+SILX_OPENCL=False to disable OpenCL tests
 SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
 GPU=False to disable the use of a GPU with OpenCL test
+WITH_GL_TEST=False to disable tests using OpenGL
 """
 parser = ArgumentParser(description='Run the tests.',
                         epilog=epilog)
@@ -245,6 +246,9 @@ parser.add_argument("-v", "--verbose", default=0,
 parser.add_argument("-x", "--no-gui", dest="gui", default=True,
                     action="store_false",
                     help="Disable the test of the graphical use interface")
+parser.add_argument("-g", "--no-opengl", dest="opengl", default=True,
+                    action="store_false",
+                    help="Disable tests using OpenGL")
 parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
                     action="store_false",
                     help="Disable the test of the OpenCL part")
@@ -277,6 +281,9 @@ if not options.gui:
 
 if not options.opencl:
     os.environ["SILX_OPENCL"] = "False"
+
+if not options.opengl:
+    os.environ["WITH_GL_TEST"] = "False"
 
 if options.low_mem:
     os.environ["SILX_TEST_LOW_MEM"] = "True"
