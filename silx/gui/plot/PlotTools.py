@@ -896,14 +896,14 @@ class Profile3DToolBar(ProfileToolBar):
         """
         from .PlotWindow import Plot1D, Plot2D      # noqa
         super(Profile3DToolBar, self).__init__(parent, plot, title)
-        self._profileWindow1D = Plot1D()
-        self._profileWindow2D = Plot2D()
         # create the main widget
-        self.profileWidget = qt.QWidget()
-        self.profileWidget.setLayout(qt.QVBoxLayout())
-        self.profileWidget.layout().addWidget(self._profileWindow1D)
-        self.profileWidget.layout().addWidget(self._profileWindow2D)
-        self.profileWidget.show()
+        self.ndProfileWindow = qt.QWidget()
+        self.ndProfileWindow.setWindowTitle('Profile window')
+        self.ndProfileWindow.setLayout(qt.QVBoxLayout())
+        self._profileWindow1D = Plot1D(self.ndProfileWindow)
+        self._profileWindow2D = Plot2D(self.ndProfileWindow)
+        self.ndProfileWindow.layout().addWidget(self._profileWindow1D)
+        self.ndProfileWindow.layout().addWidget(self._profileWindow2D)
         # create the 3D toolbar
         self.__create3DProfileAction()
 
@@ -930,10 +930,10 @@ class Profile3DToolBar(ProfileToolBar):
         """Set the dimension in which we want to compute the profile.
         Valid values are 1 and 2 for now
 
-        :param int dimension: dimension use to compute the profile
+        :param int dimension: dimension of the profile
         """
         self._setActiveProfileWindow(dimension)
-        profileIsVisible = self.profileWidget.isVisible()
+        profileIsVisible = self.ndProfileWindow.isVisible()
         if dimension is 2:
             if profileIsVisible:
                 self._profileWindow1D.hide()
@@ -947,7 +947,9 @@ class Profile3DToolBar(ProfileToolBar):
 
     def _setActiveProfileWindow(self, dimension):
         """Set the active profile window depending on the dimension of
-        the profile"""
+        the profile
+
+        :param int dimesion: dimension of the profile"""
         self._profileDimension = dimension
         if dimension is 2:
             self.profileWindow = self._profileWindow2D
@@ -979,3 +981,12 @@ class Profile3DToolBar(ProfileToolBar):
                                 params=stackData[1])
         else:
             raise ValueError('Can\'t compute profile for data in %s'% dimension)
+
+    def _showProfileWindow(self):
+        """If profile window was created in this widget,
+        it tries to avoid overlapping this widget when shown
+        In Profile3DToolBar we have a widget grouping profile windows for 1D and 2D.
+        So we also have to manage this one
+        """
+        super(Profile3DToolBar, self)._showProfileWindow()
+        self.ndProfileWindow.show()
