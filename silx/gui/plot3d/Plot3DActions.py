@@ -39,7 +39,7 @@ import numpy
 
 from silx.gui import qt
 from silx.gui.plot.PlotActions import PrintAction as _PrintAction
-from .icons import getQIcon  # TODO merge with silx icons
+from silx.gui.icons import getQIcon
 from .utils import mng
 
 _logger = logging.getLogger(__name__)

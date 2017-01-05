@@ -34,7 +34,7 @@ __date__ = "05/10/2016"
 import logging
 
 from silx.gui import qt
-from .icons import getQIcon  # TODO merge with silx icons
+from silx.gui.icons import getQIcon
 
 _logger = logging.getLogger(__name__)
 
