@@ -14,6 +14,7 @@ The current version provides :
 * image plot widget with a set of associated tools (See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
 * HDF5 browser
 * isosurface rendering (using marching cubes)
+* OpenGL-based widget to display 3D scalar field with isosurface and cutting plane.
 * image alignement (sift - OpenCL implementation)
 
 Installation
@@ -53,7 +54,8 @@ Dependencies
 The GUI widgets of the silx package depend on the following extra packages:
 
 * A Qt binding: `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ (using API version 2) or `PySide <https://pypi.python.org/pypi/PySide/>`_
-* `matplotlib <http://matplotlib.org/>`_
+* `matplotlib <http://matplotlib.org/>`_ for the silx.gui.plot package
+* `PyOpenGL <http://pyopengl.sourceforge.net/>`_ for the silx.gui.plot3d package
 
 Most modules and functions dealing with `HDF5 <https://www.hdfgroup.org/HDF5/>`_ input/output depend on the following extra package:
 * `h5py <http://www.h5py.org/>`_
