@@ -22,6 +22,9 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
+"""
+This package provides widgets displaying 3D content based on OpenGL.
+"""
 from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
