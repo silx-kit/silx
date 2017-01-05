@@ -32,7 +32,7 @@ __date__ = "18/10/2016"
 
 import unittest
 
-from silx.testutils import ParametricTestCase
+from silx.test.utils import ParametricTestCase
 
 from plot3d.utils import ticklayout
 

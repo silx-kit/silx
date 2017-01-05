@@ -31,11 +31,11 @@ __date__ = "25/07/2016"
 
 
 import unittest
-from silx.testutils import ParametricTestCase
+from silx.test.utils import ParametricTestCase
 
 import numpy
 
-from plot3d.scene import utils
+from silx.gui.plot3d.scene import utils
 
 
 # angleBetweenVectors #########################################################

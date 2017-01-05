@@ -26,14 +26,10 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "05/01/2017"
 
 
-import logging
 import unittest
-
-
-logger = logging.getLogger(__name__)
 
 
 # from ..glutils.test import suite as test_glutils_suite
@@ -47,14 +43,3 @@ def suite():
     test_suite.addTest(test_scene_suite())
     test_suite.addTest(test_utils_suite())
     return test_suite
-
-
-def run_tests():
-    """Run test complete test_suite"""
-    runner = unittest.TextTestRunner()
-    if not runner.run(suite()).wasSuccessful():
-        print("Test suite failed")
-        return 1
-    else:
-        print("Test suite succeeded")
-        return 0

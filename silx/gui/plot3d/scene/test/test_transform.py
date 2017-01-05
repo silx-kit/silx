@@ -27,13 +27,13 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "05/01/2017"
 
 
 import numpy
 import unittest
 
-from plot3d.scene import transform
+from silx.gui.plot3d.scene import transform
 
 
 class TestTransformList(unittest.TestCase):
