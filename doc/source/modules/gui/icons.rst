@@ -19,8 +19,18 @@ Available icons
 
    * - Icon
      - Name
+   * - |3d-plane-normal-x|
+     - 3d-plane-normal-x
+   * - |3d-plane-normal-y|
+     - 3d-plane-normal-y
+   * - |3d-plane-normal-z|
+     - 3d-plane-normal-z
+   * - |3d-plane|
+     - 3d-plane
    * - |arrow-keys|
      - arrow-keys
+   * - |camera|
+     - camera
    * - |clipboard|
      - clipboard
    * - |close|
@@ -220,7 +230,12 @@ Available icons
    * - |zoom|
      - zoom
 
+.. |3d-plane-normal-x| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-x.png
+.. |3d-plane-normal-y| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-y.png
+.. |3d-plane-normal-z| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-z.png
+.. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
+.. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
