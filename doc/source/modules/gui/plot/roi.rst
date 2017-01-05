@@ -3,12 +3,14 @@
 :mod:`CurvesROIWidget`: ROI from curves
 =======================================
 
-You can access to the ROIWidget from a Plot window by using the options button
-then by selecting region of interest.
-
 .. |roiWidgetImage| image:: img/roiwidget.png
-   :height: 200px
+   :height: 400px
    :align: middle
+
+You can access to the ROIWidget from a Plot window by :
+
+- using the tool button 'ROI'
+- using the options button then by selecting region of interest.
 
 |roiWidgetImage|
 
