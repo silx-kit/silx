@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,8 @@ from silx.gui.test.utils import TestCaseQt
 from silx.gui import qt
 from silx.gui.plot import StackView
 from silx.gui.plot.StackView import StackViewMainWindow
+
+from silx.utils.array_like import ListOfImages
 
 
 # Makes sure a QApplication exists
@@ -80,6 +82,25 @@ class TestStackView(TestCaseQt):
                          (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))
         self.assertTrue(numpy.array_equal(numpy.transpose(self.mystack, axes=(1, 0, 2)),
                                           my_trans_stack))
+
+    def testSetStackListOfImages(self):
+        loi = [self.mystack[i] for i in range(self.mystack.shape[0])]
+
+        self.stackview.setStack(loi)
+        my_trans_stack, params = self.stackview.getStack(returnNumpyArray=True)
+        self.assertEqual(my_trans_stack.shape, self.mystack.shape)
+        self.assertTrue(numpy.array_equal(self.mystack,
+                                          my_trans_stack))
+        self.assertIsInstance(my_trans_stack, numpy.ndarray)
+
+        self.stackview.setStack(loi, perspective=2)
+        my_trans_stack, params = self.stackview.getStack(copy=False)
+        self.assertEqual(my_trans_stack.shape,
+                         (self.mystack.shape[2], self.mystack.shape[0], self.mystack.shape[1]))
+        self.assertTrue(numpy.array_equal(numpy.array(my_trans_stack),
+                                          numpy.transpose(self.mystack, axes=(2, 0, 1))))
+        self.assertIsInstance(my_trans_stack,
+                              ListOfImages)  # returnNumpyArray=False by default in getStack
 
 
 class TestStackViewMainWindow(TestCaseQt):

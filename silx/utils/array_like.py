@@ -213,7 +213,7 @@ class ListOfImages(object):
     The global dtype of the stack of images is the one that would be obtained
     by casting the list of 2D arrays into a 3D numpy array.
 
-    :param images: list of 2D numpy arrays
+    :param images: list of 2D numpy arrays, or :class:`ListOfImages` object
     :param transposition: Tuple of dimension numbers in the wanted order
     """
     def __init__(self, images, transposition=None):
@@ -221,6 +221,11 @@ class ListOfImages(object):
 
         """
         super(ListOfImages, self).__init__()
+
+        # if images is a ListOfImages instance, get the underlying data
+        # as a list of 2D arrays
+        if isinstance(images, ListOfImages):
+            images = images.images
 
         # test stack of images is as expected
         assert is_list_of_arrays(images), \
