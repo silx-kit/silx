@@ -34,8 +34,8 @@ __date__ = "15/09/2016"
 import logging
 
 from silx.gui import qt
+from silx.gui.plot.Colors import rgba
 
-from .color import rgba
 from .glutils import gl
 from .scene import interaction, primitives, transform
 from . import scene

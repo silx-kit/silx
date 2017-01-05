@@ -41,7 +41,7 @@ from collections import deque
 import numpy
 
 from silx.gui import qt
-from .color import rgba
+from silx.gui.plot.Colors import rgba
 
 from silx.math.marchingcubes import MarchingCubes
 

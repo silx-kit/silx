@@ -38,7 +38,7 @@ __date__ = "25/07/2016"
 
 import numpy
 
-from ..color import rgba
+from silx.gui.plot.Colors import rgba
 
 from ..glutils import gl
 
