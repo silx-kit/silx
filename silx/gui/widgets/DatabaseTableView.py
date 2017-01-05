@@ -28,6 +28,7 @@ array using compound data types or hdf5 databases.
 """
 from __future__ import division
 
+import itertools
 from silx.gui import qt
 
 __authors__ = ["V. Valls"]
@@ -91,7 +92,10 @@ class DatabaseTableModel(qt.QAbstractTableModel):
         if self.__fields is not None:
             if index.column() >= len(self.__fields):
                 return None
-            data = data[self.__fields[index.column()]]
+            key = self.__fields[index.column()][1]
+            data = data[key[0]]
+            if len(key) > 1:
+                data = data[key[1]]
 
         if role == qt.Qt.DisplayRole:
             try:
@@ -113,7 +117,7 @@ class DatabaseTableModel(qt.QAbstractTableModel):
                         return None
                 else:
                     if section < len(self.__fields):
-                        return self.__fields[section]
+                        return self.__fields[section][0]
                     else:
                         return None
         return None
@@ -143,10 +147,20 @@ class DatabaseTableModel(qt.QAbstractTableModel):
             self.beginResetModel()
 
         self.__data = data
-        self.__fields = None
+        self.__fields = []
         if data is not None:
             if data.dtype.fields is not None:
-                self.__fields = list(data.dtype.fields)
+                for name, (dtype, _index) in data.dtype.fields.items():
+                    if dtype.shape != tuple():
+                        keys = itertools.product(*[range(x) for x in dtype.shape])
+                        for key in keys:
+                            label = "%s%s" % (name, list(key))
+                            array_key = (name, key)
+                            self.__fields.append((label, array_key))
+                    else:
+                        self.__fields.append((name, (name,)))
+            else:
+                self.__fields = None
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
