@@ -54,14 +54,16 @@ def suite():
     from ..utils import test as test_utils
 
     test_suite = unittest.TestSuite()
+    # test sx first cause qui tests load ipython module
+    test_suite.addTest(test_sx.suite())
+    test_suite.addTest(test_gui.suite())
+    # then test no-gui tests
     test_suite.addTest(test_version.suite())
     test_suite.addTest(test_resources.suite())
-    test_suite.addTest(test_gui.suite())
     test_suite.addTest(test_utils.suite())
     test_suite.addTest(test_io.suite())
     test_suite.addTest(test_math.suite())
     test_suite.addTest(test_image.suite())
-    test_suite.addTest(test_sx.suite())
     return test_suite
 
 
