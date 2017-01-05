@@ -38,9 +38,9 @@ import logging
 import numpy
 
 from silx.gui import qt
+from silx.gui.icons import getQIcon
 
-from plot3d.ScalarFieldView import Isosurface
-from plot3d.icons import getQIcon
+from .ScalarFieldView import Isosurface
 
 
 _logger = logging.getLogger(__name__)
@@ -741,6 +741,7 @@ class IsoSurfaceGroup(SubjectItem):
             if len(args) >= 1:
                 isosurface = args[0]
                 if not isinstance(isosurface, Isosurface):
+                    print('xxxx', isosurface)
                     raise ValueError('Expected an isosurface instance.')
                 self.__addIsosurface(isosurface)
             else:

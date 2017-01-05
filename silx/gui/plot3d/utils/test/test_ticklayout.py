@@ -34,7 +34,7 @@ import unittest
 
 from silx.test.utils import ParametricTestCase
 
-from plot3d.utils import ticklayout
+from silx.gui.plot3d.utils import ticklayout
 
 
 class TestTickLayout(ParametricTestCase):
