@@ -82,6 +82,7 @@ from silx.gui import qt
 from .. import icons
 from . import PlotWindow
 from . import PlotActions
+from . import PlotToolButtons
 from .Colors import cursorColorForColormap
 from .PlotTools import LimitsToolBar
 from .Profile import Profile3DToolBar
@@ -404,6 +405,8 @@ class StackView(qt.QMainWindow):
         :return: Stack of images and parameters.
         :rtype: (numpy.ndarray, dict)
         """
+        if self.getActiveImage() is None:
+            return None
         _img, _legend, _info, _pixmap, params = self.getActiveImage()
         if returnNumpyArray or copy:
             return numpy.array(self.__transposed_view, copy=copy), params
@@ -749,7 +752,9 @@ class StackViewMainWindow(StackView):
         menu.addAction(self._plot.profile.vLineAction)
         menu.addAction(self._plot.profile.lineAction)
         menu.addAction(self._plot.profile.clearAction)
-        menu.addAction(self._plot.profile.profile3d)
+
+        self._plot.profile.profile3dAction.computeProfileIn2D()
+        menu.addMenu(self._plot.profile.profile3dAction.menu())
 
         # Connect to StackView's signal
         self.valueChanged.connect(self._statusBarSlot)
