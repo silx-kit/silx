@@ -1,0 +1,1373 @@
+# coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
+"""This module provides a window to view a 3D scalar field.
+
+It supports iso-surfaces and cutting plane
+"""
+
+from __future__ import absolute_import
+
+__authors__ = ["D. N."]
+__license__ = "MIT"
+__date__ = "01/11/2016"
+
+import logging
+
+import numpy
+
+from silx.gui import qt
+
+from plot3d.ScalarFieldView import Isosurface
+from plot3d.icons import getQIcon
+
+
+_logger = logging.getLogger(__name__)
+
+
+class ModelColumns(object):
+    NameColumn, ValueColumn, ColumnMax = range(3)
+    ColumnNames = ['Name', 'Value']
+
+
+class SubjectItem(qt.QStandardItem):
+    """
+    Base class for observers items.
+
+    Subclassing:
+    ------------
+    The following method can/should be reimplemented:
+    - _init
+    - _pullData
+    - _pushData
+    - _setModelData
+    - _subjectChanged
+    - getEditor
+    - getSignals
+    - leftClicked
+    - queryRemove
+    - setEditorData
+
+    Also the following attributes are available:
+    - editable
+    - persistent
+
+    :param subject: object that this item will be observing.
+    """
+
+    editable = False
+    """ boolean: set to True to make the item editable. """
+
+    persistent = False
+    """
+    boolean: set to True to make the editor persistent.
+        See : Qt.QAbstractItemView.openPersistentEditor
+    """
+
+    def __init__(self, subject, *args):
+
+        super(SubjectItem, self).__init__(*args)
+
+        self.setEditable(self.editable)
+
+        self.__subject = None
+        self.subject = subject
+
+    def setData(self, value, role=qt.Qt.UserRole, pushData=True):
+        """
+        Overloaded method from QStandardItem. The pushData keyword tells
+        the item to push data to the subject if the role is equal to EditRole.
+        This is useful to let this method know if the setData method was called
+        internaly or from the view.
+
+        :param value:
+        :param role:
+        :param pushData:
+        :return:
+        """
+        if role == qt.Qt.EditRole and pushData:
+            setValue = self._pushData(value, role)
+            if setValue != value:
+                value = setValue
+        super(SubjectItem, self).setData(value, role)
+
+    subject = property(lambda self: self.__subject)
+
+    @subject.setter
+    def subject(self, subject):
+        if self.__subject is not None:
+            raise ValueError('Subject already set '
+                             ' (subject change not supported).')
+        self.__subject = subject
+        if subject is not None:
+            self._init()
+            self._connectSignals()
+
+    def _connectSignals(self):
+        """
+        Connects the signals. Called when the subject is set.
+        """
+
+        def gen_slot(_sigIdx):
+            def slotfn(*args, **kwargs):
+                self._subjectChanged(signalIdx=_sigIdx,
+                                     args=args,
+                                     kwargs=kwargs)
+            return slotfn
+
+        if self.__subject is not None:
+            self.__slots = slots = []
+
+            signals = self.getSignals()
+
+            if signals:
+                if not isinstance(signals, (list, tuple)):
+                    signals = [signals]
+                for sigIdx, signal in enumerate(signals):
+                    slot = gen_slot(sigIdx)
+                    signal.connect(slot)
+                    slots.append((signal, slot))
+
+    def _disconnectSignals(self):
+        """
+        Disconnects all subject's signal
+        """
+        if self.__slots:
+            for signal, slot in self.__slots:
+                try:
+                    signal.disconnect(slot)
+                except TypeError:
+                    pass
+
+    def _enableRow(self, enable):
+        """
+        Set the enabled state for this cell, or for the whole row
+        if this item has a parent.
+
+        :param enable:
+        :return:
+        """
+        parent = self.parent()
+        model = self.model()
+        if model is None or parent is None:
+            # no parent -> no siblings
+            self.setEnabled(enable)
+            return
+
+        for col in range(model.columnCount()):
+            sibling = parent.child(self.row(), col)
+            sibling.setEnabled(enable)
+
+    #################################################################
+    # Overloadable methods
+    #################################################################
+
+    def getSignals(self):
+        """
+        Returns the list of this items subject's signals that
+        this item will be listening to.
+
+        :return: list.
+        """
+        return None
+
+    def _subjectChanged(self, signalIdx=None, args=None, kwargs=None):
+        """
+        Called when one of the signals is triggered. Default implementation
+        just calls _pullData, compares the result to the current value stored
+        as Qt.EditRole, and stores the new value if it is different. It also
+        stores its str representation as Qt.DisplayRole
+
+        :param signalIdx: index of the triggered signal. The value passed
+            is the same as the signal position in the list returned by
+            SubjectItem.getSignals.
+        :param args: arguments received from the signal
+        :param kwargs: keyword arguments received from the signal
+        """
+        data = self._pullData()
+        if data == self.data(qt.Qt.EditRole):
+            return
+        self.setData(data, role=qt.Qt.DisplayRole, pushData=False)
+        self.setData(data, role=qt.Qt.EditRole, pushData=False)
+
+    def _pullData(self):
+        """
+        Pulls data from the subject.
+
+        :return: subject data
+        """
+        return None
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        """
+        Pushes data to the subject and returns the actual value that was stored
+
+        :return: the value that was stored
+        """
+        return value
+
+    def _init(self):
+        """
+        Called when the subject is set.
+        :return:
+        """
+        self._subjectChanged()
+
+    def getEditor(self, parent, option, index):
+        """
+        Returns the editor widget used to edit this item's data. The arguments
+        are the one passed to the QStyledItemDelegate.createEditor method.
+
+        :param parent:
+        :param option:
+        :param index:
+        :return:
+        """
+        return None
+
+    def setEditorData(self, editor):
+        """
+        This is called by the View's delegate just before the editor is shown,
+        its purpose it to setup the editors contents. Return False to use
+        the delegate's default behaviour.
+
+        :param editor:
+        :return:
+        """
+        return True
+
+    def _setModelData(self, editor):
+        """
+        This is called by the View's delegate just before the editor is closed,
+        its allows this item to update itself with data from the editor.
+
+        :param editor:
+        :return:
+        """
+        return False
+
+    def queryRemove(self, view=None):
+        """
+        This is called by the view to ask this items if it (the view) can
+        remove it. Return True to let the view know that the item can be
+        removed.
+
+        :param view:
+        :return:
+        """
+        return False
+
+    def leftClicked(self):
+        """
+        This method is called by the view when the item's cell if left clicked.
+
+        :return:
+        """
+        pass
+
+
+# View settings ###############################################################
+
+class ColorItem(SubjectItem):
+    """color item."""
+    editable = True
+    persistent = True
+
+    def getEditor(self, parent, option, index):
+        editor = QColorEditor(parent)
+        editor.color = self.getColor()
+        editor.sigColorChanged.connect(self._editorSlot)
+        return editor
+
+    def _editorSlot(self, color):
+        self.setData(color, qt.Qt.EditRole)
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        self.setColor(value)
+        return self.getColor()
+
+    def _pullData(self):
+        self.getColor()
+
+    def setColor(self, color):
+        """Override to implement actual color setter"""
+        pass
+
+
+class BackgroundColorItem(ColorItem):
+    itemName = 'Background'
+
+    def setColor(self, color):
+        self.subject.setBackgroundColor(color)
+
+    def getColor(self):
+        return self.subject.getBackgroundColor()
+
+
+class ForegroundColorItem(ColorItem):
+    itemName = 'Foreground'
+
+    def setColor(self, color):
+        self.subject.setForegroundColor(color)
+
+    def getColor(self):
+        return self.subject.getForegroundColor()
+
+
+class HighlightColorItem(ColorItem):
+    itemName = 'Highlight'
+
+    def setColor(self, color):
+        self.subject.setHighlightColor(color)
+
+    def getColor(self):
+        return self.subject.getHighlightColor()
+
+
+class ViewSettingsItem(qt.QStandardItem):
+    """Viewport settings"""
+
+    def __init__(self, subject, *args):
+
+        super(ViewSettingsItem, self).__init__(*args)
+
+        self.setEditable(False)
+
+        classes = BackgroundColorItem, ForegroundColorItem, HighlightColorItem
+        for cls in classes:
+            titleItem = qt.QStandardItem(cls.itemName)
+            titleItem.setEditable(False)
+            self.appendRow([titleItem, cls(subject)])
+
+
+# Data information ############################################################
+
+class DataChangedItem(SubjectItem):
+    """
+    Base class for items listening to ScalarFieldView.sigDataChanged
+    """
+
+    def getSignals(self):
+        subject = self.subject
+        if subject:
+            return subject.sigDataChanged
+        return None
+
+    def _init(self):
+        self._subjectChanged()
+
+
+class DataTypeItem(DataChangedItem):
+    itemName = 'dtype'
+
+    def _pullData(self):
+        data = self.subject.getData(copy=False)
+        return ((data is not None) and str(data.dtype)) or 'N/A'
+
+
+class DataShapeItem(DataChangedItem):
+    itemName = 'shape'
+
+    def _pullData(self):
+        data = self.subject.getData(copy=False)
+        return ((data is not None) and str(data.shape)) or 'N/A'
+
+
+class OffsetItem(DataChangedItem):
+    itemName = 'offset'
+
+    def _pullData(self):
+        offset = self.subject.getTranslation()
+        return ((offset is not None) and str(offset)) or 'N/A'
+
+
+class ScaleItem(DataChangedItem):
+    itemName = 'scale'
+
+    def _pullData(self):
+        scale = self.subject.getScale()
+        return ((scale is not None) and str(scale)) or 'N/A'
+
+
+class DataSetItem(qt.QStandardItem):
+
+    def __init__(self, subject, *args):
+
+        super(DataSetItem, self).__init__(*args)
+
+        self.setEditable(False)
+
+        klasses = [DataTypeItem, DataShapeItem, OffsetItem, ScaleItem]
+        for klass in klasses:
+            titleItem = qt.QStandardItem(klass.itemName)
+            titleItem.setEditable(False)
+            self.appendRow([titleItem, klass(subject)])
+
+
+# Isosurface ##################################################################
+
+class IsoSurfaceRootItem(SubjectItem):
+    """
+    Root (i.e : column index 0) Isosurface item.
+    """
+
+    def getSignals(self):
+        subject = self.subject
+        return [subject.sigColorChanged,
+                subject.sigVisibilityChanged]
+
+    def _subjectChanged(self, signalIdx=None, args=None, kwargs=None):
+        if signalIdx == 0:
+            color = self.subject.getColor()
+            self.setData(color, qt.Qt.DecorationRole)
+        elif signalIdx == 1:
+            visible = args[0]
+            self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
+
+    def _init(self):
+        self.setCheckable(True)
+
+        isosurface = self.subject
+        color = isosurface.getColor()
+        visible = isosurface.isVisible()
+        self.setData(color, qt.Qt.DecorationRole)
+        self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
+
+        nameItem = qt.QStandardItem('Level')
+        sliderItem = IsoSufaceLevelSlider(self.subject)
+        self.appendRow([nameItem, sliderItem])
+
+        nameItem = qt.QStandardItem('Color')
+        nameItem.setEditable(False)
+        valueItem = IsoSurfaceColorItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Transparency')
+        nameItem.setEditable(False)
+        valueItem = IsoSurfaceAlphaItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+    def queryRemove(self, view=None):
+        buttons = qt.QMessageBox.Ok | qt.QMessageBox.Cancel
+        ans = qt.QMessageBox.question(view,
+                                      'Remove isosurface',
+                                      'Remove the selected iso-surface?',
+                                      buttons=buttons)
+        if ans == qt.QMessageBox.Ok:
+            sfview = self.subject.parent()
+            if sfview:
+                sfview.removeIsosurface(self.subject)
+                return False
+        return False
+
+    def leftClicked(self):
+        checked = (self.checkState() == qt.Qt.Checked)
+        visible = self.subject.isVisible()
+        if checked != visible:
+            self.subject.setVisible(checked)
+
+
+class IsoSurfaceLevelItem(SubjectItem):
+    """
+    Base class for the isosurface level items.
+    """
+    editable = True
+
+    def getSignals(self):
+        subject = self.subject
+        return [subject.sigLevelChanged,
+                subject.sigVisibilityChanged]
+
+    def _pullData(self):
+        return self.subject.getLevel()
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        self.subject.setLevel(value)
+        return self.subject.getLevel()
+
+
+class IsoSufaceLevelSlider(IsoSurfaceLevelItem):
+    """
+    Isosurface level item with a slider editor.
+    """
+    nTicks = 1000
+    persistent = True
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QSlider(parent)
+        editor.setOrientation(qt.Qt.Horizontal)
+        editor.setMinimum(0)
+        editor.setMaximum(self.nTicks)
+
+        editor.setSingleStep(1)
+
+        level = self.subject.getLevel()
+        dataRange = self.subject.parent().getDataRange()
+
+        if dataRange is not None and None not in dataRange:
+            width = dataRange[1] - dataRange[0]
+            sliderPosition = self.nTicks * (level - dataRange[0]) / width
+            editor.setValue(sliderPosition)
+        editor.valueChanged.connect(self.__editorChanged)
+
+        return editor
+
+    def __editorChanged(self, value):
+        dataRange = self.subject.parent().getDataRange()
+        width = dataRange[1] - dataRange[0]
+        level = dataRange[0] + width * value / self.nTicks
+        self.subject.setLevel(level)
+
+    def setEditorData(self, editor):
+        return True
+
+    def _setModelData(self, editor):
+        return True
+
+
+class IsoSurfaceColorItem(SubjectItem):
+    """
+    Isosurface color item.
+    """
+    editable = True
+    persistent = True
+
+    def getSignals(self):
+        return self.subject.sigColorChanged
+
+    def getEditor(self, parent, option, index):
+        editor = QColorEditor(parent)
+        editor.color = self.subject.getColor()
+        editor.sigColorChanged.connect(self.__editorChanged)
+        return editor
+
+    def __editorChanged(self, color):
+        color.setAlpha(self.subject.getColor().alpha())
+        self.subject.setColor(color)
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        self.subject.setColor(value)
+        return self.subject.getColor()
+
+
+class QColorEditor(qt.QWidget):
+    """
+    QColor editor.
+    """
+    sigColorChanged = qt.Signal(object)
+
+    color = property(lambda self: qt.QColor(self.__color))
+
+    @color.setter
+    def color(self, color):
+        self._setColor(color)
+        self.__previousColor = color
+
+    def __init__(self, *args, **kwargs):
+        super(QColorEditor, self).__init__(*args, **kwargs)
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        button = qt.QToolButton()
+        icon = qt.QIcon(qt.QPixmap(32, 32))
+        button.setIcon(icon)
+        layout.addWidget(button)
+        button.clicked.connect(self.__showColorDialog)
+        layout.addStretch(1)
+
+        self.__color = None
+        self.__previousColor = None
+
+    def sizeHint(self):
+        return qt.QSize(0, 0)
+
+    def _setColor(self, qColor):
+        button = self.findChild(qt.QToolButton)
+        pixmap = qt.QPixmap(32, 32)
+        pixmap.fill(qColor)
+        button.setIcon(qt.QIcon(pixmap))
+        self.__color = qColor
+
+    def __showColorDialog(self):
+        dialog = qt.QColorDialog(parent=self)
+        self.__previousColor = self.__color
+        dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
+        dialog.setModal(True)
+        dialog.currentColorChanged.connect(self.__colorChanged)
+        dialog.finished.connect(self.__dialogClosed)
+        dialog.show()
+
+    def __colorChanged(self, color):
+        self.__color = color
+        self._setColor(color)
+        self.sigColorChanged.emit(color)
+
+    def __dialogClosed(self, result):
+        if result == qt.QDialog.Rejected:
+            self.__colorChanged(self.__previousColor)
+        self.__previousColor = None
+
+
+class IsoSurfaceAlphaItem(SubjectItem):
+    """
+    Isosurface alpha item.
+    """
+    editable = True
+    persistent = True
+
+    def _init(self):
+        pass
+
+    def getSignals(self):
+        return self.subject.sigColorChanged
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QSlider(parent)
+        editor.setOrientation(qt.Qt.Horizontal)
+        editor.setMinimum(0)
+        editor.setMaximum(255)
+
+        color = self.subject.getColor()
+        editor.setValue(color.alpha())
+
+        editor.valueChanged.connect(self.__editorChanged)
+
+        return editor
+
+    def __editorChanged(self, value):
+        color = self.subject.getColor()
+        color.setAlpha(value)
+        self.subject.setColor(color)
+
+    def setEditorData(self, editor):
+        return True
+
+    def _setModelData(self, editor):
+        return True
+
+
+class IsoSurfaceCount(SubjectItem):
+    """
+    Item displaying the number of isosurfaces.
+    """
+
+    def getSignals(self):
+        subject = self.subject
+        return [subject.sigIsosurfaceAdded, subject.sigIsosurfaceRemoved]
+
+    def _pullData(self):
+        return len(self.subject.getIsosurfaces())
+
+
+class IsoSurfaceAddRemoveWidget(qt.QWidget):
+
+    sigViewTask = qt.Signal(str)
+    """Signal for the tree view to perform some task"""
+
+    def __init__(self, parent, item):
+        super(IsoSurfaceAddRemoveWidget, self).__init__(parent)
+        self._item = item
+        layout = qt.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        addBn = qt.QToolButton()
+        addBn.setText('+')
+        addBn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
+        layout.addWidget(addBn)
+        addBn.clicked.connect(self.__addClicked)
+
+        removeBtn = qt.QToolButton()
+        removeBtn.setText('-')
+        removeBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
+        layout.addWidget(removeBtn)
+        removeBtn.clicked.connect(self.__removeClicked)
+
+        layout.addStretch(1)
+
+    def __addClicked(self):
+        sfview = self._item.subject
+        if not sfview:
+            return
+        dataRange = sfview.getDataRange()
+        if dataRange is None:
+            dataRange = [0, 1]
+
+        sfview.addIsosurface(numpy.mean(dataRange), '#0000FF')
+
+    def __removeClicked(self):
+        self.sigViewTask.emit('remove_iso')
+
+
+class IsoSurfaceAddRemoveItem(SubjectItem):
+    """
+    Item displaying a simple QToolButton allowing to add an isosurface.
+    """
+    persistent = True
+
+    def getEditor(self, parent, option, index):
+        return IsoSurfaceAddRemoveWidget(parent, self)
+
+
+class IsoSurfaceGroup(SubjectItem):
+    """
+    Root item for the list of isosurface items.
+    """
+    def getSignals(self):
+        subject = self.subject
+        return [subject.sigIsosurfaceAdded, subject.sigIsosurfaceRemoved]
+
+    def _subjectChanged(self, signalIdx=None, args=None, kwargs=None):
+        if signalIdx == 0:
+            if len(args) >= 1:
+                isosurface = args[0]
+                if not isinstance(isosurface, Isosurface):
+                    raise ValueError('Expected an isosurface instance.')
+                self.__addIsosurface(isosurface)
+            else:
+                raise ValueError('Expected an isosurface instance.')
+        elif signalIdx == 1:
+            if len(args) >= 1:
+                isosurface = args[0]
+                if not isinstance(isosurface, Isosurface):
+                    raise ValueError('Expected an isosurface instance.')
+                self.__removeIsosurface(isosurface)
+            else:
+                raise ValueError('Expected an isosurface instance.')
+
+    def __addIsosurface(self, isosurface):
+        valueItem = IsoSurfaceRootItem(subject=isosurface)
+        nameItem = IsoSurfaceLevelItem(subject=isosurface)
+        self.insertRow(max(0, self.rowCount() - 1), [valueItem, nameItem])
+
+    def __removeIsosurface(self, isosurface):
+        for row in range(self.rowCount()):
+            child = self.child(row)
+            subject = getattr(child, 'subject', None)
+            if subject == isosurface:
+                self.takeRow(row)
+                break
+
+    def _init(self):
+        nameItem = qt.QStandardItem()
+        nameItem.setEditable(False)
+        valueItem = IsoSurfaceAddRemoveItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        subject = self.subject
+        isosurfaces = subject.getIsosurfaces()
+        for isosurface in isosurfaces:
+            self.__addIsosurface(isosurface)
+
+
+# Cutting Plane ###############################################################
+
+class ColormapBase(SubjectItem):
+    """
+    Mixin class for colormap items.
+    """
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigColormapChanged]
+
+
+class PlaneMinRangeItem(ColormapBase):
+    """
+    colormap minVal item.
+    Editor is a QLineEdit with a QDoubleValidator
+    """
+    editable = True
+
+    def _pullData(self):
+        colormap = self.subject.getCutPlanes()[0].getColormap()
+        auto = colormap.isAutoscale()
+        if auto == self.isEnabled():
+            self._enableRow(not auto)
+        return colormap.getVMin()
+
+    def _pushData(self, value, role=qt.Qt.UserRole):
+        self._setVMin(value)
+
+    def _setVMin(self, value):
+        cutPlane = self.subject.getCutPlanes()[0]
+        colormap = cutPlane.getColormap()
+        vMin = value
+        vMax = colormap.getVMax()
+
+        if vMax is not None and value > vMax:
+            vMin = vMax
+            vMax = value
+        cutPlane.setColormap(name=colormap.getName(),
+                             norm=colormap.getNorm(),
+                             vmin=vMin,
+                             vmax=vMax)
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QLineEdit(parent)
+        editor.setValidator(qt.QDoubleValidator())
+        return editor
+
+    def setEditorData(self, editor):
+        editor.setText(str(self._pullData()))
+        return True
+
+    def _setModelData(self, editor):
+        value = float(editor.text())
+        self._setVMin(value)
+        return True
+
+
+class PlaneMaxRangeItem(ColormapBase):
+    """
+    colormap maxVal item.
+    Editor is a QLineEdit with a QDoubleValidator
+    """
+    editable = True
+
+    def _pullData(self):
+        colormap = self.subject.getCutPlanes()[0].getColormap()
+        auto = colormap.isAutoscale()
+        if auto == self.isEnabled():
+            self._enableRow(not auto)
+        return self.subject.getCutPlanes()[0].getColormap().getVMax()
+
+    def _setVMax(self, value):
+        cutPlane = self.subject.getCutPlanes()[0]
+        colormap = cutPlane.getColormap()
+        vMin = colormap.getVMin()
+        vMax = value
+        if vMin is not None and value < vMin:
+            vMax = vMin
+            vMin = value
+        cutPlane.setColormap(name=colormap.getName(),
+                             norm=colormap.getNorm(),
+                             vmin=vMin,
+                             vmax=vMax)
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QLineEdit(parent)
+        editor.setValidator(qt.QDoubleValidator())
+        return editor
+
+    def setEditorData(self, editor):
+        editor.setText(str(self._pullData()))
+        return True
+
+    def _setModelData(self, editor):
+        value = float(editor.text())
+        self._setVMax(value)
+        return True
+
+
+class PlaneOrientationItem(SubjectItem):
+    """
+    Plane orientation item.
+    Editor is a QComboBox.
+    """
+    editable = True
+
+    _PLANE_ACTIONS = (
+        ('3d-plane-normal-x', 'YZ-Plane',
+         'Set plane perpendicular to X axis', (1., 0., 0.)),
+        ('3d-plane-normal-y', 'XZ-Plane',
+         'Set plane perpendicular to Y axis', (0., 1., 0.)),
+        ('3d-plane-normal-z', 'XY-Plane',
+         'Set plane perpendicular to Z axis', (0., 0., 1.)),
+    )
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigPlaneChanged]
+
+    def _pullData(self):
+        currentNormal = self.subject.getCutPlanes()[0].getNormal()
+        for _, text, _, normal in self._PLANE_ACTIONS:
+            if numpy.array_equal(normal, currentNormal):
+                return text
+        return ''
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QComboBox(parent)
+        for iconName, text, tooltip, normal in self._PLANE_ACTIONS:
+            editor.addItem(getQIcon(iconName), text)
+        editor.currentIndexChanged[int].connect(self.__editorChanged)
+        return editor
+
+    def __editorChanged(self, index):
+        normal = self._PLANE_ACTIONS[index][3]
+        plane = self.subject.getCutPlanes()[0]
+        plane.setNormal(normal)
+        plane.moveToCenter()
+
+    def setEditorData(self, editor):
+        currentText = self._pullData()
+        index = 0
+        for normIdx, (_, text, _, _) in enumerate(self._PLANE_ACTIONS):
+            if text == currentText:
+                index = normIdx
+                break
+        editor.setCurrentIndex(index)
+        return True
+
+    def _setModelData(self, editor):
+        return True
+
+
+class PlaneColormapItem(ColormapBase):
+    """
+    colormap name item.
+    Editor is a QComboBox
+    """
+    editable = True
+
+    listValues = ['gray', 'reversed gray',
+                  'temperature', 'red',
+                  'green', 'blue']
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QComboBox(parent)
+        editor.addItems(self.listValues)
+        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        return editor
+
+    def __editorChanged(self, index):
+        colorMapName = self.listValues[index]
+        colorMap = self.subject.getCutPlanes()[0].getColormap()
+        self.subject.getCutPlanes()[0].setColormap(name=colorMapName,
+                                                   norm=colorMap.getNorm(),
+                                                   vmin=colorMap.getVMin(),
+                                                   vmax=colorMap.getVMax())
+
+    def setEditorData(self, editor):
+        colormapName = self.subject.getCutPlanes()[0].getColormap().getName()
+        index = self.listValues.index(colormapName)
+        editor.setCurrentIndex(index)
+        return True
+
+    def _setModelData(self, editor):
+        self.__editorChanged(editor.currentIndex())
+        return True
+
+    def _pullData(self):
+        return self.subject.getCutPlanes()[0].getColormap().getName()
+
+
+class PlaneAutoScaleItem(ColormapBase):
+    """
+    colormap autoscale item.
+    Item is checkable.
+    """
+
+    def _init(self):
+        colorMap = self.subject.getCutPlanes()[0].getColormap()
+        self.setCheckable(True)
+        self.setCheckState((colorMap.isAutoscale() and qt.Qt.Checked)
+                           or qt.Qt.Unchecked)
+
+    def leftClicked(self):
+        checked = (self.checkState() == qt.Qt.Checked)
+        self._setAutoScale(checked)
+
+    def _setAutoScale(self, auto):
+        view3d = self.subject
+        cutPlane = view3d.getCutPlanes()[0]
+        colormap = cutPlane.getColormap()
+
+        if auto != colormap.isAutoscale():
+            if auto:
+                vMin = vMax = None
+            else:
+                dataRange = view3d.getDataRange()
+                if dataRange is None or None in dataRange:
+                    vMin = vMax = None
+                else:
+                    vMin, vMax = dataRange
+            cutPlane.setColormap(colormap.getName(),
+                                 colormap.getNorm(),
+                                 vMin,
+                                 vMax)
+
+    def _pullData(self):
+        auto = self.subject.getCutPlanes()[0].getColormap().isAutoscale()
+        self._setAutoScale(auto)
+        if auto:
+            data = 'Auto'
+        else:
+            data = 'User'
+        return data
+
+
+class NormalizationNode(ColormapBase):
+    """
+    colormap normalization item.
+    Item is a QComboBox.
+    """
+    editable = True
+    listValues = ['linear', 'log']
+
+    def getEditor(self, parent, option, index):
+        editor = qt.QComboBox(parent)
+        editor.addItems(self.listValues)
+        editor.currentIndexChanged[int].connect(self.__editorChanged)
+
+        return editor
+
+    def __editorChanged(self, index):
+        colorMap = self.subject.getCutPlanes()[0].getColormap()
+        normalization = self.listValues[index]
+        self.subject.getCutPlanes()[0].setColormap(name=colorMap.getName(),
+                                                   norm=normalization,
+                                                   vmin=colorMap.getVMin(),
+                                                   vmax=colorMap.getVMax())
+
+    def setEditorData(self, editor):
+        normalization = self.subject.getCutPlanes()[0].getColormap().getNorm()
+        index = self.listValues.index(normalization)
+        editor.setCurrentIndex(index)
+        return True
+
+    def _setModelData(self, editor):
+        self.__editorChanged(editor.currentIndex())
+        return True
+
+    def _pullData(self):
+        return self.subject.getCutPlanes()[0].getColormap().getNorm()
+
+
+class PlaneGroup(SubjectItem):
+    """
+    Root Item for the plane items.
+    """
+    def _init(self):
+        valueItem = qt.QStandardItem()
+        valueItem.setEditable(False)
+        nameItem = PlaneVisibleItem(self.subject, 'Visible')
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Colormap')
+        nameItem.setEditable(False)
+        valueItem = PlaneColormapItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Normalization')
+        nameItem.setEditable(False)
+        valueItem = NormalizationNode(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Orientation')
+        nameItem.setEditable(False)
+        valueItem = PlaneOrientationItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Autoscale')
+        nameItem.setEditable(False)
+        valueItem = PlaneAutoScaleItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Min')
+        nameItem.setEditable(False)
+        valueItem = PlaneMinRangeItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Max')
+        nameItem.setEditable(False)
+        valueItem = PlaneMaxRangeItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+
+class PlaneVisibleItem(SubjectItem):
+    """
+    Plane visibility item.
+    Item is checkable.
+    """
+    def _init(self):
+        plane = self.subject.getCutPlanes()[0]
+        self.setCheckable(True)
+        self.setCheckState((plane.isVisible() and qt.Qt.Checked)
+                           or qt.Qt.Unchecked)
+
+    def leftClicked(self):
+        plane = self.subject.getCutPlanes()[0]
+        checked = (self.checkState() == qt.Qt.Checked)
+        if checked != plane.isVisible():
+            plane.setVisible(checked)
+            if plane.isVisible():
+                plane.moveToCenter()
+
+
+# Tree ########################################################################
+
+class ItemDelegate(qt.QStyledItemDelegate):
+    """
+    Delegate for the QTreeView filled with SubjectItems.
+    """
+
+    sigDelegateEvent = qt.Signal(str)
+
+    def __init__(self, parent=None):
+        super(ItemDelegate, self).__init__(parent)
+
+    def createEditor(self, parent, option, index):
+        item = index.model().itemFromIndex(index)
+        if item:
+            if isinstance(item, SubjectItem):
+                editor = item.getEditor(parent, option, index)
+                if editor:
+                    editor.setAutoFillBackground(True)
+                    if hasattr(editor, 'sigViewTask'):
+                        editor.sigViewTask.connect(self.__viewTask)
+                    return editor
+
+        editor = super(ItemDelegate, self).createEditor(parent,
+                                                        option,
+                                                        index)
+        return editor
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect)
+
+    def setEditorData(self, editor, index):
+        item = index.model().itemFromIndex(index)
+        if item:
+            if isinstance(item, SubjectItem) and item.setEditorData(editor):
+                return
+        super(ItemDelegate, self).setEditorData(editor, index)
+
+    def setModelData(self, editor, model, index):
+        item = index.model().itemFromIndex(index)
+        if isinstance(item, SubjectItem) and item._setModelData(editor):
+            return
+        super(ItemDelegate, self).setModelData(editor, model, index)
+
+    def __viewTask(self, task):
+        self.sigDelegateEvent.emit(task)
+
+
+class TreeView(qt.QTreeView):
+    """
+    TreeView displaying the SubjectItems for the ScalarFieldView.
+    """
+
+    def __init__(self, parent=None):
+        super(TreeView, self).__init__(parent)
+        self.__openedIndex = None
+        self.header().setResizeMode(qt.QHeaderView.ResizeToContents)
+
+        delegate = ItemDelegate()
+        self.setItemDelegateForColumn(1, delegate)
+        delegate.sigDelegateEvent.connect(self.__delegateEvent)
+        self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
+        self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
+
+        self.clicked.connect(self.__clicked)
+
+    def setSfView(self, sfView):
+        """
+        Sets the ScalarFieldView this view is controlling.
+
+        :param sfView:
+        :return:
+        """
+        model = qt.QStandardItemModel()
+        model.setColumnCount(ModelColumns.ColumnMax)
+        model.setHorizontalHeaderLabels(['Name', 'Value'])
+
+        item = qt.QStandardItem()
+        item.setEditable(False)
+        model.appendRow([ViewSettingsItem(sfView, 'Style'), item])
+
+        item = qt.QStandardItem()
+        item.setEditable(False)
+        model.appendRow([DataSetItem(sfView, 'Data'), item])
+
+        item = IsoSurfaceCount(sfView)
+        item.setEditable(False)
+        model.appendRow([IsoSurfaceGroup(sfView, 'Isosurfaces'), item])
+
+        item = qt.QStandardItem()
+        item.setEditable(False)
+        model.appendRow([PlaneGroup(sfView, 'Cutting Plane'), item])
+
+        self.setModel(model)
+
+    def setModel(self, model):
+        """
+        Reimplementation of the QTreeView.setModel method. It connects the
+        rowsRemoved signal and opens the persistent editors.
+
+        :param model: the model
+        :type model: QStandardItemModel
+        """
+
+        prevModel = self.model()
+        if prevModel:
+            self.__openPersistentEditors(qt.QModelIndex(), False)
+            try:
+                prevModel.rowsRemoved.disconnect(self.rowsRemoved)
+            except TypeError:
+                pass
+
+        super(TreeView, self).setModel(model)
+        model.rowsRemoved.connect(self.rowsRemoved)
+        self.__openPersistentEditors(qt.QModelIndex())
+
+    def __openPersistentEditors(self, parent=None, openEditor=True):
+        """
+        Opens or closes the items persistent editors.
+
+        :param parent: starting index, or None if the whole tree is to be
+            considered.
+        :type parent: QModelIndex
+
+        :param openEditor: True to open the editors, False to close them.
+        :type openEditor: bool
+        """
+        model = self.model()
+
+        if not model:
+            return
+
+        if not parent or not parent.isValid():
+            parent = self.model().invisibleRootItem().index()
+
+        if openEditor:
+            meth = self.openPersistentEditor
+        else:
+            meth = self.closePersistentEditor
+
+        curParent = parent
+        children = [model.index(row, 0, curParent)
+                    for row in range(model.rowCount(curParent))]
+
+        columnCount = model.columnCount()
+
+        while len(children) > 0:
+            curParent = children.pop(-1)
+
+            children.extend([model.index(row, 0, curParent)
+                             for row in range(model.rowCount(curParent))])
+
+            for colIdx in range(columnCount):
+                sibling = model.sibling(curParent.row(),
+                                        colIdx,
+                                        curParent)
+                item = model.itemFromIndex(sibling)
+                if isinstance(item, SubjectItem) and item.persistent:
+                    meth(sibling)
+
+    def rowsAboutToBeRemoved(self, parent, start, end):
+        """
+        Reimplementation of the QTreeView.rowsAboutToBeRemoved. Closes all
+        persistend editors under parent.
+
+        :param parent:
+        :param start:
+        :param end:
+        """
+        self.__openPersistentEditors(parent, False)
+        super(TreeView, self).rowsAboutToBeRemoved(parent, start, end)
+
+    def rowsRemoved(self, parent, start, end):
+        """
+        Called when QTreeView.rowsRemoved is emitted. Opens all persistent
+        editors under parent.
+
+        :param parent:
+        :param start:
+        :param end:
+        :return:
+        """
+        super(TreeView, self).rowsRemoved(parent, start, end)
+        self.__openPersistentEditors(parent, True)
+
+    def rowsInserted(self, parent, start, end):
+        """
+        Reimplementation of the QTreeView.rowsInserted. Opens all persistent
+        editors under parent.
+
+        :param parent:
+        :param start:
+        :param end:
+        """
+        self.__openPersistentEditors(parent, False)
+        super(TreeView, self).rowsInserted(parent, start, end)
+        self.__openPersistentEditors(parent)
+
+    def keyReleaseEvent(self, event):
+        """
+        Reimplementation of the QTreeView.keyReleaseEvent.
+        At the moment only Key_Delete is handled. It calls the selected item's
+        queryRemove method, and deleted the item if needed.
+
+        :param event:
+        """
+
+        # TODO : better filtering
+        key = event.key()
+        modifiers = event.modifiers()
+
+        if key == qt.Qt.Key_Delete and modifiers == qt.Qt.NoModifier:
+            self.__removeIsosurfaces()
+
+        super(TreeView, self).keyReleaseEvent(event)
+
+    def __removeIsosurfaces(self):
+        model = self.model()
+        selected = self.selectedIndexes()
+        items = []
+        # WARNING : the selection mode is set to single, so we re not
+        # supposed to have more than one item here.
+        # Multiple selection deletion has not been tested.
+        # Watch out for index invalidation
+        for index in selected:
+            leftIndex = model.sibling(index.row(), 0, index)
+            leftItem = model.itemFromIndex(leftIndex)
+            if isinstance(leftItem, SubjectItem) and leftItem not in items:
+                items.append(leftItem)
+
+        isos = [item for item in items if isinstance(item, IsoSurfaceRootItem)]
+        if isos:
+            for iso in isos:
+                if iso.queryRemove(self):
+                    parentItem = iso.parent()
+                    parentItem.removeRow(iso.row())
+        else:
+            qt.QMessageBox.information(
+                self,
+                'Remove isosurface',
+                'Select an iso-surface to remove it')
+
+    def __clicked(self, index):
+        """
+        Called when the QTreeView.clicked signal is emitted. Calls the item's
+        leftClick method.
+
+        :param index:
+        :return:
+        """
+        item = self.model().itemFromIndex(index)
+        if isinstance(item, SubjectItem):
+            item.leftClicked()
+
+    def __delegateEvent(self, task):
+        if task == 'remove_iso':
+            self.__removeIsosurfaces()
