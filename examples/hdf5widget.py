@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -66,10 +66,11 @@ def get_hdf5_with_all_types():
 
     g = h5.create_group("arrays")
     g.create_dataset("scalar", data=10)
-    g.create_dataset("list", data=[10])
-    g.create_dataset("image", data=[[10]])
-    g.create_dataset("cube", data=[[[10]]])
-    g.create_dataset("hypercube", data=[[[[10]]]])
+    g.create_dataset("list", data=numpy.arange(10))
+    g.create_dataset("image", data=numpy.arange(10**2).reshape((10, 10)))
+    g.create_dataset("cube", data=numpy.arange(10**3).reshape((10, 10, 10)))
+    g.create_dataset("hypercube",
+                     data=numpy.arange(10**4).reshape((10, 10, 10, 10)))
 
     g = h5.create_group("dtypes")
     g.create_dataset("int32", data=numpy.int32(10))
