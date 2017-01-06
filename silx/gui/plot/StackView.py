@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "04/01/2016"
+__date__ = "06/01/2017"
 
 import numpy
 
@@ -155,6 +155,12 @@ class StackView(qt.QMainWindow):
                  copy=True, save=True, print_=True, control=False,
                  position=None, mask=True):
         qt.QMainWindow.__init__(self, parent)
+        if parent is not None:
+            # behave as a widget
+            self.setWindowFlags(qt.Qt.Widget)
+        else:
+            self.setWindowTitle('StackView')
+
         self._stack = None
         """Loaded stack of images, as a 3D array or 3D dataset"""
         self.__transposed_view = None
