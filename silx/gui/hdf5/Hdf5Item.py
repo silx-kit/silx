@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,17 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "21/12/2016"
 
 
 import numpy
 import logging
+import collections
 from .. import qt
 from .. import icons
 from . import _utils
 from .Hdf5Node import Hdf5Node
+import silx.io.utils
 
 _logger = logging.getLogger(__name__)
 
@@ -84,10 +86,7 @@ class Hdf5Item(Hdf5Node):
         :rtype: h5py.File or h5py.Dataset or h5py.Group
         """
         if self.__h5pyClass is None:
-            if hasattr(self.obj, "h5py_class"):
-                self.__h5pyClass = self.obj.h5py_class
-            else:
-                self.__h5pyClass = self.obj.__class__
+            self.__h5pyClass = silx.io.utils.get_h5py_class(self.obj)
         return self.__h5pyClass
 
     def isGroupObj(self):
@@ -134,14 +133,14 @@ class Hdf5Item(Hdf5Node):
                 # that's a broken link
                 self.__obj = parent_obj.get(self.__key, getlink=True)
 
-                # TODO monkeypatch file (ask that in h5py for consistancy)
+                # TODO monkey-patch file (ask that in h5py for consistency)
                 if not hasattr(self.__obj, "name"):
                     parent_name = parent_obj.name
                     if parent_name == "/":
                         self.__obj.name = "/" + self.__key
                     else:
                         self.__obj.name = parent_name + "/" + self.__key
-                # TODO monkeypatch file (ask that in h5py for consistancy)
+                # TODO monkey-patch file (ask that in h5py for consistency)
                 if not hasattr(self.__obj, "file"):
                     self.__obj.file = parent_obj.file
 
@@ -213,6 +212,88 @@ class Hdf5Item(Hdf5Node):
             return icon
         return None
 
+    def _humanReadableShape(self, dataset):
+        if dataset.shape == tuple():
+            return "scalar"
+        shape = [str(i) for i in dataset.shape]
+        text = u" \u00D7 ".join(shape)
+        return text
+
+    def _humanReadableValue(self, dataset):
+        if dataset.shape == tuple():
+            numpy_object = dataset[()]
+            text = _utils.toString(numpy_object)
+        else:
+            if dataset.size < 5 and dataset.compression is None:
+                numpy_object = dataset[0:5]
+                text = _utils.toString(numpy_object)
+            else:
+                dimension = len(dataset.shape)
+                if dataset.compression is not None:
+                    text = "Compressed %dD data" % dimension
+                else:
+                    text = "%dD data" % dimension
+        return text
+
+    def _humanReadableDType(self, dtype, full=False):
+        if dtype.type == numpy.string_:
+            text = "string"
+        elif dtype.type == numpy.object_:
+            text = "object"
+        elif dtype.type == numpy.bool_:
+            text = "bool"
+        elif dtype.type == numpy.void:
+            if dtype.fields is None:
+                text = "raw"
+            else:
+                if not full:
+                    text = "compound"
+                else:
+                    compound = [d[0] for d in dtype.fields.values()]
+                    compound = [self._humanReadableDType(d) for d in compound]
+                    text = "compound(%s)" % ", ".join(compound)
+        else:
+            text = str(dtype)
+        return text
+
+    def _humanReadableType(self, dataset, full=False):
+        return self._humanReadableDType(dataset.dtype, full)
+
+    def _setTooltipAttributes(self, attributeDict):
+        """
+        Add key/value attributes that will be displayed in the item tooltip
+
+        :param Dict[str,str] attributeDict: Key/value attributes
+        """
+        if issubclass(self.h5pyClass, h5py.Dataset):
+            attributeDict["Title"] = "HDF5 Dataset"
+            attributeDict["Name"] = self.basename
+            attributeDict["Path"] = self.obj.name
+            attributeDict["Shape"] = self._humanReadableShape(self.obj)
+            attributeDict["Value"] = self._humanReadableValue(self.obj)
+            attributeDict["Data type"] = self._humanReadableType(self.obj, full=True)
+        elif issubclass(self.h5pyClass, h5py.Group):
+            attributeDict["Title"] = "HDF5 Group"
+            attributeDict["Name"] = self.basename
+            attributeDict["Path"] = self.obj.name
+        elif issubclass(self.h5pyClass, h5py.File):
+            attributeDict["Title"] = "HDF5 File"
+            attributeDict["Name"] = self.basename
+            attributeDict["Path"] = "/"
+        elif isinstance(self.obj, h5py.ExternalLink):
+            attributeDict["Title"] = "HDF5 External Link"
+            attributeDict["Name"] = self.basename
+            attributeDict["Path"] = self.obj.name
+            attributeDict["Linked path"] = self.obj.path
+            attributeDict["Linked file"] = self.obj.filename
+        elif isinstance(self.obj, h5py.SoftLink):
+            attributeDict["Title"] = "HDF5 Soft Link"
+            attributeDict["Name"] = self.basename
+            attributeDict["Path"] = self.obj.name
+            attributeDict["Linked path"] = self.obj.path
+        else:
+            pass
+
     def _getDefaultTooltip(self):
         """Returns the default tooltip
 
@@ -221,28 +302,13 @@ class Hdf5Item(Hdf5Node):
         if self.__error is not None:
             self.obj  # lazy loading of the object
             return self.__error
-        class_ = self.h5pyClass
 
-        attrs = {}
-        if issubclass(class_, h5py.Dataset):
-            attrs = dict(self.obj.attrs)
-            if self.obj.shape == ():
-                attrs["shape"] = "scalar"
-            else:
-                attrs["shape"] = self.obj.shape
-            attrs["dtype"] = self.obj.dtype
-            if self.obj.shape == ():
-                attrs["value"] = self.obj.value
-            else:
-                attrs["value"] = "..."
-        elif isinstance(self.obj, h5py.ExternalLink):
-            attrs["linked path"] = self.obj.path
-            attrs["linked file"] = self.obj.filename
-        elif isinstance(self.obj, h5py.SoftLink):
-            attrs["linked path"] = self.obj.path
+        attrs = collections.OrderedDict()
+        self._setTooltipAttributes(attrs)
 
+        title = attrs.pop("Title", None)
         if len(attrs) > 0:
-            tooltip = _utils.htmlFromDict(attrs)
+            tooltip = _utils.htmlFromDict(attrs, title=title)
         else:
             tooltip = ""
 
@@ -271,10 +337,7 @@ class Hdf5Item(Hdf5Node):
                 return ""
             class_ = self.h5pyClass
             if issubclass(class_, h5py.Dataset):
-                if self.obj.dtype.type == numpy.string_:
-                    text = "string"
-                else:
-                    text = str(self.obj.dtype)
+                text = self._humanReadableType(self.obj)
             else:
                 text = ""
             return text
@@ -293,9 +356,7 @@ class Hdf5Item(Hdf5Node):
             class_ = self.h5pyClass
             if not issubclass(class_, h5py.Dataset):
                 return ""
-            shape = [str(i) for i in self.obj.shape]
-            text = u" \u00D7 ".join(shape)
-            return text
+            return self._humanReadableShape(self.obj)
         return None
 
     def dataValue(self, role):
@@ -307,26 +368,9 @@ class Hdf5Item(Hdf5Node):
         if role == qt.Qt.DisplayRole:
             if self.__error is not None:
                 return ""
-            class_ = self.h5pyClass
-            if not issubclass(class_, h5py.Dataset):
+            if not issubclass(self.h5pyClass, h5py.Dataset):
                 return ""
-
-            numpy_object = self.obj.value
-
-            if self.obj.dtype.type == numpy.object_:
-                text = str(numpy_object)
-            elif self.obj.dtype.type == numpy.string_:
-                text = str(numpy_object)
-            else:
-                size = 1
-                for dim in numpy_object.shape:
-                    size = size * dim
-
-                if size > 5:
-                    text = "..."
-                else:
-                    text = str(numpy_object)
-            return text
+            return self._humanReadableValue(self.obj)
         return None
 
     def dataDescription(self, role):

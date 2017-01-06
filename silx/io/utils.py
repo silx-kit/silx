@@ -41,7 +41,7 @@ else:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "13/12/2016"
 
 
 logger = logging.getLogger(__name__)
@@ -412,3 +412,67 @@ def load(filename):
     :rtype: h5py.File
     """
     return open(filename)
+
+
+def get_h5py_class(obj):
+    """Returns the h5py class from an object.
+
+    If it is an h5py object or an h5py-like object, an h5py class is returned.
+    If the object is not an h5py-like object, None is returned.
+
+    :param obj: An object
+    :return: An h5py object
+    """
+    if hasattr(obj, "h5py_class"):
+        return obj.h5py_class
+    elif isinstance(obj, (h5py.File, h5py.Group, h5py.Dataset)):
+        return obj.__class__
+    else:
+        return None
+
+
+def is_file(obj):
+    """
+    True is the object is an h5py.File-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.File)
+
+
+def is_group(obj):
+    """
+    True is the object is an h5py.Group-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.Group)
+
+
+def is_dataset(obj):
+    """
+    True is the object is an h5py.Dataset-like object.
+
+    :param obj: An object
+    """
+    class_ = get_h5py_class(obj)
+    if class_ is None:
+        return False
+    return issubclass(class_, h5py.Dataset)
+
+
+if h5py_missing:
+    def raise_h5py_missing(obj):
+        logger.error("get_h5py_class/is_file/is_group/is_dataset requires h5py")
+        raise h5py_import_error
+
+    get_h5py_class = raise_h5py_missing
+    is_file = raise_h5py_missing
+    is_group = raise_h5py_missing
+    is_dataset = raise_h5py_missing

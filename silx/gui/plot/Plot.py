@@ -1948,7 +1948,7 @@ class Plot(object):
 
     def getGraphXLabel(self):
         """Return the current X axis label as a str."""
-        return self._defaultLabels['x']
+        return self._currentLabels['x']
 
     def setGraphXLabel(self, label="X"):
         """Set the plot X axis label.

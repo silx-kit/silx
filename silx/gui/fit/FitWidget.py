@@ -59,8 +59,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "11/10/2016"
-
+__date__ = "30/11/2016"
 
 
 class FitWidget(qt.QWidget):
@@ -136,7 +135,6 @@ class FitWidget(qt.QWidget):
         # reference fitmanager.configure method for direct access
         self.configure = self.fitmanager.configure
         self.fitconfig = self.fitmanager.fitconfig
-
 
         self.configdialogs = {}
         """This dictionary defines the fit configuration widgets
