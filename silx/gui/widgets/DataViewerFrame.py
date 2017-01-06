@@ -40,8 +40,8 @@ class DataViewerFrame(qt.QWidget):
 
     .. image:: img/DataViewerFrame.png
 
-    This widget provides the same API than :class:`DataViewer`. Then for more
-    documentation take a look at the documentation of the class
+    This widget provides the same API as :class:`DataViewer`. Therefore, for more
+    documentation, take a look at the documentation of the class
     :class:`DataViewer`.
 
     .. code-block:: python
