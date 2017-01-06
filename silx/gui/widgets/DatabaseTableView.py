@@ -29,11 +29,14 @@ array using compound data types or hdf5 databases.
 from __future__ import division
 
 import itertools
+import numbers
+import numpy
+import six
 from silx.gui import qt
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "06/01/2017"
 
 
 class DatabaseTableModel(qt.QAbstractTableModel):
@@ -48,18 +51,47 @@ class DatabaseTableModel(qt.QAbstractTableModel):
 
     :param qt.QObject parent: Parent object
     :param numpy.ndarray data: A numpy array or a h5py dataset
-    :param str fmt: Format string for representing numerical values.
-        Default is ``"%g"``.
     """
-    def __init__(self, parent=None, data=None, fmt="%g"):
+    def __init__(self, parent=None, data=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
-        self.__format = fmt
+        self.__format = "%g"
         self.__data = None
         self.__fields = None
 
         # set _data
         self.setArrayData(data)
+
+    def toString(self, data):
+        """Rendering a data into a readable string
+
+        :param data: Data to render
+        :rtype: str
+        """
+        if isinstance(data, (tuple, numpy.void)):
+            text = [self.toString(d) for d in data]
+            return "(" + " ".join(text) + ")"
+        elif isinstance(data, (list, numpy.ndarray)):
+            text = [self.toString(d) for d in data]
+            return "[" + " ".join(text) + "]"
+        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
+            try:
+                return "\"%s\"" % data.decode("utf-8")
+            except UnicodeDecodeError:
+                pass
+            import binascii
+            return binascii.hexlify(data).decode("ascii")
+        elif isinstance(data, six.string_types):
+            return "\"%s\"" % data
+        elif isinstance(data, numpy.complex_):
+            if data.imag < 0:
+                template = self.__format + " - " + self.__format + "j"
+            else:
+                template = self.__format + " + " + self.__format + "j"
+            return template % (data.real, data.imag)
+        elif isinstance(data, numbers.Number):
+            return self.__format % data
+        return str(data)
 
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
@@ -98,10 +130,7 @@ class DatabaseTableModel(qt.QAbstractTableModel):
                 data = data[key[1]]
 
         if role == qt.Qt.DisplayRole:
-            try:
-                return self.__format % data
-            except TypeError:
-                return str(data)
+            return self.toString(data)
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the
@@ -174,18 +203,19 @@ class DatabaseTableModel(qt.QAbstractTableModel):
         """
         return self.__data
 
-    def setFormat(self, fmt):
+    def setNumericFormat(self, numericFormat):
         """Set format string controlling how the values are represented in
         the table view.
 
-        :param str fmt: Format string (e.g. "%.3f", "%d", "%-10.2f", "%10.3e")
+        :param str numericFormat: Format string (e.g. "%.3f", "%d", "%-10.2f",
+            "%10.3e").
             This is the C-style format string used by python when formatting
             strings with the modulus operator.
         """
         if qt.qVersion() > "4.6":
             self.beginResetModel()
 
-        self.__format = fmt
+        self.__format = numericFormat
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
