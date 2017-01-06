@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "06/01/2017"
 
 from collections import OrderedDict
 import functools
@@ -62,7 +62,7 @@ class DataViewerSelector(qt.QWidget):
         buttons[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
         buttons[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
         buttons[DataViewer.ARRAY_MODE] = ("Raw", "view-raw")
-        buttons[DataViewer.DATABASE_MODE] = ("Raw", "view-raw")
+        buttons[DataViewer.RECORD_MODE] = ("Raw", "view-raw")
         buttons[DataViewer.TEXT_MODE] = ("Text", "view-text")
 
         for modeId, state in buttons.items():

@@ -39,7 +39,7 @@ __license__ = "MIT"
 __date__ = "06/01/2017"
 
 
-class DatabaseTableModel(qt.QAbstractTableModel):
+class RecordTableModel(qt.QAbstractTableModel):
     """This data model provides access to 1D slices from numpy array using
     compound data types or hdf5 databases.
 
@@ -223,7 +223,7 @@ class DatabaseTableModel(qt.QAbstractTableModel):
             self.reset()
 
 
-class DatabaseTableView(qt.QTableView):
+class RecordTableView(qt.QTableView):
     """TableView using DatabaseTableModel as default model.
     """
     def __init__(self, parent=None):
@@ -232,4 +232,4 @@ class DatabaseTableView(qt.QTableView):
         :param parent: parent QWidget
         """
         qt.QWidget.__init__(self, parent)
-        self.setModel(DatabaseTableModel())
+        self.setModel(RecordTableModel())

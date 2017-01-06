@@ -303,15 +303,15 @@ class _TextView(DataView):
         return 0
 
 
-class _DatabaseView(DataView):
+class _RecordView(DataView):
     """View displaying data using text"""
 
     def axiesNames(self):
         return ["data"]
 
     def createWidget(self, parent):
-        from .DatabaseTableView import DatabaseTableView
-        widget = DatabaseTableView(parent)
+        from .RecordTableView import RecordTableView
+        widget = RecordTableView(parent)
         return widget
 
     def clear(self):
@@ -366,7 +366,7 @@ class DataViewer(qt.QFrame):
     PLOT2D_MODE = 2
     TEXT_MODE = 3
     ARRAY_MODE = 4
-    DATABASE_MODE = 4
+    RECORD_MODE = 6
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -412,7 +412,7 @@ class DataViewer(qt.QFrame):
             _Plot2dView(self.__stack, self.PLOT2D_MODE),
             _TextView(self.__stack, self.TEXT_MODE),
             _ArrayView(self.__stack, self.ARRAY_MODE),
-            _DatabaseView(self.__stack, self.DATABASE_MODE),
+            _RecordView(self.__stack, self.RECORD_MODE),
         ]
         self.__views = {}
         for v in views:
