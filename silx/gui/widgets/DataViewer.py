@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "10/01/2017"
 
 import numpy
 import numbers
@@ -257,6 +257,60 @@ class _ArrayView(DataView):
         return 50
 
 
+class _StackView(DataView):
+    """View displaying data using a stack of images"""
+
+    def __init__(self, parent, modeId):
+        super(_StackView, self).__init__(parent, modeId)
+        self.__resetZoomNextTime = True
+
+    def axiesNames(self):
+        return ["depth", "y", "x"]
+
+    def customAxisNames(self):
+        return ["depth"]
+
+    def setCustomAxisValue(self, name, value):
+        if name == "depth":
+            self.getWidget().setFrameNumber(value)
+        else:
+            raise Exception("Unsupported axis")
+
+    def createWidget(self, parent):
+        from silx.gui import plot
+        widget = plot.StackView(parent=parent)
+        widget.setKeepDataAspectRatio(True)
+        widget.setLabels(self.axiesNames())
+        # hide default option panel
+        widget.setOptionVisible(False)
+        return widget
+
+    def clear(self):
+        self.getWidget().clear()
+        self.__resetZoomNextTime = True
+
+    def setData(self, data):
+        self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
+        self.__resetZoomNextTime = False
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) < 3:
+            return -1
+        if len(data.shape) == 3:
+            return 90
+        else:
+            return 10
+
+
 class _TextView(DataView):
     """View displaying data using text"""
 
@@ -380,6 +434,7 @@ class DataViewer(qt.QFrame):
     PLOT2D_MODE = 2
     TEXT_MODE = 3
     ARRAY_MODE = 4
+    STACK_MODE = 5
     RECORD_MODE = 6
 
     displayModeChanged = qt.Signal(int)
@@ -427,6 +482,7 @@ class DataViewer(qt.QFrame):
             _Plot2dView(self.__stack, self.PLOT2D_MODE),
             _TextView(self.__stack, self.TEXT_MODE),
             _ArrayView(self.__stack, self.ARRAY_MODE),
+            _StackView(self.__stack, self.STACK_MODE),
             _RecordView(self.__stack, self.RECORD_MODE),
         ]
         self.__views = {}
