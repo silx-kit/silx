@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,19 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "06/01/2017"
 
 import numpy
+import numbers
 
 import silx.io
 from silx.gui import qt
 from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 
 
 class DataView(object):
@@ -238,6 +244,8 @@ class _ArrayView(DataView):
 class _TextView(DataView):
     """View displaying data using text"""
 
+    __format = "%g"
+
     def axiesNames(self):
         return []
 
@@ -250,10 +258,42 @@ class _TextView(DataView):
     def clear(self):
         self.getWidget().setText("")
 
+    def toString(self, data):
+        """Rendering a data into a readable string
+
+        :param data: Data to render
+        :rtype: str
+        """
+        if isinstance(data, (tuple, numpy.void)):
+            text = [self.toString(d) for d in data]
+            return "(" + " ".join(text) + ")"
+        elif isinstance(data, (list, numpy.ndarray)):
+            text = [self.toString(d) for d in data]
+            return "[" + " ".join(text) + "]"
+        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
+            try:
+                return "\"%s\"" % data.decode("utf-8")
+            except UnicodeDecodeError:
+                pass
+            import binascii
+            return binascii.hexlify(data).decode("ascii")
+        elif isinstance(data, six.string_types):
+            return "\"%s\"" % data
+        elif isinstance(data, numpy.complex_):
+            if data.imag < 0:
+                template = self.__format + " - " + self.__format + "j"
+            else:
+                template = self.__format + " + " + self.__format + "j"
+            return template % (data.real, data.imag)
+        elif isinstance(data, numbers.Number):
+            return self.__format % data
+        return str(data)
+
     def setData(self, data):
         if silx.io.is_dataset(data):
             data = data[()]
-        self.getWidget().setText(str(data))
+        text = self.toString(data)
+        self.getWidget().setText(text)
 
     def getDataPriority(self, data):
         if data is None:
