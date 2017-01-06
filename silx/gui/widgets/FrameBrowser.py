@@ -36,7 +36,7 @@ from silx.gui import icons
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "05/01/2017"
 
 
 class FrameBrowser(qt.QWidget):
@@ -53,20 +53,29 @@ class FrameBrowser(qt.QWidget):
 
     def __init__(self, parent=None, n=None):
         qt.QWidget.__init__(self, parent)
+
+        # Use the font size as the icon size to avoid to create bigger buttons
+        fontMetric = self.fontMetrics()
+        iconSize = qt.QSize(fontMetric.height(), fontMetric.height())
+
         self.mainLayout = qt.QHBoxLayout(self)
         self.mainLayout.setContentsMargins(0, 0, 0, 0)
         self.mainLayout.setSpacing(0)
         self.firstButton = qt.QPushButton(self)
         self.firstButton.setIcon(icons.getQIcon("first"))
+        self.firstButton.setIconSize(iconSize)
         self.previousButton = qt.QPushButton(self)
         self.previousButton.setIcon(icons.getQIcon("previous"))
+        self.previousButton.setIconSize(iconSize)
         self.lineEdit = qt.QLineEdit(self)
 
         self.label = qt.QLabel(self)
         self.nextButton = qt.QPushButton(self)
         self.nextButton.setIcon(icons.getQIcon("next"))
+        self.nextButton.setIconSize(iconSize)
         self.lastButton = qt.QPushButton(self)
         self.lastButton.setIcon(icons.getQIcon("last"))
+        self.lastButton.setIconSize(iconSize)
 
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)
@@ -95,7 +104,6 @@ class FrameBrowser(qt.QWidget):
         self.nextButton.clicked.connect(self._nextClicked)
         self.lastButton.clicked.connect(self._lastClicked)
         self.lineEdit.editingFinished.connect(self._textChangedSlot)
-
 
     def _firstClicked(self):
         """Select first/lowest frame number"""
