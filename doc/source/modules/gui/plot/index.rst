@@ -84,6 +84,7 @@ Public modules
    stackview.rst
    plot.rst
    plotactions.rst
+   roi.rst
 
 Internals
 ---------
