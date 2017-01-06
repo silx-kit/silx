@@ -203,16 +203,25 @@ class StackView(qt.QMainWindow):
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        planeSelection = PlanesWidget(self._plot)
-        planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+        self.__planeSelection = PlanesWidget(self._plot)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
         layout = qt.QGridLayout()
         layout.addWidget(self._plot, 0, 0, 1, 2)
-        layout.addWidget(planeSelection, 1, 0)
+        layout.addWidget(self.__planeSelection, 1, 0)
         layout.addWidget(self._browser, 1, 1)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
+    def setOptionVisible(self, isVisible):
+        """
+        Set the visibility of the browsing options.
+
+        :param bool isVisible: True to have the options visible, else False
+        """
+        self._browser.setVisible(isVisible)
+        self.__planeSelection.setVisible(isVisible)
 
     def _imagePlotCB(self, eventDict):
         """Callback for plot events.
