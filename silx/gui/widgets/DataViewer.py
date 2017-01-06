@@ -306,18 +306,18 @@ class DataViewer(qt.QFrame):
 
     .. image:: img/DataViewer.png
 
-    The method :meth:`setData` allow to set any data to the widget. Mostly
-    `numpy.array` and `h5py.Dataset` are supported with adated views. Other
-    data are displayed using text viewer.
+    The method :meth:`setData` allows to set any data to the widget. Mostly
+    `numpy.array` and `h5py.Dataset` are supported with adapted views. Other
+    data types are displayed using a text viewer.
 
     A default view is automatically selected when a data is set. The method
-    :meth:`setDisplayMode` allow to change the view. To have a graphical tool
+    :meth:`setDisplayMode` allows to change the view. To have a graphical tool
     to select the view, prefer using the widget :class:`DataViewerFrame`.
 
     The dimension of the input data and the expected dimension of the selected
-    view can differ. For example to display an image (2D) from the 4 dimensions
+    view can differ. For example you can display an image (2D) from 4D
     data. In this case a :class:`NumpyAxesSelector` is displayed to allow the
-    user to select the axis mapping and the slicing of other axis.
+    user to select the axis mapping and the slicing of other axes.
 
     .. code-block:: python
 
@@ -335,10 +335,10 @@ class DataViewer(qt.QFrame):
     ARRAY_MODE = 4
 
     displayModeChanged = qt.Signal(int)
-    """Emitted when the display mode change"""
+    """Emitted when the display mode changes"""
 
     dataChanged = qt.Signal()
-    """Emitted when the data change"""
+    """Emitted when the data changes"""
 
     currentAvailableViewsChanged = qt.Signal()
     """Emitted when the current available views (which support the current
