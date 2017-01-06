@@ -302,6 +302,13 @@ class StackView(qt.QMainWindow):
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
 
+    def setFrameNumber(self, number):
+        """Set the frame selection to a specific value\
+
+        :param int number: Number of the frame
+        """
+        self._browser.setValue(number)
+
     def __updateFrameNumber(self, index):
         """Update the current image displayed
 
