@@ -249,8 +249,8 @@ class FitTheories(object):
 
         :param y: 1-D data array
         :param int fwhm: Typical full width at half maximum for peaks,
-            in number of points. This parameter is used for smoothing the data
-            and calculating the noise.
+            in number of points. This parameter is used for to discriminate between
+            true peaks and background fluctuations.
         :param float sensitivity: Sensitivity parameter. This is a threshold factor
             for peak detection. Only peaks larger than the standard deviation
             of the noise multiplied by this sensitivity parameter are detected.
