@@ -250,9 +250,9 @@ class _TextView(DataView):
         return []
 
     def createWidget(self, parent):
-        widget = qt.QLabel(parent)
+        widget = qt.QTextEdit(parent)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
-        widget.setAlignment(qt.Qt.AlignCenter)
+        widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
         return widget
 
     def clear(self):
@@ -272,13 +272,13 @@ class _TextView(DataView):
             return "[" + " ".join(text) + "]"
         elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
             try:
-                return "\"%s\"" % data.decode("utf-8")
+                return "%s" % data.decode("utf-8")
             except UnicodeDecodeError:
                 pass
             import binascii
-            return binascii.hexlify(data).decode("ascii")
+            return "0x" + binascii.hexlify(data).decode("ascii")
         elif isinstance(data, six.string_types):
-            return "\"%s\"" % data
+            return "%s" % data
         elif isinstance(data, numpy.complex_):
             if data.imag < 0:
                 template = self.__format + " - " + self.__format + "j"
