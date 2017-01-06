@@ -231,5 +231,5 @@ class RecordTableView(qt.QTableView):
 
         :param parent: parent QWidget
         """
-        qt.QWidget.__init__(self, parent)
+        qt.QTableView.__init__(self, parent)
         self.setModel(RecordTableModel())
