@@ -64,6 +64,20 @@ class DataView(object):
         """Returns names of the expected axes of the view"""
         return []
 
+    def customAxisNames(self):
+        """Returns names of axes which can be custom by the user and provided
+        to the view."""
+        return []
+
+    def setCustomAxisValue(self, name, value):
+        """
+        Set the value of a custom axis
+
+        :param str name: Name of the custom axis
+        :param int value: Value of the custom axis
+        """
+        pass
+
     def getWidget(self):
         """Returns the widget hold in the view and displaying the data.
 
@@ -389,6 +403,7 @@ class DataViewer(qt.QFrame):
         self.__numpySelection = NumpyAxesSelector(self)
         self.__numpySelection.selectedAxisChanged.connect(self.__numpyAxisChanged)
         self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
+        self.__numpySelection.customAxisChanged.connect(self.__numpyCustomAxisChanged)
 
         self.setLayout(qt.QVBoxLayout(self))
         self.layout().addWidget(self.__stack, 1)
@@ -446,6 +461,11 @@ class DataViewer(qt.QFrame):
         if view is not None:
             view.clear()
 
+    def __numpyCustomAxisChanged(self, name, value):
+        view = self.__currentView
+        if view is not None:
+            view.setCustomAxisValue(name, value)
+
     def __updateNumpySelectionAxis(self):
         """
         Update the numpy-selector according to the needed axis names
@@ -457,6 +477,7 @@ class DataViewer(qt.QFrame):
             self.__useAxisSelection = True
             self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
+            self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
             self.__numpySelection.setData(self.__data)
         else:
             self.__useAxisSelection = False
