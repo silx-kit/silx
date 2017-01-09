@@ -18,19 +18,18 @@ and toolbars: :class:`ViewpointToolBar` and :class:`Plot3DToolBar`.
 Those actions are used by the :class:`Plot3DToolBar` toolbar.
 
 The :mod:`.ScalarFieldView` module defines the :class:`ScalarFieldView` widget that displays iso-surfaces of a 3D scalar data set and the associated classes.
-The :mod:`.SFViewParamTree` module defines a :class:`TreeView` that can be attached to a :class:`ScalarFieldView` to control the display.
+The :mod:`.SFViewParamTree` module defines a :class:`SFViewParamTree.TreeView` widget that can be attached to a :class:`ScalarFieldView` to control the display.
 
 OpenGL scene API
 ----------------
 
+This API is NOT stable.
 Widgets of :mod:`silx.gui.plot3d` are based on the following sub-packages:
 
 - :mod:`.glutils`: Loads PyOpenGL and provides classes to handle OpenGL resources.
 - :mod:`.scene`: Provides a hierarchical scene structure handling rendering and interaction.
 - :mod:`.utils`: Miscellaneous supporting modules.
 - :mod:`._font`: Provides an API to use Qt Font system from the :mod:`.scene` package.
-
-This API is NOT stable:
 
 .. toctree::
    :maxdepth: 2
