@@ -22,9 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module provides a window to view a 3D scalar field.
-
-It supports iso-surfaces and cutting plane
+"""
+This module provides a tree widget to set/view parameters of a ScalarFieldView.
 """
 
 from __future__ import absolute_import

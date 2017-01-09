@@ -29,15 +29,16 @@ Widgets gallery
 
    * - Widget
      - Description
-   * - |imgPlot3DWidget|
-     - :class:`Plot3DWidget` is the base Qt widget providing an OpenGL 3D scene.
-       Other widgets are using this widget as the OpenGL scene canvas.
-   * - |imgPlot3DWindow|
-     - :class:`Plot3DWindow` is a QMainWindow with a :class:`Plot3DWidget` as central widget
-       and a toolbar.
    * - |imgScalarFieldView|
      - :class:`ScalarFieldView` is a :class:`Plot3DWindow` dedicated to display 3D scalar field.
        It can display iso-surfaces and an interactive cutting plane.
+       Sample code: :doc:`viewer3dvolume_example`.
+   * - |imgPlot3DWindow|
+     - :class:`Plot3DWindow` is a :class:`QMainWindow` with a :class:`Plot3DWidget` as central widget
+       and toolbars.
+   * - |imgPlot3DWidget|
+     - :class:`Plot3DWidget` is the base Qt widget providing an OpenGL 3D scene.
+       Other widgets are using this widget as the OpenGL scene canvas.
 
 Public modules
 --------------
@@ -48,11 +49,22 @@ Public modules
    plot3dwidget.rst
    plot3dwindow.rst
    scalarfieldview.rst
+   sfviewparamtree.rst
+   toolbars.rst
+   actions.rst
 
 Sample code
 -----------
 
 - :doc:`viewer3dvolume_example`: Sample code using :class:`ScalarFieldView`
+
+Internals
+---------
+
+.. toctree::
+   :maxdepth: 2
+
+   dev.rst
 
 .. toctree::
    :hidden:
