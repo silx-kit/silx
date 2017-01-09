@@ -24,7 +24,8 @@
 # ###########################################################################*/
 """This module provides a window to view a 3D scalar field.
 
-It supports iso-surfaces and cutting plane
+It supports iso-surfaces, a cutting plane and the definition of
+a region of interest.
 """
 
 from __future__ import absolute_import
@@ -709,6 +710,9 @@ class _CutPlaneImage(object):
 
 class ScalarFieldView(Plot3DWindow):
     """Widget computing and displaying an iso-surface from a 3D scalar dataset.
+
+    Limitation: Currently, iso-surfaces are generated with higher values
+    than the iso-level 'inside' the surface.
 
     :param parent: See :class:`QMainWindow`
     """
