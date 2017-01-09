@@ -165,6 +165,10 @@ Available icons
      - plot-yup
    * - |previous|
      - previous
+   * - |profile1D|
+     - profile1D
+   * - |profile2D|
+     - profile2D
    * - |remove|
      - remove
    * - |rudder|
@@ -303,6 +307,8 @@ Available icons
 .. |plot-ylog| image:: ../../../../silx/resources/gui/icons/plot-ylog.png
 .. |plot-yup| image:: ../../../../silx/resources/gui/icons/plot-yup.png
 .. |previous| image:: ../../../../silx/resources/gui/icons/previous.png
+.. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
+.. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
 .. |rudder| image:: ../../../../silx/resources/gui/icons/rudder.png
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
