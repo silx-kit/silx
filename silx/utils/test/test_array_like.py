@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/12/2016"
+__date__ = "09/01/2017"
 
 try:
     import h5py
@@ -88,6 +88,12 @@ class TestTransposedDatasetView(unittest.TestCase):
         self.assertEqual(a.shape, self.original_shape)
         self._testSize(a)
 
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
         for i in range(a.shape[0]):
             for j in range(a.shape[1]):
                 for k in range(a.shape[2]):
@@ -139,6 +145,12 @@ class TestTransposedDatasetView(unittest.TestCase):
                     corresponding_original_value = self.h5f["volume"][sorted_indices]
                     self.assertEqual(viewed_value,
                                      corresponding_original_value)
+
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
 
     def testTransposition012(self):
         """transposition = (0, 1, 2)
@@ -210,6 +222,17 @@ class TestTransposedListOfImages(unittest.TestCase):
                     self.assertEqual(self.images[i][j, k],
                                      a[i, j, k])
 
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
+        # test .T property
+        self.assertTrue(numpy.array_equal(
+                a.T,
+                a.transpose(rtrans)))
+
     def _testTransposition(self, transposition):
         """test transposed dataset
 
@@ -255,6 +278,17 @@ class TestTransposedListOfImages(unittest.TestCase):
                     corresponding_original_value = self.images[sorted_indices[0]][sorted_indices[1:]]
                     self.assertEqual(viewed_value,
                                      corresponding_original_value)
+
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
+        # test .T property
+        self.assertTrue(numpy.array_equal(
+                a.T,
+                a.transpose(rtrans)))
 
     def testTransposition012(self):
         """transposition = (0, 1, 2)
