@@ -23,6 +23,10 @@ Widgets gallery
    :height: 150px
    :align: middle
 
+.. |imgSFViewParamTree| image:: img/SFViewParamTree.png
+   :height: 150px
+   :align: middle
+
 .. list-table::
    :widths: 1 4
    :header-rows: 1
@@ -39,6 +43,10 @@ Widgets gallery
    * - |imgPlot3DWidget|
      - :class:`Plot3DWidget` is the base Qt widget providing an OpenGL 3D scene.
        Other widgets are using this widget as the OpenGL scene canvas.
+   * - |imgSFViewParamTree|
+     - :class:`SFViewParamTree` is a :class:`QTreeView` widget that can be attached to a :class:`ScalarFieldView`.
+       It displays current parameters of the :class:`ScalarFieldView` and allows to modify it.
+       Sample code: :doc:`viewer3dvolume_example`.
 
 Public modules
 --------------
