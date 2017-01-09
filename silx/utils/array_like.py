@@ -313,6 +313,11 @@ class ListOfImages(object):
         if transposition is None:
             transposition = list(reversed(self.transposition))
 
+        # If this ListOfImages is already transposed, sort new transposition
+        # relative to old transposition
+        elif list(self.transposition) != list(range(self.ndim)):
+            transposition = [self.transposition[i] for i in transposition]
+
         return ListOfImages(self.images,
                             transposition)
 
@@ -573,6 +578,11 @@ class DatasetView(object):
         # by default, reverse the dimensions
         if transposition is None:
             transposition = list(reversed(self.transposition))
+
+        # If this DatasetView is already transposed, sort new transposition
+        # relative to old transposition
+        elif list(self.transposition) != list(range(self.ndim)):
+            transposition = [self.transposition[i] for i in transposition]
 
         return DatasetView(self.dataset,
                            transposition)
