@@ -1091,7 +1091,24 @@ class PixelIntensitiesHistoAction(PlotAction):
                             triggered=self.updateIntensityDistribution,
                             parent=parent,
                             checkable=True)
-        self.plotHistogram=None
+        self._plotHistogram = None
+        self._connectedToActiveImage = False
+
+    def setVisible(self, visible):
+        """Set action visibility, see QAction.setVisible"""
+        if visible:
+            if not self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.connect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = True
+            self.computeIntensityDistribution()
+        else:
+            if self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = False
+
+        super(PixelIntensitiesHistoAction, self).setVisible(visible)
 
     def updateIntensityDistribution(self, checked):
         """Update the plot of the histogram visibility status
@@ -1099,9 +1116,13 @@ class PixelIntensitiesHistoAction(PlotAction):
         :param bool checked: status  of the action button
         """
         if checked:
-            self.getHistogram().show()
+            self.getHistogramPlotWidget().show()
         else:
-            self.getHistogram().hide()
+            self.getHistogramPlotWidget().hide()
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        self.computeIntensityDistribution()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
@@ -1111,11 +1132,11 @@ class PixelIntensitiesHistoAction(PlotAction):
         if activeImage is not None:
             histo, w_histo, edges = Histogramnd(activeImage[0].ravel().astype(numpy.float32),
                                                 n_bins=256,
-                                                histo_range=[0,256])
+                                                histo_range=[0, 256])
             
-            self.getHistogram().addCurve(range(256),
-                                        histo,
-                                        legend='pixel intensity')
+            self.getHistogramPlotWidget().addCurve(range(256),
+                                                   histo,
+                                                   legend='pixel intensity')
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then 
@@ -1125,18 +1146,18 @@ class PixelIntensitiesHistoAction(PlotAction):
         :param event: the event received by qobject
         """
         if event.type() == qt.QEvent.Close:
-            if self.plotHistogram is not None:
-                self.plotHistogram.hide()
+            if self._plotHistogram is not None:
+                self._plotHistogram.hide()
             self.setChecked(False)
 
         return PlotAction.eventFilter(self, qobject, event)
 
-    def getHistogram(self):
-        """Return the histogram of the pixel intensities
+    def getHistogramPlotWidget(self):
+        """Return the PlotWidget showing the histogram of the pixel intensities
         """
         from silx.gui.plot.PlotWindow import Plot1D
-        if self.plotHistogram is None:
-            self.plotHistogram = Plot1D()
-            self.plotHistogram.installEventFilter(self)
+        if self._plotHistogram is None:
+            self._plotHistogram = Plot1D()
+            self._plotHistogram.installEventFilter(self)
 
-        return self.plotHistogram
+        return self._plotHistogram
