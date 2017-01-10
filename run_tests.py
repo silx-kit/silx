@@ -1,5 +1,28 @@
 #!/usr/bin/env python
 # coding: utf-8
+# /*##########################################################################
+#
+# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# ###########################################################################*/
 """Run the tests of the project.
 
 This script expects a suite function in <project_package>.test,
@@ -9,11 +32,10 @@ Test coverage dependencies: coverage, lxml.
 """
 
 __authors__ = ["Jérôme Kieffer", "Thomas Vincent"]
-__date__ = "01/12/2015"
+__date__ = "29/11/2016"
 __license__ = "MIT"
 
 import distutils.util
-import importlib
 import logging
 import os
 import subprocess
@@ -21,12 +43,13 @@ import sys
 import time
 import unittest
 
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("run_tests")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
+logger.info("Python %s %s", sys.version, tuple.__itemsize__ * 8)
 
-logger.info("Python %s %s" % (sys.version, tuple.__itemsize__ * 8))
 
 try:
     import resource
@@ -35,52 +58,86 @@ except ImportError:
     logger.warning("resource module missing")
 
 try:
+    import importlib
+except:
+    importer = __import__
+else:
+    importer = importlib.import_module
+
+
+try:
     import numpy
 except Exception as error:
-    logger.warning("Numpy missing: %s" % error)
+    logger.warning("Numpy missing: %s", error)
 else:
-    logger.info("Numpy %s" % numpy.version.version)
+    logger.info("Numpy %s", numpy.version.version)
 
 
 try:
     import h5py
 except Exception as error:
-    logger.warning("h5py missing: %s" % error)
+    logger.warning("h5py missing: %s", error)
 else:
-    logger.info("h5py %s" % h5py.version.version)
+    logger.info("h5py %s", h5py.version.version)
 
 
+def get_project_name(root_dir):
+    """Retrieve project name by running python setup.py --name in root_dir.
 
-class TestResult(unittest.TestResult):
-    logger = logging.getLogger("memProf")
-    logger.setLevel(logging.DEBUG)
-    logger.handlers.append(logging.FileHandler("profile.log"))
+    :param str root_dir: Directory where to run the command.
+    :return: The name of the project stored in root_dir
+    """
+    logger.debug("Getting project name in %s", root_dir)
+    p = subprocess.Popen([sys.executable, "setup.py", "--name"],
+                         shell=False, cwd=root_dir, stdout=subprocess.PIPE)
+    name, _stderr_data = p.communicate()
+    logger.debug("subprocess ended with rc= %s", p.returncode)
+    return name.split()[-1].decode('ascii')
+
+
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_NAME = get_project_name(PROJECT_DIR)
+logger.info("Project name: %s", PROJECT_NAME)
+
+
+class ProfileTextTestResult(unittest.TextTestRunner.resultclass):
+
+    def __init__(self, *arg, **kwarg):
+        unittest.TextTestRunner.resultclass.__init__(self, *arg, **kwarg)
+        self.logger = logging.getLogger("memProf")
+        self.logger.setLevel(min(logging.INFO, logging.root.level))
+        self.logger.handlers.append(logging.FileHandler("profile.log"))
 
     def startTest(self, test):
-        self.__mem_start = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        unittest.TextTestRunner.resultclass.startTest(self, test)
+        if resource:
+            self.__mem_start = \
+                resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
         self.__time_start = time.time()
-        unittest.TestResult.startTest(self, test)
 
     def stopTest(self, test):
-        unittest.TestResult.stopTest(self, test)
-        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s" % (
-            time.time() - self.__time_start,
-            (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
-                self.__mem_start) / 1e3,
-            test.id()))
+        unittest.TextTestRunner.resultclass.stopTest(self, test)
+        # see issue 311. For other platform, get size of ru_maxrss in "man getrusage"
+        if sys.platform == "darwin":
+            ratio = 1e-6
+        else:
+            ratio = 1e-3
+        if resource:
+            memusage = (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss -
+                        self.__mem_start) * ratio
+        else:
+            memusage = 0
+        self.logger.info("Time: %.3fs \t RAM: %.3f Mb\t%s",
+            time.time() - self.__time_start, memusage, test.id())
 
 
-class ProfileTestRunner(unittest.TextTestRunner):
-    def _makeResult(self):
-        return TestResult(stream=sys.stderr, descriptions=True, verbosity=1)
-
-
-def report_rst(cov, package, version="0.0.0"):
+def report_rst(cov, package, version="0.0.0", base=""):
     """
     Generate a report of test coverage in RST (for Sphinx inclusion)
-    
+
     :param cov: test coverage instance
     :param str package: Name of the package
+    :param str base: base directory of modules to include in the report
     :return: RST string
     """
     import tempfile
@@ -92,10 +149,10 @@ def report_rst(cov, package, version="0.0.0"):
     xml = etree.parse(fn)
     classes = xml.xpath("//class")
 
-    import time
     line0 = "Test coverage report for %s" % package
     res = [line0, "=" * len(line0), ""]
-    res.append("Measured on *%s* version %s, %s" % (package, version, time.strftime("%d/%m/%Y")))
+    res.append("Measured on *%s* version %s, %s" %
+               (package, version, time.strftime("%d/%m/%Y")))
     res += ["",
             ".. csv-table:: Test suite coverage",
             '   :header: "Name", "Stmts", "Exec", "Cover"',
@@ -107,6 +164,8 @@ def report_rst(cov, package, version="0.0.0"):
     for cl in classes:
         name = cl.get("name")
         fname = cl.get("filename")
+        if not os.path.abspath(fname).startswith(base):
+            continue
         lines = cl.find("lines").getchildren()
         hits = [int(i.get("hits")) for i in lines]
 
@@ -115,7 +174,11 @@ def report_rst(cov, package, version="0.0.0"):
 
         cover = 100.0 * sum_hits / sum_lines if sum_lines else 0
 
-        res.append('   "%s", "%s", "%s", "%.1f %%"' % (name, sum_lines, sum_hits, cover))
+        if base:
+            name = os.path.relpath(fname, base)
+
+        res.append('   "%s", "%s", "%s", "%.1f %%"' %
+                   (name, sum_lines, sum_hits, cover))
         tot_sum_lines += sum_lines
         tot_sum_hits += sum_hits
     res.append("")
@@ -124,20 +187,6 @@ def report_rst(cov, package, version="0.0.0"):
                 100.0 * tot_sum_hits / tot_sum_lines if tot_sum_lines else 0))
     res.append("")
     return os.linesep.join(res)
-
-
-def get_project_name(root_dir):
-    """Retrieve project name by running python setup.py --name in root_dir.
-
-    :param str root_dir: Directory where to run the command.
-    :return: The name of the project stored in root_dir
-    """
-    logger.debug("Getting project name in %s" % root_dir)
-    p = subprocess.Popen([sys.executable, "setup.py", "--name"],
-                         shell=False, cwd=root_dir, stdout=subprocess.PIPE)
-    name, stderr_data = p.communicate()
-    logger.debug("subprocess ended with rc= %s" % p.returncode)
-    return name.split()[-1].decode('ascii')
 
 
 def build_project(name, root_dir):
@@ -161,49 +210,76 @@ def build_project(name, root_dir):
     else:
         home = os.path.join(root_dir, "build", architecture)
 
-    logger.warning("Building %s to %s" % (name, home))
+    logger.warning("Building %s to %s", name, home)
     p = subprocess.Popen([sys.executable, "setup.py", "build"],
                          shell=False, cwd=root_dir)
-    logger.debug("subprocess ended with rc= %s" % p.wait())
+    logger.debug("subprocess ended with rc= %s", p.wait())
     return home
 
 
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_NAME = get_project_name(PROJECT_DIR)
-logger.info('Project name: %s' % PROJECT_NAME)
-
-
 from argparse import ArgumentParser
-
-parser = ArgumentParser(description='Run the tests.')
+epilog = """Environment variables:
+WITH_QT_TEST=False to disable graphical tests,
+SILX_OPENCL=False to disable OpenCL tests.
+SILX_TEST_LOW_MEM=True to disable tests taking large amount of memory
+GPU=False to disable the use of a GPU with OpenCL test
+"""
+parser = ArgumentParser(description='Run the tests.',
+                        epilog=epilog)
 
 parser.add_argument("-i", "--insource",
                     action="store_true", dest="insource", default=False,
                     help="Use the build source and not the installed version")
 parser.add_argument("-c", "--coverage", dest="coverage",
                     action="store_true", default=False,
-                    help="Report code coverage (requires 'coverage' and 'lxml' module)")
+                    help=("Report code coverage" +
+                          "(requires 'coverage' and 'lxml' module)"))
 parser.add_argument("-m", "--memprofile", dest="memprofile",
                     action="store_true", default=False,
                     help="Report memory profiling")
 parser.add_argument("-v", "--verbose", default=0,
                     action="count", dest="verbose",
-                    help="Increase verbosity")
+                    help="Increase verbosity. Option -v prints additional " +
+                         "INFO messages. Use -vv for full verbosity, " +
+                         "including debug messages and test help strings.")
+parser.add_argument("-x", "--no-gui", dest="gui", default=True,
+                    action="store_false",
+                    help="Disable the test of the graphical use interface")
+parser.add_argument("-o", "--no-opencl", dest="opencl", default=True,
+                    action="store_false",
+                    help="Disable the test of the OpenCL part")
+parser.add_argument("-l", "--low-mem", dest="low_mem", default=False,
+                    action="store_true",
+                    help="Disable test with large memory consumption (>100Mbyte")
+parser.add_argument("--qt-binding", dest="qt_binding", default=None,
+                    help="Force using a Qt binding, from 'PyQt4', 'PyQt5', or 'PySide'")
+
 default_test_name = "%s.test.suite" % PROJECT_NAME
 parser.add_argument("test_name", nargs='*',
-        default=(default_test_name,),
-        help="Test names to run (Default: %s)" % default_test_name)
+                    default=(default_test_name,),
+                    help="Test names to run (Default: %s)" % default_test_name)
 options = parser.parse_args()
 sys.argv = [sys.argv[0]]
 
 
+test_verbosity = 1
 if options.verbose == 1:
     logging.root.setLevel(logging.INFO)
     logger.info("Set log level: INFO")
+    test_verbosity = 2
 elif options.verbose > 1:
     logging.root.setLevel(logging.DEBUG)
     logger.info("Set log level: DEBUG")
+    test_verbosity = 2
 
+if not options.gui:
+    os.environ["WITH_QT_TEST"] = "False"
+
+if not options.opencl:
+    os.environ["SILX_OPENCL"] = "False"
+
+if options.low_mem:
+    os.environ["SILX_TEST_LOW_MEM"] = "True"
 
 if options.coverage:
     logger.info("Running test-coverage")
@@ -214,21 +290,34 @@ if options.coverage:
         cov = coverage.coverage(omit=["*test*", "*third_party*", "*/setup.py"])
     cov.start()
 
+if options.qt_binding:
+    binding = options.qt_binding.lower()
+    if binding == "pyqt4":
+        logger.info("Force using PyQt4")
+        import PyQt4  #noqa
+    elif binding == "pyqt5":
+        logger.info("Force using PyQt5")
+        import PyQt5  #noqa
+    elif binding == "pyside":
+        logger.info("Force using PySide")
+        import PySide  #noqa
+    else:
+        raise ValueError("Qt binding '%s' is unknown" % options.qt_binding)
 
 # Prevent importing from source directory
 if (os.path.dirname(os.path.abspath(__file__)) ==
         os.path.abspath(sys.path[0])):
     removed_from_sys_path = sys.path.pop(0)
-    logger.info("Patched sys.path, removed: '%s'" % removed_from_sys_path)
+    logger.info("Patched sys.path, removed: '%s'", removed_from_sys_path)
 
 
 # import module
 if not options.insource:
     try:
-        module = importlib.import_module(PROJECT_NAME)
+        module = importer(PROJECT_NAME)
     except:
         logger.warning(
-            "%s missing, using built (i.e. not installed) version" % \
+            "%s missing, using built (i.e. not installed) version",
             PROJECT_NAME)
         options.insource = True
 
@@ -236,8 +325,8 @@ if options.insource:
     build_dir = build_project(PROJECT_NAME, PROJECT_DIR)
 
     sys.path.insert(0, build_dir)
-    logger.warning("Patched sys.path, added: '%s'" % build_dir)
-    module = importlib.import_module(PROJECT_NAME)
+    logger.warning("Patched sys.path, added: '%s'", build_dir)
+    module = importer(PROJECT_NAME)
 
 
 PROJECT_VERSION = getattr(module, 'version', '')
@@ -245,28 +334,48 @@ PROJECT_PATH = module.__path__[0]
 
 
 # Run the tests
+runnerArgs = {}
+runnerArgs["verbosity"] = test_verbosity
 if options.memprofile:
-    runner = ProfileTestRunner()
-else:
-    runner = unittest.TextTestRunner()
+    runnerArgs["resultclass"] = ProfileTextTestResult
+runner = unittest.TextTestRunner(**runnerArgs)
 
-logger.warning("Test %s %s from %s" % (PROJECT_NAME,
-                                       PROJECT_VERSION,
-                                       PROJECT_PATH))
+logger.warning("Test %s %s from %s",
+               PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH)
+
+test_module_name = PROJECT_NAME + '.test'
+logger.info('Import %s', test_module_name)
+test_module = importer(test_module_name)
 
 test_suite = unittest.TestSuite()
-test_suite.addTest(
-    unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
 
-if runner.run(test_suite).wasSuccessful():
+if not options.test_name:
+    # Do not use test loader to avoid cryptic exception
+    # when an error occur during import
+    project_test_suite = getattr(test_module, 'suite')
+    test_suite.addTest(project_test_suite())
+else:
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromNames(options.test_name))
+
+
+result = runner.run(test_suite)
+for test, reason in result.skipped:
+    logger.warning('Skipped %s (%s): %s',
+                   test.id(), test.shortDescription() or '', reason)
+
+if result.wasSuccessful():
     logger.info("Test suite succeeded")
+    exit_status = 0
 else:
     logger.warning("Test suite failed")
+    exit_status = 1
 
 
 if options.coverage:
     cov.stop()
     cov.save()
     with open("coverage.rst", "w") as fn:
-        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION))
-    print(cov.report())
+        fn.write(report_rst(cov, PROJECT_NAME, PROJECT_VERSION, PROJECT_PATH))
+
+sys.exit(exit_status)

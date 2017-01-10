@@ -10,25 +10,15 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "27/11/2015"
+__date__ = "20/12/2016"
 
 
 import sys
 import os
-import shutil
 import distutils.util
 import subprocess
-
-
-TARGET = os.path.basename(os.path.dirname(os.path.abspath(__file__))).split("-")[0]
-
-
-def _copy(infile, outfile):
-    "link or copy file according to the OS. Nota those are HARD_LINKS"
-    if "link" in dir(os):
-        os.link(infile, outfile)
-    else:
-        shutil.copy(infile, outfile)
+import logging
+logger = logging.getLogger("bootstrap")
 
 
 def _distutils_dir_name(dname="lib"):
@@ -57,22 +47,29 @@ def _get_available_scripts(path):
     return res
 
 
-def _copy_files(source, dest, extn):
-    """
-    copy all files with a given extension from source to destination
-    """
-    if not os.path.isdir(dest):
-        os.makedirs(dest)
-    full_src = os.path.join(os.path.dirname(__file__), source)
-    for clf in os.listdir(full_src):
-        if clf.endswith(extn) and clf not in os.listdir(dest):
-            _copy(os.path.join(full_src, clf), os.path.join(dest, clf))
+if sys.version_info[0] >= 3:  # Python3
+    def execfile(fullpath, globals=None, locals=None):
+        "Python3 implementation for execfile"
+        with open(fullpath) as f:
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                raise SyntaxError("Not a Python script")
+            code = compile(data, fullpath, 'exec')
+            exec(code, globals, locals)
 
 
 def runfile(fname):
     try:
-        execfile(fname)
-    except SyntaxError:
+        logger.info("Execute target using exec")
+        # execfile is considered as a local call.
+        # Providing globals() as locals will force to feed the file into
+        # globals() (for examples imports).
+        # Without this any function call from the executed file loses imports
+        execfile(fname, globals(), globals())
+    except SyntaxError as error:
+        logger.error(error)
+        logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
                     "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})
@@ -80,49 +77,59 @@ def runfile(fname):
         run.wait()
 
 home = os.path.dirname(os.path.abspath(__file__))
-SCRIPTSPATH = os.path.join(home,
-                           'build', _distutils_scripts_name())
-LIBPATH = (os.path.join(home,
-                       'build', _distutils_dir_name('lib')))
-
-if (not os.path.isdir(SCRIPTSPATH)) or (not os.path.isdir(LIBPATH)):
-    build = subprocess.Popen([sys.executable, "setup.py", "build"],
-                     shell=False, cwd=os.path.dirname(__file__))
-    print("Build process ended with rc= %s" % build.wait())
-# _copy_files("openCL", os.path.join(LIBPATH, TARGET, "openCL"), ".cl")
-# _copy_files("gui", os.path.join(LIBPATH, TARGET, "gui"), ".ui")
-# _copy_files("calibration", os.path.join(LIBPATH, TARGET, "calibration"), ".D")
+SCRIPTSPATH = os.path.join(home, 'build', _distutils_scripts_name())
+LIBPATH = os.path.join(home, 'build', _distutils_dir_name('lib'))
+cwd = os.getcwd()
+os.chdir(home)
+build = subprocess.Popen([sys.executable, "setup.py", "build"],
+                         shell=False, cwd=os.path.dirname(os.path.abspath(__file__)))
+logger.info("Build process ended with rc= %s", build.wait())
+os.chdir(cwd)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("usage: ./bootstrap.py <script>\n")
-        print("Available scripts : %s\n" %
-              _get_available_scripts(SCRIPTSPATH))
-        sys.exit(1)
-    os.system("cd %s;python setup.py build; cd -" % home)
-    print("Executing %s from source checkout" % (sys.argv[1]))
+        logging.warning("usage: ./bootstrap.py <script>\n")
+        logging.warning("Available scripts : %s\n" %
+                        _get_available_scripts(SCRIPTSPATH))
+        script = None
+    else:
+        script = sys.argv[1]
 
+    if script:
+        logger.info("Executing %s from source checkout", script)
+    else:
+        logging.info("Running iPython by default")
     sys.path.insert(0, LIBPATH)
-    print("01. Patched sys.path with %s" % LIBPATH)
+    logger.info("01. Patched sys.path with %s", LIBPATH)
 
     sys.path.insert(0, SCRIPTSPATH)
-    print("02. Patched sys.path with %s" % SCRIPTSPATH)
+    logger.info("02. Patched sys.path with %s", SCRIPTSPATH)
 
-    script = sys.argv[1]
-    sys.argv = sys.argv[1:]
-    print("03. patch the sys.argv : ", sys.argv)
-
-    print("04. Executing %s.main()" % (script,))
-    fullpath = os.path.join(SCRIPTSPATH, script)
-    if os.path.exists(fullpath):
-        runfile(fullpath)
-    else:
-        if os.path.exists(script):
-            runfile(script)
+    if script:
+        sys.argv = sys.argv[1:]
+        logger.info("03. patch the sys.argv: %s", sys.argv)
+        logger.info("04. Executing %s.main()", script)
+        fullpath = os.path.join(SCRIPTSPATH, script)
+        if os.path.exists(fullpath):
+            runfile(fullpath)
         else:
-            for dirname in os.environ.get("PATH", "").split(os.pathsep):
-                fullpath = os.path.join(dirname, script)
-                if os.path.exists(fullpath):
-                    runfile(fullpath)
-                    break
-
+            if os.path.exists(script):
+                runfile(script)
+            else:
+                for dirname in os.environ.get("PATH", "").split(os.pathsep):
+                    fullpath = os.path.join(dirname, script)
+                    if os.path.exists(fullpath):
+                        runfile(fullpath)
+                        break
+    else:
+        logger.info("03. patch the sys.argv: %s", sys.argv)
+        sys.path.insert(2, "")
+        try:
+            from IPython import embed
+        except Exception as err:
+            logger.error("Unable to execute iPython, using normal Python")
+            logger.error(err)
+            import code
+            code.interact()
+        else:
+            embed()
