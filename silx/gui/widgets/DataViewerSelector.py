@@ -64,6 +64,7 @@ class DataViewerSelector(qt.QWidget):
         buttons[DataViewer.ARRAY_MODE] = ("Raw", "view-raw")
         buttons[DataViewer.RECORD_MODE] = ("Raw", "view-raw")
         buttons[DataViewer.TEXT_MODE] = ("Text", "view-text")
+        buttons[DataViewer.STACK_MODE] = ("Image stack", "view-2d-stack")
 
         for modeId, state in buttons.items():
             text, iconName = state

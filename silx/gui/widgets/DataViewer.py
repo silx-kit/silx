@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "10/01/2017"
 
 import numpy
 import numbers
@@ -60,9 +60,23 @@ class DataView(object):
         """Returns the mode id"""
         return self.__modeId
 
-    def axiesNames(self):
+    def axesNames(self):
         """Returns names of the expected axes of the view"""
         return []
+
+    def customAxisNames(self):
+        """Returns names of axes which can be custom by the user and provided
+        to the view."""
+        return []
+
+    def setCustomAxisValue(self, name, value):
+        """
+        Set the value of a custom axis
+
+        :param str name: Name of the custom axis
+        :param int value: Value of the custom axis
+        """
+        pass
 
     def getWidget(self):
         """Returns the widget hold in the view and displaying the data.
@@ -114,7 +128,7 @@ class DataView(object):
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return []
 
     def createWidget(self, parent):
@@ -131,7 +145,7 @@ class _Plot1dView(DataView):
         super(_Plot1dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["y"]
 
     def createWidget(self, parent):
@@ -172,7 +186,7 @@ class _Plot2dView(DataView):
         super(_Plot2dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["y", "x"]
 
     def createWidget(self, parent):
@@ -214,7 +228,7 @@ class _Plot2dView(DataView):
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["col", "row"]
 
     def createWidget(self, parent):
@@ -243,12 +257,66 @@ class _ArrayView(DataView):
         return 50
 
 
+class _StackView(DataView):
+    """View displaying data using a stack of images"""
+
+    def __init__(self, parent, modeId):
+        super(_StackView, self).__init__(parent, modeId)
+        self.__resetZoomNextTime = True
+
+    def axesNames(self):
+        return ["depth", "y", "x"]
+
+    def customAxisNames(self):
+        return ["depth"]
+
+    def setCustomAxisValue(self, name, value):
+        if name == "depth":
+            self.getWidget().setFrameNumber(value)
+        else:
+            raise Exception("Unsupported axis")
+
+    def createWidget(self, parent):
+        from silx.gui import plot
+        widget = plot.StackView(parent=parent)
+        widget.setKeepDataAspectRatio(True)
+        widget.setLabels(self.axesNames())
+        # hide default option panel
+        widget.setOptionVisible(False)
+        return widget
+
+    def clear(self):
+        self.getWidget().clear()
+        self.__resetZoomNextTime = True
+
+    def setData(self, data):
+        self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
+        self.__resetZoomNextTime = False
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) < 3:
+            return -1
+        if len(data.shape) == 3:
+            return 90
+        else:
+            return 10
+
+
 class _TextView(DataView):
     """View displaying data using text"""
 
     __format = "%g"
 
-    def axiesNames(self):
+    def axesNames(self):
         return []
 
     def createWidget(self, parent):
@@ -306,7 +374,7 @@ class _TextView(DataView):
 class _RecordView(DataView):
     """View displaying data using text"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["data"]
 
     def createWidget(self, parent):
@@ -366,6 +434,7 @@ class DataViewer(qt.QFrame):
     PLOT2D_MODE = 2
     TEXT_MODE = 3
     ARRAY_MODE = 4
+    STACK_MODE = 5
     RECORD_MODE = 6
 
     displayModeChanged = qt.Signal(int)
@@ -389,6 +458,7 @@ class DataViewer(qt.QFrame):
         self.__numpySelection = NumpyAxesSelector(self)
         self.__numpySelection.selectedAxisChanged.connect(self.__numpyAxisChanged)
         self.__numpySelection.selectionChanged.connect(self.__numpySelectionChanged)
+        self.__numpySelection.customAxisChanged.connect(self.__numpyCustomAxisChanged)
 
         self.setLayout(qt.QVBoxLayout(self))
         self.layout().addWidget(self.__stack, 1)
@@ -412,6 +482,7 @@ class DataViewer(qt.QFrame):
             _Plot2dView(self.__stack, self.PLOT2D_MODE),
             _TextView(self.__stack, self.TEXT_MODE),
             _ArrayView(self.__stack, self.ARRAY_MODE),
+            _StackView(self.__stack, self.STACK_MODE),
             _RecordView(self.__stack, self.RECORD_MODE),
         ]
         self.__views = {}
@@ -446,17 +517,23 @@ class DataViewer(qt.QFrame):
         if view is not None:
             view.clear()
 
+    def __numpyCustomAxisChanged(self, name, value):
+        view = self.__currentView
+        if view is not None:
+            view.setCustomAxisValue(name, value)
+
     def __updateNumpySelectionAxis(self):
         """
         Update the numpy-selector according to the needed axis names
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        axisNames = self.__currentView.axiesNames()
+        axisNames = self.__currentView.axesNames()
         if len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
+            self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
             self.__numpySelection.setData(self.__data)
         else:
             self.__useAxisSelection = False
