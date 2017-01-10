@@ -535,18 +535,23 @@ class DataViewer(qt.QFrame):
         self.__useAxisSelection = False
 
         views = [
-            _EmptyView(self.__stack, self.EMPTY_MODE),
-            _Plot1dView(self.__stack, self.PLOT1D_MODE),
-            _Plot2dView(self.__stack, self.PLOT2D_MODE),
-            _Plot3dView(self.__stack, self.PLOT3D_MODE),
-            _TextView(self.__stack, self.TEXT_MODE),
-            _ArrayView(self.__stack, self.ARRAY_MODE),
-            _StackView(self.__stack, self.STACK_MODE),
-            _RecordView(self.__stack, self.RECORD_MODE),
+            (_EmptyView, self.EMPTY_MODE),
+            (_Plot1dView, self.PLOT1D_MODE),
+            (_Plot2dView, self.PLOT2D_MODE),
+            (_Plot3dView, self.PLOT3D_MODE),
+            (_TextView, self.TEXT_MODE),
+            (_ArrayView, self.ARRAY_MODE),
+            (_StackView, self.STACK_MODE),
+            (_RecordView, self.RECORD_MODE),
         ]
         self.__views = {}
-        for v in views:
-            self.__views[v.modeId()] = v
+        for viewData in views:
+            viewClass, modeId = viewData
+            try:
+                view = viewClass(self.__stack, modeId)
+            except:
+                continue
+            self.__views[view.modeId()] = view
 
         # store stack index for each views
         self.__index = {}
