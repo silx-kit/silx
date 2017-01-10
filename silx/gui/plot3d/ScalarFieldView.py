@@ -32,7 +32,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "10/01/2017"
 
 import re
 import logging
@@ -334,14 +334,16 @@ class SelectedRegion(object):
     def getArrayRange(self):
         """Returns array ranges of the selection: 3x2 array of int
 
-        ((zmin, zmax), (ymin, ymax), (xmin, xmax))
+        :return: A numpy array with ((zmin, zmax), (ymin, ymax), (xmin, xmax))
+        :rtype: numpy.ndarray
         """
         return self._arrayRange.copy()
 
     def getArraySlices(self):
         """Slices corresponding to the selected range in the array
 
-        (zslice, yslice, zslice)
+        :return: A numpy array with (zslice, yslice, zslice)
+        :rtype: numpy.ndarray
         """
         return (slice(*self._arrayRange[0]),
                 slice(*self._arrayRange[1]),
@@ -350,23 +352,32 @@ class SelectedRegion(object):
     def getDataRange(self):
         """Range in the data coordinates of the selection: 3x2 array of float
 
-        ((xmin, xmax), (ymin, ymax), (zmin, zmax))
+        :return: A numpy array with ((xmin, xmax), (ymin, ymax), (zmin, zmax))
+        :rtype: numpy.ndarray
         """
         return self._dataRange.copy()
 
     def getDataScale(self):
-        """Scale from array to data coordinates: (sx, sy, sz)"""
+        """Scale from array to data coordinates: (sx, sy, sz)
+
+        :return: A numpy array with (sx, sy, sz)
+        :rtype: numpy.ndarray
+        """
         return self._scale.copy()
 
     def getDataTranslation(self):
-        """Offset from array to data coordinates: (ox, oy, oz)"""
+        """Offset from array to data coordinates: (ox, oy, oz)
+
+        :return: A numpy array with (ox, oy, oz)
+        :rtype: numpy.ndarray
+        """
         return self._translation.copy()
 
 
 class CutPlane(qt.QObject):
     """Class representing a cutting plane
 
-    :param ScalarFieldView sfView:
+    :param ScalarFieldView sfView: Widget in which the cut plane is applied.
     """
 
     sigVisibilityChanged = qt.Signal(bool)
@@ -788,8 +799,8 @@ class ScalarFieldView(Plot3DWindow):
         """
         Saves this view state. Only isosurfaces at the moment. Does not save
         the isosurface's function.
-        :param ioDevice:
-        :return:
+
+        :param qt.QIODevice ioDevice: A `qt.QIODevice`.
         """
 
         stream = qt.QDataStream(ioDevice)
@@ -829,8 +840,8 @@ class ScalarFieldView(Plot3DWindow):
         """
         Loads this view state.
         See ScalarFieldView.saveView to know what is supported at the moment.
-        :param ioDevice:
-        :return:
+
+        :param qt.QIODevice ioDevice: A `qt.QIODevice`.
         """
 
         tagStack = deque()

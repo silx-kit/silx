@@ -30,7 +30,7 @@ from __future__ import absolute_import
 
 __authors__ = ["D. N."]
 __license__ = "MIT"
-__date__ = "01/11/2016"
+__date__ = "10/01/2017"
 
 import logging
 
@@ -1184,8 +1184,7 @@ class TreeView(qt.QTreeView):
         """
         Sets the ScalarFieldView this view is controlling.
 
-        :param sfView:
-        :return:
+        :param sfView: A `ScalarFieldView`
         """
         model = qt.QStandardItemModel()
         model.setColumnCount(ModelColumns.ColumnMax)
@@ -1214,8 +1213,7 @@ class TreeView(qt.QTreeView):
         Reimplementation of the QTreeView.setModel method. It connects the
         rowsRemoved signal and opens the persistent editors.
 
-        :param model: the model
-        :type model: QStandardItemModel
+        :param qt.QStandardItemModel model: the model
         """
 
         prevModel = self.model()
@@ -1234,12 +1232,9 @@ class TreeView(qt.QTreeView):
         """
         Opens or closes the items persistent editors.
 
-        :param parent: starting index, or None if the whole tree is to be
-            considered.
-        :type parent: QModelIndex
-
-        :param openEditor: True to open the editors, False to close them.
-        :type openEditor: bool
+        :param qt.QModelIndex parent: starting index, or None if the whole tree
+            is to be considered.
+        :param bool openEditor: True to open the editors, False to close them.
         """
         model = self.model()
 
@@ -1277,11 +1272,11 @@ class TreeView(qt.QTreeView):
     def rowsAboutToBeRemoved(self, parent, start, end):
         """
         Reimplementation of the QTreeView.rowsAboutToBeRemoved. Closes all
-        persistend editors under parent.
+        persistent editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
+        :param qt.QModelIndex parent: Parent index
+        :param int start: Start index from parent index
+        :param int end: End index from parent index
         """
         self.__openPersistentEditors(parent, False)
         super(TreeView, self).rowsAboutToBeRemoved(parent, start, end)
@@ -1291,10 +1286,9 @@ class TreeView(qt.QTreeView):
         Called when QTreeView.rowsRemoved is emitted. Opens all persistent
         editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
-        :return:
+        :param qt.QModelIndex parent: Parent index
+        :param int start: Start index from parent index
+        :param int end: End index from parent index
         """
         super(TreeView, self).rowsRemoved(parent, start, end)
         self.__openPersistentEditors(parent, True)
@@ -1304,9 +1298,9 @@ class TreeView(qt.QTreeView):
         Reimplementation of the QTreeView.rowsInserted. Opens all persistent
         editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
+        :param qt.QModelIndex parent: Parent index
+        :param int start: Start index from parent index
+        :param int end: End index from parent index
         """
         self.__openPersistentEditors(parent, False)
         super(TreeView, self).rowsInserted(parent, start, end)
@@ -1318,7 +1312,7 @@ class TreeView(qt.QTreeView):
         At the moment only Key_Delete is handled. It calls the selected item's
         queryRemove method, and deleted the item if needed.
 
-        :param event:
+        :param qt.QKeyEvent event: A key event
         """
 
         # TODO : better filtering
@@ -1361,8 +1355,7 @@ class TreeView(qt.QTreeView):
         Called when the QTreeView.clicked signal is emitted. Calls the item's
         leftClick method.
 
-        :param index:
-        :return:
+        :param qt.QIndex index: An index
         """
         item = self.model().itemFromIndex(index)
         if isinstance(item, SubjectItem):
