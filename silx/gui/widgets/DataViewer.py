@@ -605,11 +605,14 @@ class DataViewer(qt.QFrame):
         Update the views using the current data
         """
         if self.__useAxisSelection:
-            data = self.__numpySelection.selectedData()
+            self.__displayedData = self.__numpySelection.selectedData()
         else:
-            data = self.__data
+            self.__displayedData = self.__data
 
-        self.__currentView.setData(data)
+        qt.QTimer.singleShot(10, self.__setDataInView)
+
+    def __setDataInView(self):
+        self.__currentView.setData(self.__displayedData)
 
     def __setDisplayedView(self, view):
         """Set the displayed view.
@@ -706,6 +709,7 @@ class DataViewer(qt.QFrame):
         :param numpy.ndarray data: The data.
         """
         self.__data = data
+        self.__displayedData = None
         self.__updateView()
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
