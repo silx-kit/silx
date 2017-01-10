@@ -241,6 +241,8 @@ class _Plot3dView(DataView):
 
         plot = ScalarFieldView.ScalarFieldView(parent)
         plot.setAxesLabels(*reversed(self.axesNames()))
+        plot.addIsosurface(
+            lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
 
         # Create a parameter tree for the scalar field view
         options = SFViewParamTree.TreeView(plot)
@@ -260,9 +262,6 @@ class _Plot3dView(DataView):
     def setData(self, data):
         plot = self.getWidget()
         plot.setData(data)
-        for iso in plot.getIsosurfaces():
-            plot.removeIsosurface(iso)
-        plot.addIsosurface(lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
         self.__resetZoomNextTime = False
 
     def getDataPriority(self, data):
