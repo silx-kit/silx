@@ -2,8 +2,8 @@
 .. currentmodule:: silx.math
 .. py:module:: silx.math.fit
 
-:mod:`silx.math.fit`: Fitting tools
-===================================
+:mod:`fit`: Fitting tools
+==========================
 
 .. toctree::
    :maxdepth: 1

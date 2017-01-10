@@ -71,8 +71,13 @@ On Linux, you can install *silx* in your home directory::
 To install *silx* on Debian 8, see `Installing a Debian package`_.
 This method requires **sudo** privileges, but has the benefit of installing dependencies in a simple way.
 
+A CentOS rpm package is provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+
+An Arch Linux (AUR) package is also available: https://aur.archlinux.org/packages/python-silx
+
 You can also choose to compile and install *silx* from it's sources: 
 see `Installing from source`_.
+
 
 
 Installing a Debian package

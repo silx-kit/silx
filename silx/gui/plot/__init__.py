@@ -37,6 +37,8 @@ List of Qt widgets:
 - :mod:`.PlotWindow`: A :mod:`.PlotWidget` with a configurable set of tools.
 - :class:`.Plot1D`: A widget with tools for curves.
 - :class:`.Plot2D`: A widget with tools for images.
+- :class:`.ImageView`: A widget with tools for images and a side histogram.
+- :class:`.StackView`: A widget with tools for a stack of images.
 """
 
 __authors__ = ["T. Vincent"]
@@ -50,5 +52,7 @@ from . import _matplotlib  # noqa
 from .PlotWidget import PlotWidget  # noqa
 from .PlotWindow import PlotWindow, Plot1D, Plot2D  # noqa
 from .ImageView import ImageView  # noqa
+from .StackView import StackView  # noqa
 
-__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D']
+__all__ = ['ImageView', 'PlotWidget', 'PlotWindow', 'Plot1D', 'Plot2D',
+           'StackView']

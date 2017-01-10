@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.io
 
-:mod:`silx.io.specfile`: Reading SpecFile
-------------------------------------------
+:mod:`specfile`: Reading SpecFile
+----------------------------------
 
 .. automodule:: silx.io.specfile
     :members:

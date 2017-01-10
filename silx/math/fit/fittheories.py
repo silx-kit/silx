@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -94,7 +94,7 @@ _logger = logging.getLogger(__name__)
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "06/01/2017"
 
 
 DEFAULT_CONFIG = {
@@ -104,11 +104,13 @@ DEFAULT_CONFIG = {
     'SameFwhmFlag': False,
     'QuotedPositionFlag': False,  # peak not outside data range
     'QuotedEtaFlag': False,  # force 0 < eta < 1
+    # Peak detection
+    'AutoScaling': False,
     'Yscaling': 1.0,
     'FwhmPoints': 8,
     'AutoFwhm': True,
     'Sensitivity': 2.5,
-    'ForcePeakPresence': False,
+    'ForcePeakPresence': True,
     # Hypermet
     'HypermetTails': 15,
     'QuotedFwhmFlag': 0,
@@ -214,34 +216,59 @@ class FitTheories(object):
         else:
             return numpy.zeros_like(y)
 
+    def guess_yscaling(self, y):
+        """Estimate scaling for y prior to peak search.
+        A smoothing filter is applied to y to estimate the noise level
+        (chi-squared)
+
+        :param y: Data array
+        :return: Scaling factor
+        """
+        # ensure y is an array
+        yy = numpy.array(y, copy=False)
+
+        # smooth
+        convolution_kernel = numpy.ones(shape=(3,)) / 3.
+        ysmooth = numpy.convolve(y, convolution_kernel, mode="same")
+
+        # remove zeros
+        idx_array = numpy.fabs(y) > 0.0
+        yy = yy[idx_array]
+        ysmooth = ysmooth[idx_array]
+
+        # compute scaling factor
+        chisq = numpy.mean((yy - ysmooth)**2 / numpy.fabs(yy))
+        if chisq > 0:
+            return 1. / chisq
+        else:
+            return 1.0
+
     def peak_search(self, y, fwhm, sensitivity):
         """Search for peaks in y array, after padding the array and
         multiplying its value by a scaling factor.
 
-        :param y: Data array
-        :param fwhm: Typical full width at half maximum for peaks,
-            in number of points. This parameter is used for smoothing the data
-            and calculating the noise.
-        :param sensitivity: Sensitivity parameter. This is a threshold factor
+        :param y: 1-D data array
+        :param int fwhm: Typical full width at half maximum for peaks,
+            in number of points. This parameter is used for to discriminate between
+            true peaks and background fluctuations.
+        :param float sensitivity: Sensitivity parameter. This is a threshold factor
             for peak detection. Only peaks larger than the standard deviation
             of the noise multiplied by this sensitivity parameter are detected.
         :return: List of peak indices
         """
-        # # add padding and apply scaling factor
-        # ysearch = numpy.ones([len(y) + 2 * fwhm, ], numpy.float)
-        # ysearch[0:fwhm] = y[0] * self.config["Yscaling"]
-        # ysearch[-1:-fwhm - 1:-1] = y[len(y)-1] * self.config["Yscaling"]
-        # ysearch[fwhm:fwhm + len(y)] = y * self.config["Yscaling"]
+        # add padding
+        ysearch = numpy.ones((len(y) + 2 * fwhm,), numpy.float)
+        ysearch[0:fwhm] = y[0]
+        ysearch[-1:-fwhm - 1:-1] = y[len(y)-1]
+        ysearch[fwhm:fwhm + len(y)] = y[:]
 
-        ysearch = y
+        scaling = self.guess_yscaling(y) if self.config["AutoScaling"] else self.config["Yscaling"]
 
         if len(ysearch) > 1.5 * fwhm:
-            peaks = peak_search(self.config["Yscaling"] * ysearch,
+            peaks = peak_search(scaling * ysearch,
                                 fwhm=fwhm, sensitivity=sensitivity)
-            # # remove padding
-            # return [peak_index - fwhm - 1 for peak_index in peaks]
-            # # FIXME: investigate why we need - 1. Index problem in peak search algorithm?
-            return peaks
+            return [peak_index - fwhm for peak_index in peaks
+                    if 0 <= peak_index - fwhm < len(y)]
         else:
             return []
 

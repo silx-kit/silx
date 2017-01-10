@@ -57,17 +57,6 @@ else:
 
 
 if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
-    # Debian8 support:
-    # IPython < 3.2.2 does not check if PyQt5 is loaded,
-    # force silx to use PyQt4 or PySide if available.
-    import IPython
-    if IPython.__version__ < '3.2.2':
-        try:
-            import PyQt4
-        except ImportError:
-            import PySide
-    del IPython  # clean-up namespace
-
     from silx.gui import qt
 
     if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
