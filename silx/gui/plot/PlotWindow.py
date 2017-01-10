@@ -119,7 +119,7 @@ class PlotWindow(PlotWidget):
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  control=False, position=False,
-                 roi=True, mask=True, fit=False ):
+                 roi=True, mask=True, fit=False):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -428,7 +428,6 @@ class PlotWindow(PlotWidget):
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
 
-
     def showPixelIntensitiesAction(self, b=True):
         """Activate the pixel intensities action
 
@@ -437,15 +436,17 @@ class PlotWindow(PlotWidget):
         self._separatorToIntenistyHisto.setVisible(b)
         self.intensityHistoAction.setVisible(b)
         if b:
-            self.sigActiveImageChanged.connect(self.intensityHistoAction.computeIntensityDistribution)
+            self.sigActiveImageChanged.connect(
+                self.intensityHistoAction.computeIntensityDistribution)
         else:
-            self.sigActiveImageChanged.disconnect(self.intensityHistoAction.computeIntensityDistribution)
-
+            self.sigActiveImageChanged.disconnect(
+                self.intensityHistoAction.computeIntensityDistribution)
 
     def getIntensityHistogramAction(self):
         """Action toggling the histogram intensity Dock widget"""
         if not hasattr(self, 'intensityHistoAction'):
-            self.intensityHistoAction = PlotActions.PixelIntensitiesHistoAction(self)
+            self.intensityHistoAction = \
+                PlotActions.PixelIntensitiesHistoAction(self)
         return self.intensityHistoAction
 
 

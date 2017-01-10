@@ -1125,7 +1125,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         :param event: the event received by qobject
         """
         if event.type() == qt.QEvent.Close:
-            if not self.plotHistogram is None:
+            if self.plotHistogram is not None:
                 self.plotHistogram.hide()
             self.setChecked(False)
 
