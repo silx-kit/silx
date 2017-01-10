@@ -236,6 +236,8 @@ class _ArrayView(DataView):
         isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
         if not isArray:
             return -1
+        if data.dtype.fields is not None:
+            return -1
         if len(data.shape) < 2:
             return -1
         return 50
@@ -301,6 +303,37 @@ class _TextView(DataView):
         return 0
 
 
+class _RecordView(DataView):
+    """View displaying data using text"""
+
+    def axiesNames(self):
+        return ["data"]
+
+    def createWidget(self, parent):
+        from .RecordTableView import RecordTableView
+        widget = RecordTableView(parent)
+        return widget
+
+    def clear(self):
+        self.getWidget().model().setArrayData(None)
+
+    def setData(self, data):
+        self.getWidget().model().setArrayData(data)
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        if data.dtype.fields is not None:
+            return 40
+        if len(data.shape) == 1:
+            return 40
+        return -1
+
+
 class DataViewer(qt.QFrame):
     """Widget to display any kind of data
 
@@ -333,6 +366,7 @@ class DataViewer(qt.QFrame):
     PLOT2D_MODE = 2
     TEXT_MODE = 3
     ARRAY_MODE = 4
+    RECORD_MODE = 6
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -378,6 +412,7 @@ class DataViewer(qt.QFrame):
             _Plot2dView(self.__stack, self.PLOT2D_MODE),
             _TextView(self.__stack, self.TEXT_MODE),
             _ArrayView(self.__stack, self.ARRAY_MODE),
+            _RecordView(self.__stack, self.RECORD_MODE),
         ]
         self.__views = {}
         for v in views:
