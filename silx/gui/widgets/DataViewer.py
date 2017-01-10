@@ -225,6 +225,64 @@ class _Plot2dView(DataView):
             return 10
 
 
+class _Plot3dView(DataView):
+    """View displaying data using a 3d plot"""
+
+    def __init__(self, parent, modeId):
+        super(_Plot3dView, self).__init__(parent, modeId)
+        self.__resetZoomNextTime = True
+
+    def axesNames(self):
+        return ["z", "y", "x"]
+
+    def createWidget(self, parent):
+        from silx.gui.plot3d import ScalarFieldView
+        from silx.gui.plot3d import SFViewParamTree
+
+        plot = ScalarFieldView.ScalarFieldView(parent)
+        plot.setAxesLabels(*reversed(self.axesNames()))
+
+        # Create a parameter tree for the scalar field view
+        options = SFViewParamTree.TreeView(plot)
+        options.setSfView(plot)
+
+        # Add the parameter tree to the main window in a dock widget
+        dock = qt.QDockWidget()
+        dock.setWidget(options)
+        plot.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
+
+        return plot
+
+    def clear(self):
+        self.getWidget().setData(None)
+        self.__resetZoomNextTime = True
+
+    def setData(self, data):
+        plot = self.getWidget()
+        plot.setData(data)
+        for iso in plot.getIsosurfaces():
+            plot.removeIsosurface(iso)
+        plot.addIsosurface(lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
+        self.__resetZoomNextTime = False
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) < 3:
+            return -1
+        if len(data.shape) == 3:
+            return 100
+        else:
+            return 10
+
+
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
@@ -432,10 +490,11 @@ class DataViewer(qt.QFrame):
     EMPTY_MODE = 0
     PLOT1D_MODE = 1
     PLOT2D_MODE = 2
-    TEXT_MODE = 3
-    ARRAY_MODE = 4
-    STACK_MODE = 5
-    RECORD_MODE = 6
+    PLOT3D_MODE = 3
+    TEXT_MODE = 4
+    ARRAY_MODE = 5
+    STACK_MODE = 6
+    RECORD_MODE = 7
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -480,6 +539,7 @@ class DataViewer(qt.QFrame):
             _EmptyView(self.__stack, self.EMPTY_MODE),
             _Plot1dView(self.__stack, self.PLOT1D_MODE),
             _Plot2dView(self.__stack, self.PLOT2D_MODE),
+            _Plot3dView(self.__stack, self.PLOT3D_MODE),
             _TextView(self.__stack, self.TEXT_MODE),
             _ArrayView(self.__stack, self.ARRAY_MODE),
             _StackView(self.__stack, self.STACK_MODE),
