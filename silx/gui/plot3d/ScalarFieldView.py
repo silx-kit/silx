@@ -1335,6 +1335,11 @@ class ScalarFieldView(Plot3DWindow):
             self._updateIsosurfaces()
             self.sigIsosurfaceRemoved.emit(isosurface)
 
+    def clearIsosurfaces(self):
+        """Remove all iso-surfaces from the view."""
+        for isosurface in self.getIsosurfaces():
+            self.removeIsosurface(isosurface)
+
     def _updateIsosurfaces(self, level=None):
         """Handle updates of iso-surfaces level and add/remove"""
         # Sorting using minus, this supposes data 'object' to be max values
