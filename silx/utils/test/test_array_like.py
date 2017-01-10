@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "22/12/2016"
+__date__ = "09/01/2017"
 
 try:
     import h5py
@@ -55,14 +55,17 @@ class TestTransposedDatasetView(unittest.TestCase):
         for dim in self.original_shape:
             self.size *= dim
 
-        volume = numpy.arange(self.size).reshape(self.original_shape)
+        self.volume = numpy.arange(self.size).reshape(self.original_shape)
 
         self.tempdir = tempfile.mkdtemp()
         self.h5_fname = os.path.join(self.tempdir, "tempfile.h5")
         with h5py.File(self.h5_fname, "w") as f:
-            f["volume"] = volume
+            f["volume"] = self.volume
 
         self.h5f = h5py.File(self.h5_fname, "r")
+
+        self.all_permutations = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0),
+                                 (2, 0, 1), (2, 1, 0)]
 
     def tearDown(self):
         self.h5f.close()
@@ -87,6 +90,12 @@ class TestTransposedDatasetView(unittest.TestCase):
 
         self.assertEqual(a.shape, self.original_shape)
         self._testSize(a)
+
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
 
         for i in range(a.shape[0]):
             for j in range(a.shape[1]):
@@ -140,6 +149,17 @@ class TestTransposedDatasetView(unittest.TestCase):
                     self.assertEqual(viewed_value,
                                      corresponding_original_value)
 
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
+        # test .T property
+        self.assertTrue(numpy.array_equal(
+                a.T,
+                a.transpose(rtrans)))
+
     def testTransposition012(self):
         """transposition = (0, 1, 2)
         (should be the same as testNoTransposition)"""
@@ -165,6 +185,20 @@ class TestTransposedDatasetView(unittest.TestCase):
         """transposition = (2, 1, 0)"""
         self._testTransposition((2, 1, 0))
 
+    def testAllDoubleTranspositions(self):
+        for trans1 in self.all_permutations:
+            for trans2 in self.all_permutations:
+                self._testDoubleTransposition(trans1, trans2)
+
+    def _testDoubleTransposition(self, transposition1, transposition2):
+        a = DatasetView(self.h5f["volume"],
+                        transposition=transposition1).transpose(transposition2)
+
+        b = self.volume.transpose(transposition1).transpose(transposition2)
+
+        self.assertTrue(numpy.array_equal(a, b),
+                        "failed with double transposition %s %s" % (transposition1, transposition2))
+
 
 class TestTransposedListOfImages(unittest.TestCase):
     def setUp(self):
@@ -181,6 +215,11 @@ class TestTransposedListOfImages(unittest.TestCase):
         for i in range(self.original_shape[0]):
             self.images.append(
                     volume[i])
+
+        self.images_as_3D_array = numpy.array(self.images)
+
+        self.all_permutations = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0),
+                                 (2, 0, 1), (2, 1, 0)]
 
     def tearDown(self):
         pass
@@ -209,6 +248,17 @@ class TestTransposedListOfImages(unittest.TestCase):
                 for k in range(a.shape[2]):
                     self.assertEqual(self.images[i][j, k],
                                      a[i, j, k])
+
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
+        # test .T property
+        self.assertTrue(numpy.array_equal(
+                a.T,
+                a.transpose(rtrans)))
 
     def _testTransposition(self, transposition):
         """test transposed dataset
@@ -256,6 +306,26 @@ class TestTransposedListOfImages(unittest.TestCase):
                     self.assertEqual(viewed_value,
                                      corresponding_original_value)
 
+        # reversing the dimensions twice results in no change
+        rtrans = list(reversed(range(self.ndim)))
+        self.assertTrue(numpy.array_equal(
+                a,
+                a.transpose(rtrans).transpose(rtrans)))
+
+        # test .T property
+        self.assertTrue(numpy.array_equal(
+                a.T,
+                a.transpose(rtrans)))
+
+    def _testDoubleTransposition(self, transposition1, transposition2):
+        a = ListOfImages(self.images,
+                         transposition=transposition1).transpose(transposition2)
+
+        b = self.images_as_3D_array.transpose(transposition1).transpose(transposition2)
+
+        self.assertTrue(numpy.array_equal(a, b),
+                        "failed with double transposition %s %s" % (transposition1, transposition2))
+
     def testTransposition012(self):
         """transposition = (0, 1, 2)
         (should be the same as testNoTransposition)"""
@@ -280,6 +350,11 @@ class TestTransposedListOfImages(unittest.TestCase):
     def testTransposition210(self):
         """transposition = (2, 1, 0)"""
         self._testTransposition((2, 1, 0))
+
+    def testAllDoubleTranspositions(self):
+        for trans1 in self.all_permutations:
+            for trans2 in self.all_permutations:
+                self._testDoubleTransposition(trans1, trans2)
 
 
 class TestFunctions(unittest.TestCase):

@@ -305,15 +305,29 @@ class ListOfImages(object):
         the same images but with a different :attr:`transposition`.
 
         :param list[int] transposition: List/tuple of dimension numbers in the
-            wanted order
+            wanted order.
+            If ``None`` (default), reverse the dimensions.
         :return: new :class:`ListOfImages` object
         """
         # by default, reverse the dimensions
         if transposition is None:
             transposition = list(reversed(self.transposition))
 
+        # If this ListOfImages is already transposed, sort new transposition
+        # relative to old transposition
+        elif list(self.transposition) != list(range(self.ndim)):
+            transposition = [self.transposition[i] for i in transposition]
+
         return ListOfImages(self.images,
                             transposition)
+
+    @property
+    def T(self):
+        """
+        Same as self.transpose()
+
+        :return: DatasetView with dimensions reversed."""
+        return self.transpose()
 
     def __getitem__(self, item):
         """Handle a subset of numpy indexing with regards to the dimension
@@ -557,12 +571,26 @@ class DatasetView(object):
         The returned object refers to
         the same dataset but with a different :attr:`transposition`.
 
-        :param list[int] transposition: List of dimension numbers in the wanted order
+        :param list[int] transposition: List of dimension numbers in the wanted order.
+            If ``None`` (default), reverse the dimensions.
         :return: Transposed DatasetView
         """
         # by default, reverse the dimensions
         if transposition is None:
             transposition = list(reversed(self.transposition))
 
+        # If this DatasetView is already transposed, sort new transposition
+        # relative to old transposition
+        elif list(self.transposition) != list(range(self.ndim)):
+            transposition = [self.transposition[i] for i in transposition]
+
         return DatasetView(self.dataset,
                            transposition)
+
+    @property
+    def T(self):
+        """
+        Same as self.transpose()
+
+        :return: DatasetView with dimensions reversed."""
+        return self.transpose()

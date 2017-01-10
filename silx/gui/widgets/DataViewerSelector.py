@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "06/01/2017"
 
 from collections import OrderedDict
 import functools
@@ -62,7 +62,9 @@ class DataViewerSelector(qt.QWidget):
         buttons[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
         buttons[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
         buttons[DataViewer.ARRAY_MODE] = ("Raw", "view-raw")
+        buttons[DataViewer.RECORD_MODE] = ("Raw", "view-raw")
         buttons[DataViewer.TEXT_MODE] = ("Text", "view-text")
+        buttons[DataViewer.STACK_MODE] = ("Image stack", "view-2d-stack")
 
         for modeId, state in buttons.items():
             text, iconName = state

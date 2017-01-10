@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "10/01/2017"
 
 import unittest
 import numpy
@@ -84,6 +84,20 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.setData(data)
         self.assertEqual(DataViewer.PLOT2D_MODE, widget.displayMode())
 
+    def test_plot_3d_data(self):
+        data = numpy.arange(3 ** 3)
+        data.shape = [3] * 3
+        widget = self.create_widget()
+        widget.setData(data)
+        self.assertEqual(DataViewer.STACK_MODE, widget.displayMode())
+
+    def test_array_1d_data(self):
+        data = numpy.array(["aaa"] * (3 ** 1))
+        data.shape = [3] * 1
+        widget = self.create_widget()
+        widget.setData(data)
+        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
+
     def test_array_2d_data(self):
         data = numpy.array(["aaa"] * (3 ** 2))
         data.shape = [3] * 2
@@ -92,11 +106,18 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
 
     def test_array_4d_data(self):
-        data = numpy.arange(3 ** 4)
+        data = numpy.array(["aaa"] * (3 ** 4))
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
         self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
+
+    def test_record_4d_data(self):
+        data = numpy.zeros(3 ** 4, dtype='3int8, float32, (2,3)float64')
+        data.shape = [3] * 4
+        widget = self.create_widget()
+        widget.setData(data)
+        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
 
     def test_3d_h5_dataset(self):
         if h5py is None:

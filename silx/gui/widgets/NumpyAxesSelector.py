@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "06/01/2017"
 
 import numpy
 import functools
@@ -58,6 +58,7 @@ class _Axis(qt.QWidget):
         """
         super(_Axis, self).__init__(parent)
         self.__axisNumber = None
+        self.__customAxisNames = set([])
         self.__label = qt.QLabel(self)
         self.__axes = qt.QComboBox(self)
         self.__axes.currentIndexChanged[int].connect(self.__axisMappingChanged)
@@ -101,12 +102,12 @@ class _Axis(qt.QWidget):
         """
         if axisName == "" and self.__axes.count() == 0:
             self.__axes.setCurrentIndex(-1)
-            self.__slider.setVisible(True)
+            self.__updateSliderVisibility()
         for index in range(self.__axes.count()):
             name = self.__axes.itemData(index)
             if name == axisName:
-                self.__slider.setVisible(name == "")
                 self.__axes.setCurrentIndex(index)
+                self.__updateSliderVisibility()
                 return
         raise ValueError("Axis name '%s' not found", axisName)
 
@@ -133,16 +134,31 @@ class _Axis(qt.QWidget):
         for axis in axesNames:
             self.__axes.addItem(axis, axis)
         self.__axes.blockSignals(previous)
-        self.__slider.setVisible(True)
+        self.__updateSliderVisibility()
+
+    def setCustomAxis(self, axesNames):
+        """Set the available list of named axis which can be set to a value.
+
+        :param list[str] axesNames: List of customable axis names
+        """
+        self.__customAxisNames = set(axesNames)
+        self.__updateSliderVisibility()
 
     def __axisMappingChanged(self, index):
         """Called when the selected name change.
 
         :param int index: Selected index
         """
+        self.__updateSliderVisibility()
         name = self.axisName()
-        self.__slider.setVisible(name == "")
         self.axisNameChanged.emit(name)
+
+    def __updateSliderVisibility(self):
+        """Update the visibility of the slider according to axis names and
+        customable axis names."""
+        name = self.axisName()
+        isVisible = name == "" or name in self.__customAxisNames
+        self.__slider.setVisible(isVisible)
 
     def value(self):
         """Returns the current selected position in the axis.
@@ -186,6 +202,9 @@ class NumpyAxesSelector(qt.QWidget):
     selectionChanged = qt.Signal()
     """Emitted when the selected data change"""
 
+    customAxisChanged = qt.Signal(str, int)
+    """Emitted when a custom axis change"""
+
     def __init__(self, parent=None):
         """Constructor
 
@@ -197,6 +216,7 @@ class NumpyAxesSelector(qt.QWidget):
         self.__selectedData = None
         self.__axis = []
         self.__axisNames = []
+        self.__customAxisNames = set([])
         layout = qt.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
@@ -229,6 +249,15 @@ class NumpyAxesSelector(qt.QWidget):
             axis.blockSignals(previous)
         self.__updateSelectedData()
 
+    def setCustomAxis(self, axesNames):
+        """Set the available list of named axis which can be set to a value.
+
+        :param list[str] axesNames: List of customable axis names
+        """
+        self.__customAxisNames = set(axesNames)
+        for axis in self.__axis:
+            axis.setCustomAxis(self.__customAxisNames)
+
     def setData(self, data):
         """Set the input data unsed by the widget.
 
@@ -251,9 +280,12 @@ class NumpyAxesSelector(qt.QWidget):
                 axis = _Axis(self)
                 axis.setAxis(index, 0, data.shape[index])
                 axis.setAxisNames(self.__axisNames)
+                axis.setCustomAxis(self.__customAxisNames)
                 if index >= delta and index - delta < len(self.__axisNames):
                     axis.setAxisName(self.__axisNames[index - delta])
-                axis.valueChanged.connect(self.__updateSelectedData)
+                # this weak method was expected to be able to delete sub widget
+                callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisValueChanged), axis)
+                axis.valueChanged.connect(callback)
                 # this weak method was expected to be able to delete sub widget
                 callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__axisNameChanged), axis)
                 axis.axisNameChanged.connect(callback)
@@ -262,6 +294,13 @@ class NumpyAxesSelector(qt.QWidget):
 
         self.dataChanged.emit()
         self.__updateSelectedData()
+
+    def __axisValueChanged(self, axis, value):
+        name = axis.axisName()
+        if name in self.__customAxisNames:
+            self.customAxisChanged.emit(name, value)
+        else:
+            self.__updateSelectedData()
 
     def __axisNameChanged(self, axis, name):
         """Called when an axis name change.

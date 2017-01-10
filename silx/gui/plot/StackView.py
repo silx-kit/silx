@@ -155,6 +155,12 @@ class StackView(qt.QMainWindow):
                  copy=True, save=True, print_=True, control=False,
                  position=None, mask=True):
         qt.QMainWindow.__init__(self, parent)
+        if parent is not None:
+            # behave as a widget
+            self.setWindowFlags(qt.Qt.Widget)
+        else:
+            self.setWindowTitle('StackView')
+
         self._stack = None
         """Loaded stack of images, as a 3D array or 3D dataset"""
         self.__transposed_view = None
@@ -197,16 +203,25 @@ class StackView(qt.QMainWindow):
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
         self._browser.setEnabled(False)
 
-        planeSelection = PlanesWidget(self._plot)
-        planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
+        self.__planeSelection = PlanesWidget(self._plot)
+        self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
         layout = qt.QGridLayout()
         layout.addWidget(self._plot, 0, 0, 1, 2)
-        layout.addWidget(planeSelection, 1, 0)
+        layout.addWidget(self.__planeSelection, 1, 0)
         layout.addWidget(self._browser, 1, 1)
 
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
+
+    def setOptionVisible(self, isVisible):
+        """
+        Set the visibility of the browsing options.
+
+        :param bool isVisible: True to have the options visible, else False
+        """
+        self._browser.setVisible(isVisible)
+        self.__planeSelection.setVisible(isVisible)
 
     def _imagePlotCB(self, eventDict):
         """Callback for plot events.
@@ -286,6 +301,13 @@ class StackView(qt.QMainWindow):
 
         self._browser.setRange(0, self.__transposed_view.shape[0] - 1)
         self._browser.setValue(0)
+
+    def setFrameNumber(self, number):
+        """Set the frame selection to a specific value\
+
+        :param int number: Number of the frame
+        """
+        self._browser.setValue(number)
 
     def __updateFrameNumber(self, index):
         """Update the current image displayed
