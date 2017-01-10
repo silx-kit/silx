@@ -76,7 +76,9 @@ class TestStackView(TestCaseQt):
 
     def testSetStackPerspective(self):
         self.stackview.setStack(self.mystack, perspective=1)
-        my_trans_stack, params = self.stackview.getStack()
+        # my_orig_stack, params = self.stackview.getStack()
+        my_trans_stack, params = self.stackview.getCurrentView()
+
         # get stack returns the transposed data, depending on the perspective
         self.assertEqual(my_trans_stack.shape,
                          (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))
@@ -87,20 +89,29 @@ class TestStackView(TestCaseQt):
         loi = [self.mystack[i] for i in range(self.mystack.shape[0])]
 
         self.stackview.setStack(loi)
+        my_orig_stack, params = self.stackview.getStack(returnNumpyArray=True)
         my_trans_stack, params = self.stackview.getStack(returnNumpyArray=True)
         self.assertEqual(my_trans_stack.shape, self.mystack.shape)
         self.assertTrue(numpy.array_equal(self.mystack,
                                           my_trans_stack))
+        self.assertTrue(numpy.array_equal(self.mystack,
+                                          my_orig_stack))
         self.assertIsInstance(my_trans_stack, numpy.ndarray)
 
         self.stackview.setStack(loi, perspective=2)
-        my_trans_stack, params = self.stackview.getStack(copy=False)
+        my_orig_stack, params = self.stackview.getStack(copy=False)
+        my_trans_stack, params = self.stackview.getCurrentView(copy=False)
+        # getStack(copy=False) must return the object set in setStack
+        self.assertIs(my_orig_stack, loi)
+        # getCurrentView(copy=False) returns a ListOfImages whose .images
+        # attr is the original data
         self.assertEqual(my_trans_stack.shape,
                          (self.mystack.shape[2], self.mystack.shape[0], self.mystack.shape[1]))
         self.assertTrue(numpy.array_equal(numpy.array(my_trans_stack),
                                           numpy.transpose(self.mystack, axes=(2, 0, 1))))
         self.assertIsInstance(my_trans_stack,
                               ListOfImages)  # returnNumpyArray=False by default in getStack
+        self.assertIs(my_trans_stack.images, loi)
 
 
 class TestStackViewMainWindow(TestCaseQt):
@@ -134,7 +145,7 @@ class TestStackViewMainWindow(TestCaseQt):
 
     def testSetStackPerspective(self):
         self.stackview.setStack(self.mystack, perspective=1)
-        my_trans_stack, params = self.stackview.getStack()
+        my_trans_stack, params = self.stackview.getCurrentView()
         # get stack returns the transposed data, depending on the perspective
         self.assertEqual(my_trans_stack.shape,
                          (self.mystack.shape[1], self.mystack.shape[0], self.mystack.shape[2]))

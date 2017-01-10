@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "10/01/2016"
 
 import numpy
 
@@ -398,7 +398,36 @@ class StackView(qt.QMainWindow):
         self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
-        """Get the stack of images, as a 3D array or dataset.
+        """Get the original stack of images, as a 3D array or dataset.
+
+        The output has the form: [data, params]
+        where params is a dictionary containing display parameters.
+
+        :param bool copy: If True (default), then the object is copied
+            and returned as a numpy array.
+            Else, a reference to original data is returned, if possible.
+            If the original data is not a numpy array and parameter
+            returnNumpyArray is True, a copy will be made anyway.
+        :param bool returnNumpyArray: If True, the returned object is
+            guaranteed to be a numpy array.
+        :return: Stack of images and parameters.
+        :rtype: (numpy.ndarray, dict)
+        """
+        if self.getActiveImage() is None:
+            return None
+        _img, _legend, _info, _pixmap, params = self.getActiveImage()
+        if returnNumpyArray or copy:
+            return numpy.array(self._stack, copy=copy), params
+
+        # if a list of 2D arrays was cast into a ListOfImages,
+        # return the original list
+        if isinstance(self._stack, ListOfImages):
+            return self._stack.images, params
+
+        return self._stack, params
+
+    def getCurrentView(self, copy=True, returnNumpyArray=False):
+        """Get the stack of images, it is currently displayed.
 
         The first index of the returned stack is always the image
         index. If the perspective has been changed in the widget since the
