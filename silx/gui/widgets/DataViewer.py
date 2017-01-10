@@ -33,15 +33,19 @@ __date__ = "10/01/2017"
 
 import numpy
 import numbers
+import logging
 
 import silx.io
 from silx.gui import qt
 from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
 
+
 try:
     from silx.third_party import six
 except ImportError:
     import six
+
+_logger = logging.getLogger(__name__)
 
 
 class DataView(object):
@@ -230,6 +234,12 @@ class _Plot3dView(DataView):
 
     def __init__(self, parent, modeId):
         super(_Plot3dView, self).__init__(parent, modeId)
+        try:
+            import OpenGL  # noqa
+        except:
+            _logger.warning("Plot3dView is not available")
+            _logger.debug("Backtrace", exc_info=True)
+            raise
         self.__resetZoomNextTime = True
 
     def axesNames(self):
