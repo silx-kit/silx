@@ -60,7 +60,7 @@ class DataView(object):
         """Returns the mode id"""
         return self.__modeId
 
-    def axiesNames(self):
+    def axesNames(self):
         """Returns names of the expected axes of the view"""
         return []
 
@@ -128,7 +128,7 @@ class DataView(object):
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return []
 
     def createWidget(self, parent):
@@ -145,7 +145,7 @@ class _Plot1dView(DataView):
         super(_Plot1dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["y"]
 
     def createWidget(self, parent):
@@ -186,7 +186,7 @@ class _Plot2dView(DataView):
         super(_Plot2dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["y", "x"]
 
     def createWidget(self, parent):
@@ -228,7 +228,7 @@ class _Plot2dView(DataView):
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["col", "row"]
 
     def createWidget(self, parent):
@@ -264,7 +264,7 @@ class _StackView(DataView):
         super(_StackView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["depth", "y", "x"]
 
     def customAxisNames(self):
@@ -280,7 +280,7 @@ class _StackView(DataView):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
         widget.setKeepDataAspectRatio(True)
-        widget.setLabels(self.axiesNames())
+        widget.setLabels(self.axesNames())
         # hide default option panel
         widget.setOptionVisible(False)
         return widget
@@ -316,7 +316,7 @@ class _TextView(DataView):
 
     __format = "%g"
 
-    def axiesNames(self):
+    def axesNames(self):
         return []
 
     def createWidget(self, parent):
@@ -374,7 +374,7 @@ class _TextView(DataView):
 class _RecordView(DataView):
     """View displaying data using text"""
 
-    def axiesNames(self):
+    def axesNames(self):
         return ["data"]
 
     def createWidget(self, parent):
@@ -528,7 +528,7 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        axisNames = self.__currentView.axiesNames()
+        axisNames = self.__currentView.axesNames()
         if len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__axisSelection.setVisible(True)
