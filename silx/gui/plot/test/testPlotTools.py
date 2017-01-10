@@ -34,7 +34,7 @@ import unittest
 
 from silx.test.utils import TestLogging
 from silx.gui.test.utils import (
-    qWaitForWindowExposedAndActivate, TestCaseQt)
+    qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
 from silx.gui.plot import PlotWindow, PlotTools
 
