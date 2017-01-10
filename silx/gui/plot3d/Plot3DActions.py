@@ -323,6 +323,8 @@ class VideoAction(Plot3DAction):
                 if qt.BINDING == 'PyQt4':
                     ptr = ptr.asstring()
             array = numpy.fromstring(ptr, dtype=numpy.uint8)
+            # Lines are 32 bits aligned: remove padding bytes
+            array = array.reshape(image.height(), -1)[:, :image.width() * 3]
             array.shape = image.height(), image.width(), 3
             yield array
 
