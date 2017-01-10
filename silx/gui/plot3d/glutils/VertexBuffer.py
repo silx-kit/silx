@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/07/2016"
+__date__ = "10/01/2017"
 
 
 import logging
@@ -166,7 +166,7 @@ class VertexBufferAttrib(object):
     :param VertexBuffer vbo: The vertex buffer storing the data
     :param int type_: The OpenGL type of the data
     :param int size: The number of data elements stored in the VBO
-    :param int dimension: The number of type_ element(s) in [1, 4]
+    :param int dimension: The number of `type_` element(s) in [1, 4]
     :param int offset: Start offset of data in the vertex buffer
     :param int stride: Data stride in the vertex buffer
     """

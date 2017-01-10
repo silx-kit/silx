@@ -89,7 +89,11 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 3
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.STACK_MODE, widget.displayMode())
+        try:
+            import OpenGL  # noqa
+            self.assertEqual(DataViewer.PLOT3D_MODE, widget.displayMode())
+        except ImportError:
+            self.assertEqual(DataViewer.STACK_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
         data = numpy.array(["aaa"] * (3 ** 1))

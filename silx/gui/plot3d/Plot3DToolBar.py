@@ -35,7 +35,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "28/11/2016"
+__date__ = "10/01/2017"
 
 import logging
 
@@ -85,25 +85,35 @@ class Plot3DToolBar(qt.QToolBar):
         """Return the Plot3DWidget associated to this toolbar.
 
         If no widget is associated, it returns None.
+
+        :rtype: qt.QWidget
         """
         return self._plot3d
 
     def getCopyAction(self):
         """Returns the QAction performing copy to clipboard of the Plot3DWidget
+
+        :rtype: qt.QAction
         """
         return self._copyAction
 
     def getSaveAction(self):
         """Returns the QAction performing save to file of the Plot3DWidget
+
+        :rtype: qt.QAction
         """
         return self._saveAction
 
     def getVideoRecordAction(self):
         """Returns the QAction performing record video of the Plot3DWidget
+
+        :rtype: qt.QAction
         """
         return self._videoAction
 
     def getPrintAction(self):
         """Returns the QAction performing printing of the Plot3DWidget
+
+        :rtype: qt.QAction
         """
         return self._printAction

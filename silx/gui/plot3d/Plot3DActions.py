@@ -28,7 +28,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "10/01/2017"
 
 
 import logging
@@ -68,6 +68,8 @@ class Plot3DAction(qt.QAction):
         """Return the Plot3DWidget associated to this action.
 
         If no widget is associated, it returns None.
+
+        :rtype: qt.QWidget
         """
         return None if self._plot3d is None else self._plot3d()
 
@@ -170,6 +172,8 @@ class PrintAction(Plot3DAction):
 
     def getPrinter(self):
         """Return the QPrinter instance used for printing.
+
+        :rtype: qt.QPrinter
         """
         # TODO This is a hack to sync with silx plot PrintAction
         # This needs to be centralized

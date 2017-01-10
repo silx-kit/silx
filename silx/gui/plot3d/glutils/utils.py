@@ -27,7 +27,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "24/08/2016"
+__date__ = "10/01/2017"
 
 from . import gl
 import numpy
@@ -45,7 +45,7 @@ _GL_TYPE_SIZES = {
 
 
 def sizeofGLType(type_):
-    """Returns the size in bytes of an element of type type_"""
+    """Returns the size in bytes of an element of type `type_`"""
     return _GL_TYPE_SIZES[type_]
 
 
