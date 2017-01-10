@@ -1088,41 +1088,38 @@ class PixelIntensitiesHistoAction(PlotAction):
                             icon='pixel-intensities',
                             text='pixels intensity',
                             tooltip='Compute image intensity distribution',
-                            triggered=self.updateIntensityDistribution,
+                            triggered=self._triggered,
                             parent=parent,
                             checkable=True)
         self._plotHistogram = None
         self._connectedToActiveImage = False
 
-    def setVisible(self, visible):
-        """Set action visibility, see QAction.setVisible"""
-        if visible:
+    def _triggered(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        if checked:
             if not self._connectedToActiveImage:
                 self.plot.sigActiveImageChanged.connect(
                     self._activeImageChanged)
                 self._connectedToActiveImage = True
-            self.computeIntensityDistribution()
+                self.computeIntensityDistribution()
+
+            self.getHistogramPlotWidget().show()
+
         else:
             if self._connectedToActiveImage:
                 self.plot.sigActiveImageChanged.disconnect(
                     self._activeImageChanged)
                 self._connectedToActiveImage = False
 
-        super(PixelIntensitiesHistoAction, self).setVisible(visible)
-
-    def updateIntensityDistribution(self, checked):
-        """Update the plot of the histogram visibility status
-
-        :param bool checked: status  of the action button
-        """
-        if checked:
-            self.getHistogramPlotWidget().show()
-        else:
             self.getHistogramPlotWidget().hide()
 
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
-        self.computeIntensityDistribution()
+        if self.isChecked():
+            self.computeIntensityDistribution()
 
     def computeIntensityDistribution(self):
         """Get the active image and compute the image intensity distribution
@@ -1139,7 +1136,7 @@ class PixelIntensitiesHistoAction(PlotAction):
 
             else:
                 data = image.ravel().astype(numpy.float32)
-                nbins = min(1024, int(numpy.sqrt(data.size)))
+                nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
                 data_range = numpy.nanmin(data), numpy.nanmax(data)
 
                 histo, w_histo, edges = Histogramnd(data,
@@ -1171,6 +1168,7 @@ class PixelIntensitiesHistoAction(PlotAction):
         from silx.gui.plot.PlotWindow import Plot1D
         if self._plotHistogram is None:
             self._plotHistogram = Plot1D()
+            self._plotHistogram.setWindowTitle('Image Intensity Histogram')
             self._plotHistogram.installEventFilter(self)
 
         return self._plotHistogram
