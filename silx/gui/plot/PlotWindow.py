@@ -119,7 +119,7 @@ class PlotWindow(PlotWidget):
                  aspectRatio=True, yInverted=True,
                  copy=True, save=True, print_=True,
                  control=False, position=False,
-                 roi=True, mask=True, fit=False ):
+                 roi=True, mask=True, fit=False):
         super(PlotWindow, self).__init__(parent=parent, backend=backend)
         if parent is None:
             self.setWindowTitle('PlotWindow')
@@ -179,6 +179,10 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self.maskAction)
         self.maskAction.setVisible(mask)
 
+        self._intensityHistoAction = self.group.addAction(
+            PlotActions.PixelIntensitiesHistoAction(self))
+        self._intensityHistoAction.setVisible(False)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -194,14 +198,6 @@ class PlotWindow(PlotWidget):
 
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
-
-        self._separatorToIntenistyHisto = qt.QAction('separator', self)
-        self._separatorToIntenistyHisto.setSeparator(True)
-        self._separatorToIntenistyHisto.setVisible(False)
-        self.group.addAction(self._separatorToIntenistyHisto)
-
-        self.intensityHistoAction = self.group.addAction(PlotActions.PixelIntensitiesHistoAction(self))
-        self.intensityHistoAction.setVisible(False)
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -428,25 +424,9 @@ class PlotWindow(PlotWidget):
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
 
-
-    def showPixelIntensitiesAction(self, b=True):
-        """Activate the pixel intensities action
-
-        :param boolean b: True if we want to add this action to the toolBar
-        """
-        self._separatorToIntenistyHisto.setVisible(b)
-        self.intensityHistoAction.setVisible(b)
-        if b:
-            self.sigActiveImageChanged.connect(self.intensityHistoAction.computeIntensityDistribution)
-        else:
-            self.sigActiveImageChanged.disconnect(self.intensityHistoAction.computeIntensityDistribution)
-
-
     def getIntensityHistogramAction(self):
-        """Action toggling the histogram intensity Dock widget"""
-        if not hasattr(self, 'intensityHistoAction'):
-            self.intensityHistoAction = PlotActions.PixelIntensitiesHistoAction(self)
-        return self.intensityHistoAction
+        """Action toggling the histogram intensity Plot widget"""
+        return self._intensityHistoAction
 
 
 class Plot1D(PlotWindow):
