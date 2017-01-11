@@ -622,10 +622,6 @@ class Plot2D(PlotWindow):
         self.setGraphYLabel('Rows')
 
         self.profile = ProfileToolBar(plot=self)
-        """"Profile tools attached to this plot.
-
-        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
-        """
 
         self.addToolBar(self.profile)
 
@@ -648,3 +644,10 @@ class Plot2D(PlotWindow):
                 if (row < data.shape[0] and col < data.shape[1]):
                     return data[row, col]
         return '-'
+
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.ProfileToolBar`
+        """
+        return self.profile
