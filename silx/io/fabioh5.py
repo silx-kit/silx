@@ -619,7 +619,7 @@ class File(Group):
         return self.__fabio_image.filename
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, type, value, tb):  # pylint: disable=W0622
         """Called at the end of a `with` statement.
@@ -641,5 +641,6 @@ class File(Group):
 
         After calling this method, attempts to use the object may fail.
         """
-        self.__fabio_image.close()
+        # It looks like there is no close on FabioImage
+        # self.__fabio_image.close()
         self.__fabio_image = None

@@ -1471,6 +1471,14 @@ class SpecH5(SpecH5Group):
         """
         return self._sf.keys()
 
+    def __enter__(self):
+        """Context manager enter"""
+        return self
+
+    def __exit__(self, type, value, tb):  # pylint: disable=W0622
+        """Context manager exit"""
+        self.close()
+
     def close(self):
         """Close the object, and free up associated resources.
 
