@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -98,6 +98,9 @@ class Dataset(Node):
         self.__data = data
         Node.__init__(self, name, parent)
 
+    def _set_data(self, data):
+        self.__data = data
+
     @property
     def h5py_class(self):
         return h5py.Dataset
@@ -111,18 +114,94 @@ class Dataset(Node):
         return self.__data.shape
 
     @property
+    def size(self):
+        return self.__data.size
+
+    def __len__(self):
+        return len(self.__data)
+
+    def __getitem__(self, item):
+        if not isinstance(self.__data, numpy.ndarray):
+            if item == Ellipsis:
+                return numpy.array(self.__data)
+            elif item == tuple():
+                return self.__data
+            else:
+                raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
+        return self.__data.__getitem__(item)
+
+    def __getslice__(self, i, j):
+        # deprecated but still in use for python 2.7
+        return self.__getitem__(slice(i, j, None))
+
+    @property
     def value(self):
         return self.__data
 
+    @property
+    def compression(self):
+        return None
 
-class FrameData(Node):
+    @property
+    def compression_opts(self):
+        return None
 
-    def __init__(self, name, fabio_file, parent=None):
-        Node.__init__(self, name, parent)
-        self.__data = None
-        self.__fabio_file = fabio_file
+
+class LazyLoadableDataset(Dataset):
+
+    def __init__(self, name, parent=None):
+        super(LazyLoadableDataset, self).__init__(name, None, parent)
+        self.__initialized = False
+
+    def _create_data(self):
+        raise NotImplementedError()
 
     def __init_data(self):
+        if self.__initialized is False:
+            data = self._create_data()
+            self._set_data(data)
+            self.__initialized = True
+
+    def __len__(self):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).__len__()
+
+    def __getitem__(self, item):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).__getitem__(item)
+
+    def __getslice__(self, i, j):
+        self.__init_data()
+        return self.__getitem__(slice(i, j, None))
+
+    @property
+    def dtype(self):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).dtype
+
+    @property
+    def shape(self):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).shape
+
+    @property
+    def value(self):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).value
+
+    @property
+    def size(self):
+        self.__init_data()
+        return super(LazyLoadableDataset, self).size
+
+
+class FrameData(LazyLoadableDataset):
+
+    def __init__(self, name, fabio_file, parent=None):
+        LazyLoadableDataset.__init__(self, name, parent)
+        self.__fabio_file = fabio_file
+
+    def _create_data(self):
         """Initialize hold data by merging all frames into a single cube.
 
         Choose the cube size which fit the best the data. If some images are
@@ -130,9 +209,6 @@ class FrameData(Node):
 
         The computation is cached into the class, and only done ones.
         """
-        if self.__data is not None:
-            return
-
         images = []
         for frame in range(self.__fabio_file.nframes):
             if self.__fabio_file.nframes == 1:
@@ -159,26 +235,7 @@ class FrameData(Node):
             images[index] = right_image
 
         # create a cube
-        self.__data = numpy.array(images)
-
-    @property
-    def h5py_class(self):
-        return h5py.Dataset
-
-    @property
-    def dtype(self):
-        self.__init_data()
-        return self.__data.dtype
-
-    @property
-    def shape(self):
-        self.__init_data()
-        return self.__data.shape
-
-    @property
-    def value(self):
-        self.__init_data()
-        return self.__data
+        return numpy.array(images)
 
 
 class Group(Node):
