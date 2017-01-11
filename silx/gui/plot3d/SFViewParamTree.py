@@ -884,12 +884,12 @@ class PlaneOrientationItem(SubjectItem):
     editable = True
 
     _PLANE_ACTIONS = (
-        ('3d-plane-normal-x', 'YZ-Plane',
-         'Set plane perpendicular to X axis', (1., 0., 0.)),
-        ('3d-plane-normal-y', 'XZ-Plane',
-         'Set plane perpendicular to Y axis', (0., 1., 0.)),
-        ('3d-plane-normal-z', 'XY-Plane',
-         'Set plane perpendicular to Z axis', (0., 0., 1.)),
+        ('3d-plane-normal-x', 'Plane 0',
+         'Set plane perpendicular to red axis', (1., 0., 0.)),
+        ('3d-plane-normal-y', 'Plane 1',
+         'Set plane perpendicular to green axis', (0., 1., 0.)),
+        ('3d-plane-normal-z', 'Plane 2',
+         'Set plane perpendicular to blue axis', (0., 0., 1.)),
     )
 
     def getSignals(self):
