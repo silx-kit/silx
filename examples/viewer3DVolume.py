@@ -105,9 +105,6 @@ def main(argv=None):
         '-l', '--level', nargs='?', type=float, default=float('nan'),
         help="The value at which to generate the iso-surface")
     parser.add_argument(
-        '-o', '--order', nargs='?', type=str, default='zyx',
-        help="Order of the data values: X 1st: xyz or Z 1st: zyx (default)")
-    parser.add_argument(
         '-sx', '--xscale', nargs='?', type=float, default=1.,
         help="The scale of the data on the X axis")
     parser.add_argument(
@@ -141,8 +138,6 @@ def main(argv=None):
         <filename>::<path_in_file>#<1st_dim_index>...#<n-3th_dim_index>
 
         E.g.: data.h5::/data_5D#1#1
-
-        Note: The scale is applied on reordered dimensions, see --order.
         """)
     args = parser.parse_args(args=argv)
 
@@ -177,11 +172,6 @@ def main(argv=None):
         data = numpy.asarray(
             size**2 - ((x-size/2)**2 + (y-size/2)**2 + (z-size/2)**2),
             dtype='float32')
-
-    # Switch axes if needed
-    assert args.order in ('zyx', 'xyz')
-    if args.order == 'xyz':
-        data = numpy.ascontiguousarray(numpy.swapaxes(data, 0, 2))
 
     # Set ScalarFieldView data
     window.setData(data)
