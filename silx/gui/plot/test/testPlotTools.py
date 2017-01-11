@@ -57,6 +57,7 @@ def _tearDownDocTest(docTest):
 # Disable doctest because of
 # "NameError: name 'numpy' is not defined"
 #
+# import doctest
 # positionInfoTestSuite = doctest.DocTestSuite(
 #     PlotTools, tearDown=_tearDownDocTest,
 #     optionflags=doctest.ELLIPSIS)
