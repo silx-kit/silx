@@ -686,7 +686,28 @@ class StackView(qt.QMainWindow):
         """
         self._plot.setKeepDataAspectRatio(flag)
 
-    # kind of internal, but needed by Profile
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
+        """
+        return self._plot.profile
+
+    def getProfileWindow1D(self):
+        """Plot window used to display 1D profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self._plot.profile.getProfileWindow1D()
+
+    def getProfileWindow2D(self):
+        """Plot window used to display 2D profile image.
+
+        :return: :class:`Plot2D`
+        """
+        return self._plot.profile.getProfileWindow2D()
+
+    # kind of internal methods, but needed by Profile
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
         """See :meth:`Plot.Plot.remove`"""

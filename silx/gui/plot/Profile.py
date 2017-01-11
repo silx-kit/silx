@@ -28,7 +28,7 @@ and stacks of images"""
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "22/12/2016"
+__date__ = "11/01/2017"
 
 
 import numpy 
@@ -760,3 +760,17 @@ class Profile3DToolBar(ProfileToolBar):
         """
         super(Profile3DToolBar, self)._showProfileWindow()
         self.ndProfileWindow.show()
+
+    def getProfileWindow1D(self):
+        """Plot window used to display 1D profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self._profileWindow1D
+
+    def getProfileWindow2D(self):
+        """Plot window used to display 2D profile image.
+
+        :return: :class:`Plot2D`
+        """
+        return self._profileWindow2D
