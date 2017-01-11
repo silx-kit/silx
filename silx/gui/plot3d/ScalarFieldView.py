@@ -788,8 +788,7 @@ class ScalarFieldView(Plot3DWindow):
         """
         Saves this view state. Only isosurfaces at the moment. Does not save
         the isosurface's function.
-        :param ioDevice:
-        :return:
+        :param ioDevice: the device targetted for writting
         """
 
         stream = qt.QDataStream(ioDevice)
@@ -829,8 +828,7 @@ class ScalarFieldView(Plot3DWindow):
         """
         Loads this view state.
         See ScalarFieldView.saveView to know what is supported at the moment.
-        :param ioDevice:
-        :return:
+        :param ioDevice: the device targetted for reading
         """
 
         tagStack = deque()

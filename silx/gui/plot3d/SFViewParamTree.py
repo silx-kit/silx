@@ -100,10 +100,9 @@ class SubjectItem(qt.QStandardItem):
         This is useful to let this method know if the setData method was called
         internaly or from the view.
 
-        :param value:
-        :param role:
-        :param pushData:
-        :return:
+        :param value: the value ti set to data
+        :param role: role in the item
+        :param pushData: if True push value in the existing data.
         """
         if role == qt.Qt.EditRole and pushData:
             setValue = self._pushData(value, role)
@@ -164,8 +163,7 @@ class SubjectItem(qt.QStandardItem):
         Set the enabled state for this cell, or for the whole row
         if this item has a parent.
 
-        :param enable:
-        :return:
+        :param bool enable: True if we wan't to enable the cell
         """
         parent = self.parent()
         model = self.model()
@@ -238,7 +236,7 @@ class SubjectItem(qt.QStandardItem):
         Returns the editor widget used to edit this item's data. The arguments
         are the one passed to the QStyledItemDelegate.createEditor method.
 
-        :param parent:
+        :param parent: the Qt parent of the editor
         :param option:
         :param index:
         :return:
@@ -1184,8 +1182,7 @@ class TreeView(qt.QTreeView):
         """
         Sets the ScalarFieldView this view is controlling.
 
-        :param sfView:
-        :return:
+        :param sfView: the ScalarFieldView to control
         """
         model = qt.QStandardItemModel()
         model.setColumnCount(ModelColumns.ColumnMax)
@@ -1279,9 +1276,9 @@ class TreeView(qt.QTreeView):
         Reimplementation of the QTreeView.rowsAboutToBeRemoved. Closes all
         persistend editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
+        :param parent: the parent item
+        :param start: start item to be removed (inclusive)
+        :param end: end item to be removed (inclusive)
         """
         self.__openPersistentEditors(parent, False)
         super(TreeView, self).rowsAboutToBeRemoved(parent, start, end)
@@ -1291,9 +1288,9 @@ class TreeView(qt.QTreeView):
         Called when QTreeView.rowsRemoved is emitted. Opens all persistent
         editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
+        :param parent: the parent item
+        :param start: start item to be removed (inclusive)
+        :param end: end item to be removed (inclusive)
         :return:
         """
         super(TreeView, self).rowsRemoved(parent, start, end)
@@ -1304,9 +1301,9 @@ class TreeView(qt.QTreeView):
         Reimplementation of the QTreeView.rowsInserted. Opens all persistent
         editors under parent.
 
-        :param parent:
-        :param start:
-        :param end:
+        :param parent: parent item
+        :param start: starting new item
+        :param end: ending new item
         """
         self.__openPersistentEditors(parent, False)
         super(TreeView, self).rowsInserted(parent, start, end)
