@@ -310,31 +310,30 @@ class PlotWindow(PlotWidget):
         will handle toggling the visibility of the console widget.
         """
         if not hasattr(self, '_consoleAction'):
-            self._consoleAction = qt.QAction('Console', self.controlButton)
+            self._consoleAction = qt.QAction('Console', self)
             self._consoleAction.setCheckable(True)
             if IPythonDockWidget is not None:
-                self._consoleAction.toggled.connect(self._initializeConsole)
+                self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
             else:
                 self._consoleAction.setEnabled(False)
         return self._consoleAction
 
-    def _initializeConsole(self):
-        """Create IPythonDockWidget, show it, update :attr:`_consoleAction`
-        to connect its `toggled` signal to
-        :meth:`_consoleDockWidget.setVisible`."""
-        available_vars = {"plt": self}
-        banner = "The variable 'plt' is available. Use the 'whos' "
-        banner += "and 'help(plt)' commands for more information.\n\n"
-        self._consoleDockWidget = IPythonDockWidget(
-            available_vars=available_vars,
-            custom_banner=banner,
-            parent=self)
-        self._introduceNewDockWidget(self._consoleDockWidget)
-        self._consoleDockWidget.show()
-        self._consoleDockWidget.visibilityChanged.connect(self._consoleAction.setChecked)
+    def _toggleConsoleVisibility(self, is_checked=False):
+        """Create IPythonDockWidget if needed,
+        show it or hide it."""
+        # create widget if needed (first call)
+        if not hasattr(self, '_consoleDockWidget'):
+            available_vars = {"plt": self}
+            banner = "The variable 'plt' is available. Use the 'whos' "
+            banner += "and 'help(plt)' commands for more information.\n\n"
+            self._consoleDockWidget = IPythonDockWidget(
+                available_vars=available_vars,
+                custom_banner=banner,
+                parent=self)
+            self._introduceNewDockWidget(self._consoleDockWidget)
+            self._consoleDockWidget.visibilityChanged.connect(self._consoleAction.setChecked)
 
-        self._consoleAction.toggled.disconnect(self._initializeConsole)
-        self._consoleAction.toggled.connect(self._consoleDockWidget.setVisible)
+        self._consoleDockWidget.setVisible(is_checked)
 
     @property
     def crosshairAction(self):
