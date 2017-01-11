@@ -651,3 +651,10 @@ class Plot2D(PlotWindow):
         See :class:`silx.gui.plot.Profile.ProfileToolBar`
         """
         return self.profile
+
+    def getProfileWindow(self):
+        """Plot window used to display profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self.profile.profileWindow
