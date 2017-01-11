@@ -1215,7 +1215,12 @@ class TreeView(qt.QTreeView):
     def __init__(self, parent=None):
         super(TreeView, self).__init__(parent)
         self.__openedIndex = None
-        self.header().setResizeMode(qt.QHeaderView.ResizeToContents)
+
+        header = self.header()
+        if hasattr(header, 'setSectionResizeMode'):  # Qt5
+            header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
+        else:  # Qt4
+            header.setResizeMode(qt.QHeaderView.ResizeToContents)
 
         delegate = ItemDelegate()
         self.setItemDelegate(delegate)
