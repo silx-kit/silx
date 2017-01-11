@@ -15,7 +15,6 @@ For sample code using ScalarFieldView, see :doc:`viewer3dvolume_example`
 .. autoclass:: ScalarFieldView
    :show-inheritance:
    :members:
-   :inherited-members:
 
 Helper classes
 --------------

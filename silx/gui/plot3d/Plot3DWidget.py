@@ -175,6 +175,16 @@ class Plot3DWidget(qt.QGLWidget):
         """Position the center of the scene at the center of rotation."""
         self.viewport.resetCamera()
 
+    def resetZoom(self, face='front'):
+        """Reset the camera position to a default.
+
+        :param str face: The direction the camera is looking at:
+                         side, front, back, top, bottom, right, left.
+                         Default: front.
+        """
+        self.viewport.camera.extrinsic.reset(face=face)
+        self.centerScene()
+
     def _redraw(self, source=None):
         """Viewport listener to require repaint"""
         if not self._updating and self.viewport.dirty:

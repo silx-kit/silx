@@ -77,6 +77,11 @@ class Plot3DWindow(qt.QMainWindow):
 
     centerScene.__doc__ = Plot3DWidget.centerScene.__doc__
 
+    def resetZoom(self):
+        return self._plot3D.resetZoom()
+
+    resetZoom.__doc__ = Plot3DWidget.resetZoom.__doc__
+
     def getBackgroundColor(self):
         return self._plot3D.getBackgroundColor()
 

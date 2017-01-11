@@ -36,7 +36,7 @@ from __future__ import absolute_import, division, unicode_literals
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "08/11/2016"
+__date__ = "10/01/2017"
 
 
 import weakref
@@ -202,8 +202,8 @@ class ContextGL2(Context):
 class Window(event.Notifier):
     """OpenGL Framebuffer where to render viewports
 
-    :param str mode:
-        Rendering mode to use:
+    :param str mode: Rendering mode to use:
+
         - 'direct' to render everything for each render call
         - 'framebuffer' to cache viewport rendering in a texture and
           update the texture only when needed.
