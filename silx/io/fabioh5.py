@@ -238,6 +238,33 @@ class FrameData(LazyLoadableDataset):
         return numpy.array(images)
 
 
+class RawHeaderData(LazyLoadableDataset):
+    """Lazy loadable raw header"""
+
+    def __init__(self, name, fabio_file, parent=None):
+        LazyLoadableDataset.__init__(self, name, parent)
+        self.__fabio_file = fabio_file
+
+    def _create_data(self):
+        """Initialize hold data by merging all headers of each frames.
+        """
+        headers = []
+        for frame in range(self.__fabio_file.nframes):
+            if self.__fabio_file.nframes == 1:
+                header = self.__fabio_file.header
+            else:
+                header = self.__fabio_file.getframe(frame).header
+
+            data = []
+            for key, value in header.items():
+                data.append("%s: %s" % (str(key), str(value)))
+
+            headers.append(u"\n".join(data))
+
+        # create the header list
+        return numpy.array(headers)
+
+
 class Group(Node):
     """Class which mimick a sinple h5py group."""
 
@@ -590,13 +617,17 @@ class File(Group):
         scan = Group("scan", attrs={"NX_class": "NXentry"})
         instrument = Group("instrument", attrs={"NX_class": "NXinstrument"})
         measurement = Group("measurement", attrs={"NX_class": "NXcollection"})
+        file_ = Group("file", attrs={"NX_class": "NXcollection"})
         positioners = MetadataGroup("positioners", self.__metadata_reader, MetadataReader.POSITIONER, attrs={"NX_class": "NXcollection"})
         others = MetadataGroup("others", self.__metadata_reader, MetadataReader.MEASUREMENT, attrs={"NX_class": "NXcollection"})
         counters = MetadataGroup("counters", self.__metadata_reader, MetadataReader.COUNTER, attrs={"NX_class": "NXcollection"})
         data = FrameData("data", fabio_image, self)
+        raw_header = RawHeaderData("scan_header", fabio_image, self)
 
         scan.add_node(instrument)
         instrument.add_node(positioners)
+        instrument.add_node(file_)
+        file_.add_node(raw_header)
         scan.add_node(measurement)
         measurement.add_node(others)
         measurement.add_node(counters)
