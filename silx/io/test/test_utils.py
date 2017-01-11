@@ -328,9 +328,10 @@ class TestOpen(unittest.TestCase):
         fabiofile.write(tmp.name)
 
         # load it
-        f = utils.load(tmp.name)
+        f = utils.open(tmp.name)
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
+        f.close()
 
     def testEdfWith(self):
         if h5py_missing:
