@@ -102,6 +102,11 @@ class PlotWindow(PlotWidget):
 
         self._dockWidgets = []
 
+        # lazy loaded dock widgets
+        self._legendsDockWidget = None
+        self._curvesROIDockWidget = None
+        self._maskToolsDockWidget = None
+
         # Init actions
         self.group = qt.QActionGroup(self)
         self.group.setExclusive(False)
@@ -149,11 +154,11 @@ class PlotWindow(PlotWidget):
             parent=self, plot=self)
         self.yAxisInvertedButton.setVisible(yInverted)
 
-        self.group.addAction(self.roiAction)
-        self.roiAction.setVisible(roi)
+        self.group.addAction(self.getRoiAction())
+        self.getRoiAction().setVisible(roi)
 
-        self.group.addAction(self.maskAction)
-        self.maskAction.setVisible(mask)
+        self.group.addAction(self.getMaskAction())
+        self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
             PlotActions.PixelIntensitiesHistoAction(self))
@@ -226,35 +231,6 @@ class PlotWindow(PlotWidget):
         self._toolbar = self._createToolBar(title='Plot', parent=None)
         self.addToolBar(self._toolbar)
 
-    @property
-    def legendsDockWidget(self):
-        """DockWidget with Legend panel (lazy-loaded)."""
-        if not hasattr(self, '_legendsDockWidget'):
-            self._legendsDockWidget = LegendsDockWidget(plot=self)
-            self._legendsDockWidget.hide()
-            self._introduceNewDockWidget(self._legendsDockWidget)
-        return self._legendsDockWidget
-
-    @property
-    def curvesROIDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded)."""
-        if not hasattr(self, '_curvesROIDockWidget'):
-            self._curvesROIDockWidget = CurvesROIDockWidget(
-                plot=self, name='Regions Of Interest')
-            self._curvesROIDockWidget.hide()
-            self._introduceNewDockWidget(self._curvesROIDockWidget)
-        return self._curvesROIDockWidget
-
-    @property
-    def maskToolsDockWidget(self):
-        """DockWidget with image mask panel (lazy-loaded)."""
-        if not hasattr(self, '_maskToolsDockWidget'):
-            self._maskToolsDockWidget = MaskToolsDockWidget(
-                plot=self, name='Mask')
-            self._maskToolsDockWidget.hide()
-            self._introduceNewDockWidget(self._maskToolsDockWidget)
-        return self._maskToolsDockWidget
-
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
 
@@ -262,10 +238,10 @@ class PlotWindow(PlotWidget):
                  If there is no active image, an empty array is returned.
         :rtype: 2D numpy.ndarray of uint8
         """
-        return self.maskToolsDockWidget.getSelectionMask()
+        return self.getMaskToolsDockWidget().getSelectionMask()
 
     def setSelectionMask(self, mask):
-        """Set the mask handled by :attr`maskToolsDockWidget`.
+        """Set the mask handled by :attr:`maskToolsDockWidget`.
 
         If the provided mask has not the same dimension as the 'active'
         image, it will by cropped or padded.
@@ -275,7 +251,133 @@ class PlotWindow(PlotWidget):
                     Array of other types are converted.
         :return: True if success, False if failed
         """
-        return bool(self.maskToolsDockWidget.setSelectionMask(mask))
+        return bool(self.getMaskToolsDockWidget().setSelectionMask(mask))
+
+    def _toggleConsoleVisibility(self, is_checked=False):
+        """Create IPythonDockWidget if needed,
+        show it or hide it."""
+        # create widget if needed (first call)
+        if not hasattr(self, '_consoleDockWidget'):
+            available_vars = {"plt": self}
+            banner = "The variable 'plt' is available. Use the 'whos' "
+            banner += "and 'help(plt)' commands for more information.\n\n"
+            self._consoleDockWidget = IPythonDockWidget(
+                available_vars=available_vars,
+                custom_banner=banner,
+                parent=self)
+            self._introduceNewDockWidget(self._consoleDockWidget)
+            self._consoleDockWidget.visibilityChanged.connect(
+                    self.getConsoleAction().setChecked)
+
+        self._consoleDockWidget.setVisible(is_checked)
+
+    def _createToolBar(self, title, parent):
+        """Create a QToolBar from the QAction of the PlotWindow.
+
+        :param str title: The title of the QMenu
+        :param qt.QWidget parent: See :class:`QToolBar`
+        """
+        toolbar = qt.QToolBar(title, parent)
+
+        # Order widgets with actions
+        objects = self.group.actions()
+
+        # Add push buttons to list
+        index = objects.index(self.colormapAction)
+        objects.insert(index + 1, self.keepDataAspectRatioButton)
+        objects.insert(index + 2, self.yAxisInvertedButton)
+
+        for obj in objects:
+            if isinstance(obj, qt.QAction):
+                toolbar.addAction(obj)
+            else:
+                # Add action for toolbutton in order to allow changing
+                # visibility (see doc QToolBar.addWidget doc)
+                if obj is self.keepDataAspectRatioButton:
+                    self.keepDataAspectRatioAction = toolbar.addWidget(obj)
+                elif obj is self.yAxisInvertedButton:
+                    self.yAxisInvertedAction = toolbar.addWidget(obj)
+                else:
+                    raise RuntimeError()
+        return toolbar
+
+    def toolBar(self):
+        """Return a QToolBar from the QAction of the PlotWindow.
+        """
+        return self._toolbar
+
+    def menu(self, title='Plot', parent=None):
+        """Return a QMenu from the QAction of the PlotWindow.
+
+        :param str title: The title of the QMenu
+        :param parent: See :class:`QMenu`
+        """
+        menu = qt.QMenu(title, parent)
+        for action in self.group.actions():
+            menu.addAction(action)
+        return menu
+
+    def _customControlButtonMenu(self):
+        """Display Options button sub-menu."""
+        controlMenu = self.controlButton.menu()
+        controlMenu.clear()
+        controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
+        controlMenu.addAction(self.getRoiAction())
+        controlMenu.addAction(self.getMaskAction())
+        controlMenu.addAction(self.getConsoleAction())
+
+        controlMenu.addSeparator()
+        controlMenu.addAction(self.getCrosshairAction())
+        controlMenu.addAction(self.getPanWithArrowKeysAction())
+
+    def _introduceNewDockWidget(self, dock_widget):
+        """Maintain a list of dock widgets, in the order in which they are
+        added. Tabify them as soon as there are more than one of them.
+
+        :param dock_widget: Instance of :class:`QDockWidget` to be added.
+        """
+        if dock_widget not in self._dockWidgets:
+            self._dockWidgets.append(dock_widget)
+        if len(self._dockWidgets) == 1:
+            # The first created dock widget must be added to a Widget area
+            width = self.centralWidget().width()
+            height = self.centralWidget().height()
+            if width > (2.0 * height) and width > 1000:
+                area = qt.Qt.RightDockWidgetArea
+            else:
+                area = qt.Qt.BottomDockWidgetArea
+            self.addDockWidget(area, dock_widget)
+        else:
+            # Other dock widgets are added as tabs to the same widget area
+            self.tabifyDockWidget(self._dockWidgets[0],
+                                  dock_widget)
+
+    # getters for dock widgets
+    def getLegendsDockWidget(self):
+        """DockWidget with Legend panel"""
+        if self._legendsDockWidget is None:
+            self._legendsDockWidget = LegendsDockWidget(plot=self)
+            self._legendsDockWidget.hide()
+            self._introduceNewDockWidget(self._legendsDockWidget)
+        return self._legendsDockWidget
+
+    def getCurvesROIDockWidget(self):
+        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        if self._curvesROIDockWidget is None:
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                plot=self, name='Regions Of Interest')
+            self._curvesROIDockWidget.hide()
+            self._introduceNewDockWidget(self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
+
+    def getMaskToolsDockWidget(self):
+        """DockWidget with image mask panel (lazy-loaded)."""
+        if self._maskToolsDockWidget is None:
+            self._maskToolsDockWidget = MaskToolsDockWidget(
+                plot=self, name='Mask')
+            self._maskToolsDockWidget.hide()
+            self._introduceNewDockWidget(self._maskToolsDockWidget)
+        return self._maskToolsDockWidget
 
     # getters for actions
     def getConsoleAction(self):
@@ -311,7 +413,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: QAction
         """
-        return self.maskToolsDockWidget.toggleViewAction()
+        return self.getMaskToolsDockWidget().toggleViewAction()
 
     def getPanWithArrowKeysAction(self):
         """Action toggling pan with arrow keys.
@@ -327,7 +429,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: QAction
         """
-        return self.curvesROIDockWidget.toggleViewAction()
+        return self.getCurvesROIDockWidget().toggleViewAction()
 
     def getResetZoomAction(self):
         """Action resetting the zoom
@@ -466,105 +568,6 @@ class PlotWindow(PlotWidget):
         :rtype: PlotActions.PlotAction
         """
         return self.fitAction
-
-    def _toggleConsoleVisibility(self, is_checked=False):
-        """Create IPythonDockWidget if needed,
-        show it or hide it."""
-        # create widget if needed (first call)
-        if not hasattr(self, '_consoleDockWidget'):
-            available_vars = {"plt": self}
-            banner = "The variable 'plt' is available. Use the 'whos' "
-            banner += "and 'help(plt)' commands for more information.\n\n"
-            self._consoleDockWidget = IPythonDockWidget(
-                available_vars=available_vars,
-                custom_banner=banner,
-                parent=self)
-            self._introduceNewDockWidget(self._consoleDockWidget)
-            self._consoleDockWidget.visibilityChanged.connect(
-                    self.getConsoleAction().setChecked)
-
-        self._consoleDockWidget.setVisible(is_checked)
-
-    def _createToolBar(self, title, parent):
-        """Create a QToolBar from the QAction of the PlotWindow.
-
-        :param str title: The title of the QMenu
-        :param qt.QWidget parent: See :class:`QToolBar`
-        """
-        toolbar = qt.QToolBar(title, parent)
-
-        # Order widgets with actions
-        objects = self.group.actions()
-
-        # Add push buttons to list
-        index = objects.index(self.colormapAction)
-        objects.insert(index + 1, self.keepDataAspectRatioButton)
-        objects.insert(index + 2, self.yAxisInvertedButton)
-
-        for obj in objects:
-            if isinstance(obj, qt.QAction):
-                toolbar.addAction(obj)
-            else:
-                # Add action for toolbutton in order to allow changing
-                # visibility (see doc QToolBar.addWidget doc)
-                if obj is self.keepDataAspectRatioButton:
-                    self.keepDataAspectRatioAction = toolbar.addWidget(obj)
-                elif obj is self.yAxisInvertedButton:
-                    self.yAxisInvertedAction = toolbar.addWidget(obj)
-                else:
-                    raise RuntimeError()
-        return toolbar
-
-    def toolBar(self):
-        """Return a QToolBar from the QAction of the PlotWindow.
-        """
-        return self._toolbar
-
-    def menu(self, title='Plot', parent=None):
-        """Return a QMenu from the QAction of the PlotWindow.
-
-        :param str title: The title of the QMenu
-        :param parent: See :class:`QMenu`
-        """
-        menu = qt.QMenu(title, parent)
-        for action in self.group.actions():
-            menu.addAction(action)
-        return menu
-
-    def _customControlButtonMenu(self):
-        """Display Options button sub-menu."""
-        controlMenu = self.controlButton.menu()
-        controlMenu.clear()
-        controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.getRoiAction())
-        controlMenu.addAction(self.getMaskAction())
-        controlMenu.addAction(self.getConsoleAction())
-
-        controlMenu.addSeparator()
-        controlMenu.addAction(self.getCrosshairAction())
-        controlMenu.addAction(self.getPanWithArrowKeysAction())
-
-    def _introduceNewDockWidget(self, dock_widget):
-        """Maintain a list of dock widgets, in the order in which they are
-        added. Tabify them as soon as there are more than one of them.
-
-        :param dock_widget: Instance of :class:`QDockWidget` to be added.
-        """
-        if dock_widget not in self._dockWidgets:
-            self._dockWidgets.append(dock_widget)
-        if len(self._dockWidgets) == 1:
-            # The first created dock widget must be added to a Widget area
-            width = self.centralWidget().width()
-            height = self.centralWidget().height()
-            if width > (2.0 * height) and width > 1000:
-                area = qt.Qt.RightDockWidgetArea
-            else:
-                area = qt.Qt.BottomDockWidgetArea
-            self.addDockWidget(area, dock_widget)
-        else:
-            # Other dock widgets are added as tabs to the same widget area
-            self.tabifyDockWidget(self._dockWidgets[0],
-                                  dock_widget)
 
 
 class Plot1D(PlotWindow):
