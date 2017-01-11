@@ -460,9 +460,16 @@ class IsoSurfaceRootItem(SubjectItem):
         valueItem = IsoSurfaceColorItem(self.subject)
         self.appendRow([nameItem, valueItem])
 
-        nameItem = qt.QStandardItem('Transparency')
+        nameItem = qt.QStandardItem('Opacity')
+        nameItem.setTextAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
         nameItem.setEditable(False)
         valueItem = IsoSurfaceAlphaItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem()
+        nameItem.setEditable(False)
+        valueItem = IsoSurfaceAlphaLegendItem(self.subject)
+        valueItem.setEditable(False)
         self.appendRow([nameItem, valueItem])
 
     def queryRemove(self, view=None):
@@ -496,12 +503,45 @@ class IsoSurfaceLevelItem(SubjectItem):
         return [subject.sigLevelChanged,
                 subject.sigVisibilityChanged]
 
+    def setEditorData(self, editor):
+        return False
+
     def _pullData(self):
         return self.subject.getLevel()
 
     def _pushData(self, value, role=qt.Qt.UserRole):
         self.subject.setLevel(value)
         return self.subject.getLevel()
+
+
+class _IsoLevelSlider(qt.QSlider):
+    """QSlider used for iso-surface level"""
+
+    def __init__(self, parent, subject):
+        super(_IsoLevelSlider, self).__init__(parent=parent)
+        self.subject = subject
+
+        self.sliderReleased.connect(self.__sliderReleased)
+
+        self.subject.sigLevelChanged.connect(self.setLevel)
+
+    def setLevel(self, level):
+        """Set slider from iso-surface level"""
+        dataRange = self.subject.parent().getDataRange()
+
+        if dataRange is not None and None not in dataRange:
+            width = dataRange[1] - dataRange[0]
+            sliderWidth = self.maximum() - self.minimum()
+            sliderPosition = sliderWidth * (level - dataRange[0]) / width
+            self.setValue(sliderPosition)
+
+    def __sliderReleased(self):
+        value = self.value()
+        dataRange = self.subject.parent().getDataRange()
+        width = dataRange[1] - dataRange[0]
+        sliderWidth = self.maximum() - self.minimum()
+        level = dataRange[0] + width * value / sliderWidth
+        self.subject.setLevel(level)
 
 
 class IsoSufaceLevelSlider(IsoSurfaceLevelItem):
@@ -512,29 +552,15 @@ class IsoSufaceLevelSlider(IsoSurfaceLevelItem):
     persistent = True
 
     def getEditor(self, parent, option, index):
-        editor = qt.QSlider(parent)
+        editor = _IsoLevelSlider(parent, self.subject)
         editor.setOrientation(qt.Qt.Horizontal)
         editor.setMinimum(0)
         editor.setMaximum(self.nTicks)
 
         editor.setSingleStep(1)
 
-        level = self.subject.getLevel()
-        dataRange = self.subject.parent().getDataRange()
-
-        if dataRange is not None and None not in dataRange:
-            width = dataRange[1] - dataRange[0]
-            sliderPosition = self.nTicks * (level - dataRange[0]) / width
-            editor.setValue(sliderPosition)
-        editor.valueChanged.connect(self.__editorChanged)
-
+        editor.setLevel(self.subject.getLevel())
         return editor
-
-    def __editorChanged(self, value):
-        dataRange = self.subject.parent().getDataRange()
-        width = dataRange[1] - dataRange[0]
-        level = dataRange[0] + width * value / self.nTicks
-        self.subject.setLevel(level)
 
     def setEditorData(self, editor):
         return True
@@ -555,7 +581,9 @@ class IsoSurfaceColorItem(SubjectItem):
 
     def getEditor(self, parent, option, index):
         editor = QColorEditor(parent)
-        editor.color = self.subject.getColor()
+        color = self.subject.getColor()
+        color.setAlpha(255)
+        editor.color = color
         editor.sigColorChanged.connect(self.__editorChanged)
         return editor
 
@@ -663,6 +691,25 @@ class IsoSurfaceAlphaItem(SubjectItem):
         return True
 
 
+class IsoSurfaceAlphaLegendItem(SubjectItem):
+    """Legend to place under opacity slider"""
+
+    editable = False
+    persistent = True
+
+    def getEditor(self, parent, option, index):
+        layout = qt.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(qt.QLabel('0'))
+        layout.addStretch(1)
+        layout.addWidget(qt.QLabel('1'))
+
+        editor = qt.QWidget(parent)
+        editor.setLayout(layout)
+        return editor
+
+
 class IsoSurfaceCount(SubjectItem):
     """
     Item displaying the number of isosurfaces.
@@ -686,12 +733,13 @@ class IsoSurfaceAddRemoveWidget(qt.QWidget):
         self._item = item
         layout = qt.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
 
-        addBn = qt.QToolButton()
-        addBn.setText('+')
-        addBn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
-        layout.addWidget(addBn)
-        addBn.clicked.connect(self.__addClicked)
+        addBtn = qt.QToolButton()
+        addBtn.setText('+')
+        addBtn.setToolButtonStyle(qt.Qt.ToolButtonTextOnly)
+        layout.addWidget(addBtn)
+        addBtn.clicked.connect(self.__addClicked)
 
         removeBtn = qt.QToolButton()
         removeBtn.setText('-')
@@ -738,7 +786,6 @@ class IsoSurfaceGroup(SubjectItem):
             if len(args) >= 1:
                 isosurface = args[0]
                 if not isinstance(isosurface, Isosurface):
-                    print('xxxx', isosurface)
                     raise ValueError('Expected an isosurface instance.')
                 self.__addIsosurface(isosurface)
             else:
@@ -766,9 +813,9 @@ class IsoSurfaceGroup(SubjectItem):
                 break
 
     def _init(self):
-        nameItem = qt.QStandardItem()
-        nameItem.setEditable(False)
-        valueItem = IsoSurfaceAddRemoveItem(self.subject)
+        nameItem = IsoSurfaceAddRemoveItem(self.subject)
+        valueItem = qt.QStandardItem()
+        valueItem.setEditable(False)
         self.appendRow([nameItem, valueItem])
 
         subject = self.subject
@@ -1171,7 +1218,7 @@ class TreeView(qt.QTreeView):
         self.header().setResizeMode(qt.QHeaderView.ResizeToContents)
 
         delegate = ItemDelegate()
-        self.setItemDelegateForColumn(1, delegate)
+        self.setItemDelegate(delegate)
         delegate.sigDelegateEvent.connect(self.__delegateEvent)
         self.setSelectionBehavior(qt.QAbstractItemView.SelectRows)
         self.setSelectionMode(qt.QAbstractItemView.SingleSelection)
