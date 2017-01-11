@@ -33,6 +33,7 @@ __date__ = "10/01/2017"
 
 import logging
 import os
+import sys
 import weakref
 
 import numpy
@@ -325,7 +326,7 @@ class VideoAction(Plot3DAction):
             ptr = image.bits()
             if qt.BINDING != 'PySide':
                 ptr.setsize(image.byteCount())
-                if qt.BINDING == 'PyQt4':
+                if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
                     ptr = ptr.asstring()
             array = numpy.fromstring(ptr, dtype=numpy.uint8)
             # Lines are 32 bits aligned: remove padding bytes

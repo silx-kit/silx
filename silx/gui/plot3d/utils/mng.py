@@ -47,10 +47,11 @@ _logger = logging.getLogger(__name__)
 def _png_chunk(name, data):
     """Return a PNG chunk
 
-    :param byte name: Chunk type
+    :param str name: Chunk type
     :param byte data: Chunk payload
     """
     length = struct.pack('>I', len(data))
+    name = [char.encode('ascii') for char in name]
     chunk = struct.pack('cccc', *name) + data
     crc = struct.pack('>I', zlib.crc32(chunk) & 0xffffffff)
     return length + chunk + crc
@@ -81,7 +82,7 @@ def convert(images, nb_images=0, fps=25):
             yield b'\x8aMNG\r\n\x1a\n'
 
             # MHDR chunk: File header
-            yield _png_chunk(b'MHDR', struct.pack(
+            yield _png_chunk('MHDR', struct.pack(
                 ">IIIIIII",
                 width,
                 height,
@@ -98,12 +99,12 @@ def convert(images, nb_images=0, fps=25):
         depth = 8  # 8 bit per channel
         color_type = 2  # 'truecolor' = RGB
         interlace = 0  # No
-        yield _png_chunk(b'IHDR', struct.pack(">IIBBBBB",
-                                              width,
-                                              height,
-                                              depth,
-                                              color_type,
-                                              0, 0, interlace))
+        yield _png_chunk('IHDR', struct.pack(">IIBBBBB",
+                                             width,
+                                             height,
+                                             depth,
+                                             color_type,
+                                             0, 0, interlace))
 
         # Add filter 'None' before each scanline
         prepared_data = b'\x00' + b'\x00'.join(
@@ -111,10 +112,10 @@ def convert(images, nb_images=0, fps=25):
         compressed_data = zlib.compress(prepared_data, 8)
 
         # IDAT chunk: Payload
-        yield _png_chunk(b'IDAT', compressed_data)
+        yield _png_chunk('IDAT', compressed_data)
 
         # IEND chunk: Image footer
-        yield _png_chunk(b'IEND', b'')
+        yield _png_chunk('IEND', b'')
 
     # MEND chunk: footer
-    yield _png_chunk(b'MEND', b'')
+    yield _png_chunk('MEND', b'')
