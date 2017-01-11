@@ -214,7 +214,7 @@ class DirectionalLight(event.Notifier, ProgramFunction):
 
     @property
     def isOn(self):
-        """True is light is on, False otherwise."""
+        """True if light is on, False otherwise."""
         return self._isOn and self._direction is not None
 
     @isOn.setter
