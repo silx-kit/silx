@@ -58,7 +58,8 @@ from .. import qt
 from . import PlotWindow, PlotWidget
 from . import PlotActions
 from .Colors import cursorColorForColormap
-from .PlotTools import ProfileToolBar, LimitsToolBar
+from .PlotTools import LimitsToolBar
+from .Profile import ProfileToolBar
 
 
 _logger = logging.getLogger(__name__)

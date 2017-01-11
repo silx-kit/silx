@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""A :class:`.PlotWidget` with additionnal toolbars.
+"""A :class:`.PlotWidget` with additional toolbars.
 
 The :class:`PlotWindow` is a subclass of :class:`.PlotWidget`.
 It provides the plot API fully defined in :class:`.Plot`.
@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "10/01/2017"
 
 import collections
 import logging
@@ -38,7 +38,8 @@ import logging
 from . import PlotWidget
 from . import PlotActions
 from . import PlotToolButtons
-from .PlotTools import PositionInfo, ProfileToolBar
+from .PlotTools import PositionInfo
+from .Profile import ProfileToolBar
 from .LegendSelector import LegendsDockWidget
 from .CurvesROIWidget import CurvesROIDockWidget
 from .MaskToolsWidget import MaskToolsDockWidget
@@ -178,6 +179,10 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self.maskAction)
         self.maskAction.setVisible(mask)
 
+        self._intensityHistoAction = self.group.addAction(
+            PlotActions.PixelIntensitiesHistoAction(self))
+        self._intensityHistoAction.setVisible(False)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -302,22 +307,37 @@ class PlotWindow(PlotWidget):
         return bool(self.maskToolsDockWidget.setSelectionMask(mask))
 
     @property
-    def consoleDockWidget(self):
-        """DockWidget with IPython console (lazy-loaded)."""
+    def consoleAction(self):
+        """QAction handling the IPython console instantiation the first time
+        the user clicks the "Console" menu button.
+        The following clicks, after initialization is done,
+        will handle toggling the visibility of the console widget.
+        """
+        if not hasattr(self, '_consoleAction'):
+            self._consoleAction = qt.QAction('Console', self)
+            self._consoleAction.setCheckable(True)
+            if IPythonDockWidget is not None:
+                self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
+            else:
+                self._consoleAction.setEnabled(False)
+        return self._consoleAction
+
+    def _toggleConsoleVisibility(self, is_checked=False):
+        """Create IPythonDockWidget if needed,
+        show it or hide it."""
+        # create widget if needed (first call)
         if not hasattr(self, '_consoleDockWidget'):
             available_vars = {"plt": self}
             banner = "The variable 'plt' is available. Use the 'whos' "
             banner += "and 'help(plt)' commands for more information.\n\n"
-            if IPythonDockWidget is not None:
-                self._consoleDockWidget = IPythonDockWidget(
-                    available_vars=available_vars,
-                    custom_banner=banner,
-                    parent=self)
-                self._consoleDockWidget.hide()
-                self._introduceNewDockWidget(self._consoleDockWidget)
-            else:
-                self._consoleDockWidget = None
-        return self._consoleDockWidget
+            self._consoleDockWidget = IPythonDockWidget(
+                available_vars=available_vars,
+                custom_banner=banner,
+                parent=self)
+            self._introduceNewDockWidget(self._consoleDockWidget)
+            self._consoleDockWidget.visibilityChanged.connect(self._consoleAction.setChecked)
+
+        self._consoleDockWidget.setVisible(is_checked)
 
     @property
     def crosshairAction(self):
@@ -386,12 +406,7 @@ class PlotWindow(PlotWidget):
         controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
         controlMenu.addAction(self.roiAction)
         controlMenu.addAction(self.maskAction)
-        if self.consoleDockWidget is not None:
-            controlMenu.addAction(self.consoleDockWidget.toggleViewAction())
-        else:
-            disabledConsoleAction = controlMenu.addAction('Console')
-            disabledConsoleAction.setCheckable(True)
-            disabledConsoleAction.setEnabled(False)
+        controlMenu.addAction(self.consoleAction)
 
         controlMenu.addSeparator()
         controlMenu.addAction(self.crosshairAction)
@@ -418,6 +433,10 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def getIntensityHistogramAction(self):
+        """Action toggling the histogram intensity Plot widget"""
+        return self._intensityHistoAction
 
 
 class Plot1D(PlotWindow):

@@ -28,7 +28,10 @@ To install silx locally, run::
     pip install silx --user
 
 On Linux, to install silx with pip, you must install numpy first.
+
 Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
+A CentOS rpm package is provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+An Arch Linux (AUR) package is also available: https://aur.archlinux.org/packages/python-silx
 
 On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5.
 
