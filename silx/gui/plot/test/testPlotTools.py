@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,11 @@ __date__ = "05/12/2016"
 import numpy
 import unittest
 
-from silx.test.utils import TestLogging
+from silx.test.utils import ParametricTestCase, TestLogging
 from silx.gui.test.utils import (
-    qWaitForWindowExposedAndActivate, TestCaseQt)
+    qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
-from silx.gui.plot import PlotWindow, PlotTools
+from silx.gui.plot import Plot2D, PlotWindow, PlotTools
 
 
 # Makes sure a QApplication exists
@@ -119,7 +119,8 @@ class TestPositionInfo(TestCaseQt):
             ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))
         ]
-        positionWidget = PlotTools.PositionInfo(plot=self.plot, converters=converters)
+        positionWidget = PlotTools.PositionInfo(plot=self.plot,
+                                                converters=converters)
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
     def testFailingConverters(self):
@@ -133,10 +134,64 @@ class TestPositionInfo(TestCaseQt):
         self._test(positionWidget, ['Exception'], error=2)
 
 
+class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
+    """Tests for ProfileToolBar widget."""
+
+    def setUp(self):
+        super(TestPixelIntensitiesHisto, self).setUp()
+        self.image = numpy.random.rand(100, 100)
+        self.plotImage = Plot2D()
+        self.plotImage.getIntensityHistogramAction().setVisible(True)
+
+    def tearDown(self):
+        del self.plotImage
+        super(TestPixelIntensitiesHisto, self).tearDown()
+
+    def testShowAndHide(self):
+        """Simple test that the plot is showing and hiding when activating the
+        action"""
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.show()
+
+        histoAction = self.plotImage.getIntensityHistogramAction()
+
+        # test the pixel intensity diagram is showing
+        button = getQToolButtonFromAction(histoAction)
+        self.assertIsNot(button, None)
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        self.assertTrue(histoAction.getHistogramPlotWidget().isVisible())
+
+        # test the pixel intensity diagram is hiding
+        self.qapp.setActiveWindow(self.plotImage)
+        self.qapp.processEvents()
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        self.assertFalse(histoAction.getHistogramPlotWidget().isVisible())
+
+    def testImageFormatInput(self):
+        """Test multiple type as image input"""
+        typesToTest = [numpy.uint8, numpy.int8, numpy.int16, numpy.int32,
+                       numpy.float32, numpy.float64]
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.show()
+        button = getQToolButtonFromAction(
+            self.plotImage.getIntensityHistogramAction())
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        for typeToTest in typesToTest:
+            with self.subTest(typeToTest=typeToTest):
+                self.plotImage.addImage(self.image.astype(typeToTest),
+                                        origin=(0, 0), legend='sino')
+
+
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo,):
+    for testClass in (TestPositionInfo, TestPixelIntensitiesHisto):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite

@@ -179,6 +179,10 @@ class PlotWindow(PlotWidget):
         self.group.addAction(self.maskAction)
         self.maskAction.setVisible(mask)
 
+        self._intensityHistoAction = self.group.addAction(
+            PlotActions.PixelIntensitiesHistoAction(self))
+        self._intensityHistoAction.setVisible(False)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -429,6 +433,10 @@ class PlotWindow(PlotWidget):
             # Other dock widgets are added as tabs to the same widget area
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
+
+    def getIntensityHistogramAction(self):
+        """Action toggling the histogram intensity Plot widget"""
+        return self._intensityHistoAction
 
 
 class Plot1D(PlotWindow):
