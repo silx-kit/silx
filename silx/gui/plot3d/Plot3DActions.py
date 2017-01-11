@@ -301,6 +301,7 @@ class VideoAction(Plot3DAction):
         """Save video as MNG file.
 
         :param str filename: filename to use
+        :param int nbFrames: Number of frames to generate
         """
         plot3d = self.getPlot3DWidget()
         assert plot3d is not None
