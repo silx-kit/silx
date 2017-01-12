@@ -201,6 +201,7 @@ class MatchPlan(object):
 
         :param nkp1, nkp2: numpy 1D recarray of keypoints or equivalent GPU buffer
         :param raw_results: if true return the 2D array of indexes of matching keypoints (not the actual keypoints)
+        :return 
 
         TODO: implement the ROI ...
 
@@ -324,6 +325,48 @@ class MatchPlan(object):
         with self._sem:
             self.roi = None
             self.buffers["ROI"] = None
+
+
+def match_py(nkp1, nkp2, raw_results=False):
+    """Pure numpy implementation of match:
+    
+    :param nkp1, nkp2: Numpy record array of keypoints with descriptors
+    :param raw_results: return the indices of valid indexes instead of 
+    :return: (2,n) 2D array of matching keypoints. 
+    """
+    assert len(nkp1.shape) == 1  
+    assert len(nkp2.shape) == 1
+    valid_types = (numpy.ndarray, numpy.core.records.recarray)
+    assert isinstance(nkp1, valid_types)
+    assert isinstance(nkp2, valid_types)
+    result = None
+
+    desc1 = nkp1.desc
+    desc2 = nkp2.desc
+    big1 = desc1.astype(int)[:,numpy.newaxis,:]
+    big2 = desc2.astype(int)[numpy.newaxis,:,:]
+    big = abs(big1-big2).sum(axis=-1)
+    maxi = big.max(axis=-1)
+    mini = big.min(axis=-1)
+    amin = big.argmin(axis=-1)
+    patched = big.copy()
+    patched[numpy.arange(big.shape[0]), amin] = maxi
+    mini2 = patched.min(axis=-1)
+    ratio = mini.astype(float) / mini2
+    ratio[mini2 == 0] = 1.0
+    match_mask = ratio<(par.MatchRatio * par.MatchRatio)
+    size = match_mask.sum()
+    match = numpy.empty((size,2), dtype=int)
+    match[:,0] = numpy.arange(nkp1.size)[match_mask]
+    match[:,1] = amin[match_mask]
+    if raw_results:
+        result = match
+    else:
+        result = numpy.recarray(shape=(size, 2), dtype=MatchPlan.dtype_kp)
+
+        result[:, 0] = nkp1[match[:, 0]]
+        result[:, 1] = nkp2[match[:, 1]]
+    return result
 
 
 def demo():
