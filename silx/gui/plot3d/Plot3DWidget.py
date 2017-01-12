@@ -84,6 +84,8 @@ class Plot3DWidget(qt.QGLWidget):
         if not qt.QGLFormat.hasOpenGL():  # Check if any OpenGL is available
             raise RuntimeError(
                 'OpenGL is not available on this platform: 3D disabled')
+
+        self._devicePixelRatio = 1.0  # Store GL canvas/QWidget ratio
         self._isOpenGL21 = False
         self._firstRender = True
 
@@ -195,6 +197,12 @@ class Plot3DWidget(qt.QGLWidget):
         return qt.QSize(400, 300)
 
     def initializeGL(self):
+        if hasattr(self, 'windowHandle'):  # Qt 5
+            self._devicePixelRatio = self.windowHandle().devicePixelRatio()
+            if self._devicePixelRatio != 1.0:
+                _logger.info('High DPI support, devicePixelRatio = %f',
+                             self._devicePixelRatio)
+
         # Check if OpenGL2 is available
         versionflags = self.format().openGLVersionFlags()
         self._isOpenGL21 = bool(versionflags & qt.QGLFormat.OpenGL_Version_2_1)
@@ -266,7 +274,8 @@ class Plot3DWidget(qt.QGLWidget):
         return qimage.copy(qimage.rect())  # Return a copy
 
     def wheelEvent(self, event):
-        xpixel, ypixel = event.x(), event.y()
+        xpixel = event.x() * self._devicePixelRatio
+        ypixel = event.y() * self._devicePixelRatio
         if hasattr(event, 'delta'):  # Qt4
             angle = event.delta() / 8.
         else:  # Qt5
@@ -304,7 +313,8 @@ class Plot3DWidget(qt.QGLWidget):
     _MOUSE_BTNS = {1: 'left', 2: 'right', 4: 'middle'}
 
     def mousePressEvent(self, event):
-        xpixel, ypixel = event.x(), event.y()
+        xpixel = event.x() * self._devicePixelRatio
+        ypixel = event.y() * self._devicePixelRatio
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
@@ -312,14 +322,16 @@ class Plot3DWidget(qt.QGLWidget):
         self.eventHandler.handleEvent('press', xpixel, ypixel, btn)
 
     def mouseMoveEvent(self, event):
-        xpixel, ypixel = event.x(), event.y()
+        xpixel = event.x() * self._devicePixelRatio
+        ypixel = event.y() * self._devicePixelRatio
         event.accept()
 
         self.makeCurrent()
         self.eventHandler.handleEvent('move', xpixel, ypixel)
 
     def mouseReleaseEvent(self, event):
-        xpixel, ypixel = event.x(), event.y()
+        xpixel = event.x() * self._devicePixelRatio
+        ypixel = event.y() * self._devicePixelRatio
         btn = self._MOUSE_BTNS[event.button()]
         event.accept()
 
