@@ -59,30 +59,6 @@ class PlotWindow(PlotWidget):
 
     This widgets inherits from :class:`.PlotWidget` and provides its plot API.
 
-    This widget includes the following QAction as attributes:
-
-    - resetZoomAction: Reset zoom
-    - xAxisAutoScaleAction: Toggle X axis autoscale
-    - yAxisAutoScaleAction: Toggle Y axis autoscale
-    - xAxisLogarithmicAction: Toggle X axis log scale
-    - yAxisLogarithmicAction: Toggle Y axis log scale
-    - gridAction: Toggle plot grid
-    - curveStyleAction: Change curve line and markers style
-    - colormapAction: Open a colormap dialog to change active image
-      and default colormap.
-    - keepDataAspectRatioButton: QToolButton to set keep data aspect ratio.
-    - keepDataAspectRatioAction: Action associated to keepDataAspectRatioButton.
-      Use this to change the visibility of keepDataAspectRatioButton in the
-      toolbar (See :meth:`QToolBar.addWidget` documentation).
-    - yAxisInvertedButton: QToolButton to set Y Axis direction.
-    - yAxisInvertedAction: Action associated to yAxisInvertedButton.
-      Use this to change the visibility yAxisInvertedButton in the toolbar.
-      (See :meth:`QToolBar.addWidget` documentation).
-    - copyAction: Copy plot snapshot to clipboard
-    - saveAction: Save plot
-    - printAction: Print plot
-    - fitAction: Fit selected curve
-
     Initialiser parameters:
 
     :param parent: The parent of this widget or None.
@@ -125,6 +101,11 @@ class PlotWindow(PlotWidget):
             self.setWindowTitle('PlotWindow')
 
         self._dockWidgets = []
+
+        # lazy loaded dock widgets
+        self._legendsDockWidget = None
+        self._curvesROIDockWidget = None
+        self._maskToolsDockWidget = None
 
         # Init actions
         self.group = qt.QActionGroup(self)
@@ -173,11 +154,11 @@ class PlotWindow(PlotWidget):
             parent=self, plot=self)
         self.yAxisInvertedButton.setVisible(yInverted)
 
-        self.group.addAction(self.roiAction)
-        self.roiAction.setVisible(roi)
+        self.group.addAction(self.getRoiAction())
+        self.getRoiAction().setVisible(roi)
 
-        self.group.addAction(self.maskAction)
-        self.maskAction.setVisible(mask)
+        self.group.addAction(self.getMaskAction())
+        self.getMaskAction().setVisible(mask)
 
         self._intensityHistoAction = self.group.addAction(
             PlotActions.PixelIntensitiesHistoAction(self))
@@ -198,6 +179,11 @@ class PlotWindow(PlotWidget):
 
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
+
+        # lazy loaded actions needed by the controlButton menu
+        self.consoleAction = None
+        self.panWithArrowKeysAction = None
+        self.crosshairAction = None
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -245,45 +231,6 @@ class PlotWindow(PlotWidget):
         self._toolbar = self._createToolBar(title='Plot', parent=None)
         self.addToolBar(self._toolbar)
 
-    @property
-    def legendsDockWidget(self):
-        """DockWidget with Legend panel (lazy-loaded)."""
-        if not hasattr(self, '_legendsDockWidget'):
-            self._legendsDockWidget = LegendsDockWidget(plot=self)
-            self._legendsDockWidget.hide()
-            self._introduceNewDockWidget(self._legendsDockWidget)
-        return self._legendsDockWidget
-
-    @property
-    def curvesROIDockWidget(self):
-        """DockWidget with curves' ROI panel (lazy-loaded)."""
-        if not hasattr(self, '_curvesROIDockWidget'):
-            self._curvesROIDockWidget = CurvesROIDockWidget(
-                plot=self, name='Regions Of Interest')
-            self._curvesROIDockWidget.hide()
-            self._introduceNewDockWidget(self._curvesROIDockWidget)
-        return self._curvesROIDockWidget
-
-    @property
-    def roiAction(self):
-        """QAction toggling curve ROI dock widget"""
-        return self.curvesROIDockWidget.toggleViewAction()
-
-    @property
-    def maskToolsDockWidget(self):
-        """DockWidget with image mask panel (lazy-loaded)."""
-        if not hasattr(self, '_maskToolsDockWidget'):
-            self._maskToolsDockWidget = MaskToolsDockWidget(
-                plot=self, name='Mask')
-            self._maskToolsDockWidget.hide()
-            self._introduceNewDockWidget(self._maskToolsDockWidget)
-        return self._maskToolsDockWidget
-
-    @property
-    def maskAction(self):
-        """QAction toggling image mask dock widget"""
-        return self.maskToolsDockWidget.toggleViewAction()
-
     def getSelectionMask(self):
         """Return the current mask handled by :attr:`maskToolsDockWidget`.
 
@@ -291,10 +238,10 @@ class PlotWindow(PlotWidget):
                  If there is no active image, an empty array is returned.
         :rtype: 2D numpy.ndarray of uint8
         """
-        return self.maskToolsDockWidget.getSelectionMask()
+        return self.getMaskToolsDockWidget().getSelectionMask()
 
     def setSelectionMask(self, mask):
-        """Set the mask handled by :attr`maskToolsDockWidget`.
+        """Set the mask handled by :attr:`maskToolsDockWidget`.
 
         If the provided mask has not the same dimension as the 'active'
         image, it will by cropped or padded.
@@ -304,23 +251,7 @@ class PlotWindow(PlotWidget):
                     Array of other types are converted.
         :return: True if success, False if failed
         """
-        return bool(self.maskToolsDockWidget.setSelectionMask(mask))
-
-    @property
-    def consoleAction(self):
-        """QAction handling the IPython console instantiation the first time
-        the user clicks the "Console" menu button.
-        The following clicks, after initialization is done,
-        will handle toggling the visibility of the console widget.
-        """
-        if not hasattr(self, '_consoleAction'):
-            self._consoleAction = qt.QAction('Console', self)
-            self._consoleAction.setCheckable(True)
-            if IPythonDockWidget is not None:
-                self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
-            else:
-                self._consoleAction.setEnabled(False)
-        return self._consoleAction
+        return bool(self.getMaskToolsDockWidget().setSelectionMask(mask))
 
     def _toggleConsoleVisibility(self, is_checked=False):
         """Create IPythonDockWidget if needed,
@@ -335,23 +266,10 @@ class PlotWindow(PlotWidget):
                 custom_banner=banner,
                 parent=self)
             self._introduceNewDockWidget(self._consoleDockWidget)
-            self._consoleDockWidget.visibilityChanged.connect(self._consoleAction.setChecked)
+            self._consoleDockWidget.visibilityChanged.connect(
+                    self.getConsoleAction().setChecked)
 
         self._consoleDockWidget.setVisible(is_checked)
-
-    @property
-    def crosshairAction(self):
-        """Action toggling crosshair cursor mode (lazy-loaded)."""
-        if not hasattr(self, '_crosshairAction'):
-            self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
-        return self._crosshairAction
-
-    @property
-    def panWithArrowKeysAction(self):
-        """Action toggling pan with arrow keys (lazy-loaded)."""
-        if not hasattr(self, '_panWithArrowKeysAction'):
-            self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
-        return self._panWithArrowKeysAction
 
     def _createToolBar(self, title, parent):
         """Create a QToolBar from the QAction of the PlotWindow.
@@ -403,14 +321,14 @@ class PlotWindow(PlotWidget):
         """Display Options button sub-menu."""
         controlMenu = self.controlButton.menu()
         controlMenu.clear()
-        controlMenu.addAction(self.legendsDockWidget.toggleViewAction())
-        controlMenu.addAction(self.roiAction)
-        controlMenu.addAction(self.maskAction)
-        controlMenu.addAction(self.consoleAction)
+        controlMenu.addAction(self.getLegendsDockWidget().toggleViewAction())
+        controlMenu.addAction(self.getRoiAction())
+        controlMenu.addAction(self.getMaskAction())
+        controlMenu.addAction(self.getConsoleAction())
 
         controlMenu.addSeparator()
-        controlMenu.addAction(self.crosshairAction)
-        controlMenu.addAction(self.panWithArrowKeysAction)
+        controlMenu.addAction(self.getCrosshairAction())
+        controlMenu.addAction(self.getPanWithArrowKeysAction())
 
     def _introduceNewDockWidget(self, dock_widget):
         """Maintain a list of dock widgets, in the order in which they are
@@ -434,9 +352,222 @@ class PlotWindow(PlotWidget):
             self.tabifyDockWidget(self._dockWidgets[0],
                                   dock_widget)
 
+    # getters for dock widgets
+    def getLegendsDockWidget(self):
+        """DockWidget with Legend panel"""
+        if self._legendsDockWidget is None:
+            self._legendsDockWidget = LegendsDockWidget(plot=self)
+            self._legendsDockWidget.hide()
+            self._introduceNewDockWidget(self._legendsDockWidget)
+        return self._legendsDockWidget
+
+    def getCurvesRoiDockWidget(self):
+        """DockWidget with curves' ROI panel (lazy-loaded)."""
+        if self._curvesROIDockWidget is None:
+            self._curvesROIDockWidget = CurvesROIDockWidget(
+                plot=self, name='Regions Of Interest')
+            self._curvesROIDockWidget.hide()
+            self._introduceNewDockWidget(self._curvesROIDockWidget)
+        return self._curvesROIDockWidget
+
+    def getMaskToolsDockWidget(self):
+        """DockWidget with image mask panel (lazy-loaded)."""
+        if self._maskToolsDockWidget is None:
+            self._maskToolsDockWidget = MaskToolsDockWidget(
+                plot=self, name='Mask')
+            self._maskToolsDockWidget.hide()
+            self._introduceNewDockWidget(self._maskToolsDockWidget)
+        return self._maskToolsDockWidget
+
+    # getters for actions
+    def getConsoleAction(self):
+        """QAction handling the IPython console activation.
+
+        By default, it is connected to a method that initializes the
+        console widget the first time the user clicks the "Console" menu
+        button. The following clicks, after initialization is done,
+        will toggle the visibility of the console widget.
+
+        :rtype: QAction
+        """
+        if self.consoleAction is None:
+            self.consoleAction = qt.QAction('Console', self)
+            self.consoleAction.setCheckable(True)
+            if IPythonDockWidget is not None:
+                self.consoleAction.toggled.connect(self._toggleConsoleVisibility)
+            else:
+                self.consoleAction.setEnabled(False)
+        return self.consoleAction
+
+    def getCrosshairAction(self):
+        """Action toggling crosshair cursor mode.
+
+        :rtype: PlotActions.PlotAction
+        """
+        if self.crosshairAction is None:
+            self.crosshairAction = PlotActions.CrosshairAction(self, color='red')
+        return self.crosshairAction
+
+    def getMaskAction(self):
+        """QAction toggling image mask dock widget
+
+        :rtype: QAction
+        """
+        return self.getMaskToolsDockWidget().toggleViewAction()
+
+    def getPanWithArrowKeysAction(self):
+        """Action toggling pan with arrow keys.
+
+        :rtype: PlotActions.PlotAction
+        """
+        if self.panWithArrowKeysAction is None:
+            self.panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
+        return self.panWithArrowKeysAction
+
+    def getRoiAction(self):
+        """QAction toggling curve ROI dock widget
+
+        :rtype: QAction
+        """
+        return self.getCurvesRoiDockWidget().toggleViewAction()
+
+    def getResetZoomAction(self):
+        """Action resetting the zoom
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.resetZoomAction
+
+    def getZoomInAction(self):
+        """Action to zoom in
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.zoomInAction
+
+    def getZoomOutAction(self):
+        """Action to zoom out
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.zoomOutAction
+
+    def getXAxisAutoScaleAction(self):
+        """Action to toggle the X axis autoscale on zoom reset
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.xAxisAutoScaleAction
+
+    def getYAxisAutoScaleAction(self):
+        """Action to toggle the Y axis autoscale on zoom reset
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.yAxisAutoScaleAction
+
+    def getXAxisLogarithmicAction(self):
+        """Action to toggle logarithmic X axis
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.xAxisLogarithmicAction
+
+    def getYAxisLogarithmicAction(self):
+        """Action to toggle logarithmic Y axis
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.yAxisLogarithmicAction
+
+    def getGridAction(self):
+        """Action to toggle the grid visibility in the plot
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.gridAction
+
+    def getCurveStyleAction(self):
+        """Action to change curve line and markers styles
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.curveStyleAction
+
+    def getColormapAction(self):
+        """Action open a colormap dialog to change active image
+        and default colormap.
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.colormapAction
+
+    def getKeepDataAspectRatioButton(self):
+        """Button to toggle aspect ratio preservation
+
+        :rtype: PlotToolButtons.AspectToolButton
+        """
+        return self.keepDataAspectRatioButton
+
+    def getKeepDataAspectRatioAction(self):
+        """Action associated to keepDataAspectRatioButton.
+        Use this to change the visibility of keepDataAspectRatioButton in the
+        toolbar (See :meth:`QToolBar.addWidget` documentation).
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.keepDataAspectRatioButton
+
+    def getYAxisInvertedButton(self):
+        """Button to switch the Y axis orientation
+
+        :rtype: PlotToolButtons.YAxisOriginToolButton
+        """
+        return self.yAxisInvertedButton
+
+    def getYAxisInvertedAction(self):
+        """Action associated to yAxisInvertedButton.
+        Use this to change the visibility yAxisInvertedButton in the toolbar.
+        (See :meth:`QToolBar.addWidget` documentation).
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.yAxisInvertedAction
+
     def getIntensityHistogramAction(self):
-        """Action toggling the histogram intensity Plot widget"""
+        """Action toggling the histogram intensity Plot widget
+
+        :rtype: PlotActions.PlotAction
+        """
         return self._intensityHistoAction
+
+    def getCopyAction(self):
+        """Action to copy plot snapshot to clipboard
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.copyAction
+
+    def getSaveAction(self):
+        """Action to save plot
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.saveAction
+
+    def getPrintAction(self):
+        """Action to print plot
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.printAction
+
+    def getFitAction(self):
+        """Action to fit selected curve
+
+        :rtype: PlotActions.PlotAction
+        """
+        return self.fitAction
 
 
 class Plot1D(PlotWindow):
@@ -491,10 +622,6 @@ class Plot2D(PlotWindow):
         self.setGraphYLabel('Rows')
 
         self.profile = ProfileToolBar(plot=self)
-        """"Profile tools attached to this plot.
-
-        See :class:`silx.gui.plot.PlotTools.ProfileToolBar`
-        """
 
         self.addToolBar(self.profile)
 
@@ -517,3 +644,17 @@ class Plot2D(PlotWindow):
                 if (row < data.shape[0] and col < data.shape[1]):
                     return data[row, col]
         return '-'
+
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.ProfileToolBar`
+        """
+        return self.profile
+
+    def getProfileWindow(self):
+        """Plot window used to display profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self.profile.profileWindow
