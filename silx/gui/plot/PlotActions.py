@@ -501,7 +501,11 @@ class SaveAction(PlotAction):
     """
     # TODO find a way to make the filter list selectable and extensible
 
-    SNAPSHOT_FILTERS = ('Plot Snapshot PNG (*.png)', 'Plot Snapshot JPEG (*.jpg)')
+    SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
+
+    SNAPSHOT_FILTERS = ('Plot Snapshot as PNG (*.png)',
+                        'Plot Snapshot as JPEG (*.jpg)',
+                        SNAPSHOT_FILTER_SVG)
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
@@ -557,15 +561,19 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if hasattr(qt.QPixmap, "grabWidget"):
-            # Qt 4
-            pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
+        if nameFilter == self.SNAPSHOT_FILTER_SVG:
+            self.plot.saveGraph(filename, fileFormat='svg')
+
         else:
-            # Qt 5
-            pixmap = self.plot.getWidgetHandle().grab()
-        if not pixmap.save(filename):
-            self._errorMessage()
-            return False
+            if hasattr(qt.QPixmap, "grabWidget"):
+                # Qt 4
+                pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
+            else:
+                # Qt 5
+                pixmap = self.plot.getWidgetHandle().grab()
+            if not pixmap.save(filename):
+                self._errorMessage()
+                return False
         return True
 
     def _saveCurve(self, filename, nameFilter):
