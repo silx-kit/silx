@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -45,6 +45,7 @@ __date__ = "30/11/2016"
 
 import logging
 import sys
+import traceback
 
 
 _logger = logging.getLogger(__name__)
@@ -186,3 +187,27 @@ elif BINDING == 'PyQt5':
 
 else:
     raise ImportError('No Qt wrapper found. Install PyQt4, PyQt5 or PySide')
+
+# provide a exception handler but not implement it by default
+def exceptionHandler(type_, value, trace):
+    """
+    This exception handler prevents quitting to the command line when there is
+    an unhandled exception while processing a Qt signal.
+
+    The script/application willing to use it should implement code similar to:
+
+    .. code-block:: python
+    
+        if __name__ == "__main__":
+            sys.excepthook = qt.exceptionHandler
+    
+    """
+    print("%s %s %s" % (type_, value, ''.join(traceback.format_tb(trace))))
+    msg = QMessageBox()
+    msg.setWindowTitle("Unhandled exception")
+    msg.setIcon(QMessageBox.Critical)
+    msg.setInformativeText("%s %s\nPlease report details" % (type_, value))
+    msg.setDetailedText(("%s " % value) + ''.join(traceback.format_tb(trace)))
+    msg.raise_()
+    msg.exec_()
+
