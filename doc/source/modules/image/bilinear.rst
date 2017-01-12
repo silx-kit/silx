@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.image
 
-:mod:`silx.image.bilinear`: Bilinear interpolator
--------------------------------------------------
+:mod:`bilinear`: Bilinear interpolator
+---------------------------------------
 
 .. automodule:: silx.image.bilinear
    :members:

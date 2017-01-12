@@ -1,14 +1,14 @@
 
 .. currentmodule:: silx.math
 
-:mod:`silx.math.histogram`: Multidimensional histograms
--------------------------------------------------------
+:mod:`histogram`: Multidimensional histograms
+----------------------------------------------
 
 .. automodule:: silx.math.histogram
 
 
 Classes
--------
++++++++
 
 .. autoclass:: silx.math.histogram.Histogramnd
     :members:

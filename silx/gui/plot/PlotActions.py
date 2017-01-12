@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,7 @@ from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
+from silx.math.histogram import Histogramnd
 
 from silx.io.utils import save1D, savespec
 
@@ -950,6 +951,67 @@ class PanWithArrowKeysAction(PlotAction):
         self.plot.setPanWithArrowKeys(checked)
 
 
+def _warningMessage(informativeText='', detailedText='', parent=None):
+    """Display a popup warning message."""
+    msg = qt.QMessageBox(parent)
+    msg.setIcon(qt.QMessageBox.Warning)
+    msg.setInformativeText(informativeText)
+    msg.setDetailedText(detailedText)
+    msg.exec_()
+
+
+def _getOneCurve(plt, mode="unique"):
+    """Get a single curve from the plot.
+    By default, get the active curve if any, else if a single curve is plotted
+    get it, else return None and display a warning popup.
+
+    This behavior can be adjusted by modifying the *mode* parameter: always
+    return the active curve if any, but adjust the behavior in case no curve
+    is active.
+
+    :param plt: :class:`.PlotWidget` instance on which to operate
+    :param mode: Parameter defining the behavior when no curve is active.
+        Possible modes:
+            - "none": return None (enforce curve activation)
+            - "unique": return the unique curve or None if multiple curves
+            - "first": return first curve
+            - "last": return last curve (most recently added one)
+    :return: return value of plt.getActiveCurve(), or plt.getAllCurves()[0],
+        or plt.getAllCurves()[-1], or None
+    """
+    curve = plt.getActiveCurve()
+    if curve is not None:
+        return curve
+
+    if mode is None or mode.lower() == "none":
+        _warningMessage("You must activate a curve!",
+                        parent=plt)
+        return None
+
+    curves = plt.getAllCurves()
+    if len(curves) == 0:
+        _warningMessage("No curve on this plot.",
+                        parent=plt)
+        return None
+
+    if len(curves) == 1:
+        return curves[0]
+
+    if len(curves) > 1:
+        if mode == "unique":
+            _warningMessage("Multiple curves are plotted. " +
+                            "Please activate the one you want to use.",
+                            parent=plt)
+            return None
+        if mode.lower() == "first":
+            return curves[0]
+        if mode.lower() == "last":
+            return curves[-1]
+
+    raise ValueError("Illegal value for parameter 'mode'." +
+                     " Allowed values: 'none', 'unique', 'first', 'last'.")
+
+
 class FitAction(PlotAction):
     """QAction to open a :class:`FitWidget` and set its data to the
     active curve if any, or to the first curve..
@@ -965,22 +1027,10 @@ class FitAction(PlotAction):
             checkable=False, parent=parent)
         self.fit_window = None
 
-    def _warningMessage(self, informativeText='', detailedText=''):
-        """Display a warning message."""
-        msg = qt.QMessageBox(self.plot)
-        msg.setIcon(qt.QMessageBox.Warning)
-        msg.setInformativeText(informativeText)
-        msg.setDetailedText(detailedText)
-        msg.exec_()
-
     def _getFitWindow(self):
-        curve = self.plot.getActiveCurve()
+        curve = _getOneCurve(self.plot)
         if curve is None:
-            curves = self.plot.getAllCurves()
-            if len(curves) != 1:
-                self._warningMessage("No curve selected")
-                return
-            curve = curves[0]
+            return
         self.xlabel = self.plot.getGraphXLabel()
         self.ylabel = self.plot.getGraphYLabel()
         self.x, self.y, self.legend = curve[0:3]
@@ -1023,3 +1073,102 @@ class FitAction(PlotAction):
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel,
                                resetzoom=False)
+
+
+class PixelIntensitiesHistoAction(PlotAction):
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        PlotAction.__init__(self,
+                            plot,
+                            icon='pixel-intensities',
+                            text='pixels intensity',
+                            tooltip='Compute image intensity distribution',
+                            triggered=self._triggered,
+                            parent=parent,
+                            checkable=True)
+        self._plotHistogram = None
+        self._connectedToActiveImage = False
+
+    def _triggered(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        if checked:
+            if not self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.connect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = True
+                self.computeIntensityDistribution()
+
+            self.getHistogramPlotWidget().show()
+
+        else:
+            if self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = False
+
+            self.getHistogramPlotWidget().hide()
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        if self.isChecked():
+            self.computeIntensityDistribution()
+
+    def computeIntensityDistribution(self):
+        """Get the active image and compute the image intensity distribution
+        """
+        activeImage = self.plot.getActiveImage()
+
+        if activeImage is not None:
+            image = activeImage[0]
+            if image.ndim == 3:  # RGB(A) images
+                _logger.warning(
+                    'Current image is RGB(A): histogram not implemented')
+                self.getHistogramPlotWidget().remove(
+                    'pixel intensity', kind='curve')
+
+            else:
+                data = image.ravel().astype(numpy.float32)
+                nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
+                data_range = numpy.nanmin(data), numpy.nanmax(data)
+
+                histo, w_histo, edges = Histogramnd(data,
+                                                    n_bins=nbins,
+                                                    histo_range=data_range)
+
+                self.getHistogramPlotWidget().addCurve(
+                    numpy.arange(nbins),
+                    histo,
+                    legend='pixel intensity')
+
+    def eventFilter(self, qobject, event):
+        """Observe when the close event is emitted then 
+        simply uncheck the action button
+
+        :param qobject: the object observe
+        :param event: the event received by qobject
+        """
+        if event.type() == qt.QEvent.Close:
+            if self._plotHistogram is not None:
+                self._plotHistogram.hide()
+            self.setChecked(False)
+
+        return PlotAction.eventFilter(self, qobject, event)
+
+    def getHistogramPlotWidget(self):
+        """Return the PlotWidget showing the histogram of the pixel intensities
+        """
+        from silx.gui.plot.PlotWindow import Plot1D
+        if self._plotHistogram is None:
+            self._plotHistogram = Plot1D()
+            self._plotHistogram.setWindowTitle('Image Intensity Histogram')
+            self._plotHistogram.installEventFilter(self)
+
+        return self._plotHistogram

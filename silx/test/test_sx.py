@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "05/12/2016"
 
 
 import logging
@@ -70,9 +70,10 @@ elif os.environ.get('WITH_QT_TEST', 'True') == 'False':
 else:
     # Import here to avoid loading QT if tests are disabled
 
-    from silx import sx
     from silx.gui import qt
-    from silx.gui.testutils import TestCaseQt
+    # load TestCaseQt before sx
+    from silx.gui.test.utils import TestCaseQt
+    from silx import sx
 
     class SXTest(TestCaseQt):
         """Test the sx module"""

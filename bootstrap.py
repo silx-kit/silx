@@ -10,7 +10,7 @@ example: ./bootstrap.py ipython
 __authors__ = ["Frédéric-Emmanuel Picca", "Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "20/12/2016"
 
 
 import sys
@@ -48,18 +48,28 @@ def _get_available_scripts(path):
 
 
 if sys.version_info[0] >= 3:  # Python3
-    def execfile(fullpath):
+    def execfile(fullpath, globals=None, locals=None):
         "Python3 implementation for execfile"
         with open(fullpath) as f:
-            code = compile(f.read(), fullpath, 'exec')
-            exec(code)
+            try:
+                data = f.read()
+            except UnicodeDecodeError:
+                raise SyntaxError("Not a Python script")
+            code = compile(data, fullpath, 'exec')
+            exec(code, globals, locals)
 
 
 def runfile(fname):
     try:
-        execfile(fname)
+        logger.info("Execute target using exec")
+        # execfile is considered as a local call.
+        # Providing globals() as locals will force to feed the file into
+        # globals() (for examples imports).
+        # Without this any function call from the executed file loses imports
+        execfile(fname, globals(), globals())
     except SyntaxError as error:
-        print(error)
+        logger.error(error)
+        logger.info("Execute target using subprocess")
         env = os.environ.copy()
         env.update({"PYTHONPATH": LIBPATH + os.pathsep + os.environ.get("PYTHONPATH", ""),
                     "PATH": SCRIPTSPATH + os.pathsep + os.environ.get("PATH", "")})

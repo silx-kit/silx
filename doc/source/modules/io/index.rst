@@ -4,6 +4,7 @@
 :mod:`silx.io`: Input-output
 ============================
 
+
 .. toctree::
    :maxdepth: 1
    
@@ -15,6 +16,9 @@
    spech5.rst
    spectoh5.rst
    utils.rst
+
+Top-level functions
+-------------------
 
 .. autofunction:: silx.io.open
 .. autofunction:: silx.io.save1D

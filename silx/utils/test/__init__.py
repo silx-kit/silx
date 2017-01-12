@@ -30,10 +30,12 @@ __date__ = "19/09/2016"
 import unittest
 from .test_weakref import suite as test_weakref_suite
 from .test_html import suite as test_html_suite
+from .test_array_like import suite as test_array_like_suite
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(test_weakref_suite())
     test_suite.addTest(test_html_suite())
+    test_suite.addTest(test_array_like_suite())
     return test_suite

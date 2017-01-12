@@ -1,8 +1,8 @@
 
 .. currentmodule:: silx.io
 
-:mod:`silx.io.spech5`: h5py-like API to SpecFile
-------------------------------------------------
+:mod:`spech5`: h5py-like API to SpecFile
+-----------------------------------------
 
 .. automodule:: silx.io.spech5
     :members:

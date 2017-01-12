@@ -40,7 +40,7 @@ from .FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "14/12/2016"
 
 
 class AxesSelector(qt.QWidget):
@@ -112,7 +112,7 @@ class AxesSelector(qt.QWidget):
         self._slotsAreConnected = True
 
         # emit new dimensions
-        if n >= 2:
+        if n > 2:
             self.sigDimensionsChanged.emit(n - 2, n - 1)
 
     def setDimensions(self, row_dim, col_dim):
@@ -375,6 +375,31 @@ class ArrayTableWidget(qt.QWidget):
         self.axesSelector.setNDimensions(n_dimensions)
         self.axesSelector.sigDimensionsChanged.connect(self.setFrameAxes)
 
+    def setArrayColors(self, bgcolors=None, fgcolors=None):
+        """Set the colors for all table cells by passing an array
+        of RGB or RGBA values (integers between 0 and 255).
+
+        The shape of the colors array must be consistent with the data shape.
+
+        If the data array is n-dimensional, the colors array must be
+        (n+1)-dimensional, with the first n-dimensions identical to the data
+        array dimensions, and the last dimension length-3 (RGB) or
+        length-4 (RGBA).
+
+        :param bgcolors: RGB or RGBA colors array, defining the background color
+            for each cell in the table.
+        :param fgcolors: RGB or RGBA colors array, defining the foreground color
+            (text color) for each cell in the table.
+        """
+        self.model.setArrayColors(bgcolors, fgcolors)
+
+    def displayAxesSelector(self, isVisible):
+        """Allow to display or hide the axes selector.
+
+        :param bool isVisible: True to display the axes selector.
+        """
+        self.axesSelector.setVisible(isVisible)
+
     def setFrameIndex(self, index):
         """Set the active slice/image index in the n-dimensional array.
 
@@ -477,7 +502,6 @@ class ArrayTableWidget(qt.QWidget):
 
 def main():
     import numpy
-    import sys
     a = qt.QApplication([])
     d = numpy.random.normal(0, 1, (4, 5, 1000, 1000))
     for j in range(4):

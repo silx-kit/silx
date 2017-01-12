@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,14 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "07/11/2016"
+__date__ = "21/12/2016"
 
 
 import logging
+import numpy
 from .. import qt
+import silx.io.utils
+from silx.utils.html import escape
 
 _logger = logging.getLogger(__name__)
 
@@ -41,6 +44,11 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 
 
 class Hdf5ContextMenuEvent(object):
@@ -81,17 +89,58 @@ class Hdf5ContextMenuEvent(object):
         return self.__hoveredObject
 
 
-def htmlFromDict(dictionary):
+def htmlFromDict(dictionary, title=None):
     """Generate a readable HTML from a dictionary
 
     :param dict dictionary: A Dictionary
     :rtype: str
     """
-    result = "<html><ul>"
+    result = """<html>
+        <head>
+        <style type="text/css">
+        ul { -qt-list-indent: 0; list-style: none; }
+        li > b {display: inline-block; min-width: 4em; font-weight: bold; }
+        </style>
+        </head>
+        <body>
+        """
+    if title is not None:
+        result += "<b>%s</b>" % escape(title)
+    result += "<ul>"
     for key, value in dictionary.items():
-        result += "<li><b>%s</b>: %s</li>" % (key, value)
-    result += "</ul></html>"
+        result += "<li><b>%s</b>: %s</li>" % (escape(key), escape(value))
+    result += "</ul>"
+    result += "</body></html>"
     return result
+
+
+def toString(data):
+    """Rendering a data into a readable string
+
+    :param data: Data to render
+    :rtype: str
+    """
+    if isinstance(data, (tuple, numpy.void)):
+        text = [toString(d) for d in data]
+        return "(" + " ".join(text) + ")"
+    elif isinstance(data, (list, numpy.ndarray)):
+        text = [toString(d) for d in data]
+        return "[" + " ".join(text) + "]"
+    elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
+        try:
+            return "\"%s\"" % data.decode("utf-8")
+        except UnicodeDecodeError:
+            pass
+        import binascii
+        return binascii.hexlify(data).decode("ascii")
+    elif isinstance(data, six.string_types):
+        return "\"%s\"" % data
+    elif isinstance(data, numpy.complex_):
+        if data.imag < 0:
+            return "%s-%sj" % (data.real, -data.imag)
+        else:
+            return "%s+%sj" % (data.real, data.imag)
+    return str(data)
 
 
 class Hdf5NodeMimeData(qt.QMimeData):
@@ -143,10 +192,7 @@ class H5Node(object):
         :rtype:
             :class:`h5py.File`, :class:`h5py.Group` or :class:`h5py.Dataset`
         """
-        if hasattr(self.__h5py_object, "h5py_class"):
-            return self.__h5py_object.h5py_class
-        else:
-            return self.__h5py_object.__class__
+        return silx.io.utils.get_h5py_class(self.__h5py_object)
 
     @property
     def basename(self):

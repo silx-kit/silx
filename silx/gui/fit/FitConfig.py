@@ -25,12 +25,13 @@
 #
 # ######################################################################### */
 """This module defines widgets used to build a fit configuration dialog.
+The resulting dialog widget outputs a dictionary of configuration parameters.
 """
 from silx.gui import qt
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "30/11/2016"
 
 
 class TabsDialog(qt.QDialog):
@@ -276,7 +277,7 @@ class SearchPage(qt.QWidget):
             "If disabled, the FWHM parameter used for peak search is " +
             "estimated based on the highest peak in the data")
         layout.addWidget(self.manualFwhmGB)
-        # ------------ GroupBox ------------------------------
+        # ------------ GroupBox fwhm--------------------------
         layout2 = qt.QHBoxLayout(self.manualFwhmGB)
         self.manualFwhmGB.setLayout(layout2)
 
@@ -285,19 +286,40 @@ class SearchPage(qt.QWidget):
 
         self.fwhmPointsSpin = qt.QSpinBox(self.manualFwhmGB)
         self.fwhmPointsSpin.setRange(0, 999999)
+        self.fwhmPointsSpin.setToolTip("Typical peak fwhm (number of data points)")
         layout2.addWidget(self.fwhmPointsSpin)
         # ----------------------------------------------------
 
+        self.manualScalingGB = qt.QGroupBox("Define scaling manually", self)
+        self.manualScalingGB.setCheckable(True)
+        self.manualScalingGB.setToolTip(
+            "If disabled, the Y scaling used for peak search is " +
+            "estimated automatically")
+        layout.addWidget(self.manualScalingGB)
+        # ------------ GroupBox scaling-----------------------
+        layout3 = qt.QHBoxLayout(self.manualScalingGB)
+        self.manualScalingGB.setLayout(layout3)
+
+        label = qt.QLabel("Y Scaling", self.manualScalingGB)
+        layout3.addWidget(label)
+
+        self.yScalingEntry = qt.QLineEdit(self.manualScalingGB)
+        self.yScalingEntry.setToolTip(
+                "Data values will be multiplied by this value prior to peak" +
+                " search")
+        self.yScalingEntry.setValidator(qt.QDoubleValidator())
+        layout3.addWidget(self.yScalingEntry)
+        # ----------------------------------------------------
+
         # ------------------- grid layout --------------------
-        gridContainerWidget = qt.QWidget(self)
-        layout3 = qt.QGridLayout(gridContainerWidget)
-        gridContainerWidget.setLayout(layout3)
+        containerWidget = qt.QWidget(self)
+        layout4 = qt.QHBoxLayout(containerWidget)
+        containerWidget.setLayout(layout4)
 
-        for i, label_text in enumerate(["Sensitivity", "Y Scaling"]):
-            label = qt.QLabel(label_text, gridContainerWidget)
-            layout3.addWidget(label, i, 0)
+        label = qt.QLabel("Sensitivity", containerWidget)
+        layout4.addWidget(label)
 
-        self.sensitivityEntry = qt.QLineEdit(gridContainerWidget)
+        self.sensitivityEntry = qt.QLineEdit(containerWidget)
         self.sensitivityEntry.setToolTip(
             "Peak search sensitivity threshold, expressed as a multiple " +
             "of the standard deviation of the noise.\nMinimum value is 1 " +
@@ -305,16 +327,9 @@ class SearchPage(qt.QWidget):
         sensivalidator = qt.QDoubleValidator()
         sensivalidator.setBottom(1.0)
         self.sensitivityEntry.setValidator(sensivalidator)
-        layout3.addWidget(self.sensitivityEntry, 0, 1)
-
-        self.yScalingEntry = qt.QLineEdit(gridContainerWidget)
-        self.yScalingEntry.setToolTip(
-                "y values will be multiplied by this value prior to peak" +
-                " search")
-        self.yScalingEntry.setValidator(qt.QDoubleValidator())
-        layout3.addWidget(self.yScalingEntry, 1, 1)
+        layout4.addWidget(self.sensitivityEntry)
         # ----------------------------------------------------
-        layout.addWidget(gridContainerWidget)
+        layout.addWidget(containerWidget)
 
         self.forcePeakPresenceCB = qt.QCheckBox("Force peak presence", self)
         self.forcePeakPresenceCB.setToolTip(
@@ -339,6 +354,8 @@ class SearchPage(qt.QWidget):
                default_dict.get('FwhmPoints', 8))
         self.sensitivityEntry.setText(
                 str(default_dict.get('Sensitivity', 1.0)))
+        self.manualScalingGB.setChecked(
+                not default_dict.get('AutoScaling', False))
         self.yScalingEntry.setText(
                 str(default_dict.get('Yscaling', 1.0)))
         self.forcePeakPresenceCB.setChecked(
@@ -351,6 +368,7 @@ class SearchPage(qt.QWidget):
             'AutoFwhm': not self.manualFwhmGB.isChecked(),
             'FwhmPoints': self.fwhmPointsSpin.value(),
             'Sensitivity': safe_float(self.sensitivityEntry.text()),
+            'AutoScaling': not self.manualScalingGB.isChecked(),
             'Yscaling': safe_float(self.yScalingEntry.text()),
             'ForcePeakPresence': self.forcePeakPresenceCB.isChecked()
         }

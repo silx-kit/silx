@@ -27,14 +27,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "31/05/2016"
+__date__ = "05/12/2016"
 
 
 import logging
 import unittest
 import numpy
 
-from silx.testutils import ParametricTestCase
+from silx.test.utils import ParametricTestCase
 from silx.image import shapes
 
 logging.basicConfig()

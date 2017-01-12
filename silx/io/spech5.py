@@ -740,6 +740,13 @@ class SpecH5Dataset(object):
         return len(self.value)
 
     def __getitem__(self, item):
+        if not isinstance(self.value, numpy.ndarray):
+            if item == Ellipsis:
+                return numpy.array(self.value)
+            elif item == tuple():
+                return self.value
+            else:
+                raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
         return self.value.__getitem__(item)
 
     def __getslice__(self, i, j):
@@ -917,7 +924,7 @@ def _dataset_builder(name, specfileh5, parent_group):
         array_like = "\n".join(scan.file_header)
 
     elif scan_header_data_pattern.match(name):
-        #array_like = _fixed_length_strings(scan.scan_header)
+        # array_like = _fixed_length_strings(scan.scan_header)
         array_like = "\n".join(scan.scan_header)
 
     elif positioners_data_pattern.match(name):

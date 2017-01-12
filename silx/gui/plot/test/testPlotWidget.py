@@ -26,15 +26,15 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "05/12/2016"
 
 
 import unittest
 
 import numpy
 
-from silx.testutils import ParametricTestCase
-from silx.gui.testutils import TestCaseQt
+from silx.test.utils import ParametricTestCase
+from silx.gui.test.utils import TestCaseQt
 
 from silx.gui import qt
 from silx.gui.plot import PlotWidget

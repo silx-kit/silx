@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,10 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "29/09/2016"
+__date__ = "20/12/2016"
 
 
+import numpy
 try:
     import h5py
 except ImportError:
@@ -106,6 +107,19 @@ class Dataset(Node):
 
     def __init__(self, name, parent, value):
         super(Dataset, self).__init__(name, parent, h5py.Dataset)
-        self.value = value
-        self.shape = value.shape
-        self.dtype = value.dtype
+        self.__value = value
+        self.shape = self.__value.shape
+        self.dtype = self.__value.dtype
+        self.size = self.__value.size
+        self.compression = None
+        self.compression_opts = None
+
+    def __getitem__(self, key):
+        if not isinstance(self.__value, numpy.ndarray):
+            if key == tuple():
+                return self.__value
+            elif key == Ellipsis:
+                return numpy.array(self.__value)
+            else:
+                raise ValueError("Bad key")
+        return self.__value[key]

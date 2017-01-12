@@ -26,13 +26,14 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "15/12/2016"
 
 
 import gc
 import logging
 import unittest
 import time
+import functools
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -326,6 +327,72 @@ class TestCaseQt(unittest.TestCase):
             QTest.qWait(self.TIMEOUT_WAIT)
 
         return result
+
+
+class SignalListener():
+    """Util to listen a Qt event and store parameters
+    """
+
+    def __init__(self):
+        self.__calls = []
+
+    def __call__(self, *args, **kargs):
+        self.__calls.append((args, kargs))
+
+    def clear(self):
+        """Clear stored data"""
+        self.__calls = []
+
+    def callCount(self):
+        """
+        Returns how many times the listener was called.
+
+        :rtype: int
+        """
+        return len(self.__calls)
+
+    def arguments(self, callIndex=None, argumentIndex=None):
+        """Returns positional arguments optionally filtered by call count id
+        or argument index.
+
+        :param int callIndex: Index of the called data
+        :param int argumentIndex: Index of the positional argument.
+        """
+        if callIndex is not None:
+            result = self.__calls[callIndex][0]
+            if argumentIndex is not None:
+                result = result[argumentIndex]
+        else:
+            result = [x[0] for x in self.__calls]
+            if argumentIndex is not None:
+                result = [x[argumentIndex] for x in result]
+        return result
+
+    def karguments(self, callIndex=None, argumentName=None):
+        """Returns positional arguments optionally filtered by call count id
+        or name of the keyword argument.
+
+        :param int callIndex: Index of the called data
+        :param int argumentName: Name of the keyword argument.
+        """
+        if callIndex is not None:
+            result = self.__calls[callIndex][1]
+            if argumentName is not None:
+                result = result[argumentName]
+        else:
+            result = [x[1] for x in self.__calls]
+            if argumentName is not None:
+                result = [x[argumentName] for x in result]
+        return result
+
+    def partial(self, *args, **kargs):
+        """Returns a new partial object which when called will behave like this
+        listener called with the positional arguments args and keyword
+        arguments keywords. If more arguments are supplied to the call, they
+        are appended to args. If additional keyword arguments are supplied,
+        they extend and override keywords.
+        """
+        return functools.partial(self, *args, **kargs)
 
 
 def getQToolButtonFromAction(action):
