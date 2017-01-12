@@ -2090,8 +2090,8 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
         else:
-                self._backend.setYAxisLogarithmic(self._logY)
-                self._update()
+            self._backend.setYAxisLogarithmic(self._logY)
+            self._update()
 
         self._invalidateDataRange()
         self._setDirtyPlot()
@@ -2474,8 +2474,7 @@ class Plot(object):
         return error
 
 
-    @staticmethod
-    def _logFilterData(x, y, xerror, yerror, xLog, yLog):
+    def _logFilterData(self, x, y, xerror, yerror, xLog, yLog):
         """Filter out values with x or y <= 0 on log axes
 
         All arrays are expected to have the same length.

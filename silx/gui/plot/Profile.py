@@ -750,7 +750,8 @@ class Profile3DToolBar(ProfileToolBar):
             self._createProfile(currentData=stackData[0],
                                 params=stackData[1])
         else:
-            raise ValueError('Can\'t compute profile for data in %s'% dimension)
+            raise ValueError("Can't compute profile for data in %s" %
+                             str(self._profileDimension))
 
     def _showProfileWindow(self):
         """If profile window was created in this widget,
