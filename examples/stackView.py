@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ from silx.gui.plot.StackView import StackViewMainWindow
 
 
 app = qt.QApplication(sys.argv[1:])
-
+sys.excepthook = qt.exceptionHandler
+    
 # synthetic data, stack of 100 images of size 200x300
 mystack = numpy.fromfunction(
     lambda i, j, k: numpy.sin(i/15.) + numpy.cos(j/4.) + 2 * numpy.sin(k/6.),
@@ -50,3 +51,4 @@ sv.setLabels(["1st dim (0-99)", "2nd dim (0-199)",
 sv.show()
 
 app.exec_()
+sys.excepthook = sys.__excepthook__
