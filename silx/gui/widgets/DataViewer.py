@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "12/01/2017"
 
 import numpy
 import numbers
@@ -165,7 +165,7 @@ class _Plot1dView(DataView):
                                   x=range(len(data)),
                                   y=data,
                                   resetzoom=self.__resetZoomNextTime)
-        self.__resetZoomNextTime = False
+        self.__resetZoomNextTime = True
 
     def getDataPriority(self, data):
         if data is None:
