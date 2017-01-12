@@ -30,6 +30,7 @@ The GUI widgets depend on the following extra packages:
 
 * A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
+* `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_ for the ``silx.gui.console`` widget.
 
 Tools for reading and writing HDF5 files depend on the following package:
@@ -177,6 +178,7 @@ Some of the dependencies may be simply installed with pip::
 
     pip install numpy
     pip install matplotlib
+    pip install PyOpenGL
     pip install PyQt5
     pip install PySide
 

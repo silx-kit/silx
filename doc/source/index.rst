@@ -16,6 +16,7 @@ The current version provides reading `SPEC <https://certif.com/spec.html>`_ file
    modules/index.rst
    changelog.rst
    license.rst
+   virtualenv.rst
 
 :doc:`overview`
     Releases, repository, issue tracker, mailing list, ...

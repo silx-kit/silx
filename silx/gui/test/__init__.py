@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "05/01/2017"
 
 
 import logging
@@ -71,6 +71,7 @@ def suite():
     from ..fit import test as test_fit
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
+    from ..plot3d import test as test_plot3d
     from . import test_qt
     from . import test_console
     from . import test_icons
@@ -82,4 +83,5 @@ def suite():
     test_suite.addTest(test_widgets.suite())
     test_suite.addTest(test_console.suite())
     test_suite.addTest(test_icons.suite())
+    test_suite.addTest(test_plot3d.suite())
     return test_suite

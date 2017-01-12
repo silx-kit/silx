@@ -33,15 +33,19 @@ __date__ = "10/01/2017"
 
 import numpy
 import numbers
+import logging
 
 import silx.io
 from silx.gui import qt
 from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
 
+
 try:
     from silx.third_party import six
 except ImportError:
     import six
+
+_logger = logging.getLogger(__name__)
 
 
 class DataView(object):
@@ -220,6 +224,69 @@ class _Plot2dView(DataView):
         if len(data.shape) < 2:
             return -1
         if len(data.shape) == 2:
+            return 100
+        else:
+            return 10
+
+
+class _Plot3dView(DataView):
+    """View displaying data using a 3d plot"""
+
+    def __init__(self, parent, modeId):
+        super(_Plot3dView, self).__init__(parent, modeId)
+        try:
+            import OpenGL  # noqa
+        except:
+            _logger.warning("Plot3dView is not available")
+            _logger.debug("Backtrace", exc_info=True)
+            raise
+        self.__resetZoomNextTime = True
+
+    def axesNames(self):
+        return ["z", "y", "x"]
+
+    def createWidget(self, parent):
+        from silx.gui.plot3d import ScalarFieldView
+        from silx.gui.plot3d import SFViewParamTree
+
+        plot = ScalarFieldView.ScalarFieldView(parent)
+        plot.setAxesLabels(*reversed(self.axesNames()))
+        plot.addIsosurface(
+            lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
+
+        # Create a parameter tree for the scalar field view
+        options = SFViewParamTree.TreeView(plot)
+        options.setSfView(plot)
+
+        # Add the parameter tree to the main window in a dock widget
+        dock = qt.QDockWidget()
+        dock.setWidget(options)
+        plot.addDockWidget(qt.Qt.RightDockWidgetArea, dock)
+
+        return plot
+
+    def clear(self):
+        self.getWidget().setData(None)
+        self.__resetZoomNextTime = True
+
+    def setData(self, data):
+        plot = self.getWidget()
+        plot.setData(data)
+        self.__resetZoomNextTime = False
+
+    def getDataPriority(self, data):
+        if data is None:
+            return -1
+        isArray = isinstance(data, numpy.ndarray)
+        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
+        if not isArray:
+            return -1
+        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+        if not isNumeric:
+            return -1
+        if len(data.shape) < 3:
+            return -1
+        if len(data.shape) == 3:
             return 100
         else:
             return 10
@@ -432,10 +499,11 @@ class DataViewer(qt.QFrame):
     EMPTY_MODE = 0
     PLOT1D_MODE = 1
     PLOT2D_MODE = 2
-    TEXT_MODE = 3
-    ARRAY_MODE = 4
-    STACK_MODE = 5
-    RECORD_MODE = 6
+    PLOT3D_MODE = 3
+    TEXT_MODE = 4
+    ARRAY_MODE = 5
+    STACK_MODE = 6
+    RECORD_MODE = 7
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -477,17 +545,23 @@ class DataViewer(qt.QFrame):
         self.__useAxisSelection = False
 
         views = [
-            _EmptyView(self.__stack, self.EMPTY_MODE),
-            _Plot1dView(self.__stack, self.PLOT1D_MODE),
-            _Plot2dView(self.__stack, self.PLOT2D_MODE),
-            _TextView(self.__stack, self.TEXT_MODE),
-            _ArrayView(self.__stack, self.ARRAY_MODE),
-            _StackView(self.__stack, self.STACK_MODE),
-            _RecordView(self.__stack, self.RECORD_MODE),
+            (_EmptyView, self.EMPTY_MODE),
+            (_Plot1dView, self.PLOT1D_MODE),
+            (_Plot2dView, self.PLOT2D_MODE),
+            (_Plot3dView, self.PLOT3D_MODE),
+            (_TextView, self.TEXT_MODE),
+            (_ArrayView, self.ARRAY_MODE),
+            (_StackView, self.STACK_MODE),
+            (_RecordView, self.RECORD_MODE),
         ]
         self.__views = {}
-        for v in views:
-            self.__views[v.modeId()] = v
+        for viewData in views:
+            viewClass, modeId = viewData
+            try:
+                view = viewClass(self.__stack, modeId)
+            except:
+                continue
+            self.__views[view.modeId()] = view
 
         # store stack index for each views
         self.__index = {}
@@ -545,11 +619,14 @@ class DataViewer(qt.QFrame):
         Update the views using the current data
         """
         if self.__useAxisSelection:
-            data = self.__numpySelection.selectedData()
+            self.__displayedData = self.__numpySelection.selectedData()
         else:
-            data = self.__data
+            self.__displayedData = self.__data
 
-        self.__currentView.setData(data)
+        qt.QTimer.singleShot(10, self.__setDataInView)
+
+    def __setDataInView(self):
+        self.__currentView.setData(self.__displayedData)
 
     def __setDisplayedView(self, view):
         """Set the displayed view.
@@ -646,6 +723,7 @@ class DataViewer(qt.QFrame):
         :param numpy.ndarray data: The data.
         """
         self.__data = data
+        self.__displayedData = None
         self.__updateView()
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
