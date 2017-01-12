@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "12/01/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -1063,9 +1063,17 @@ def _demultiplex_mca(scan, analyser_index):
     number_of_MCA_spectra = len(mca_data)
     number_of_scan_data_lines = scan.data.shape[1]
 
-    # Number of MCA spectra must be a multiple of number of scan data lines
-    assert number_of_MCA_spectra % number_of_scan_data_lines == 0
-    number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
+    if not number_of_scan_data_lines == 0:
+        # Number of MCA spectra must be a multiple of number of data lines
+        assert number_of_MCA_spectra % number_of_scan_data_lines == 0
+        number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
+    elif number_of_MCA_spectra:
+        # Case of a scan without data lines, only MCA.
+        # Our only option is to assume that the number of analysers
+        # is the number of #@CHANN lines
+        number_of_analysers = len(scan.mca.channels)
+    else:
+        number_of_analysers = 0
 
     list_of_1D_arrays = []
     for i in range(analyser_index,
@@ -1298,19 +1306,22 @@ class SpecH5Group(object):
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[1]
 
-        if not number_of_data_lines == 0:
+        if not number_of_data_lines == 0:    # fixme
             # Number of MCA spectra must be a multiple of number of data lines
             assert number_of_MCA_spectra % number_of_data_lines == 0
             number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-            mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
-
-            if measurement_group_pattern.match(self.name):
-                return self._scan.labels + mca_list
+        elif number_of_MCA_spectra:
+            # Case of a scan without data lines, only MCA.
+            # Our only option is to assume that the number of analysers
+            # is the number of #@CHANN lines
+            number_of_MCA_analysers = len(self._scan.mca.channels)
         else:
-            mca_list = []
-            # no data: no measurement
-            if measurement_group_pattern.match(self.name):
-                return []
+            number_of_MCA_analysers = 0
+
+        mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
+
+        if measurement_group_pattern.match(self.name):
+            return self._scan.labels + mca_list
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
