@@ -429,7 +429,7 @@ class PlotWindow(PlotWidget):
 
         :rtype: QAction
         """
-        return self.getCurvesROIDockWidget().toggleViewAction()
+        return self.getCurvesRoiDockWidget().toggleViewAction()
 
     def getResetZoomAction(self):
         """Action resetting the zoom
