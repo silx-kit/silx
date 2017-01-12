@@ -460,6 +460,28 @@ def _get_data_column_label_in_name(item_name):
     return data_column_match.group(1)
 
 
+def _get_number_of_mca_analysers(scan):
+    """
+    :param SpecFile sf: :class:`SpecFile` instance
+    :param str scan_key: Scan identification key (e.g. ``1.1``)
+    """
+    number_of_MCA_spectra = len(scan.mca)
+    # Scan.data is transposed
+    number_of_data_lines = scan.data.shape[1]
+
+    if not number_of_data_lines == 0:
+        # Number of MCA spectra must be a multiple of number of data lines
+        assert number_of_MCA_spectra % number_of_data_lines == 0
+        return number_of_MCA_spectra // number_of_data_lines
+    elif number_of_MCA_spectra:
+        # Case of a scan without data lines, only MCA.
+        # Our only option is to assume that the number of analysers
+        # is the number of #@CHANN lines
+        return len(scan.mca.channels)
+    else:
+        return 0
+
+
 def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     """
     :param sf: :class:`SpecFile` instance
@@ -474,15 +496,9 @@ def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
 
-    number_of_MCA_spectra = len(sf[scan_key].mca)
-    # Scan.data is transposed
-    number_of_data_lines = sf[scan_key].data.shape[1]
+    number_of_analysers = _get_number_of_mca_analysers(sf[scan_key])
 
-    # Number of MCA spectra must be a multiple of number of data lines
-    assert number_of_MCA_spectra % number_of_data_lines == 0
-    number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-
-    return 0 <= mca_analyser_index < number_of_MCA_analysers
+    return 0 <= mca_analyser_index < number_of_analysers
 
 
 def _motor_in_scan(sf, scan_key, motor_name):
@@ -1058,28 +1074,15 @@ def _demultiplex_mca(scan, analyser_index):
     :type analyser_index: int
     :return: 2D numpy array containing all spectra for one analyser
     """
-    mca_data = scan.mca
+    number_of_analysers = _get_number_of_mca_analysers(scan)
 
-    number_of_MCA_spectra = len(mca_data)
-    number_of_scan_data_lines = scan.data.shape[1]
-
-    if not number_of_scan_data_lines == 0:
-        # Number of MCA spectra must be a multiple of number of data lines
-        assert number_of_MCA_spectra % number_of_scan_data_lines == 0
-        number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
-    elif number_of_MCA_spectra:
-        # Case of a scan without data lines, only MCA.
-        # Our only option is to assume that the number of analysers
-        # is the number of #@CHANN lines
-        number_of_analysers = len(scan.mca.channels)
-    else:
-        number_of_analysers = 0
+    number_of_MCA_spectra = len(scan.mca)
 
     list_of_1D_arrays = []
     for i in range(analyser_index,
                    number_of_MCA_spectra,
                    number_of_analysers):
-        list_of_1D_arrays.append(mca_data[i])
+        list_of_1D_arrays.append(scan.mca[i])
     # convert list to 2D array
     return numpy.array(list_of_1D_arrays)
 
@@ -1306,7 +1309,7 @@ class SpecH5Group(object):
         number_of_MCA_spectra = len(self._scan.mca)
         number_of_data_lines = self._scan.data.shape[1]
 
-        if not number_of_data_lines == 0:    # fixme
+        if not number_of_data_lines == 0:
             # Number of MCA spectra must be a multiple of number of data lines
             assert number_of_MCA_spectra % number_of_data_lines == 0
             number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
