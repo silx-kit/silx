@@ -584,6 +584,127 @@ class TestSpecH5MultiMca(unittest.TestCase):
                         10**-5)
 
 
+sftext_no_cols = r"""#F C:/DATA\test.mca
+#D Thu Jul  7 08:40:19 2016
+
+#S 1 31oct98.dat 22.1 If4
+#D Thu Jul  7 08:40:19 2016
+#C no data cols, one mca analyser, single spectrum
+#@MCA %16C
+#@CHANN 151 29 29 1
+#@CALIB 0 2 0
+@A 789 784 788 814 847 862 880 904 925 955 987 1015 1031 1070 1111 1139 \
+1203 1236 1290 1392 1492 1558 1688 1813 1977 2119 2346 2699 3121 3542 4102 4970 \
+6071 7611 10426 16188 28266 40348 50539 55555 56162 54162 47102 35718 24588 17034 12994 11444 \
+11808 13461 15687 18885 23827 31578 41999 49556 58084 59415 59456 55698 44525 28219 17680 12881 \
+9518 7415 6155 5246 4646 3978 3612 3299 3020 2761 2670 2472 2500 2310 2286 2106 \
+1989 1890 1782 1655 1421 1293 1135 990 879 757 672 618 532 488 445 424 \
+414 373 351 325 307 284 270 247 228 213 199 187 183 176 164 156 \
+153 140 142 130 118 118 103 101 97 86 90 86 87 81 75 82 \
+80 76 77 75 76 77 62 69 74 60 65 68 65 58 63 64 \
+63 59 60 56 57 60 55
+
+#S 2 31oct98.dat 22.1 If4
+#D Thu Jul  7 08:40:19 2016
+#C no data cols, one mca analyser, multiple spectra
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
+@A 0 1 2
+@A 10 9 8
+@A 1 1 1.1
+@A 3.1 4 5
+@A 7 6 5
+@A 1 1 1
+@A 6 7.7 8
+@A 4 3 2
+@A 1 1 1
+
+#S 3 31oct98.dat 22.1 If4
+#D Thu Jul  7 08:40:19 2016
+#C no data cols, 3 mca analysers, multiple spectra
+#@MCADEV 1
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
+#@MCADEV 2
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
+#@MCADEV 3
+#@MCA %16C
+#@CHANN 3 0 2 1
+#@CALIB 1 2 3
+#@CTIME 123.4 234.5 345.6
+@A 0 1 2
+@A 10 9 8
+@A 1 1 1.1
+@A 3.1 4 5
+@A 7 6 5
+@A 1 1 1
+@A 6 7.7 8
+@A 4 3 2
+@A 1 1 1
+"""
+
+
+class TestSpecH5NoDataCols(unittest.TestCase):
+    """Test reading SPEC files with only MCA data"""
+    @classmethod
+    def setUpClass(cls):
+        fd, cls.fname = tempfile.mkstemp()
+        if sys.version < '3.0':
+            os.write(fd, sftext_no_cols)
+        else:
+            os.write(fd, bytes(sftext_no_cols, 'ascii'))
+        os.close(fd)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.unlink(cls.fname)
+
+    def setUp(self):
+        self.sfh5 = SpecH5(self.fname)
+
+    def tearDown(self):
+        # fix Win32 permission error when deleting temp file
+        del self.sfh5
+        gc.collect()
+
+    def testScan1(self):
+        # 1.1: single analyser, single spectrum, 151 channels
+        self.assertIn("mca_0",
+                      self.sfh5["1.1/instrument/"])
+        self.assertEqual(self.sfh5["1.1/instrument/mca_0/data"].shape,
+                         (1, 151))
+        self.assertNotIn("mca_1",
+                         self.sfh5["1.1/instrument/"])
+
+    def testScan2(self):
+        # 2.1: single analyser, 9 spectra, 3 channels
+        self.assertIn("mca_0",
+                      self.sfh5["2.1/instrument/"])
+        self.assertEqual(self.sfh5["2.1/instrument/mca_0/data"].shape,
+                         (9, 3))
+        self.assertNotIn("mca_1",
+                         self.sfh5["2.1/instrument/"])
+
+    def testScan3(self):
+        # 3.1: 3 analysers, 3 spectra/analyser, 3 channels
+        for i in range(3):
+            self.assertIn("mca_%d" % i,
+                          self.sfh5["3.1/instrument/"])
+            self.assertEqual(
+                self.sfh5["3.1/instrument/mca_%d/data" % i].shape,
+                (3, 3))
+
+        self.assertNotIn("mca_3",
+                         self.sfh5["3.1/instrument/"])
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTest(
@@ -592,6 +713,8 @@ def suite():
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecDate))
     test_suite.addTest(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5MultiMca))
+    test_suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestSpecH5NoDataCols))
     return test_suite
 
 
