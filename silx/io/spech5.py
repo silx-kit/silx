@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "03/10/2016"
+__date__ = "12/01/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -642,9 +642,9 @@ def _fixed_length_strings(strings, length=0):
 class SpecH5Dataset(object):
     """Emulate :class:`h5py.Dataset` for a SpecFile object.
 
-    A :class:`SpecH5Dataset` instance is basically  a proxy for the
-    :attr:`value` attribute, with additional attributes for compatibility
-    with *h5py* datasets.
+    A :class:`SpecH5Dataset` instance is basically  a proxy for the numpy
+    array :attr:`value` attribute, with additional attributes for
+    compatibility  with *h5py* datasets.
 
     :param value: Actual dataset value
     :param name: Dataset full name (posix path format, starting with ``/``)
@@ -684,6 +684,18 @@ class SpecH5Dataset(object):
             else:
                 self.value = array
 
+        # numpy array attributes (more attributes handled in __getattribute__)
+        self.shape = self.value.shape
+        """Dataset shape, as a tuple with the length of each dimension
+        of the dataset."""
+
+        self.dtype = self.value.dtype
+        """Dataset dtype"""
+
+        self.size = self.value.size
+        """Dataset size (number of elements)"""
+
+        # h5py dataset specific attributes
         self.name = name
         """"Dataset name (posix path format, starting with ``/``)"""
 
@@ -696,15 +708,9 @@ class SpecH5Dataset(object):
         self.attrs = _get_attrs_dict(name)
         """Attributes dictionary"""
 
-        self.shape = self.value.shape
-        """Dataset shape, as a tuple with the length of each dimension
-        of the dataset."""
+        self.compression = None
 
-        self.dtype = self.value.dtype
-        """Dataset dtype"""
-
-        self.size = self.value.size
-        """Dataset size (number of elements)"""
+        self.chunks = None
 
     @property
     def h5py_class(self):
@@ -721,7 +727,8 @@ class SpecH5Dataset(object):
 
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
-                    "shape", "dtype", "size", "h5py_class"]:
+                    "shape", "dtype", "size", "h5py_class",
+                    "chunks", "compression"]:
             return object.__getattribute__(self, item)
 
         return getattr(self.value, item)
@@ -743,7 +750,7 @@ class SpecH5Dataset(object):
         attrs = set(dir(self.value) +
                     ["value", "name", "parent", "file",
                      "attrs",  "shape", "dtype", "size",
-                     "h5py_class"])
+                     "h5py_class", "chunks", "compression"])
         return sorted(attrs)
 
     # casting
