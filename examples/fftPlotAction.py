@@ -44,6 +44,7 @@ __date__ = "12/01/2017"
 
 import numpy
 import os
+import sys
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
