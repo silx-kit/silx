@@ -1133,6 +1133,7 @@ class PixelIntensitiesHistoAction(PlotAction):
                             checkable=True)
         self._plotHistogram = None
         self._connectedToActiveImage = False
+        self._histo = None
 
     def _triggered(self, checked):
         """Update the plot of the histogram visibility status
@@ -1179,13 +1180,13 @@ class PixelIntensitiesHistoAction(PlotAction):
                 nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
                 data_range = numpy.nanmin(data), numpy.nanmax(data)
 
-                histo, w_histo, edges = Histogramnd(data,
+                self._histo, w_histo, edges = Histogramnd(data,
                                                     n_bins=nbins,
                                                     histo_range=data_range)
 
                 self.getHistogramPlotWidget().addCurve(
                     numpy.arange(nbins),
-                    histo,
+                    self._histo,
                     legend='pixel intensity')
 
     def eventFilter(self, qobject, event):
@@ -1212,3 +1213,8 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._plotHistogram.installEventFilter(self)
 
         return self._plotHistogram
+
+    def getHistogram(self):
+        """Return the histogram displayed in the HistogramPlotWiget
+        """
+        return self._histo
