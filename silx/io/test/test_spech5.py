@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ except ImportError:
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "28/11/2016"
+__date__ = "12/01/2017"
 
 sftext = """#F /tmp/sf.dat
 #E 1455180875
@@ -263,6 +263,18 @@ class TestSpecH5(unittest.TestCase):
                          b"2016-02-11T09:55:20")
         self.assertEqual(self.sfh5["25.1/start_time"],
                          b"2015-03-14T03:53:50")
+
+    def testDatasetInstanceAttr(self):
+        """The SpecH5Dataset objects must implement some dummy attributes
+        to improve compatibility with widgets dealing with h5py datasets."""
+        self.assertIsNone(self.sfh5["/1.1/start_time"].compression)
+        self.assertIsNone(self.sfh5["1.1"]["measurement"]["MRTSlit UP"].chunks)
+
+        # error message must be explicit
+        with self.assertRaisesRegexp(
+                AttributeError,
+                "SpecH5Dataset has no attribute tOTo"):
+            dummy = self.sfh5["/1.1/start_time"].tOTo
 
     def testGet(self):
         """Test :meth:`SpecH5Group.get`"""
