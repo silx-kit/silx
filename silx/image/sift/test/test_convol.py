@@ -105,9 +105,6 @@ class TestConvol(unittest.TestCase):
         self.gpu_tmp = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         self.gpu_out = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         kernel_src = get_opencl_code("convolution.cl")
-#        compile_options = "-D NIMAGE=%i" % self.input.size
-#        logger.info("Compiling file %s with options %s" % (kernel_path, compile_options))
-#        self.program = pyopencl.Program(ctx, kernel_src).build(options=compile_options)
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])

@@ -92,11 +92,10 @@ __kernel void orientation_assignment(
 	int	bin, prev=0, next=0;
 	int old;
 	float distsq, gval, angle, interp=0.0;
-	float hist_prev,hist_curr,hist_next;
+	float hist_prev, hist_curr, hist_next;
 	__local volatile float hist[36];
 	__local volatile float hist2[WORKGROUP_SIZE];
 	__local volatile int pos[WORKGROUP_SIZE];
-	float prev2,temp2;
 	float ONE_3 = 1.0f / 3.0f;
 	float ONE_18 = 1.0f / 18.0f;
 	//memset for "pos" and "hist2"

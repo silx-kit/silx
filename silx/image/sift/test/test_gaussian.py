@@ -51,7 +51,7 @@ else:
 
 from ..utils import get_opencl_code
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
 
 if ocl:
     import pyopencl, pyopencl.array

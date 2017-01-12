@@ -59,7 +59,7 @@ __kernel void orientation_assignment(
 	int i,j,r,c;
 	int old;
 	float distsq, gval, angle, interp=0.0;
-	float hist_prev,hist_curr,hist_next;
+	float hist_prev, hist_curr, hist_next;
 	float hist[36];
 	//memset
 	for (i=0; i<36; i++) hist[i] = 0.0f;

@@ -51,7 +51,7 @@ __kernel void descriptor(
 	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && k.s1 >=0.0f))
 		return;
 		
-	int i,j,u,v,old;
+	int i, j;
 	
 	__local volatile float tmp_descriptors[128];
 	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
@@ -75,7 +75,7 @@ __kernel void descriptor(
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
-				float	rweight, cweight;
+				float rweight, cweight;
 
 				float oval = 4.0f*ori*M_1_PI_F; 
 

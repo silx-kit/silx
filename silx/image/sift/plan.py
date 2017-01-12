@@ -114,7 +114,7 @@ class SiftPlan(object):
                             ('desc', (numpy.uint8, 128))
                             ])
 
-    def __init__(self, shape=None, dtype=None, devicetype="CPU", template=None,
+    def __init__(self, shape=None, dtype=None, devicetype="ALL", template=None,
                  profile=False, device=None, PIX_PER_KP=None,
                  max_workgroup_size=None, context=None, init_sigma=None):
         """

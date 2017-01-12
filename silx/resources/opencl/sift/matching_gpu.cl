@@ -296,7 +296,7 @@ __kernel void matching_v2(
 	//Find the global minimum and the "second minimum" : (min1,min2)
 
 
-	unsigned int d1_0, d2_0, d1_1, d2_1, cmin_0, cmin_1, dist0;
+	unsigned int d1_0, d2_0, d1_1, d2_1, cmin_0, cmin_1;
 	int2 sol;
 
 	//parallel reduction

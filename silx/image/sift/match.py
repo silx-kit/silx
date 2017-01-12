@@ -73,7 +73,7 @@ class MatchPlan(object):
                             ('desc', (numpy.uint8, 128))
                             ])
 
-    def __init__(self, size=16384, devicetype="CPU", profile=False, device=None, max_workgroup_size=None, roi=None, context=None):
+    def __init__(self, size=16384, devicetype="ALL", profile=False, device=None, max_workgroup_size=None, roi=None, context=None):
         """Constructor of the class:
 
         :param size: size of the input keypoint-list alocated on the GPU.
