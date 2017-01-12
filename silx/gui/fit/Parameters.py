@@ -849,9 +849,7 @@ def main(args):
     import numpy
     import os
     app = qt.QApplication(args)
-    tab = Parameters(labels=['Parameter', 'Estimation', 'Fit Value', 'Sigma',
-                             'Restrains', 'Min/Parame', 'Max/Factor/Delta/'],
-                     paramlist=['Height', 'Position', 'FWHM'])
+    tab = Parameters(paramlist=['Height', 'Position', 'FWHM'])
     tab.showGrid()
     tab.configureLine(name='Height', estimation='1234', group=0)
     tab.configureLine(name='Position', code='FIXED', group=1)
