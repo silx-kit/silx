@@ -270,6 +270,12 @@ class TestSpecH5(unittest.TestCase):
         self.assertIsNone(self.sfh5["/1.1/start_time"].compression)
         self.assertIsNone(self.sfh5["1.1"]["measurement"]["MRTSlit UP"].chunks)
 
+        # error message must be explicit
+        with self.assertRaisesRegexp(
+                AttributeError,
+                "SpecH5Dataset has no attribute tOTo"):
+            dummy = self.sfh5["/1.1/start_time"].tOTo
+
     def testGet(self):
         """Test :meth:`SpecH5Group.get`"""
         # default value of param *default* is None

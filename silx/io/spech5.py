@@ -731,7 +731,10 @@ class SpecH5Dataset(object):
                     "chunks", "compression"]:
             return object.__getattribute__(self, item)
 
-        return getattr(self.value, item)
+        if hasattr(self.value, item):
+            return getattr(self.value, item)
+
+        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
 
     def __len__(self):
         return len(self.value)
