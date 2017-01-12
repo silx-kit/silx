@@ -581,6 +581,7 @@ def main(filenames):
     :param filenames: list of file paths
     """
     app = qt.QApplication([])
+    sys.excepthook = qt.exceptionHandler
     window = Hdf5TreeViewExample(filenames)
     window.show()
     result = app.exec_()

@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ value of y.
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "12/01/2017"
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -83,6 +83,8 @@ class ShiftUpAction(PlotAction):
 
 # creating QApplication is mandatory in order to use qt widget
 app = qt.QApplication([])
+
+sys.excepthook = qt.exceptionHandler
 
 # create a PlotWindow
 plotwin = PlotWindow()
