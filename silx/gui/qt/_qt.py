@@ -202,7 +202,7 @@ def exceptionHandler(type_, value, trace):
             sys.excepthook = qt.exceptionHandler
     
     """
-    print("%s %s %s" % (type_, value, ''.join(traceback.format_tb(trace))))
+    _logger.error("%s %s %s", type_, value, ''.join(traceback.format_tb(trace)))
     msg = QMessageBox()
     msg.setWindowTitle("Unhandled exception")
     msg.setIcon(QMessageBox.Critical)
