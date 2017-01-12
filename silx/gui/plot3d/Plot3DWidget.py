@@ -273,8 +273,9 @@ class Plot3DWidget(qt.QGLWidget):
             angle = event.angleDelta().y() / 8.
         event.accept()
 
-        self.makeCurrent()
-        self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
+        if angle != 0:
+            self.makeCurrent()
+            self.eventHandler.handleEvent('wheel', xpixel, ypixel, angle)
 
     def keyPressEvent(self, event):
         keycode = event.key()
