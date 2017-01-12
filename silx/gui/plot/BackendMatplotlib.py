@@ -201,7 +201,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
         return Container(artists)
 
-    def addHistogram(self, x, y, width, fill, yaxis):
+    def addHistogram(self, x, y, width, fill, yaxis, color):
         assert yaxis in ('left', 'right')
 
         if yaxis == "right":
@@ -216,6 +216,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
                               width=width,
                               height=yval,
                               fill=fill,
+                              color=color,
                               edgecolor="none"  )
             axes.add_patch(rect)
             rects.append(rect)

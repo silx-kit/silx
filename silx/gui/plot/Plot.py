@@ -474,7 +474,8 @@ class Plot(object):
                  linewidth=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, resetzoom=True, **kw):
+                 fill=None, resetzoom=True,
+                 histogram=None, **kw):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -486,7 +487,9 @@ class Plot(object):
         When curve parameters are not provided, if a curve with the
         same legend is displayed in the plot, its parameters are used.
 
-        :param numpy.ndarray x: The data corresponding to the x coordinates
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+          If you attempt to plot an histogram you can set edges values in x.
+          In this case len(x) = len(y) + 1
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
         :param info: User-defined information associated to the curve
@@ -536,9 +539,21 @@ class Plot(object):
                                 (Default: True)
         :param bool fill: True to fill the curve, False otherwise (default).
         :param bool resetzoom: True (the default) to reset the zoom.
+        :param str histogram: values can be::
+            - None (the default) then a cuve is displayed. 
+              Otherwise we will draw an histogram, right, left and center. If a 
+            - 'left'. the step will be draw at the left side of the 
+               x point value. Except if x is setted to edges
+            - 'right'. the step will be draw at the right side of the 
+               x point value. Except if x is setted to edges
+            - 'center'. the step will be center on the 
+               x point value. Except if x is setted to edges
+
         :returns: The key string identify this curve
         """
         # Take care of input parameters: check/conversion, default value
+        assert len(x) in (len(y), len(y)+1)
+        assert histogram in (None, 'left', 'right', 'center')
 
         if replot is not None:
             _logger.warning(
@@ -557,6 +572,9 @@ class Plot(object):
         # when using numpy.nonzero on lists, ...
         x = numpy.asarray(x)
         y = numpy.asarray(y)
+
+        if histogram in ('left', 'right', 'center'):
+            x, y = self._getHistogramValue(x, y, histogramType=histogram, baseline=0.0)
 
         # TODO check color
 
@@ -690,6 +708,56 @@ class Plot(object):
 
         return legend
 
+    @staticmethod                        
+    def _getHistogramValue(x, y, histogramType, baseline=0.0):
+        def _computeEdges(x, histogramType):
+            """Compute the edges from a set of xs and an option
+            TODO henri : add param doc
+            """
+            # for now we consider that the spaces between xs are constant
+            edges = x.copy() 
+            if histogramType is 'left':
+                width=1
+                if len(x) >1:
+                    width=x[1]-x[0]
+                edges=numpy.append(x[0]-width, edges)
+            if histogramType is 'center':
+                edges = _computeEdges(edges, 'right')
+                width = 1
+                resEdges = []
+                for iEdge in edges[:-1]:
+                    width = (edges[iEdge+1]-edges[iEdge]) /2.0
+                    resEdges.append(edges[iEdge]-width)
+                resEdges.append(edges[-1]-width) 
+                edges=resEdges
+            if histogramType is 'right':
+                width=1
+                if len(x) >1:
+                    width=x[-1]-x[-2]
+                edges=numpy.append(edges, x[-1]+width)
+
+            return edges
+
+        if len(x) == len(y)+1:
+            edges=x
+        else:
+            edges=_computeEdges(x, histogramType)
+        assert(len(edges)>1)
+
+        resx=[]
+        resy=[]
+        y = y.copy()
+        # henri : todo: ajouter un point initial et un point final ?
+        for yindex in enumerate(edges[:-1]):
+            # for now draw has rectangles
+            resx.append(edges[yindex[0]])
+            resy.append(y[yindex[0]])
+            resx.append(edges[yindex[0]+1])
+            resy.append(y[yindex[0]])
+
+        assert(len(resx)==len(resy))
+        return resx, resy
+
     def addHistogram(self, x, y, width, legend=None, info=None,
                  replace=False, replot=None,
                  color=None, symbol=None,
@@ -713,7 +781,8 @@ class Plot(object):
                                             y=y,
                                             width=width,
                                             fill=fill,
-                                            yaxis=yaxis)
+                                            yaxis=yaxis,
+                                            color=color)
 
         self._setDirtyPlot()
 

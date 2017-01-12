@@ -1185,14 +1185,14 @@ class PixelIntensitiesHistoAction(PlotAction):
             xmax = numpy.nanmax(image)
             x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
             y=self._histo
-            self.getHistogramPlotWidget().addHistogram(
+            self.getHistogramPlotWidget().addCurve(
                 x=x,
                 y=y,
                 width=(max(x)-min(x))/float(nbins),
                 legend='pixel intensity',
                 fill=True,
-                yaxis='left',
-                color='red')
+                color='red',
+                histogram='center')
             self.getHistogramPlotWidget().setActiveCurve(None)
 
     def eventFilter(self, qobject, event):
