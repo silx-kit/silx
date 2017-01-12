@@ -1170,24 +1170,22 @@ class PixelIntensitiesHistoAction(PlotAction):
         if activeImage is not None:
             image = activeImage[0]
             if image.ndim == 3:  # RGB(A) images
-                _logger.warning(
-                    'Current image is RGB(A): histogram not implemented')
-                self.getHistogramPlotWidget().remove(
-                    'pixel intensity', kind='curve')
+                _logger.info('Converting current image from RGB(A) to grayscale\
+                    in order to compute the intensity distribution')
+                image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + image[:,:,2]*0.114
 
-            else:
-                data = image.ravel().astype(numpy.float32)
-                nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
-                data_range = numpy.nanmin(data), numpy.nanmax(data)
+            data = image.ravel().astype(numpy.float32)
+            nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
+            data_range = numpy.nanmin(data), numpy.nanmax(data)
 
-                self._histo, w_histo, edges = Histogramnd(data,
-                                                    n_bins=nbins,
-                                                    histo_range=data_range)
+            self._histo, w_histo, edges = Histogramnd(data,
+                                                n_bins=nbins,
+                                                histo_range=data_range)
 
-                self.getHistogramPlotWidget().addCurve(
-                    numpy.arange(nbins),
-                    self._histo,
-                    legend='pixel intensity')
+            self.getHistogramPlotWidget().addCurve(
+                numpy.arange(nbins),
+                self._histo,
+                legend='pixel intensity')
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then 
