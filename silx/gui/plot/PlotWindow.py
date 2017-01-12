@@ -361,7 +361,7 @@ class PlotWindow(PlotWidget):
             self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
 
-    def getCurvesROIDockWidget(self):
+    def getCurvesRoiDockWidget(self):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
         if self._curvesROIDockWidget is None:
             self._curvesROIDockWidget = CurvesROIDockWidget(
