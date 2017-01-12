@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -87,6 +87,45 @@ class BackendBase(object):
                  xerror, yerror, z, selectable,
                  fill):
         """Add a 1D curve given by x an y to the graph.
+
+        :param numpy.ndarray x: The data corresponding to the x axis
+        :param numpy.ndarray y: The data corresponding to the y axis
+        :param str legend: The legend to be associated to the curve
+        :param color: color(s) to be used
+        :type color: string ("#RRGGBB") or (npoints, 4) unsigned byte array or
+                     one of the predefined color names defined in Colors.py
+        :param str symbol: Symbol to be drawn at each (x, y) position::
+
+            - ' ' or '' no symbol
+            - 'o' circle
+            - '.' point
+            - ',' pixel
+            - '+' cross
+            - 'x' x-cross
+            - 'd' diamond
+            - 's' square
+
+        :param float linewidth: The width of the curve in pixels
+
+            - ' ' or ''  no line
+            - '-'  solid line
+            - '--' dashed line
+            - '-.' dash-dot line
+            - ':'  dotted line
+
+        :param str yaxis: The Y axis this curve belongs to in: 'left', 'right'
+        :param xerror: Values with the uncertainties on the x values
+        :type xerror: numpy.ndarray or None
+        :param yerror: Values with the uncertainties on the y values
+        :type yerror: numpy.ndarray or None
+        :param int z: Layer on which to draw the cuve
+        :param bool selectable: indicate if the curve can be selected
+        :returns: The handle used by the backend to univocally access the curve
+        """
+        return legend
+
+    def addHistogram(self, x, y, fill):
+        """Add a 1D histogram defined by x an y.
 
         :param numpy.ndarray x: The data corresponding to the x axis
         :param numpy.ndarray y: The data corresponding to the y axis

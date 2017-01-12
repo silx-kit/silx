@@ -1181,11 +1181,19 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._histo, w_histo, edges = Histogramnd(data,
                                                 n_bins=nbins,
                                                 histo_range=data_range)
-
-            self.getHistogramPlotWidget().addCurve(
-                numpy.arange(nbins),
-                self._histo,
-                legend='pixel intensity')
+            xmin = numpy.nanmin(image)
+            xmax = numpy.nanmax(image)
+            x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
+            y=self._histo
+            self.getHistogramPlotWidget().addHistogram(
+                x=x,
+                y=y,
+                width=(max(x)-min(x))/float(nbins),
+                legend='pixel intensity',
+                fill=True,
+                yaxis='left',
+                color='red')
+            self.getHistogramPlotWidget().setActiveCurve(None)
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then 

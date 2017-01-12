@@ -298,6 +298,7 @@ class Plot(object):
         self._images = OrderedDict()
         self._markers = OrderedDict()
         self._items = OrderedDict()
+        self._histograms = OrderedDict()
 
         self._dataRange = False
 
@@ -396,25 +397,27 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for _curve, info in self._curves.items():
-            if _curve not in self._hiddenCurves:
-                # using numpy's separate min and max is faster than
-                # a pure python minmax.
-                if info['xmin'] is not None:
-                    xMin = numpy.nanmin([xMin, info['xmin']])
-                if info['xmax'] is not None:
-                    xMax = numpy.nanmax([xMax, info['xmax']])
+        for objDict in (self._curves, self._histograms):
+            for _curve, info in objDict.items():
+                # TODO : for now no hidden histograms
+                if _curve not in self._hiddenCurves:
+                    # using numpy's separate min and max is faster than
+                    # a pure python minmax.
+                    if info['xmin'] is not None:
+                        xMin = numpy.nanmin([xMin, info['xmin']])
+                    if info['xmax'] is not None:
+                        xMax = numpy.nanmax([xMax, info['xmax']])
 
-                if info['params']['yaxis'] == 'left':
-                    if info['ymin'] is not None:
-                        yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                    if info['ymax'] is not None:
-                        yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
-                else:
-                    if info['ymin'] is not None:
-                        yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                    if info['ymax'] is not None:
-                        yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+                    if info['params']['yaxis'] == 'left':
+                        if info['ymin'] is not None:
+                            yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                        if info['ymax'] is not None:
+                            yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+                    else:
+                        if info['ymin'] is not None:
+                            yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                        if info['ymax'] is not None:
+                            yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
             for _image, info in self._images.items():
@@ -678,6 +681,67 @@ class Plot(object):
 
         if wasActive:
             self.setActiveCurve(legend)
+
+        if resetzoom:
+            # We ask for a zoom reset in order to handle the plot scaling
+            # if the user does not want that, autoscale of the different
+            # axes has to be set to off.
+            self.resetZoom()
+
+        return legend
+
+    def addHistogram(self, x, y, width, legend=None, info=None,
+                 replace=False, replot=None,
+                 color=None, symbol=None,
+                 xlabel=None, ylabel=None, yaxis=None,
+                 xerror=None, yerror=None, z=None, selectable=None,
+                 fill=None, resetzoom=True, **kw ):
+        """Display the data (x, y) under an histogram shape (stairs)."""
+        # Store all params with defaults in a dict to treat them at once
+        # params = {
+        #     'info': info, 'color': color,
+        #     'symbol': symbol, 'linewidth': linewidth, 'linestyle': linestyle,
+        #     'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
+        #     'xerror': xerror, 'yerror': yerror, 'z': z,
+        #     'selectable': selectable, 'fill': fill
+        # }
+        x = numpy.asarray(x)
+        y = numpy.asarray(y)
+
+        # TODO : clean input needed
+        handle = self._backend.addHistogram(x=x, 
+                                            y=y,
+                                            width=width,
+                                            fill=fill,
+                                            yaxis=yaxis)
+
+        self._setDirtyPlot()
+
+        # caching the min and max values for the getDataRange method.
+        xMin = numpy.nanmin(x)
+        xMax = numpy.nanmax(x)
+        yMin = numpy.nanmin(y)
+        yMax = numpy.nanmax(y)
+
+        # TODO : deal with error
+        params = {
+            'info': info, 'color': color,
+            'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
+            'xerror': xerror, 'yerror': yerror, 'z': z,
+            'selectable': selectable, 'fill': fill
+        }
+
+        self._histograms[legend] = {
+            'handle': handle, 'x': x, 'y': y, 'params': params,
+            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
+        }
+
+
+        self._invalidateDataRange()
+
+        self.notify(
+            'contentChanged', action='add', kind='histogram', legend=legend)
+
 
         if resetzoom:
             # We ask for a zoom reset in order to handle the plot scaling

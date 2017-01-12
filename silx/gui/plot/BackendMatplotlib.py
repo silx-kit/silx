@@ -26,7 +26,7 @@
 
 from __future__ import division
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "18/01/2017"
 
@@ -200,6 +200,27 @@ class BackendMatplotlib(BackendBase.BackendBase):
             artist.set_zorder(z)
 
         return Container(artists)
+
+    def addHistogram(self, x, y, width, fill, yaxis):
+        assert yaxis in ('left', 'right')
+
+        if yaxis == "right":
+            axes = self.ax2
+            self._enableAxis("right", True)
+        else:
+            axes = self.ax
+
+        rects = []
+        for xval, yval in zip(x, y):
+            rect = Rectangle( (xval, 0),
+                              width=width,
+                              height=yval,
+                              fill=fill,
+                              edgecolor="none"  )
+            axes.add_patch(rect)
+            rects.append(rect)
+
+        return Container(rects)
 
     def addImage(self, data, legend,
                  origin, scale, z,
