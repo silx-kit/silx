@@ -676,7 +676,7 @@ class Plot(object):
         self.notify(
             'contentChanged', action='add', kind='curve', legend=legend)
 
-        if len(self._curves) == 1 or wasActive:
+        if wasActive:
             self.setActiveCurve(legend)
 
         if resetzoom:
@@ -2522,7 +2522,7 @@ class Plot(object):
 
         if len(curves):
             if activeCurve not in curves:
-                activeCurve = curves[0]
+                activeCurve = None
         else:
             activeCurve = None
         self.setActiveCurve(activeCurve)
