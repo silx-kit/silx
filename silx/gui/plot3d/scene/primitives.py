@@ -218,7 +218,7 @@ class Geometry(core.Elem):
         :param str name: The attribute name to set or None to set then all
         """
         if name is None:
-            for name in self._attributes:
+            for name in program.attributes:
                 self.useAttribute(program, name)
 
         else:
@@ -230,6 +230,10 @@ class Geometry(core.Elem):
             if vboattrib is not None:
                 gl.glEnableVertexAttribArray(attribute)
                 vboattrib.setVertexAttrib(attribute)
+
+            elif name not in self._attributes:
+                gl.glDisableVertexAttribArray(attribute)
+
             else:
                 array = self._attributes[name]
                 assert array is not None
