@@ -14,5 +14,5 @@ API
 .. currentmodule:: silx.gui.fit.FitWidget
 
 .. autoclass:: FitWidget
-   :members: __init__, setData
+   :members: __init__, configdialogs, setData, associateConfigDialog
 
