@@ -1038,7 +1038,7 @@ class FitAction(PlotAction):
 
         # open a window with a FitWidget
         if self.fit_window is None:
-            self.fit_window = qt.QMainWindow(self.plot)
+            self.fit_window = qt.QMainWindow()
             # import done here rather than at module level to avoid circular import
             # FitWidget -> BackgroundWidget -> PlotWindow -> PlotActions -> FitWidget
             from ..fit.FitWidget import FitWidget
