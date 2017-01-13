@@ -705,37 +705,38 @@ class FabioReader(object):
         fitting type."""
         converted = []
         types = set([])
+        has_none = False
         for v in values:
             if v is None:
                 converted.append(None)
-                types.add("None")
+                has_none = True
             else:
                 c = self._convert_value(v)
                 converted.append(c)
-                types.add(c.dtype.kind)
+                types.add(c.dtype)
 
-        if len(types - set(["b", "i", "u", "f", "None"])) > 0:
+        result_type = numpy.result_type(*types)
+
+        if issubclass(result_type.type, numpy.string_):
             # use the raw data to create the array
             result = values
-            result_type = "S"
+        elif issubclass(result_type.type, numpy.unicode_):
+            # use the raw data to create the array
+            result = values
         else:
             result = converted
-            for t in ["f", "i", "u", "b"]:
-                if t in types:
-                    result_type = t
-                    break
 
-        if "None" in types:
+        if has_none:
             # Fix missing data according to the array type
-            if result_type == "S":
+            if result_type.kind in ["S", "U"]:
                 none_value = ""
-            elif result_type == "f":
+            elif result_type.kind == "f":
                 none_value = numpy.float("NaN")
-            elif result_type == "i":
+            elif result_type.kind == "i":
                 none_value = numpy.int(0)
-            elif result_type == "u":
+            elif result_type.kind == "u":
                 none_value = numpy.int(0)
-            elif result_type == "b":
+            elif result_type.kind == "b":
                 none_value = numpy.bool(False)
             else:
                 none_value = None
@@ -745,13 +746,7 @@ class FabioReader(object):
                     continue
                 result[index] = none_value
 
-            if "None" in types:
-                result = ["" if r is None else r for r in result]
-
-            if "None" in types:
-                result = ["" if r is None else r for r in result]
-
-        return numpy.array(result)
+        return numpy.array(result, dtype=result_type)
 
     def _convert_value(self, value):
         """Convert a string into a numpy object (scalar or array).
@@ -769,11 +764,13 @@ class FabioReader(object):
         """
         try:
             value = int(value)
-            return numpy.int_(value)
+            dtype = numpy.min_scalar_type(value)
+            return dtype.type(value)
         except ValueError:
             try:
                 value = float(value)
-                return numpy.double(value)
+                dtype = numpy.min_scalar_type(value)
+                return dtype.type(value)
             except ValueError:
                 return numpy.string_(value)
 
@@ -791,12 +788,16 @@ class FabioReader(object):
                 numpy_values.append(v)
                 types.add(v.dtype.type)
 
-            if numpy.string_ in types:
+            result_type = numpy.result_type(*types)
+
+            if issubclass(result_type.type, numpy.string_):
+                # use the raw data to create the result
                 return numpy.string_(value)
-            if numpy.double in types:
-                return numpy.array(numpy_values, dtype=numpy.double)
+            elif issubclass(result_type.type, numpy.unicode_):
+                # use the raw data to create the result
+                return numpy.unicode_(value)
             else:
-                return numpy.array(numpy_values, dtype=numpy.int_)
+                return numpy.array(numpy_values, dtype=result_type)
         except ValueError:
             return numpy.string_(value)
 

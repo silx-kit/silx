@@ -57,7 +57,7 @@ class TestFabioH5(unittest.TestCase):
             self.skipTest("h5py is needed")
 
         header = {
-            "integer": "100",
+            "integer": "-100",
             "float": "1.0",
             "string": "hi!",
             "list_integer": "100 50 0",
@@ -99,21 +99,21 @@ class TestFabioH5(unittest.TestCase):
         dataset = self.h5_image["/scan_0/instrument/detector_0/data"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
-        self.assertEquals(dataset.dtype, numpy.int_)
+        self.assertEquals(dataset.dtype.kind, "i")
         self.assertEquals(dataset.shape, (1, 3, 2))
 
     def test_metadata_int(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/integer"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], 100)
-        self.assertEquals(dataset.dtype, numpy.int_)
+        self.assertEquals(dataset[()], -100)
+        self.assertEquals(dataset.dtype.kind, "i")
         self.assertEquals(dataset.shape, (1,))
 
     def test_metadata_float(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/float"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset[()], 1.0)
-        self.assertEquals(dataset.dtype, numpy.double)
+        self.assertEquals(dataset.dtype.kind, "f")
         self.assertEquals(dataset.shape, (1,))
 
     def test_metadata_string(self):
@@ -126,7 +126,7 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_list_integer(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_integer"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset.dtype, numpy.int_)
+        self.assertEquals(dataset.dtype.kind, "u")
         self.assertEquals(dataset.shape, (1, 3))
         self.assertEquals(dataset[0, 0], 100)
         self.assertEquals(dataset[0, 1], 50)
@@ -134,7 +134,7 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_list_float(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_float"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset.dtype, numpy.double)
+        self.assertEquals(dataset.dtype.kind, "f")
         self.assertEquals(dataset.shape, (1, 3))
         self.assertEquals(dataset[0, 0], 1.0)
         self.assertEquals(dataset[0, 1], 2.0)
