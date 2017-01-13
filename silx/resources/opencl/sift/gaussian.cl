@@ -3,13 +3,10 @@
  *            Kernel for gaussian signal generation.
  *
  *
- *   Copyright (C) 2013 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-7 European Synchrotron Radiation Facility
  *                           Grenoble, France
- *   All rights reserved.
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 26/06/2013
- *
  * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,7 +28,6 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE. 
- * 
  **/
 
 #ifndef WORKGROUP_SIZE

@@ -4,6 +4,8 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
 # files (the "Software"), to deal in the Software without

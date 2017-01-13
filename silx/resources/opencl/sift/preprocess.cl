@@ -3,12 +3,10 @@
  *            Kernel for image pre-processing: Normalization, ...
  *
  *
- *   Copyright (C) 2013 European Synchrotron Radiation Facility
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
  *                           Grenoble, France
- *   All rights reserved.
  *
  *   Principal authors: J. Kieffer (kieffer@esrf.fr)
- *   Last revision: 30/05/2013
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation

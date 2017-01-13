@@ -1,4 +1,34 @@
 /*
+ *   Project: SIFT: An algorithm for image alignement
+ *
+ *   Copyright (C) 2013-2017 European Synchrotron Radiation Facility
+ *                           Grenoble, France
+ *
+ *   Principal authors: J. Kieffer (kieffer@esrf.fr)
+ *
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+/*
 
 	Kernels for keypoints processing
 
@@ -51,7 +81,7 @@ __kernel void descriptor(
 	if (!(keypoints_start <= gid0 && gid0 < *keypoints_end && k.s1 >=0.0f))
 		return;
 		
-	int i,j,u,v,old;
+	int i, j;
 	
 	__local volatile float tmp_descriptors[128];
 	for (i=0; i<128; i++) tmp_descriptors[i] = 0.0f;
@@ -75,7 +105,7 @@ __kernel void descriptor(
 				while (ori > 2.0f*M_PI_F) ori -= 2.0f*M_PI_F;
 				while (ori < 0.0f) ori += 2.0f*M_PI_F;
 				int	orr, rindex, cindex, oindex;
-				float	rweight, cweight;
+				float rweight, cweight;
 
 				float oval = 4.0f*ori*M_1_PI_F; 
 
