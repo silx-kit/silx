@@ -164,6 +164,7 @@ Plot state change events
 The following events are emitted when the plot is modified.
 They provide the new state:
 
+- 'setDefaultColormap' event
 - 'setGraphCursor' event with a 'state' key (bool)
 - 'setGraphGrid' event with a 'which' key (str), see :meth:`setGraphGrid`
 - 'setKeepDataAspectRatio' event with a 'state' key (bool)
@@ -2233,6 +2234,7 @@ class Plot(object):
             colormap = {'name': 'gray', 'normalization': 'linear',
                         'autoscale': True, 'vmin': 0.0, 'vmax': 1.0}
         self._defaultColormap = colormap.copy()
+        self.notify('setDefaultColormap')
 
     def getSupportedColormaps(self):
         """Get the supported colormap names as a tuple of str.

@@ -22,48 +22,48 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This module inits matplotlib and setups the backend to use.
-
-It MUST be imported prior to any other import of matplotlib.
-
-It provides the matplotlib :class:`FigureCanvasQTAgg` class corresponding
-to the used backend.
-"""
+"""Basic tests for Colorbar"""
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "26/10/2016"
+__date__ = "23/08/2016"
 
 
-import sys
-import logging
+import doctest
+import unittest
+
+from silx.gui import qt
+from silx.gui.plot import Colorbar
 
 
-import sys
-import logging
+# Makes sure a QApplication exists
+_qapp = qt.QApplication.instance() or qt.QApplication([])
 
 
-_logger = logging.getLogger(__name__)
+def _tearDownQt(docTest):
+    """Tear down to use for test from docstring.
 
-if 'matplotlib' in sys.modules:
-    _logger.warning(
-        'matplotlib already loaded, setting its backend may not work')
+    Checks that dialog widget is displayed
+    """
+    # Needed twice to display both windows
+    _qapp.processEvents()
+    _qapp.processEvents()
+    for widgetName in ('plot', 'colorbar'):
+        widget = docTest.globs[widgetName]
+        widget.setAttribute(qt.Qt.WA_DeleteOnClose)
+        widget.close()
+        del widget
 
 
-from .. import qt
+colorbarDocTestSuite = doctest.DocTestSuite(Colorbar, tearDown=_tearDownQt)
+"""Test suite of tests from the module's docstrings."""
 
-import matplotlib
 
-if qt.BINDING == 'PySide':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    matplotlib.rcParams['backend.qt4'] = 'PySide'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(colorbarDocTestSuite)
+    return test_suite
 
-elif qt.BINDING == 'PyQt4':
-    matplotlib.rcParams['backend'] = 'Qt4Agg'
-    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg  # noqa
 
-elif qt.BINDING == 'PyQt5':
-    matplotlib.rcParams['backend'] = 'Qt5Agg'
-    from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg  # noqa
-
+if __name__ == '__main__':
+    unittest.main(defaultTest='suite')

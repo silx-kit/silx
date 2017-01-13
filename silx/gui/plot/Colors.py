@@ -22,7 +22,7 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Color conversion function and dictionary."""
+"""Color conversion function and dictionary and colormap getter."""
 
 __authors__ = ["V.A. Sole", "T. VINCENT"]
 __license__ = "MIT"
@@ -30,6 +30,9 @@ __date__ = "17/10/2016"
 
 
 import numpy
+import matplotlib
+
+from . import MPLColormap
 
 
 COLORDICT = {}
@@ -130,3 +133,77 @@ def cursorColorForColormap(colormapName):
     :rtype: str
     """
     return _COLORMAP_CURSOR_COLORS.get(colormapName, 'black')
+
+
+_CMAPS = {}  # Store additional colormaps
+
+
+def getMPLColormap(name):
+    """Get a matplotlib colormap from its name
+
+    :param str name: Name of the colormap
+    :return: The corresponding matplotlib colormap
+    """
+    if not _CMAPS:  # Lazy initialization of own colormaps
+        cdict = {'red': ((0.0, 0.0, 0.0),
+                         (1.0, 1.0, 1.0)),
+                 'green': ((0.0, 0.0, 0.0),
+                           (1.0, 0.0, 0.0)),
+                 'blue': ((0.0, 0.0, 0.0),
+                          (1.0, 0.0, 0.0))}
+        _CMAPS['red'] = matplotlib.colors.LinearSegmentedColormap(
+            'red', cdict, 256)
+
+        cdict = {'red': ((0.0, 0.0, 0.0),
+                         (1.0, 0.0, 0.0)),
+                 'green': ((0.0, 0.0, 0.0),
+                           (1.0, 1.0, 1.0)),
+                 'blue': ((0.0, 0.0, 0.0),
+                          (1.0, 0.0, 0.0))}
+        _CMAPS['green'] = matplotlib.colors.LinearSegmentedColormap(
+            'green', cdict, 256)
+
+        cdict = {'red': ((0.0, 0.0, 0.0),
+                         (1.0, 0.0, 0.0)),
+                 'green': ((0.0, 0.0, 0.0),
+                           (1.0, 0.0, 0.0)),
+                 'blue': ((0.0, 0.0, 0.0),
+                          (1.0, 1.0, 1.0))}
+        _CMAPS['blue'] = matplotlib.colors.LinearSegmentedColormap(
+            'blue', cdict, 256)
+
+        # Temperature as defined in spslut
+        cdict = {'red': ((0.0, 0.0, 0.0),
+                         (0.5, 0.0, 0.0),
+                         (0.75, 1.0, 1.0),
+                         (1.0, 1.0, 1.0)),
+                 'green': ((0.0, 0.0, 0.0),
+                           (0.25, 1.0, 1.0),
+                           (0.75, 1.0, 1.0),
+                           (1.0, 0.0, 0.0)),
+                 'blue': ((0.0, 1.0, 1.0),
+                          (0.25, 1.0, 1.0),
+                          (0.5, 0.0, 0.0),
+                          (1.0, 0.0, 0.0))}
+        # but limited to 256 colors for a faster display (of the colorbar)
+        _CMAPS['temperature'] = matplotlib.colors.LinearSegmentedColormap(
+            'temperature', cdict, 256)
+
+        # reversed gray
+        cdict = {'red':     ((0.0, 1.0, 1.0),
+                             (1.0, 0.0, 0.0)),
+                 'green':   ((0.0, 1.0, 1.0),
+                             (1.0, 0.0, 0.0)),
+                 'blue':    ((0.0, 1.0, 1.0),
+                             (1.0, 0.0, 0.0))}
+
+        _CMAPS['reversed gray'] = matplotlib.colors.LinearSegmentedColormap(
+            'yerg', cdict, 256)
+
+    if name in _CMAPS:
+        return _CMAPS[name]
+    elif hasattr(MPLColormap, name):  # viridis and sister colormaps
+        return getattr(MPLColormap, name)
+    else:
+        # matplotlib built-in
+        return matplotlib.cm.get_cmap(name)

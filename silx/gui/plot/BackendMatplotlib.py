@@ -48,8 +48,7 @@ from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
-from matplotlib.colors import (LinearSegmentedColormap, ListedColormap,
-                               LogNorm, Normalize)
+from matplotlib.colors import (ListedColormap, LogNorm, Normalize)
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
@@ -57,7 +56,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from . import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import MPLColormap
+from .Colors import getMPLColormap
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -285,7 +284,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
             assert colormap is not None
 
             if colormap['name'] is not None:
-                cmap = self.__getColormap(colormap['name'])
+                cmap = getMPLColormap(colormap['name'])
             else:  # No name, use custom colors
                 if 'colors' not in colormap:
                     raise ValueError(
@@ -761,71 +760,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         maps = [m for m in cm.datad]
         maps.sort()
         return default + tuple(maps)
-
-    def __getColormap(self, name):
-        if not self._colormaps:  # Lazy initialization of own colormaps
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['red'] = LinearSegmentedColormap(
-                'red', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 1.0, 1.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['green'] = LinearSegmentedColormap(
-                'green', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 1.0, 1.0))}
-            self._colormaps['blue'] = LinearSegmentedColormap(
-                'blue', cdict, 256)
-
-            # Temperature as defined in spslut
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (0.5, 0.0, 0.0),
-                             (0.75, 1.0, 1.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (0.25, 1.0, 1.0),
-                               (0.75, 1.0, 1.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 1.0, 1.0),
-                              (0.25, 1.0, 1.0),
-                              (0.5, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            # but limited to 256 colors for a faster display (of the colorbar)
-            self._colormaps['temperature'] = LinearSegmentedColormap(
-                'temperature', cdict, 256)
-
-            # reversed gray
-            cdict = {'red':     ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'green':   ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'blue':    ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0))}
-
-            self._colormaps['reversed gray'] = LinearSegmentedColormap(
-                'yerg', cdict, 256)
-
-        if name in self._colormaps:
-            return self._colormaps[name]
-        elif hasattr(MPLColormap, name):  # viridis and sister colormaps
-            return getattr(MPLColormap, name)
-        else:
-            # matplotlib built-in
-            return cm.get_cmap(name)
 
     # Data <-> Pixel coordinates conversion
 

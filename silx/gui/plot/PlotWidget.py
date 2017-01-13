@@ -63,6 +63,9 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
     See :class:`.Plot` for documentation of the content of the dict.
     """
 
+    sigSetDefaultColormap = qt.Signal()
+    """Signal emitted when the default colormap has changed"""
+
     sigSetYAxisInverted = qt.Signal(bool)
     """Signal emitted when Y axis orientation has changed"""
 
@@ -188,6 +191,8 @@ class PlotWidget(qt.QMainWindow, Plot.Plot):
                 kwargs['previous'], kwargs['legend'])
         elif event == 'interactiveModeChanged':
             self.sigInteractiveModeChanged.emit(kwargs['source'])
+        elif event == 'setDefaultColormap':
+            self.sigSetDefaultColormap.emit()
         Plot.Plot.notify(self, event, **kwargs)
 
     # Panning with arrow keys
