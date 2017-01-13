@@ -118,9 +118,13 @@ class Dataset(Node):
     """Class which handle a numpy data as a mimic of a h5py.Dataset.
     """
 
-    def __init__(self, name, data, parent=None):
+    def __init__(self, name, data, parent=None, attrs=None):
         self.__data = data
         Node.__init__(self, name, parent)
+        if attrs is None:
+            self.__attrs = {}
+        else:
+            self.__attrs = attrs
 
     def _set_data(self, data):
         """Set the data exposed by the dataset.
@@ -138,6 +142,14 @@ class Dataset(Node):
         :rtype: numpy.ndarray
         """
         return self.__data
+
+    @property
+    def attrs(self):
+        """Returns HDF5 attributes of this node.
+
+        :rtype: dict
+        """
+        return self.__attrs
 
     @property
     def h5py_class(self):
@@ -253,8 +265,8 @@ class LazyLoadableDataset(Dataset):
     is only called ones, when the data is needed.
     """
 
-    def __init__(self, name, parent=None):
-        super(LazyLoadableDataset, self).__init__(name, None, parent)
+    def __init__(self, name, parent=None, attrs=None):
+        super(LazyLoadableDataset, self).__init__(name, None, parent, attrs=attrs)
         self.__is_initialized = False
 
     def _create_data(self):
@@ -450,7 +462,8 @@ class FrameData(LazyLoadableDataset):
     cache."""
 
     def __init__(self, name, fabio_reader, parent=None):
-        LazyLoadableDataset.__init__(self, name, parent)
+        attrs = {"interpretation": "image"}
+        LazyLoadableDataset.__init__(self, name, parent, attrs=attrs)
         self.__fabio_reader = fabio_reader
 
     def _create_data(self):

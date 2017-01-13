@@ -101,6 +101,7 @@ class TestFabioH5(unittest.TestCase):
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
         self.assertEquals(dataset.dtype.kind, "i")
         self.assertEquals(dataset.shape, (1, 3, 2))
+        self.assertEquals(dataset.attrs["interpretation"], "image")
 
     def test_metadata_int(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/integer"]
