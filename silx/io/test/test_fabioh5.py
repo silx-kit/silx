@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "11/01/2017"
+__date__ = "13/01/2017"
 
 import logging
 import numpy
@@ -71,9 +71,9 @@ class TestFabioH5(unittest.TestCase):
     def test_main_groups(self):
         self.assertEquals(self.h5_image.h5py_class, h5py.File)
         self.assertEquals(self.h5_image["/"].h5py_class, h5py.File)
-        self.assertEquals(self.h5_image["/scan"].h5py_class, h5py.Group)
-        self.assertEquals(self.h5_image["/scan/instrument"].h5py_class, h5py.Group)
-        self.assertEquals(self.h5_image["/scan/measurement"].h5py_class, h5py.Group)
+        self.assertEquals(self.h5_image["/scan_0"].h5py_class, h5py.Group)
+        self.assertEquals(self.h5_image["/scan_0/instrument"].h5py_class, h5py.Group)
+        self.assertEquals(self.h5_image["/scan_0/measurement"].h5py_class, h5py.Group)
 
     def test_wrong_path_syntax(self):
         # result tested with a default h5py file
@@ -96,35 +96,35 @@ class TestFabioH5(unittest.TestCase):
         self.assertRaises(KeyError, lambda: self.h5_image["foo/foo"])
 
     def test_frames(self):
-        dataset = self.h5_image["/scan/measurement/data"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/data"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertTrue(isinstance(dataset[()], numpy.ndarray))
         self.assertEquals(dataset.dtype, numpy.int_)
         self.assertEquals(dataset.shape, (1, 3, 2))
 
     def test_metadata_int(self):
-        dataset = self.h5_image["/scan/measurement/others/integer"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/integer"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset[()], 100)
         self.assertEquals(dataset.dtype, numpy.int_)
         self.assertEquals(dataset.shape, (1,))
 
     def test_metadata_float(self):
-        dataset = self.h5_image["/scan/measurement/others/float"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/float"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset[()], 1.0)
         self.assertEquals(dataset.dtype, numpy.double)
         self.assertEquals(dataset.shape, (1,))
 
     def test_metadata_string(self):
-        dataset = self.h5_image["/scan/measurement/others/string"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset[()], "hi!")
         self.assertEquals(dataset.dtype.type, numpy.string_)
         self.assertEquals(dataset.shape, (1,))
 
     def test_metadata_list_integer(self):
-        dataset = self.h5_image["/scan/measurement/others/list_integer"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_integer"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset.dtype, numpy.int_)
         self.assertEquals(dataset.shape, (1, 3))
@@ -132,7 +132,7 @@ class TestFabioH5(unittest.TestCase):
         self.assertEquals(dataset[0, 1], 50)
 
     def test_metadata_list_float(self):
-        dataset = self.h5_image["/scan/measurement/others/list_float"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/list_float"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset.dtype, numpy.double)
         self.assertEquals(dataset.shape, (1, 3))
@@ -140,7 +140,7 @@ class TestFabioH5(unittest.TestCase):
         self.assertEquals(dataset[0, 1], 2.0)
 
     def test_metadata_list_looks_like_list(self):
-        dataset = self.h5_image["/scan/measurement/others/string_looks_like_list"]
+        dataset = self.h5_image["/scan_0/instrument/detector_0/others/string_looks_like_list"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
         self.assertEquals(dataset[()], "2000 hi!")
         self.assertEquals(dataset.dtype.type, numpy.string_)
