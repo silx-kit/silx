@@ -78,8 +78,10 @@ with a theory.
 A fit theory in :class:`FitWidget` is defined by a name. For example,
 one of the default theories is named *"Gaussians"*.
 So if you define a configuration dialog :class:`MyGaussianConfigWidget` to define
-configuration parameters understood by this theory, you can associate it with the
-following code::
+configuration parameters understood by this theory, you can associate it the following
+way.
+
+.. code-block:: python
 
             fw = FitWidget()
             my_config_widget = MyGaussianConfigWidget(parent=fw)
@@ -90,70 +92,116 @@ following code::
 Example
 -------
 
-This example illustrates the basic components to be defined.
+The following example defines a very basic configuration dialog widget
+with a simple text entry in which the user can type in a floating point value.
+
+The value is simply saved in a dictionary attribute
+:attr:`CustomConfigWidget.output`. *FitWidget* will look-up this dictionary
+and pass it to the theory's custom configuration function, :func:`fitconfig`.
+The configuration function essentially updates the :const:`CONFIG` dictionary
+used by our fit function to scale the *y* values.
 
 .. code-block:: python
 
-        from silx.gui import qt
-        from silx.gui.fit import FitWidget
+    from silx.gui import qt
+    from silx.gui.fit import FitWidget
+    from silx.math.fit.fittheory import FitTheory
+    from silx.math.fit.fitmanager import FitManager
 
-        # fit configuration
-        CONFIG = {"scale": 1.0}
+    app = qt.QApplication([])
 
-        # define custom fit config dialog
-        class CustomConfigWidget(qt.QDialog):
-            def __init__(self):
-                qt.QDialog.__init__(self)
-                self.setModal(True)
-                self.scalingFactorEdit = qt.QLineEdit(self)
-                self.scalingFactorEdit.setToolTip(
-                    "Enter the scaling factor"
-                )
-                self.scalingFactorEdit.setValidator(qt.QDoubleValidator())
+    # default fit configuration
+    CONFIG = {"scale": 1.0}
 
-                self.ok = qt.QPushButton("ok", self)
-                self.ok.clicked.connect(self.accept)
-                cancel = qt.QPushButton("cancel", self)
-                cancel.clicked.connect(self.reject)
+    # define custom fit config dialog
+    class CustomConfigWidget(qt.QDialog):
+        def __init__(self):
+            qt.QDialog.__init__(self)
+            self.setModal(True)
+            self.scalingFactorEdit = qt.QLineEdit(self)
+            self.scalingFactorEdit.setToolTip(
+                "Enter the scaling factor"
+            )
+            self.scalingFactorEdit.setValidator(qt.QDoubleValidator())
 
-                layout = qt.QVBoxLayout(self)
-                layout.addWidget(self.scalingFactorEdit)
-                layout.addWidget(self.ok)
-                layout.addWidget(cancel)
+            self.ok = qt.QPushButton("ok", self)
+            self.ok.clicked.connect(self.accept)
+            cancel = qt.QPushButton("cancel", self)
+            cancel.clicked.connect(self.reject)
 
-                self.old_scale = CONFIG["scale"]
+            layout = qt.QVBoxLayout(self)
+            layout.addWidget(self.scalingFactorEdit)
+            layout.addWidget(self.ok)
+            layout.addWidget(cancel)
 
-            def accept(self):
-                self.output = {"scale": float(self.scalingFactorEdit.text())}
-                qt.QDialog.accept(self)
+            self.old_scale = CONFIG["scale"]
+            self.output = {}
 
-            def reject(self):
-                self.output = {"scale": self.old_scale}
-                qt.QDialog.reject(self)
+        def accept(self):
+            self.output["scale"] = float(self.scalingFactorEdit.text())
+            qt.QDialog.accept(self)
+
+        def reject(self):
+            self.output["scale"] = self.old_scale
+            qt.QDialog.reject(self)
+
+    # our actual fit model function
+    def fitfun(x, a, b):
+        return CONFIG["scale"] * (a * x + b)
+
+    # fit configuration
+    def fitconfig(scale=None, **kw):
+        """Update global config dict CONFIG"""
+        if scale is not None:
+            CONFIG["scale"] = scale
+        return CONFIG
+
+    # synthetic test data a=2, b=3
+    x = list(range(0, 100))
+    y = [fitfun(x_, 2, 3) for x_ in x]
+
+    # register our custom fit theory
+    fitmngr = FitManager()
+    fitmngr.setdata(x, y)
+    fitmngr.addtheory("scaled linear",
+                      FitTheory(
+                          function=fitfun,
+                          parameters=["a", "b"],
+                          configure=fitconfig))
+
+    # open a fitwidget and associate an instance of our custom
+    # configuration dialog to our custom theory
+    fw = FitWidget(fitmngr=fitmngr)
+    fw.associateConfigDialog("scaled linear", CustomConfigWidget())
+    fw.show()
+
+    app.exec_()
+
+.. |img0| image:: img/custom_config_scale1.0.png
+   :height: 300px
+   :align: middle
+
+.. |img1| image:: img/custom_config_scale2.1.png
+   :height: 300px
+   :align: middle
+
+.. |img2| image:: img/custom_config_scale0.5.png
+   :height: 300px
+   :align: middle
 
 
-        def fitfun(x, a, b):
-            return CONFIG["scale"] * (a * x + b)
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
 
-        app = qt.QApplication([])
-
-        scaled_linear_theory = FitTheory(
-            function=fitfun,
-            parameters=["a", "b"])
-
-        x = list(range(0, 100))
-        y = [fitfun(x_, 2, 3) for x_ in x]
-
-        fitmngr = FitManager()
-        fitmngr.setdata(x, y)
-        fitmngr.addtheory("scaled linear", theory)
-
-        fw = FitWidget(fitmngr=fitmngr)
-        fw.associateConfigDialog("scaled linear", CustomConfigWidget())
-        fw.show()
-
-        app.exec_()
-
-We define a configuration dialog with a simple line edit field in
-which a user can provide a scaling factor to be applied to an affine
-function.
+   * - Screenshot
+     - Description
+   * - |img0|
+     - If the default value of 1.0 is used, the fit finds *a=2* and *b=3*
+       as expected.
+   * - |img1|
+     - Setting a scaling factor of 2.1 causes the fit to find results that are
+       less than about half of the normal expected result.
+   * - |img2|
+     - A scaling factor of 0.5 causes the fit to find the values to be double
+       of the ones used for generating the synthetic data.
