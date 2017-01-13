@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
+#
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -51,6 +52,7 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
+from .PolyDegreeConfig import getPolyDialog
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -265,6 +267,14 @@ class FitWidget(qt.QWidget):
             if bgtheory in self.fitmanager.bgtheories:
                 self.associateConfigDialog(bgtheory, bgdialog,
                                            theory_is_background=True)
+
+        self.associateConfigDialog("Polynomial",
+                                   getPolyDialog(parent=self,
+                                                 default=self.fitconfig))
+        # self.associateConfigDialog("Polynomial",
+        #                            getPolyDialog(parent=self,
+        #                                          default=self.fitconfig),
+        #                            theory_is_background=True)
 
     def _populateFunctions(self):
         """Fill combo-boxes with fit theories and background theories

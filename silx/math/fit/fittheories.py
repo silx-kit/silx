@@ -111,6 +111,8 @@ DEFAULT_CONFIG = {
     'AutoFwhm': True,
     'Sensitivity': 2.5,
     'ForcePeakPresence': True,
+    # Polynomial
+    'PolyDeg': 2,
     # Hypermet
     'HypermetTails': 15,
     'QuotedFwhmFlag': 0,
@@ -198,6 +200,24 @@ class FitTheories(object):
         return functions.sum_ahypermet(x, *pars,
                                        gaussian_term=g_term, st_term=st_term,
                                        lt_term=lt_term, step_term=step_term)
+
+    def poly(self, x, *pars):
+        """Order n polynomial.
+        The order of the polynomial is defined by the number of
+        coefficients (``*pars``).
+
+        """
+        p = numpy.poly1d(pars)
+        return p(x)
+
+    def estimate_poly(self, x, y):
+        """Estimate polynomial coefficients.
+
+        """
+        deg = self.config['PolyDeg']
+        pcoeffs = numpy.polyfit(x, y, deg)
+        cons = numpy.zeros((deg + 1, 3), numpy.float)
+        return pcoeffs, cons
 
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
@@ -1263,6 +1283,12 @@ THEORY = OrderedDict((
     #               parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
     #               estimate=fitfuns.estimate_periodic_gauss,
     #               configure=fitfuns.configure))
+    ('Polynomial',
+        FitTheory(description='Polynomial function',
+                  function=fitfuns.poly,
+                  parameters=['coeff'],
+                  estimate=fitfuns.estimate_poly,
+                  configure=fitfuns.configure)),
 ))
 """Dictionary of fit theories: fit functions and their associated estimation
 function, parameters list, configuration function and description.
