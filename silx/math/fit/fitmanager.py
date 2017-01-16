@@ -858,13 +858,11 @@ class FitManager(object):
         """Function to be fitted.
 
         This is the sum of the selected background function plus
-        a number of peak functions.
+        the selected fit model function.
 
         :param x: Independent variable where the function is calculated.
         :param pars: Sequence of all fit parameters. The first few parameters
             are background parameters, then come the peak function parameters.
-            The total number of fit parameters in ``pars`` will
-            be `nb_bg_pars + nb_peak_pars * nb_peaks`.
         :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
