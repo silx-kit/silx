@@ -393,7 +393,7 @@ class _StackView(DataView):
         return 90
 
 
-class _TextView(DataView):
+class _RawView(DataView):
     """View displaying data using text"""
 
     __format = "%g"
@@ -511,7 +511,7 @@ class DataViewer(qt.QFrame):
     PLOT1D_MODE = 1
     PLOT2D_MODE = 2
     PLOT3D_MODE = 3
-    TEXT_MODE = 4
+    RAW_MODE = 4
     ARRAY_MODE = 5
     STACK_MODE = 6
     RECORD_MODE = 7
@@ -560,7 +560,7 @@ class DataViewer(qt.QFrame):
             (_Plot1dView, self.PLOT1D_MODE),
             (_Plot2dView, self.PLOT2D_MODE),
             (_Plot3dView, self.PLOT3D_MODE),
-            (_TextView, self.TEXT_MODE),
+            (_RawView, self.RAW_MODE),
             (_ArrayView, self.ARRAY_MODE),
             (_StackView, self.STACK_MODE),
             (_RecordView, self.RECORD_MODE),
