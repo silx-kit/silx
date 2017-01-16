@@ -616,10 +616,14 @@ class DataViewer(qt.QFrame):
         axisNames = self.__currentView.axesNames()
         if len(axisNames) > 0:
             self.__useAxisSelection = True
-            self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
             self.__numpySelection.setData(self.__data)
+            if hasattr(self.__data, "shape"):
+                isVisible = not (len(axisNames) == 1 and len(self.__data.shape) == 1)
+            else:
+                isVisible = True
+            self.__axisSelection.setVisible(isVisible)
         else:
             self.__useAxisSelection = False
             self.__axisSelection.setVisible(False)
