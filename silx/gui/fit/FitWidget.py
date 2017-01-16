@@ -494,6 +494,10 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Error on estimate: %s" % traceback.format_exc())
             msg.exec_()
+            ddict = {
+                'event': 'EstimateFailed',
+                'data': None}
+            self._emitSignal(ddict)
             return
 
         self.guiParameters.fillFromFit(
@@ -524,6 +528,11 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Error on Fit: %s" % traceback.format_exc())
             msg.exec_()
+            ddict = {
+                'event': 'FitFailed',
+                'data': None
+            }
+            self._emitSignal(ddict)
             return
 
         self.guiParameters.fillFromFit(
