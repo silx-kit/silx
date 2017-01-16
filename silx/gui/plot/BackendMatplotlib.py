@@ -193,8 +193,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if fill:
                 artists.append(
-                    axes.fill_between(x, 1.0e-8, y,
-                                      facecolor=color, linewidth=0))
+                    axes.fill_between(x, 1.0e-8, y, facecolor=color))
 
         for artist in artists:
             artist.set_zorder(z)
