@@ -85,6 +85,7 @@ CONFIG = {
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
     "SnipWidth": 16,
+    "EstimatePolyOnStrip": True
 }
 
 # to avoid costly computations when parameters stay the same
@@ -314,6 +315,11 @@ def estimate_poly(x, y, deg=2):
     """Estimate polynomial coefficients.
 
     """
+    # extract bg signal with strip, to estimate polynomial on background
+    if CONFIG["EstimatePolyOnStrip"]:
+        y = strip_bg(x, y,
+                     CONFIG["StripWidth"],
+                     CONFIG["StripIterations"])
     pcoeffs = numpy.polyfit(x, y, deg)
     cons = numpy.zeros((deg + 1, 3), numpy.float)
     return pcoeffs, cons
