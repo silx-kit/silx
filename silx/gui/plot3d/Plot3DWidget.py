@@ -35,6 +35,7 @@ import logging
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
+from .._utils import convertArrayToQImage
 
 from .glutils import gl
 from .scene import interaction, primitives, transform
@@ -267,11 +268,7 @@ class Plot3DWidget(qt.QGLWidget):
             self.makeCurrent()
             image = self.window.grab(qt.QGLContext.currentContext())
 
-        height, width = image.shape[:2]
-        bytesPerLine = image.strides[0]
-        qimage = qt.QImage(
-            image.data, width, height, bytesPerLine, qt.QImage.Format_RGB888)
-        return qimage.copy(qimage.rect())  # Return a copy
+        return convertArrayToQImage(image)
 
     def wheelEvent(self, event):
         xpixel = event.x() * self._devicePixelRatio
