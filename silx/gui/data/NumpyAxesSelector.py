@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "16/01/2017"
 
 import numpy
 import functools
@@ -71,6 +71,13 @@ class _Axis(qt.QWidget):
         layout.addWidget(self.__slider, 10000)
         layout.addStretch(1)
         self.setLayout(layout)
+
+    def slider(self):
+        """Returns the slider used to display axes location.
+
+        :rtype: HorizontalSliderWithBrowser
+        """
+        return self.__slider
 
     def setAxis(self, number, position, size):
         """Set axis information.
@@ -291,9 +298,20 @@ class NumpyAxesSelector(qt.QWidget):
                 axis.axisNameChanged.connect(callback)
                 self.layout().addWidget(axis)
                 self.__axis.append(axis)
+        self.__normalizeAxisGeometry()
 
         self.dataChanged.emit()
         self.__updateSelectedData()
+
+    def __normalizeAxisGeometry(self):
+        """Update axes geometry to align all axes components together."""
+        if len(self.__axis) <= 0:
+            return
+        lineEditWidth = max([a.slider().lineEdit().minimumSize().width() for a in self.__axis])
+        limitWidth = max([a.slider().limitWidget().minimumSizeHint().width() for a in self.__axis])
+        for a in self.__axis:
+            a.slider().lineEdit().setFixedWidth(lineEditWidth)
+            a.slider().limitWidget().setFixedWidth(limitWidth)
 
     def __axisValueChanged(self, axis, value):
         name = axis.axisName()
