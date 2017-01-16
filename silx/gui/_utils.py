@@ -35,6 +35,7 @@ __license__ = "MIT"
 __date__ = "16/01/2017"
 
 
+import sys
 import numpy
 
 from . import qt
