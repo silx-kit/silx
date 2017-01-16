@@ -300,7 +300,7 @@ def estimate_snip(x, y):
     return estimated_par, constraints
 
 
-def poly(x, *pars):
+def poly(x, y, *pars):
     """Order n polynomial.
     The order of the polynomial is defined by the number of
     coefficients (``*pars``).
@@ -423,7 +423,6 @@ THEORY = OrderedDict(
                 estimate=estimate_quartic_poly,
                 configure=configure,
                 is_background=True)),
-         ),
          ('Degree 5 Polynomial',
           FitTheory(
                 description="Quaintic polynomial background\n"
@@ -432,6 +431,4 @@ THEORY = OrderedDict(
                 parameters=['a', 'b', 'c', 'd', 'e', 'f'],
                 estimate=estimate_quintic_poly,
                 configure=configure,
-                is_background=True)),
-         )
-)
+                is_background=True))))
