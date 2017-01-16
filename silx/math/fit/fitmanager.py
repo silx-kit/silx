@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*#########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ from . import bgtheories
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "16/01/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -820,6 +820,7 @@ class FitManager(object):
 
         ywork = self.ydata
 
+
         try:
             params, covariance_matrix, infodict = leastsq(
                     self.fitfunction,  # bg + actual model function
@@ -878,17 +879,8 @@ class FitManager(object):
         else:
             nb_bg_pars = 0
 
-        peak_pars_list = self.theories[self.selectedtheory].parameters
-        nb_peak_pars = len(peak_pars_list)
-
-        nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
-
-        # Compute one peak function per peak, and sum the output numpy arrays
         selectedfun = self.theories[self.selectedtheory].function
-        for i in range(nb_peaks):
-            start_par_index = nb_bg_pars + i * nb_peak_pars
-            end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
-            result += selectedfun(x, *pars[start_par_index:end_par_index])
+        result += selectedfun(x, *pars[nb_bg_pars:])
 
         return result
 
