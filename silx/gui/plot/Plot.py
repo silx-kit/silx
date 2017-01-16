@@ -725,7 +725,7 @@ class Plot(object):
                 edges = _computeEdges(edges, 'right')
                 width = 1
                 resEdges = []
-                for iEdge in enumerate(edges[:-1]):
+                for iEdge, val in enumerate(edges[:-1]):
                     width = (edges[iEdge+1]-edges[iEdge]) /2.0
                     resEdges.append(edges[iEdge]-width)
                 resEdges.append(edges[-1]-width)
