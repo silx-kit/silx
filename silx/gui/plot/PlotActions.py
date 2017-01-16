@@ -1172,20 +1172,19 @@ class PixelIntensitiesHistoAction(PlotAction):
             if image.ndim == 3:  # RGB(A) images
                 _logger.info('Converting current image from RGB(A) to grayscale\
                     in order to compute the intensity distribution')
-                image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + image[:,:,2]*0.114
+                image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + \
+                        image[:,:,2]*0.114
 
             xmin = numpy.nanmin(image)
             xmax = numpy.nanmax(image)
+            nbins = max(2, min(1024, int(numpy.sqrt(image.size))))
+            data_range = xmin, xmax
+            
             # bad hack: get 256 bins in the case we have a B&W
-            if numpy.issubdtype(image.dtype, numpy.integer) and \
-                (xmin == 0 and xmax == 255):
-                nbins = 256
-            else:
-                nbins = max(2, min(1024, int(numpy.sqrt(image.size))))
+            if numpy.issubdtype(image.dtype, numpy.integer) and nbins>(xmax-xmin):
+                nbins = xmax-xmin
 
             data = image.ravel().astype(numpy.float32)
-            data_range = numpy.nanmin(data), numpy.nanmax(data)
-
             self._histo, w_histo, edges = Histogramnd(data,
                                                 n_bins=nbins,
                                                 histo_range=data_range)
