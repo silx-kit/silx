@@ -1177,12 +1177,14 @@ class PixelIntensitiesHistoAction(PlotAction):
 
             xmin = numpy.nanmin(image)
             xmax = numpy.nanmax(image)
-            nbins = max(2, min(1024, int(numpy.sqrt(image.size))))
+            nbins = min(1024, int(numpy.sqrt(image.size)))
             data_range = xmin, xmax
             
             # bad hack: get 256 bins in the case we have a B&W
             if numpy.issubdtype(image.dtype, numpy.integer) and nbins>(xmax-xmin):
                 nbins = xmax-xmin
+
+            nbins = max(2, nbins)
 
             data = image.ravel().astype(numpy.float32)
             self._histo, w_histo, edges = Histogramnd(data,
