@@ -52,7 +52,6 @@ from .FitWidgets import (FitActionsButtons, FitStatusLines,
                          FitConfigWidget, ParametersTab)
 from .FitConfig import getFitConfigDialog
 from .BackgroundWidget import getBgDialog, BackgroundDialog
-from .PolyDegreeConfig import getPolyDialog
 
 QTVERSION = qt.qVersion()
 DEBUG = 0
@@ -267,10 +266,6 @@ class FitWidget(qt.QWidget):
             if bgtheory in self.fitmanager.bgtheories:
                 self.associateConfigDialog(bgtheory, bgdialog,
                                            theory_is_background=True)
-
-        self.associateConfigDialog("Polynomial",
-                                   getPolyDialog(parent=self,
-                                                 default=self.fitconfig))
 
     def _populateFunctions(self):
         """Fill combo-boxes with fit theories and background theories

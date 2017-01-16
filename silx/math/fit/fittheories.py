@@ -111,8 +111,6 @@ DEFAULT_CONFIG = {
     'AutoFwhm': True,
     'Sensitivity': 2.5,
     'ForcePeakPresence': True,
-    # Polynomial
-    'PolyDeg': 2,
     # Hypermet
     'HypermetTails': 15,
     'QuotedFwhmFlag': 0,
@@ -210,14 +208,38 @@ class FitTheories(object):
         p = numpy.poly1d(pars)
         return p(x)
 
-    def estimate_poly(self, x, y):
-        """Estimate polynomial coefficients.
+    @staticmethod
+    def estimate_poly(x, y, n=2):
+        """Estimate polynomial coefficients for a degree n polynomial.
 
         """
-        deg = self.config['PolyDeg']
-        pcoeffs = numpy.polyfit(x, y, deg)
-        cons = numpy.zeros((deg + 1, 3), numpy.float)
-        return pcoeffs, cons
+        pcoeffs = numpy.polyfit(x, y, n)
+        constraints = numpy.zeros((n + 1, 3), numpy.float)
+        return pcoeffs, constraints
+
+    def estimate_quadratic(self, x, y):
+        """Estimate quadratic coefficients
+
+        """
+        return self.estimate_poly(x, y, n=2)
+
+    def estimate_cubic(self, x, y):
+        """Estimate coefficients for a degree 3 polynomial
+
+        """
+        return self.estimate_poly(x, y, n=3)
+
+    def estimate_quartic(self, x, y):
+        """Estimate coefficients for a degree 4 polynomial
+
+        """
+        return self.estimate_poly(x, y, n=4)
+
+    def estimate_quintic(self, x, y):
+        """Estimate coefficients for a degree 5 polynomial
+
+        """
+        return self.estimate_poly(x, y, n=5)
 
     def strip_bg(self, y):
         """Return the strip background of y, using parameters from
@@ -1283,12 +1305,30 @@ THEORY = OrderedDict((
     #               parameters=('N', 'Delta', 'Height', 'Position', 'FWHM'),
     #               estimate=fitfuns.estimate_periodic_gauss,
     #               configure=fitfuns.configure))
-    ('Polynomial',
-        FitTheory(description='Polynomial function',
+    ('Degree 2 Polynomial',
+        FitTheory(description='Degree 2 polynomial'
+                              '\ny = a*x^2 + b*x +c',
                   function=fitfuns.poly,
-                  parameters=['coeff'],
-                  estimate=fitfuns.estimate_poly,
-                  configure=fitfuns.configure)),
+                  parameters=['a', 'b', 'c'],
+                  estimate=fitfuns.estimate_quadratic)),
+    ('Degree 3 Polynomial',
+        FitTheory(description='Degree 3 polynomial'
+                              '\ny = a*x^3 + b*x^2 + c*x + d',
+                  function=fitfuns.poly,
+                  parameters=['a', 'b', 'c', 'd'],
+                  estimate=fitfuns.estimate_cubic)),
+    ('Degree 4 Polynomial',
+        FitTheory(description='Degree 4 polynomial'
+                              '\ny = a*x^4 + b*x^3 + c*x^2 + d*x + e',
+                  function=fitfuns.poly,
+                  parameters=['a', 'b', 'c', 'd', 'e'],
+                  estimate=fitfuns.estimate_quartic)),
+    ('Degree 5 Polynomial',
+        FitTheory(description='Degree 5 polynomial'
+                              '\ny = a*x^5 + b*x^4 + c*x^3 + d*x^2 + e*x + f',
+                  function=fitfuns.poly,
+                  parameters=['a', 'b', 'c', 'd', 'e', 'f'],
+                  estimate=fitfuns.estimate_quintic)),
 ))
 """Dictionary of fit theories: fit functions and their associated estimation
 function, parameters list, configuration function and description.
