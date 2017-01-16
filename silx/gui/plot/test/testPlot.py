@@ -502,7 +502,7 @@ class TestPlotHistogram(unittest.TestCase):
 
 def suite():
     test_suite = unittest.TestSuite()
-    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage, 
+    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
       TestPlotHistogram):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))

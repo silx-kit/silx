@@ -124,11 +124,6 @@ class BackendBase(object):
         """
         return legend
 
-    def addHistogram(self, x, y, width, fill, yaxis, color):
-        """TODO henri
-        """
-        return legend
-
     def addImage(self, data, legend,
                  origin, scale, z,
                  selectable, draggable,

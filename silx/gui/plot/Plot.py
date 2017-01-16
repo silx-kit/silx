@@ -540,13 +540,13 @@ class Plot(object):
         :param bool fill: True to fill the curve, False otherwise (default).
         :param bool resetzoom: True (the default) to reset the zoom.
         :param str histogram: values can be::
-            - None (the default) then a cuve is displayed. 
-              Otherwise we will draw an histogram, right, left and center. If a 
-            - 'left'. the step will be draw at the left side of the 
+            - None (the default) then a cuve is displayed.
+              Otherwise we will draw an histogram, right, left and center. If a
+            - 'left'. the step will be draw at the left side of the
                x point value. Except if x is setted to edges
-            - 'right'. the step will be draw at the right side of the 
+            - 'right'. the step will be draw at the right side of the
                x point value. Except if x is setted to edges
-            - 'center'. the step will be center on the 
+            - 'center'. the step will be center on the
                x point value. Except if x is setted to edges
 
         :returns: The key string identify this curve
@@ -574,7 +574,7 @@ class Plot(object):
         y = numpy.asarray(y)
 
         if histogram in ('left', 'right', 'center'):
-            x, y = self._getHistogramValue(x, y, histogramType=histogram, baseline=0.0)
+            x, y = self._getHistogramValue(x, y, histogramType=histogram)
 
         # TODO check color
 
@@ -708,14 +708,14 @@ class Plot(object):
 
         return legend
 
-    @staticmethod                        
+    @staticmethod
     def _getHistogramValue(x, y, histogramType, baseline=0.0):
         def _computeEdges(x, histogramType):
             """Compute the edges from a set of xs and an option
             TODO henri : add param doc
             """
             # for now we consider that the spaces between xs are constant
-            edges = x.copy() 
+            edges = x.copy()
             if histogramType is 'left':
                 width=1
                 if len(x) >1:
@@ -728,7 +728,7 @@ class Plot(object):
                 for iEdge in edges[:-1]:
                     width = (edges[iEdge+1]-edges[iEdge]) /2.0
                     resEdges.append(edges[iEdge]-width)
-                resEdges.append(edges[-1]-width) 
+                resEdges.append(edges[-1]-width)
                 edges=resEdges
             if histogramType is 'right':
                 width=1
@@ -757,68 +757,6 @@ class Plot(object):
 
         assert(len(resx)==len(resy))
         return resx, resy
-
-    def addHistogram(self, x, y, width, legend=None, info=None,
-                 replace=False, replot=None,
-                 color=None, symbol=None,
-                 xlabel=None, ylabel=None, yaxis=None,
-                 xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, resetzoom=True, **kw ):
-        """Display the data (x, y) under an histogram shape (stairs)."""
-        # Store all params with defaults in a dict to treat them at once
-        # params = {
-        #     'info': info, 'color': color,
-        #     'symbol': symbol, 'linewidth': linewidth, 'linestyle': linestyle,
-        #     'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
-        #     'xerror': xerror, 'yerror': yerror, 'z': z,
-        #     'selectable': selectable, 'fill': fill
-        # }
-        x = numpy.asarray(x)
-        y = numpy.asarray(y)
-
-        # TODO : clean input needed
-        handle = self._backend.addHistogram(x=x, 
-                                            y=y,
-                                            width=width,
-                                            fill=fill,
-                                            yaxis=yaxis,
-                                            color=color)
-
-        self._setDirtyPlot()
-
-        # caching the min and max values for the getDataRange method.
-        xMin = numpy.nanmin(x)
-        xMax = numpy.nanmax(x)
-        yMin = numpy.nanmin(y)
-        yMax = numpy.nanmax(y)
-
-        # TODO : deal with error
-        params = {
-            'info': info, 'color': color,
-            'xlabel': xlabel, 'ylabel': ylabel, 'yaxis': yaxis,
-            'xerror': xerror, 'yerror': yerror, 'z': z,
-            'selectable': selectable, 'fill': fill
-        }
-
-        self._histograms[legend] = {
-            'handle': handle, 'x': x, 'y': y, 'params': params,
-            'xmin': xMin, 'xmax': xMax, 'ymin': yMin, 'ymax': yMax
-        }
-
-
-        self._invalidateDataRange()
-
-        self.notify(
-            'contentChanged', action='add', kind='histogram', legend=legend)
-
-
-        if resetzoom:
-            # We ask for a zoom reset in order to handle the plot scaling
-            # if the user does not want that, autoscale of the different
-            # axes has to be set to off.
-            self.resetZoom()
-
-        return legend
 
     def addImage(self, data, legend=None, info=None,
                  replace=True, replot=None,
