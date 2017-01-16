@@ -498,7 +498,7 @@ class FitManager(object):
         self.estimate()
         return self.runfit()
 
-    def gendata(self, x=None, paramlist=None):
+    def gendata(self, x=None, paramlist=None, estimated=False):
         """Return a data array using the currently selected fit function
         and the fitted parameters.
 
@@ -508,6 +508,7 @@ class FitManager(object):
             fit parameter. The dictionary's format is documented in
             :attr:`fit_results`.
             If ``None`` (default), use parameters from :attr:`fit_results`.
+        :param estimated: If *True*, use estimated parameters.
         :return: :meth:`fitfunction` calculated for parameters whose code is
             not set to ``"IGNORE"``.
 
@@ -522,7 +523,10 @@ class FitManager(object):
         active_params = []
         for param in paramlist:
             if param['code'] not in ['IGNORE', 7]:
-                active_params.append(param['fitresult'])
+                if not estimated:
+                    active_params.append(param['fitresult'])
+                else:
+                    active_params.append(param['estimation'])
 
         newdata = self.fitfunction(numpy.array(x), *active_params)
         return newdata
