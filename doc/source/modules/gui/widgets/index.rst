@@ -18,4 +18,6 @@ Public modules:
     tablewidget.rst
     threadpoolpushbutton.rst
     waitingpushbutton.rst
-
+    dataviewerframe.rst
+    dataviewer.rst
+    numpyaxesselector.rst

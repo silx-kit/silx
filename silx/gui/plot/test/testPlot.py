@@ -395,6 +395,7 @@ class TestPlotGetCurveImage(unittest.TestCase):
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 0')
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 1')
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 2')
+        plot.setActiveCurve('curve 0')
 
         # Active curve
         active = plot.getActiveCurve()

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ from silx.test.utils import ParametricTestCase, TestLogging
 from silx.gui.test.utils import (
     qWaitForWindowExposedAndActivate, TestCaseQt, getQToolButtonFromAction)
 from silx.gui import qt
-from silx.gui.plot import PlotWindow, PlotTools
+from silx.gui.plot import Plot2D, PlotWindow, PlotTools
 
 
 # Makes sure a QApplication exists
@@ -57,6 +57,7 @@ def _tearDownDocTest(docTest):
 # Disable doctest because of
 # "NameError: name 'numpy' is not defined"
 #
+# import doctest
 # positionInfoTestSuite = doctest.DocTestSuite(
 #     PlotTools, tearDown=_tearDownDocTest,
 #     optionflags=doctest.ELLIPSIS)
@@ -119,7 +120,8 @@ class TestPositionInfo(TestCaseQt):
             ('Radius', lambda x, y: numpy.sqrt(x * x + y * y)),
             ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))
         ]
-        positionWidget = PlotTools.PositionInfo(plot=self.plot, converters=converters)
+        positionWidget = PlotTools.PositionInfo(plot=self.plot,
+                                                converters=converters)
         self._test(positionWidget, ('Coords', 'Radius', 'Angle'))
 
     def testFailingConverters(self):
@@ -133,96 +135,64 @@ class TestPositionInfo(TestCaseQt):
         self._test(positionWidget, ['Exception'], error=2)
 
 
-class TestProfileToolBar(TestCaseQt, ParametricTestCase):
+class TestPixelIntensitiesHisto(TestCaseQt, ParametricTestCase):
     """Tests for ProfileToolBar widget."""
 
     def setUp(self):
-        super(TestProfileToolBar, self).setUp()
-        profileWindow = PlotWindow()
-        self.plot = PlotWindow()
-        self.toolBar = PlotTools.ProfileToolBar(
-            plot=self.plot, profileWindow=profileWindow)
-        self.plot.addToolBar(self.toolBar)
-
-        self.plot.show()
-        self.qWaitForWindowExposed(self.plot)
-        profileWindow.show()
-        self.qWaitForWindowExposed(profileWindow)
-
-        self.mouseMove(self.plot)  # Move to center
-        self.qapp.processEvents()
+        super(TestPixelIntensitiesHisto, self).setUp()
+        self.image = numpy.random.rand(100, 100)
+        self.plotImage = Plot2D()
+        self.plotImage.getIntensityHistogramAction().setVisible(True)
 
     def tearDown(self):
+        del self.plotImage
+        super(TestPixelIntensitiesHisto, self).tearDown()
+
+    def testShowAndHide(self):
+        """Simple test that the plot is showing and hiding when activating the
+        action"""
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.show()
+
+        histoAction = self.plotImage.getIntensityHistogramAction()
+
+        # test the pixel intensity diagram is showing
+        button = getQToolButtonFromAction(histoAction)
+        self.assertIsNot(button, None)
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
         self.qapp.processEvents()
-        self.plot.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.plot.close()
-        del self.plot
-        del self.toolBar
+        self.assertTrue(histoAction.getHistogramPlotWidget().isVisible())
 
-        super(TestProfileToolBar, self).tearDown()
+        # test the pixel intensity diagram is hiding
+        self.qapp.setActiveWindow(self.plotImage)
+        self.qapp.processEvents()
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        self.assertFalse(histoAction.getHistogramPlotWidget().isVisible())
 
-    def testAlignedProfile(self):
-        """Test horizontal and vertical profile, without and with image"""
-        # Use Plot backend widget to submit mouse events
-        widget = self.plot.getWidgetHandle()
-
-        # 2 positions to use for mouse events
-        pos1 = widget.width() * 0.4, widget.height() * 0.4
-        pos2 = widget.width() * 0.6, widget.height() * 0.6
-
-        for action in (self.toolBar.hLineAction, self.toolBar.vLineAction):
-            with self.subTest(mode=action.text()):
-                # Trigger tool button for mode
-                toolButton = getQToolButtonFromAction(action)
-                self.assertIsNot(toolButton, None)
-                self.mouseMove(toolButton)
-                self.mouseClick(toolButton, qt.Qt.LeftButton)
-
-                # Without image
-                self.mouseMove(widget, pos=pos1)
-                self.mouseClick(widget, qt.Qt.LeftButton, pos=pos1)
-
-                # with image
-                self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
-                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                self.mouseMove(widget, pos=pos2)
-                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
-
-                self.mouseMove(widget)
-                self.mouseClick(widget, qt.Qt.LeftButton)
-
-    def testDiagonalProfile(self):
-        """Test diagonal profile, without and with image"""
-        # Use Plot backend widget to submit mouse events
-        widget = self.plot.getWidgetHandle()
-
-        # 2 positions to use for mouse events
-        pos1 = widget.width() * 0.4, widget.height() * 0.4
-        pos2 = widget.width() * 0.6, widget.height() * 0.6
-
-        # Trigger tool button for diagonal profile mode
-        toolButton = getQToolButtonFromAction(self.toolBar.lineAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseMove(toolButton)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
-
-        for image in (False, True):
-            with self.subTest(image=image):
-                if image:
-                    self.plot.addImage(numpy.arange(100 * 100).reshape(100, -1))
-
-                self.mouseMove(widget, pos=pos1)
-                self.mousePress(widget, qt.Qt.LeftButton, pos=pos1)
-                self.mouseMove(widget, pos=pos2)
-                self.mouseRelease(widget, qt.Qt.LeftButton, pos=pos2)
-
-                self.plot.clear()
+    def testImageFormatInput(self):
+        """Test multiple type as image input"""
+        typesToTest = [numpy.uint8, numpy.int8, numpy.int16, numpy.int32,
+                       numpy.float32, numpy.float64]
+        self.plotImage.addImage(self.image, origin=(0, 0), legend='sino')
+        self.plotImage.show()
+        button = getQToolButtonFromAction(
+            self.plotImage.getIntensityHistogramAction())
+        self.mouseMove(button)
+        self.mouseClick(button, qt.Qt.LeftButton)
+        self.qapp.processEvents()
+        for typeToTest in typesToTest:
+            with self.subTest(typeToTest=typeToTest):
+                self.plotImage.addImage(self.image.astype(typeToTest),
+                                        origin=(0, 0), legend='sino')
 
 
 def suite():
     test_suite = unittest.TestSuite()
     # test_suite.addTest(positionInfoTestSuite)
-    for testClass in (TestPositionInfo, TestProfileToolBar):
+    for testClass in (TestPositionInfo, TestPixelIntensitiesHisto):
         test_suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(
             testClass))
     return test_suite

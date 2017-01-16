@@ -30,6 +30,7 @@ The GUI widgets depend on the following extra packages:
 
 * A Qt binding: either `PyQt5, PyQt4 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://pypi.python.org/pypi/PySide/>`_
 * `matplotlib <http://matplotlib.org/>`_
+* `PyOpenGL <http://pyopengl.sourceforge.net/>`_
 * `IPython <https://ipython.org/>`_ and `qt_console <https://pypi.python.org/pypi/qtconsole>`_ for the ``silx.gui.console`` widget.
 
 Tools for reading and writing HDF5 files depend on the following package:
@@ -71,8 +72,13 @@ On Linux, you can install *silx* in your home directory::
 To install *silx* on Debian 8, see `Installing a Debian package`_.
 This method requires **sudo** privileges, but has the benefit of installing dependencies in a simple way.
 
+A CentOS rpm package is provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+
+An Arch Linux (AUR) package is also available: https://aur.archlinux.org/packages/python-silx
+
 You can also choose to compile and install *silx* from it's sources: 
 see `Installing from source`_.
+
 
 
 Installing a Debian package
@@ -172,6 +178,7 @@ Some of the dependencies may be simply installed with pip::
 
     pip install numpy
     pip install matplotlib
+    pip install PyOpenGL
     pip install PyQt5
     pip install PySide
 

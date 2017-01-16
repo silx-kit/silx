@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +74,7 @@ from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
+from silx.math.histogram import Histogramnd
 
 from silx.io.utils import save1D, savespec
 
@@ -1037,7 +1038,7 @@ class FitAction(PlotAction):
 
         # open a window with a FitWidget
         if self.fit_window is None:
-            self.fit_window = qt.QMainWindow(self.plot)
+            self.fit_window = qt.QMainWindow()
             # import done here rather than at module level to avoid circular import
             # FitWidget -> BackgroundWidget -> PlotWindow -> PlotActions -> FitWidget
             from ..fit.FitWidget import FitWidget
@@ -1072,3 +1073,102 @@ class FitAction(PlotAction):
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel,
                                resetzoom=False)
+
+
+class PixelIntensitiesHistoAction(PlotAction):
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        PlotAction.__init__(self,
+                            plot,
+                            icon='pixel-intensities',
+                            text='pixels intensity',
+                            tooltip='Compute image intensity distribution',
+                            triggered=self._triggered,
+                            parent=parent,
+                            checkable=True)
+        self._plotHistogram = None
+        self._connectedToActiveImage = False
+
+    def _triggered(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        if checked:
+            if not self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.connect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = True
+                self.computeIntensityDistribution()
+
+            self.getHistogramPlotWidget().show()
+
+        else:
+            if self._connectedToActiveImage:
+                self.plot.sigActiveImageChanged.disconnect(
+                    self._activeImageChanged)
+                self._connectedToActiveImage = False
+
+            self.getHistogramPlotWidget().hide()
+
+    def _activeImageChanged(self, previous, legend):
+        """Handle active image change: toggle enabled toolbar, update curve"""
+        if self.isChecked():
+            self.computeIntensityDistribution()
+
+    def computeIntensityDistribution(self):
+        """Get the active image and compute the image intensity distribution
+        """
+        activeImage = self.plot.getActiveImage()
+
+        if activeImage is not None:
+            image = activeImage[0]
+            if image.ndim == 3:  # RGB(A) images
+                _logger.warning(
+                    'Current image is RGB(A): histogram not implemented')
+                self.getHistogramPlotWidget().remove(
+                    'pixel intensity', kind='curve')
+
+            else:
+                data = image.ravel().astype(numpy.float32)
+                nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
+                data_range = numpy.nanmin(data), numpy.nanmax(data)
+
+                histo, w_histo, edges = Histogramnd(data,
+                                                    n_bins=nbins,
+                                                    histo_range=data_range)
+
+                self.getHistogramPlotWidget().addCurve(
+                    numpy.arange(nbins),
+                    histo,
+                    legend='pixel intensity')
+
+    def eventFilter(self, qobject, event):
+        """Observe when the close event is emitted then 
+        simply uncheck the action button
+
+        :param qobject: the object observe
+        :param event: the event received by qobject
+        """
+        if event.type() == qt.QEvent.Close:
+            if self._plotHistogram is not None:
+                self._plotHistogram.hide()
+            self.setChecked(False)
+
+        return PlotAction.eventFilter(self, qobject, event)
+
+    def getHistogramPlotWidget(self):
+        """Return the PlotWidget showing the histogram of the pixel intensities
+        """
+        from silx.gui.plot.PlotWindow import Plot1D
+        if self._plotHistogram is None:
+            self._plotHistogram = Plot1D()
+            self._plotHistogram.setWindowTitle('Image Intensity Histogram')
+            self._plotHistogram.installEventFilter(self)
+
+        return self._plotHistogram

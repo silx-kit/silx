@@ -676,7 +676,7 @@ class Plot(object):
         self.notify(
             'contentChanged', action='add', kind='curve', legend=legend)
 
-        if len(self._curves) == 1 or wasActive:
+        if wasActive:
             self.setActiveCurve(legend)
 
         if resetzoom:
@@ -1948,7 +1948,7 @@ class Plot(object):
 
     def getGraphXLabel(self):
         """Return the current X axis label as a str."""
-        return self._defaultLabels['x']
+        return self._currentLabels['x']
 
     def setGraphXLabel(self, label="X"):
         """Set the plot X axis label.
@@ -2090,8 +2090,8 @@ class Plot(object):
                 self._backend.setYAxisLogarithmic(self._logY)
                 self._update()
         else:
-                self._backend.setYAxisLogarithmic(self._logY)
-                self._update()
+            self._backend.setYAxisLogarithmic(self._logY)
+            self._update()
 
         self._invalidateDataRange()
         self._setDirtyPlot()
@@ -2474,8 +2474,7 @@ class Plot(object):
         return error
 
 
-    @staticmethod
-    def _logFilterData(x, y, xerror, yerror, xLog, yLog):
+    def _logFilterData(self, x, y, xerror, yerror, xLog, yLog):
         """Filter out values with x or y <= 0 on log axes
 
         All arrays are expected to have the same length.
@@ -2522,7 +2521,7 @@ class Plot(object):
 
         if len(curves):
             if activeCurve not in curves:
-                activeCurve = curves[0]
+                activeCurve = None
         else:
             activeCurve = None
         self.setActiveCurve(activeCurve)

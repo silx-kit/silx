@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,31 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Widget to handle regions of interest on curves displayed in a PlotWindow.
+"""Widget to handle regions of interest (ROI) on curves displayed in a PlotWindow.
 
 This widget is meant to work with :class:`PlotWindow`.
+
+ROI are defined by :
+
+- A name (`ROI` column)
+- A type. The type is the label of the x axis. 
+  This can be used to apply or not some ROI to a curve and do some post processing.
+- The x coordinate of the left limit (`from` column)
+- The x coordinate of the right limit (`to` column)
+- Raw counts: integral of the curve between the
+  min ROI point and the max ROI point to the y = 0 line
+
+  .. image:: img/rawCounts.png
+
+- Net counts: the integral of the curve between the
+  min ROI point and the max ROI point to [ROI min point, ROI max point] segment
+
+  .. image:: img/netCounts.png
 """
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "19/12/2016"
 
 
 import logging
@@ -97,10 +114,13 @@ class CurvesROIWidget(qt.QWidget):
 
         self.addButton = qt.QPushButton(hbox)
         self.addButton.setText("Add ROI")
+        self.addButton.setToolTip('Create a new ROI')
         self.delButton = qt.QPushButton(hbox)
         self.delButton.setText("Delete ROI")
+        self.addButton.setToolTip('Remove the selected ROI')
         self.resetButton = qt.QPushButton(hbox)
         self.resetButton.setText("Reset")
+        self.addButton.setToolTip('Clear all created ROIs. We only let the default ROI')
 
         hboxlayout.addWidget(self.addButton)
         hboxlayout.addWidget(self.delButton)
@@ -110,8 +130,10 @@ class CurvesROIWidget(qt.QWidget):
 
         self.loadButton = qt.QPushButton(hbox)
         self.loadButton.setText("Load")
+        self.loadButton.setToolTip('Load ROIs from a .ini file')
         self.saveButton = qt.QPushButton(hbox)
         self.saveButton.setText("Save")
+        self.loadButton.setToolTip('Save ROIs to a .ini file')
         hboxlayout.addWidget(self.loadButton)
         hboxlayout.addWidget(self.saveButton)
         layout.setStretchFactor(self.headerLabel, 0)
@@ -326,6 +348,24 @@ class ROITable(qt.QTableWidget):
         self.cellChanged[(int, int)].connect(self._cellChangedSlot)
         verticalHeader = self.verticalHeader()
         verticalHeader.sectionClicked[int].connect(self._rowChangedSlot)
+
+        self.__setTooltip()
+
+    def __setTooltip(self):
+        assert(self.labels[0] == 'ROI')
+        self.horizontalHeaderItem(0).setToolTip('Region of interest identifier')
+        assert(self.labels[1] == 'Type')
+        self.horizontalHeaderItem(1).setToolTip('Type of the ROI')
+        assert(self.labels[2] == 'From')
+        self.horizontalHeaderItem(2).setToolTip('X-value of the min point')
+        assert(self.labels[3] == 'To')
+        self.horizontalHeaderItem(3).setToolTip('X-value of the max point')
+        assert(self.labels[4] == 'Raw Counts')
+        self.horizontalHeaderItem(4).setToolTip('Estimation of the integral \
+            between y=0 and the selected curve')
+        assert(self.labels[5] == 'Net Counts')
+        self.horizontalHeaderItem(5).setToolTip('Estimation of the integral \
+            between the segment [maxPt, minPt] and the selected curve')
 
     def fillFromROIDict(self, roilist=(), roidict=None, currentroi=None):
         """Set the ROIs

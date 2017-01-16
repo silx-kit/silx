@@ -19,8 +19,18 @@ Available icons
 
    * - Icon
      - Name
+   * - |3d-plane-normal-x|
+     - 3d-plane-normal-x
+   * - |3d-plane-normal-y|
+     - 3d-plane-normal-y
+   * - |3d-plane-normal-z|
+     - 3d-plane-normal-z
+   * - |3d-plane|
+     - 3d-plane
    * - |arrow-keys|
      - arrow-keys
+   * - |camera|
+     - camera
    * - |clipboard|
      - clipboard
    * - |close|
@@ -59,6 +69,8 @@ Available icons
      - draw-rubber
    * - |edit-copy|
      - edit-copy
+   * - |first|
+     - first
    * - |folder|
      - folder
    * - |image-mask|
@@ -87,6 +99,8 @@ Available icons
      - item-ndim
    * - |item-object|
      - item-object
+   * - |last|
+     - last
    * - |math-average|
      - math-average
    * - |math-derive|
@@ -113,8 +127,12 @@ Available icons
      - math-swap-sign
    * - |math-ymin-to-zero|
      - math-ymin-to-zero
+   * - |next|
+     - next
    * - |normal|
      - normal
+   * - |pixel-intensities|
+     - pixel-intensities
    * - |plot-grid|
      - plot-grid
    * - |plot-roi-above|
@@ -147,6 +165,12 @@ Available icons
      - plot-ylog
    * - |plot-yup|
      - plot-yup
+   * - |previous|
+     - previous
+   * - |profile1D|
+     - profile1D
+   * - |profile2D|
+     - profile2D
    * - |remove|
      - remove
    * - |rudder|
@@ -183,12 +207,24 @@ Available icons
      - spec
    * - |test-png|
      - test-png
+   * - |view-1d|
+     - view-1d
+   * - |view-2d-stack|
+     - view-2d-stack
+   * - |view-2d|
+     - view-2d
+   * - |view-3d|
+     - view-3d
    * - |view-fullscreen|
      - view-fullscreen
    * - |view-nofullscreen|
      - view-nofullscreen
+   * - |view-raw|
+     - view-raw
    * - |view-refresh|
      - view-refresh
+   * - |view-text|
+     - view-text
    * - |window-new|
      - window-new
    * - |zoom-in|
@@ -200,7 +236,12 @@ Available icons
    * - |zoom|
      - zoom
 
+.. |3d-plane-normal-x| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-x.png
+.. |3d-plane-normal-y| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-y.png
+.. |3d-plane-normal-z| image:: ../../../../silx/resources/gui/icons/3d-plane-normal-z.png
+.. |3d-plane| image:: ../../../../silx/resources/gui/icons/3d-plane.png
 .. |arrow-keys| image:: ../../../../silx/resources/gui/icons/arrow-keys.png
+.. |camera| image:: ../../../../silx/resources/gui/icons/camera.png
 .. |clipboard| image:: ../../../../silx/resources/gui/icons/clipboard.png
 .. |close| image:: ../../../../silx/resources/gui/icons/close.png
 .. |colormap| image:: ../../../../silx/resources/gui/icons/colormap.png
@@ -220,6 +261,7 @@ Available icons
 .. |draw-pencil| image:: ../../../../silx/resources/gui/icons/draw-pencil.png
 .. |draw-rubber| image:: ../../../../silx/resources/gui/icons/draw-rubber.png
 .. |edit-copy| image:: ../../../../silx/resources/gui/icons/edit-copy.png
+.. |first| image:: ../../../../silx/resources/gui/icons/first.png
 .. |folder| image:: ../../../../silx/resources/gui/icons/folder.png
 .. |image-mask| image:: ../../../../silx/resources/gui/icons/image-mask.png
 .. |image-select-add| image:: ../../../../silx/resources/gui/icons/image-select-add.png
@@ -234,6 +276,7 @@ Available icons
 .. |item-3dim| image:: ../../../../silx/resources/gui/icons/item-3dim.png
 .. |item-ndim| image:: ../../../../silx/resources/gui/icons/item-ndim.png
 .. |item-object| image:: ../../../../silx/resources/gui/icons/item-object.png
+.. |last| image:: ../../../../silx/resources/gui/icons/last.png
 .. |math-average| image:: ../../../../silx/resources/gui/icons/math-average.png
 .. |math-derive| image:: ../../../../silx/resources/gui/icons/math-derive.png
 .. |math-energy| image:: ../../../../silx/resources/gui/icons/math-energy.png
@@ -247,7 +290,9 @@ Available icons
 .. |math-substract| image:: ../../../../silx/resources/gui/icons/math-substract.png
 .. |math-swap-sign| image:: ../../../../silx/resources/gui/icons/math-swap-sign.png
 .. |math-ymin-to-zero| image:: ../../../../silx/resources/gui/icons/math-ymin-to-zero.png
+.. |next| image:: ../../../../silx/resources/gui/icons/next.png
 .. |normal| image:: ../../../../silx/resources/gui/icons/normal.png
+.. |pixel-intensities| image:: ../../../../silx/resources/gui/icons/pixel-intensities.png
 .. |plot-grid| image:: ../../../../silx/resources/gui/icons/plot-grid.png
 .. |plot-roi-above| image:: ../../../../silx/resources/gui/icons/plot-roi-above.png
 .. |plot-roi-below| image:: ../../../../silx/resources/gui/icons/plot-roi-below.png
@@ -264,6 +309,9 @@ Available icons
 .. |plot-ydown| image:: ../../../../silx/resources/gui/icons/plot-ydown.png
 .. |plot-ylog| image:: ../../../../silx/resources/gui/icons/plot-ylog.png
 .. |plot-yup| image:: ../../../../silx/resources/gui/icons/plot-yup.png
+.. |previous| image:: ../../../../silx/resources/gui/icons/previous.png
+.. |profile1D| image:: ../../../../silx/resources/gui/icons/profile1D.png
+.. |profile2D| image:: ../../../../silx/resources/gui/icons/profile2D.png
 .. |remove| image:: ../../../../silx/resources/gui/icons/remove.png
 .. |rudder| image:: ../../../../silx/resources/gui/icons/rudder.png
 .. |selected| image:: ../../../../silx/resources/gui/icons/selected.png
@@ -282,9 +330,15 @@ Available icons
 .. |sliders-on| image:: ../../../../silx/resources/gui/icons/sliders-on.png
 .. |spec| image:: ../../../../silx/resources/gui/icons/spec.png
 .. |test-png| image:: ../../../../silx/resources/gui/icons/test-png.png
+.. |view-1d| image:: ../../../../silx/resources/gui/icons/view-1d.png
+.. |view-2d-stack| image:: ../../../../silx/resources/gui/icons/view-2d-stack.png
+.. |view-2d| image:: ../../../../silx/resources/gui/icons/view-2d.png
+.. |view-3d| image:: ../../../../silx/resources/gui/icons/view-3d.png
 .. |view-fullscreen| image:: ../../../../silx/resources/gui/icons/view-fullscreen.png
 .. |view-nofullscreen| image:: ../../../../silx/resources/gui/icons/view-nofullscreen.png
+.. |view-raw| image:: ../../../../silx/resources/gui/icons/view-raw.png
 .. |view-refresh| image:: ../../../../silx/resources/gui/icons/view-refresh.png
+.. |view-text| image:: ../../../../silx/resources/gui/icons/view-text.png
 .. |window-new| image:: ../../../../silx/resources/gui/icons/window-new.png
 .. |zoom-in| image:: ../../../../silx/resources/gui/icons/zoom-in.png
 .. |zoom-original| image:: ../../../../silx/resources/gui/icons/zoom-original.png

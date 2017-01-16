@@ -1,6 +1,6 @@
 # coding: utf-8
 #
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@ __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 __authors__ = ["J. Kieffer"]
-__date__ = "08/09/2016"
+__date__ = "12/01/2017"
 
 from numpy.distutils.misc_util import Configuration
 

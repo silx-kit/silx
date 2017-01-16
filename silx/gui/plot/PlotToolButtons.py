@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,14 @@
 The following QToolButton are available:
 
 - :class:`AspectToolButton`
-- :class:`YAxiesOriginToolButton`
+- :class:`YAxisOriginToolButton`
+- :class:`ProfileToolButton`
+
 """
 
-__authors__ = ["V. Valls"]
+__authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "04/10/2016"
+__date__ = "05/01/2016"
 
 
 import logging
@@ -56,8 +58,6 @@ class PlotToolButton(qt.QToolButton):
     def plot(self):
         """
         Returns the plot connected to the widget.
-
-        :param plot: :class:`.PlotWidget` instance on which to operate.
         """
         return self._plot
 
@@ -223,3 +223,59 @@ class YAxisOriginToolButton(PlotToolButton):
         icon, toolTip = self.STATE[isUpward, "icon"], self.STATE[isUpward, "state"]
         self.setIcon(icon)
         self.setToolTip(toolTip)
+
+
+class ProfileToolButton(PlotToolButton):
+    """Button used in Profile3DToolbar to switch between 2D profile
+    and 1D profile."""
+    STATE = None
+    """Lazy loaded states used to feed ProfileToolButton"""
+
+    sigDimensionChanged = qt.Signal(int)
+
+    def __init__(self, parent=None, plot=None):
+        if self.STATE is None:
+            self.STATE = {}
+            # Compute 1D profile
+            self.STATE[1, "icon"] = icons.getQIcon('profile1D')
+            self.STATE[1, "state"] = "1D profile is computed on visible image"
+            self.STATE[1, "action"] = "1D profile on visible image"
+            # Compute 2D profile
+            self.STATE[2, "icon"] = icons.getQIcon('profile2D')
+            self.STATE[2, "state"] = "2D profile is computed, one 1D profile for each image in the stack"
+            self.STATE[2, "action"] = "2D profile on image stack"
+
+        super(ProfileToolButton, self).__init__(parent=parent, plot=plot)
+
+        profile1DAction = self._createAction(1)
+        profile1DAction.triggered.connect(self.computeProfileIn1D)
+        profile1DAction.setIconVisibleInMenu(True)
+
+        profile2DAction = self._createAction(2)
+        profile2DAction.triggered.connect(self.computeProfileIn2D)
+        profile2DAction.setIconVisibleInMenu(True)
+
+        menu = qt.QMenu(self)
+        menu.addAction(profile1DAction)
+        menu.addAction(profile2DAction)
+        self.setMenu(menu)
+        self.setPopupMode(qt.QToolButton.InstantPopup)
+        menu.setTitle('Select profile dimension')
+
+    def _createAction(self, profileDimension):
+        icon = self.STATE[profileDimension, "icon"]
+        text = self.STATE[profileDimension, "action"]
+        return qt.QAction(icon, text, self)
+
+    def _profileDimensionChanged(self, profileDimension):
+        """Update icon in toolbar, emit number of dimensions for profile"""
+        self.setIcon(self.STATE[profileDimension, "icon"])
+        self.setToolTip(self.STATE[profileDimension, "state"])
+        self.sigDimensionChanged.emit(profileDimension)
+
+    def computeProfileIn1D(self):
+        self._profileDimensionChanged(1)
+
+    def computeProfileIn2D(self):
+        self._profileDimensionChanged(2)
+

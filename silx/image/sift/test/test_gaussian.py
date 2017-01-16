@@ -4,6 +4,8 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
 # files (the "Software"), to deal in the Software without
@@ -35,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "20/09/2016"
+__date__ = "12/01/2017"
 
 import time
 import numpy
@@ -51,7 +53,7 @@ else:
 
 from ..utils import get_opencl_code
 logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
+#logger.setLevel(logging.INFO)
 
 if ocl:
     import pyopencl, pyopencl.array
