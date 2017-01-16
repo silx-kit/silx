@@ -1174,17 +1174,22 @@ class PixelIntensitiesHistoAction(PlotAction):
                     in order to compute the intensity distribution')
                 image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + image[:,:,2]*0.114
 
-            data = image.ravel().astype(numpy.float32)
-            nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
-            data_range = numpy.nanmin(data), numpy.nanmax(data)
+            xmin = numpy.nanmin(image)
+            xmax = numpy.nanmax(image)
+            # bad hack: get 256 bins in the case we have a B&W
+            if numpy.issubdtype(image.dtype, numpy.integer) and \
+                (xmin == 0 and xmax == 255):
+                nbins = 256
+            else:
+                nbins = max(2, min(1024, int(numpy.sqrt(image.size))))
 
+            data = image.ravel().astype(numpy.float32)
+            data_range = numpy.nanmin(data), numpy.nanmax(data)
 
             self._histo, w_histo, edges = Histogramnd(data,
                                                 n_bins=nbins,
                                                 histo_range=data_range)
             assert(len(edges) == 1)
-            xmin = numpy.nanmin(data)
-            xmax = numpy.nanmax(data)
             x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
             y=self._histo
             self.getHistogramPlotWidget().addCurve(
