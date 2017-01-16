@@ -1196,7 +1196,6 @@ class PixelIntensitiesHistoAction(PlotAction):
             self.getHistogramPlotWidget().addCurve(
                 x=x,
                 y=y,
-                width=(max(x)-min(x))/float(nbins),
                 legend='pixel intensity',
                 fill=True,
                 color='red',
