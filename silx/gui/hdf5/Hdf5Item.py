@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/12/2016"
+__date__ = "16/01/2017"
 
 
 import numpy
@@ -237,6 +237,8 @@ class Hdf5Item(Hdf5Node):
 
     def _humanReadableDType(self, dtype, full=False):
         if dtype.type == numpy.string_:
+            text = "string"
+        if dtype.type == numpy.unicode_:
             text = "string"
         elif dtype.type == numpy.object_:
             text = "object"
