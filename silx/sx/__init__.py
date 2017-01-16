@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,10 +34,14 @@ From the console, it sets-up Qt in order to allow using GUI widgets.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "27/06/2016"
+__date__ = "16/01/2017"
 
 
+import logging
 import sys as _sys
+
+
+_logger = logging.getLogger(__name__)
 
 
 # Probe ipython
@@ -56,7 +60,12 @@ else:
     _IS_NOTEBOOK = False
 
 
-if not _IS_NOTEBOOK:  # Load Qt and widgets only if running from console
+# Load Qt and widgets only if running from console
+if _IS_NOTEBOOK:
+    _logger.warning(
+        'Not loading silx.gui features: Running from the notebook')
+
+else:
     from silx.gui import qt
 
     if hasattr(_sys, 'ps1'):  # If from console, make sure QApplication runs
