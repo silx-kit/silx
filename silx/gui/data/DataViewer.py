@@ -462,13 +462,17 @@ class _RecordView(DataView):
     def createWidget(self, parent):
         from .RecordTableView import RecordTableView
         widget = RecordTableView(parent)
+        widget.setWordWrap(False)
         return widget
 
     def clear(self):
         self.getWidget().model().setArrayData(None)
 
     def setData(self, data):
-        self.getWidget().model().setArrayData(data)
+        widget = self.getWidget()
+        widget.setArrayData(data)
+        widget.resizeRowsToContents()
+        widget.resizeColumnsToContents()
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:

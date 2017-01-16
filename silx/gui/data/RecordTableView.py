@@ -36,7 +36,60 @@ from silx.gui import qt
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "16/01/2017"
+
+
+class _MultiLineItem(qt.QItemDelegate):
+    """Draw a multiline text without hiding anything.
+
+    Default behaviour for multiline text is quite strange
+    """
+
+    def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param qt.QWidget parent: Parent of the widget
+        """
+        qt.QItemDelegate.__init__(self, parent)
+        self.__textOptions = qt.QTextOption()
+        self.__textOptions.setFlags(qt.QTextOption.IncludeTrailingSpaces |
+                                    qt.QTextOption.ShowTabsAndSpaces)
+        self.__textOptions.setWrapMode(qt.QTextOption.NoWrap)
+        self.__textOptions.setAlignment(qt.Qt.AlignTop | qt.Qt.AlignLeft)
+
+    def paint(self, painter, option, index):
+        """
+        Write multiline text without using any wrap or any alignment according
+        to the cell size.
+        """
+        painter.save()
+
+        # set colors
+        painter.setPen(qt.QPen(qt.Qt.NoPen))
+        if option.state & qt.QStyle.State_Selected:
+            brush = option.palette.highlight()
+            painter.setBrush(brush)
+        else:
+            brush = index.data(qt.Qt.BackgroundRole)
+            if brush is None:
+                # default background color for a cell
+                brush = qt.Qt.white
+            painter.setBrush(brush)
+        painter.drawRect(option.rect)
+
+        if index.isValid():
+            if option.state & qt.QStyle.State_Selected:
+                brush = option.palette.highlightedText()
+            else:
+                brush = index.data(qt.Qt.ForegroundRole)
+                if brush is None:
+                    brush = option.palette.text()
+            painter.setPen(qt.QPen(brush.color()))
+            text = index.data(qt.Qt.DisplayRole)
+            painter.drawText(qt.QRectF(option.rect), text, self.__textOptions)
+
+        painter.restore()
 
 
 class RecordTableModel(qt.QAbstractTableModel):
@@ -228,8 +281,19 @@ class RecordTableView(qt.QTableView):
     """
     def __init__(self, parent=None):
         """
+        Constructor
 
         :param parent: parent QWidget
         """
         qt.QTableView.__init__(self, parent)
         self.setModel(RecordTableModel())
+        self.__multilineView = _MultiLineItem(self)
+
+    def setArrayData(self, data):
+        self.model().setArrayData(data)
+        # TODO it would be nice to also fix fields
+        # but using it only for string array is already very useful
+        if issubclass(data.dtype.type, (numpy.string_, numpy.unicode_)):
+            self.setItemDelegateForColumn(0, self.__multilineView)
+        else:
+            self.setItemDelegateForColumn(0, None)
