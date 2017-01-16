@@ -70,6 +70,7 @@ import numpy
 
 from .. import icons
 from .. import qt
+from . import Colors
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
@@ -531,10 +532,16 @@ class SaveAction(PlotAction):
 
     ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
-    IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
-    IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
-    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file (*.npy)'
-    IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
+    IMAGE_FILTER_EDF = 'Image data as EDF (*.edf)'
+    IMAGE_FILTER_TIFF = 'Image data as TIFF (*.tif)'
+    IMAGE_FILTER_NUMPY = 'Image data as NumPy binary file (*.npy)'
+    IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
+    IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTERS = (IMAGE_FILTER_EDF,
+                     IMAGE_FILTER_TIFF,
+                     IMAGE_FILTER_NUMPY,
+                     IMAGE_FILTER_RGB_PNG,
+                     IMAGE_FILTER_RGB_TIFF)
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
@@ -706,6 +713,41 @@ class SaveAction(PlotAction):
                 self._errorMessage('Save failed\n')
                 return False
             return True
+
+        elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
+                            self.IMAGE_FILTER_RGB_TIFF):
+            # Apply colormap to data
+            colormap = image[4]['colormap']
+            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
+            rgbaImage = scalarMappable.to_rgba(data, bytes=True)
+
+            # Convert to RGB image
+            image = numpy.ascontiguousarray(rgbaImage[:, :, :3],
+                                            dtype=numpy.uint8)
+
+            height, width = image.shape[:2]
+            bytesPerLine = image.strides[0]
+            # Warning: qimage is NOT copying image data
+            qimage = qt.QImage(
+                image.data,
+                width,
+                height,
+                bytesPerLine,
+                qt.QImage.Format_RGB888)
+
+            if nameFilter == self.IMAGE_FILTER_RGB_PNG:
+                fileFormat = 'PNG'
+            else:
+                fileFormat = 'TIFF'
+
+            if qimage.save(filename, fileFormat):
+                return True
+            else:
+                _logger.error('Failed to save image as %s', filename)
+                qt.QMessageBox.critical(
+                    self.parent(),
+                    'Save image as',
+                    'Failed to save image')
 
         return False
 
