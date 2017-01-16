@@ -35,7 +35,7 @@ from collections import OrderedDict
 import functools
 import silx.gui.icons
 from silx.gui import qt
-from silx.gui.widgets.DataViewer import DataViewer
+from silx.gui.data.DataViewer import DataViewer
 import silx.utils.weakref
 
 

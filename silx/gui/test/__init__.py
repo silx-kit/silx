@@ -72,6 +72,7 @@ def suite():
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
     from ..plot3d import test as test_plot3d
+    from ..data import test as test_data
     from . import test_qt
     from . import test_console
     from . import test_icons
@@ -84,4 +85,5 @@ def suite():
     test_suite.addTest(test_console.suite())
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_plot3d.suite())
+    test_suite.addTest(test_data.suite())
     return test_suite

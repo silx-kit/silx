@@ -34,9 +34,9 @@ from __future__ import division
 import sys
 
 from silx.gui import qt
-from .TableWidget import TableView
+from silx.gui.widgets.TableWidget import TableView
 from .ArrayTableModel import ArrayTableModel
-from .FrameBrowser import HorizontalSliderWithBrowser
+from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"

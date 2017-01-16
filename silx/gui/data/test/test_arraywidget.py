@@ -26,14 +26,15 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "05/12/2016"
 
-import unittest
-import numpy
-import tempfile
 import os
+import tempfile
+import unittest
 
-from .. import ArrayTableWidget
-from ...test.utils import TestCaseQt
+import numpy
+
 from silx.gui import qt
+from silx.gui.data import ArrayTableWidget
+from silx.gui.test.utils import TestCaseQt
 
 try:
     import h5py

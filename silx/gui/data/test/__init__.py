@@ -24,9 +24,9 @@
 # ###########################################################################*/
 import unittest
 
-from . import test_periodictable
-from . import test_tablewidget
-from . import test_threadpoolpushbutton
+from . import test_arraywidget
+from . import test_numpyaxesselector
+from . import test_dataviewer
 
 __authors__ = ["V. Valls", "P. Knobel"]
 __license__ = "MIT"
@@ -36,8 +36,8 @@ __date__ = "16/01/2017"
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
-        [test_threadpoolpushbutton.suite(),
-         test_tablewidget.suite(),
-         test_periodictable.suite(),
-         ])
+        [test_arraywidget.suite(),
+         test_numpyaxesselector.suite(),
+         test_dataviewer.suite(),
+        ])
     return test_suite

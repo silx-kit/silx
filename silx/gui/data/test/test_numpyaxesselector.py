@@ -26,15 +26,16 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "15/12/2016"
 
-import unittest
-import numpy
-import tempfile
 import os
-
-from ..NumpyAxesSelector import NumpyAxesSelector
-from ...test.utils import TestCaseQt
-from ...test.utils import SignalListener
+import tempfile
+import unittest
 from contextlib import contextmanager
+
+import numpy
+
+from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.gui.test.utils import SignalListener
+from silx.gui.test.utils import TestCaseQt
 
 try:
     import h5py
