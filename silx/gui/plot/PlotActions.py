@@ -1178,11 +1178,13 @@ class PixelIntensitiesHistoAction(PlotAction):
             nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
             data_range = numpy.nanmin(data), numpy.nanmax(data)
 
+
             self._histo, w_histo, edges = Histogramnd(data,
                                                 n_bins=nbins,
                                                 histo_range=data_range)
-            xmin = numpy.nanmin(image)
-            xmax = numpy.nanmax(image)
+            assert(len(edges) == 1)
+            xmin = numpy.nanmin(data)
+            xmax = numpy.nanmax(data)
             x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
             y=self._histo
             self.getHistogramPlotWidget().addCurve(
