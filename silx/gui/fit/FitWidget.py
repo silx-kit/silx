@@ -271,10 +271,6 @@ class FitWidget(qt.QWidget):
         self.associateConfigDialog("Polynomial",
                                    getPolyDialog(parent=self,
                                                  default=self.fitconfig))
-        # self.associateConfigDialog("Polynomial",
-        #                            getPolyDialog(parent=self,
-        #                                          default=self.fitconfig),
-        #                            theory_is_background=True)
 
     def _populateFunctions(self):
         """Fill combo-boxes with fit theories and background theories
