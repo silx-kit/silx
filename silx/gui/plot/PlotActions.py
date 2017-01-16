@@ -70,6 +70,7 @@ import numpy
 
 from .. import icons
 from .. import qt
+from .._utils import convertArrayToQImage
 from . import Colors
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
@@ -721,19 +722,8 @@ class SaveAction(PlotAction):
             scalarMappable = Colors.getMPLScalarMappable(colormap, data)
             rgbaImage = scalarMappable.to_rgba(data, bytes=True)
 
-            # Convert to RGB image
-            image = numpy.ascontiguousarray(rgbaImage[:, :, :3],
-                                            dtype=numpy.uint8)
-
-            height, width = image.shape[:2]
-            bytesPerLine = image.strides[0]
-            # Warning: qimage is NOT copying image data
-            qimage = qt.QImage(
-                image.data,
-                width,
-                height,
-                bytesPerLine,
-                qt.QImage.Format_RGB888)
+            # Convert RGB QImage
+            qimage = convertArrayToQImage(rgbaImage[:, :, :3])
 
             if nameFilter == self.IMAGE_FILTER_RGB_PNG:
                 fileFormat = 'PNG'
