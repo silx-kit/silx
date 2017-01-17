@@ -76,6 +76,7 @@ def suite():
     from . import test_qt
     from . import test_console
     from . import test_icons
+    from . import test_utils
 
     test_suite.addTest(test_qt.suite())
     test_suite.addTest(test_plot.suite())
@@ -86,4 +87,5 @@ def suite():
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_plot3d.suite())
     test_suite.addTest(test_data.suite())
+    test_suite.addTest(test_utils.suite())
     return test_suite
