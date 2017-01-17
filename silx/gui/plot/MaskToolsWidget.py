@@ -770,14 +770,19 @@ class MaskToolsWidget(qt.QWidget):
         self.maxLineEdit.setEnabled(False)
         form.addRow('Max:', self.maxLineEdit)
 
-        maskBtn = qt.QPushButton('Apply mask')
-        maskBtn.clicked.connect(self._maskBtnClicked)
-        form.addRow(maskBtn)
+        self.applyMaskBtn = qt.QPushButton('Apply mask')
+        self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
+        self.applyMaskBtn.setEnabled(False)
+        form.addRow(self.applyMaskBtn)
 
-        self.thresholdWidget = qt.QWidget()
-        self.thresholdWidget.setLayout(form)
-        self.thresholdWidget.setEnabled(False)
-        layout.addWidget(self.thresholdWidget)
+        self.maskNanBtn = qt.QPushButton('Mask not finite values')
+        self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
+        self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
+        form.addRow(self.maskNanBtn)
+
+        thresholdWidget = qt.QWidget()
+        thresholdWidget.setLayout(form)
+        layout.addWidget(thresholdWidget)
 
         layout.addStretch(1)
 
@@ -1279,16 +1284,19 @@ class MaskToolsWidget(qt.QWidget):
         if triggered:
             self.minLineEdit.setEnabled(True)
             self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(True)
 
     def _betweenThresholdActionTriggered(self, triggered):
         if triggered:
             self.minLineEdit.setEnabled(True)
             self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
 
     def _aboveThresholdActionTriggered(self, triggered):
         if triggered:
             self.minLineEdit.setEnabled(False)
             self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
 
     def _thresholdActionGroupTriggered(self, triggeredAction):
         """Threshold action group listener."""
@@ -1297,8 +1305,11 @@ class MaskToolsWidget(qt.QWidget):
             for action in self.thresholdActionGroup.actions():
                 if action is not triggeredAction and action.isChecked():
                     action.setChecked(False)
-
-        self.thresholdWidget.setEnabled(triggeredAction.isChecked())
+        else:
+            # Disable min/max edit
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(False)
 
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():
@@ -1324,6 +1335,13 @@ class MaskToolsWidget(qt.QWidget):
                 self._mask.updateStencil(self.levelSpinBox.value(),
                                          self._data > max_)
                 self._mask.commit()
+
+    def _maskNotFiniteBtnClicked(self):
+        """Handle not finite mask button clicked: mask NaNs and inf"""
+        self._mask.updateStencil(
+            self.levelSpinBox.value(),
+            numpy.logical_not(numpy.isfinite(self._data)))
+        self._mask.commit()
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""
