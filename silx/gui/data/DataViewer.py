@@ -256,11 +256,11 @@ class _Plot2dView(DataView):
         if info.dim < 2:
             return -1
         if info.interpretation == "image":
-            return 110
+            return 210
         if info.dim == 2:
-            return 100
+            return 200
         else:
-            return 10
+            return 190
 
 
 class _Plot3dView(DataView):

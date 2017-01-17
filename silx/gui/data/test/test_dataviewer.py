@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "17/01/2017"
 
 import os
 import tempfile
@@ -90,11 +90,13 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 3
         widget = self.create_widget()
         widget.setData(data)
+        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
         try:
             import OpenGL  # noqa
-            self.assertEqual(DataViewer.PLOT3D_MODE, widget.displayMode())
+            self.assertIn(DataViewer.PLOT3D_MODE, availableModes)
         except ImportError:
-            self.assertEqual(DataViewer.STACK_MODE, widget.displayMode())
+            self.assertIn(DataViewer.STACK_MODE, availableModes)
+        self.assertEqual(DataViewer.PLOT2D_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
         data = numpy.array(["aaa"] * (3 ** 1))
