@@ -70,6 +70,8 @@ import numpy
 
 from .. import icons
 from .. import qt
+from .._utils import convertArrayToQImage
+from . import Colors
 from .ColormapDialog import ColormapDialog
 from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
@@ -501,7 +503,11 @@ class SaveAction(PlotAction):
     """
     # TODO find a way to make the filter list selectable and extensible
 
-    SNAPSHOT_FILTERS = ('Plot Snapshot PNG (*.png)', 'Plot Snapshot JPEG (*.jpg)')
+    SNAPSHOT_FILTER_SVG = 'Plot Snapshot as SVG (*.svg)'
+
+    SNAPSHOT_FILTERS = ('Plot Snapshot as PNG (*.png)',
+                        'Plot Snapshot as JPEG (*.jpg)',
+                        SNAPSHOT_FILTER_SVG)
 
     # Dict of curve filters with CSV-like format
     # Using ordered dict to guarantee filters order
@@ -527,10 +533,16 @@ class SaveAction(PlotAction):
 
     ALL_CURVES_FILTERS = ("All curves as SpecFile (*.dat)", )
 
-    IMAGE_FILTER_EDF = 'Image as EDF (*.edf)'
-    IMAGE_FILTER_TIFF = 'Image as TIFF (*.tif)'
-    IMAGE_FILTER_NUMPY = 'Image as NumPy binary file (*.npy)'
-    IMAGE_FILTERS = (IMAGE_FILTER_EDF, IMAGE_FILTER_TIFF, IMAGE_FILTER_NUMPY)
+    IMAGE_FILTER_EDF = 'Image data as EDF (*.edf)'
+    IMAGE_FILTER_TIFF = 'Image data as TIFF (*.tif)'
+    IMAGE_FILTER_NUMPY = 'Image data as NumPy binary file (*.npy)'
+    IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
+    IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
+    IMAGE_FILTERS = (IMAGE_FILTER_EDF,
+                     IMAGE_FILTER_TIFF,
+                     IMAGE_FILTER_NUMPY,
+                     IMAGE_FILTER_RGB_PNG,
+                     IMAGE_FILTER_RGB_TIFF)
 
     def __init__(self, plot, parent=None):
         super(SaveAction, self).__init__(
@@ -557,15 +569,19 @@ class SaveAction(PlotAction):
         :return: False if format is not supported or save failed,
                  True otherwise.
         """
-        if hasattr(qt.QPixmap, "grabWidget"):
-            # Qt 4
-            pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
+        if nameFilter == self.SNAPSHOT_FILTER_SVG:
+            self.plot.saveGraph(filename, fileFormat='svg')
+
         else:
-            # Qt 5
-            pixmap = self.plot.getWidgetHandle().grab()
-        if not pixmap.save(filename):
-            self._errorMessage()
-            return False
+            if hasattr(qt.QPixmap, "grabWidget"):
+                # Qt 4
+                pixmap = qt.QPixmap.grabWidget(self.plot.getWidgetHandle())
+            else:
+                # Qt 5
+                pixmap = self.plot.getWidgetHandle().grab()
+            if not pixmap.save(filename):
+                self._errorMessage()
+                return False
         return True
 
     def _saveCurve(self, filename, nameFilter):
@@ -698,6 +714,30 @@ class SaveAction(PlotAction):
                 self._errorMessage('Save failed\n')
                 return False
             return True
+
+        elif nameFilter in (self.IMAGE_FILTER_RGB_PNG,
+                            self.IMAGE_FILTER_RGB_TIFF):
+            # Apply colormap to data
+            colormap = image[4]['colormap']
+            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
+            rgbaImage = scalarMappable.to_rgba(data, bytes=True)
+
+            # Convert RGB QImage
+            qimage = convertArrayToQImage(rgbaImage[:, :, :3])
+
+            if nameFilter == self.IMAGE_FILTER_RGB_PNG:
+                fileFormat = 'PNG'
+            else:
+                fileFormat = 'TIFF'
+
+            if qimage.save(filename, fileFormat):
+                return True
+            else:
+                _logger.error('Failed to save image as %s', filename)
+                qt.QMessageBox.critical(
+                    self.parent(),
+                    'Save image as',
+                    'Failed to save image')
 
         return False
 
