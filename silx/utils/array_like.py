@@ -473,8 +473,6 @@ class DatasetView(object):
             self.transposition = transposition
             self.__sort_shape()
 
-
-
     def __sort_shape(self):
         """Sort shape in the order defined in :attr:`transposition`
         """
