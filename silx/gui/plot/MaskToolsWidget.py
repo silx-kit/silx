@@ -1234,7 +1234,7 @@ class MaskToolsWidget(qt.QWidget):
                 event['event'] == 'drawingFinished'):
             doMask = self._isMasking()
             # Convert from plot to array coords
-            vertices = event['points'] / self._scale - self._origin
+            vertices = (event['points'] - self._origin) / self._scale
             vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
             self._mask.updatePolygon(level, vertices, doMask)
             self._mask.commit()
@@ -1242,7 +1242,7 @@ class MaskToolsWidget(qt.QWidget):
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
             # convert from plot to array coords
-            col, row = event['points'][-1] / self._scale - self._origin
+            col, row = (event['points'][-1] - self._origin) / self._scale
             col, row = int(col), int(row)
             brushSize = self.pencilSpinBox.value()
 
