@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "17/01/2017"
 
 import numpy
 import numbers
@@ -466,7 +466,7 @@ class _RecordView(DataView):
         return widget
 
     def clear(self):
-        self.getWidget().model().setArrayData(None)
+        self.getWidget().setArrayData(None)
 
     def setData(self, data):
         widget = self.getWidget()
