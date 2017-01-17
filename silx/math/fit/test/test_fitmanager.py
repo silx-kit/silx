@@ -450,7 +450,7 @@ class TestPolynomials(unittest.TestCase):
                                    pfit,
                                    places=5)
 
-    def _testPoly(self, poly_params, theory):
+    def _testPoly(self, poly_params, theory, places=5):
         p = numpy.poly1d(poly_params)
 
         y = p(self.x)
@@ -463,7 +463,7 @@ class TestPolynomials(unittest.TestCase):
         fit_params = fm.runfit()[0]
 
         for p, pfit in zip(poly_params, fit_params):
-            self.assertAlmostEqual(p, pfit, places=5)
+            self.assertAlmostEqual(p, pfit, places=places)
 
     def testQuadratic(self):
         self._testPoly([0.05, -2, 3],
@@ -479,7 +479,8 @@ class TestPolynomials(unittest.TestCase):
 
     def testQuintic(self):
         self._testPoly([1, -2, 3, -4, -5, 6],
-                       "Degree 5 Polynomial")
+                       "Degree 5 Polynomial",
+                       places=4)
 
 
 test_cases = (TestFitmanager, TestPolynomials)
