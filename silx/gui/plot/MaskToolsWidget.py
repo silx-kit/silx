@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -1209,12 +1209,24 @@ class MaskToolsWidget(qt.QWidget):
             doMask = self._isMasking()
             ox, oy = self._origin
             sx, sy = self._scale
+
+            height = int(abs(event['height'] / sy))
+            width = int(abs(event['width'] / sx))
+
+            row = int((event['y'] - oy) / sy)
+            if sy < 0:
+                row -= height
+
+            col = int((event['x'] - ox) / sx)
+            if sx < 0:
+                col -= width
+
             self._mask.updateRectangle(
                 level,
-                row=int((event['y'] - oy) / sy),
-                col=int((event['x'] - ox) / sx),
-                height=int(event['height'] / sy),
-                width=int(event['width'] / sx),
+                row=row,
+                col=col,
+                height=height,
+                width=width,
                 mask=doMask)
             self._mask.commit()
 
