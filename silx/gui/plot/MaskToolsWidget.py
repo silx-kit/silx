@@ -190,7 +190,7 @@ class Mask(qt.QObject):
 
         :param int level: Value of the mask to set to 0.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         self._mask[self._mask == level] = 0
         self._notify()
 
@@ -218,7 +218,7 @@ class Mask(qt.QObject):
 
         :param int level: The level to invert.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         masked = self._mask == level
         self._mask[self._mask == 0] = level
         self._mask[masked] = 0
@@ -236,7 +236,7 @@ class Mask(qt.QObject):
         :param int width:
         :param bool mask: True to mask (default), False to unmask.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         selection = self._mask[max(0, row):row + height + 1,
                                max(0, col):col + width + 1]
         if mask:
@@ -465,7 +465,8 @@ class MaskToolsWidget(qt.QWidget):
         layout.addStretch(1)
         self.setLayout(layout)
 
-    def _hboxWidget(self, *widgets, **kwargs):
+    @staticmethod
+    def _hboxWidget(*widgets, **kwargs):
         """Place widgets in widget with horizontal layout
 
         :param widgets: Widgets to position horizontally
@@ -1017,7 +1018,7 @@ class MaskToolsWidget(qt.QWidget):
         :param int level: The mask level to highlight
         :param float alpha: Alpha level of mask in [0., 1.]
         """
-        assert level > 0 and level <= self._maxLevelNumber
+        assert 0 < level <= self._maxLevelNumber
 
         colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
 
@@ -1025,7 +1026,8 @@ class MaskToolsWidget(qt.QWidget):
         colors[:, :3] = self._defaultOverlayColor[:3]
 
         # check if some colors has been directly set by the user
-        colors[self._defaultColors==False, :3] = self._overlayColors[self._defaultColors==False, :3]
+        mask = numpy.equal(self._defaultColors, False)
+        colors[mask, :3] = self._overlayColors[mask, :3]
 
         # Set alpha
         colors[:, -1] = alpha / 2.
@@ -1041,7 +1043,9 @@ class MaskToolsWidget(qt.QWidget):
     def resetMaskColors(self, level=None):
         """Reset the mask color at the given level to be defaultColors
 
-        :param level: the index of the mask for which we want to reset the color. If none we will reset color for all masks.
+        :param level:
+            The index of the mask for which we want to reset the color.
+            If none we will reset color for all masks.
         """
         if level is None:
             self._defaultColors[level] = True
@@ -1054,7 +1058,9 @@ class MaskToolsWidget(qt.QWidget):
         """Set the masks color
 
         :param rgb: The rgb color
-        :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
+        :param level:
+            The index of the mask for which we want to change the color.
+            If none set this color for all the masks
         """
         if level is None:
             self._overlayColors[:] = rgb
@@ -1078,13 +1084,15 @@ class MaskToolsWidget(qt.QWidget):
         self._updateInteractiveMode()
 
     def _pencilWidthChanged(self, width):
+
+        old = self.pencilSpinBox.blockSignals(True)
         try:
-            old = self.pencilSpinBox.blockSignals(True)
             self.pencilSpinBox.setValue(width)
         finally:
             self.pencilSpinBox.blockSignals(old)
+
+        old = self.pencilSlider.blockSignals(True)
         try:
-            old = self.pencilSlider.blockSignals(True)
             self.pencilSlider.setValue(width)
         finally:
             self.pencilSlider.blockSignals(old)
