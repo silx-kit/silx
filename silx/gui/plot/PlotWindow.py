@@ -637,10 +637,11 @@ class Plot2D(PlotWindow):
             data, params = image[0], image[4]
             ox, oy = params['origin']
             sx, sy = params['scale']
-            if (y - oy) >= 0 and (x - ox) >= 0:
-                # Test positive before cast otherwisr issue with int(-0.5) = 0
-                row = int((y - oy) / sy)
-                col = int((x - ox) / sx)
+
+            row, col = (y - oy) / sy, (x - ox) / sx
+            if row >= 0 and col >= 0:
+                # Test positive before cast otherwise issue with int(-0.5) = 0
+                row, col = int(row), int(col)
                 if (row < data.shape[0] and col < data.shape[1]):
                     return data[row, col]
         return '-'
