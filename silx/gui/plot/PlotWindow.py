@@ -606,7 +606,7 @@ class Plot2D(PlotWindow):
         posInfo = [
             ('X', lambda x, y: x),
             ('Y', lambda x, y: y),
-            ('Data', self._getActiveImageValue)]
+            ('Data', self._getImageValue)]
 
         super(Plot2D, self).__init__(parent=parent, backend=None,
                                      resetzoom=True, autoScale=False,
@@ -625,26 +625,29 @@ class Plot2D(PlotWindow):
 
         self.addToolBar(self.profile)
 
-    def _getActiveImageValue(self, x, y):
-        """Get value of active image at position (x, y)
+    def _getImageValue(self, x, y):
+        """Get value of top most image at position (x, y)
 
         :param float x: X position in plot coordinates
         :param float y: Y position in plot coordinates
         :return: The value at that point or '-'
         """
-        image = self.getActiveImage()
-        if image is not None:
-            data, params = image[0], image[4]
-            ox, oy = params['origin']
-            sx, sy = params['scale']
+        value = '-'
+        valueZ = - float('inf')
 
-            row, col = (y - oy) / sy, (x - ox) / sx
-            if row >= 0 and col >= 0:
-                # Test positive before cast otherwise issue with int(-0.5) = 0
-                row, col = int(row), int(col)
-                if (row < data.shape[0] and col < data.shape[1]):
-                    return data[row, col]
-        return '-'
+        for image in self.getAllImages():
+            data, params = image[0], image[4]
+            if params['z'] >= valueZ:  # This image is over the previous one
+                ox, oy = params['origin']
+                sx, sy = params['scale']
+                row, col = (y - oy) / sy, (x - ox) / sx
+                if row >= 0 and col >= 0:
+                    # Test positive before cast otherwise issue with int(-0.5) = 0
+                    row, col = int(row), int(col)
+                    if (row < data.shape[0] and col < data.shape[1]):
+                        value = data[row, col]
+                        valueZ = params['z']
+        return value
 
     def getProfileToolbar(self):
         """Profile tools attached to this plot
