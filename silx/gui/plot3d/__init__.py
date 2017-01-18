@@ -30,3 +30,35 @@ from __future__ import absolute_import
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "05/01/2017"
+
+
+import logging as _logging
+
+from .. import qt as _qt
+
+try:
+    import OpenGL as _OpenGL
+except ImportError:
+    _OpenGL = None
+
+
+_logger = _logging.getLogger(__name__)
+
+
+if not _qt.HAS_OPENGL:
+    _logger.warning(
+        'Qt.QtOpenGL is not available: silx.gui.plot3d modules will fail.')
+
+if _OpenGL is None:
+    _logger.warning(
+        'PyOpenGL is not installed: silx.gui.plot3d modules will fail')
+
+
+def isAvailable():
+    """Returns True if plot3d functionality is available, False otherwise.
+
+    This function checks for PyOpenGL and QtOpenGL availability.
+    The availability of OpenGL 2.1 (required by plot3d) is not checked here.
+
+    :rtype: bool"""
+    return _OpenGL is not None and _qt.HAS_OPENGL
