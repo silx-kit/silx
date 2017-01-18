@@ -371,6 +371,7 @@ def open(filename):  # pylint:disable=redefined-builtin
     Format supported:
     - h5 files, if `h5py` module is installed
     - Spec files if `SpecFile` module is installed
+    - a set of raster image formats (tiff, edf...) if `fabio` is installed
 
     :param str filename: A filename
     :raises: IOError if the file can't be loaded as an h5py.File like object
@@ -382,6 +383,14 @@ def open(filename):  # pylint:disable=redefined-builtin
     if not h5py_missing:
         if h5py.is_hdf5(filename):
             return h5py.File(filename)
+
+    try:
+        from . import fabioh5
+        return fabioh5.File(filename)
+    except ImportError:
+        logger.debug("fabioh5 can't be loaded.", exc_info=True)
+    except Exception:
+        logger.debug("File '%s' can't be read as fabio file.", filename, exc_info=True)
 
     try:
         from . import spech5
