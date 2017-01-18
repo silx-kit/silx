@@ -549,8 +549,6 @@ class Plot(object):
         :returns: The key string identify this curve
         """
         # Take care of input parameters: check/conversion, default value
-        assert len(x) in (len(y), len(y)+1)
-        assert histogram in (None, 'left', 'right', 'center')
 
         if replot is not None:
             _logger.warning(
@@ -569,9 +567,6 @@ class Plot(object):
         # when using numpy.nonzero on lists, ...
         x = numpy.asarray(x)
         y = numpy.asarray(y)
-
-        if histogram in ('left', 'right', 'center'):
-            x, y = self._getHistogramValue(x, y, histogramType=histogram)
 
         # TODO check color
 
@@ -660,17 +655,39 @@ class Plot(object):
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
         if len(xFiltered) and not self.isCurveHidden(legend):
-            handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                            color=params['color'],
-                                            symbol=params['symbol'],
-                                            linestyle=params['linestyle'],
-                                            linewidth=params['linewidth'],
-                                            yaxis=params['yaxis'],
-                                            xerror=xerror,
-                                            yerror=yerror,
-                                            z=params['z'],
-                                            selectable=params['selectable'],
-                                            fill=params['fill'])
+            # if we want to plot an histogram
+            if histogram in ('left', 'right', 'center'):
+                assert len(x) in (len(y), len(y)+1)
+                assert histogram in (None, 'left', 'right', 'center')
+
+                xFiltered, yFiltered = self._getHistogramValue(xFiltered,
+                                                               yFiltered,
+                                                               histogramType=histogram)
+                info = "xerror and yerror won't be displayed for histogram display"
+                _logger.warning(info)
+                handle = self._backend.addCurve(xFiltered, yFiltered, legend,
+                                                    color=params['color'],
+                                                    symbol=params['symbol'],
+                                                    linestyle=params['linestyle'],
+                                                    linewidth=params['linewidth'],
+                                                    yaxis=params['yaxis'],
+                                                    xerror=None,
+                                                    yerror=None,           
+                                                    z=params['z'],
+                                                    selectable=params['selectable'],
+                                                    fill=params['fill'])
+            else:
+                handle = self._backend.addCurve(xFiltered, yFiltered, legend,
+                                                color=params['color'],
+                                                symbol=params['symbol'],
+                                                linestyle=params['linestyle'],
+                                                linewidth=params['linewidth'],
+                                                yaxis=params['yaxis'],
+                                                xerror=xerror,
+                                                yerror=yerror,
+                                                z=params['z'],
+                                                selectable=params['selectable'],
+                                                fill=params['fill'])
             self._setDirtyPlot()
 
             # caching the min and max values for the getDataRange method.
@@ -764,6 +781,7 @@ class Plot(object):
         resx=[]
         resy=[]
         y = y.copy()
+        # TODO henri : remove loop here
         for yindex in enumerate(edges[:-1]):
             # for now draw has rectangles
             resx.append(edges[yindex[0]])
