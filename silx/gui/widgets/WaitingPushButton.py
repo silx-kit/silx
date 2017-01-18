@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/01/2017"
+__date__ = "19/01/2017"
 
 from .. import qt
 from .. import icons
@@ -102,6 +102,11 @@ class WaitingPushButton(qt.QPushButton):
             w += self.style().pixelMetric(qt.QStyle.PM_MenuButtonIndicator, opt, self)
 
         contentSize = qt.QSize(w, h)
+        if qt.qVersion().startswith("4.8."):
+            # On PyQt4/PySide the method QCommonStyle sizeFromContents returns
+            # different size when the widget provides an icon or not.
+            # In Qt5 there is not this problem.
+            opt.icon = qt.QIcon()
         sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
         sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
         return sizeHint
