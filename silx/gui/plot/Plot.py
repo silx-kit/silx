@@ -298,7 +298,6 @@ class Plot(object):
         self._images = OrderedDict()
         self._markers = OrderedDict()
         self._items = OrderedDict()
-        self._histograms = OrderedDict()
 
         self._dataRange = False
 
@@ -397,7 +396,7 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for objDict in (self._curves, self._histograms):
+        for objDict in self._curves:
             for _curve, info in objDict.items():
                 # TODO : for now no hidden histograms
                 if _curve not in self._hiddenCurves:
@@ -714,7 +713,7 @@ class Plot(object):
 
         :param x: the x value of the curve to tranform in an histogram
         :param histogramType: the type of histogram we wan't to generate.
-         This define the way to center the histogram values compared to the 
+         This define the way to center the histogram values compared to the
          curve value. Possible values can be::
             - 'left'
             - 'right'
