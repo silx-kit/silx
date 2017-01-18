@@ -729,13 +729,9 @@ class Plot(object):
             edges=numpy.append(x[0]-width, edges)
         if histogramType is 'center':
             edges = Plot._computeEdges(edges, 'right')
-            width = 1
-            resEdges = []
-            for iEdge, val in enumerate(edges[:-1]):
-                width = (edges[iEdge+1]-edges[iEdge]) /2.0
-                resEdges.append(edges[iEdge]-width)
-            resEdges.append(edges[-1]-width)
-            edges=resEdges
+            widths = (edges[1:]-edges[0:-1]) /2.0
+            widths = numpy.append(widths, widths[-1])
+            edges = edges - widths
         if histogramType is 'right':
             width=1
             if len(x) >1:
