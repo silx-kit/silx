@@ -1,7 +1,5 @@
 # /*##########################################################################
 #
-# The PyMca X-Ray Fluorescence Toolkit
-#
 # Copyright (c) 2004-2014 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
@@ -107,33 +105,14 @@ try:
     BZ2 = True
 except:
     BZ2 = False
-try:
-    from PyMca5.PyMcaIO import MarCCD
-    MARCCD_SUPPORT = True
-except ImportError:
-    #MarCCD
-    MARCCD_SUPPORT = False
+
+MARCCD_SUPPORT = False
+PILATUS_CBF_SUPPORT = False
+CAN_USE_FASTEDF = False
 
 # Using local TiffIO
 from . import TiffIO
 TIFF_SUPPORT = True
-# try:
-#     from PyMca5.PyMcaIO import TiffIO
-#     TIFF_SUPPORT = True
-# except ImportError:
-#     #MarCCD
-#     TIFF_SUPPORT = False
-
-try:
-    from PyMca5.PyMcaIO import PilatusCBF
-    PILATUS_CBF_SUPPORT = True
-except ImportError:
-    PILATUS_CBF_SUPPORT = False
-try:
-    from PyMca5.FastEdf import extended_fread
-    CAN_USE_FASTEDF = 1
-except:
-    CAN_USE_FASTEDF = 0
 
 ################################################################################
 # constants
@@ -499,50 +478,10 @@ class  EdfFile(object):
             self.Images[Index].Header.update(info)
 
     def _wrapMarCCD(self):
-        mccd = MarCCD.MarCCD(self.File)
-        self.NumImages = 1
-        self.__data = mccd.getData()
-        self.__info = mccd.getInfo()
-        self.Images.append(Image())
-        Index = 0
-        self.Images[Index].Dim1 = self.__data.shape[0]
-        self.Images[Index].Dim2 = self.__data.shape[1]
-        self.Images[Index].NumDim = 2
-        if self.__data.dtype == numpy.uint8:
-            self.Images[Index].DataType = 'UnsignedByte'
-        elif self.__data.dtype == numpy.uint16:
-            self.Images[Index].DataType = 'UnsignedShort'
-        else:
-            self.Images[Index].DataType = 'UnsignedInteger'
-        self.Images[Index].StaticHeader['Dim_1'] = self.Images[Index].Dim1
-        self.Images[Index].StaticHeader['Dim_2'] = self.Images[Index].Dim2
-        self.Images[Index].StaticHeader['Offset_1'] = 0
-        self.Images[Index].StaticHeader['Offset_2'] = 0
-        self.Images[Index].StaticHeader['DataType'] = self.Images[Index].DataType
-        self.Images[Index].Header.update(self.__info)
+        raise NotImplementedError("Look at the module EdfFile from PyMCA")
 
     def _wrapPilatusCBF(self):
-        mccd = PilatusCBF.PilatusCBF(self.File)
-        self.NumImages = 1
-        self.__data = mccd.getData()
-        self.__info = mccd.getInfo()
-        self.Images.append(Image())
-        Index = 0
-        self.Images[Index].Dim1 = self.__data.shape[0]
-        self.Images[Index].Dim2 = self.__data.shape[1]
-        self.Images[Index].NumDim = 2
-        if self.__data.dtype == numpy.uint8:
-            self.Images[Index].DataType = 'UnsignedByte'
-        elif self.__data.dtype == numpy.uint16:
-            self.Images[Index].DataType = 'UnsignedShort'
-        else:
-            self.Images[Index].DataType = 'UnsignedInteger'
-        self.Images[Index].StaticHeader['Dim_1'] = self.Images[Index].Dim1
-        self.Images[Index].StaticHeader['Dim_2'] = self.Images[Index].Dim2
-        self.Images[Index].StaticHeader['Offset_1'] = 0
-        self.Images[Index].StaticHeader['Offset_2'] = 0
-        self.Images[Index].StaticHeader['DataType'] = self.Images[Index].DataType
-        self.Images[Index].Header.update(self.__info)
+        raise NotImplementedError("Look at the module EdfFile from PyMCA")
 
     def _wrapSPE(self):
         if 0 and sys.version < '3.0':
@@ -669,45 +608,10 @@ class  EdfFile(object):
             return data[Pos[1]:(Pos[1] + Size[1]),
                                Pos[0]:(Pos[0] + Size[0])]
         elif fastedf and CAN_USE_FASTEDF:
-            type = self.__GetDefaultNumpyType__(self.Images[Index].DataType, index=Index)
-            size_pixel = self.__GetSizeNumpyType__(type)
-            Data = numpy.array([], type)
-            if self.Images[Index].NumDim == 1:
-                if Pos == None: Pos = (0,)
-                if Size == None: Size = (0,)
-                sizex = self.Images[Index].Dim1
-                Size = list(Size)
-                if Size[0] == 0:Size[0] = sizex - Pos[0]
-                self.File.seek((Pos[0] * size_pixel) + self.Images[Index].DataPosition, 0)
-                Data = numpy.fromstring(self.File.read(Size[0] * size_pixel), type)
-            elif self.Images[Index].NumDim == 2:
-                if Pos == None: Pos = (0, 0)
-                if Size == None: Size = (0, 0)
-                Size = list(Size)
-                sizex, sizey = self.Images[Index].Dim1, self.Images[Index].Dim2
-                if Size[0] == 0:Size[0] = sizex - Pos[0]
-                if Size[1] == 0:Size[1] = sizey - Pos[1]
-                Data = numpy.zeros([Size[1], Size[0]], type)
-                self.File.seek((((Pos[1] * sizex) + Pos[0]) * size_pixel) + self.Images[Index].DataPosition, 0)
-                extended_fread(Data, Size[0] * size_pixel , numpy.array([Size[1]]),
-                               numpy.array([sizex * size_pixel]) , self.File)
-
-            elif self.Images[Index].NumDim == 3:
-                if Pos == None: Pos = (0, 0, 0)
-                if Size == None: Size = (0, 0, 0)
-                Size = list(Size)
-                sizex, sizey, sizez = self.Images[Index].Dim1, self.Images[Index].Dim2, self.Images[Index].Dim3
-                if Size[0] == 0:Size[0] = sizex - Pos[0]
-                if Size[1] == 0:Size[1] = sizey - Pos[1]
-                if Size[2] == 0:Size[2] = sizez - Pos[2]
-                Data = numpy.zeros([Size[2], Size[1], Size[0]], type)
-                self.File.seek(((((Pos[2] * sizey + Pos[1]) * sizex) + Pos[0]) * size_pixel) + self.Images[Index].DataPosition, 0)
-                extended_fread(Data, Size[0] * size_pixel , numpy.array([Size[2], Size[1]]),
-                        numpy.array([ sizey * sizex * size_pixel , sizex * size_pixel]) , self.File)
-
+            raise NotImplementedError("Look at the module EdfFile from PyMCA")
         else:
             if fastedf:
-                print("I could not use fast routines")
+                print("It could not use fast routines")
             type = self.__GetDefaultNumpyType__(self.Images[Index].DataType, index=Index)
             size_pixel = self.__GetSizeNumpyType__(type)
             Data = numpy.array([], type)
