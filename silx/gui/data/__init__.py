@@ -22,6 +22,14 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a few simple Qt widgets that rely only on a Qt wrapper
-for Python (PyQt5, PyQt4 or PySide). No other optional dependencies of *silx*
-should be required."""
+"""This package provides a set of Qt widgets for displaying data arrays using
+table views and plot widgets.
+
+.. note::
+
+    Widgets in this package may rely on additional dependencies that are
+    not mandatory for *silx*.
+    :class:`DataViewer.DataViewer` relies on :mod:`silx.gui.plot` which
+    depends on *matplotlib*. It also optionally depends on *PyOpenGL* for 3D
+    visualization.
+"""

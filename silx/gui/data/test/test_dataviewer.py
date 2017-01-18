@@ -26,16 +26,17 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "10/01/2017"
 
-import unittest
-import numpy
-import tempfile
 import os
-
-from ..DataViewer import DataViewer
-from ..DataViewerFrame import DataViewerFrame
-from ...test.utils import TestCaseQt
-from ...test.utils import SignalListener
+import tempfile
+import unittest
 from contextlib import contextmanager
+
+import numpy
+from ..DataViewer import DataViewer
+
+from silx.gui.data.DataViewerFrame import DataViewerFrame
+from silx.gui.test.utils import SignalListener
+from silx.gui.test.utils import TestCaseQt
 
 try:
     import h5py

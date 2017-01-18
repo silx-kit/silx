@@ -22,6 +22,22 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a few simple Qt widgets that rely only on a Qt wrapper
-for Python (PyQt5, PyQt4 or PySide). No other optional dependencies of *silx*
-should be required."""
+import unittest
+
+from . import test_arraywidget
+from . import test_numpyaxesselector
+from . import test_dataviewer
+
+__authors__ = ["V. Valls", "P. Knobel"]
+__license__ = "MIT"
+__date__ = "16/01/2017"
+
+
+def suite():
+    test_suite = unittest.TestSuite()
+    test_suite.addTests(
+        [test_arraywidget.suite(),
+         test_numpyaxesselector.suite(),
+         test_dataviewer.suite(),
+        ])
+    return test_suite

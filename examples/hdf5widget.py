@@ -30,16 +30,18 @@
     to install it if you don't already have it.
 """
 
-import sys
-import numpy
+import h5py
 import logging
-from silx.gui import qt
+import sys
+import tempfile
+
+import numpy
+
 import silx.gui.hdf5
 import silx.utils.html
+from silx.gui import qt
+from silx.gui.data.DataViewerFrame import DataViewerFrame
 from silx.gui.widgets.ThreadPoolPushButton import ThreadPoolPushButton
-from silx.gui.widgets.DataViewerFrame import DataViewerFrame
-import h5py
-import tempfile
 
 try:
     import fabio
