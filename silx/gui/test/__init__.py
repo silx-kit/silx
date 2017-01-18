@@ -74,6 +74,8 @@ def suite():
     from ..plot3d import test as test_plot3d
     from ..data import test as test_data
     from . import test_qt
+    # Console tests disabled due to corruption of python environment
+    # (see issue #538 on github)
     # from . import test_console
     from . import test_icons
     from . import test_utils
@@ -83,7 +85,7 @@ def suite():
     test_suite.addTest(test_fit.suite())
     test_suite.addTest(test_hdf5.suite())
     test_suite.addTest(test_widgets.suite())
-    # test_suite.addTest(test_console.suite())
+    # test_suite.addTest(test_console.suite())   # see issue #538 on github
     test_suite.addTest(test_icons.suite())
     test_suite.addTest(test_plot3d.suite())
     test_suite.addTest(test_data.suite())
