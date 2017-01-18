@@ -396,27 +396,25 @@ class Plot(object):
         xMin = yMinLeft = yMinRight = float('nan')
         xMax = yMaxLeft = yMaxRight = float('nan')
 
-        for objDict in self._curves:
-            for _curve, info in objDict.items():
-                # TODO : for now no hidden histograms
-                if _curve not in self._hiddenCurves:
-                    # using numpy's separate min and max is faster than
-                    # a pure python minmax.
-                    if info['xmin'] is not None:
-                        xMin = numpy.nanmin([xMin, info['xmin']])
-                    if info['xmax'] is not None:
-                        xMax = numpy.nanmax([xMax, info['xmax']])
+        for _curve, info in self._curves.items():
+            if _curve not in self._hiddenCurves:
+                # using numpy's separate min and max is faster than
+                # a pure python minmax.
+                if info['xmin'] is not None:
+                    xMin = numpy.nanmin([xMin, info['xmin']])
+                if info['xmax'] is not None:
+                    xMax = numpy.nanmax([xMax, info['xmax']])
 
-                    if info['params']['yaxis'] == 'left':
-                        if info['ymin'] is not None:
-                            yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
-                        if info['ymax'] is not None:
-                            yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
-                    else:
-                        if info['ymin'] is not None:
-                            yMinRight = numpy.nanmin([yMinRight, info['ymin']])
-                        if info['ymax'] is not None:
-                            yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
+                if info['params']['yaxis'] == 'left':
+                    if info['ymin'] is not None:
+                        yMinLeft = numpy.nanmin([yMinLeft, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxLeft = numpy.nanmax([yMaxLeft, info['ymax']])
+                else:
+                    if info['ymin'] is not None:
+                        yMinRight = numpy.nanmin([yMinRight, info['ymin']])
+                    if info['ymax'] is not None:
+                        yMaxRight = numpy.nanmax([yMaxRight, info['ymax']])
 
         if not self.isXAxisLogarithmic() and not self.isYAxisLogarithmic():
             for _image, info in self._images.items():
