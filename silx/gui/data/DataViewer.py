@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "18/01/2017"
 
 import numpy
 import numbers
@@ -216,6 +216,8 @@ class _Plot1dView(DataView):
             return -1
         if info.interpretation == "spectrum":
             return 110
+        if info.dim == 2 and info.shape[0] == 1:
+            return 210
         if info.dim == 1:
             return 100
         else:
@@ -477,6 +479,8 @@ class _RecordView(DataView):
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:
             return -1
+        if info.dim == 1 and info.shape[0] == 1:
+            return 110
         if info.dim == 1:
             return 40
         elif info.isRecord:
