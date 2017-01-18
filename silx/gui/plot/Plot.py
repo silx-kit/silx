@@ -777,17 +777,14 @@ class Plot(object):
         else:
             edges=Plot._computeEdges(x, histogramType)
         assert(len(edges)>1)
-
-        resx=[]
-        resy=[]
-        y = y.copy()
-        # TODO henri : remove loop here
-        for yindex in enumerate(edges[:-1]):
-            # for now draw has rectangles
-            resx.append(edges[yindex[0]])
-            resy.append(y[yindex[0]])
-            resx.append(edges[yindex[0]+1])
-            resy.append(y[yindex[0]])
+        
+        resx=numpy.empty((len(edges)-1)*2, dtype='float32')
+        resy=numpy.empty((len(edges)-1)*2, dtype='float32')
+        # duplicate x and y values with a small shift to get the stairs effect
+        resx[:-1:2] = edges[:-1]
+        resx[1::2] = edges[1:]
+        resy[:-1:2] = y
+        resy[1::2] = y
 
         assert(len(resx)==len(resy))
         return resx, resy
