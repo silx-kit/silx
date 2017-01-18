@@ -38,6 +38,7 @@ import logging
 import silx.io
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+import silx.gui.plot3d
 
 
 try:
@@ -234,9 +235,7 @@ class _Plot3dView(DataView):
 
     def __init__(self, parent, modeId):
         super(_Plot3dView, self).__init__(parent, modeId)
-        try:
-            import OpenGL  # noqa
-        except:
+        if not silx.gui.plot3d.isAvailable():
             _logger.warning("Plot3dView is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
