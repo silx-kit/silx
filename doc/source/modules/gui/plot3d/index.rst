@@ -63,9 +63,6 @@ The following sub-modules are available:
    toolbars.rst
    actions.rst
 
-The :mod:`silx.gui.plot3d` package provides the following function:
-
-.. autofunction:: isAvailable
 
 Sample code
 -----------
