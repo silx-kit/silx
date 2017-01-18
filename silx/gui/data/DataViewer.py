@@ -237,8 +237,7 @@ class _Plot3dView(DataView):
         super(_Plot3dView, self).__init__(parent, modeId)
         if not silx.gui.plot3d.isAvailable():
             _logger.warning("Plot3dView is not available")
-            _logger.debug("Backtrace", exc_info=True)
-            raise
+            raise ImportError("silx.gui.plot3d is not available")
         self.__resetZoomNextTime = True
 
     def axesNames(self):
