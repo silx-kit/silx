@@ -485,10 +485,10 @@ class EdfFile(object):
             self.Images[Index].Header.update(info)
 
     def _wrapMarCCD(self):
-        raise NotImplementedError("Look at the module EdfFile from PyMCA")
+        raise NotImplementedError("Look at the module EdfFile from PyMca")
 
     def _wrapPilatusCBF(self):
-        raise NotImplementedError("Look at the module EdfFile from PyMCA")
+        raise NotImplementedError("Look at the module EdfFile from PyMca")
 
     def _wrapSPE(self):
         if 0 and sys.version < '3.0':
