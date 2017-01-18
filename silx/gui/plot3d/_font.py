@@ -33,6 +33,7 @@ import logging
 import sys
 import numpy
 from silx.gui import qt
+from silx.gui._utils import convertQImageToArray
 
 
 _logger = logging.getLogger(__name__)
@@ -117,14 +118,7 @@ def rasterText(text, font, size=-1, weight=-1, italic=False):
     painter.drawText(bounds, qt.Qt.TextExpandTabs, text)
     painter.end()
 
-    # RGB QImage to numpy array
-    ptr = image.bits()
-    if qt.BINDING != 'PySide':
-        ptr.setsize(image.byteCount())
-        if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
-            ptr = ptr.asstring()
-    array = numpy.fromstring(ptr, dtype=numpy.uint8)
-    array.shape = image.height(), image.width(), 3
+    array = convertQImageToArray(image)
 
     # RGB to R
     array = numpy.ascontiguousarray(array[:, :, 0])

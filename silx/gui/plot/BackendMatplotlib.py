@@ -48,8 +48,6 @@ from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
-from matplotlib.colors import (LinearSegmentedColormap, ListedColormap,
-                               LogNorm, Normalize)
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
@@ -57,7 +55,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from . import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import MPLColormap
+from . import Colors
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -282,64 +280,8 @@ class BackendMatplotlib(BackendBase.BackendBase):
             image.set_data(data)
 
         else:
-            assert colormap is not None
-
-            if colormap['name'] is not None:
-                cmap = self.__getColormap(colormap['name'])
-            else:  # No name, use custom colors
-                if 'colors' not in colormap:
-                    raise ValueError(
-                        'addImage: colormap no name nor list of colors.')
-                colors = numpy.array(colormap['colors'], copy=True)
-                assert len(colors.shape) == 2
-                assert colors.shape[-1] in (3, 4)
-                if colors.dtype == numpy.uint8:
-                    # Convert to float in [0., 1.]
-                    colors = colors.astype(numpy.float32) / 255.
-                cmap = ListedColormap(colors)
-
-            if colormap['normalization'].startswith('log'):
-                vmin, vmax = None, None
-                if not colormap['autoscale']:
-                    if colormap['vmin'] > 0.:
-                        vmin = colormap['vmin']
-                    if colormap['vmax'] > 0.:
-                        vmax = colormap['vmax']
-
-                    if vmin is None or vmax is None:
-                        _logger.warning('Log colormap with negative bounds, ' +
-                                        'changing bounds to positive ones.')
-                    elif vmin > vmax:
-                        _logger.warning('Colormap bounds are inverted.')
-                        vmin, vmax = vmax, vmin
-
-                # Set unset/negative bounds to positive bounds
-                if vmin is None or vmax is None:
-                    finiteData = data[numpy.isfinite(data)]
-                    posData = finiteData[finiteData > 0]
-                    if vmax is None:
-                        # 1. as an ultimate fallback
-                        vmax = posData.max() if posData.size > 0 else 1.
-                    if vmin is None:
-                        vmin = posData.min() if posData.size > 0 else vmax
-                    if vmin > vmax:
-                        vmin = vmax
-
-                norm = LogNorm(vmin, vmax)
-
-            else:  # Linear normalization
-                if colormap['autoscale']:
-                    finiteData = data[numpy.isfinite(data)]
-                    vmin = finiteData.min()
-                    vmax = finiteData.max()
-                else:
-                    vmin = colormap['vmin']
-                    vmax = colormap['vmax']
-                    if vmin > vmax:
-                        _logger.warning('Colormap bounds are inverted.')
-                        vmin, vmax = vmax, vmin
-
-                norm = Normalize(vmin, vmax)
+            # Convert colormap argument to matplotlib colormap
+            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
 
             # try as data
             if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
@@ -352,11 +294,11 @@ class BackendMatplotlib(BackendBase.BackendBase):
             image = imageClass(self.ax,
                                label="__IMAGE__" + legend,
                                interpolation='nearest',
-                               cmap=cmap,
+                               cmap=scalarMappable.cmap,
                                extent=extent,
                                picker=picker,
                                zorder=z,
-                               norm=norm)
+                               norm=scalarMappable.norm)
 
             if image.origin == 'upper':
                 image.set_extent((xmin, xmax, ymax, ymin))
@@ -761,71 +703,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         maps = [m for m in cm.datad]
         maps.sort()
         return default + tuple(maps)
-
-    def __getColormap(self, name):
-        if not self._colormaps:  # Lazy initialization of own colormaps
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['red'] = LinearSegmentedColormap(
-                'red', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 1.0, 1.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['green'] = LinearSegmentedColormap(
-                'green', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 1.0, 1.0))}
-            self._colormaps['blue'] = LinearSegmentedColormap(
-                'blue', cdict, 256)
-
-            # Temperature as defined in spslut
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (0.5, 0.0, 0.0),
-                             (0.75, 1.0, 1.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (0.25, 1.0, 1.0),
-                               (0.75, 1.0, 1.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 1.0, 1.0),
-                              (0.25, 1.0, 1.0),
-                              (0.5, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            # but limited to 256 colors for a faster display (of the colorbar)
-            self._colormaps['temperature'] = LinearSegmentedColormap(
-                'temperature', cdict, 256)
-
-            # reversed gray
-            cdict = {'red':     ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'green':   ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'blue':    ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0))}
-
-            self._colormaps['reversed gray'] = LinearSegmentedColormap(
-                'yerg', cdict, 256)
-
-        if name in self._colormaps:
-            return self._colormaps[name]
-        elif hasattr(MPLColormap, name):  # viridis and sister colormaps
-            return getattr(MPLColormap, name)
-        else:
-            # matplotlib built-in
-            return cm.get_cmap(name)
 
     # Data <-> Pixel coordinates conversion
 
