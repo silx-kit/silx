@@ -709,45 +709,68 @@ class Plot(object):
         return legend
 
     @staticmethod
+    def _computeEdges(x, histogramType):
+        """Compute the edges from a set of xs and a rule to generate the edges
+
+        :param x: the x value of the curve to tranform in an histogram
+        :param histogramType: the type of histogram we wan't to generate.
+         This define the way to center the histogram values compared to the 
+         curve value. Possible values can be::
+            - 'left'
+            - 'right'
+            - 'center'
+        :return: the edges for the given x and the histogramType
+        """
+        # for now we consider that the spaces between xs are constant
+        edges = x.copy()
+        if histogramType is 'left':
+            width=1
+            if len(x) >1:
+                width=x[1]-x[0]
+            edges=numpy.append(x[0]-width, edges)
+        if histogramType is 'center':
+            edges = Plot._computeEdges(edges, 'right')
+            width = 1
+            resEdges = []
+            for iEdge, val in enumerate(edges[:-1]):
+                width = (edges[iEdge+1]-edges[iEdge]) /2.0
+                resEdges.append(edges[iEdge]-width)
+            resEdges.append(edges[-1]-width)
+            edges=resEdges
+        if histogramType is 'right':
+            width=1
+            if len(x) >1:
+                width=x[-1]-x[-2]
+            edges=numpy.append(edges, x[-1]+width)
+
+        return edges
+
+
+    @staticmethod
     def _getHistogramValue(x, y, histogramType):
-        def _computeEdges(x, histogramType):
-            """Compute the edges from a set of xs and an option
-            TODO henri : add param doc
-            """
-            # for now we consider that the spaces between xs are constant
-            edges = x.copy()
-            if histogramType is 'left':
-                width=1
-                if len(x) >1:
-                    width=x[1]-x[0]
-                edges=numpy.append(x[0]-width, edges)
-            if histogramType is 'center':
-                edges = _computeEdges(edges, 'right')
-                width = 1
-                resEdges = []
-                for iEdge, val in enumerate(edges[:-1]):
-                    width = (edges[iEdge+1]-edges[iEdge]) /2.0
-                    resEdges.append(edges[iEdge]-width)
-                resEdges.append(edges[-1]-width)
-                edges=resEdges
-            if histogramType is 'right':
-                width=1
-                if len(x) >1:
-                    width=x[-1]-x[-2]
-                edges=numpy.append(edges, x[-1]+width)
+        """Returns the x and y value of a curve corresponding to the histogram
 
-            return edges
-
+        :param x: the x value of the curve to tranform in an histogram
+        :param y: the y value of the curve to tranform in an histogram
+        :param histogramType: the type of histogram we wan't to generate.
+         This define the way to center the histogram values compared to the 
+         curve value. Possible values can be::
+            - 'left'
+            - 'right'
+            - 'center'
+        :return: a tuple(x, y) which are the value of the histogram to be 
+         displayed as a curve
+        """
+        assert(histogramType in ['left', 'right', 'center'])
         if len(x) == len(y)+1:
             edges=x
         else:
-            edges=_computeEdges(x, histogramType)
+            edges=Plot._computeEdges(x, histogramType)
         assert(len(edges)>1)
 
         resx=[]
         resy=[]
         y = y.copy()
-        # henri : todo: ajouter un point initial et un point final ?
         for yindex in enumerate(edges[:-1]):
             # for now draw has rectangles
             resx.append(edges[yindex[0]])
