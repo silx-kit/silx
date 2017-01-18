@@ -33,8 +33,6 @@ import logging
 import os
 import unittest
 
-import silx.gui.plot3d
-
 
 _logger = logging.getLogger(__name__)
 
@@ -55,19 +53,7 @@ def suite():
         test_suite.addTest(SkipPlot3DTest())
         return test_suite
 
-    elif not silx.gui.plot3d.isAvailable():
-        _logger.warning('silx.gui.plot3d tests disabled '
-                        '(PyOpenGL or QtOpenGL not installed)')
-
-        class SkipPlot3DTest(unittest.TestCase):
-            def runTest(self):
-                self.skipTest('silx.gui.plot3d tests disabled '
-                              '(PyOpenGL or QtOpenGL not installed)')
-
-        test_suite.addTest(SkipPlot3DTest())
-        return test_suite
-
-    # Import here to avoid loading PyOpenGL if tests are disabled
+    # Import here to avoid loading modules if tests are disabled
 
     # from ..glutils import test as test_glutils
     from ..scene import test as test_scene

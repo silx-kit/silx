@@ -71,7 +71,6 @@ def suite():
     from ..fit import test as test_fit
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
-    from ..plot3d import test as test_plot3d
     from ..data import test as test_data
     from . import test_qt
     # Console tests disabled due to corruption of python environment
@@ -80,6 +79,22 @@ def suite():
     from . import test_icons
     from . import test_utils
 
+    try:
+        from ..plot3d.test import suite as test_plot3d_suite
+
+    except ImportError:
+        _logger.warning(
+            'silx.gui.plot3d tests disabled '
+            '(PyOpenGL or QtOpenGL not installed)')
+
+        class SkipPlot3DTest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest('silx.gui.plot3d tests disabled '
+                              '(PyOpenGL or QtOpenGL not installed)')
+
+        test_plot3d_suite = SkipPlot3DTest
+
+
     test_suite.addTest(test_qt.suite())
     test_suite.addTest(test_plot.suite())
     test_suite.addTest(test_fit.suite())
@@ -87,7 +102,7 @@ def suite():
     test_suite.addTest(test_widgets.suite())
     # test_suite.addTest(test_console.suite())   # see issue #538 on github
     test_suite.addTest(test_icons.suite())
-    test_suite.addTest(test_plot3d.suite())
     test_suite.addTest(test_data.suite())
     test_suite.addTest(test_utils.suite())
+    test_suite.addTest(test_plot3d_suite())
     return test_suite
