@@ -60,6 +60,9 @@ QtBinding = None  # noqa
 HAS_SVG = False
 """True if Qt provides support for Scalable Vector Graphics (QtSVG)."""
 
+HAS_OPENGL = False
+"""True if Qt provides support for OpenGL (QtOpenGL)."""
+
 # First check for an already loaded wrapper
 if 'PySide.QtCore' in sys.modules:
     BINDING = 'PySide'
@@ -111,6 +114,9 @@ if BINDING == 'PyQt4':
         from PyQt4.QtOpenGL import *  # noqa
     except ImportError:
         _logger.info("PyQt4.QtOpenGL not available")
+        HAS_OPENGL = False
+    else:
+        HAS_OPENGL = True
 
     try:
         from PyQt4.QtSvg import *  # noqa
@@ -140,6 +146,9 @@ elif BINDING == 'PySide':
         from PySide.QtOpenGL import *  # noqa
     except ImportError:
         _logger.info("PySide.QtOpenGL not available")
+        HAS_OPENGL = False
+    else:
+        HAS_OPENGL = True
 
     try:
         from PySide.QtSvg import *  # noqa
@@ -167,7 +176,10 @@ elif BINDING == 'PyQt5':
     try:
         from PyQt5.QtOpenGL import *  # noqa
     except ImportError:
-        _logger.info("PyQt5.QtOpenGL not available")
+        _logger.info("PySide.QtOpenGL not available")
+        HAS_OPENGL = False
+    else:
+        HAS_OPENGL = True
 
     try:
         from PyQt5.QtSvg import *  # noqa

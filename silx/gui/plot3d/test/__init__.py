@@ -40,24 +40,7 @@ _logger = logging.getLogger(__name__)
 def suite():
     test_suite = unittest.TestSuite()
 
-    try:
-        import OpenGL
-    except ImportError:
-        OpenGL = None
-
-    if OpenGL is None:  # PyOpenGL is not available
-        _logger.warning(
-            'silx.gui.plot3d tests disabled (PyOpenGL not installed)')
-
-        class SkipPlot3DTest(unittest.TestCase):
-            def runTest(self):
-                self.skipTest(
-                    'silx.gui.plot3d tests disabled (PyOpenGL not installed)')
-
-        test_suite.addTest(SkipPlot3DTest())
-        return test_suite
-
-    elif os.environ.get('WITH_GL_TEST', 'True') == 'False':
+    if os.environ.get('WITH_GL_TEST', 'True') == 'False':
         # Explicitly disabled tests
         _logger.warning(
             "silx.gui.plot3d tests disabled (WITH_GL_TEST=False)")
@@ -70,7 +53,7 @@ def suite():
         test_suite.addTest(SkipPlot3DTest())
         return test_suite
 
-    # Import here to avoid loading PyOpenGL if tests are disabled
+    # Import here to avoid loading modules if tests are disabled
 
     # from ..glutils import test as test_glutils
     from ..scene import test as test_scene
