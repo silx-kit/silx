@@ -28,7 +28,6 @@ The :class:`PlotWindow` uses additional widgets:
 
   - :class:`.PlotTools.PositionInfo` to display information related to mouse coordinates in the plot and related information.
   - :class:`.PlotTools.LimitsToolBar` to display and set the limits of the plot area.
-  - :class:`.PlotTools.ProfileToolBar` to provide tools to extract a profile along a line on an image.
 
 - :mod:`silx.gui.console` to provide an IPython console which can control the plot area content.
 
@@ -158,14 +157,6 @@ The following modules are the modules used internally by the plot package.
 .. currentmodule:: silx.gui.plot.PlotInteraction
 
 .. automodule:: silx.gui.plot.PlotInteraction
-   :members:
-
-:mod:`PlotTools`
-++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.PlotTools
-
-.. automodule:: silx.gui.plot.PlotTools
    :members:
 
 :mod:`_utils`

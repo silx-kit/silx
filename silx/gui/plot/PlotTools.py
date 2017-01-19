@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -78,10 +78,8 @@ class PositionInfo(qt.QWidget):
     >>> position = PositionInfo(plot=plot, converters=[
     ...     ('Radius', lambda x, y: numpy.sqrt(x*x + y*y)),
     ...     ('Angle', lambda x, y: numpy.degrees(numpy.arctan2(y, x)))])
-
     >>> toolBar.addWidget(position)  # Add the widget to the toolbar
     <...>
-
     >>> plot.show()  # To display the PlotWindow with the position widget
 
     :param plot: The PlotWidget this widget is displaying data coords from.
@@ -207,6 +205,21 @@ class PositionInfo(qt.QWidget):
 
 class LimitsToolBar(qt.QToolBar):
     """QToolBar displaying and controlling the limits of a :class:`PlotWidget`.
+
+    To run the following sample code, a QApplication must be initialized.
+    First, create a PlotWindow:
+
+    >>> from silx.gui.plot import PlotWindow
+    >>> plot = PlotWindow()  # Create a PlotWindow to add the toolbar to
+
+    Then, create the LimitsToolBar and add it to the PlotWindow.
+
+    >>> from silx.gui import qt
+    >>> from silx.gui.plot.PlotTools import LimitsToolBar
+
+    >>> toolbar = LimitsToolBar(plot=plot)  # Create the toolbar
+    >>> plot.addToolBar(qt.Qt.BottomToolBarArea, toolbar)  # Add it to the plot
+    >>> plot.show()  # To display the PlotWindow with the limits toolbar
 
     :param parent: See :class:`QToolBar`.
     :param plot: :class:`PlotWidget` instance on which to operate.

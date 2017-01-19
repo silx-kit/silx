@@ -20,6 +20,8 @@ For examples of custom plot actions, see :doc:`plotactions_examples`.
 Widgets gallery
 ---------------
 
+The :mod:`silx.gui.plot` package provides the following plotting widgets:
+
 .. |imgPlotWidget| image:: img/PlotWidget.png
    :height: 150px
    :align: middle
@@ -71,6 +73,28 @@ Widgets gallery
        to navigate in the stack. The profile tool can do a 2D profile on the
        stack of images.
 
+It also provides (and uses) widgets that can be attached to a :class:`PlotWidget`:
+
+.. |imgPositionInfo| image:: img/PositionInfo.png
+   :width: 300px
+   :align: middle
+
+.. |imgLimitsToolBar| image:: img/LimitsToolBar.png
+   :width: 300px
+   :align: middle
+
+.. list-table::
+   :widths: 1 4
+   :header-rows: 1
+
+   * - Widget
+     - Description
+   * - |imgPositionInfo|
+     - :class:`.PlotTools.PositionInfo` is a widget displaying mouse position and
+       information of a :class:`PlotWidget` associated to the mouse position.
+   * - |imgLimitsToolBar|
+     - :class:`.PlotTools.LimitsToolBar` is a QToolBar displaying and
+       controlling the limits of a :class:`PlotWidget`.
 
 Public modules
 --------------
@@ -83,6 +107,7 @@ Public modules
    imageview.rst
    stackview.rst
    plot.rst
+   plottools.rst
    plotactions.rst
    roi.rst
 
