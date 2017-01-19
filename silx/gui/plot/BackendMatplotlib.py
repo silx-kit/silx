@@ -213,16 +213,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                           selectable, draggable):
             assert parameter is not None
 
-        h, w = data.shape[0:2]
-        xmin = origin[0]
-        xmax = xmin + scale[0] * w
-        if scale[0] < 0.:
-            xmin, xmax = xmax, xmin
-        ymin = origin[1]
-        ymax = ymin + scale[1] * h
-        if scale[1] < 0.:
-            ymin, ymax = ymax, ymin
-        extent = (xmin, xmax, ymax, ymin)
+        origin = float(origin[0]), float(origin[1])
+        scale = float(scale[0]), float(scale[1])
+        height, width = data.shape[0:2]
 
         picker = (selectable or draggable)
 
@@ -251,64 +244,57 @@ class BackendMatplotlib(BackendBase.BackendBase):
                             'matplotlib %s does not support transparent '
                             'colormap.', matplotlib.__version__)
 
+        if ((height * width) > 5.0e5 and
+                origin == (0., 0.) and scale == (1., 1.)):
+            imageClass = ModestImage
+        else:
+            imageClass = AxesImage
+
         # the normalization can be a source of time waste
         # Two possibilities, we receive data or a ready to show image
-        if len(data.shape) == 3:
-            if data.shape[-1] == 4:
-                # force alpha? data[:,:,3] = 255
-                pass
-
-            # RGBA image
-            # TODO: Possibility to mirror the image
-            # in case of pixmaps just setting
-            # extend = (xmin, xmax, ymax, ymin)
-            # instead of (xmin, xmax, ymin, ymax)
-            extent = (xmin, xmax, ymin, ymax)
-            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
-                # for the time being not properly handled
-                imageClass = AxesImage
-            elif (data.shape[0] * data.shape[1]) > 5.0e5:
-                imageClass = ModestImage
-            else:
-                imageClass = AxesImage
+        if len(data.shape) == 3:  # RGBA image
             image = imageClass(self.ax,
                                label="__IMAGE__" + legend,
                                interpolation='nearest',
                                picker=picker,
-                               zorder=z)
-            if image.origin == 'upper':
-                image.set_extent((xmin, xmax, ymax, ymin))
-            else:
-                image.set_extent((xmin, xmax, ymin, ymax))
-            image.set_data(data)
+                               zorder=z,
+                               origin='lower')
 
         else:
             # Convert colormap argument to matplotlib colormap
             scalarMappable = Colors.getMPLScalarMappable(colormap, data)
 
             # try as data
-            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
-                # for the time being not properly handled
-                imageClass = AxesImage
-            elif (data.shape[0] * data.shape[1]) > 5.0e5:
-                imageClass = ModestImage
-            else:
-                imageClass = AxesImage
             image = imageClass(self.ax,
                                label="__IMAGE__" + legend,
                                interpolation='nearest',
                                cmap=scalarMappable.cmap,
-                               extent=extent,
                                picker=picker,
                                zorder=z,
-                               norm=scalarMappable.norm)
+                               norm=scalarMappable.norm,
+                               origin='lower')
 
-            if image.origin == 'upper':
-                image.set_extent((xmin, xmax, ymax, ymin))
-            else:
-                image.set_extent((xmin, xmax, ymin, ymax))
+        # Set image extent
+        xmin = origin[0]
+        xmax = xmin + scale[0] * width
+        if scale[0] < 0.:
+            xmin, xmax = xmax, xmin
 
-            image.set_data(data)
+        ymin = origin[1]
+        ymax = ymin + scale[1] * height
+        if scale[1] < 0.:
+            ymin, ymax = ymax, ymin
+
+        image.set_extent((xmin, xmax, ymin, ymax))
+
+        # Set image data
+        if scale[0] < 0. or scale[1] < 0.:
+            # For negative scale, step by -1
+            xstep = 1 if scale[0] >= 0. else -1
+            ystep = 1 if scale[1] >= 0. else -1
+            data = data[::ystep, ::xstep]
+
+        image.set_data(data)
 
         self.ax.add_artist(image)
 
