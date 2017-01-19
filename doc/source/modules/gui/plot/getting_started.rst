@@ -257,6 +257,22 @@ It is possible to specify the ``color`` of the curve, its ``linewidth`` and ``li
                  color='green', linestyle='-', symbol='s')
 
 
+
+Histogram
++++++++++
+
+Data can be displayed as an histogram. This must be specified when calling the the addCurve function. (using ``histogram``, See :meth:`.PlotWidget.addCurve` for more details ).
+
+Histogram steps can be centered on x values or set at the left or the right of the given x values.
+
+.. code-block:: python
+  
+    import numpy
+    x = numpy.arange(0, 20, 1)
+    plot.addCurve(x, x+1, histogram='center', fill=True, color='green')
+
+.. note:: You can also give x as edges. For this you must have len(x) = len(y) + 1
+
 Plot images in a widget
 -----------------------
 
