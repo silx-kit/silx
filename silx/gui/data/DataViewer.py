@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "12/01/2017"
+__date__ = "18/01/2017"
 
 import numpy
 import numbers
@@ -46,6 +46,46 @@ except ImportError:
     import six
 
 _logger = logging.getLogger(__name__)
+
+
+class DataInfo(object):
+    """Store extracted information from a data"""
+
+    def __init__(self, data):
+        self.isArray = False
+        self.interpretation = None
+        self.isNumeric = False
+        self.isRecord = False
+        self.shape = tuple()
+        self.dim = 0
+
+        if data is None:
+            return
+
+        if isinstance(data, numpy.ndarray):
+            self.isArray = True
+        elif silx.io.is_dataset(data) and data.shape != tuple():
+            self.isArray = True
+        else:
+            self.isArray = False
+
+        if silx.io.is_dataset(data):
+            self.interpretation = data.attrs.get("interpretation", None)
+        else:
+            self.interpretation = None
+
+        if hasattr(data, "dtype"):
+            self.isNumeric = numpy.issubdtype(data.dtype, numpy.number)
+            self.isRecord = data.dtype.fields is not None
+        else:
+            self.isNumeric = isinstance(data, numbers.Number)
+            self.isRecord = False
+
+        if hasattr(data, "shape"):
+            self.shape = data.shape
+        else:
+            self.shape = tuple()
+        self.dim = len(self.shape)
 
 
 class DataView(object):
@@ -111,7 +151,7 @@ class DataView(object):
         """
         return None
 
-    def getDataPriority(self, data):
+    def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
 
@@ -121,6 +161,8 @@ class DataView(object):
         - `100` means this view should be used for this data
         - ...
 
+        :param object data: The data to check
+        :param DataInfo info: Pre-computed information on the data
         :rtype: int
         """
         return -1
@@ -138,7 +180,7 @@ class _EmptyView(DataView):
     def createWidget(self, parent):
         return qt.QLabel(parent)
 
-    def getDataPriority(self, data):
+    def getDataPriority(self, data, info):
         return -1
 
 
@@ -167,17 +209,16 @@ class _Plot1dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = True
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or not info.isNumeric:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
+        if info.dim < 1:
             return -1
-        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-        if not isNumeric:
-            return -1
-        if len(data.shape) == 1:
+        if info.interpretation == "spectrum":
+            return 110
+        if info.dim == 2 and info.shape[0] == 1:
+            return 210
+        if info.dim == 1:
             return 100
         else:
             return 10
@@ -211,22 +252,17 @@ class _Plot2dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or not info.isNumeric:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
+        if info.dim < 2:
             return -1
-        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-        if not isNumeric:
-            return -1
-        if len(data.shape) < 2:
-            return -1
-        if len(data.shape) == 2:
-            return 100
+        if info.interpretation == "image":
+            return 210
+        if info.dim == 2:
+            return 200
         else:
-            return 10
+            return 190
 
 
 class _Plot3dView(DataView):
@@ -274,19 +310,12 @@ class _Plot3dView(DataView):
         plot.setData(data)
         self.__resetZoomNextTime = False
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or not info.isNumeric:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
+        if info.dim < 3:
             return -1
-        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-        if not isNumeric:
-            return -1
-        if len(data.shape) < 3:
-            return -1
-        if len(data.shape) == 3:
+        if info.dim == 3:
             return 100
         else:
             return 10
@@ -310,17 +339,13 @@ class _ArrayView(DataView):
     def setData(self, data):
         self.getWidget().setArrayData(data)
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or info.isRecord:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
+        if info.dim < 2:
             return -1
-        if data.dtype.fields is not None:
-            return -1
-        if len(data.shape) < 2:
-            return -1
+        if info.interpretation in ["scalar", "scaler"]:
+            return 110
         return 50
 
 
@@ -360,25 +385,17 @@ class _StackView(DataView):
         self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray or not info.isNumeric:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
+        if info.dim < 3:
             return -1
-        isNumeric = numpy.issubdtype(data.dtype, numpy.number)
-        if not isNumeric:
-            return -1
-        if len(data.shape) < 3:
-            return -1
-        if len(data.shape) == 3:
-            return 90
-        else:
-            return 10
+        if info.interpretation == "image":
+            return 110
+        return 90
 
 
-class _TextView(DataView):
+class _RawView(DataView):
     """View displaying data using text"""
 
     __format = "%g"
@@ -432,7 +449,7 @@ class _TextView(DataView):
         text = self.toString(data)
         self.getWidget().setText(text)
 
-    def getDataPriority(self, data):
+    def getDataPriority(self, data, info):
         if data is None:
             return -1
         return 0
@@ -447,24 +464,26 @@ class _RecordView(DataView):
     def createWidget(self, parent):
         from .RecordTableView import RecordTableView
         widget = RecordTableView(parent)
+        widget.setWordWrap(False)
         return widget
 
     def clear(self):
-        self.getWidget().model().setArrayData(None)
+        self.getWidget().setArrayData(None)
 
     def setData(self, data):
-        self.getWidget().model().setArrayData(data)
+        widget = self.getWidget()
+        widget.setArrayData(data)
+        widget.resizeRowsToContents()
+        widget.resizeColumnsToContents()
 
-    def getDataPriority(self, data):
-        if data is None:
+    def getDataPriority(self, data, info):
+        if data is None or not info.isArray:
             return -1
-        isArray = isinstance(data, numpy.ndarray)
-        isArray = isArray or (silx.io.is_dataset(data) and data.shape != tuple())
-        if not isArray:
-            return -1
-        if data.dtype.fields is not None:
+        if info.dim == 1 and info.shape[0] == 1:
+            return 110
+        if info.dim == 1:
             return 40
-        if len(data.shape) == 1:
+        elif info.isRecord:
             return 40
         return -1
 
@@ -500,7 +519,7 @@ class DataViewer(qt.QFrame):
     PLOT1D_MODE = 1
     PLOT2D_MODE = 2
     PLOT3D_MODE = 3
-    TEXT_MODE = 4
+    RAW_MODE = 4
     ARRAY_MODE = 5
     STACK_MODE = 6
     RECORD_MODE = 7
@@ -549,7 +568,7 @@ class DataViewer(qt.QFrame):
             (_Plot1dView, self.PLOT1D_MODE),
             (_Plot2dView, self.PLOT2D_MODE),
             (_Plot3dView, self.PLOT3D_MODE),
-            (_TextView, self.TEXT_MODE),
+            (_RawView, self.RAW_MODE),
             (_ArrayView, self.ARRAY_MODE),
             (_StackView, self.STACK_MODE),
             (_RecordView, self.RECORD_MODE),
@@ -605,10 +624,14 @@ class DataViewer(qt.QFrame):
         axisNames = self.__currentView.axesNames()
         if len(axisNames) > 0:
             self.__useAxisSelection = True
-            self.__axisSelection.setVisible(True)
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
             self.__numpySelection.setData(self.__data)
+            if hasattr(self.__data, "shape"):
+                isVisible = not (len(axisNames) == 1 and len(self.__data.shape) == 1)
+            else:
+                isVisible = True
+            self.__axisSelection.setVisible(isVisible)
         else:
             self.__useAxisSelection = False
             self.__axisSelection.setVisible(False)
@@ -669,7 +692,8 @@ class DataViewer(qt.QFrame):
         data = self.__data
 
         # sort available views according to priority
-        priorities = [v.getDataPriority(data) for v in self.__views.values()]
+        info = DataInfo(data)
+        priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
         views = zip(priorities, self.__views.values())
         views = filter(lambda t: t[0] >= 0, views)
         views = sorted(views, reverse=True)
@@ -677,6 +701,7 @@ class DataViewer(qt.QFrame):
         # store available views
         if len(views) == 0:
             self.__setCurrentAvailableViews([])
+            available = []
         else:
             if views[0][0] != 0:
                 # remove 0-priority, if other are available
@@ -685,12 +710,26 @@ class DataViewer(qt.QFrame):
             self.__setCurrentAvailableViews(available)
 
         # display the view with the most priority (the default view)
-        if len(views) > 0:
-            view = views[0][1]
-        else:
-            view = self.__views[DataViewer.EMPTY_MODE]
+        view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
         self.__setDisplayedView(view)
+
+    def getDefaultViewFromAvailableViews(self, data, available):
+        """Returns the default view which will be used according to available
+        views.
+
+        :param object data: data which will be displayed
+        :param list[view] available: List of available views, from highest
+            priority to lowest.
+        :rtype: DataView
+        """
+        if len(available) > 0:
+            # returns the view with the highest priority
+            view = available[0]
+        else:
+            # else returns the empty view
+            view = self.__views[DataViewer.EMPTY_MODE]
+        return view
 
     def __setCurrentAvailableViews(self, availableViews):
         """Set the current available viewa

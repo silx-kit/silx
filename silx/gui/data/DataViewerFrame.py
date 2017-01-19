@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "15/12/2016"
+__date__ = "17/01/2017"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -91,6 +91,13 @@ class DataViewerFrame(qt.QWidget):
     def __displayModeChanged(self, modeId):
         """Called when the display mode changed"""
         self.displayModeChanged.emit(modeId)
+
+    def currentAvailableViews(self):
+        """Returns the list of available views for the current data
+
+        :rtype: List[DataView]
+        """
+        return self.__dataViewer.currentAvailableViews()
 
     def setData(self, data):
         """Set the data to view.

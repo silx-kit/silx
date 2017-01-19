@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "17/01/2017"
 
 import os
 import tempfile
@@ -69,7 +69,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget = self.create_widget()
         for data in data_list:
             widget.setData(data)
-            self.assertEqual(DataViewer.TEXT_MODE, widget.displayMode())
+            self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
 
     def test_plot_1d_data(self):
         data = numpy.arange(3 ** 1)
@@ -90,11 +90,13 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 3
         widget = self.create_widget()
         widget.setData(data)
+        availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
         try:
             import OpenGL  # noqa
-            self.assertEqual(DataViewer.PLOT3D_MODE, widget.displayMode())
+            self.assertIn(DataViewer.PLOT3D_MODE, availableModes)
         except ImportError:
-            self.assertEqual(DataViewer.STACK_MODE, widget.displayMode())
+            self.assertIn(DataViewer.STACK_MODE, availableModes)
+        self.assertEqual(DataViewer.PLOT2D_MODE, widget.displayMode())
 
     def test_array_1d_data(self):
         data = numpy.array(["aaa"] * (3 ** 1))
@@ -147,7 +149,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.setData(10)
         widget.setData(None)
         modes = listener.arguments(argumentIndex=0)
-        self.assertEquals(modes, [DataViewer.TEXT_MODE, DataViewer.EMPTY_MODE])
+        self.assertEquals(modes, [DataViewer.RAW_MODE, DataViewer.EMPTY_MODE])
 
     def test_change_display_mode(self):
         data = numpy.arange(10 ** 4)
@@ -160,8 +162,8 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEquals(widget.displayMode(), DataViewer.PLOT2D_MODE)
         widget.setDisplayMode(DataViewer.ARRAY_MODE)
         self.assertEquals(widget.displayMode(), DataViewer.ARRAY_MODE)
-        widget.setDisplayMode(DataViewer.TEXT_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.TEXT_MODE)
+        widget.setDisplayMode(DataViewer.RAW_MODE)
+        self.assertEquals(widget.displayMode(), DataViewer.RAW_MODE)
         widget.setDisplayMode(DataViewer.EMPTY_MODE)
         self.assertEquals(widget.displayMode(), DataViewer.EMPTY_MODE)
 

@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "10/01/2016"
+__date__ = "16/01/2017"
 
 import numpy
 
@@ -382,7 +382,8 @@ class StackView(qt.QMainWindow):
         self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
                             origin=origin, scale=scale,
-                            colormap=self.getColormap())
+                            colormap=self.getColormap(),
+                            resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
         self.__updatePlotLabels()
 

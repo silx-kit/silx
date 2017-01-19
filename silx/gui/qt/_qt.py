@@ -40,7 +40,7 @@ provides the namespace of PyQt5 over PyQt4 and PySide.
 
 __authors__ = ["V.A. Sole - ESRF Data Analysis"]
 __license__ = "MIT"
-__date__ = "30/11/2016"
+__date__ = "17/01/2017"
 
 
 import logging
@@ -162,6 +162,10 @@ elif BINDING == 'PySide':
 
     # Import loadUi wrapper for PySide
     from ._pyside_dynamic import loadUi  # noqa
+
+    # Import missing classes
+    if not hasattr(locals(), "QIdentityProxyModel"):
+        from ._pyside_missing import QIdentityProxyModel  # noqa
 
 elif BINDING == 'PyQt5':
     _logger.debug('Using PyQt5 bindings')

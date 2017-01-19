@@ -36,7 +36,7 @@ from silx.gui import icons
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "16/01/2017"
 
 
 class FrameBrowser(qt.QWidget):
@@ -67,9 +67,9 @@ class FrameBrowser(qt.QWidget):
         self.previousButton = qt.QPushButton(self)
         self.previousButton.setIcon(icons.getQIcon("previous"))
         self.previousButton.setIconSize(iconSize)
-        self.lineEdit = qt.QLineEdit(self)
+        self._lineEdit = qt.QLineEdit(self)
 
-        self.label = qt.QLabel(self)
+        self._label = qt.QLabel(self)
         self.nextButton = qt.QPushButton(self)
         self.nextButton.setIcon(icons.getQIcon("next"))
         self.nextButton.setIconSize(iconSize)
@@ -79,8 +79,8 @@ class FrameBrowser(qt.QWidget):
 
         self.mainLayout.addWidget(self.firstButton)
         self.mainLayout.addWidget(self.previousButton)
-        self.mainLayout.addWidget(self.lineEdit)
-        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addWidget(self._lineEdit)
+        self.mainLayout.addWidget(self._label)
         self.mainLayout.addWidget(self.nextButton)
         self.mainLayout.addWidget(self.lastButton)
 
@@ -90,11 +90,11 @@ class FrameBrowser(qt.QWidget):
         else:
             first, last = 0, n
 
-        self.lineEdit.setFixedWidth(self.lineEdit.fontMetrics().width('%05d' % last))
-        validator = qt.QIntValidator(first, last, self.lineEdit)
-        self.lineEdit.setValidator(validator)
-        self.lineEdit.setText("%d" % first)
-        self.label.setText("of %d" % last)
+        self._lineEdit.setFixedWidth(self._lineEdit.fontMetrics().width('%05d' % last))
+        validator = qt.QIntValidator(first, last, self._lineEdit)
+        self._lineEdit.setValidator(validator)
+        self._lineEdit.setText("%d" % first)
+        self._label.setText("of %d" % last)
 
         self._index = first
         """0-based index"""
@@ -103,35 +103,49 @@ class FrameBrowser(qt.QWidget):
         self.previousButton.clicked.connect(self._previousClicked)
         self.nextButton.clicked.connect(self._nextClicked)
         self.lastButton.clicked.connect(self._lastClicked)
-        self.lineEdit.editingFinished.connect(self._textChangedSlot)
+        self._lineEdit.editingFinished.connect(self._textChangedSlot)
+
+    def lineEdit(self):
+        """Returns the line edit provided by this widget.
+
+        :rtype: qt.QLineEdit
+        """
+        return self._lineEdit
+
+    def limitWidget(self):
+        """Returns the widget displaying axes limits.
+
+        :rtype: qt.QLabel
+        """
+        return self._label
 
     def _firstClicked(self):
         """Select first/lowest frame number"""
-        self.lineEdit.setText("%d" % self.lineEdit.validator().bottom())
+        self._lineEdit.setText("%d" % self._lineEdit.validator().bottom())
         self._textChangedSlot()
 
     def _previousClicked(self):
         """Select previous frame number"""
-        if self._index > self.lineEdit.validator().bottom():
-            self.lineEdit.setText("%d" % (self._index - 1))
+        if self._index > self._lineEdit.validator().bottom():
+            self._lineEdit.setText("%d" % (self._index - 1))
             self._textChangedSlot()
 
     def _nextClicked(self):
         """Select next frame number"""
-        if self._index < (self.lineEdit.validator().top()):
-            self.lineEdit.setText("%d" % (self._index + 1))
+        if self._index < (self._lineEdit.validator().top()):
+            self._lineEdit.setText("%d" % (self._index + 1))
             self._textChangedSlot()
 
     def _lastClicked(self):
         """Select last/highest frame number"""
-        self.lineEdit.setText("%d" % self.lineEdit.validator().top())
+        self._lineEdit.setText("%d" % self._lineEdit.validator().top())
         self._textChangedSlot()
 
     def _textChangedSlot(self):
         """Select frame number typed in the line edit widget"""
-        txt = self.lineEdit.text()
+        txt = self._lineEdit.text()
         if not len(txt):
-            self.lineEdit.setText("%d" % self._index)
+            self._lineEdit.setText("%d" % self._index)
             return
         new_value = int(txt)
         if new_value == self._index:
@@ -163,11 +177,11 @@ class FrameBrowser(qt.QWidget):
         :param int last: Maximum frame index"""
         bottom = min(first, last)
         top = max(first, last)
-        self.lineEdit.validator().setTop(top)
-        self.lineEdit.validator().setBottom(bottom)
+        self._lineEdit.validator().setTop(top)
+        self._lineEdit.validator().setBottom(bottom)
         self._index = bottom
-        self.lineEdit.setText("%d" % self._index)
-        self.label.setText(" limits: %d, %d" % (bottom, top))
+        self._lineEdit.setText("%d" % self._index)
+        self._label.setText(" limits: %d, %d " % (bottom, top))
 
     def setNFrames(self, nframes):
         """Set minimum=0 and maximum=nframes-1 frame numbers.
@@ -177,12 +191,12 @@ class FrameBrowser(qt.QWidget):
         :param int nframes: Number of frames"""
         bottom = 0
         top = nframes - 1
-        self.lineEdit.validator().setTop(top)
-        self.lineEdit.validator().setBottom(bottom)
+        self._lineEdit.validator().setTop(top)
+        self._lineEdit.validator().setBottom(bottom)
         self._index = bottom
-        self.lineEdit.setText("%d" % self._index)
+        self._lineEdit.setText("%d" % self._index)
         # display 1-based index in label
-        self.label.setText("%d of %d" % (self._index + 1, top + 1))
+        self._label.setText(" %d of %d " % (self._index + 1, top + 1))
 
     def getCurrentIndex(self):
         """Get 0-based frame index
@@ -193,7 +207,7 @@ class FrameBrowser(qt.QWidget):
         """Set 0-based frame index
 
         :param int value: Frame number"""
-        self.lineEdit.setText("%d" % value)
+        self._lineEdit.setText("%d" % value)
         self._textChangedSlot()
 
 
@@ -231,6 +245,20 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
 
         self._slider.valueChanged[int].connect(self._sliderSlot)
         self._browser.sigIndexChanged.connect(self._browserSlot)
+
+    def lineEdit(self):
+        """Returns the line edit provided by this widget.
+
+        :rtype: qt.QLineEdit
+        """
+        return self._browser.lineEdit()
+
+    def limitWidget(self):
+        """Returns the widget displaying axes limits.
+
+        :rtype: qt.QLabel
+        """
+        return self._browser.limitWidget()
 
     def setMinimum(self, value):
         """Set minimum value

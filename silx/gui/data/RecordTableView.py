@@ -36,7 +36,103 @@ from silx.gui import qt
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "06/01/2017"
+__date__ = "17/01/2017"
+
+
+class _MultiLineItem(qt.QItemDelegate):
+    """Draw a multiline text without hiding anything.
+
+    The paint method display a cell without any wrap. And an editor is
+    available to scroll into the selected cell.
+    """
+
+    def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param qt.QWidget parent: Parent of the widget
+        """
+        qt.QItemDelegate.__init__(self, parent)
+        self.__textOptions = qt.QTextOption()
+        self.__textOptions.setFlags(qt.QTextOption.IncludeTrailingSpaces |
+                                    qt.QTextOption.ShowTabsAndSpaces)
+        self.__textOptions.setWrapMode(qt.QTextOption.NoWrap)
+        self.__textOptions.setAlignment(qt.Qt.AlignTop | qt.Qt.AlignLeft)
+
+    def paint(self, painter, option, index):
+        """
+        Write multiline text without using any wrap or any alignment according
+        to the cell size.
+
+        :param qt.QPainter painter: Painter context used to displayed the cell
+        :param qt.QStyleOptionViewItem option: Control how the editor is shown
+        :param qt.QIndex index: Index of the data to display
+        """
+        painter.save()
+
+        # set colors
+        painter.setPen(qt.QPen(qt.Qt.NoPen))
+        if option.state & qt.QStyle.State_Selected:
+            brush = option.palette.highlight()
+            painter.setBrush(brush)
+        else:
+            brush = index.data(qt.Qt.BackgroundRole)
+            if brush is None:
+                # default background color for a cell
+                brush = qt.Qt.white
+            painter.setBrush(brush)
+        painter.drawRect(option.rect)
+
+        if index.isValid():
+            if option.state & qt.QStyle.State_Selected:
+                brush = option.palette.highlightedText()
+            else:
+                brush = index.data(qt.Qt.ForegroundRole)
+                if brush is None:
+                    brush = option.palette.text()
+            painter.setPen(qt.QPen(brush.color()))
+            text = index.data(qt.Qt.DisplayRole)
+            painter.drawText(qt.QRectF(option.rect), text, self.__textOptions)
+
+        painter.restore()
+
+    def createEditor(self, parent, option, index):
+        """
+        Returns the widget used to edit the item specified by index for editing.
+
+        We use it not to edit the content but to show the content with a
+        convenient scroll bar.
+
+        :param qt.QWidget parent: Parent of the widget
+        :param qt.QStyleOptionViewItem option: Control how the editor is shown
+        :param qt.QIndex index: Index of the data to display
+        """
+        if not index.isValid():
+            return super(_MultiLineItem, self).createEditor(parent, option, index)
+
+        editor = qt.QTextEdit(parent)
+        editor.setReadOnly(True)
+        return editor
+
+    def setEditorData(self, editor, index):
+        """
+        Read data from the model and feed the editor.
+
+        :param qt.QWidget editor: Editor widget
+        :param qt.QIndex index: Index of the data to display
+        """
+        text = index.model().data(index, qt.Qt.EditRole)
+        editor.setText(text)
+
+    def updateEditorGeometry(self, editor, option, index):
+        """
+        Update the geometry of the editor according to the changes of the view.
+
+        :param qt.QWidget editor: Editor widget
+        :param qt.QStyleOptionViewItem option: Control how the editor is shown
+        :param qt.QIndex index: Index of the data to display
+        """
+        editor.setGeometry(option.rect)
 
 
 class RecordTableModel(qt.QAbstractTableModel):
@@ -62,7 +158,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         # set _data
         self.setArrayData(data)
 
-    def toString(self, data):
+    def toString(self, data, useQuoteForText=True):
         """Rendering a data into a readable string
 
         :param data: Data to render
@@ -76,13 +172,19 @@ class RecordTableModel(qt.QAbstractTableModel):
             return "[" + " ".join(text) + "]"
         elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
             try:
-                return "\"%s\"" % data.decode("utf-8")
+                text = "%s" % data.decode("utf-8")
+                if useQuoteForText:
+                    text = "\"%s\"" % text
+                return text
             except UnicodeDecodeError:
                 pass
             import binascii
             return binascii.hexlify(data).decode("ascii")
         elif isinstance(data, six.string_types):
-            return "\"%s\"" % data
+            text = "%s" % data
+            if useQuoteForText:
+                text = "\"%s\"" % text
+            return text
         elif isinstance(data, numpy.complex_):
             if data.imag < 0:
                 template = self.__format + " - " + self.__format + "j"
@@ -131,6 +233,9 @@ class RecordTableModel(qt.QAbstractTableModel):
 
         if role == qt.Qt.DisplayRole:
             return self.toString(data)
+        elif role == qt.Qt.EditRole:
+            return self.toString(data, useQuoteForText=False)
+        return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
         """Returns the 0-based row or column index, for display in the
@@ -153,7 +258,8 @@ class RecordTableModel(qt.QAbstractTableModel):
 
     def flags(self, index):
         """QAbstractTableModel method to inform the view whether data
-        is editable or not."""
+        is editable or not.
+        """
         return qt.QAbstractTableModel.flags(self, index)
 
     def setArrayData(self, data):
@@ -223,13 +329,62 @@ class RecordTableModel(qt.QAbstractTableModel):
             self.reset()
 
 
+class _ShowEditorProxyModel(qt.QIdentityProxyModel):
+    """
+    Allow to custom the flag edit of the model
+    """
+
+    def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param qt.QObject arent: parent object
+        """
+        super(_ShowEditorProxyModel, self).__init__(parent)
+        self.__forceEditable = False
+
+    def flags(self, index):
+        flag = qt.QIdentityProxyModel.flags(self, index)
+        if self.__forceEditable:
+            flag = flag | qt.Qt.ItemIsEditable
+        return flag
+
+    def forceCellEditor(self, show):
+        """
+        Enable the editable flag to allow to display cell editor.
+        """
+        if self.__forceEditable == show:
+            return
+        self.beginResetModel()
+        self.__forceEditable = show
+        self.endResetModel()
+
+
 class RecordTableView(qt.QTableView):
     """TableView using DatabaseTableModel as default model.
     """
     def __init__(self, parent=None):
         """
+        Constructor
 
-        :param parent: parent QWidget
+        :param qt.QWidget parent: parent QWidget
         """
         qt.QTableView.__init__(self, parent)
-        self.setModel(RecordTableModel())
+
+        model = _ShowEditorProxyModel(self)
+        model.setSourceModel(RecordTableModel())
+        self.setModel(model)
+        self.__multilineView = _MultiLineItem(self)
+        self.setEditTriggers(qt.QAbstractItemView.AllEditTriggers)
+
+    def setArrayData(self, data):
+        self.model().sourceModel().setArrayData(data)
+        if data is not None:
+            if issubclass(data.dtype.type, (numpy.string_, numpy.unicode_)):
+                # TODO it would be nice to also fix fields
+                # but using it only for string array is already very useful
+                self.setItemDelegateForColumn(0, self.__multilineView)
+                self.model().forceCellEditor(True)
+            else:
+                self.setItemDelegateForColumn(0, None)
+                self.model().forceCellEditor(False)
