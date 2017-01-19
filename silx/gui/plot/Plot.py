@@ -778,8 +778,8 @@ class Plot(object):
             edges=Plot._computeEdges(x, histogramType)
         assert(len(edges)>1)
         
-        resx=numpy.empty((len(edges)-1)*2, dtype='float32')
-        resy=numpy.empty((len(edges)-1)*2, dtype='float32')
+        resx=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
+        resy=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
         # duplicate x and y values with a small shift to get the stairs effect
         resx[:-1:2] = edges[:-1]
         resx[1::2] = edges[1:]
