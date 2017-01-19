@@ -107,8 +107,9 @@ Public modules
    imageview.rst
    stackview.rst
    plot.rst
-   plottools.rst
    plotactions.rst
+   plottools.rst
+   profile.rst
    roi.rst
 
 Internals

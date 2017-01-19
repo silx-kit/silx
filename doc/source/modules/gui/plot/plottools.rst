@@ -1,6 +1,5 @@
-
-:mod:`PlotTools`
-================
+:mod:`PlotTools`: Tool widgets for PlotWidget
+=============================================
 
 .. currentmodule:: silx.gui.plot.PlotTools
 
@@ -10,8 +9,12 @@
 ---------------------------
 
 .. autoclass:: PositionInfo
+   :show-inheritance:
+   :members:
 
 :class:`LimitsToolBar` class
 ----------------------------
 
 .. autoclass:: LimitsToolBar
+   :show-inheritance:
+   :members:
