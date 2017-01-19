@@ -480,6 +480,8 @@ class Plot(object):
         different legend argument.
         To replace/update an existing curve, call :meth:`addCurve` with the
         existing curve legend.
+        If you wan't to display the curve values as an histogram see the
+        histogram parameter.
 
         When curve parameters are not provided, if a curve with the
         same legend is displayed in the plot, its parameters are used.
@@ -536,15 +538,17 @@ class Plot(object):
                                 (Default: True)
         :param bool fill: True to fill the curve, False otherwise (default).
         :param bool resetzoom: True (the default) to reset the zoom.
-        :param str histogram: values can be::
-            - None (the default) then a cuve is displayed.
-              Otherwise we will draw an histogram, right, left and center. If a
-            - 'left'. the step will be draw at the left side of the
-               x point value. Except if x is setted to edges
-            - 'right'. the step will be draw at the right side of the
-               x point value. Except if x is setted to edges
-            - 'center'. the step will be center on the
-               x point value. Except if x is setted to edges
+        :param str histogram: if not None then the curve will be draw as an
+            histogram. The step for each values of the curve can be set to the
+            left, center or right of the original x curve values.
+            If histogram is not None and len(x) == len(y+1) then x is directly
+            take as edges of the histogram.
+            Type of histogram::
+
+            - None (default)
+            - 'left'
+            - 'right'
+            - 'center'
 
         :returns: The key string identify this curve
         """
