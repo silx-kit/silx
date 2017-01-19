@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -190,7 +190,7 @@ class Mask(qt.QObject):
 
         :param int level: Value of the mask to set to 0.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         self._mask[self._mask == level] = 0
         self._notify()
 
@@ -218,7 +218,7 @@ class Mask(qt.QObject):
 
         :param int level: The level to invert.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         masked = self._mask == level
         self._mask[self._mask == 0] = level
         self._mask[masked] = 0
@@ -236,7 +236,7 @@ class Mask(qt.QObject):
         :param int width:
         :param bool mask: True to mask (default), False to unmask.
         """
-        assert level > 0 and level < 256
+        assert 0 < level < 256
         selection = self._mask[max(0, row):row + height + 1,
                                max(0, col):col + width + 1]
         if mask:
@@ -465,7 +465,8 @@ class MaskToolsWidget(qt.QWidget):
         layout.addStretch(1)
         self.setLayout(layout)
 
-    def _hboxWidget(self, *widgets, **kwargs):
+    @staticmethod
+    def _hboxWidget(*widgets, **kwargs):
         """Place widgets in widget with horizontal layout
 
         :param widgets: Widgets to position horizontally
@@ -769,14 +770,19 @@ class MaskToolsWidget(qt.QWidget):
         self.maxLineEdit.setEnabled(False)
         form.addRow('Max:', self.maxLineEdit)
 
-        maskBtn = qt.QPushButton('Apply mask')
-        maskBtn.clicked.connect(self._maskBtnClicked)
-        form.addRow(maskBtn)
+        self.applyMaskBtn = qt.QPushButton('Apply mask')
+        self.applyMaskBtn.clicked.connect(self._maskBtnClicked)
+        self.applyMaskBtn.setEnabled(False)
+        form.addRow(self.applyMaskBtn)
 
-        self.thresholdWidget = qt.QWidget()
-        self.thresholdWidget.setLayout(form)
-        self.thresholdWidget.setEnabled(False)
-        layout.addWidget(self.thresholdWidget)
+        self.maskNanBtn = qt.QPushButton('Mask not finite values')
+        self.maskNanBtn.setToolTip('Mask Not a Number and infinite values')
+        self.maskNanBtn.clicked.connect(self._maskNotFiniteBtnClicked)
+        form.addRow(self.maskNanBtn)
+
+        thresholdWidget = qt.QWidget()
+        thresholdWidget.setLayout(form)
+        layout.addWidget(thresholdWidget)
 
         layout.addStretch(1)
 
@@ -1017,7 +1023,7 @@ class MaskToolsWidget(qt.QWidget):
         :param int level: The mask level to highlight
         :param float alpha: Alpha level of mask in [0., 1.]
         """
-        assert level > 0 and level <= self._maxLevelNumber
+        assert 0 < level <= self._maxLevelNumber
 
         colors = numpy.empty((self._maxLevelNumber + 1, 4), dtype=numpy.float32)
 
@@ -1025,7 +1031,8 @@ class MaskToolsWidget(qt.QWidget):
         colors[:, :3] = self._defaultOverlayColor[:3]
 
         # check if some colors has been directly set by the user
-        colors[self._defaultColors==False, :3] = self._overlayColors[self._defaultColors==False, :3]
+        mask = numpy.equal(self._defaultColors, False)
+        colors[mask, :3] = self._overlayColors[mask, :3]
 
         # Set alpha
         colors[:, -1] = alpha / 2.
@@ -1041,7 +1048,9 @@ class MaskToolsWidget(qt.QWidget):
     def resetMaskColors(self, level=None):
         """Reset the mask color at the given level to be defaultColors
 
-        :param level: the index of the mask for which we want to reset the color. If none we will reset color for all masks.
+        :param level:
+            The index of the mask for which we want to reset the color.
+            If none we will reset color for all masks.
         """
         if level is None:
             self._defaultColors[level] = True
@@ -1054,7 +1063,9 @@ class MaskToolsWidget(qt.QWidget):
         """Set the masks color
 
         :param rgb: The rgb color
-        :param level: the index of the mask for which we want to change the color. If none set this color for all the masks
+        :param level:
+            The index of the mask for which we want to change the color.
+            If none set this color for all the masks
         """
         if level is None:
             self._overlayColors[:] = rgb
@@ -1078,13 +1089,15 @@ class MaskToolsWidget(qt.QWidget):
         self._updateInteractiveMode()
 
     def _pencilWidthChanged(self, width):
+
+        old = self.pencilSpinBox.blockSignals(True)
         try:
-            old = self.pencilSpinBox.blockSignals(True)
             self.pencilSpinBox.setValue(width)
         finally:
             self.pencilSpinBox.blockSignals(old)
+
+        old = self.pencilSlider.blockSignals(True)
         try:
-            old = self.pencilSlider.blockSignals(True)
             self.pencilSlider.setValue(width)
         finally:
             self.pencilSlider.blockSignals(old)
@@ -1209,12 +1222,24 @@ class MaskToolsWidget(qt.QWidget):
             doMask = self._isMasking()
             ox, oy = self._origin
             sx, sy = self._scale
+
+            height = int(abs(event['height'] / sy))
+            width = int(abs(event['width'] / sx))
+
+            row = int((event['y'] - oy) / sy)
+            if sy < 0:
+                row -= height
+
+            col = int((event['x'] - ox) / sx)
+            if sx < 0:
+                col -= width
+
             self._mask.updateRectangle(
                 level,
-                row=int((event['y'] - oy) / sy),
-                col=int((event['x'] - ox) / sx),
-                height=int(event['height'] / sy),
-                width=int(event['width'] / sx),
+                row=row,
+                col=col,
+                height=height,
+                width=width,
                 mask=doMask)
             self._mask.commit()
 
@@ -1222,7 +1247,7 @@ class MaskToolsWidget(qt.QWidget):
                 event['event'] == 'drawingFinished'):
             doMask = self._isMasking()
             # Convert from plot to array coords
-            vertices = event['points'] / self._scale - self._origin
+            vertices = (event['points'] - self._origin) / self._scale
             vertices = vertices.astype(numpy.int)[:, (1, 0)]  # (row, col)
             self._mask.updatePolygon(level, vertices, doMask)
             self._mask.commit()
@@ -1230,7 +1255,7 @@ class MaskToolsWidget(qt.QWidget):
         elif self._drawingMode == 'pencil':
             doMask = self._isMasking()
             # convert from plot to array coords
-            col, row = event['points'][-1] / self._scale - self._origin
+            col, row = (event['points'][-1] - self._origin) / self._scale
             col, row = int(col), int(row)
             brushSize = self.pencilSpinBox.value()
 
@@ -1259,16 +1284,19 @@ class MaskToolsWidget(qt.QWidget):
         if triggered:
             self.minLineEdit.setEnabled(True)
             self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(True)
 
     def _betweenThresholdActionTriggered(self, triggered):
         if triggered:
             self.minLineEdit.setEnabled(True)
             self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
 
     def _aboveThresholdActionTriggered(self, triggered):
         if triggered:
             self.minLineEdit.setEnabled(False)
             self.maxLineEdit.setEnabled(True)
+            self.applyMaskBtn.setEnabled(True)
 
     def _thresholdActionGroupTriggered(self, triggeredAction):
         """Threshold action group listener."""
@@ -1277,8 +1305,11 @@ class MaskToolsWidget(qt.QWidget):
             for action in self.thresholdActionGroup.actions():
                 if action is not triggeredAction and action.isChecked():
                     action.setChecked(False)
-
-        self.thresholdWidget.setEnabled(triggeredAction.isChecked())
+        else:
+            # Disable min/max edit
+            self.minLineEdit.setEnabled(False)
+            self.maxLineEdit.setEnabled(False)
+            self.applyMaskBtn.setEnabled(False)
 
     def _maskBtnClicked(self):
         if self.belowThresholdAction.isChecked():
@@ -1304,6 +1335,13 @@ class MaskToolsWidget(qt.QWidget):
                 self._mask.updateStencil(self.levelSpinBox.value(),
                                          self._data > max_)
                 self._mask.commit()
+
+    def _maskNotFiniteBtnClicked(self):
+        """Handle not finite mask button clicked: mask NaNs and inf"""
+        self._mask.updateStencil(
+            self.levelSpinBox.value(),
+            numpy.logical_not(numpy.isfinite(self._data)))
+        self._mask.commit()
 
     def _loadRangeFromColormapTriggered(self):
         """Set range from active image colormap range"""

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -197,7 +197,7 @@ __license__ = "MIT"
 __date__ = "18/10/2016"
 
 
-from collections import Iterable, OrderedDict, namedtuple
+from collections import Sequence, OrderedDict, namedtuple
 import logging
 
 import numpy
@@ -771,13 +771,13 @@ class Plot(object):
         data = numpy.asarray(data)
 
         if origin is not None:
-            if isinstance(origin, Iterable):
+            if isinstance(origin, Sequence):
                 origin = float(origin[0]), float(origin[1])
             else:  # single value origin
                 origin = float(origin), float(origin)
 
         if scale is not None:
-            if isinstance(scale, Iterable):
+            if isinstance(scale, Sequence):
                 scale = float(scale[0]), float(scale[1])
             else:  # single value scale
                 scale = float(scale), float(scale)
