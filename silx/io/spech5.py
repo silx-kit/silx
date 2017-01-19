@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "12/01/2017"
+__date__ = "13/01/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -725,6 +725,10 @@ class SpecH5Dataset(object):
         """Attributes dictionary"""
 
         self.compression = None
+        """Compression attribute as provided by h5py.Dataset"""
+
+        self.compression_opts = None
+        """Compression options attribute as provided by h5py.Dataset"""
 
         self.chunks = None
 
@@ -744,7 +748,7 @@ class SpecH5Dataset(object):
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
                     "shape", "dtype", "size", "h5py_class",
-                    "chunks", "compression"]:
+                    "chunks", "compression", "compression_opts"]:
             return object.__getattribute__(self, item)
 
         if hasattr(self.value, item):
@@ -775,8 +779,9 @@ class SpecH5Dataset(object):
     def __dir__(self):
         attrs = set(dir(self.value) +
                     ["value", "name", "parent", "file",
-                     "attrs",  "shape", "dtype", "size",
-                     "h5py_class", "chunks", "compression"])
+                     "attrs", "shape", "dtype", "size",
+                     "h5py_class", "chunks", "compression",
+                     "compression_opts"])
         return sorted(attrs)
 
     # casting
@@ -1465,6 +1470,14 @@ class SpecH5(SpecH5Group):
             (e.g. ``["1.1", "2.1"…]``)
         """
         return self._sf.keys()
+
+    def __enter__(self):
+        """Context manager enter"""
+        return self
+
+    def __exit__(self, type, value, tb):  # pylint: disable=W0622
+        """Context manager exit"""
+        self.close()
 
     def close(self):
         """Close the object, and free up associated resources.

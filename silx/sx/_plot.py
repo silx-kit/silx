@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -103,9 +103,16 @@ def plot(*args, **kwargs):
     given color. This is because it is selected by default and this is shown
     by using the black color.
 
-    :param str title: The title of the Plot widget
-    :param str xlabel: The label of the X axis
-    :param str ylabel: The label of the Y axis
+    If provided, the names arguments color, linestyle, linewidth and marker
+    override any style provided to a curve.
+
+    :param str color: Color to use for all curves (default: None)
+    :param str linestyle: Type of line to use for all curves (default: None)
+    :param float linewidth: With of all the curves (default: 1)
+    :param str marker: Symbol to use for all the curves (default: None)
+    :param str title: The title of the Plot widget (default: None)
+    :param str xlabel: The label of the X axis (default: None)
+    :param str ylabel: The label of the Y axis (default: None)
     """
     plt = Plot1D()
     if 'title' in kwargs:
@@ -114,6 +121,11 @@ def plot(*args, **kwargs):
         plt.setGraphXLabel(kwargs['xlabel'])
     if 'ylabel' in kwargs:
         plt.setGraphYLabel(kwargs['ylabel'])
+
+    color = kwargs.get('color')
+    linestyle = kwargs.get('linestyle')
+    linewidth = kwargs.get('linewidth')
+    marker = kwargs.get('marker')
 
     # Parse args and store curves as (x, y, style string)
     args = list(args)
@@ -146,14 +158,14 @@ def plot(*args, **kwargs):
         x, y, style = curve
 
         # Default style
-        symbol, linestyle, color = None, None, None
+        curve_symbol, curve_linestyle, curve_color = None, None, None
 
         # Parse style
         if style:
             # Handle color first
             for c in COLORDICT:
                 if style.startswith(c):
-                    color = c
+                    curve_color = c
                     style = style[len(c):]
 
             if style:
@@ -162,22 +174,24 @@ def plot(*args, **kwargs):
                     # Handle linestyle
                     for line in (' ', '-', '--', '-.', ':'):
                         if style.endswith(line):
-                            linestyle = line
+                            curve_linestyle = line
                             style = style[:-len(line)]
                             break
 
                     # Handle symbol
-                    for marker in ('o', '.', ',', '+', 'x', 'd', 's'):
-                        if style.endswith(marker):
-                            symbol = style[-1]
+                    for curve_marker in ('o', '.', ',', '+', 'x', 'd', 's'):
+                        if style.endswith(curve_marker):
+                            curve_symbol = style[-1]
                             style = style[:-1]
                             break
 
+        # As in matplotlib, marker, linestyle and color override other style
         plt.addCurve(x, y,
                      legend=('curve_%d' % index),
-                     symbol=symbol,
-                     linestyle=linestyle,
-                     color=color)
+                     symbol=marker or curve_symbol,
+                     linestyle=linestyle or curve_linestyle,
+                     linewidth=linewidth,
+                     color=color or curve_color)
 
     plt.show()
     return plt

@@ -199,6 +199,15 @@ class TestTransposedDatasetView(unittest.TestCase):
         self.assertTrue(numpy.array_equal(a, b),
                         "failed with double transposition %s %s" % (transposition1, transposition2))
 
+    def test1DIndex(self):
+        a = DatasetView(self.h5f["volume"])
+        self.assertTrue(numpy.array_equal(self.volume[1],
+                                          a[1]))
+
+        b = DatasetView(self.h5f["volume"], transposition=(1, 0, 2))
+        self.assertTrue(numpy.array_equal(self.volume[:, 1, :],
+                                          b[1]))
+
 
 class TestTransposedListOfImages(unittest.TestCase):
     def setUp(self):
@@ -355,6 +364,15 @@ class TestTransposedListOfImages(unittest.TestCase):
         for trans1 in self.all_permutations:
             for trans2 in self.all_permutations:
                 self._testDoubleTransposition(trans1, trans2)
+
+    def test1DIndex(self):
+        a = ListOfImages(self.images)
+        self.assertTrue(numpy.array_equal(self.images[1],
+                                          a[1]))
+
+        b = ListOfImages(self.images, transposition=(1, 0, 2))
+        self.assertTrue(numpy.array_equal(self.images_as_3D_array[:, 1, :],
+                                          b[1]))
 
 
 class TestFunctions(unittest.TestCase):

@@ -22,6 +22,20 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""This package provides a few simple Qt widgets that rely only on a Qt wrapper
-for Python (PyQt5, PyQt4 or PySide). No other optional dependencies of *silx*
-should be required."""
+__authors__ = ["P. Knobel"]
+__license__ = "MIT"
+__date__ = "16/01/2017"
+
+
+from numpy.distutils.misc_util import Configuration
+
+
+def configuration(parent_package='', top_path=None):
+    config = Configuration('data', parent_package, top_path)
+    config.add_subpackage('test')
+    return config
+
+
+if __name__ == "__main__":
+    from numpy.distutils.core import setup
+    setup(configuration=configuration)

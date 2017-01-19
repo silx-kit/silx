@@ -18,7 +18,7 @@ Prerequisites
 
 This tutorial assumes that you are already familiar with
 the standard features of :class:`silx.gui.fit.FitWidget`.
-See the `Fit tools`_ tutorial.
+See the :ref:`fitwidget-tutorial` tutorial.
 
 You should also be familiar with adding custom fit theories.
 

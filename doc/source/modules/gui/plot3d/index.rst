@@ -51,6 +51,8 @@ Widgets gallery
 Public modules
 --------------
 
+The following sub-modules are available:
+
 .. toctree::
    :maxdepth: 2
 
@@ -60,6 +62,7 @@ Public modules
    sfviewparamtree.rst
    toolbars.rst
    actions.rst
+
 
 Sample code
 -----------

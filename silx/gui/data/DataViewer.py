@@ -37,7 +37,7 @@ import logging
 
 import silx.io
 from silx.gui import qt
-from silx.gui.widgets.NumpyAxesSelector import NumpyAxesSelector
+from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 
 
 try:
@@ -235,8 +235,8 @@ class _Plot3dView(DataView):
     def __init__(self, parent, modeId):
         super(_Plot3dView, self).__init__(parent, modeId)
         try:
-            import OpenGL  # noqa
-        except:
+            import silx.gui.plot3d
+        except ImportError:
             _logger.warning("Plot3dView is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
@@ -299,7 +299,7 @@ class _ArrayView(DataView):
         return ["col", "row"]
 
     def createWidget(self, parent):
-        from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
+        from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
         widget.displayAxesSelector(False)
         return widget

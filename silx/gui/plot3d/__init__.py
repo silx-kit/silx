@@ -24,9 +24,22 @@
 # ###########################################################################*/
 """
 This package provides widgets displaying 3D content based on OpenGL.
+
+It depends on PyOpenGL and QtOpenGL.
 """
 from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/01/2017"
+__date__ = "18/01/2017"
+
+
+from .. import qt as _qt
+
+if not _qt.HAS_OPENGL:
+    raise ImportError('Qt.QtOpenGL is not available')
+
+try:
+    import OpenGL as _OpenGL
+except ImportError:
+    raise ImportError('PyOpenGL is not installed')

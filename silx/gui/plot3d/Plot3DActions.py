@@ -42,6 +42,8 @@ from silx.gui import qt
 from silx.gui.plot.PlotActions import PrintAction as _PrintAction
 from silx.gui.icons import getQIcon
 from .utils import mng
+from .._utils import convertQImageToArray
+
 
 _logger = logging.getLogger(__name__)
 
@@ -307,32 +309,13 @@ class VideoAction(Plot3DAction):
         plot3d = self.getPlot3DWidget()
         assert plot3d is not None
 
-        frames = self._RGB888QImagesToNumpy(self._video360(nbFrames))
+        frames = (convertQImageToArray(im) for im in self._video360(nbFrames))
         try:
             with open(filename, 'wb') as file_:
                 for chunk in mng.convert(frames, nb_images=nbFrames):
                     file_.write(chunk)
         except GeneratorExit:
             os.remove(filename)  # Saving aborted, delete file
-
-    def _RGB888QImagesToNumpy(self, images):
-        """Convert RGB888 QImages to numpy arrays
-
-        :param images: Iterator of RGB QImage
-        :return: Iterator of numpy.ndarray
-        """
-        for image in images:
-            # RGB QImage to numpy array
-            ptr = image.bits()
-            if qt.BINDING != 'PySide':
-                ptr.setsize(image.byteCount())
-                if qt.BINDING == 'PyQt4' and sys.version_info[0] == 2:
-                    ptr = ptr.asstring()
-            array = numpy.fromstring(ptr, dtype=numpy.uint8)
-            # Lines are 32 bits aligned: remove padding bytes
-            array = array.reshape(image.height(), -1)[:, :image.width() * 3]
-            array.shape = image.height(), image.width(), 3
-            yield array
 
     def _video360(self, nbFrames):
         """Run the video and provides the images

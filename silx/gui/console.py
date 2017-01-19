@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,13 @@ of interacting with your program. For instance, if your program has a
 these widgets to allow your users to add curves, save data to files… by using
 the widgets' methods from the console.
 
-This module has a dependency on
-`IPython <https://pypi.python.org/pypi/ipython>`_ and
-`qtconsole <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
-older versions of *IPython*). An ``ImportError`` will be raised if it is
-imported while the dependencies are not satisfied.
+.. note::
+
+    This module has a dependency on
+    `IPython <https://pypi.python.org/pypi/ipython>`_ and
+    `qtconsole <https://pypi.python.org/pypi/qtconsole>`_ (or *ipython.qt* for
+    older versions of *IPython*). An ``ImportError`` will be raised if it is
+    imported while the dependencies are not satisfied.
 
 Basic usage example::
 
