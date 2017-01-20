@@ -26,7 +26,7 @@
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "20/01/2017"
 
 
 import logging
@@ -42,4 +42,4 @@ from .utils import is_dataset
 from .utils import is_file
 from .utils import is_group
 
-__all__ = ["save1D", "is_dataset", "is_file", "is_group"] # avoid to import open with "import *"
+__all__ = ["save1D", "is_dataset", "is_file", "is_group"]  # avoid to import open with "import *"
