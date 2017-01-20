@@ -167,6 +167,7 @@ class DataView(object):
         - `SUPPORTED_IF_NOTHING_BETTER` means this view can display the data if there is no other choices
         - `1` means this view can display the data
         - `100` means this view should be used for this data
+        - `1000` max value used by the views provided by silx
         - ...
 
         :param object data: The data to check
@@ -223,7 +224,7 @@ class _Plot1dView(DataView):
         if info.dim < 1:
             return DataView.UNSUPPORTED
         if info.interpretation == "spectrum":
-            return 110
+            return 1000
         if info.dim == 2 and info.shape[0] == 1:
             return 210
         if info.dim == 1:
@@ -266,7 +267,7 @@ class _Plot2dView(DataView):
         if info.dim < 2:
             return DataView.UNSUPPORTED
         if info.interpretation == "image":
-            return 210
+            return 1000
         if info.dim == 2:
             return 200
         else:
@@ -353,7 +354,7 @@ class _ArrayView(DataView):
         if info.dim < 2:
             return DataView.UNSUPPORTED
         if info.interpretation in ["scalar", "scaler"]:
-            return 110
+            return 1000
         return 50
 
 
@@ -399,7 +400,7 @@ class _StackView(DataView):
         if info.dim < 3:
             return DataView.UNSUPPORTED
         if info.interpretation == "image":
-            return 110
+            return 500
         return 90
 
 
@@ -487,9 +488,11 @@ class _RecordView(DataView):
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
-        if info.dim == 1 and info.shape[0] == 1:
-            return 110
         if info.dim == 1:
+            if info.interpretation in ["scalar", "scaler"]:
+                return 1000
+            if info.shape[0] == 1:
+                return 110
             return 40
         elif info.isRecord:
             return 40
