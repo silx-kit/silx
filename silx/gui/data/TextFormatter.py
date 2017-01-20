@@ -100,7 +100,7 @@ class TextFormatter():
     def setUseQuoteForText(self, useQuote):
         """Set the use of quotes to delimit string data.
 
-        :param bool value: True to use quotes.
+        :param bool useQuote: True to use quotes.
         """
         self.__useQuoteForText = useQuote
 
