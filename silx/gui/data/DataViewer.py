@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/01/2017"
+__date__ = "20/01/2017"
 
 import numpy
 import numbers
@@ -38,6 +38,7 @@ import logging
 import silx.io
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.gui.data.TextFormatter import TextFormatter
 
 
 try:
@@ -90,6 +91,14 @@ class DataInfo(object):
 
 class DataView(object):
     """Holder for the data view."""
+
+    UNSUPPORTED = -1
+    """Priority returned when the requested data can't be displayed by the
+    view."""
+
+    SUPPORTED_IF_NOTHING_BETTER = 0
+    """Priority returned when the requested data can be displayed, but is
+    really not convenient."""
 
     def __init__(self, parent, modeId):
         """Constructor
@@ -155,17 +164,18 @@ class DataView(object):
         """
         Returns the priority of using this view according to a data.
 
-        - `-1` means this view can't display this data
-        - `0` means this view can display the data if there is no other choices
+        - `UNSUPPORTED` means this view can't display this data
+        - `SUPPORTED_IF_NOTHING_BETTER` means this view can display the data if there is no other choices
         - `1` means this view can display the data
         - `100` means this view should be used for this data
+        - `1000` max value used by the views provided by silx
         - ...
 
         :param object data: The data to check
         :param DataInfo info: Pre-computed information on the data
         :rtype: int
         """
-        return -1
+        return DataView.UNSUPPORTED
 
     def __lt__(self, other):
         return str(self) < str(other)
@@ -181,7 +191,7 @@ class _EmptyView(DataView):
         return qt.QLabel(parent)
 
     def getDataPriority(self, data, info):
-        return -1
+        return DataView.UNSUPPORTED
 
 
 class _Plot1dView(DataView):
@@ -211,11 +221,11 @@ class _Plot1dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 1:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "spectrum":
-            return 110
+            return 1000
         if info.dim == 2 and info.shape[0] == 1:
             return 210
         if info.dim == 1:
@@ -254,11 +264,11 @@ class _Plot2dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 2:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "image":
-            return 210
+            return 1000
         if info.dim == 2:
             return 200
         else:
@@ -312,9 +322,9 @@ class _Plot3dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 3:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim == 3:
             return 100
         else:
@@ -341,11 +351,11 @@ class _ArrayView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or info.isRecord:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 2:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation in ["scalar", "scaler"]:
-            return 110
+            return 1000
         return 50
 
 
@@ -387,18 +397,16 @@ class _StackView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 3:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "image":
-            return 110
+            return 500
         return 90
 
 
 class _RawView(DataView):
     """View displaying data using text"""
-
-    __format = "%g"
 
     def axesNames(self):
         return []
@@ -407,52 +415,22 @@ class _RawView(DataView):
         widget = qt.QTextEdit(parent)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
         widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
+        self.__formatter = TextFormatter()
         return widget
 
     def clear(self):
         self.getWidget().setText("")
 
-    def toString(self, data):
-        """Rendering a data into a readable string
-
-        :param data: Data to render
-        :rtype: str
-        """
-        if isinstance(data, (tuple, numpy.void)):
-            text = [self.toString(d) for d in data]
-            return "(" + " ".join(text) + ")"
-        elif isinstance(data, (list, numpy.ndarray)):
-            text = [self.toString(d) for d in data]
-            return "[" + " ".join(text) + "]"
-        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
-            try:
-                return "%s" % data.decode("utf-8")
-            except UnicodeDecodeError:
-                pass
-            import binascii
-            return "0x" + binascii.hexlify(data).decode("ascii")
-        elif isinstance(data, six.string_types):
-            return "%s" % data
-        elif isinstance(data, numpy.complex_):
-            if data.imag < 0:
-                template = self.__format + " - " + self.__format + "j"
-            else:
-                template = self.__format + " + " + self.__format + "j"
-            return template % (data.real, data.imag)
-        elif isinstance(data, numbers.Number):
-            return self.__format % data
-        return str(data)
-
     def setData(self, data):
         if silx.io.is_dataset(data):
             data = data[()]
-        text = self.toString(data)
+        text = self.__formatter.toString(data)
         self.getWidget().setText(text)
 
     def getDataPriority(self, data, info):
         if data is None:
-            return -1
-        return 0
+            return DataView.UNSUPPORTED
+        return DataView.SUPPORTED_IF_NOTHING_BETTER
 
 
 class _RecordView(DataView):
@@ -478,14 +456,51 @@ class _RecordView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:
-            return -1
-        if info.dim == 1 and info.shape[0] == 1:
-            return 110
+            return DataView.UNSUPPORTED
         if info.dim == 1:
+            if info.interpretation in ["scalar", "scaler"]:
+                return 1000
+            if info.shape[0] == 1:
+                return 110
             return 40
         elif info.isRecord:
             return 40
-        return -1
+        return DataView.UNSUPPORTED
+
+
+class _Hdf5View(DataView):
+    """View displaying data using text"""
+
+    def axesNames(self):
+        return []
+
+    def createWidget(self, parent):
+        from .Hdf5TableModel import Hdf5TableModel
+        widget = qt.QTableView()
+        widget.setModel(Hdf5TableModel(widget))
+        return widget
+
+    def clear(self):
+        self.getWidget().model().setObject(None)
+
+    def setData(self, data):
+        widget = self.getWidget()
+        widget.model().setObject(data)
+        header = widget.horizontalHeader()
+        if qt.qVersion() < "5.0":
+            setResizeMode = header.setResizeMode
+        else:
+            setResizeMode = header.setSectionResizeMode
+        setResizeMode(0, qt.QHeaderView.Fixed)
+        setResizeMode(1, qt.QHeaderView.Stretch)
+        header.setStretchLastSection(True)
+
+    def getDataPriority(self, data, info):
+        widget = self.getWidget()
+        if widget.model().isSupportedObject(data):
+            return 1
+        else:
+            return DataView.UNSUPPORTED
 
 
 class DataViewer(qt.QFrame):
@@ -523,6 +538,7 @@ class DataViewer(qt.QFrame):
     ARRAY_MODE = 5
     STACK_MODE = 6
     RECORD_MODE = 7
+    HDF5_MODE = 8
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -565,6 +581,7 @@ class DataViewer(qt.QFrame):
 
         views = [
             (_EmptyView, self.EMPTY_MODE),
+            (_Hdf5View, self.HDF5_MODE),
             (_Plot1dView, self.PLOT1D_MODE),
             (_Plot2dView, self.PLOT2D_MODE),
             (_Plot3dView, self.PLOT3D_MODE),
@@ -695,7 +712,7 @@ class DataViewer(qt.QFrame):
         info = DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
         views = zip(priorities, self.__views.values())
-        views = filter(lambda t: t[0] >= 0, views)
+        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
         views = sorted(views, reverse=True)
 
         # store available views
@@ -705,7 +722,7 @@ class DataViewer(qt.QFrame):
         else:
             if views[0][0] != 0:
                 # remove 0-priority, if other are available
-                views = list(filter(lambda t: t[0] != 0, views))
+                views = list(filter(lambda t: t[0] != DataView.SUPPORTED_IF_NOTHING_BETTER, views))
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 

@@ -29,14 +29,13 @@ array using compound data types or hdf5 databases.
 from __future__ import division
 
 import itertools
-import numbers
 import numpy
-import six
 from silx.gui import qt
+from .TextFormatter import TextFormatter
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "20/01/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -151,49 +150,14 @@ class RecordTableModel(qt.QAbstractTableModel):
     def __init__(self, parent=None, data=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
-        self.__format = "%g"
         self.__data = None
         self.__fields = None
+        self.__formatter = TextFormatter()
+        self.__editFormatter = TextFormatter()
+        self.__editFormatter.setUseQuoteForText(False)
 
         # set _data
         self.setArrayData(data)
-
-    def toString(self, data, useQuoteForText=True):
-        """Rendering a data into a readable string
-
-        :param data: Data to render
-        :rtype: str
-        """
-        if isinstance(data, (tuple, numpy.void)):
-            text = [self.toString(d) for d in data]
-            return "(" + " ".join(text) + ")"
-        elif isinstance(data, (list, numpy.ndarray)):
-            text = [self.toString(d) for d in data]
-            return "[" + " ".join(text) + "]"
-        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
-            try:
-                text = "%s" % data.decode("utf-8")
-                if useQuoteForText:
-                    text = "\"%s\"" % text
-                return text
-            except UnicodeDecodeError:
-                pass
-            import binascii
-            return binascii.hexlify(data).decode("ascii")
-        elif isinstance(data, six.string_types):
-            text = "%s" % data
-            if useQuoteForText:
-                text = "\"%s\"" % text
-            return text
-        elif isinstance(data, numpy.complex_):
-            if data.imag < 0:
-                template = self.__format + " - " + self.__format + "j"
-            else:
-                template = self.__format + " + " + self.__format + "j"
-            return template % (data.real, data.imag)
-        elif isinstance(data, numbers.Number):
-            return self.__format % data
-        return str(data)
 
     # Methods to be implemented to subclass QAbstractTableModel
     def rowCount(self, parent_idx=None):
@@ -232,9 +196,9 @@ class RecordTableModel(qt.QAbstractTableModel):
                 data = data[key[1]]
 
         if role == qt.Qt.DisplayRole:
-            return self.toString(data)
+            return self.__formatter.toString(data)
         elif role == qt.Qt.EditRole:
-            return self.toString(data, useQuoteForText=False)
+            return self.__editFormatter.toString(data)
         return None
 
     def headerData(self, section, orientation, role=qt.Qt.DisplayRole):
@@ -309,7 +273,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         """
         return self.__data
 
-    def setNumericFormat(self, numericFormat):
+    def setFloatFormat(self, numericFormat):
         """Set format string controlling how the values are represented in
         the table view.
 
@@ -321,7 +285,8 @@ class RecordTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.beginResetModel()
 
-        self.__format = numericFormat
+        self.__formatter.setFloatFormat(numericFormat)
+        self.__editFormatter.setFloatFormat(numericFormat)
 
         if qt.qVersion() > "4.6":
             self.endResetModel()

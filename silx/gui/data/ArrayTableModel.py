@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,25 +30,26 @@ from __future__ import division
 import numpy
 import logging
 from silx.gui import qt
+from silx.gui.data.TextFormatter import TextFormatter
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "06/12/2016"
+__date__ = "20/01/2017"
 
 
 _logger = logging.getLogger(__name__)
 
 
-def _is_array(object):
+def _is_array(data):
     """Return True if object implements all necessary attributes to be used
     as a numpy array.
 
-    :param object: Array-like object (numpy array, h5py dataset...)
+    :param object data: Array-like object (numpy array, h5py dataset...)
     :return: boolean
     """
     # add more required attribute if necessary
     for attr in ("shape", "dtype"):
-        if not hasattr(object, attr):
+        if not hasattr(data, attr):
             return False
     return True
 
@@ -89,8 +90,9 @@ class ArrayTableModel(qt.QAbstractTableModel):
         for the foreground color
         """
 
-        self._format = fmt
-        """Format string (default "%g")"""
+        self._formatter = TextFormatter()
+        self._formatter.setUseQuoteForText(False)
+        """Formatter for text representation of data"""
 
         self._index = None
         """This attribute stores the slice index, as a list of indices
@@ -186,7 +188,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             selection = self._getIndexTuple(index.row(),
                                             index.column())
             if role == qt.Qt.DisplayRole:
-                return self._format % self._array[selection]
+                return self._formatter.toString(self._array[selection])
 
             if role == qt.Qt.BackgroundRole and self._bgcolors is not None:
                 r, g, b = self._bgcolors[selection][0:3]
@@ -288,7 +290,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self.reset()
 
         if fmt is not None:
-            self._format = fmt
+            self.setFormat(fmt)
 
         if data is None:
             # empty array
@@ -452,14 +454,14 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self.endResetModel()
 
     def setFormat(self, fmt):
-        """Set format string controlling how the values are represented in
-        the table view.
+        """Set format string controlling how the floatting-point values are
+        represented in the table view.
 
         :param str fmt: Format string (e.g. "%.3f", "%d", "%-10.2f", "%10.3e")
             This is the C-style format string used by python when formatting
             strings with the modulus operator.
         """
-        self._format = fmt
+        self._formatter.setFloatFormat(fmt)
 
     def setPerspective(self, perspective):
         """Set the perspective by defining a sequence listing all axes

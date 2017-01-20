@@ -28,7 +28,7 @@ package `silx.gui.hdf5` package.
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/12/2016"
+__date__ = "20/01/2017"
 
 
 import logging
@@ -112,35 +112,6 @@ def htmlFromDict(dictionary, title=None):
     result += "</ul>"
     result += "</body></html>"
     return result
-
-
-def toString(data):
-    """Rendering a data into a readable string
-
-    :param data: Data to render
-    :rtype: str
-    """
-    if isinstance(data, (tuple, numpy.void)):
-        text = [toString(d) for d in data]
-        return "(" + " ".join(text) + ")"
-    elif isinstance(data, (list, numpy.ndarray)):
-        text = [toString(d) for d in data]
-        return "[" + " ".join(text) + "]"
-    elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
-        try:
-            return "\"%s\"" % data.decode("utf-8")
-        except UnicodeDecodeError:
-            pass
-        import binascii
-        return binascii.hexlify(data).decode("ascii")
-    elif isinstance(data, six.string_types):
-        return "\"%s\"" % data
-    elif isinstance(data, numpy.complex_):
-        if data.imag < 0:
-            return "%s-%sj" % (data.real, -data.imag)
-        else:
-            return "%s+%sj" % (data.real, data.imag)
-    return str(data)
 
 
 class Hdf5NodeMimeData(qt.QMimeData):

@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "20/01/2017"
 
 import numpy
 
@@ -207,6 +207,7 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
         layout = qt.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0, 1, 2)
         layout.addWidget(self.__planeSelection, 1, 0)
         layout.addWidget(self._browser, 1, 1)
