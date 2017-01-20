@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "16/01/2017"
+__date__ = "20/01/2017"
 
 from collections import OrderedDict
 import functools
@@ -59,6 +59,7 @@ class DataViewerSelector(qt.QWidget):
         iconSize = qt.QSize(16, 16)
 
         buttons = OrderedDict()
+        buttons[DataViewer.HDF5_MODE] = ("HDF5", "view-hdf5")
         buttons[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
         buttons[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
         buttons[DataViewer.PLOT3D_MODE] = ("Cube", "view-3d")

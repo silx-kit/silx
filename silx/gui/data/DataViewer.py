@@ -468,6 +468,41 @@ class _RecordView(DataView):
         return DataView.UNSUPPORTED
 
 
+class _Hdf5View(DataView):
+    """View displaying data using text"""
+
+    def axesNames(self):
+        return []
+
+    def createWidget(self, parent):
+        from .Hdf5TableModel import Hdf5TableModel
+        widget = qt.QTableView()
+        widget.setModel(Hdf5TableModel(widget))
+        return widget
+
+    def clear(self):
+        self.getWidget().model().setObject(None)
+
+    def setData(self, data):
+        widget = self.getWidget()
+        widget.model().setObject(data)
+        header = widget.horizontalHeader()
+        if qt.qVersion() < "5.0":
+            setResizeMode = header.setResizeMode
+        else:
+            setResizeMode = header.setSectionResizeMode
+        setResizeMode(0, qt.QHeaderView.Fixed)
+        setResizeMode(1, qt.QHeaderView.Stretch)
+        header.setStretchLastSection(True)
+
+    def getDataPriority(self, data, info):
+        widget = self.getWidget()
+        if widget.model().isSupportedObject(data):
+            return 1
+        else:
+            return DataView.UNSUPPORTED
+
+
 class DataViewer(qt.QFrame):
     """Widget to display any kind of data
 
@@ -503,6 +538,7 @@ class DataViewer(qt.QFrame):
     ARRAY_MODE = 5
     STACK_MODE = 6
     RECORD_MODE = 7
+    HDF5_MODE = 8
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -545,6 +581,7 @@ class DataViewer(qt.QFrame):
 
         views = [
             (_EmptyView, self.EMPTY_MODE),
+            (_Hdf5View, self.HDF5_MODE),
             (_Plot1dView, self.PLOT1D_MODE),
             (_Plot2dView, self.PLOT2D_MODE),
             (_Plot3dView, self.PLOT3D_MODE),
