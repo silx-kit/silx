@@ -27,6 +27,7 @@ data module to format data as text in the same way."""
 
 import numpy
 import numbers
+import binascii
 try:
     from silx.third_party import six
 except ImportError:
@@ -119,12 +120,14 @@ class TextFormatter():
         :param data: Data to render
         :rtype: str
         """
-        if isinstance(data, (tuple, numpy.void)):
+        if isinstance(data, tuple):
             text = [self.toString(d) for d in data]
             return "(" + " ".join(text) + ")"
         elif isinstance(data, (list, numpy.ndarray)):
             text = [self.toString(d) for d in data]
             return "[" + " ".join(text) + "]"
+        elif isinstance(data, numpy.void):
+            return "0x" + binascii.hexlify(data).decode("ascii")
         elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
             # This have to be done before checking python string inheritance
             try:
@@ -134,7 +137,6 @@ class TextFormatter():
                 return text
             except UnicodeDecodeError:
                 pass
-            import binascii
             return "0x" + binascii.hexlify(data).decode("ascii")
         elif isinstance(data, six.string_types):
             text = "%s" % data
