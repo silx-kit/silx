@@ -32,7 +32,6 @@
     to install it if you don't already have it.
 """
 
-import os.path
 import collections
 import numpy
 import logging
@@ -57,7 +56,7 @@ class Node(object):
 
     def __init__(self, name, parent=None):
         self.__parent = parent
-        self.__name = name
+        self.__basename = name
 
     @property
     def h5py_class(self):
@@ -111,7 +110,17 @@ class Node(object):
     def name(self):
         """Returns the HDF5 name of this node.
         """
-        return self.__name
+        if self.__parent is None:
+            return "/"
+        if self.__parent.name == "/":
+            return "/" + self.basename
+        return self.__parent.name + "/" + self.basename
+
+    @property
+    def basename(self):
+        """Returns the HDF5 basename of this node.
+        """
+        return self.__basename
 
 
 class Dataset(Node):
@@ -316,7 +325,7 @@ class Group(Node):
 
         :param Node node: Child to add to this group
         """
-        self._get_items()[node.name] = node
+        self._get_items()[node.basename] = node
         node._set_parent(self)
 
     @property
@@ -888,7 +897,7 @@ class File(Group):
             self.__must_be_closed = True
         elif fabio_image is not None:
             self.__fabio_image = fabio_image
-        Group.__init__(self, os.path.basename(self.__fabio_image.filename), attrs={"NX_class": "NXroot"})
+        Group.__init__(self, name="", parent=None, attrs={"NX_class": "NXroot"})
         self.__fabio_reader = self.create_fabio_reader(self.__fabio_image)
         scan = self.create_scan_group(self.__fabio_image, self.__fabio_reader)
         self.add_node(scan)
