@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "18/01/2017"
+__date__ = "20/01/2017"
 
 import numpy
 import numbers
@@ -90,6 +90,14 @@ class DataInfo(object):
 
 class DataView(object):
     """Holder for the data view."""
+
+    UNSUPPORTED = -1
+    """Priority returned when the requested data can't be displayed by the
+    view."""
+
+    SUPPORTED_IF_NOTHING_BETTER = 0
+    """Priority returned when the requested data can be displayed, but is
+    really not convenient."""
 
     def __init__(self, parent, modeId):
         """Constructor
@@ -155,8 +163,8 @@ class DataView(object):
         """
         Returns the priority of using this view according to a data.
 
-        - `-1` means this view can't display this data
-        - `0` means this view can display the data if there is no other choices
+        - `UNSUPPORTED` means this view can't display this data
+        - `SUPPORTED_IF_NOTHING_BETTER` means this view can display the data if there is no other choices
         - `1` means this view can display the data
         - `100` means this view should be used for this data
         - ...
@@ -165,7 +173,7 @@ class DataView(object):
         :param DataInfo info: Pre-computed information on the data
         :rtype: int
         """
-        return -1
+        return DataView.UNSUPPORTED
 
     def __lt__(self, other):
         return str(self) < str(other)
@@ -181,7 +189,7 @@ class _EmptyView(DataView):
         return qt.QLabel(parent)
 
     def getDataPriority(self, data, info):
-        return -1
+        return DataView.UNSUPPORTED
 
 
 class _Plot1dView(DataView):
@@ -211,9 +219,9 @@ class _Plot1dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 1:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "spectrum":
             return 110
         if info.dim == 2 and info.shape[0] == 1:
@@ -254,9 +262,9 @@ class _Plot2dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 2:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "image":
             return 210
         if info.dim == 2:
@@ -312,9 +320,9 @@ class _Plot3dView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 3:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim == 3:
             return 100
         else:
@@ -341,9 +349,9 @@ class _ArrayView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or info.isRecord:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 2:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation in ["scalar", "scaler"]:
             return 110
         return 50
@@ -387,9 +395,9 @@ class _StackView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim < 3:
-            return -1
+            return DataView.UNSUPPORTED
         if info.interpretation == "image":
             return 110
         return 90
@@ -451,8 +459,8 @@ class _RawView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None:
-            return -1
-        return 0
+            return DataView.UNSUPPORTED
+        return DataView.SUPPORTED_IF_NOTHING_BETTER
 
 
 class _RecordView(DataView):
@@ -478,14 +486,14 @@ class _RecordView(DataView):
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:
-            return -1
+            return DataView.UNSUPPORTED
         if info.dim == 1 and info.shape[0] == 1:
             return 110
         if info.dim == 1:
             return 40
         elif info.isRecord:
             return 40
-        return -1
+        return DataView.UNSUPPORTED
 
 
 class DataViewer(qt.QFrame):
@@ -695,7 +703,7 @@ class DataViewer(qt.QFrame):
         info = DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
         views = zip(priorities, self.__views.values())
-        views = filter(lambda t: t[0] >= 0, views)
+        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
         views = sorted(views, reverse=True)
 
         # store available views
@@ -705,7 +713,7 @@ class DataViewer(qt.QFrame):
         else:
             if views[0][0] != 0:
                 # remove 0-priority, if other are available
-                views = list(filter(lambda t: t[0] != 0, views))
+                views = list(filter(lambda t: t[0] != DataView.SUPPORTED_IF_NOTHING_BETTER, views))
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 
