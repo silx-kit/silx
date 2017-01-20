@@ -113,9 +113,10 @@ class TestAddition(unittest.TestCase):
         """
         tests that all devices are working properly ...
         """
-        for pid, platform in ocl.platforms:
-            for did, device in ocl.devices:
-                meas = measure_workgroup_size((pid, did))
+        for platform in ocl.platforms:
+            for did, device in enumerate(platform.devices):
+                print(device)
+                meas = measure_workgroup_size(device)
                 self.assertEqual(meas, device.max_work_group_size,
                                  "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
 

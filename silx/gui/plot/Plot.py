@@ -471,7 +471,8 @@ class Plot(object):
                  linewidth=None, linestyle=None,
                  xlabel=None, ylabel=None, yaxis=None,
                  xerror=None, yerror=None, z=None, selectable=None,
-                 fill=None, resetzoom=True, **kw):
+                 fill=None, resetzoom=True,
+                 histogram=None, **kw):
         """Add a 1D curve given by x an y to the graph.
 
         Curves are uniquely identified by their legend.
@@ -479,11 +480,15 @@ class Plot(object):
         different legend argument.
         To replace/update an existing curve, call :meth:`addCurve` with the
         existing curve legend.
+        If you wan't to display the curve values as an histogram see the
+        histogram parameter.
 
         When curve parameters are not provided, if a curve with the
         same legend is displayed in the plot, its parameters are used.
 
-        :param numpy.ndarray x: The data corresponding to the x coordinates
+        :param numpy.ndarray x: The data corresponding to the x coordinates.
+          If you attempt to plot an histogram you can set edges values in x.
+          In this case len(x) = len(y) + 1
         :param numpy.ndarray y: The data corresponding to the y coordinates
         :param str legend: The legend to be associated to the curve (or None)
         :param info: User-defined information associated to the curve
@@ -533,9 +538,27 @@ class Plot(object):
                                 (Default: True)
         :param bool fill: True to fill the curve, False otherwise (default).
         :param bool resetzoom: True (the default) to reset the zoom.
+        :param str histogram: if not None then the curve will be draw as an
+            histogram. The step for each values of the curve can be set to the
+            left, center or right of the original x curve values.
+            If histogram is not None and len(x) == len(y+1) then x is directly
+            take as edges of the histogram.
+            Type of histogram::
+
+            - None (default)
+            - 'left'
+            - 'right'
+            - 'center'
+
         :returns: The key string identify this curve
         """
         # Take care of input parameters: check/conversion, default value
+
+        if histogram is not None and histogram not in ('left', 'right', 'center'):
+            raise ValueError(
+                "histogram parameter unable to mange value %s." +
+                "Supported values are " +
+                "None, 'left', 'right' and 'center'." %histogram)
 
         if replot is not None:
             _logger.warning(
@@ -642,17 +665,39 @@ class Plot(object):
             self.isXAxisLogarithmic(), self.isYAxisLogarithmic())
 
         if len(xFiltered) and not self.isCurveHidden(legend):
-            handle = self._backend.addCurve(xFiltered, yFiltered, legend,
-                                            color=params['color'],
-                                            symbol=params['symbol'],
-                                            linestyle=params['linestyle'],
-                                            linewidth=params['linewidth'],
-                                            yaxis=params['yaxis'],
-                                            xerror=xerror,
-                                            yerror=yerror,
-                                            z=params['z'],
-                                            selectable=params['selectable'],
-                                            fill=params['fill'])
+            # if we want to plot an histogram
+            if histogram in ('left', 'right', 'center'):
+                assert len(x) in (len(y), len(y)+1)
+                assert histogram in (None, 'left', 'right', 'center')
+
+                xFiltered, yFiltered = self._getHistogramValue(xFiltered,
+                                                               yFiltered,
+                                                               histogramType=histogram)
+                info = "xerror and yerror won't be displayed for histogram display"
+                _logger.warning(info)
+                handle = self._backend.addCurve(xFiltered, yFiltered, legend,
+                                                    color=params['color'],
+                                                    symbol=params['symbol'],
+                                                    linestyle=params['linestyle'],
+                                                    linewidth=params['linewidth'],
+                                                    yaxis=params['yaxis'],
+                                                    xerror=None,
+                                                    yerror=None,           
+                                                    z=params['z'],
+                                                    selectable=params['selectable'],
+                                                    fill=params['fill'])
+            else:
+                handle = self._backend.addCurve(xFiltered, yFiltered, legend,
+                                                color=params['color'],
+                                                symbol=params['symbol'],
+                                                linestyle=params['linestyle'],
+                                                linewidth=params['linewidth'],
+                                                yaxis=params['yaxis'],
+                                                xerror=xerror,
+                                                yerror=yerror,
+                                                z=params['z'],
+                                                selectable=params['selectable'],
+                                                fill=params['fill'])
             self._setDirtyPlot()
 
             # caching the min and max values for the getDataRange method.
@@ -686,6 +731,76 @@ class Plot(object):
             self.resetZoom()
 
         return legend
+
+    @staticmethod
+    def _computeEdges(x, histogramType):
+        """Compute the edges from a set of xs and a rule to generate the edges
+
+        :param x: the x value of the curve to tranform in an histogram
+        :param histogramType: the type of histogram we wan't to generate.
+             This define the way to center the histogram values compared to the
+             curve value. Possible values can be::
+
+             - 'left'
+             - 'right'
+             - 'center'
+
+        :return: the edges for the given x and the histogramType
+        """
+        # for now we consider that the spaces between xs are constant
+        edges = x.copy()
+        if histogramType is 'left':
+            width=1
+            if len(x) >1:
+                width=x[1]-x[0]
+            edges=numpy.append(x[0]-width, edges)
+        if histogramType is 'center':
+            edges = Plot._computeEdges(edges, 'right')
+            widths = (edges[1:]-edges[0:-1]) /2.0
+            widths = numpy.append(widths, widths[-1])
+            edges = edges - widths
+        if histogramType is 'right':
+            width=1
+            if len(x) >1:
+                width=x[-1]-x[-2]
+            edges=numpy.append(edges, x[-1]+width)
+
+        return edges
+
+    @staticmethod
+    def _getHistogramValue(x, y, histogramType):
+        """Returns the x and y value of a curve corresponding to the histogram
+
+        :param x: the x value of the curve to tranform in an histogram
+        :param y: the y value of the curve to tranform in an histogram
+        :param histogramType: the type of histogram we wan't to generate.
+             This define the way to center the histogram values compared to the 
+             curve value. Possible values can be::
+
+             - 'left'
+             - 'right'
+             - 'center'
+
+        :return: a tuple(x, y) which are the value of the histogram to be 
+             displayed as a curve
+        """
+        assert(histogramType in ['left', 'right', 'center'])
+        if len(x) == len(y)+1:
+            edges=x
+        else:
+            edges=Plot._computeEdges(x, histogramType)
+        assert(len(edges)>1)
+        
+        resx=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
+        resy=numpy.empty((len(edges)-1)*2, dtype=edges.dtype)
+        # duplicate x and y values with a small shift to get the stairs effect
+        resx[:-1:2] = edges[:-1]
+        resx[1::2] = edges[1:]
+        resy[:-1:2] = y
+        resy[1::2] = y
+
+        assert(len(resx)==len(resy))
+        return resx, resy
 
     def addImage(self, data, legend=None, info=None,
                  replace=True, replot=None,

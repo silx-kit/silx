@@ -1133,6 +1133,7 @@ class PixelIntensitiesHistoAction(PlotAction):
                             checkable=True)
         self._plotHistogram = None
         self._connectedToActiveImage = False
+        self._histo = None
 
     def _triggered(self, checked):
         """Update the plot of the histogram visibility status
@@ -1169,24 +1170,37 @@ class PixelIntensitiesHistoAction(PlotAction):
         if activeImage is not None:
             image = activeImage[0]
             if image.ndim == 3:  # RGB(A) images
-                _logger.warning(
-                    'Current image is RGB(A): histogram not implemented')
-                self.getHistogramPlotWidget().remove(
-                    'pixel intensity', kind='curve')
+                _logger.info('Converting current image from RGB(A) to grayscale\
+                    in order to compute the intensity distribution')
+                image = image[:,:,0]*0.299 + image[:,:,1]*0.587 + \
+                        image[:,:,2]*0.114
 
-            else:
-                data = image.ravel().astype(numpy.float32)
-                nbins = max(2, min(1024, int(numpy.sqrt(data.size))))
-                data_range = numpy.nanmin(data), numpy.nanmax(data)
+            xmin = numpy.nanmin(image)
+            xmax = numpy.nanmax(image)
+            nbins = min(1024, int(numpy.sqrt(image.size)))
+            data_range = xmin, xmax
+            
+            # bad hack: get 256 bins in the case we have a B&W
+            if numpy.issubdtype(image.dtype, numpy.integer) and nbins>(xmax-xmin):
+                nbins = xmax-xmin
 
-                histo, w_histo, edges = Histogramnd(data,
-                                                    n_bins=nbins,
-                                                    histo_range=data_range)
+            nbins = max(2, nbins)
 
-                self.getHistogramPlotWidget().addCurve(
-                    numpy.arange(nbins),
-                    histo,
-                    legend='pixel intensity')
+            data = image.ravel().astype(numpy.float32)
+            self._histo, w_histo, edges = Histogramnd(data,
+                                                n_bins=nbins,
+                                                histo_range=data_range)
+            assert(len(edges) == 1)
+            x=numpy.arange(nbins)*(xmax-xmin)/nbins + xmin
+            y=self._histo
+            self.getHistogramPlotWidget().addCurve(
+                x=x,
+                y=y,
+                legend='pixel intensity',
+                fill=True,
+                color='red',
+                histogram='center')
+            self.getHistogramPlotWidget().setActiveCurve(None)
 
     def eventFilter(self, qobject, event):
         """Observe when the close event is emitted then 
@@ -1212,3 +1226,8 @@ class PixelIntensitiesHistoAction(PlotAction):
             self._plotHistogram.installEventFilter(self)
 
         return self._plotHistogram
+
+    def getHistogram(self):
+        """Return the histogram displayed in the HistogramPlotWiget
+        """
+        return self._histo

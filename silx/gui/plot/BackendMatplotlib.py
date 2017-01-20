@@ -26,7 +26,7 @@
 
 from __future__ import division
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
 __date__ = "18/01/2017"
 
@@ -193,8 +193,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if fill:
                 artists.append(
-                    axes.fill_between(x, 1.0e-8, y,
-                                      facecolor=color, linewidth=0))
+                    axes.fill_between(x, 1.0e-8, y, facecolor=color))
 
         for artist in artists:
             artist.set_zorder(z)
