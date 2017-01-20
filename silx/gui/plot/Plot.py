@@ -554,6 +554,12 @@ class Plot(object):
         """
         # Take care of input parameters: check/conversion, default value
 
+        if histogram is not None and histogram not in ('left', 'right', 'center'):
+            raise ValueError(
+                "histogram parameter unable to mange value %s." +
+                "Supported values are " +
+                "None, 'left', 'right' and 'center'." %histogram)
+
         if replot is not None:
             _logger.warning(
                 'addCurve deprecated replot argument, use resetzoom instead')
