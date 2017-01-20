@@ -241,7 +241,7 @@ class Hdf5Item(Hdf5Node):
     def _humanReadableDType(self, dtype, full=False):
         if dtype.type == numpy.string_:
             text = "string"
-        if dtype.type == numpy.unicode_:
+        elif dtype.type == numpy.unicode_:
             text = "string"
         elif dtype.type == numpy.object_:
             text = "object"
