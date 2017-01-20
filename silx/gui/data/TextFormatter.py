@@ -25,6 +25,10 @@
 """This package provides a class sharred by widget from the
 data module to format data as text in the same way."""
 
+__authors__ = ["V. Valls"]
+__license__ = "MIT"
+__date__ = "20/01/2017"
+
 import numpy
 import numbers
 import binascii
