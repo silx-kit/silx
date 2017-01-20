@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "13/01/2017"
+__date__ = "20/01/2017"
 
 import logging
 import numpy
@@ -120,7 +120,7 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_string(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], "hi!")
+        self.assertEquals(dataset[()], numpy.string_("hi!"))
         self.assertEquals(dataset.dtype.type, numpy.string_)
         self.assertEquals(dataset.shape, (1,))
 
@@ -143,7 +143,7 @@ class TestFabioH5(unittest.TestCase):
     def test_metadata_list_looks_like_list(self):
         dataset = self.h5_image["/scan_0/instrument/detector_0/others/string_looks_like_list"]
         self.assertEquals(dataset.h5py_class, h5py.Dataset)
-        self.assertEquals(dataset[()], "2000 hi!")
+        self.assertEquals(dataset[()], numpy.string_("2000 hi!"))
         self.assertEquals(dataset.dtype.type, numpy.string_)
         self.assertEquals(dataset.shape, (1,))
 
