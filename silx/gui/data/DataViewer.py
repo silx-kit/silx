@@ -38,6 +38,7 @@ import logging
 import silx.io
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
+from silx.gui.data.TextFormatter import TextFormatter
 
 
 try:
@@ -407,8 +408,6 @@ class _StackView(DataView):
 class _RawView(DataView):
     """View displaying data using text"""
 
-    __format = "%g"
-
     def axesNames(self):
         return []
 
@@ -416,46 +415,16 @@ class _RawView(DataView):
         widget = qt.QTextEdit(parent)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
         widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
+        self.__formatter = TextFormatter()
         return widget
 
     def clear(self):
         self.getWidget().setText("")
 
-    def toString(self, data):
-        """Rendering a data into a readable string
-
-        :param data: Data to render
-        :rtype: str
-        """
-        if isinstance(data, (tuple, numpy.void)):
-            text = [self.toString(d) for d in data]
-            return "(" + " ".join(text) + ")"
-        elif isinstance(data, (list, numpy.ndarray)):
-            text = [self.toString(d) for d in data]
-            return "[" + " ".join(text) + "]"
-        elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
-            try:
-                return "%s" % data.decode("utf-8")
-            except UnicodeDecodeError:
-                pass
-            import binascii
-            return "0x" + binascii.hexlify(data).decode("ascii")
-        elif isinstance(data, six.string_types):
-            return "%s" % data
-        elif isinstance(data, numpy.complex_):
-            if data.imag < 0:
-                template = self.__format + " - " + self.__format + "j"
-            else:
-                template = self.__format + " + " + self.__format + "j"
-            return template % (data.real, data.imag)
-        elif isinstance(data, numbers.Number):
-            return self.__format % data
-        return str(data)
-
     def setData(self, data):
         if silx.io.is_dataset(data):
             data = data[()]
-        text = self.toString(data)
+        text = self.__formatter.toString(data)
         self.getWidget().setText(text)
 
     def getDataPriority(self, data, info):
