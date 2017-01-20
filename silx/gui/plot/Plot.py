@@ -738,11 +738,13 @@ class Plot(object):
 
         :param x: the x value of the curve to tranform in an histogram
         :param histogramType: the type of histogram we wan't to generate.
-         This define the way to center the histogram values compared to the
-         curve value. Possible values can be::
-            - 'left'
-            - 'right'
-            - 'center'
+             This define the way to center the histogram values compared to the
+             curve value. Possible values can be::
+
+             - 'left'
+             - 'right'
+             - 'center'
+
         :return: the edges for the given x and the histogramType
         """
         # for now we consider that the spaces between xs are constant
@@ -765,7 +767,6 @@ class Plot(object):
 
         return edges
 
-
     @staticmethod
     def _getHistogramValue(x, y, histogramType):
         """Returns the x and y value of a curve corresponding to the histogram
@@ -773,13 +774,15 @@ class Plot(object):
         :param x: the x value of the curve to tranform in an histogram
         :param y: the y value of the curve to tranform in an histogram
         :param histogramType: the type of histogram we wan't to generate.
-         This define the way to center the histogram values compared to the 
-         curve value. Possible values can be::
-            - 'left'
-            - 'right'
-            - 'center'
+             This define the way to center the histogram values compared to the 
+             curve value. Possible values can be::
+
+             - 'left'
+             - 'right'
+             - 'center'
+
         :return: a tuple(x, y) which are the value of the histogram to be 
-         displayed as a curve
+             displayed as a curve
         """
         assert(histogramType in ['left', 'right', 'center'])
         if len(x) == len(y)+1:
