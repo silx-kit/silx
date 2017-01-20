@@ -149,6 +149,7 @@ class TextFormatter():
             else:
                 template = self.__floatFormat + " + " + self.__floatFormat + self.__imaginaryUnit
             return template % (data.real, data.imag)
-        elif isinstance(data, (numbers.Number, numpy.number)):
+        elif isinstance(data, (numbers.Real, numpy.floating)):
+            # It have to be done before complex checking
             return self.__floatFormat % data
         return str(data)
