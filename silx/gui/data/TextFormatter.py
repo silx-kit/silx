@@ -143,13 +143,26 @@ class TextFormatter():
             return text
         elif isinstance(data, (numpy.integer, numbers.Integral)):
             return self.__integerFormat % data
-        elif isinstance(data, numpy.complex_):
-            if data.imag < 0:
-                template = self.__floatFormat + " - " + self.__floatFormat + self.__imaginaryUnit
-            else:
-                template = self.__floatFormat + " + " + self.__floatFormat + self.__imaginaryUnit
-            return template % (data.real, data.imag)
         elif isinstance(data, (numbers.Real, numpy.floating)):
             # It have to be done before complex checking
             return self.__floatFormat % data
+        elif isinstance(data, (numpy.complex_, numbers.Complex)):
+            text = ""
+            if data.real != 0:
+                text += self.__floatFormat % data.real
+            if data.real != 0 and data.imag != 0:
+                if data.imag < 0:
+                    template = self.__floatFormat + " - " + self.__floatFormat + self.__imaginaryUnit
+                    params = (data.real, -data.imag)
+                else:
+                    template = self.__floatFormat + " + " + self.__floatFormat + self.__imaginaryUnit
+                    params = (data.real, data.imag)
+            else:
+                if data.imag != 0:
+                    template = self.__floatFormat + self.__imaginaryUnit
+                    params = (data.imag)
+                else:
+                    template = self.__floatFormat
+                    params = (data.real)
+            return template % params
         return str(data)
