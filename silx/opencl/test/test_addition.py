@@ -35,13 +35,13 @@ __authors__ = ["Henri Payno, Jérôme Kieffer"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/11/2016"
+__date__ = "23/01/2017"
 
 import logging
 import numpy
 
 import unittest
-from silx.opencl import ocl, measure_workgroup_size
+from silx.opencl import ocl, _measure_workgroup_size
 if ocl:
     import pyopencl
     import pyopencl.array
@@ -99,7 +99,9 @@ class TestAddition(unittest.TestCase):
                        self.d_array_img.data, self.d_array_5.data, d_array_result.data, numpy.int32(self.shape))
                 evt.wait()
             except Exception as error:
-                print("Error %s on WG=%s" % (error, wg))
+                max_valid_wg = self.program.addition.get_work_group_info(pyopencl.kernel_work_group_info.WORK_GROUP_SIZE, self.ctx.devices[0])
+                msg = "Error %s on WG=%s: %s" % (error, wg, max_valid_wg)
+                self.assertLess(max_valid_wg, wg, msg)
                 break
             else:
                 res = d_array_result.get()
@@ -115,8 +117,7 @@ class TestAddition(unittest.TestCase):
         """
         for platform in ocl.platforms:
             for did, device in enumerate(platform.devices):
-                print(device)
-                meas = measure_workgroup_size(device)
+                meas = _measure_workgroup_size((platform.id, device.id))
                 self.assertEqual(meas, device.max_work_group_size,
                                  "Workgroup size for %s/%s: %s == %s" % (platform, device, meas, device.max_work_group_size))
 
