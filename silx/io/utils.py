@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -341,12 +341,12 @@ def h5ls(h5group, lvl=0):
         raise h5py_import_error
 
     h5repr = ''
-    if isinstance(h5group, (h5py.File, h5py.Group)):
+    if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, string_types):
-        h5f = h5py.File(h5group, "r")
+        h5f = open(h5group)      # silx.io.open
     else:
-        raise TypeError("h5group must be a h5py.group object or a file name.")
+        raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
     for key in h5f.keys():
         if hasattr(h5f[key], 'keys'):
