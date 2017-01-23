@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,9 @@
 
 from __future__ import division
 
-__authors__ = ["V.A. Sole", "T. Vincent"]
+__authors__ = ["V.A. Sole", "T. Vincent, H. Payno"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "18/01/2017"
 
 
 import logging
@@ -48,8 +48,6 @@ from matplotlib.container import Container
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
-from matplotlib.colors import (LinearSegmentedColormap, ListedColormap,
-                               LogNorm, Normalize)
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.lines import Line2D
 from matplotlib.collections import PathCollection, LineCollection
@@ -57,7 +55,7 @@ from matplotlib.collections import PathCollection, LineCollection
 from . import _utils
 from .ModestImage import ModestImage
 from . import BackendBase
-from . import MPLColormap
+from . import Colors
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -91,7 +89,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(True)
         self.ax.set_zorder(1)
         # this works but the figure color is left
-        self.ax.set_axis_bgcolor('none')
+        if matplotlib.__version__[0] < '2':
+            self.ax.set_axis_bgcolor('none')
+        else:
+            self.ax.set_facecolor('none')
         self.fig.sca(self.ax)
 
         self._overlays = set()
@@ -192,8 +193,7 @@ class BackendMatplotlib(BackendBase.BackendBase):
 
             if fill:
                 artists.append(
-                    axes.fill_between(x, 1.0e-8, y,
-                                      facecolor=color, linewidth=0))
+                    axes.fill_between(x, 1.0e-8, y, facecolor=color))
 
         for artist in artists:
             artist.set_zorder(z)
@@ -212,16 +212,9 @@ class BackendMatplotlib(BackendBase.BackendBase):
                           selectable, draggable):
             assert parameter is not None
 
-        h, w = data.shape[0:2]
-        xmin = origin[0]
-        xmax = xmin + scale[0] * w
-        if scale[0] < 0.:
-            xmin, xmax = xmax, xmin
-        ymin = origin[1]
-        ymax = ymin + scale[1] * h
-        if scale[1] < 0.:
-            ymin, ymax = ymax, ymin
-        extent = (xmin, xmax, ymax, ymin)
+        origin = float(origin[0]), float(origin[1])
+        scale = float(scale[0]), float(scale[1])
+        height, width = data.shape[0:2]
 
         picker = (selectable or draggable)
 
@@ -250,120 +243,57 @@ class BackendMatplotlib(BackendBase.BackendBase):
                             'matplotlib %s does not support transparent '
                             'colormap.', matplotlib.__version__)
 
+        if ((height * width) > 5.0e5 and
+                origin == (0., 0.) and scale == (1., 1.)):
+            imageClass = ModestImage
+        else:
+            imageClass = AxesImage
+
         # the normalization can be a source of time waste
         # Two possibilities, we receive data or a ready to show image
-        if len(data.shape) == 3:
-            if data.shape[-1] == 4:
-                # force alpha? data[:,:,3] = 255
-                pass
-
-            # RGBA image
-            # TODO: Possibility to mirror the image
-            # in case of pixmaps just setting
-            # extend = (xmin, xmax, ymax, ymin)
-            # instead of (xmin, xmax, ymin, ymax)
-            extent = (xmin, xmax, ymin, ymax)
-            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
-                # for the time being not properly handled
-                imageClass = AxesImage
-            elif (data.shape[0] * data.shape[1]) > 5.0e5:
-                imageClass = ModestImage
-            else:
-                imageClass = AxesImage
+        if len(data.shape) == 3:  # RGBA image
             image = imageClass(self.ax,
                                label="__IMAGE__" + legend,
                                interpolation='nearest',
-                               picker=picker,
-                               zorder=z)
-            if image.origin == 'upper':
-                image.set_extent((xmin, xmax, ymax, ymin))
-            else:
-                image.set_extent((xmin, xmax, ymin, ymax))
-            image.set_data(data)
-
-        else:
-            assert colormap is not None
-
-            if colormap['name'] is not None:
-                cmap = self.__getColormap(colormap['name'])
-            else:  # No name, use custom colors
-                if 'colors' not in colormap:
-                    raise ValueError(
-                        'addImage: colormap no name nor list of colors.')
-                colors = numpy.array(colormap['colors'], copy=True)
-                assert len(colors.shape) == 2
-                assert colors.shape[-1] in (3, 4)
-                if colors.dtype == numpy.uint8:
-                    # Convert to float in [0., 1.]
-                    colors = colors.astype(numpy.float32) / 255.
-                cmap = ListedColormap(colors)
-
-            if colormap['normalization'].startswith('log'):
-                vmin, vmax = None, None
-                if not colormap['autoscale']:
-                    if colormap['vmin'] > 0.:
-                        vmin = colormap['vmin']
-                    if colormap['vmax'] > 0.:
-                        vmax = colormap['vmax']
-
-                    if vmin is None or vmax is None:
-                        _logger.warning('Log colormap with negative bounds, ' +
-                                        'changing bounds to positive ones.')
-                    elif vmin > vmax:
-                        _logger.warning('Colormap bounds are inverted.')
-                        vmin, vmax = vmax, vmin
-
-                # Set unset/negative bounds to positive bounds
-                if vmin is None or vmax is None:
-                    finiteData = data[numpy.isfinite(data)]
-                    posData = finiteData[finiteData > 0]
-                    if vmax is None:
-                        # 1. as an ultimate fallback
-                        vmax = posData.max() if posData.size > 0 else 1.
-                    if vmin is None:
-                        vmin = posData.min() if posData.size > 0 else vmax
-                    if vmin > vmax:
-                        vmin = vmax
-
-                norm = LogNorm(vmin, vmax)
-
-            else:  # Linear normalization
-                if colormap['autoscale']:
-                    finiteData = data[numpy.isfinite(data)]
-                    vmin = finiteData.min()
-                    vmax = finiteData.max()
-                else:
-                    vmin = colormap['vmin']
-                    vmax = colormap['vmax']
-                    if vmin > vmax:
-                        _logger.warning('Colormap bounds are inverted.')
-                        vmin, vmax = vmax, vmin
-
-                norm = Normalize(vmin, vmax)
-
-            # try as data
-            if tuple(origin) != (0., 0.) or tuple(scale) != (1., 1.):
-                # for the time being not properly handled
-                imageClass = AxesImage
-            elif (data.shape[0] * data.shape[1]) > 5.0e5:
-                imageClass = ModestImage
-            else:
-                imageClass = AxesImage
-            image = imageClass(self.ax,
-                               label="__IMAGE__" + legend,
-                               interpolation='nearest',
-                               cmap=cmap,
-                               extent=extent,
                                picker=picker,
                                zorder=z,
-                               norm=norm)
+                               origin='lower')
 
-            if image.origin == 'upper':
-                image.set_extent((xmin, xmax, ymax, ymin))
-            else:
-                image.set_extent((xmin, xmax, ymin, ymax))
+        else:
+            # Convert colormap argument to matplotlib colormap
+            scalarMappable = Colors.getMPLScalarMappable(colormap, data)
 
-            image.set_data(data)
+            # try as data
+            image = imageClass(self.ax,
+                               label="__IMAGE__" + legend,
+                               interpolation='nearest',
+                               cmap=scalarMappable.cmap,
+                               picker=picker,
+                               zorder=z,
+                               norm=scalarMappable.norm,
+                               origin='lower')
+
+        # Set image extent
+        xmin = origin[0]
+        xmax = xmin + scale[0] * width
+        if scale[0] < 0.:
+            xmin, xmax = xmax, xmin
+
+        ymin = origin[1]
+        ymax = ymin + scale[1] * height
+        if scale[1] < 0.:
+            ymin, ymax = ymax, ymin
+
+        image.set_extent((xmin, xmax, ymin, ymax))
+
+        # Set image data
+        if scale[0] < 0. or scale[1] < 0.:
+            # For negative scale, step by -1
+            xstep = 1 if scale[0] >= 0. else -1
+            ystep = 1 if scale[1] >= 0. else -1
+            data = data[::ystep, ::xstep]
+
+        image.set_data(data)
 
         self.ax.add_artist(image)
 
@@ -761,71 +691,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         maps = [m for m in cm.datad]
         maps.sort()
         return default + tuple(maps)
-
-    def __getColormap(self, name):
-        if not self._colormaps:  # Lazy initialization of own colormaps
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['red'] = LinearSegmentedColormap(
-                'red', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 1.0, 1.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            self._colormaps['green'] = LinearSegmentedColormap(
-                'green', cdict, 256)
-
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (1.0, 0.0, 0.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 0.0, 0.0),
-                              (1.0, 1.0, 1.0))}
-            self._colormaps['blue'] = LinearSegmentedColormap(
-                'blue', cdict, 256)
-
-            # Temperature as defined in spslut
-            cdict = {'red': ((0.0, 0.0, 0.0),
-                             (0.5, 0.0, 0.0),
-                             (0.75, 1.0, 1.0),
-                             (1.0, 1.0, 1.0)),
-                     'green': ((0.0, 0.0, 0.0),
-                               (0.25, 1.0, 1.0),
-                               (0.75, 1.0, 1.0),
-                               (1.0, 0.0, 0.0)),
-                     'blue': ((0.0, 1.0, 1.0),
-                              (0.25, 1.0, 1.0),
-                              (0.5, 0.0, 0.0),
-                              (1.0, 0.0, 0.0))}
-            # but limited to 256 colors for a faster display (of the colorbar)
-            self._colormaps['temperature'] = LinearSegmentedColormap(
-                'temperature', cdict, 256)
-
-            # reversed gray
-            cdict = {'red':     ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'green':   ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0)),
-                     'blue':    ((0.0, 1.0, 1.0),
-                                 (1.0, 0.0, 0.0))}
-
-            self._colormaps['reversed gray'] = LinearSegmentedColormap(
-                'yerg', cdict, 256)
-
-        if name in self._colormaps:
-            return self._colormaps[name]
-        elif hasattr(MPLColormap, name):  # viridis and sister colormaps
-            return getattr(MPLColormap, name)
-        else:
-            # matplotlib built-in
-            return cm.get_cmap(name)
 
     # Data <-> Pixel coordinates conversion
 

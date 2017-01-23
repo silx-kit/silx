@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -109,6 +109,7 @@ def main(argv=None):
 
     global app  # QApplication must be global to avoid seg fault on quit
     app = qt.QApplication([])
+    sys.excepthook = qt.exceptionHandler
 
     mainWindow = ImageViewMainWindow()
     mainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)

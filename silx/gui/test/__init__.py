@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "05/01/2017"
 
 
 import logging
@@ -71,15 +71,38 @@ def suite():
     from ..fit import test as test_fit
     from ..hdf5 import test as test_hdf5
     from ..widgets import test as test_widgets
+    from ..data import test as test_data
     from . import test_qt
-    from . import test_console
+    # Console tests disabled due to corruption of python environment
+    # (see issue #538 on github)
+    # from . import test_console
     from . import test_icons
+    from . import test_utils
+
+    try:
+        from ..plot3d.test import suite as test_plot3d_suite
+
+    except ImportError:
+        _logger.warning(
+            'silx.gui.plot3d tests disabled '
+            '(PyOpenGL or QtOpenGL not installed)')
+
+        class SkipPlot3DTest(unittest.TestCase):
+            def runTest(self):
+                self.skipTest('silx.gui.plot3d tests disabled '
+                              '(PyOpenGL or QtOpenGL not installed)')
+
+        test_plot3d_suite = SkipPlot3DTest
+
 
     test_suite.addTest(test_qt.suite())
     test_suite.addTest(test_plot.suite())
     test_suite.addTest(test_fit.suite())
     test_suite.addTest(test_hdf5.suite())
     test_suite.addTest(test_widgets.suite())
-    test_suite.addTest(test_console.suite())
+    # test_suite.addTest(test_console.suite())   # see issue #538 on github
     test_suite.addTest(test_icons.suite())
+    test_suite.addTest(test_data.suite())
+    test_suite.addTest(test_utils.suite())
+    test_suite.addTest(test_plot3d_suite())
     return test_suite

@@ -25,7 +25,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "21/12/2016"
+__date__ = "20/01/2017"
 
 
 import numpy
@@ -36,6 +36,7 @@ from .. import icons
 from . import _utils
 from .Hdf5Node import Hdf5Node
 import silx.io.utils
+from silx.gui.data.TextFormatter import TextFormatter
 
 _logger = logging.getLogger(__name__)
 
@@ -44,6 +45,8 @@ try:
 except ImportError as e:
     _logger.error("Module %s requires h5py", __name__)
     raise e
+
+_formatter = TextFormatter()
 
 
 class Hdf5Item(Hdf5Node):
@@ -222,11 +225,11 @@ class Hdf5Item(Hdf5Node):
     def _humanReadableValue(self, dataset):
         if dataset.shape == tuple():
             numpy_object = dataset[()]
-            text = _utils.toString(numpy_object)
+            text = _formatter.toString(numpy_object)
         else:
             if dataset.size < 5 and dataset.compression is None:
                 numpy_object = dataset[0:5]
-                text = _utils.toString(numpy_object)
+                text = _formatter.toString(numpy_object)
             else:
                 dimension = len(dataset.shape)
                 if dataset.compression is not None:
@@ -237,6 +240,8 @@ class Hdf5Item(Hdf5Node):
 
     def _humanReadableDType(self, dtype, full=False):
         if dtype.type == numpy.string_:
+            text = "string"
+        elif dtype.type == numpy.unicode_:
             text = "string"
         elif dtype.type == numpy.object_:
             text = "object"

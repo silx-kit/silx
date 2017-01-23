@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/09/2016"
+__date__ = "19/01/2017"
 
 from .. import qt
 from .. import icons
@@ -60,6 +60,56 @@ class WaitingPushButton(qt.QPushButton):
         self.__enabled = True
         self.__icon = icon
         self.__disabled_when_waiting = True
+
+    def sizeHint(self):
+        """Returns the recommended size for the widget.
+
+        This implementation of the recommended size always consider there is an
+        icon. In this way it avoid to update the layout when the waiting icon
+        is displayed.
+        """
+        self.ensurePolished()
+
+        w = 0
+        h = 0
+
+        opt = qt.QStyleOptionButton()
+        self.initStyleOption(opt)
+
+        # Content with icon
+        # no condition, assume that there is an icon to avoid blinking
+        # when the widget switch to waiting state
+        ih = opt.iconSize.height()
+        iw = opt.iconSize.width() + 4
+        w += iw
+        h = max(h, ih)
+
+        # Content with text
+        text = self.text()
+        isEmpty = text == ""
+        if isEmpty:
+            text = "XXXX"
+        fm = self.fontMetrics()
+        textSize = fm.size(qt.Qt.TextShowMnemonic, text)
+        if not isEmpty or w == 0:
+            w += textSize.width()
+        if not isEmpty or h == 0:
+            h = max(h, textSize.height())
+
+        # Content with menu indicator
+        opt.rect.setSize(qt.QSize(w, h))  # PM_MenuButtonIndicator depends on the height
+        if self.menu() is not None:
+            w += self.style().pixelMetric(qt.QStyle.PM_MenuButtonIndicator, opt, self)
+
+        contentSize = qt.QSize(w, h)
+        if qt.qVersion().startswith("4.8."):
+            # On PyQt4/PySide the method QCommonStyle sizeFromContents returns
+            # different size when the widget provides an icon or not.
+            # In Qt5 there is not this problem.
+            opt.icon = qt.QIcon()
+        sizeHint = self.style().sizeFromContents(qt.QStyle.CT_PushButton, opt, contentSize, self)
+        sizeHint = sizeHint.expandedTo(qt.QApplication.globalStrut())
+        return sizeHint
 
     def setDisabledWhenWaiting(self, isDisabled):
         """Enable or disable the auto disable behaviour when the button is waiting.

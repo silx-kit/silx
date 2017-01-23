@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,10 @@
 # ###########################################################################*/
 """This package provides a set of Qt widgets for displaying content relative to
 HDF5 format.
+
+.. note::
+
+    This package depends on *h5py*.
 """
 
 __authors__ = ["V. Valls"]

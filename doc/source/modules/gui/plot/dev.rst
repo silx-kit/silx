@@ -26,9 +26,13 @@ The :class:`PlotWindow` uses additional widgets:
 - :mod:`.MaskToolsWidget` to provide tools to draw a mask on an image.
 - The :mod:`.PlotTools` module provides a set of additional widgets:
 
-  - :class:`.PlotTools.PositionInfo` to display information related to mouse coordinates in the plot and related information.
-  - :class:`.PlotTools.LimitsToolBar` to display and set the limits of the plot area.
-  - :class:`.PlotTools.ProfileToolBar` to provide tools to extract a profile along a line on an image.
+  - :class:`.PlotTools.PositionInfo`
+  - :class:`.PlotTools.LimitsToolBar`
+
+- The :mod:`.Profile` module provides toolbar for extracting profiles from image and image stack:
+
+  - :class:`.Profile.ProfileToolBar`
+  - :class:`.Profile.Profile3DToolBar`
 
 - :mod:`silx.gui.console` to provide an IPython console which can control the plot area content.
 
@@ -158,14 +162,6 @@ The following modules are the modules used internally by the plot package.
 .. currentmodule:: silx.gui.plot.PlotInteraction
 
 .. automodule:: silx.gui.plot.PlotInteraction
-   :members:
-
-:mod:`PlotTools`
-++++++++++++++++
-
-.. currentmodule:: silx.gui.plot.PlotTools
-
-.. automodule:: silx.gui.plot.PlotTools
    :members:
 
 :mod:`_utils`

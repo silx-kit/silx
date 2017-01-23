@@ -4,6 +4,8 @@
 #    Project: Sift implementation in Python + OpenCL
 #             https://github.com/silx-kit/silx
 #
+#    Copyright (C) 2013-2017  European Synchrotron Radiation Facility, Grenoble, France
+#
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation
 # files (the "Software"), to deal in the Software without
@@ -35,7 +37,7 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "2013 European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/09/2016"
+__date__ = "12/01/2017"
 
 import time
 import logging
@@ -105,9 +107,6 @@ class TestConvol(unittest.TestCase):
         self.gpu_tmp = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         self.gpu_out = pyopencl.array.empty(self.queue, self.input.shape, dtype=numpy.float32, order="C")
         kernel_src = get_opencl_code("convolution.cl")
-#        compile_options = "-D NIMAGE=%i" % self.input.size
-#        logger.info("Compiling file %s with options %s" % (kernel_path, compile_options))
-#        self.program = pyopencl.Program(ctx, kernel_src).build(options=compile_options)
         self.program = pyopencl.Program(self.ctx, kernel_src).build()
         self.IMAGE_W = numpy.int32(self.input.shape[-1])
         self.IMAGE_H = numpy.int32(self.input.shape[0])

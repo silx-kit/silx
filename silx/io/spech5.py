@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -181,7 +181,7 @@ from .specfile import SpecFile
 
 __authors__ = ["P. Knobel", "D. Naudet"]
 __license__ = "MIT"
-__date__ = "19/12/2016"
+__date__ = "13/01/2017"
 
 logging.basicConfig()
 logger1 = logging.getLogger(__name__)
@@ -460,6 +460,28 @@ def _get_data_column_label_in_name(item_name):
     return data_column_match.group(1)
 
 
+def _get_number_of_mca_analysers(scan):
+    """
+    :param SpecFile sf: :class:`SpecFile` instance
+    :param str scan_key: Scan identification key (e.g. ``1.1``)
+    """
+    number_of_MCA_spectra = len(scan.mca)
+    # Scan.data is transposed
+    number_of_data_lines = scan.data.shape[1]
+
+    if not number_of_data_lines == 0:
+        # Number of MCA spectra must be a multiple of number of data lines
+        assert number_of_MCA_spectra % number_of_data_lines == 0
+        return number_of_MCA_spectra // number_of_data_lines
+    elif number_of_MCA_spectra:
+        # Case of a scan without data lines, only MCA.
+        # Our only option is to assume that the number of analysers
+        # is the number of #@CHANN lines
+        return len(scan.mca.channels)
+    else:
+        return 0
+
+
 def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
     """
     :param sf: :class:`SpecFile` instance
@@ -474,15 +496,9 @@ def _mca_analyser_in_scan(sf, scan_key, mca_analyser_index):
         raise KeyError("Scan key %s " % scan_key +
                        "does not exist in SpecFile %s" % sf.filename)
 
-    number_of_MCA_spectra = len(sf[scan_key].mca)
-    # Scan.data is transposed
-    number_of_data_lines = sf[scan_key].data.shape[1]
+    number_of_analysers = _get_number_of_mca_analysers(sf[scan_key])
 
-    # Number of MCA spectra must be a multiple of number of data lines
-    assert number_of_MCA_spectra % number_of_data_lines == 0
-    number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-
-    return 0 <= mca_analyser_index < number_of_MCA_analysers
+    return 0 <= mca_analyser_index < number_of_analysers
 
 
 def _motor_in_scan(sf, scan_key, motor_name):
@@ -642,9 +658,9 @@ def _fixed_length_strings(strings, length=0):
 class SpecH5Dataset(object):
     """Emulate :class:`h5py.Dataset` for a SpecFile object.
 
-    A :class:`SpecH5Dataset` instance is basically  a proxy for the
-    :attr:`value` attribute, with additional attributes for compatibility
-    with *h5py* datasets.
+    A :class:`SpecH5Dataset` instance is basically  a proxy for the numpy
+    array :attr:`value` attribute, with additional attributes for
+    compatibility  with *h5py* datasets.
 
     :param value: Actual dataset value
     :param name: Dataset full name (posix path format, starting with ``/``)
@@ -684,6 +700,18 @@ class SpecH5Dataset(object):
             else:
                 self.value = array
 
+        # numpy array attributes (more attributes handled in __getattribute__)
+        self.shape = self.value.shape
+        """Dataset shape, as a tuple with the length of each dimension
+        of the dataset."""
+
+        self.dtype = self.value.dtype
+        """Dataset dtype"""
+
+        self.size = self.value.size
+        """Dataset size (number of elements)"""
+
+        # h5py dataset specific attributes
         self.name = name
         """"Dataset name (posix path format, starting with ``/``)"""
 
@@ -696,15 +724,13 @@ class SpecH5Dataset(object):
         self.attrs = _get_attrs_dict(name)
         """Attributes dictionary"""
 
-        self.shape = self.value.shape
-        """Dataset shape, as a tuple with the length of each dimension
-        of the dataset."""
+        self.compression = None
+        """Compression attribute as provided by h5py.Dataset"""
 
-        self.dtype = self.value.dtype
-        """Dataset dtype"""
+        self.compression_opts = None
+        """Compression options attribute as provided by h5py.Dataset"""
 
-        self.size = self.value.size
-        """Dataset size (number of elements)"""
+        self.chunks = None
 
     @property
     def h5py_class(self):
@@ -721,10 +747,14 @@ class SpecH5Dataset(object):
 
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
-                    "shape", "dtype", "size", "h5py_class"]:
+                    "shape", "dtype", "size", "h5py_class",
+                    "chunks", "compression", "compression_opts"]:
             return object.__getattribute__(self, item)
 
-        return getattr(self.value, item)
+        if hasattr(self.value, item):
+            return getattr(self.value, item)
+
+        raise AttributeError("SpecH5Dataset has no attribute %s" % item)
 
     def __len__(self):
         return len(self.value)
@@ -750,7 +780,8 @@ class SpecH5Dataset(object):
         attrs = set(dir(self.value) +
                     ["value", "name", "parent", "file",
                      "attrs", "shape", "dtype", "size",
-                     "h5py_class"])
+                     "h5py_class", "chunks", "compression",
+                     "compression_opts"])
         return sorted(attrs)
 
     # casting
@@ -1058,20 +1089,15 @@ def _demultiplex_mca(scan, analyser_index):
     :type analyser_index: int
     :return: 2D numpy array containing all spectra for one analyser
     """
-    mca_data = scan.mca
+    number_of_analysers = _get_number_of_mca_analysers(scan)
 
-    number_of_MCA_spectra = len(mca_data)
-    number_of_scan_data_lines = scan.data.shape[1]
-
-    # Number of MCA spectra must be a multiple of number of scan data lines
-    assert number_of_MCA_spectra % number_of_scan_data_lines == 0
-    number_of_analysers = number_of_MCA_spectra // number_of_scan_data_lines
+    number_of_MCA_spectra = len(scan.mca)
 
     list_of_1D_arrays = []
     for i in range(analyser_index,
                    number_of_MCA_spectra,
                    number_of_analysers):
-        list_of_1D_arrays.append(mca_data[i])
+        list_of_1D_arrays.append(scan.mca[i])
     # convert list to 2D array
     return numpy.array(list_of_1D_arrays)
 
@@ -1302,15 +1328,18 @@ class SpecH5Group(object):
             # Number of MCA spectra must be a multiple of number of data lines
             assert number_of_MCA_spectra % number_of_data_lines == 0
             number_of_MCA_analysers = number_of_MCA_spectra // number_of_data_lines
-            mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
-
-            if measurement_group_pattern.match(self.name):
-                return self._scan.labels + mca_list
+        elif number_of_MCA_spectra:
+            # Case of a scan without data lines, only MCA.
+            # Our only option is to assume that the number of analysers
+            # is the number of #@CHANN lines
+            number_of_MCA_analysers = len(self._scan.mca.channels)
         else:
-            mca_list = []
-            # no data: no measurement
-            if measurement_group_pattern.match(self.name):
-                return []
+            number_of_MCA_analysers = 0
+
+        mca_list = ["mca_%d" % i for i in range(number_of_MCA_analysers)]
+
+        if measurement_group_pattern.match(self.name):
+            return self._scan.labels + mca_list
 
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
@@ -1441,6 +1470,14 @@ class SpecH5(SpecH5Group):
             (e.g. ``["1.1", "2.1"…]``)
         """
         return self._sf.keys()
+
+    def __enter__(self):
+        """Context manager enter"""
+        return self
+
+    def __exit__(self, type, value, tb):  # pylint: disable=W0622
+        """Context manager exit"""
+        self.close()
 
     def close(self):
         """Close the object, and free up associated resources.

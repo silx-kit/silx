@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (C) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -849,9 +849,7 @@ def main(args):
     import numpy
     import os
     app = qt.QApplication(args)
-    tab = Parameters(labels=['Parameter', 'Estimation', 'Fit Value', 'Sigma',
-                             'Restrains', 'Min/Parame', 'Max/Factor/Delta/'],
-                     paramlist=['Height', 'Position', 'FWHM'])
+    tab = Parameters(paramlist=['Height', 'Position', 'FWHM'])
     tab.showGrid()
     tab.configureLine(name='Height', estimation='1234', group=0)
     tab.configureLine(name='Position', code='FIXED', group=1)

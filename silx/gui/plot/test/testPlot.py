@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -395,6 +395,7 @@ class TestPlotGetCurveImage(unittest.TestCase):
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 0')
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 1')
         plot.addCurve(x=(0, 1), y=(0, 1), legend='curve 2')
+        plot.setActiveCurve('curve 0')
 
         # Active curve
         active = plot.getActiveCurve()
@@ -473,10 +474,48 @@ class TestPlotGetCurveImage(unittest.TestCase):
         self.assertEqual(images[0][1], '1')
         self.assertEqual(images[1][1], '2')
 
+class TestPlotHistogram(unittest.TestCase):
+    """Basic tests for histogram."""
+
+    def testPlotCurveColorFloat(self):
+        x=numpy.array([0, 1, 2])
+        x2=numpy.array([0, 1, 2, 3])
+        x3=numpy.array([-1, 0, 1, 2])
+        x4=numpy.array([-0.5, 0.5, 1.5, 2.5])
+        y=numpy.array([3, 2, 5])
+
+        # testing x values for right
+        xHisto, yHisto = Plot._getHistogramValue(x, y, 'right')
+        numpy.testing.assert_array_equal(xHisto, numpy.array([0, 1, 1, 2, 2, 3]))
+        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+
+        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x2, y, 'right')
+        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
+        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
+        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
+
+        # testing y values for left
+        xHisto, yHisto = Plot._getHistogramValue(x, y, 'left')
+        numpy.testing.assert_array_equal(xHisto, numpy.array([-1, 0, 0, 1, 1, 2]))
+        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+
+        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x3, y, 'left')
+        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
+        numpy.testing.assert_array_equal(yHisto, yHistoFromEdges)
+
+        # testing y values for center
+        xHisto, yHisto = Plot._getHistogramValue(x, y, 'center')
+        numpy.testing.assert_array_equal(xHisto, numpy.array([-0.5, 0.5, 0.5, 1.5, 1.5, 2.5]))
+        numpy.testing.assert_array_equal(yHisto, numpy.array([3, 3, 2, 2, 5, 5]))
+
+        xHistoFromEdges, yHistoFromEdges = Plot._getHistogramValue(x4, y, 'center')
+        numpy.testing.assert_array_equal(xHisto, xHistoFromEdges)
+
 
 def suite():
     test_suite = unittest.TestSuite()
-    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage):
+    for TestClass in (TestPlot, TestPlotRanges, TestPlotGetCurveImage,
+      TestPlotHistogram):
         test_suite.addTest(
             unittest.defaultTestLoader.loadTestsFromTestCase(TestClass))
     return test_suite

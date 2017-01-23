@@ -2,7 +2,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,10 +40,11 @@ See shiftPlotAction.py for a simpler example with more basic comments.
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "12/01/2017"
 
 import numpy
 import os
+import sys
 
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
@@ -153,6 +154,8 @@ class FftAction(PlotAction):
 
 app = qt.QApplication([])
 
+sys.excepthook = qt.exceptionHandler
+
 plotwin = PlotWindow(control=True)
 toolbar = qt.QToolBar("My toolbar")
 plotwin.addToolBar(toolbar)
@@ -183,3 +186,6 @@ plotwin.setGraphXLabel("time")
 
 plotwin.show()
 app.exec_()
+sys.excepthook = sys.__excepthook__
+
+    

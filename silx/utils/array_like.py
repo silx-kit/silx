@@ -346,7 +346,7 @@ class ListOfImages(object):
             # first dimension index is given
             item = [item]
             # following dimensions are indexed with : (all elements)
-            item += [slice(0, sys.maxint, 1) for _i in range(self.ndim - 1)]
+            item += [slice(None) for _i in range(self.ndim - 1)]
 
         # n-dimensional slicing
         if len(item) != self.ndim:
@@ -430,7 +430,8 @@ class DatasetView(object):
         be read from disk.
 
     :param dataset: h5py dataset
-    :param transposition: List of dimension numbers in the wanted order
+    :param transposition: List of dimensions sorted in the order of
+        transposition (relative to the original h5py dataset)
     """
     def __init__(self, dataset, transposition=None):
         """
@@ -515,7 +516,7 @@ class DatasetView(object):
             # first dimension index (list index) is given
             item = [item]
             # following dimensions are indexed with slices representing all elements
-            item += [slice(0, sys.maxint, 1) for _i in range(self.ndim - 1)]
+            item += [slice(None) for _i in range(self.ndim - 1)]
 
         # n-dimensional slicing
         if len(item) != self.ndim:

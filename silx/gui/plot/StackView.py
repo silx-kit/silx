@@ -69,7 +69,7 @@ Example::
 
 __authors__ = ["P. Knobel", "H. Payno"]
 __license__ = "MIT"
-__date__ = "10/01/2016"
+__date__ = "20/01/2017"
 
 import numpy
 
@@ -207,6 +207,7 @@ class StackView(qt.QMainWindow):
         self.__planeSelection.sigPlaneSelectionChanged.connect(self.__setPerspective)
 
         layout = qt.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self._plot, 0, 0, 1, 2)
         layout.addWidget(self.__planeSelection, 1, 0)
         layout.addWidget(self._browser, 1, 1)
@@ -382,7 +383,8 @@ class StackView(qt.QMainWindow):
         self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
                             origin=origin, scale=scale,
-                            colormap=self.getColormap())
+                            colormap=self.getColormap(),
+                            resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
         self.__updatePlotLabels()
 
@@ -686,7 +688,28 @@ class StackView(qt.QMainWindow):
         """
         self._plot.setKeepDataAspectRatio(flag)
 
-    # kind of internal, but needed by Profile
+    def getProfileToolbar(self):
+        """Profile tools attached to this plot
+
+        See :class:`silx.gui.plot.Profile.Profile3DToolBar`
+        """
+        return self._plot.profile
+
+    def getProfileWindow1D(self):
+        """Plot window used to display 1D profile curve.
+
+        :return: :class:`Plot1D`
+        """
+        return self._plot.profile.getProfileWindow1D()
+
+    def getProfileWindow2D(self):
+        """Plot window used to display 2D profile image.
+
+        :return: :class:`Plot2D`
+        """
+        return self._plot.profile.getProfileWindow2D()
+
+    # kind of internal methods, but needed by Profile
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
         """See :meth:`Plot.Plot.remove`"""

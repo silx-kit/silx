@@ -3,7 +3,7 @@ Upstream-Name: silx
 Source: https://github.com/silx-kit/silx
 
 Files: *
-Copyright: 2015-2016 European Synchrotron Radiation Facility
+Copyright: 2004-2017 European Synchrotron Radiation Facility
            Data analysis unit (silx@esrf.fr) 
 License: MIT
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@ _RESOURCES_DIR = None
 
 # For packaging purpose, patch this variable to use an alternative directory
 # E.g., replace with _RESOURCES_DIR = '/usr/share/silx/doc'
-# Not in use, uncomment when functionnality is needed
+# Not in use, uncomment when functionality is needed
 # _RESOURCES_DOC_DIR = None
 
 # cx_Freeze forzen support
@@ -101,8 +101,8 @@ def resource_filename(resource):
                          using '/' path separator.
     :return: Absolute resource path in the file system
     """
-    # Not in use, uncomment when functionnality is needed
-    # If _RESOURCES_DOC_DIR is set, use it to get resources in doc/ subflodler
+    # Not in use, uncomment when functionality is needed
+    # If _RESOURCES_DOC_DIR is set, use it to get resources in doc/ subfoldler
     # from an alternative directory.
     # if _RESOURCES_DOC_DIR is not None and (resource is 'doc' or
     #         resource.startswith('doc/')):

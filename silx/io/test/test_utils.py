@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -41,10 +41,15 @@ else:
     h5py_missing = False
     from ..utils import h5ls
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/12/2016"
+__date__ = "11/01/2017"
 
 
 expected_spec1 = r"""#F .*
@@ -265,6 +270,23 @@ class TestOpen(unittest.TestCase):
         self.assertIsInstance(f, h5py.File)
         f.close()
 
+    def testH5With(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
+        tmp.file.close()
+        h5 = h5py.File(tmp.name, "w")
+        g = h5.create_group("arrays")
+        g.create_dataset("scalar", data=10)
+        h5.close()
+
+        # load it
+        with utils.open(tmp.name) as f:
+            self.assertIsNotNone(f)
+            self.assertIsInstance(f, h5py.File)
+
     def testSpec(self):
         # create a file
         tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".dat", delete=True)
@@ -277,6 +299,59 @@ class TestOpen(unittest.TestCase):
         self.assertIsNotNone(f)
         self.assertEquals(f.h5py_class, h5py.File)
         f.close()
+
+    def testSpecWith(self):
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(mode="w+t", suffix=".dat", delete=True)
+        tmp.file.close()
+        utils.savespec(tmp.name, [1], [1.1], xlabel="x", ylabel="y",
+                       fmt=["%d", "%.2f"], close_file=True, scan_number=1)
+
+        # load it
+        with utils.open(tmp.name) as f:
+            self.assertIsNotNone(f)
+            self.assertEquals(f.h5py_class, h5py.File)
+
+    def testEdf(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+        if fabio is None:
+            self.skipTest("Fabio is missing")
+
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(suffix=".edf", delete=True)
+        tmp.file.close()
+        header = fabio.fabioimage.OrderedDict()
+        header["integer"] = "10"
+        data = numpy.array([[10, 50], [50, 10]])
+        fabiofile = fabio.edfimage.EdfImage(data, header)
+        fabiofile.write(tmp.name)
+
+        # load it
+        f = utils.open(tmp.name)
+        self.assertIsNotNone(f)
+        self.assertEquals(f.h5py_class, h5py.File)
+        f.close()
+
+    def testEdfWith(self):
+        if h5py_missing:
+            self.skipTest("H5py is missing")
+        if fabio is None:
+            self.skipTest("Fabio is missing")
+
+        # create a file
+        tmp = tempfile.NamedTemporaryFile(suffix=".edf", delete=True)
+        tmp.file.close()
+        header = fabio.fabioimage.OrderedDict()
+        header["integer"] = "10"
+        data = numpy.array([[10, 50], [50, 10]])
+        fabiofile = fabio.edfimage.EdfImage(data, header)
+        fabiofile.write(tmp.name)
+
+        # load it
+        with utils.open(tmp.name) as f:
+            self.assertIsNotNone(f)
+            self.assertEquals(f.h5py_class, h5py.File)
 
     def testUnsupported(self):
         # create a file
