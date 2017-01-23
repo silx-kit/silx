@@ -18,10 +18,11 @@ Let's look at a simple usage example:
     import numpy
     array = numpy.arange(1000)
     array.shape = (5, 10, 20)
-    a = qt.QApplication([])
+    app = qt.QApplication([])
     w = ArrayTableWidget()
     w.setArrayData(array, labels=True)
     w.show()
+    app.exec_()
 
 
 .. |imgArray0| image:: img/arraywidget3D_0.png
