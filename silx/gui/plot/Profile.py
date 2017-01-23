@@ -438,6 +438,20 @@ class ProfileToolBar(qt.QToolBar):
         self.plot.sigActiveImageChanged.connect(
                 self._activeImageChanged)
 
+        # will manage the close event
+        self.profileWindow.installEventFilter(self)
+
+    def eventFilter(self, qobject, event):
+        """Observe when the close event is emitted to clear the profile
+
+        :param qobject: the object observe
+        :param event: the event received by qobject
+        """
+        if event.type() == qt.QEvent.Close:
+            self.clearProfile()
+
+        return qt.QToolBar.eventFilter(self, qobject, event)
+
     def _activeImageChanged(self, previous, legend):
         """Handle active image change: toggle enabled toolbar, update curve"""
         self.setEnabled(legend is not None)
@@ -492,7 +506,9 @@ class ProfileToolBar(qt.QToolBar):
     def _browseActionTriggered(self, checked):
         """Handle browse action mode triggered by user."""
         if checked:
+            self.clearProfile()
             self.plot.setInteractiveMode('zoom', source=self)
+            self.profileWindow.hide()
 
     def _plotWindowSlot(self, event):
         """Listen to Plot to handle drawing events to refresh ROI and profile.
@@ -665,17 +681,25 @@ class Profile3DToolBar(ProfileToolBar):
         :param parent: See :class:`QToolBar`.
         """
         from .PlotWindow import Plot1D, Plot2D      # noqa
-        super(Profile3DToolBar, self).__init__(parent, plot, title)
+        super(Profile3DToolBar, self).__init__(parent=parent, plot=plot,
+                                               title=title)
         # create the main widget
         self.ndProfileWindow = qt.QWidget()
         self.ndProfileWindow.setWindowTitle('Profile window')
         self.ndProfileWindow.setLayout(qt.QVBoxLayout())
-        self._profileWindow1D = Plot1D(self.ndProfileWindow)
-        self._profileWindow2D = Plot2D(self.ndProfileWindow)
+        self._profileWindow1D = Plot1D(parent=self.ndProfileWindow)
+        self._profileWindow2D = Plot2D(parent=self.ndProfileWindow)
         self.ndProfileWindow.layout().addWidget(self._profileWindow1D)
         self.ndProfileWindow.layout().addWidget(self._profileWindow2D)
         # create the 3D toolbar
         self.__create3DProfileAction()
+
+        # connect to remove the profile line (manage close event)
+        self.ndProfileWindow.installEventFilter(self)
+
+        # filter hide event when received (manage show and hide event)
+        self._profileWindow1D.installEventFilter(self)
+        self._profileWindow2D.installEventFilter(self)
 
     def __create3DProfileAction(self):
         """Initialize the Profile3DAction action
@@ -695,6 +719,21 @@ class Profile3DToolBar(ProfileToolBar):
 
         self.profile3dAction.sigDimensionChanged.connect(self._setProfileDimension)
         self._setProfileDimension(self._profileDimension)
+
+    def eventFilter(self, qobject, event):
+        """Observe when the show and hide events of the parent plotWidget append
+        (_profileWindow1D and _profileWindow2D)
+
+        :param qobject: the object observe
+        :param event: the event received by qobject
+        """
+        if event.type() == qt.QEvent.Hide:
+            self.ndProfileWindow.hide()
+
+        if event.type() == qt.QEvent.Show:
+            self.ndProfileWindow.show()
+
+        return ProfileToolBar.eventFilter(self, qobject, event)
 
     def _setProfileDimension(self, dimension):
         """Set the dimension in which we want to compute the profile.
