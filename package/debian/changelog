@@ -1,3 +1,12 @@
+silx (0.4.0-1) unstable; urgency=low
+
+  * debian/control
+    - Add missing dependencies
+    - Add -dbg packages
+  * Upstream version 0.4.0a
+
+ -- Thomas Vincent <tvincent@edna-site.org>  Mon, 23 Jan 2017 17:09:20 +0100
+
 silx (0.1.0-1) unstable; urgency=low
 
   * debian/control
