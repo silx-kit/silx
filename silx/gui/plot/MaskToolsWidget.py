@@ -934,8 +934,12 @@ class MaskToolsWidget(qt.QWidget):
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
-        dialog.setNameFilters(
-            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        filters = [
+            'EDF  (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+        ]
+        dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)
         if not dialog.exec_():
@@ -972,8 +976,12 @@ class MaskToolsWidget(qt.QWidget):
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Save Mask")
         dialog.setModal(1)
-        dialog.setNameFilters(
-            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        filters = [
+            'EDF  (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+        ]
+        dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
         dialog.setDirectory(self.maskFileDir)
@@ -981,7 +989,8 @@ class MaskToolsWidget(qt.QWidget):
             dialog.close()
             return
 
-        extension = dialog.selectedNameFilter().split()[-1][1:]
+        # convert filter name to extension name with the .
+        extension = dialog.selectedNameFilter().split()[2:-1]
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
