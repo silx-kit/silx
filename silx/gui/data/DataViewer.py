@@ -39,7 +39,7 @@ import silx.io
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.data.TextFormatter import TextFormatter
-
+from silx.gui.hdf5 import H5Node
 
 try:
     from silx.third_party import six
@@ -112,6 +112,13 @@ class DataView(object):
     def modeId(self):
         """Returns the mode id"""
         return self.__modeId
+
+    def normalizeData(self, data):
+        """Returns a normalized data if the embbed a numpy or a dataset.
+        Else returns the data."""
+        if isinstance(data, H5Node):
+            return data.h5py_object
+        return data
 
     def axesNames(self):
         """Returns names of the expected axes of the view"""
@@ -213,6 +220,7 @@ class _Plot1dView(DataView):
         self.__resetZoomNextTime = True
 
     def setData(self, data):
+        data = self.normalizeData(data)
         self.getWidget().addCurve(legend="data",
                                   x=range(len(data)),
                                   y=data,
@@ -257,6 +265,7 @@ class _Plot2dView(DataView):
         self.__resetZoomNextTime = True
 
     def setData(self, data):
+        data = self.normalizeData(data)
         self.getWidget().addImage(legend="data",
                                   data=data,
                                   resetzoom=self.__resetZoomNextTime)
@@ -316,6 +325,7 @@ class _Plot3dView(DataView):
         self.__resetZoomNextTime = True
 
     def setData(self, data):
+        data = self.normalizeData(data)
         plot = self.getWidget()
         plot.setData(data)
         self.__resetZoomNextTime = False
@@ -347,6 +357,7 @@ class _ArrayView(DataView):
         self.getWidget().setArrayData(numpy.array([[]]))
 
     def setData(self, data):
+        data = self.normalizeData(data)
         self.getWidget().setArrayData(data)
 
     def getDataPriority(self, data, info):
@@ -392,6 +403,7 @@ class _StackView(DataView):
         self.__resetZoomNextTime = True
 
     def setData(self, data):
+        data = self.normalizeData(data)
         self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
@@ -422,6 +434,7 @@ class _RawView(DataView):
         self.getWidget().setText("")
 
     def setData(self, data):
+        data = self.normalizeData(data)
         if silx.io.is_dataset(data):
             data = data[()]
         text = self.__formatter.toString(data)
@@ -449,6 +462,7 @@ class _RecordView(DataView):
         self.getWidget().setArrayData(None)
 
     def setData(self, data):
+        data = self.normalizeData(data)
         widget = self.getWidget()
         widget.setArrayData(data)
         widget.resizeRowsToContents()
@@ -608,6 +622,13 @@ class DataViewer(qt.QFrame):
         """Clear the widget"""
         self.setData(None)
 
+    def normalizeData(self, data):
+        """Returns a normalized data if the embbed a numpy or a dataset.
+        Else returns the data."""
+        if isinstance(data, H5Node):
+            return data.h5py_object
+        return data
+
     def __getStackIndex(self, view):
         """Get the stack index containing the view.
 
@@ -643,9 +664,10 @@ class DataViewer(qt.QFrame):
             self.__useAxisSelection = True
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
-            self.__numpySelection.setData(self.__data)
-            if hasattr(self.__data, "shape"):
-                isVisible = not (len(axisNames) == 1 and len(self.__data.shape) == 1)
+            data = self.normalizeData(self.__data)
+            self.__numpySelection.setData(data)
+            if hasattr(data, "shape"):
+                isVisible = not (len(axisNames) == 1 and len(data.shape) == 1)
             else:
                 isVisible = True
             self.__axisSelection.setVisible(isVisible)
