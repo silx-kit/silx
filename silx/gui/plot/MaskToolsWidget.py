@@ -904,30 +904,39 @@ class MaskToolsWidget(qt.QWidget):
         """Load a mask from an image file.
 
         :param str filename: File name from which to load the mask
-        :return: False on failure, True on success or a resized message
-                 when loading succeeded but shape of the image and the mask
-                 are different.
+        :raise Exception: An exception in case of failure
+        :raise RuntimeWarning: In case the mask was applied but with some
+            import changes to notice
         :rtype: bool or str
         """
-        try:
-            mask = numpy.load(filename)
-        except IOError:
-            _logger.debug('Not a numpy file: %s', filename)
+        _, extension = os.path.splitext(filename)
+        extension = extension.lower()[1:]
+
+        if extension == "npy":
+            try:
+                mask = numpy.load(filename)
+            except IOError:
+                _logger.error("Can't load filename '%s'", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError('File "%s" is not a numpy file.', filename)
+        elif extension == "edf":
             try:
                 mask = EdfFile(filename, access='r').GetData(0)
-            except Exception:
-                _logger.error('Error while opening image file\n'
-                              '%s', (sys.exc_info()[1]))
-                return False
+            except Exception as e:
+                _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        else:
+            msg = "Extension '%s' is not supported."
+            raise RuntimeError(msg % extension)
 
         effectiveMaskShape = self.setSelectionMask(mask, copy=False)
         if effectiveMaskShape is None:
-            return False
-        elif mask.shape != effectiveMaskShape:
-            return 'Mask was resized from %s to %s' % (
-                str(mask.shape), str(effectiveMaskShape))
-        else:
-            return True
+            return
+        if mask.shape != effectiveMaskShape:
+            msg = 'Mask was resized from %s to %s'
+            msg = msg % (str(mask.shape), str(effectiveMaskShape))
+            raise RuntimeWarning(msg)
 
     def _loadMask(self):
         """Open load mask dialog"""
@@ -950,16 +959,19 @@ class MaskToolsWidget(qt.QWidget):
         dialog.close()
 
         self.maskFileDir = os.path.dirname(filename)
-        loaded = self.load(filename)
-        if not loaded:
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot load mask from file.")
-            msg.exec_()
-        elif loaded is not True:
+        try:
+            self.load(filename)
+        except RuntimeWarning as e:
+            message = e.args[0]
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Warning)
-            msg.setText(loaded)
+            msg.setText("Mask loaded but an operation was applied.\n" + message)
+            msg.exec_()
+        except Exception as e:
+            message = e.args[0]
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot load mask from file. " + message)
             msg.exec_()
 
     def save(self, filename, kind):
@@ -977,7 +989,7 @@ class MaskToolsWidget(qt.QWidget):
         dialog.setWindowTitle("Save Mask")
         dialog.setModal(1)
         filters = [
-            'EDF  (*.edf)',
+            'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
         ]
@@ -990,7 +1002,7 @@ class MaskToolsWidget(qt.QWidget):
             return
 
         # convert filter name to extension name with the .
-        extension = dialog.selectedNameFilter().split()[2:-1]
+        extension = dialog.selectedNameFilter().split()[-1][2:-1]
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
