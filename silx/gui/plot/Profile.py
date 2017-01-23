@@ -735,6 +735,14 @@ class Profile3DToolBar(ProfileToolBar):
 
         return ProfileToolBar.eventFilter(self, qobject, event)
 
+    def setChildVisibility(self):
+        if self._profileDimension is 1:
+            self._profileWindow1D.setVisible(True)
+            self._profileWindow2D.setVisible(False)
+        elif self._profileDimension is 2:
+            self._profileWindow1D.setVisible(False)
+            self._profileWindow2D.setVisible(True)
+
     def _setProfileDimension(self, dimension):
         """Set the dimension in which we want to compute the profile.
         Valid values are 1 and 2 for now
@@ -798,8 +806,9 @@ class Profile3DToolBar(ProfileToolBar):
         In Profile3DToolBar we have a widget grouping profile windows for 1D and 2D.
         So we also have to manage this one
         """
-        super(Profile3DToolBar, self)._showProfileWindow()
+        self.setChildVisibility()
         self.ndProfileWindow.show()
+        super(Profile3DToolBar, self)._showProfileWindow()
 
     def getProfileWindow1D(self):
         """Plot window used to display 1D profile curve.
