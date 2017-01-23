@@ -5,37 +5,60 @@ Uploaders: Jerome Kieffer <jerome.kieffer@esrf.fr>,
 Section: science
 Priority: extra
 Build-Depends: cython,
+               cython-dbg,
                cython3,
+               cython3-dbg,
+               libstdc++6-4.9-dbg,
+               libstdc++-4.9-dev,
+               libstdc++6,
                debhelper,
                dh-python,
                python-all-dev,
+               python-all-dbg,
                python-numpy,
+               python-numpy-dbg,
                python-fabio,
+               python-fabio-dbg,
                python-h5py,
+               python-h5py-dbg,
                python-pyopencl,
+               python-pyopencl-dbg,
                python-mako,
                ipython,
                ipython-qtconsole,
                python-matplotlib,
+               python-matplotlib-dbg,
                python-opengl,
                python-pyqt5,
+               python-pyqt5-dbg,
                python-pyqt5.qtopengl,
+               python-pyqt5.qtopengl-dbg,
                python-scipy,
+               python-scipy-dbg,
                python-sphinx,
                python-sphinxcontrib.programoutput,
                python3-all-dev,
+               python3-all-dbg,
                python3-numpy,
+               python3-numpy-dbg,
                python3-fabio,
+               python3-fabio-dbg,
                python3-h5py,
+               python3-h5py-dbg,
                python3-pyopencl,
+               python3-pyopencl-dbg,
                python3-mako,
                ipython3,
                ipython3-qtconsole,
                python3-matplotlib,
+               python3-matplotlib-dbg,
                python3-opengl,
                python3-pyqt5,
+               python3-pyqt5-dbg,
                python3-pyqt5.qtopengl,
+               python3-pyqt5.qtopengl-dbg,
                python3-scipy,
+               python3-scipy-dbg,
                python3-sphinx,
                python3-sphinxcontrib.programoutput,
 Standards-Version: 3.9.6
@@ -44,18 +67,6 @@ Vcs-Git: git://anonscm.debian.org/debian-science/packages/silx.git
 Homepage:  https://github.com/silex-kit/silx
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
-
-# Commented *-dbg Build-Depends of Source: silx
-#               cython-dbg,
-#               cython3-dbg,
-#               python-all-dbg,
-#               python-matplotlib-dbg,
-#               python-numpy-dbg,
-#               python-pyqt5-dbg,
-#               python3-all-dbg,
-#               python3-matplotlib-dbg,
-#               python3-numpy-dbg,
-#               python3-pyqt5-dbg,
 
 #Package: silx
 #Architecture: all
@@ -71,6 +82,7 @@ Section: python
 Depends: ${misc:Depends},
          ${python:Depends},
          ${shlibs:Depends},
+         libstdc++6,
          python-numpy,
          python-fabio,
          python-h5py,
@@ -89,22 +101,31 @@ Description: Toolbox for X-Ray data analysis - Python2 library
  .
  This is the Python 2 version of the package.
 
-#Package: python-silx-dbg
-#Architecture: any
-#Section: debug
-#Depends: ${misc:Depends},
-#         ${python:Depends},
-#         ${shlibs:Depends},
-#         python-silx (= ${binary:Version}),
-#Recommends: python-dbg,
-#            python-numpy-dbg,
-#            python-pyqt5-dbg,
-#            python-matplotlib-dbg
-#Suggests: python-scipy.dbg
-#Description: Toolbox for X-Ray data analysis - python2 debug
-# .
-# This package contains the extension built for the Python 2 debug
-# interpreter.
+Package: python-silx-dbg
+Architecture: any
+Section: debug
+Depends: ${misc:Depends},
+         ${python:Depends},
+         ${shlibs:Depends},
+         python-silx (= ${binary:Version}),
+         libstdc++6-4.9-dbg,
+         python-dbg,
+         python-numpy-dbg,
+         python-fabio-dbg,
+         python-h5py-dbg,
+         python-pyopencl-dbg,
+         python-mako,
+         ipython,
+         ipython-qtconsole,
+         python-matplotlib-dbg,
+         python-opengl,
+         python-pyqt5-dbg,
+         python-pyqt5.qtopengl-dbg,
+         python-scipy-dbg,
+Description: Toolbox for X-Ray data analysis - python2 debug
+ .
+ This package contains the extension built for the Python 2 debug
+ interpreter.
 
 Package: python3-silx
 Architecture: any
@@ -112,6 +133,7 @@ Section: python
 Depends: ${misc:Depends},
          ${python3:Depends},
          ${shlibs:Depends},
+         libstdc++6,
          python3-numpy,
          python3-fabio,
          python3-h5py,
@@ -130,21 +152,31 @@ Description: Toolbox for X-Ray data analysis - Python3
  .
  This is the Python 3 version of the package.
 
-#Package: python3-silx-dbg
-#Architecture: any
-#Section: debug
-#Depends: ${misc:Depends},
-#         ${python3:Depends},
-#         ${shlibs:Depends},
-#         python3-silx (= ${binary:Version}),
-#Recommends: python3-dbg,
-#            python3-numpy-dbg,
-#            python3-pyqt5-dbg,
-#            python3-matplotlib-dbg
-#Description: Toolbox for X-Ray data analysis - Python3 debug
-# .
-# This package contains the extension built for the Python 3 debug
-# interpreter.
+Package: python3-silx-dbg
+Architecture: any
+Section: debug
+Depends: ${misc:Depends},
+         ${python3:Depends},
+         ${shlibs:Depends},
+         python3-silx (= ${binary:Version}),
+         libstdc++6-4.9-dbg,
+         python3-dbg,
+         python3-numpy-dbg,
+         python3-fabio-dbg,
+         python3-h5py-dbg,
+         python3-pyopencl-dbg,
+         python3-mako,
+         ipython3,
+         ipython3-qtconsole,
+         python3-matplotlib-dbg,
+         python3-opengl,
+         python3-pyqt5-dbg,
+         python3-pyqt5.qtopengl-dbg,
+         python3-scipy-dbg,
+Description: Toolbox for X-Ray data analysis - Python3 debug
+ .
+ This package contains the extension built for the Python 3 debug
+ interpreter.
 
 Package: python-silx-doc
 Architecture: all
