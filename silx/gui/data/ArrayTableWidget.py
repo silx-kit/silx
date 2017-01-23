@@ -28,7 +28,7 @@ The dimensions not displayed in the table can be browsed using improved
 sliders.
 
 The widget uses a TableView that relies on a custom abstract item
-model: :class:`silx.gui.widgets.ArrayTableModel`.
+model: :class:`silx.gui.data.ArrayTableModel`.
 """
 from __future__ import division
 import sys

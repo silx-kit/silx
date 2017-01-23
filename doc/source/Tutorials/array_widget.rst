@@ -1,5 +1,5 @@
 
-.. currentmodule:: silx.gui.widgets.ArrayTableWidget
+.. currentmodule:: silx.gui.data.ArrayTableWidget
 
 ArrayTableWidget
 ================
@@ -9,17 +9,21 @@ ArrayTableWidget
 3D example
 ----------
 
-Let's look at a simple usage example::
+Let's look at a simple usage example:
 
-    >>> from silx.gui import qt
-    >>> from silx.gui.widgets.ArrayTableWidget import ArrayTableWidget
-    >>> import numpy
-    >>> array = numpy.arange(1000)
-    >>> array.shape = (5, 10, 20)
-    >>> a = qt.QApplication([])
-    >>> w = ArrayTableWidget()
-    >>> w.setArrayData(array, labels=True)
-    >>> w.show()
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.data.ArrayTableWidget import ArrayTableWidget
+    import numpy
+    array = numpy.arange(1000)
+    array.shape = (5, 10, 20)
+    app = qt.QApplication([])
+    w = ArrayTableWidget()
+    w.setArrayData(array, labels=True)
+    w.show()
+    app.exec_()
+
 
 .. |imgArray0| image:: img/arraywidget3D_0.png
    :height: 300px
@@ -42,9 +46,11 @@ of dimensions that are not represented in the frame, orthogonal to it.
 For a 3D array, there are 3 possible perspectives: *[0, ]* (the default perspective),
 *[1, ]* and *[2, ]*.
 
-Lets change the perspective::
+Lets change the perspective:
 
-    >>> w.setPerspective([1])
+.. code-block:: python
+
+    w.setPerspective([1])
 
 .. |imgArray1| image:: img/arraywidget3D_1.png
    :height: 300px
@@ -56,19 +62,23 @@ What we see now is a frame of *5 x 20* values, and the browser now browses the s
 to select one of 10 available frames. The label is updated accordingly to show *Dimension 1*.
 
 To select a different frame programmatically, without using the browser, you can
-use the :meth:`ArrayTableWidget.setIndex` method. To select the 9-th frame, use::
+use the :meth:`ArrayTableWidget.setIndex` method. To select the 9-th frame, use:
 
-    >>> w.setIndex([8])
+.. code-block:: python
+
+    w.setIndex([8])
 
 More dimensions
 ---------------
 
 This widget can be used for arrays with any numbers of dimensions. Let's create
-a 5-dimensional array and display it::
+a 5-dimensional array and display it:
 
-    >>> array = numpy.arange(10000)
-    >>> array.shape = (5, 2, 10, 5, 20)
-    >>> w.setArrayData(array, labels=True)
+.. code-block:: python
+
+    array = numpy.arange(10000)
+    array.shape = (5, 2, 10, 5, 20)
+    w.setArrayData(array, labels=True)
 
 .. |imgArray2| image:: img/arraywidget5D_0.png
    :height: 300px
@@ -80,9 +90,11 @@ We now have 3 frames browsers, one for each one of the orthogonal dimensions.
 
 Let's look at a frame whose axes are along the second
 and the fourth dimension, by setting the orthogonal axes to the first,
-third and fifth dimensions::
+third and fifth dimensions:
 
-   >>> w.setPerspective([0, 2, 4])
+.. code-block:: python
+
+   w.setPerspective([0, 2, 4])
 
 .. |imgArray3| image:: img/arraywidget5D_1.png
    :height: 300px
@@ -94,9 +106,11 @@ third and fifth dimensions::
 Listing all the orthogonal dimensions might not feel very convenient for arrays
 with more than 3 or 4 dimensions.
 Fortunately, you can use the opposite approach of defining the two axes
-parallel to the frame, using :meth:`ArrayTableWidget.setFrameAxes`::
+parallel to the frame, using :meth:`ArrayTableWidget.setFrameAxes`:
 
-   >>> w.setFrameAxes(row_axis=1, col_axis=3)
+.. code-block:: python
+
+   w.setFrameAxes(row_axis=1, col_axis=3)
 
 This achieves the exact same result as ``w.setPerspective([0, 2, 4])``.
 
@@ -112,9 +126,11 @@ This achieves the exact same result as ``w.setPerspective([0, 2, 4])``.
     :meth:`setPerspective` is not significant.
 
 To select a frame programmaticaly, you can again use :meth:`setFrameIndex`.
-This time you must provide 3 unique indices::
+This time you must provide 3 unique indices:
 
-    >>> w.setIndex([2, 5, 14])
+.. code-block:: python
+
+    w.setIndex([2, 5, 14])
 
 The 3 indices relate to the first, third and fifth dimensions.
 
@@ -127,16 +143,20 @@ Editing the data
 By default, the data displayed in the table view can be edited. If you modify
 a cell with a valid value, it will be modified in the internal data model.
 
-You can get the modified data with the following line::
+You can get the modified data with the following line:
 
-    >>> newdata = w.getData()
+.. code-block:: python
+
+    newdata = w.getData()
 
 This will give you a copy of the data, by default.
 
 If you want the data to be read-only, not editable, you must specify it when
-you set the data::
+you set the data:
 
-    >>> w.setDataArray(array, editable=False)
+.. code-block:: python
+
+    w.setDataArray(array, editable=False)
 
 More performances
 -----------------
@@ -146,9 +166,11 @@ for internal storage. This ensures that the original data object is not
 modified when a cell of the table is changed interactively in the widget.
 
 This behavior has a negative impact on performances, especially for large data arrays.
-To avoid this, you can explicitely disable the copy operation when setting the data::
+To avoid this, you can explicitely disable the copy operation when setting the data:
 
-    >>> w.setArrayData(array, copy=False)
+.. code-block:: python
+
+    w.setArrayData(array, copy=False)
 
 The internal data array used by the widget is then a reference
 to the same data object as the original *array*. The memory is shared and
@@ -160,9 +182,11 @@ is not duplicated.
     in your program.
 
 Similarly, you can pass *copy=False* to the :meth:`getData` method, to avoid
-doing a data copy operation::
+doing a data copy operation:
 
-    >>> newdata = w.getData(copy=False)
+.. code-block:: python
+
+    newdata = w.getData(copy=False)
 
 The variable *newdata* is then a reference to the internal widget data.
 
