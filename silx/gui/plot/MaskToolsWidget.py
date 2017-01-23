@@ -50,6 +50,12 @@ from .. import icons, qt
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
+
 _logger = logging.getLogger(__name__)
 
 
@@ -907,7 +913,6 @@ class MaskToolsWidget(qt.QWidget):
         :raise Exception: An exception in case of failure
         :raise RuntimeWarning: In case the mask was applied but with some
             import changes to notice
-        :rtype: bool or str
         """
         _, extension = os.path.splitext(filename)
         extension = extension.lower()[1:]
@@ -924,6 +929,15 @@ class MaskToolsWidget(qt.QWidget):
                 mask = EdfFile(filename, access='r').GetData(0)
             except Exception as e:
                 _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        elif extension == "msk":
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
+            try:
+                mask = fabio.open(filename).data
+            except Exception as e:
+                _logger.error("Can't load fit2d mask file")
                 _logger.debug("Backtrace", exc_info=True)
                 raise e
         else:
@@ -947,6 +961,9 @@ class MaskToolsWidget(qt.QWidget):
             'EDF  (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
         ]
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
