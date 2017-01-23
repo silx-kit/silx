@@ -360,13 +360,20 @@ class Hdf5TreeViewExample(qt.QMainWindow):
         self.__treeview.addContextMenuCallback(self.__store_lambda)
 
     def displayData(self):
+        """Called to update the dataviewer with the selected data.
+        """
         selected = list(self.__treeview.selectedH5Nodes())
         if len(selected) == 1:
+            # Update the viewer for a single selection
             data = selected[0]
-            self.__dataViewer.setData(data.h5py_object)
+            # data is a hdf5.H5Node object
+            # data.h5py_object is a Group/Dataset object (from h5py, spech5, fabioh5)
+            # The dataviewer can display both
+            self.__dataViewer.setData(data)
 
     def displayEvent(self, eventName, index):
-
+        """Called to log event in widget
+        """
         def formatKey(name, value):
             name, value = silx.utils.html.escape(str(name)), silx.utils.html.escape(str(value))
             return "<li><b>%s</b>: %s</li>" % (name, value)
