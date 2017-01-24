@@ -737,6 +737,10 @@ class FabioReader(object):
                 converted.append(c)
                 types.add(c.dtype)
 
+        if has_none and len(types) == 0:
+            # That's a list of none values
+            return numpy.array([0] * len(values), numpy.int8)
+
         result_type = numpy.result_type(*types)
 
         if issubclass(result_type.type, numpy.string_):
