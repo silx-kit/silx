@@ -269,6 +269,13 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     :return: ``None`` if ``close_file`` is ``True``, else return the file
         handle.
     """
+    # Make sure we use binary mode for write
+    # (issue with windows: write() replaces \n with os.linesep in text mode)
+    if "b" not in mode:
+        first_letter = mode[0]
+        assert first_letter in "rwa"
+        mode = mode.replace(first_letter, first_letter + "b")
+
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
 
@@ -288,20 +295,24 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     else:
         f = specfile
 
+    output = ""
+
     current_date = "#D %s\n" % (time.ctime(time.time()))
 
     if write_file_header:
-        f.write("#F %s\n" % f.name)
-        f.write(current_date)
-        f.write("\n")
+        output += "#F %s\n" % f.name
+        output += current_date
+        output += "\n"
 
-    f.write("#S %d %s\n" % (scan_number, ylabel))
-    f.write(current_date)
-    f.write("#N 2\n")
-    f.write("#L %s  %s\n" % (xlabel, ylabel))
+    output += "#S %d %s\n" % (scan_number, ylabel)
+    output += current_date
+    output += "#N 2\n"
+    output += "#L %s  %s\n" % (xlabel, ylabel)
     for i in range(y_array.shape[0]):
-        f.write(full_fmt_string % (x_array[i], y_array[i]))
-    f.write("\n")
+        output += full_fmt_string % (x_array[i], y_array[i])
+    output += "\n"
+
+    f.write(output.encode())
 
     if close_file:
         f.close()
