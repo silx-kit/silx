@@ -536,11 +536,19 @@ class SaveAction(PlotAction):
     IMAGE_FILTER_EDF = 'Image data as EDF (*.edf)'
     IMAGE_FILTER_TIFF = 'Image data as TIFF (*.tif)'
     IMAGE_FILTER_NUMPY = 'Image data as NumPy binary file (*.npy)'
+    IMAGE_FILTER_ASCII = 'Image data as ASCII (*.dat)'
+    IMAGE_FILTER_CSV_COMMA = 'Image data as ,-separated CSV (*.csv)'
+    IMAGE_FILTER_CSV_SEMICOLON = 'Image data as ;-separated CSV (*.csv)'
+    IMAGE_FILTER_CSV_TAB = 'Image data as tab-separated CSV (*.csv)'
     IMAGE_FILTER_RGB_PNG = 'Image as PNG (*.png)'
     IMAGE_FILTER_RGB_TIFF = 'Image as TIFF (*.tif)'
     IMAGE_FILTERS = (IMAGE_FILTER_EDF,
                      IMAGE_FILTER_TIFF,
                      IMAGE_FILTER_NUMPY,
+                     IMAGE_FILTER_ASCII,
+                     IMAGE_FILTER_CSV_COMMA,
+                     IMAGE_FILTER_CSV_SEMICOLON,
+                     IMAGE_FILTER_CSV_TAB,
                      IMAGE_FILTER_RGB_PNG,
                      IMAGE_FILTER_RGB_TIFF)
 
@@ -710,6 +718,32 @@ class SaveAction(PlotAction):
         elif nameFilter == self.IMAGE_FILTER_NUMPY:
             try:
                 numpy.save(filename, data)
+            except IOError:
+                self._errorMessage('Save failed\n')
+                return False
+            return True
+
+        elif nameFilter in (self.IMAGE_FILTER_ASCII,
+                            self.IMAGE_FILTER_CSV_COMMA,
+                            self.IMAGE_FILTER_CSV_SEMICOLON,
+                            self.IMAGE_FILTER_CSV_TAB):
+            csvdelim, filetype = {
+                self.IMAGE_FILTER_ASCII: (' ', 'txt'),
+                self.IMAGE_FILTER_CSV_COMMA: (',', 'csv'),
+                self.IMAGE_FILTER_CSV_SEMICOLON: (';', 'csv'),
+                self.IMAGE_FILTER_CSV_TAB: ('\t', 'csv'),
+                }[nameFilter]
+
+            height, width = data.shape
+            rows, cols = numpy.mgrid[0:height, 0:width]
+            try:
+                save1D(filename, rows.ravel(), (cols.ravel(), data.ravel()),
+                       filetype=filetype,
+                       xlabel='row',
+                       ylabels=['column', 'value'],
+                       csvdelim=csvdelim,
+                       autoheader=True)
+
             except IOError:
                 self._errorMessage('Save failed\n')
                 return False
