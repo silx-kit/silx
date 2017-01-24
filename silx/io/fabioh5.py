@@ -34,9 +34,15 @@
 
 import collections
 import numpy
+import numbers
 import logging
 
 _logger = logging.getLogger(__name__)
+
+try:
+    from silx.third_party import six
+except ImportError:
+    import six
 
 try:
     import fabio
@@ -776,7 +782,31 @@ class FabioReader(object):
 
     def _convert_value(self, value):
         """Convert a string into a numpy object (scalar or array).
+
+        The value is most of the time a string, but it can be python object
+        in case if TIFF decoder for example.
         """
+        if isinstance(value, list):
+            # convert to a numpy array
+            return numpy.array(value)
+        if isinstance(value, dict):
+            # convert to a numpy associative array
+            key_dtype = numpy.min_scalar_type(list(value.keys()))
+            value_dtype = numpy.min_scalar_type(list(value.values()))
+            associative_type = [('key', key_dtype), ('value', value_dtype)]
+            assert key_dtype.kind != "O" and value_dtype.kind != "O"
+            return numpy.array(list(value.items()), dtype=associative_type)
+        if isinstance(value, numbers.Number):
+            dtype = numpy.min_scalar_type(value)
+            assert dtype.kind != "O"
+            return dtype.type(value)
+
+        if isinstance(value, six.binary_type):
+            try:
+                value = value.decode('utf-8')
+            except UnicodeDecodeError:
+                return numpy.void(value)
+
         if " " in value:
             result = self._convert_list(value)
         else:
