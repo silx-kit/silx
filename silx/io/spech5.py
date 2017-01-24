@@ -786,7 +786,8 @@ class SpecH5Dataset(object):
 
     # casting
     def __repr__(self):
-        return self.value.__repr__()
+        return '<SpecH5Dataset "%s": shape %s, type "%s">' % \
+               (self.name, self.shape, self.dtype.str)
 
     def __float__(self):
         return float(self.value)
@@ -795,7 +796,9 @@ class SpecH5Dataset(object):
         return int(self.value)
 
     def __str__(self):
-        return str(self.value)
+        basename = self.name.split("/")[-1]
+        return '<SpecH5Dataset "%s": shape %s, type "%s">' % \
+               (basename, self.shape, self.dtype.str)
 
     def __bool__(self):
         if self.value:
