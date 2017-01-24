@@ -1056,6 +1056,20 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                        x, y)
         self.plot.notify(**eventDict)
 
+        eventDict = self._handleClick(x, y, btn)
+        if eventDict is not None:
+            self.plot.notify(**eventDict)
+
+    def _handleClick(self, x, y, btn):
+        """Perform picking and prepare event if click is handled here
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: event description to send of None if not handling event.
+        :rtype: dict or None
+        """
+
         if btn == LEFT_BTN:
             marker = self.plot._pickMarker(
                 x, y, lambda marker: marker['selectable'])
@@ -1074,14 +1088,15 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                                 marker['selectable'],
                                                 (xData, yData),
                                                 (x, y), None)
-                self.plot.notify(**eventDict)
+                return eventDict
 
             else:
                 picked = self.plot._pickImageOrCurve(
                     x, y, lambda item: item['selectable'])
 
                 if picked is None:
-                    return False
+                    pass
+
                 elif picked[0] == 'curve':
                     curve = picked[1]
 
@@ -1094,7 +1109,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                                    picked[2], picked[3],
                                                    dataPos[0], dataPos[1],
                                                    x, y)
-                    self.plot.notify(**eventDict)
+                    return eventDict
 
                 elif picked[0] == 'image':
                     image = picked[1]
@@ -1114,13 +1129,9 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                                    column, row,
                                                    dataPos[0], dataPos[1],
                                                    x, y)
-                    self.plot.notify(**eventDict)
-                else:
-                    return False
+                    return eventDict
 
-            return True
-
-        return False
+        return None
 
     def _signalMarkerMovingEvent(self, eventType, marker, x, y):
         assert marker is not None
@@ -1294,7 +1305,11 @@ class FocusManager(StateMachine):
 
 
 class ZoomAndSelect(ItemsInteraction):
-    """Combine Zoom and ItemInteraction state machine."""
+    """Combine Zoom and ItemInteraction state machine.
+
+    :param plot: The Plot to which this interaction is attached
+    :param color: The color to use for the zoom area bounding box
+    """
 
     def __init__(self, plot, color):
         super(ZoomAndSelect, self).__init__(plot)
@@ -1307,21 +1322,56 @@ class ZoomAndSelect(ItemsInteraction):
         return self._zoom.color
 
     def click(self, x, y, btn):
-        if not super(ZoomAndSelect, self).click(x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
+        eventDict = self._handleClick(x, y, btn)
+
+        if eventDict is not None:
+            # Signal mouse clicked event
+            dataPos = self.plot.pixelToData(x, y)
+            assert dataPos is not None
+            clickedEventDict = prepareMouseSignal('mouseClicked', btn,
+                                                  dataPos[0], dataPos[1],
+                                                  x, y)
+            self.plot.notify(**clickedEventDict)
+
+            self.plot.notify(**eventDict)
+
+        else:
             self._zoom.click(x, y, btn)
 
     def beginDrag(self, x, y):
+        """Handle start drag and switching between zoom and item drag.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
         self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y)
         if self._doZoom:
             self._zoom.beginDrag(x, y)
 
     def drag(self, x, y):
+        """Handle drag, eventually forwarding to zoom.
+
+        :param x: X position in pixels
+        :param y: Y position in pixels
+        """
         if self._doZoom:
             return self._zoom.drag(x, y)
         else:
             return super(ZoomAndSelect, self).drag(x, y)
 
     def endDrag(self, startPos, endPos):
+        """Handle end of drag, eventually forwarding to zoom.
+
+        :param startPos: (x, y) position at the beginning of the drag
+        :param endPos: (x, y) position at the end of the drag
+        """
         if self._doZoom:
             return self._zoom.endDrag(startPos, endPos)
         else:
