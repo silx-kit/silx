@@ -958,7 +958,7 @@ class MaskToolsWidget(qt.QWidget):
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
         filters = [
-            'EDF  (*.edf)',
+            'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
             # Fit2D mask is displayed anyway fabio is here or not
