@@ -1,7 +1,7 @@
 #  coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2014-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2014-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "19/10/2016"
+__date__ = "24/01/2017"
 
 
 import math
@@ -982,6 +982,13 @@ class SelectFreeLine(ClickOrDrag, _PlotInteraction):
 # ItemInteraction #############################################################
 
 class ItemsInteraction(ClickOrDrag, _PlotInteraction):
+    """Interaction with items (markers, curves and images).
+
+    This class provides selection and dragging of plot primitives
+    that support those interaction.
+    It is also meant to be combined with the zoom interaction.
+    """
+
     class Idle(ClickOrDrag.Idle):
         def __init__(self, *args, **kw):
             super(ItemsInteraction.Idle, self).__init__(*args, **kw)
@@ -990,27 +997,6 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         def onWheel(self, x, y, angle):
             scaleF = 1.1 if angle > 0 else 1. / 1.1
             applyZoomToPlot(self.machine.plot, scaleF, (x, y))
-
-        def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                marker = self.machine.plot._pickMarker(
-                    x, y,
-                    lambda marker: marker['selectable'] or marker['draggable'])
-                if marker is not None:
-                    self.goto('clickOrDrag', x, y)
-                    return True
-
-                else:
-                    picked = self.machine.plot._pickImageOrCurve(
-                        x,
-                        y,
-                        lambda item: (item['selectable'] or
-                                      item.get('draggable', False)))
-                    if picked is not None:
-                        self.goto('clickOrDrag', x, y)
-                        return True
-
-            return False
 
         def onMove(self, x, y):
             marker = self.machine.plot._pickMarker(x, y)
@@ -1048,12 +1034,20 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
 
         states = {
             'idle': ItemsInteraction.Idle,
+            'rightClick': ClickOrDrag.RightClick,
             'clickOrDrag': ClickOrDrag.ClickOrDrag,
             'drag': ClickOrDrag.Drag
         }
         StateMachine.__init__(self, states, 'idle')
 
     def click(self, x, y, btn):
+        """Handle mouse click
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :param btn: Pressed button id
+        :return: True if click is catched by an item, False otherwise
+        """
         # Signal mouse clicked event
         dataPos = self.plot.pixelToData(x, y)
         assert dataPos is not None
@@ -1087,7 +1081,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                     x, y, lambda item: item['selectable'])
 
                 if picked is None:
-                    pass
+                    return False
                 elif picked[0] == 'curve':
                     curve = picked[1]
 
@@ -1121,6 +1115,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                                                    dataPos[0], dataPos[1],
                                                    x, y)
                     self.plot.notify(**eventDict)
+                else:
+                    return False
+
+            return True
+
+        return False
 
     def _signalMarkerMovingEvent(self, eventType, marker, x, y):
         assert marker is not None
@@ -1146,6 +1146,12 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
         self.plot.notify(**eventDict)
 
     def beginDrag(self, x, y):
+        """Handle begining of drag interaction
+
+        :param x: X position of the mouse in pixels
+        :param y: Y position of the mouse in pixels
+        :return: True if drag is catched by an item, False otherwise
+        """
         self._lastPos = self.plot.pixelToData(x, y)
         assert self._lastPos is not None
 
@@ -1165,9 +1171,11 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
             if picked is None:
                 self.imageLegend = None
                 self.plot.setGraphCursorShape()
+                return False
             else:
                 assert picked[0] == 'image'  # For now only drag images
                 self.imageLegend = picked[1]['legend']
+        return True
 
     def drag(self, x, y):
         dataPos = self.plot.pixelToData(x, y)
@@ -1285,15 +1293,39 @@ class FocusManager(StateMachine):
             handler.cancel()
 
 
-class ZoomAndSelect(FocusManager):
+class ZoomAndSelect(ItemsInteraction):
     """Combine Zoom and ItemInteraction state machine."""
+
     def __init__(self, plot, color):
-        eventHandlers = ItemsInteraction(plot), Zoom(plot, color)
-        super(ZoomAndSelect, self).__init__(eventHandlers)
+        super(ZoomAndSelect, self).__init__(plot)
+        self._zoom = Zoom(plot, color)
+        self._doZoom = False
 
     @property
     def color(self):
-        return self.eventHandlers[1].color
+        """Color of the zoom area"""
+        return self._zoom.color
+
+    def click(self, x, y, btn):
+        if not super(ZoomAndSelect, self).click(x, y, btn):
+            self._zoom.click(x, y, btn)
+
+    def beginDrag(self, x, y):
+        self._doZoom = not super(ZoomAndSelect, self).beginDrag(x, y)
+        if self._doZoom:
+            self._zoom.beginDrag(x, y)
+
+    def drag(self, x, y):
+        if self._doZoom:
+            return self._zoom.drag(x, y)
+        else:
+            return super(ZoomAndSelect, self).drag(x, y)
+
+    def endDrag(self, startPos, endPos):
+        if self._doZoom:
+            return self._zoom.endDrag(startPos, endPos)
+        else:
+            return super(ZoomAndSelect, self).endDrag(startPos, endPos)
 
 
 # Interaction mode control ####################################################
