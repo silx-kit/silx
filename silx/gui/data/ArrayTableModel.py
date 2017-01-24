@@ -74,7 +74,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
     :param sequence[int] perspective: See documentation
         of :meth:`setPerspective`.
     """
-    def __init__(self, parent=None, data=None, fmt="%g", perspective=None):
+    def __init__(self, parent=None, data=None, perspective=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
         self._array = None
@@ -260,7 +260,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
     # Public methods
     def setArrayData(self, data, copy=True,
-                     fmt=None, perspective=None, editable=False):
+                     perspective=None, editable=False):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
@@ -280,8 +280,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
             If *False*, then the behavior depends on the data type:
             if possible (if the original array is a proper numpy array)
             a reference to the original array is used.
-        :param fmt: Format string for representing numerical values.
-            By default, use the format set when initializing this model.
         :param perspective: See documentation of :meth:`setPerspective`.
             If None, the default perspective is the list of the first ``n-2``
             dimensions, to view frames parallel to the last two axes.
@@ -291,9 +289,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self.beginResetModel()
         else:
             self.reset()
-
-        if fmt is not None:
-            self.model.getFormatter().setFloatFormat(fmt)
 
         if data is None:
             # empty array
@@ -607,10 +602,7 @@ if __name__ == "__main__":
     d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
         d[i, :, :] += i * 10
-    # m = ArrayTableModel(fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
-    m = ArrayTableModel(data=d, fmt="%.5f")
+    m = ArrayTableModel(data=d)
     w.setModel(m)
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))
