@@ -797,7 +797,7 @@ class SpecH5Dataset(object):
 
     def __str__(self):
         basename = self.name.split("/")[-1]
-        return '<SpecH5Dataset "%s": shape %s, type "%s">' % \
+        return '<SPEC dataset "%s": shape %s, type "%s">' % \
                (basename, self.shape, self.dtype.str)
 
     def __bool__(self):

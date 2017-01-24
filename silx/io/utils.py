@@ -349,10 +349,12 @@ def h5ls(h5group, lvl=0):
         raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
     for key in h5f.keys():
+        # group
         if hasattr(h5f[key], 'keys'):
             h5repr += '\t' * lvl + '+' + key
             h5repr += '\n'
             h5repr += h5ls(h5f[key], lvl + 1)
+        # dataset
         else:
             h5repr += '\t' * lvl
             h5repr += str(h5f[key])
