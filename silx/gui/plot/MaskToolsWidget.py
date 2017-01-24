@@ -120,26 +120,38 @@ class Mask(qt.QObject):
         """Save current mask in a file
 
         :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :return: True if save succeeded, False otherwise
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy',
+            or 'msk' (if FabIO is installed)
+        :raise Exception: Raised if the file writing fail
         """
         if kind == 'edf':
             edfFile = EdfFile(filename, access="w+")
             edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
-            return True
 
         elif kind == 'tif':
             tiffFile = TiffIO(filename, mode='w')
             tiffFile.writeImage(self.getMask(copy=False), software='silx')
-            return True
 
         elif kind == 'npy':
             try:
                 numpy.save(filename, self.getMask(copy=False))
             except IOError:
-                return False
-            return True
-        return False
+                raise RuntimeError("Mask file can't be written")
+
+        elif kind == 'msk':
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
+            try:
+                data = self.getMask(copy=False)
+                image = fabio.fabioimage.FabioImage(data=data)
+                image = image.convert(fabio.fit2dmaskimage.Fit2dMaskImage)
+                image.save(filename)
+            except Exception:
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError("Mask file can't be written")
+
+        else:
+            raise ValueError("Format '%s' is not supported" % kind)
 
     # History control
 
@@ -996,9 +1008,13 @@ class MaskToolsWidget(qt.QWidget):
 
         :param str filename: The file where to save to mask
         :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :return: True if save succeeded, False otherwise
+        :raise Exception: Raised if the process fails
         """
-        return self._mask.save(filename, kind)
+        try:
+            self._mask.save(filename, kind)
+        except:
+            return False
+        return True
 
     def _saveMask(self):
         """Open Save mask dialog"""
@@ -1009,6 +1025,9 @@ class MaskToolsWidget(qt.QWidget):
             'EDF (*.edf)',
             'TIFF (*.tif)',
             'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
         ]
         dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.AnyFile)
@@ -1038,10 +1057,14 @@ class MaskToolsWidget(qt.QWidget):
                 return
 
         self.maskFileDir = os.path.dirname(filename)
-        if not self.save(filename, extension[1:]):
+        try:
+            self.save(filename, extension[1:])
+        except KeyboardInterrupt as e:
+            raise e
+        except Exception as e:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n" % filename)
+            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
             msg.exec_()
 
     def getCurrentMaskColor(self):
