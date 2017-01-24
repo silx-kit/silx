@@ -35,7 +35,7 @@ __author__ = "Jerome Kieffer"
 __contact__ = "Jerome.Kieffer@ESRF.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "23/01/2017"
+__date__ = "24/01/2017"
 __status__ = "stable"
 
 import os
@@ -61,6 +61,7 @@ else:
     except ImportError:
         logger.warning("Unable to import pyOpenCl. Please install it from: http://pypi.python.org/pypi/pyopencl")
         pyopencl = None
+        mf = None
     else:
         import pyopencl.array as array
         mf = pyopencl.mem_flags
@@ -219,7 +220,7 @@ def _measure_workgroup_size(device_or_context, fast=False):
     elif isinstance(device_or_context, pyopencl.Context):
         ctx = device_or_context
         device = device_or_context.devices[0]
-    elif isinstance(device_or_context, (tuple, list)) and len(device_or_context)==2:
+    elif isinstance(device_or_context, (tuple, list)) and len(device_or_context) == 2:
         ctx = ocl.create_context(platformid=device_or_context[0], deviceid=device_or_context[1])
         device = ctx.devices[0]
     else:
@@ -541,31 +542,31 @@ def kernel_workgroup_size(program, kernel):
 
 class OpenclProcessing(object):
     """Abstract class for different types of OpenCL processing.
-    
+
     This class provides:
     * Generation of the context, queues, profiling mode
-    * Additional function to allocate/free all buffers declared as static attributes of the class 
-    * Functions to compile kernels, cache them and clean them  
+    * Additional function to allocate/free all buffers declared as static attributes of the class
+    * Functions to compile kernels, cache them and clean them
     * helper functions to clone the object
     """
-    # The last parameter
-    buffers = [BufferDescription("output", mf.WRITE_ONLY, numpy.float32, 10),
-               ]
+    # The list of buffers to be associated to this class, this is an example
+    buffers = [BufferDescription("output", None, numpy.float32, 10),
+              ]
     # list of kernel source files to be concatenated before compilation of the program
     kernel_files = []
 
     def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
                  block_size=None, profile=False):
         """Constructor of the abstract OpenCL processing class
-        
-        :param ctx: actual working context, left to None for automatic 
-                    initialization from device type or platformid/deviceid 
+
+        :param ctx: actual working context, left to None for automatic
+                    initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
         :param platformid: integer with the platform_identifier, as given by clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
         :param block_size: preferred workgroup size, may vary depending on the outpcome of the compilation
         :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slower) 
+                        store profiling elements (makes code slower)
         """
         self.sem = threading.Semaphore()
         self.profile = bool(profile)
@@ -628,8 +629,8 @@ class OpenclProcessing(object):
 
     def compile_kernels(self, kernel_files=None, compile_options=None):
         """Call the OpenCL compiler
-        
-        :param kernel_files: list of path to the kernel 
+
+        :param kernel_files: list of path to the kernel
         (by default use the one declared in the class)
         """
         # concatenate all needed source files into a single openCL module
