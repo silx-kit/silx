@@ -26,7 +26,7 @@
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "24/01/2017"
 
 
 import logging
@@ -243,8 +243,7 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
             self.assertTrue(
                 numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
-            result = self.maskWidget.load(os.path.join(tmp, 'mask.npy'))
-            self.assertTrue(result)
+            self.maskWidget.load(os.path.join(tmp, 'mask.npy'))
             self.assertTrue(numpy.all(numpy.equal(
                 self.maskWidget.getSelectionMask(), ref_mask)))
 
