@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ This module is a refactored version of PyMca Gefit.py module.
 """
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "24/01/2017"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
 
 import numpy
@@ -332,7 +332,7 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
                 constrained_fit = True
     if constrained_fit:
         if full_output is None:
-            _logger.warning("Recommended to set full_output to True when using constraints")
+            _logger.info("Recommended to set full_output to True when using constraints")
 
     # Levenberg-Marquardt algorithm
     fittedpar = parameters.__copy__()
@@ -460,13 +460,12 @@ def leastsq(model, xdata, ydata, p0, sigma=None,
             if constraints[idx][0] in [CFIXED, CIGNORED]:
                 flag_special[idx] = constraints[idx][0]
             else:
-                pass
                 new_constraints[idx][0] = CFREE
                 new_constraints[idx][1] = 0
                 new_constraints[idx][2] = 0
         chisq, alpha, beta, internal_output = chisq_alpha_beta(
                                                  model, fittedpar,
-                                                 x, y, weight, constraints=None,
+                                                 x, y, weight, constraints=new_constraints,
                                                  model_deriv=model_deriv,
                                                  epsfcn=epsfcn,
                                                  left_derivative=left_derivative,
