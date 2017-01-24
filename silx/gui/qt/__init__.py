@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -57,5 +57,5 @@ from ._utils import *  # noqa
 
 if sys.platform == "darwin":
     if BINDING in ["PySide", "PyQt4"]:
-        import _macosx
+        from . import _macosx
         _macosx.patch_QUrl_toLocalFile()
