@@ -447,7 +447,7 @@ class ProfileToolBar(qt.QToolBar):
         :param qobject: the object observe
         :param event: the event received by qobject
         """
-        if event.type() == qt.QEvent.Close:
+        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
             self.clearProfile()
 
         return qt.QToolBar.eventFilter(self, qobject, event)
