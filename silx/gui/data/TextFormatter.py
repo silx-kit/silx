@@ -42,7 +42,24 @@ from silx.gui import qt
 
 
 class TextFormatter(qt.QObject):
-    """Formatter to convert data to string"""
+    """Formatter to convert data to string.
+
+    The method :meth:`toString` returns a formatted string from an input data
+    using parameters set to this object.
+
+    It support most python and numpy data, expecting dictionary. Unsupported
+    data are displayed using the string representation of the object (`str`).
+
+    It provides a set of parameters to custom the formatting of integer and
+    float values (:meth:`setIntegerFormat`, :meth:`setFloatFormat`).
+
+    It also allows to custom the use of quotes to display text data
+    (:meth:`setUseQuoteForText`), and custom unit used to display imaginary
+    numbers (:meth:`setImaginaryUnit`).
+
+    The object emit an event `formatChanged` every time a parametter is
+    changed.
+    """
 
     formatChanged = qt.Signal()
     """Emitted when properties of the formatter change."""
@@ -52,7 +69,8 @@ class TextFormatter(qt.QObject):
         Constructor
 
         :param qt.QObject parent: Owner of the object
-        :param TextFormatter formatter: Instantiate this object from the formatter
+        :param TextFormatter formatter: Instantiate this object from the
+            formatter
         """
         qt.QObject.__init__(self, parent)
         if formatter is not None:
