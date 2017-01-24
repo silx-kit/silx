@@ -38,7 +38,7 @@ be user defined, or by default are loaded from
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "24/01/2017"
 
 import logging
 import sys
@@ -333,7 +333,7 @@ class FitWidget(qt.QWidget):
                                 xmin=xmin, xmax=xmax)
         for config_dialog in self.bgconfigdialogs.values():
             if isinstance(config_dialog, BackgroundDialog):
-                config_dialog.setData(x, y)
+                config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
 
     def associateConfigDialog(self, theory_name, config_widget,
                               theory_is_background=False):
