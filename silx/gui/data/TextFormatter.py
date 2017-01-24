@@ -47,17 +47,24 @@ class TextFormatter(qt.QObject):
     formatChanged = qt.Signal()
     """Emitted when properties of the formatter change."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, formatter=None):
         """
         Constructor
 
         :param qt.QObject parent: Owner of the object
+        :param TextFormatter formatter: Instantiate this object from the formatter
         """
         qt.QObject.__init__(self, parent)
-        self.__integerFormat = "%d"
-        self.__floatFormat = "%g"
-        self.__useQuoteForText = True
-        self.__imaginaryUnit = u"j"
+        if formatter is not None:
+            self.__integerFormat = formatter.integerFormat()
+            self.__floatFormat = formatter.floatFormat()
+            self.__useQuoteForText = formatter.useQuoteForText()
+            self.__imaginaryUnit = formatter.imaginaryUnit()
+        else:
+            self.__integerFormat = "%d"
+            self.__floatFormat = "%g"
+            self.__useQuoteForText = True
+            self.__imaginaryUnit = u"j"
 
     def integerFormat(self):
         """Returns the format string controlling how the integer data
