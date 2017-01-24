@@ -27,21 +27,33 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 import numpy
 import numbers
 import binascii
+
 try:
     from silx.third_party import six
 except ImportError:
     import six
 
+from silx.gui import qt
 
-class TextFormatter():
+
+class TextFormatter(qt.QObject):
     """Formatter to convert data to string"""
 
-    def __init__(self):
+    formatChanged = qt.Signal()
+    """Emitted when properties of the formatter change."""
+
+    def __init__(self, parent=None):
+        """
+        Constructor
+
+        :param qt.QObject parent: Owner of the object
+        """
+        qt.QObject.__init__(self, parent)
         self.__integerFormat = "%d"
         self.__floatFormat = "%g"
         self.__useQuoteForText = True
@@ -66,7 +78,10 @@ class TextFormatter():
             This is the C-style format string used by python when formatting
             strings with the modulus operator.
         """
+        if self.__integerFormat == value:
+            return
         self.__integerFormat = value
+        self.formatChanged.emit()
 
     def floatFormat(self):
         """Returns the format string controlling how the floating-point data
@@ -88,7 +103,10 @@ class TextFormatter():
             This is the C-style format string used by python when formatting
             strings with the modulus operator.
         """
+        if self.__floatFormat == value:
+            return
         self.__floatFormat = value
+        self.formatChanged.emit()
 
     def useQuoteForText(self):
         """Returns true if the string data are formatted using double quotes.
@@ -102,7 +120,10 @@ class TextFormatter():
 
         :param bool useQuote: True to use quotes.
         """
+        if self.__useQuoteForText == useQuote:
+            return
         self.__useQuoteForText = useQuote
+        self.formatChanged.emit()
 
     def imaginaryUnit(self):
         """Returns the unit display for imaginary numbers.
@@ -116,12 +137,15 @@ class TextFormatter():
 
         :param str imaginaryUnit: Unit displayed after imaginary numbers
         """
+        if self.__imaginaryUnit == imaginaryUnit:
+            return
         self.__imaginaryUnit = imaginaryUnit
+        self.formatChanged.emit()
 
     def toString(self, data):
         """Format a data into a string using formatter options
 
-        :param data: Data to render
+        :param object data: Data to render
         :rtype: str
         """
         if isinstance(data, tuple):
