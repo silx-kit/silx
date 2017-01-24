@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*#########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -55,7 +55,7 @@ from . import bgtheories
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "18/10/2016"
+__date__ = "16/01/2017"
 
 _logger = logging.getLogger(__name__)
 
@@ -498,7 +498,7 @@ class FitManager(object):
         self.estimate()
         return self.runfit()
 
-    def gendata(self, x=None, paramlist=None):
+    def gendata(self, x=None, paramlist=None, estimated=False):
         """Return a data array using the currently selected fit function
         and the fitted parameters.
 
@@ -508,6 +508,7 @@ class FitManager(object):
             fit parameter. The dictionary's format is documented in
             :attr:`fit_results`.
             If ``None`` (default), use parameters from :attr:`fit_results`.
+        :param estimated: If *True*, use estimated parameters.
         :return: :meth:`fitfunction` calculated for parameters whose code is
             not set to ``"IGNORE"``.
 
@@ -522,7 +523,10 @@ class FitManager(object):
         active_params = []
         for param in paramlist:
             if param['code'] not in ['IGNORE', 7]:
-                active_params.append(param['fitresult'])
+                if not estimated:
+                    active_params.append(param['fitresult'])
+                else:
+                    active_params.append(param['estimation'])
 
         newdata = self.fitfunction(numpy.array(x), *active_params)
         return newdata
@@ -820,6 +824,7 @@ class FitManager(object):
 
         ywork = self.ydata
 
+
         try:
             params, covariance_matrix, infodict = leastsq(
                     self.fitfunction,  # bg + actual model function
@@ -857,13 +862,11 @@ class FitManager(object):
         """Function to be fitted.
 
         This is the sum of the selected background function plus
-        a number of peak functions.
+        the selected fit model function.
 
         :param x: Independent variable where the function is calculated.
         :param pars: Sequence of all fit parameters. The first few parameters
             are background parameters, then come the peak function parameters.
-            The total number of fit parameters in ``pars`` will
-            be `nb_bg_pars + nb_peak_pars * nb_peaks`.
         :return: Output of the fit function with ``x`` as input and ``pars``
             as fit parameters.
         """
@@ -878,17 +881,8 @@ class FitManager(object):
         else:
             nb_bg_pars = 0
 
-        peak_pars_list = self.theories[self.selectedtheory].parameters
-        nb_peak_pars = len(peak_pars_list)
-
-        nb_peaks = int((len(pars) - nb_bg_pars) / nb_peak_pars)
-
-        # Compute one peak function per peak, and sum the output numpy arrays
         selectedfun = self.theories[self.selectedtheory].function
-        for i in range(nb_peaks):
-            start_par_index = nb_bg_pars + i * nb_peak_pars
-            end_par_index = nb_bg_pars + (i + 1) * nb_peak_pars
-            result += selectedfun(x, *pars[start_par_index:end_par_index])
+        result += selectedfun(x, *pars[nb_bg_pars:])
 
         return result
 

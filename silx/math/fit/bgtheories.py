@@ -1,7 +1,7 @@
 # coding: utf-8
 #/*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -68,7 +68,7 @@ file is::
 """
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "10/10/2016"
+__date__ = "16/01/2017"
 
 from collections import OrderedDict
 import numpy
@@ -85,6 +85,7 @@ CONFIG = {
     "StripIterations": 5000,
     "StripThresholdFactor": 1.0,
     "SnipWidth": 16,
+    "EstimatePolyOnStrip": True
 }
 
 # to avoid costly computations when parameters stay the same
@@ -300,6 +301,54 @@ def estimate_snip(x, y):
     return estimated_par, constraints
 
 
+def poly(x, y, *pars):
+    """Order n polynomial.
+    The order of the polynomial is defined by the number of
+    coefficients (``*pars``).
+
+    """
+    p = numpy.poly1d(pars)
+    return p(x)
+
+
+def estimate_poly(x, y, deg=2):
+    """Estimate polynomial coefficients.
+
+    """
+    # extract bg signal with strip, to estimate polynomial on background
+    if CONFIG["EstimatePolyOnStrip"]:
+        y = strip_bg(x, y,
+                     CONFIG["StripWidth"],
+                     CONFIG["StripIterations"])
+    pcoeffs = numpy.polyfit(x, y, deg)
+    cons = numpy.zeros((deg + 1, 3), numpy.float)
+    return pcoeffs, cons
+
+
+def estimate_quadratic_poly(x, y):
+    """Estimate quadratic polynomial coefficients.
+    """
+    return estimate_poly(x, y, deg=2)
+
+
+def estimate_cubic_poly(x, y):
+    """Estimate cubic polynomial coefficients.
+    """
+    return estimate_poly(x, y, deg=3)
+
+
+def estimate_quartic_poly(x, y):
+    """Estimate degree 4 polynomial coefficients.
+    """
+    return estimate_poly(x, y, deg=4)
+
+
+def estimate_quintic_poly(x, y):
+    """Estimate degree 5 polynomial coefficients.
+    """
+    return estimate_poly(x, y, deg=5)
+
+
 def configure(**kw):
     """Update the CONFIG dict
     """
@@ -352,5 +401,40 @@ THEORY = OrderedDict(
                 estimate=estimate_snip,
                 configure=configure,
                 is_background=True)),
-         )
-)
+         ('Degree 2 Polynomial',
+          FitTheory(
+                description="Quadratic polynomial background, Parameters "
+                            "'a', 'b' and 'c'\ny = a*x^2 + b*x +c",
+                function=poly,
+                parameters=['a', 'b', 'c'],
+                estimate=estimate_quadratic_poly,
+                configure=configure,
+                is_background=True)),
+         ('Degree 3 Polynomial',
+          FitTheory(
+                description="Cubic polynomial background, Parameters "
+                            "'a', 'b', 'c' and 'd'\n"
+                            "y = a*x^3 + b*x^2 + c*x + d",
+                function=poly,
+                parameters=['a', 'b', 'c', 'd'],
+                estimate=estimate_cubic_poly,
+                configure=configure,
+                is_background=True)),
+         ('Degree 4 Polynomial',
+          FitTheory(
+                description="Quartic polynomial background\n"
+                            "y = a*x^4 + b*x^3 + c*x^2 + d*x + e",
+                function=poly,
+                parameters=['a', 'b', 'c', 'd', 'e'],
+                estimate=estimate_quartic_poly,
+                configure=configure,
+                is_background=True)),
+         ('Degree 5 Polynomial',
+          FitTheory(
+                description="Quaintic polynomial background\n"
+                            "y = a*x^5 + b*x^4 + c*x^3 + d*x^2 + e*x + f",
+                function=poly,
+                parameters=['a', 'b', 'c', 'd', 'e', 'f'],
+                estimate=estimate_quintic_poly,
+                configure=configure,
+                is_background=True))))

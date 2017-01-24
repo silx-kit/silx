@@ -1,6 +1,6 @@
 # coding: utf-8
 #/*##########################################################################
-# Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
+# Copyright (C) 2004-2017 V.A. Sole, European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -35,7 +35,7 @@ from silx.math.fit import filters
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/10/2016"
+__date__ = "24/01/2017"
 
 
 class HorizontalSpacer(qt.QWidget):
@@ -306,15 +306,19 @@ class BackgroundWidget(qt.QWidget):
         """
         return self.parametersWidget.setParameters(ddict)
 
-    def setData(self, x, y):
+    def setData(self, x, y, xmin=None, xmax=None):
         """Set data for the original curve, and _update strip and snip
         curves accordingly.
 
         :param x: Array or sequence of curve abscissa values
         :param y: Array or sequence of curve ordinate values
+        :param xmin: Min value to be displayed on the X axis
+        :param xmax: Max value to be displayed on the X axis
         """
         self._x = x
         self._y = y
+        self._xmin = xmin
+        self._xmax = xmax
         self._update(resetzoom=True)
 
     def _slot(self, ddict):
@@ -395,6 +399,8 @@ class BackgroundWidget(qt.QWidget):
         self.graphWidget.addCurve(x, snipBackground,
                                   legend='SNIP Background',
                                   resetzoom=False)
+        if self._xmin is not None and self._xmax is not None:
+            self.graphWidget.setGraphXLimits(xmin=self._xmin, xmax=self._xmax)
 
 
 class BackgroundDialog(qt.QDialog):
@@ -452,9 +458,9 @@ class BackgroundDialog(qt.QDialog):
         return qt.QSize(int(1.5*qt.QDialog.sizeHint(self).width()),
                         qt.QDialog.sizeHint(self).height())
 
-    def setData(self, x, y):
+    def setData(self, x, y, xmin=None, xmax=None):
         """See :meth:`BackgroundWidget.setData`"""
-        return self.parametersWidget.setData(x, y)
+        return self.parametersWidget.setData(x, y, xmin, xmax)
 
     def getParameters(self):
         """See :meth:`BackgroundWidget.getParameters`"""

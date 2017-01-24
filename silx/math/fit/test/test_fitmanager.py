@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import os.path
 
 from silx.math.fit import fitmanager
 from silx.math.fit import fittheories
+from silx.math.fit import bgtheories
 from silx.math.fit.fittheory import FitTheory
 from silx.math.fit.functions import sum_gauss, sum_stepdown, sum_stepup
 
@@ -380,7 +381,109 @@ class TestFitmanager(unittest.TestCase):
                                        _order_of_magnitude(p[i]))
 
 
-test_cases = (TestFitmanager,)
+def quadratic(x, a, b, c):
+    return a * x**2 + b * x + c
+
+
+def cubic(x, a, b, c, d):
+    return a * x**3 + b * x**2 + c * x + d
+
+
+class TestPolynomials(unittest.TestCase):
+    """Test polynomial fit theories and fit background"""
+    def setUp(self):
+        self.x = numpy.arange(100).astype(numpy.float)
+
+    def testQuadraticBg(self):
+        gaussian_params = [100, 45, 8]
+        poly_params = [0.05, -2, 3]
+        p = numpy.poly1d(poly_params)
+
+        y = p(self.x) + sum_gauss(self.x, *gaussian_params)
+
+        fm = fitmanager.FitManager(self.x, y)
+        fm.loadbgtheories(bgtheories)
+        fm.loadtheories(fittheories)
+        fm.settheory("Gaussians")
+        fm.setbackground("Degree 2 Polynomial")
+        esti_params = fm.estimate()
+        fit_params = fm.runfit()[0]
+
+        for p, pfit in zip(poly_params + gaussian_params, fit_params):
+            self.assertAlmostEqual(p,
+                                   pfit)
+
+    def testCubicBg(self):
+        gaussian_params = [1000, 45, 8]
+        poly_params = [0.0005, -0.05, 3, -4]
+        p = numpy.poly1d(poly_params)
+
+        y = p(self.x) + sum_gauss(self.x, *gaussian_params)
+
+        fm = fitmanager.FitManager(self.x, y)
+        fm.loadtheories(fittheories)
+        fm.settheory("Gaussians")
+        fm.setbackground("Degree 3 Polynomial")
+        esti_params = fm.estimate()
+        fit_params = fm.runfit()[0]
+
+        for p, pfit in zip(poly_params + gaussian_params, fit_params):
+            self.assertAlmostEqual(p,
+                                   pfit)
+
+    def testQuarticcBg(self):
+        gaussian_params = [10000, 69, 25]
+        poly_params = [5e-10, 0.0005, 0.005, 2, 4]
+        p = numpy.poly1d(poly_params)
+
+        y = p(self.x) + sum_gauss(self.x, *gaussian_params)
+
+        fm = fitmanager.FitManager(self.x, y)
+        fm.loadtheories(fittheories)
+        fm.settheory("Gaussians")
+        fm.setbackground("Degree 4 Polynomial")
+        esti_params = fm.estimate()
+        fit_params = fm.runfit()[0]
+
+        for p, pfit in zip(poly_params + gaussian_params, fit_params):
+            self.assertAlmostEqual(p,
+                                   pfit,
+                                   places=5)
+
+    def _testPoly(self, poly_params, theory, places=5):
+        p = numpy.poly1d(poly_params)
+
+        y = p(self.x)
+
+        fm = fitmanager.FitManager(self.x, y)
+        fm.loadbgtheories(bgtheories)
+        fm.loadtheories(fittheories)
+        fm.settheory(theory)
+        esti_params = fm.estimate()
+        fit_params = fm.runfit()[0]
+
+        for p, pfit in zip(poly_params, fit_params):
+            self.assertAlmostEqual(p, pfit, places=places)
+
+    def testQuadratic(self):
+        self._testPoly([0.05, -2, 3],
+                       "Degree 2 Polynomial")
+
+    def testCubic(self):
+        self._testPoly([0.0005, -0.05, 3, -4],
+                       "Degree 3 Polynomial")
+
+    def testQuartic(self):
+        self._testPoly([1, -2, 3, -4, -5],
+                       "Degree 4 Polynomial")
+
+    def testQuintic(self):
+        self._testPoly([1, -2, 3, -4, -5, 6],
+                       "Degree 5 Polynomial",
+                       places=4)
+
+
+test_cases = (TestFitmanager, TestPolynomials)
 
 
 def suite():

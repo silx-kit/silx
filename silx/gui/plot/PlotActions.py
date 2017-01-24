@@ -1137,16 +1137,26 @@ class FitAction(PlotAction):
                 " on x range %f-%f" % (self.xmin, self.xmax))
 
     def handle_signal(self, ddict):
+        x_fit = self.x[self.xmin <= self.x]
+        x_fit = x_fit[x_fit <= self.xmax]
         if ddict["event"] == "EstimateFinished":
-            pass
+            self.plot.removeCurve("Fit <%s>" % self.legend)
+            y_fit = self.fit_widget.fitmanager.gendata(estimated=True)
+            self.plot.addCurve(x_fit, y_fit,
+                               "Estimated <%s>" % self.legend,
+                               xlabel=self.xlabel, ylabel=self.ylabel,
+                               resetzoom=False)
         if ddict["event"] == "FitFinished":
-            x_fit = self.x[self.xmin <= self.x]
-            x_fit = x_fit[x_fit <= self.xmax]
+            self.plot.removeCurve("Estimated <%s>" % self.legend)
             y_fit = self.fit_widget.fitmanager.gendata()
             self.plot.addCurve(x_fit, y_fit,
                                "Fit <%s>" % self.legend,
                                xlabel=self.xlabel, ylabel=self.ylabel,
                                resetzoom=False)
+        if ddict["event"] == "EstimateFailed":
+            self.plot.removeCurve("Estimated <%s>" % self.legend)
+        if ddict["event"] == "FitFailed":
+            self.plot.removeCurve("Fit <%s>" % self.legend)
 
 
 class PixelIntensitiesHistoAction(PlotAction):

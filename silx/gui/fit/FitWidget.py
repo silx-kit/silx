@@ -1,6 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2004-2016 V.A. Sole, European Synchrotron Radiation Facility
+#
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # This file is part of the PyMca X-ray Fluorescence Toolkit developed at
 # the ESRF by the Software group.
@@ -37,7 +38,7 @@ be user defined, or by default are loaded from
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "13/10/2016"
+__date__ = "24/01/2017"
 
 import logging
 import sys
@@ -332,7 +333,7 @@ class FitWidget(qt.QWidget):
                                 xmin=xmin, xmax=xmax)
         for config_dialog in self.bgconfigdialogs.values():
             if isinstance(config_dialog, BackgroundDialog):
-                config_dialog.setData(x, y)
+                config_dialog.setData(x, y, xmin=xmin, xmax=xmax)
 
     def associateConfigDialog(self, theory_name, config_widget,
                               theory_is_background=False):
@@ -493,6 +494,10 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Error on estimate: %s" % traceback.format_exc())
             msg.exec_()
+            ddict = {
+                'event': 'EstimateFailed',
+                'data': None}
+            self._emitSignal(ddict)
             return
 
         self.guiParameters.fillFromFit(
@@ -523,6 +528,11 @@ class FitWidget(qt.QWidget):
             msg.setIcon(qt.QMessageBox.Critical)
             msg.setText("Error on Fit: %s" % traceback.format_exc())
             msg.exec_()
+            ddict = {
+                'event': 'FitFailed',
+                'data': None
+            }
+            self._emitSignal(ddict)
             return
 
         self.guiParameters.fillFromFit(
