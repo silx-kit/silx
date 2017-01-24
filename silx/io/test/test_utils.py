@@ -183,6 +183,15 @@ class TestSave(unittest.TestCase):
         """Save csv using save(), with autoheader=True but
         xlabel=None and ylabels=None
         This is a non-regression test for bug #223"""
+        self.tempdir = tempfile.mkdtemp()
+        self.spec_fname = os.path.join(self.tempdir, "savespec.dat")
+        self.csv_fname = os.path.join(self.tempdir, "savecsv.csv")
+        self.npy_fname = os.path.join(self.tempdir, "savenpy.npy")
+
+        self.x = [1, 2, 3]
+        self.xlab = "Abscissa"
+        self.y = [[4, 5, 6], [7, 8, 9]]
+        self.ylabs = ["Ordinate1", "Ordinate2"]
         utils.save1D(self.csv_fname, self.x, self.y,
                autoheader=True, fmt=["%d", "%.2f", "%.2e"])
 
@@ -210,7 +219,14 @@ class TestH5Ls(unittest.TestCase):
             <HDF5 dataset "data": shape (1,), type "<f8">
 
     """
-    def setUp(self):
+    def assertMatchAnyStringInList(self, pattern, list_of_strings):
+        for string_ in list_of_strings:
+            if re.match(pattern, string_):
+                return None
+        raise AssertionError("regex pattern %s does not match any" % pattern +
+                             " string in list " + str(list_of_strings))
+
+    def testHdf5(self):
         fd, self.h5_fname = tempfile.mkstemp(text=False)
         # Close and delete (we just want the name)
         os.close(fd)
@@ -221,17 +237,6 @@ class TestH5Ls(unittest.TestCase):
         self.h5f["/foo/data"] = [3.14]
         self.h5f.close()
 
-    def tearDown(self):
-        os.unlink(self.h5_fname)
-
-    def assertMatchAnyStringInList(self, pattern, list_of_strings):
-        for string_ in list_of_strings:
-            if re.match(pattern, string_):
-                return None
-        raise AssertionError("regex pattern %s does not match any" % pattern +
-                             " string in list " + str(list_of_strings))
-
-    def testRepr(self):
         rep = h5ls(self.h5_fname)
         lines = rep.split("\n")
 
@@ -247,6 +252,35 @@ class TestH5Ls(unittest.TestCase):
         self.assertMatchAnyStringInList(
                 r'\t<HDF5 dataset "data": shape \(1,\), type "<f[48]">',
                 lines)
+
+        os.unlink(self.h5_fname)
+
+    def testSpec(self):
+        tempdir = tempfile.mkdtemp()
+        spec_fname = os.path.join(tempdir, "savespec.dat")
+
+        x = [1, 2, 3]
+        xlab = "Abscissa"
+        y = [[4, 5, 6], [7, 8, 9]]
+        ylabs = ["Ordinate1", "Ordinate2"]
+        utils.save1D(spec_fname, x, y, xlabel=xlab,
+                     ylabels=ylabs, filetype="spec",
+                     fmt=["%d", "%.2f"])
+
+        rep = h5ls(spec_fname)
+        lines = rep.split("\n")
+        self.assertIn("+1.1", lines)
+        self.assertIn("\t+instrument", lines)
+
+        self.assertMatchAnyStringInList(
+                r'\t\t\t<SpecH5Dataset "file_header": shape \(\), type "|S60">',
+                lines)
+        self.assertMatchAnyStringInList(
+                r'\t\t<SpecH5Dataset "Ordinate1": shape \(3,\), type "<f4">',
+                lines)
+
+        os.unlink(spec_fname)
+        shutil.rmtree(tempdir)
 
 
 class TestOpen(unittest.TestCase):
