@@ -1055,8 +1055,6 @@ class MaskToolsWidget(qt.QWidget):
         self.maskFileDir = os.path.dirname(filename)
         try:
             self.save(filename, extension[1:])
-        except KeyboardInterrupt as e:
-            raise e
         except Exception as e:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
