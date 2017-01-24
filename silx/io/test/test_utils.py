@@ -276,7 +276,7 @@ class TestH5Ls(unittest.TestCase):
                 r'\t\t\t<SPEC dataset "file_header": shape \(\), type "|S60">',
                 lines)
         self.assertMatchAnyStringInList(
-                r'\t\t<SPEC dataset "Ordinate1": shape \(3,\), type "<f4">',
+                r'\t\t<SPEC dataset "Ordinate1": shape \(3L?,\), type "<f4">',
                 lines)
 
         os.unlink(spec_fname)
