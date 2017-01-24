@@ -40,6 +40,11 @@ from silx.test.utils import temp_dir, ParametricTestCase
 from silx.gui.test.utils import TestCaseQt, getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
 
 logging.basicConfig()
 _logger = logging.getLogger(__name__)
@@ -219,7 +224,7 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
 
                 self.plot.clear()
 
-    def testLoadSave(self):
+    def __loadSave(self, file_format):
         """Plot with an image: test MaskToolsWidget operations"""
         self.plot.addImage(numpy.arange(1024**2).reshape(1024, 1024),
                            legend='test')
@@ -235,17 +240,24 @@ class TestMaskToolsWidget(TestCaseQt, ParametricTestCase):
         self.assertFalse(numpy.all(numpy.equal(ref_mask, 0)))
 
         with temp_dir() as tmp:
-            success = self.maskWidget.save(
-                os.path.join(tmp, 'mask.npy'), 'npy')
-            self.assertTrue(success)
+            mask_filename = os.path.join(tmp, 'mask.' + file_format)
+            self.maskWidget.save(mask_filename, file_format)
 
             self.maskWidget.resetSelectionMask()
             self.assertTrue(
                 numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0)))
 
-            self.maskWidget.load(os.path.join(tmp, 'mask.npy'))
+            self.maskWidget.load(mask_filename)
             self.assertTrue(numpy.all(numpy.equal(
                 self.maskWidget.getSelectionMask(), ref_mask)))
+
+    def testLoadSaveNpy(self):
+        self.__loadSave("npy")
+
+    def testLoadSaveFit2D(self):
+        if fabio is None:
+            self.skipTest("Fabio is missing")
+        self.__loadSave("msk")
 
 
 def suite():
