@@ -225,6 +225,11 @@ class Dataset(Node):
                 raise ValueError("Scalar can only be reached with an ellipsis or an empty tuple")
         return self._get_data().__getitem__(item)
 
+    def __str__(self):
+        basename = self.name.split("/")[-1]
+        return '<FabIO dataset "%s": shape %s, type "%s">' % \
+               (basename, self.shape, self.dtype.str)
+
     def __getslice__(self, i, j):
         """Returns the slice of the data exposed by this dataset.
 
@@ -430,6 +435,9 @@ class Group(Node):
         :rtype: bool
         """
         return name in self._get_items()
+
+    def keys(self):
+        return self._get_items().keys()
 
 
 class LazyLoadableGroup(Group):

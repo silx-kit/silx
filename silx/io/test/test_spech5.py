@@ -331,8 +331,8 @@ class TestSpecH5(unittest.TestCase):
         scan_header = self.sfh5["/1.2/instrument/specfile/scan_header"]
         # convert ndarray(dtype=numpy.string_) to str
         if sys.version < '3.0':
-            file_header = str(file_header)
-            scan_header = str(scan_header)
+            file_header = str(file_header[()])
+            scan_header = str(scan_header[()])
         else:
             file_header = str(file_header.astype(str))
             scan_header = str(scan_header.astype(str))
@@ -349,9 +349,9 @@ class TestSpecH5(unittest.TestCase):
         # line 4 of scan header
         scan_header = self.sfh5["25.1/instrument/specfile/scan_header"]
         if sys.version < '3.0':
-            scan_header = str(scan_header)
+            scan_header = str(scan_header[()])
         else:
-            scan_header = str(scan_header.astype(str))
+            scan_header = str(scan_header[()].astype(str))
 
         self.assertEqual(
                 scan_header.split("\n")[3],

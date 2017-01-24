@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -269,6 +269,13 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     :return: ``None`` if ``close_file`` is ``True``, else return the file
         handle.
     """
+    # Make sure we use binary mode for write
+    # (issue with windows: write() replaces \n with os.linesep in text mode)
+    if "b" not in mode:
+        first_letter = mode[0]
+        assert first_letter in "rwa"
+        mode = mode.replace(first_letter, first_letter + "b")
+
     x_array = numpy.asarray(x)
     y_array = numpy.asarray(y)
 
@@ -288,20 +295,24 @@ def savespec(specfile, x, y, xlabel="X", ylabel="Y", fmt="%.7g",
     else:
         f = specfile
 
+    output = ""
+
     current_date = "#D %s\n" % (time.ctime(time.time()))
 
     if write_file_header:
-        f.write("#F %s\n" % f.name)
-        f.write(current_date)
-        f.write("\n")
+        output += "#F %s\n" % f.name
+        output += current_date
+        output += "\n"
 
-    f.write("#S %d %s\n" % (scan_number, ylabel))
-    f.write(current_date)
-    f.write("#N 2\n")
-    f.write("#L %s  %s\n" % (xlabel, ylabel))
+    output += "#S %d %s\n" % (scan_number, ylabel)
+    output += current_date
+    output += "#N 2\n"
+    output += "#L %s  %s\n" % (xlabel, ylabel)
     for i in range(y_array.shape[0]):
-        f.write(full_fmt_string % (x_array[i], y_array[i]))
-    f.write("\n")
+        output += full_fmt_string % (x_array[i], y_array[i])
+    output += "\n"
+
+    f.write(output.encode())
 
     if close_file:
         f.close()
@@ -341,18 +352,20 @@ def h5ls(h5group, lvl=0):
         raise h5py_import_error
 
     h5repr = ''
-    if isinstance(h5group, (h5py.File, h5py.Group)):
+    if is_group(h5group):
         h5f = h5group
     elif isinstance(h5group, string_types):
-        h5f = h5py.File(h5group, "r")
+        h5f = open(h5group)      # silx.io.open
     else:
-        raise TypeError("h5group must be a h5py.group object or a file name.")
+        raise TypeError("h5group must be a hdf5-like group object or a file name.")
 
     for key in h5f.keys():
+        # group
         if hasattr(h5f[key], 'keys'):
             h5repr += '\t' * lvl + '+' + key
             h5repr += '\n'
             h5repr += h5ls(h5f[key], lvl + 1)
+        # dataset
         else:
             h5repr += '\t' * lvl
             h5repr += str(h5f[key])
