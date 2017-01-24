@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 import numpy
 import numbers
@@ -415,7 +415,7 @@ class _RawView(DataView):
         widget = qt.QTextEdit(parent)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
         widget.setAlignment(qt.Qt.AlignLeft | qt.Qt.AlignTop)
-        self.__formatter = TextFormatter()
+        self.__formatter = TextFormatter(parent)
         return widget
 
     def clear(self):

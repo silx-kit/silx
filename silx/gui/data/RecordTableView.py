@@ -35,7 +35,7 @@ from .TextFormatter import TextFormatter
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -152,9 +152,9 @@ class RecordTableModel(qt.QAbstractTableModel):
 
         self.__data = None
         self.__fields = None
-        self.__formatter = TextFormatter()
-        self.__editFormatter = TextFormatter()
-        self.__editFormatter.setUseQuoteForText(False)
+        self.__formatter = None
+        self.__editFormatter = None
+        self.setFormatter(TextFormatter(self))
 
         # set _data
         self.setArrayData(data)
@@ -273,25 +273,45 @@ class RecordTableModel(qt.QAbstractTableModel):
         """
         return self.__data
 
-    def setFloatFormat(self, numericFormat):
-        """Set format string controlling how the values are represented in
-        the table view.
+    def setFormatter(self, formatter):
+        """Set the formatter object to be used to display data from the model
 
-        :param str numericFormat: Format string (e.g. "%.3f", "%d", "%-10.2f",
-            "%10.3e").
-            This is the C-style format string used by python when formatting
-            strings with the modulus operator.
+        :param TextFormatter formatter: Formatter to use
         """
+        if formatter is self.__formatter:
+            return
+
         if qt.qVersion() > "4.6":
             self.beginResetModel()
 
-        self.__formatter.setFloatFormat(numericFormat)
-        self.__editFormatter.setFloatFormat(numericFormat)
+        if self.__formatter is not None:
+            self.__formatter.formatChanged.disconnect(self.__formatChanged)
+
+        self.__formatter = formatter
+        self.__editFormatter = TextFormatter(formatter)
+        self.__editFormatter.setUseQuoteForText(False)
+
+        if self.__formatter is not None:
+            self.__formatter.formatChanged.connect(self.__formatChanged)
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
         else:
             self.reset()
+
+    def getFormatter(self):
+        """Returns the text formatter used.
+
+        :rtype: TextFormatter
+        """
+        return self.__formatter
+
+    def __formatChanged(self):
+        """Called when the format changed.
+        """
+        self.__editFormatter = TextFormatter(self, self.getFormatter())
+        self.__editFormatter.setUseQuoteForText(False)
+        self.reset()
 
 
 class _ShowEditorProxyModel(qt.QIdentityProxyModel):

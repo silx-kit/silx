@@ -34,7 +34,7 @@ from silx.gui.data.TextFormatter import TextFormatter
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -90,9 +90,12 @@ class ArrayTableModel(qt.QAbstractTableModel):
         for the foreground color
         """
 
-        self._formatter = TextFormatter()
-        self._formatter.setUseQuoteForText(False)
+        self._formatter = None
         """Formatter for text representation of data"""
+
+        formatter = TextFormatter(self)
+        formatter.setUseQuoteForText(False)
+        self.setFormatter(formatter)
 
         self._index = None
         """This attribute stores the slice index, as a list of indices
@@ -290,7 +293,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self.reset()
 
         if fmt is not None:
-            self.setFormat(fmt)
+            self.model.getFormatter().setFloatFormat(fmt)
 
         if data is None:
             # empty array
@@ -453,15 +456,40 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.endResetModel()
 
-    def setFormat(self, fmt):
-        """Set format string controlling how the floatting-point values are
-        represented in the table view.
+    def setFormatter(self, formatter):
+        """Set the formatter object to be used to display data from the model
 
-        :param str fmt: Format string (e.g. "%.3f", "%d", "%-10.2f", "%10.3e")
-            This is the C-style format string used by python when formatting
-            strings with the modulus operator.
+        :param TextFormatter formatter: Formatter to use
         """
-        self._formatter.setFloatFormat(fmt)
+        if formatter is self._formatter:
+            return
+
+        if qt.qVersion() > "4.6":
+            self.beginResetModel()
+
+        if self._formatter is not None:
+            self._formatter.formatChanged.disconnect(self.__formatChanged)
+
+        self._formatter = formatter
+        if self._formatter is not None:
+            self._formatter.formatChanged.connect(self.__formatChanged)
+
+        if qt.qVersion() > "4.6":
+            self.endResetModel()
+        else:
+            self.reset()
+
+    def getFormatter(self):
+        """Returns the text formatter used.
+
+        :rtype: TextFormatter
+        """
+        return self._formatter
+
+    def __formatChanged(self):
+        """Called when the format changed.
+        """
+        self.reset()
 
     def setPerspective(self, perspective):
         """Set the perspective by defining a sequence listing all axes

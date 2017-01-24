@@ -40,7 +40,7 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "24/01/2017"
 
 
 class AxesSelector(qt.QWidget):
@@ -358,12 +358,6 @@ class ArrayTableWidget(qt.QWidget):
                 label.hide()
 
         # set model
-        if _data_is_text(data):
-            fmt = "%s"
-        else:
-            fmt = "%g"
-
-        self.model.setFormat(fmt)
         self.model.setArrayData(data, copy=copy, editable=editable)
         # some linux distributions need this call
         self.view.setModel(self.model)
