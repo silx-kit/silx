@@ -1010,11 +1010,7 @@ class MaskToolsWidget(qt.QWidget):
         :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
         :raise Exception: Raised if the process fails
         """
-        try:
-            self._mask.save(filename, kind)
-        except:
-            return False
-        return True
+        self._mask.save(filename, kind)
 
     def _saveMask(self):
         """Open Save mask dialog"""
