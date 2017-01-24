@@ -821,11 +821,13 @@ class FabioReader(object):
         try:
             value = int(value)
             dtype = numpy.min_scalar_type(value)
+            assert dtype.kind != "O"
             return dtype.type(value)
         except ValueError:
             try:
                 value = float(value)
                 dtype = numpy.min_scalar_type(value)
+                assert dtype.kind != "O"
                 return dtype.type(value)
             except ValueError:
                 return numpy.string_(value)
