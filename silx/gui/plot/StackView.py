@@ -322,66 +322,10 @@ class StackView(qt.QMainWindow):
         assert self.__transposed_view is not None
         self._plot.addImage(self.__transposed_view[index, :, :],
                             legend=self.__imageLegend,
-                            origin=self._getXYOrigin(),
-                            scale=self._getXYScale(),
                             resetzoom=False)
 
-    def _set3DScaleAndOrigin(self, perspective, scale2D, origin2D):
-        """Set :attr:`scale` and :attr:`origin` for all 3 axes.
-
-        Scale and origin parameters are provided by the user for the original
-        X anv Y axes of the image. The correspondence between the original
-        X&Y axes and the dimensions of the 3D stack depend on the original
-        perspective.
-
-        The third dimension, representing the image index (Z axis), always has
-        origin=1 and scale=1.
-
-        :param perspective: Original perspective, set in :meth:`setStack`
-        :param scale2D: 2-tuple (XScale, YScale)
-        :param origin2D: 2-tuple (XOrigin, YOrigin)
-        """
-        if perspective == 0:
-            # original stack dimensions: Z, Y, X
-            self.origin3D = (0., origin2D[1], origin2D[0])
-            self.scale3D = (1., scale2D[1], scale2D[0])
-
-        if perspective == 1:
-            # original stack dimensions: Y, Z, X
-            self.origin3D = (origin2D[1], 0., origin2D[0])
-            self.scale3D = (scale2D[1], 1., scale2D[0])
-
-        if perspective == 2:
-            # original stack dimensions: Y, X, Z
-            self.origin3D = (origin2D[1], origin2D[0], 0.)
-            self.scale3D = (scale2D[1], scale2D[0], 1.0)
-
-    def _getXYScale(self):
-        """
-        :return: 2-tuple (XScale, YScale) for current image view
-        """
-        if self._perspective == 0:
-            return self.scale3D[2], self.scale3D[1]
-        if self._perspective == 1:
-            return self.scale3D[2], self.scale3D[0]
-        if self._perspective == 2:
-            return self.scale3D[1], self.scale3D[0]
-
-    def _getXYOrigin(self):
-        """
-        :return: 2-tuple (XOrigin, YOrigin) for current image view
-        """
-        if self._perspective == 0:
-            return self.origin3D[2], self.origin3D[1]
-        if self._perspective == 1:
-            return self.origin3D[2], self.origin3D[0]
-        if self._perspective == 2:
-            return self.origin3D[1], self.origin3D[0]
-
-
     # public API
-    def setStack(self, stack, origin=(0, 0), scale=(1., 1.),
-                 perspective=0, reset=True):
+    def setStack(self, stack, perspective=0, reset=True):
         """Set the stack of images to display.
 
         The perspective parameter is used to define which dimension of the 3D
@@ -392,16 +336,6 @@ class StackView(qt.QMainWindow):
         :param stack: A 3D array representing the image or None to clear plot.
         :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
             numpy arrays, or None.
-        :param origin: The (x, y) position of the origin of the image.
-                       Default: (0, 0).
-                       The origin is the lower left corner of the image when
-                       the Y axis is not inverted.
-        :type origin: Tuple of 2 floats: (origin x, origin y).
-        :param scale: The scale factor to apply to the image on X and Y axes.
-                      Default: (1, 1).
-                      It is the size of a pixel in the coordinates of the axes.
-                      Scales must be positive numbers.
-        :type scale: Tuple of 2 floats: (scale x, scale y).
         :param int perspective: Dimension for the image index: 0, 1 or 2.
             By default, the dimension for the image index is the first
             dimension of the 3D stack (``perspective=0``). You can also choose
@@ -413,8 +347,6 @@ class StackView(qt.QMainWindow):
             self.clear()
             self.sigStackChanged.emit(0)
             return
-
-        self._set3DScaleAndOrigin(perspective, scale, origin)
 
         # stack as list of 2D arrays: must be converted into an array_like
         if not isinstance(stack, numpy.ndarray):
@@ -443,7 +375,6 @@ class StackView(qt.QMainWindow):
         # init plot
         self._plot.addImage(self.__transposed_view[0, :, :],
                             legend=self.__imageLegend,
-                            origin=origin, scale=scale,
                             colormap=self.getColormap(),
                             resetzoom=False)
         self._plot.setActiveImage(self.__imageLegend)
@@ -735,8 +666,6 @@ class StackView(qt.QMainWindow):
         if activeImage is not None:
             data, legend, info, _pixmap = activeImage[0:4]
             self._plot.addImage(data, legend=legend, info=info,
-                                origin=self._getXYOrigin(),
-                                scale=self._getXYScale(),
                                 colormap=self.getColormap(),
                                 resetzoom=False)
 
