@@ -140,7 +140,7 @@ class StackView(qt.QMainWindow):
     """
 
     sigStackChanged = qt.Signal(int)
-    """Signal emitted when the image stack is changed.
+    """Signal emitted when the stack is changed.
     This happens when a new volume is loaded, or when the current volume
     is transposed (change in perspective).
 
@@ -162,7 +162,7 @@ class StackView(qt.QMainWindow):
             self.setWindowTitle('StackView')
 
         self._stack = None
-        """Loaded stack of images, as a 3D array or 3D dataset"""
+        """Loaded stack, as a 3D array, a 3D dataset or a list of 2D arrays."""
         self.__transposed_view = None
         """View on :attr:`_stack` with the axes sorted, to have
         the orthogonal dimension first"""
@@ -197,7 +197,7 @@ class StackView(qt.QMainWindow):
         self._plot.addToolBar(self._plot.profile)
         self._plot.setGraphXLabel('Columns')
         self._plot.setGraphYLabel('Rows')
-        self._plot.sigPlotSignal.connect(self._imagePlotCB)
+        self._plot.sigPlotSignal.connect(self._plotCallback)
 
         self._browser = HorizontalSliderWithBrowser(central_widget)
         self._browser.valueChanged[int].connect(self.__updateFrameNumber)
@@ -228,7 +228,7 @@ class StackView(qt.QMainWindow):
         self._browser.setVisible(isVisible)
         self.__planeSelection.setVisible(isVisible)
 
-    def _imagePlotCB(self, eventDict):
+    def _plotCallback(self, eventDict):
         """Callback for plot events.
 
         Emit :attr:`valueChanged` signal, with (x, y, value) tuple of the
@@ -250,6 +250,7 @@ class StackView(qt.QMainWindow):
                     if 0 <= x < width and 0 <= y < height:
                         self.valueChanged.emit(float(x), float(y),
                                                data[y][x])
+                # TODO: should we emit (None, None, None) when out of range?
 
     def __setPerspective(self, perspective):
         """Function called when the browsed/orthogonal dimension changes
@@ -260,7 +261,8 @@ class StackView(qt.QMainWindow):
             return
         else:
             if perspective > 2 or perspective < 0:
-                raise ValueError("Can't set perspective")
+                raise ValueError(
+                        "Perspective must be 0, 1 or 2, not %s" % perspective)
 
             self._perspective = perspective
             self.__createTransposedView()
@@ -315,9 +317,9 @@ class StackView(qt.QMainWindow):
         self._browser.setValue(number)
 
     def __updateFrameNumber(self, index):
-        """Update the current image displayed
+        """Update the current image.
 
-        :param index: index of the image to display
+        :param index: index of the frame to be displayed
         """
         assert self.__transposed_view is not None
         self._plot.addImage(self.__transposed_view[index, :, :],
@@ -326,21 +328,19 @@ class StackView(qt.QMainWindow):
 
     # public API
     def setStack(self, stack, perspective=0, reset=True):
-        """Set the stack of images to display.
+        """Set the 3D stack.
 
         The perspective parameter is used to define which dimension of the 3D
-        array is to be used as image index. The lowest remaining dimension
-        number is the row index of the image (Y axis), and the highest
+        array is to be used as frame index. The lowest remaining dimension
+        number is the row index of the displayed image (Y axis), and the highest
         remaining dimension is the column index (X axis).
 
-        :param stack: A 3D array representing the image or None to clear plot.
+        :param stack: 3D stack, or `None` to clear plot.
         :type stack: 3D numpy.ndarray, or 3D h5py.Dataset, or list/tuple of 2D
             numpy arrays, or None.
-        :param int perspective: Dimension for the image index: 0, 1 or 2.
+        :param int perspective: Dimension for the frame index: 0, 1 or 2.
             By default, the dimension for the image index is the first
-            dimension of the 3D stack (``perspective=0``). You can also choose
-            to consider the second (``perspective=1``) or the third
-            (``perspective=2``) dimensions as the image index.
+            dimension of the 3D stack (``perspective=0``).
         :param bool reset: Whether to reset zoom or not.
         """
         if stack is None:
@@ -392,7 +392,7 @@ class StackView(qt.QMainWindow):
         self.sigStackChanged.emit(stack.size)
 
     def getStack(self, copy=True, returnNumpyArray=False):
-        """Get the original stack of images, as a 3D array or dataset.
+        """Get the original stack, as a 3D array or dataset.
 
         The output has the form: [data, params]
         where params is a dictionary containing display parameters.
@@ -404,7 +404,7 @@ class StackView(qt.QMainWindow):
             returnNumpyArray is True, a copy will be made anyway.
         :param bool returnNumpyArray: If True, the returned object is
             guaranteed to be a numpy array.
-        :return: Stack of images and parameters.
+        :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
         if self.getActiveImage() is None:
@@ -421,9 +421,9 @@ class StackView(qt.QMainWindow):
         return self._stack, params
 
     def getCurrentView(self, copy=True, returnNumpyArray=False):
-        """Get the stack of images, it is currently displayed.
+        """Get the stack, as it is currently displayed.
 
-        The first index of the returned stack is always the image
+        The first index of the returned stack is always the frame
         index. If the perspective has been changed in the widget since the
         data was first loaded, this will be reflected in the order of the
         dimensions of the returned object.
@@ -435,10 +435,10 @@ class StackView(qt.QMainWindow):
             and returned as a numpy array.
             Else, a reference to original data is returned, if possible.
             If the original data is not a numpy array and parameter
-            returnNumpyArray is True, a copy will be made anyway.
-        :param bool returnNumpyArray: If True, the returned object is
+            `returnNumpyArray` is `True`, a copy will be made anyway.
+        :param bool returnNumpyArray: If `True`, the returned object is
             guaranteed to be a numpy array.
-        :return: Stack of images and parameters.
+        :return: 3D stack and parameters.
         :rtype: (numpy.ndarray, dict)
         """
         if self.getActiveImage() is None:
@@ -458,7 +458,8 @@ class StackView(qt.QMainWindow):
 
         :param bool just_legend: True to get the legend of the image,
             False (the default) to get the image data and info.
-        :return: legend of active image or [data, legend, info, pixmap, params]
+            Note: :class:`StackView` uses the same legend for all frames.
+        :return: legend or [data, legend, info, pixmap, params]
         :rtype: str or list
         """
         return self._plot.getActiveImage(just_legend=just_legend)
@@ -565,7 +566,8 @@ class StackView(qt.QMainWindow):
                  See :meth:`setColormap` for details.
         :rtype: dict
         """
-        # default colormap used by addImage
+        # "default" colormap used by addImage when image is added without
+        # specifying a special colormap
         return self._plot.getDefaultColormap()
 
     def setColormap(self, colormap=None, normalization=None,
@@ -701,7 +703,7 @@ class StackView(qt.QMainWindow):
         """
         return self._plot.profile.getProfileWindow2D()
 
-    # kind of internal methods, but needed by Profile
+    # kind of private methods, but needed by Profile
     def remove(self, legend=None,
                kind=('curve', 'image', 'item', 'marker')):
         """See :meth:`Plot.Plot.remove`"""
@@ -737,7 +739,7 @@ class PlanesWidget(qt.QWidget):
 
         layout0.addWidget(qt.QLabel("Axes selection:"))
 
-        # By default, the first dimension (dim0) is the image index/depth/z,
+        # By default, the first dimension (dim0) is the frame index/depth/z,
         # the second dimension is the image row number/y axis
         # and the third dimension is the image column index/x axis
 
@@ -841,8 +843,8 @@ class StackViewMainWindow(StackView):
         """
         if hasattr(stack, 'dtype') and hasattr(stack, 'shape'):
             assert len(stack.shape) == 3
-            nimages, height, width = stack.shape
-            self._dataInfo = 'Data: %dx%dx%d (%s)' % (nimages, height, width,
+            nframes, height, width = stack.shape
+            self._dataInfo = 'Data: %dx%dx%d (%s)' % (nframes, height, width,
                                                       str(stack.dtype))
             self.statusBar().showMessage(self._dataInfo)
         else:
