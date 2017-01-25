@@ -112,10 +112,6 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
-    SUPPORTED_IF_NOTHING_BETTER = 0
-    """Priority returned when the requested data can be displayed, but is
-    really not convenient."""
-
     def __init__(self, parent, modeId):
         """Constructor
 
@@ -203,7 +199,6 @@ class DataView(object):
         Returns the priority of using this view according to a data.
 
         - `UNSUPPORTED` means this view can't display this data
-        - `SUPPORTED_IF_NOTHING_BETTER` means this view can display the data if there is no other choices
         - `1` means this view can display the data
         - `100` means this view should be used for this data
         - `1000` max value used by the views provided by silx
@@ -243,7 +238,7 @@ class CompositeDataView(DataView):
         """Returns the best view according to priorities."""
         info = DataInfo(data)
         views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
-        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
+        views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
 
         if len(views) == 0:
@@ -563,9 +558,12 @@ class _RawView(DataView):
         return []
 
     def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
         if data is None:
             return DataView.UNSUPPORTED
-        return DataView.SUPPORTED_IF_NOTHING_BETTER
+        if silx.io.is_group(data):
+            return DataView.UNSUPPORTED
+        return 0
 
 
 class _RecordView(DataView):
@@ -858,7 +856,7 @@ class DataViewer(qt.QFrame):
         info = DataInfo(data)
         priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
         views = zip(priorities, self.__views.values())
-        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
+        views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
 
         # store available views
@@ -866,9 +864,6 @@ class DataViewer(qt.QFrame):
             self.__setCurrentAvailableViews([])
             available = []
         else:
-            if views[0][0] != 0:
-                # remove 0-priority, if other are available
-                views = list(filter(lambda t: t[0] != DataView.SUPPORTED_IF_NOTHING_BETTER, views))
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 
