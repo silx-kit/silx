@@ -30,10 +30,12 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "25/01/2017"
 
 import collections
 import logging
+
+from silx.utils.decorators import deprecated
 
 from . import PlotWidget
 from . import PlotActions
@@ -181,9 +183,9 @@ class PlotWindow(PlotWidget):
         self.fitAction.setVisible(fit)
 
         # lazy loaded actions needed by the controlButton menu
-        self.consoleAction = None
-        self.panWithArrowKeysAction = None
-        self.crosshairAction = None
+        self._consoleAction = None
+        self._panWithArrowKeysAction = None
+        self._crosshairAction = None
 
         if control or position:
             hbox = qt.QHBoxLayout()
@@ -380,6 +382,11 @@ class PlotWindow(PlotWidget):
         return self._maskToolsDockWidget
 
     # getters for actions
+    @property
+    @deprecated
+    def consoleAction(self):
+        return self.getConsoleAction()
+
     def getConsoleAction(self):
         """QAction handling the IPython console activation.
 
@@ -390,23 +397,28 @@ class PlotWindow(PlotWidget):
 
         :rtype: QAction
         """
-        if self.consoleAction is None:
-            self.consoleAction = qt.QAction('Console', self)
-            self.consoleAction.setCheckable(True)
+        if self._consoleAction is None:
+            self._consoleAction = qt.QAction('Console', self)
+            self._consoleAction.setCheckable(True)
             if IPythonDockWidget is not None:
-                self.consoleAction.toggled.connect(self._toggleConsoleVisibility)
+                self._consoleAction.toggled.connect(self._toggleConsoleVisibility)
             else:
-                self.consoleAction.setEnabled(False)
-        return self.consoleAction
+                self._consoleAction.setEnabled(False)
+        return self._consoleAction
+
+    @property
+    @deprecated
+    def crosshairAction(self):
+        return self.getCrosshairAction()
 
     def getCrosshairAction(self):
         """Action toggling crosshair cursor mode.
 
         :rtype: PlotActions.PlotAction
         """
-        if self.crosshairAction is None:
-            self.crosshairAction = PlotActions.CrosshairAction(self, color='red')
-        return self.crosshairAction
+        if self._crosshairAction is None:
+            self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
+        return self._crosshairAction
 
     def getMaskAction(self):
         """QAction toggling image mask dock widget
@@ -415,14 +427,19 @@ class PlotWindow(PlotWidget):
         """
         return self.getMaskToolsDockWidget().toggleViewAction()
 
+    @property
+    @deprecated
+    def panWithArrowKeysAction(self):
+        return self.getPanWithArrowKeysAction()
+
     def getPanWithArrowKeysAction(self):
         """Action toggling pan with arrow keys.
 
         :rtype: PlotActions.PlotAction
         """
-        if self.panWithArrowKeysAction is None:
-            self.panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
-        return self.panWithArrowKeysAction
+        if self._panWithArrowKeysAction is None:
+            self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
+        return self._panWithArrowKeysAction
 
     def getRoiAction(self):
         """QAction toggling curve ROI dock widget
