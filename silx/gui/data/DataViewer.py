@@ -134,10 +134,6 @@ class DataView(object):
         Else returns the data."""
         return _normalizeData(data)
 
-    def axesNames(self):
-        """Returns names of the expected axes of the view"""
-        return []
-
     def customAxisNames(self):
         """Returns names of axes which can be custom by the user and provided
         to the view."""
@@ -181,6 +177,17 @@ class DataView(object):
         """
         return None
 
+    def axesNames(self, data, info):
+        """Returns names of the expected axes of the view, according to the
+        input data.
+
+        :param data: Data to display
+        :type data: numpy.ndarray or h5py.Dataset
+        :param DataInfo info: Pre-computed information on the data
+        :rtpye: list[str]
+        """
+        return []
+
     def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
@@ -205,7 +212,7 @@ class DataView(object):
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
 
-    def axesNames(self):
+    def axesNames(self, data, info):
         return []
 
     def createWidget(self, parent):
@@ -222,9 +229,6 @@ class _Plot1dView(DataView):
         super(_Plot1dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axesNames(self):
-        return ["y"]
-
     def createWidget(self, parent):
         from silx.gui import plot
         return plot.Plot1D(parent=parent)
@@ -240,6 +244,9 @@ class _Plot1dView(DataView):
                                   y=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = True
+
+    def axesNames(self, data, info):
+        return ["y"]
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
@@ -263,9 +270,6 @@ class _Plot2dView(DataView):
         super(_Plot2dView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axesNames(self):
-        return ["y", "x"]
-
     def createWidget(self, parent):
         from silx.gui import plot
         widget = plot.Plot2D(parent=parent)
@@ -284,6 +288,9 @@ class _Plot2dView(DataView):
                                   data=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
+
+    def axesNames(self, data, info):
+        return ["y", "x"]
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
@@ -311,15 +318,12 @@ class _Plot3dView(DataView):
             raise
         self.__resetZoomNextTime = True
 
-    def axesNames(self):
-        return ["z", "y", "x"]
-
     def createWidget(self, parent):
         from silx.gui.plot3d import ScalarFieldView
         from silx.gui.plot3d import SFViewParamTree
 
         plot = ScalarFieldView.ScalarFieldView(parent)
-        plot.setAxesLabels(*reversed(self.axesNames()))
+        plot.setAxesLabels(*reversed(self.axesNames(None, None)))
         plot.addIsosurface(
             lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
 
@@ -344,6 +348,9 @@ class _Plot3dView(DataView):
         plot.setData(data)
         self.__resetZoomNextTime = False
 
+    def axesNames(self, data, info):
+        return ["z", "y", "x"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
@@ -358,9 +365,6 @@ class _Plot3dView(DataView):
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
-    def axesNames(self):
-        return ["col", "row"]
-
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
@@ -373,6 +377,9 @@ class _ArrayView(DataView):
     def setData(self, data):
         data = self.normalizeData(data)
         self.getWidget().setArrayData(data)
+
+    def axesNames(self, data, info):
+        return ["col", "row"]
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or info.isRecord:
@@ -391,9 +398,6 @@ class _StackView(DataView):
         super(_StackView, self).__init__(parent, modeId)
         self.__resetZoomNextTime = True
 
-    def axesNames(self):
-        return ["depth", "y", "x"]
-
     def customAxisNames(self):
         return ["depth"]
 
@@ -407,7 +411,7 @@ class _StackView(DataView):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
         widget.setKeepDataAspectRatio(True)
-        widget.setLabels(self.axesNames())
+        widget.setLabels(self.axesNames(None, None))
         # hide default option panel
         widget.setOptionVisible(False)
         return widget
@@ -421,6 +425,9 @@ class _StackView(DataView):
         self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
+    def axesNames(self, data, info):
+        return ["depth", "y", "x"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
@@ -433,9 +440,6 @@ class _StackView(DataView):
 
 class _RawView(DataView):
     """View displaying data using text"""
-
-    def axesNames(self):
-        return []
 
     def createWidget(self, parent):
         widget = qt.QTextEdit(parent)
@@ -454,6 +458,9 @@ class _RawView(DataView):
         text = self.__formatter.toString(data)
         self.getWidget().setText(text)
 
+    def axesNames(self, data, info):
+        return []
+
     def getDataPriority(self, data, info):
         if data is None:
             return DataView.UNSUPPORTED
@@ -462,9 +469,6 @@ class _RawView(DataView):
 
 class _RecordView(DataView):
     """View displaying data using text"""
-
-    def axesNames(self):
-        return ["data"]
 
     def createWidget(self, parent):
         from .RecordTableView import RecordTableView
@@ -482,6 +486,9 @@ class _RecordView(DataView):
         widget.resizeRowsToContents()
         widget.resizeColumnsToContents()
 
+    def axesNames(self, data, info):
+        return ["data"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
@@ -498,9 +505,6 @@ class _RecordView(DataView):
 
 class _Hdf5View(DataView):
     """View displaying data using text"""
-
-    def axesNames(self):
-        return []
 
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
@@ -522,6 +526,9 @@ class _Hdf5View(DataView):
         setResizeMode(0, qt.QHeaderView.Fixed)
         setResizeMode(1, qt.QHeaderView.Stretch)
         header.setStretchLastSection(True)
+
+    def axesNames(self, data, info):
+        return []
 
     def getDataPriority(self, data, info):
         widget = self.getWidget()
@@ -671,8 +678,9 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        axisNames = self.__currentView.axesNames()
-        if len(axisNames) > 0:
+        info = DataInfo(self.__data)
+        axisNames = self.__currentView.axesNames(self.__data, info)
+        if self.__data is not None and len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
