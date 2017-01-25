@@ -566,14 +566,15 @@ class DataViewer(qt.QFrame):
     """
 
     EMPTY_MODE = 0
-    PLOT1D_MODE = 1
-    PLOT2D_MODE = 2
-    PLOT3D_MODE = 3
-    RAW_MODE = 4
-    ARRAY_MODE = 5
-    STACK_MODE = 6
-    RECORD_MODE = 7
-    HDF5_MODE = 8
+    PLOT1D_MODE = 10
+    PLOT2D_MODE = 20
+    PLOT3D_MODE = 30
+    RAW_MODE = 40
+    RAW_ARRAY_MODE = 41
+    RAW_RECORD_MODE = 42
+    RAW_SCALAR_MODE = 43
+    STACK_MODE = 50
+    HDF5_MODE = 60
 
     displayModeChanged = qt.Signal(int)
     """Emitted when the display mode changes"""
@@ -620,10 +621,10 @@ class DataViewer(qt.QFrame):
             (_Plot1dView, self.PLOT1D_MODE),
             (_Plot2dView, self.PLOT2D_MODE),
             (_Plot3dView, self.PLOT3D_MODE),
-            (_RawView, self.RAW_MODE),
-            (_ArrayView, self.ARRAY_MODE),
+            (_RawView, self.RAW_SCALAR_MODE),
+            (_ArrayView, self.RAW_ARRAY_MODE),
             (_StackView, self.STACK_MODE),
-            (_RecordView, self.RECORD_MODE),
+            (_RecordView, self.RAW_RECORD_MODE),
         ]
         self.__views = {}
         for viewData in views:
