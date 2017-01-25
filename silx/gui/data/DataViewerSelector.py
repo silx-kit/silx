@@ -63,9 +63,7 @@ class DataViewerSelector(qt.QWidget):
         buttons[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
         buttons[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
         buttons[DataViewer.PLOT3D_MODE] = ("Cube", "view-3d")
-        buttons[DataViewer.RAW_SCALAR_MODE] = ("Raw", "view-text")
-        buttons[DataViewer.RAW_ARRAY_MODE] = ("Raw", "view-raw")
-        buttons[DataViewer.RAW_RECORD_MODE] = ("Raw", "view-raw")
+        buttons[DataViewer.RAW_MODE] = ("Raw", "view-raw")
         buttons[DataViewer.STACK_MODE] = ("Image stack", "view-2d-stack")
 
         for modeId, state in buttons.items():

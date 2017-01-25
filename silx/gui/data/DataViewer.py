@@ -714,22 +714,26 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
+        rawViewers = [
+            _RawView(self, self.RAW_SCALAR_MODE),
+            _ArrayView(self, self.RAW_ARRAY_MODE),
+            _RecordView(self, self.RAW_RECORD_MODE),
+        ]
+
         views = [
-            (_EmptyView, self.EMPTY_MODE),
-            (_Hdf5View, self.HDF5_MODE),
-            (_Plot1dView, self.PLOT1D_MODE),
-            (_Plot2dView, self.PLOT2D_MODE),
-            (_Plot3dView, self.PLOT3D_MODE),
-            (_RawView, self.RAW_SCALAR_MODE),
-            (_ArrayView, self.RAW_ARRAY_MODE),
-            (_StackView, self.STACK_MODE),
-            (_RecordView, self.RAW_RECORD_MODE),
+            (_EmptyView, [self.EMPTY_MODE]),
+            (_Hdf5View, [self.HDF5_MODE]),
+            (_Plot1dView, [self.PLOT1D_MODE]),
+            (_Plot2dView, [self.PLOT2D_MODE]),
+            (_Plot3dView, [self.PLOT3D_MODE]),
+            (CompositeDataView, [self.RAW_MODE, rawViewers]),
+            (_StackView, [self.STACK_MODE]),
         ]
         self.__views = {}
         for viewData in views:
-            viewClass, modeId = viewData
+            viewClass, params = viewData
             try:
-                view = viewClass(self.__stack, modeId)
+                view = viewClass(self.__stack, *params)
             except:
                 continue
             self.__views[view.modeId()] = view
