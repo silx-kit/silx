@@ -50,11 +50,25 @@ class DataViewerSelector(qt.QWidget):
         """
         super(DataViewerSelector, self).__init__(parent)
 
+        self.__group = None
         self.__buttons = {}
+        self.__buttonDummy = None
         self.__dataViewer = None
+
+        if dataViewer is not None:
+            self.setDataViewer(dataViewer)
+
+    def __updateButtons(self):
+        if self.__group is not None:
+            self.__group.deleteLater()
+        self.__buttons = {}
+        self.__buttonDummy = None
+
         self.__group = qt.QButtonGroup(self)
         self.setLayout(qt.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
+        if self.__dataViewer is None:
+            return
 
         iconSize = qt.QSize(16, 16)
 
@@ -88,8 +102,8 @@ class DataViewerSelector(qt.QWidget):
 
         self.layout().addStretch(1)
 
-        if dataViewer is not None:
-            self.setDataViewer(dataViewer)
+        self.__updateButtonsVisibility()
+        self.__displayModeChanged(self.__dataViewer.displayMode())
 
     def setDataViewer(self, dataViewer):
         """Define the dataviewer connected to this status bar
@@ -99,14 +113,13 @@ class DataViewerSelector(qt.QWidget):
         if self.__dataViewer is dataViewer:
             return
         if self.__dataViewer is not None:
-            self.__dataViewer.dataChanged.disconnect(self.__dataChanged)
+            self.__dataViewer.dataChanged.disconnect(self.__updateButtonsVisibility)
             self.__dataViewer.displayModeChanged.disconnect(self.__displayModeChanged)
         self.__dataViewer = dataViewer
         if self.__dataViewer is not None:
-            self.__dataViewer.dataChanged.connect(self.__dataChanged)
+            self.__dataViewer.dataChanged.connect(self.__updateButtonsVisibility)
             self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
-            self.__displayModeChanged(self.__dataViewer.displayMode())
-        self.__dataChanged()
+        self.__updateButtons()
 
     def setFlat(self, isFlat):
         """Set the flat state of all the buttons.
@@ -132,7 +145,7 @@ class DataViewerSelector(qt.QWidget):
             return
         self.__dataViewer.setDisplayMode(modeId)
 
-    def __dataChanged(self):
+    def __updateButtonsVisibility(self):
         """Called on data changed"""
         if self.__dataViewer is None:
             for b in self.__buttons.values():
