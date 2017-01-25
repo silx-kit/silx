@@ -473,7 +473,7 @@ class BackendBase(object):
         """
         raise NotImplementedError()
 
-    def pixelToData(self, x, y, axis, check=True):
+    def pixelToData(self, x, y, axis, check):
         """Convert a position in pixels in the widget to a position in
         the data space.
 
