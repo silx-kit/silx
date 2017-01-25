@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "25/01/2017"
 
 import numpy
 import numbers
@@ -49,10 +49,21 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
+def _normalizeData(data):
+    """Returns a normalized data.
+
+    If the data embbed a numpy data or a dataset it is returned.
+    Else returns the input data."""
+    if isinstance(data, H5Node):
+        return data.h5py_object
+    return data
+
+
 class DataInfo(object):
     """Store extracted information from a data"""
 
     def __init__(self, data):
+        data = self.normalizeData(data)
         self.isArray = False
         self.interpretation = None
         self.isNumeric = False
@@ -88,6 +99,11 @@ class DataInfo(object):
             self.shape = tuple()
         self.dim = len(self.shape)
 
+    def normalizeData(self, data):
+        """Returns a normalized data if the embbed a numpy or a dataset.
+        Else returns the data."""
+        return _normalizeData(data)
+
 
 class DataView(object):
     """Holder for the data view."""
@@ -116,9 +132,7 @@ class DataView(object):
     def normalizeData(self, data):
         """Returns a normalized data if the embbed a numpy or a dataset.
         Else returns the data."""
-        if isinstance(data, H5Node):
-            return data.h5py_object
-        return data
+        return _normalizeData(data)
 
     def axesNames(self):
         """Returns names of the expected axes of the view"""
@@ -625,9 +639,7 @@ class DataViewer(qt.QFrame):
     def normalizeData(self, data):
         """Returns a normalized data if the embbed a numpy or a dataset.
         Else returns the data."""
-        if isinstance(data, H5Node):
-            return data.h5py_object
-        return data
+        return _normalizeData(data)
 
     def __getStackIndex(self, view):
         """Get the stack index containing the view.
