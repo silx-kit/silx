@@ -34,7 +34,7 @@ from silx.gui.data.TextFormatter import TextFormatter
 
 __authors__ = ["V.A. Sole"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 
 _logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
     :param sequence[int] perspective: See documentation
         of :meth:`setPerspective`.
     """
-    def __init__(self, parent=None, data=None, fmt="%g", perspective=None):
+    def __init__(self, parent=None, data=None, perspective=None):
         qt.QAbstractTableModel.__init__(self, parent)
 
         self._array = None
@@ -90,9 +90,12 @@ class ArrayTableModel(qt.QAbstractTableModel):
         for the foreground color
         """
 
-        self._formatter = TextFormatter()
-        self._formatter.setUseQuoteForText(False)
+        self._formatter = None
         """Formatter for text representation of data"""
+
+        formatter = TextFormatter(self)
+        formatter.setUseQuoteForText(False)
+        self.setFormatter(formatter)
 
         self._index = None
         """This attribute stores the slice index, as a list of indices
@@ -257,7 +260,7 @@ class ArrayTableModel(qt.QAbstractTableModel):
 
     # Public methods
     def setArrayData(self, data, copy=True,
-                     fmt=None, perspective=None, editable=False):
+                     perspective=None, editable=False):
         """Set the data array and the viewing perspective.
 
         You can set ``copy=False`` if you need more performances, when dealing
@@ -277,8 +280,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
             If *False*, then the behavior depends on the data type:
             if possible (if the original array is a proper numpy array)
             a reference to the original array is used.
-        :param fmt: Format string for representing numerical values.
-            By default, use the format set when initializing this model.
         :param perspective: See documentation of :meth:`setPerspective`.
             If None, the default perspective is the list of the first ``n-2``
             dimensions, to view frames parallel to the last two axes.
@@ -288,9 +289,6 @@ class ArrayTableModel(qt.QAbstractTableModel):
             self.beginResetModel()
         else:
             self.reset()
-
-        if fmt is not None:
-            self.setFormat(fmt)
 
         if data is None:
             # empty array
@@ -453,15 +451,40 @@ class ArrayTableModel(qt.QAbstractTableModel):
         if qt.qVersion() > "4.6":
             self.endResetModel()
 
-    def setFormat(self, fmt):
-        """Set format string controlling how the floatting-point values are
-        represented in the table view.
+    def setFormatter(self, formatter):
+        """Set the formatter object to be used to display data from the model
 
-        :param str fmt: Format string (e.g. "%.3f", "%d", "%-10.2f", "%10.3e")
-            This is the C-style format string used by python when formatting
-            strings with the modulus operator.
+        :param TextFormatter formatter: Formatter to use
         """
-        self._formatter.setFloatFormat(fmt)
+        if formatter is self._formatter:
+            return
+
+        if qt.qVersion() > "4.6":
+            self.beginResetModel()
+
+        if self._formatter is not None:
+            self._formatter.formatChanged.disconnect(self.__formatChanged)
+
+        self._formatter = formatter
+        if self._formatter is not None:
+            self._formatter.formatChanged.connect(self.__formatChanged)
+
+        if qt.qVersion() > "4.6":
+            self.endResetModel()
+        else:
+            self.reset()
+
+    def getFormatter(self):
+        """Returns the text formatter used.
+
+        :rtype: TextFormatter
+        """
+        return self._formatter
+
+    def __formatChanged(self):
+        """Called when the format changed.
+        """
+        self.reset()
 
     def setPerspective(self, perspective):
         """Set the perspective by defining a sequence listing all axes
@@ -579,10 +602,7 @@ if __name__ == "__main__":
     d = numpy.random.normal(0, 1, (5, 1000, 1000))
     for i in range(5):
         d[i, :, :] += i * 10
-    # m = ArrayTableModel(fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.arange(100.), fmt="%.5f")
-    # m = ArrayTableModel(None, numpy.ones((100,20)), fmt="%.5f")
-    m = ArrayTableModel(data=d, fmt="%.5f")
+    m = ArrayTableModel(data=d)
     w.setModel(m)
     m.setFrameIndex(3)
     # m.setArrayData(numpy.ones((100,)))

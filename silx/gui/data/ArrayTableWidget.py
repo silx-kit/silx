@@ -40,7 +40,7 @@ from silx.gui.widgets.FrameBrowser import HorizontalSliderWithBrowser
 
 __authors__ = ["V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "14/12/2016"
+__date__ = "24/01/2017"
 
 
 class AxesSelector(qt.QWidget):
@@ -218,34 +218,6 @@ def _get_shape(array_like):
     return tuple(shape)
 
 
-def _data_is_text(array_like):
-    """Return True if data in array like object is text.
-
-    :param array_like: Array like object: numpy array, hdf5 dataset,
-        multi-dimensional sequence
-    :return: True if array contains string, False otherwise.
-    """
-    if hasattr(array_like, "dtype"):
-        t = "%s" % array_like.dtype
-        if '|' in t:
-            return True
-        else:
-            return False
-
-    subsequence = array_like
-    while hasattr(subsequence, "__len__"):
-        subsequence = subsequence[0]
-    else:
-        first_element = subsequence
-
-    if type(first_element) in [str, bytes]:
-        return True
-    if not sys.version_info[0] == 3:
-        if type(first_element) == unicode:
-            return True
-    return False
-
-
 class ArrayTableWidget(qt.QWidget):
     """This widget is designed to display data of 2D frames (images, slices)
     in a table view. The widget can load any n-dimensional array, and display
@@ -358,12 +330,6 @@ class ArrayTableWidget(qt.QWidget):
                 label.hide()
 
         # set model
-        if _data_is_text(data):
-            fmt = "%s"
-        else:
-            fmt = "%g"
-
-        self.model.setFormat(fmt)
         self.model.setArrayData(data, copy=copy, editable=editable)
         # some linux distributions need this call
         self.view.setModel(self.model)

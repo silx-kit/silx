@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "24/01/2017"
 
 from silx.gui import qt
 import os.path
@@ -82,7 +82,8 @@ class Hdf5TableModel(qt.QAbstractTableModel):
 
         self.__obj = None
         self.__properties = []
-        self.__formatter = TextFormatter()
+        self.__formatter = None
+        self.setFormatter(TextFormatter(self))
 
         # set _data
         self.setObject(data)
@@ -232,21 +233,37 @@ class Hdf5TableModel(qt.QAbstractTableModel):
         """
         return self.__obj
 
-    def setFloatFormat(self, numericFormat):
-        """Set format string controlling how the values are represented in
-        the table view.
+    def setFormatter(self, formatter):
+        """Set the formatter object to be used to display data from the model
 
-        :param str numericFormat: Format string (e.g. "%.3f", "%d", "%-10.2f",
-            "%10.3e").
-            This is the C-style format string used by python when formatting
-            strings with the modulus operator.
+        :param TextFormatter formatter: Formatter to use
         """
+        if formatter is self.__formatter:
+            return
+
         if qt.qVersion() > "4.6":
             self.beginResetModel()
 
-        self.__formatter.setFloatFormat(numericFormat)
+        if self.__formatter is not None:
+            self.__formatter.formatChanged.disconnect(self.__formatChanged)
+
+        self.__formatter = formatter
+        if self.__formatter is not None:
+            self.__formatter.formatChanged.connect(self.__formatChanged)
 
         if qt.qVersion() > "4.6":
             self.endResetModel()
         else:
             self.reset()
+
+    def getFormatter(self):
+        """Returns the text formatter used.
+
+        :rtype: TextFormatter
+        """
+        return self.__formatter
+
+    def __formatChanged(self):
+        """Called when the format changed.
+        """
+        self.reset()
