@@ -123,7 +123,7 @@ class StackView(qt.QMainWindow):
     :param bool mask: Toggle visibilty of mask action.
     """
     # Qt signals
-    valueChanged = qt.Signal(float, float, float)
+    valueChanged = qt.Signal(object, object, object)
     """Signals that the data value under the cursor has changed.
 
     It provides: row, column, data value.
@@ -242,15 +242,15 @@ class StackView(qt.QMainWindow):
                 # Get corresponding coordinate in image
                 origin = activeImage[4]['origin']
                 scale = activeImage[4]['scale']
-                if (eventDict['x'] >= origin[0] and
-                        eventDict['y'] >= origin[1]):
-                    x = int((eventDict['x'] - origin[0]) / scale[0])
-                    y = int((eventDict['y'] - origin[1]) / scale[1])
+                x = int((eventDict['x'] - origin[0]) / scale[0])
+                y = int((eventDict['y'] - origin[1]) / scale[1])
 
-                    if 0 <= x < width and 0 <= y < height:
-                        self.valueChanged.emit(float(x), float(y),
-                                               data[y][x])
-                # TODO: should we emit (None, None, None) when out of range?
+                if 0 <= x < width and 0 <= y < height:
+                    self.valueChanged.emit(float(x), float(y),
+                                           data[y][x])
+                else:
+                    self.valueChanged.emit(float(x), float(y),
+                                           None)
 
     def __setPerspective(self, perspective):
         """Function called when the browsed/orthogonal dimension changes
@@ -818,19 +818,25 @@ class StackViewMainWindow(StackView):
         # Connect to StackView's signal
         self.valueChanged.connect(self._statusBarSlot)
 
-    def _statusBarSlot(self, row, column, value):
+    def _statusBarSlot(self, x, y, value):
         """Update status bar with coordinates/value from plots."""
-        img_idx = self._browser.value()
+        # todo (after implementing calibration):
+        #  - use floats for (x, y, z)
+        #  - display both indices (dim0, dim1, dim2) and (x, y, z)
+        msg = "Cursor out of range"
+        if x is not None and y is not None:
+            img_idx = self._browser.value()
 
-        if self._perspective == 0:
-            dim0, dim1, dim2 = img_idx, int(column), int(row)
-        elif self._perspective == 1:
-            dim0, dim1, dim2 = int(column), img_idx, int(row)
-        elif self._perspective == 2:
-            dim0, dim1, dim2 = int(column), int(row), img_idx
+            if self._perspective == 0:
+                dim0, dim1, dim2 = img_idx, int(y), int(x)
+            elif self._perspective == 1:
+                dim0, dim1, dim2 = int(y), img_idx, int(x)
+            elif self._perspective == 2:
+                dim0, dim1, dim2 = int(y), int(x), img_idx
 
-        msg = 'Position: (%d, %d, %d)' % (dim0, dim1, dim2)
-        msg += ', Value: %g' % value
+            msg = 'Position: (%d, %d, %d)' % (dim0, dim1, dim2)
+        if value is not None:
+            msg += ', Value: %g' % value
         if self._dataInfo is not None:
             msg = self._dataInfo + ', ' + msg
 
