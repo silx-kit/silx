@@ -111,7 +111,7 @@ class MatchPlan(object):
             self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
         else:
             self.queue = pyopencl.CommandQueue(self.ctx)
-#        self._calc_workgroups()
+        # self._calc_workgroups()
         self._compile_kernels()
         self._allocate_buffers()
         self.debug = []
@@ -151,7 +151,7 @@ class MatchPlan(object):
     def _allocate_buffers(self):
         self.buffers["Kp_1"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
         self.buffers["Kp_2"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
-#        self.buffers["tmp"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
+        # self.buffers["tmp"] = pyopencl.array.empty(self.queue, (self.kpsize,), dtype=self.dtype_kp)
         self.buffers["match"] = pyopencl.array.empty(self.queue, (self.kpsize, 2), dtype=numpy.int32)
         self.buffers["cnt"] = pyopencl.array.empty(self.queue, 1, dtype=numpy.int32)
 
@@ -201,12 +201,11 @@ class MatchPlan(object):
     def match(self, nkp1, nkp2, raw_results=False):
         """Calculate the matching of 2 keypoint list
 
-        :param nkp1, nkp2: numpy 1D recarray of keypoints or equivalent GPU buffer
+        :param nkp1: numpy 1D recarray of keypoints or equivalent GPU buffer
+        :param nkp2: numpy 1D recarray of keypoints or equivalent GPU buffer
         :param raw_results: if true return the 2D array of indexes of matching keypoints (not the actual keypoints)
-        :return 
 
         TODO: implement the ROI ...
-
         """
         assert len(nkp1.shape) == 1  # Nota: nkp1.ndim is not valid for gpu_arrays
         assert len(nkp2.shape) == 1
@@ -271,6 +270,7 @@ class MatchPlan(object):
                 result[:, 0] = nkp1[match[:size, 0]]
                 result[:, 1] = nkp2[match[:size, 1]]
         return result
+
     __call__ = match
 
     def _reset_buffer(self):
