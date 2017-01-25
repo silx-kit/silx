@@ -148,6 +148,16 @@ class DataView(object):
         """
         pass
 
+    def isWidgetInitialized(self):
+        """Returns true if the widget is already initialized.
+        """
+        return self.__widget is not None
+
+    def select(self):
+        """Called when the view is selected to display the data.
+        """
+        return
+
     def getWidget(self):
         """Returns the widget hold in the view and displaying the data.
 
@@ -207,6 +217,97 @@ class DataView(object):
 
     def __lt__(self, other):
         return str(self) < str(other)
+
+
+class CompositeDataView(DataView):
+    """Data view which can display a data using different view according to
+    the kind of the data."""
+
+    def __init__(self, parent, modeId, views=None):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        super(CompositeDataView, self).__init__(parent, modeId)
+        self.__views = {}
+        self.__currentView = None
+        if views is not None:
+            for v in views:
+                self.addView(v)
+
+    def addView(self, dataView):
+        """Add a new dataview to the available list."""
+        self.__views[dataView] = None
+
+    def getBestView(self, data, info):
+        """Returns the best view according to priorities."""
+        info = DataInfo(data)
+        views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
+        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
+        views = sorted(views, reverse=True)
+
+        if len(views) == 0:
+            return None
+        elif views[0][0] == DataView.UNSUPPORTED:
+            return None
+        else:
+            return views[0][1]
+
+    def customAxisNames(self):
+        if self.__currentView is None:
+            return
+        return self.__currentView.customAxisNames()
+
+    def setCustomAxisValue(self, name, value):
+        if self.__currentView is None:
+            return
+        self.__currentView.setCustomAxisValue(name, value)
+
+    def __updateDisplayedView(self):
+        widget = self.getWidget()
+        if self.__currentView is None:
+            return
+
+        # load the widget if it is not yet done
+        index = self.__views[self.__currentView]
+        if index is None:
+            w = self.__currentView.getWidget()
+            index = widget.addWidget(w)
+            self.__views[self.__currentView] = index
+        if widget.currentIndex() != index:
+            widget.setCurrentIndex(index)
+            self.__currentView.select()
+
+    def select(self):
+        self.__updateDisplayedView()
+        if self.__currentView is not None:
+            self.__currentView.select()
+
+    def createWidget(self, parent):
+        return qt.QStackedWidget()
+
+    def clear(self):
+        for v in self.__views.keys():
+            v.clear()
+
+    def setData(self, data):
+        if self.__currentView is None:
+            return
+        self.__updateDisplayedView()
+        self.__currentView.setData(data)
+
+    def axesNames(self, data, info):
+        view = self.getBestView(data, info)
+        self.__currentView = view
+        return view.axesNames(data, info)
+
+    def getDataPriority(self, data, info):
+        view = self.getBestView(data, info)
+        self.__currentView = view
+        if view is None:
+            return DataView.UNSUPPORTED
+        else:
+            return view.getDataPriority(data, info)
 
 
 class _EmptyView(DataView):
@@ -725,6 +826,8 @@ class DataViewer(qt.QFrame):
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
         stackIndex = self.__getStackIndex(self.__currentView)
+        if self.__currentView is not None:
+            self.__currentView.select()
         self.__stack.setCurrentIndex(stackIndex)
         self.displayModeChanged.emit(view.modeId())
 
