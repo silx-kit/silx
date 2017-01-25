@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "25/01/2017"
 
 import os
 import tempfile
@@ -103,28 +103,28 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
 
     def test_array_2d_data(self):
         data = numpy.array(["aaa"] * (3 ** 2))
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
 
     def test_array_4d_data(self):
         data = numpy.array(["aaa"] * (3 ** 4))
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
 
     def test_record_4d_data(self):
         data = numpy.zeros(3 ** 4, dtype='3int8, float32, (2,3)float64')
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayMode())
 
     def test_3d_h5_dataset(self):
         if h5py is None:
@@ -160,8 +160,6 @@ class AbstractDataViewerTests(TestCaseQt):
         self.assertEquals(widget.displayMode(), DataViewer.PLOT1D_MODE)
         widget.setDisplayMode(DataViewer.PLOT2D_MODE)
         self.assertEquals(widget.displayMode(), DataViewer.PLOT2D_MODE)
-        widget.setDisplayMode(DataViewer.ARRAY_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.ARRAY_MODE)
         widget.setDisplayMode(DataViewer.RAW_MODE)
         self.assertEquals(widget.displayMode(), DataViewer.RAW_MODE)
         widget.setDisplayMode(DataViewer.EMPTY_MODE)
