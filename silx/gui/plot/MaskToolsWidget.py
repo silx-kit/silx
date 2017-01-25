@@ -50,6 +50,12 @@ from .. import icons, qt
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 
+try:
+    import fabio
+except ImportError:
+    fabio = None
+
+
 _logger = logging.getLogger(__name__)
 
 
@@ -114,26 +120,38 @@ class Mask(qt.QObject):
         """Save current mask in a file
 
         :param str filename: The file where to save to mask
-        :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :return: True if save succeeded, False otherwise
+        :param str kind: The kind of file to save in 'edf', 'tif', 'npy',
+            or 'msk' (if FabIO is installed)
+        :raise Exception: Raised if the file writing fail
         """
         if kind == 'edf':
             edfFile = EdfFile(filename, access="w+")
             edfFile.WriteImage({}, self.getMask(copy=False), Append=0)
-            return True
 
         elif kind == 'tif':
             tiffFile = TiffIO(filename, mode='w')
             tiffFile.writeImage(self.getMask(copy=False), software='silx')
-            return True
 
         elif kind == 'npy':
             try:
                 numpy.save(filename, self.getMask(copy=False))
             except IOError:
-                return False
-            return True
-        return False
+                raise RuntimeError("Mask file can't be written")
+
+        elif kind == 'msk':
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be written: Fabio module is not available")
+            try:
+                data = self.getMask(copy=False)
+                image = fabio.fabioimage.FabioImage(data=data)
+                image = image.convert(fabio.fit2dmaskimage.Fit2dMaskImage)
+                image.save(filename)
+            except Exception:
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError("Mask file can't be written")
+
+        else:
+            raise ValueError("Format '%s' is not supported" % kind)
 
     # History control
 
@@ -904,38 +922,62 @@ class MaskToolsWidget(qt.QWidget):
         """Load a mask from an image file.
 
         :param str filename: File name from which to load the mask
-        :return: False on failure, True on success or a resized message
-                 when loading succeeded but shape of the image and the mask
-                 are different.
-        :rtype: bool or str
+        :raise Exception: An exception in case of failure
+        :raise RuntimeWarning: In case the mask was applied but with some
+            import changes to notice
         """
-        try:
-            mask = numpy.load(filename)
-        except IOError:
-            _logger.debug('Not a numpy file: %s', filename)
+        _, extension = os.path.splitext(filename)
+        extension = extension.lower()[1:]
+
+        if extension == "npy":
+            try:
+                mask = numpy.load(filename)
+            except IOError:
+                _logger.error("Can't load filename '%s'", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise RuntimeError('File "%s" is not a numpy file.', filename)
+        elif extension == "edf":
             try:
                 mask = EdfFile(filename, access='r').GetData(0)
-            except Exception:
-                _logger.error('Error while opening image file\n'
-                              '%s', (sys.exc_info()[1]))
-                return False
+            except Exception as e:
+                _logger.error("Can't load filename %s", filename)
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        elif extension == "msk":
+            if fabio is None:
+                raise ImportError("Fit2d mask files can't be read: Fabio module is not available")
+            try:
+                mask = fabio.open(filename).data
+            except Exception as e:
+                _logger.error("Can't load fit2d mask file")
+                _logger.debug("Backtrace", exc_info=True)
+                raise e
+        else:
+            msg = "Extension '%s' is not supported."
+            raise RuntimeError(msg % extension)
 
         effectiveMaskShape = self.setSelectionMask(mask, copy=False)
         if effectiveMaskShape is None:
-            return False
-        elif mask.shape != effectiveMaskShape:
-            return 'Mask was resized from %s to %s' % (
-                str(mask.shape), str(effectiveMaskShape))
-        else:
-            return True
+            return
+        if mask.shape != effectiveMaskShape:
+            msg = 'Mask was resized from %s to %s'
+            msg = msg % (str(mask.shape), str(effectiveMaskShape))
+            raise RuntimeWarning(msg)
 
     def _loadMask(self):
         """Open load mask dialog"""
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Load Mask")
         dialog.setModal(1)
-        dialog.setNameFilters(
-            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        filters = [
+            'EDF (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
+        ]
+        dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.ExistingFile)
         dialog.setDirectory(self.maskFileDir)
         if not dialog.exec_():
@@ -946,16 +988,19 @@ class MaskToolsWidget(qt.QWidget):
         dialog.close()
 
         self.maskFileDir = os.path.dirname(filename)
-        loaded = self.load(filename)
-        if not loaded:
-            msg = qt.QMessageBox(self)
-            msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot load mask from file.")
-            msg.exec_()
-        elif loaded is not True:
+        try:
+            self.load(filename)
+        except RuntimeWarning as e:
+            message = e.args[0]
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Warning)
-            msg.setText(loaded)
+            msg.setText("Mask loaded but an operation was applied.\n" + message)
+            msg.exec_()
+        except Exception as e:
+            message = e.args[0]
+            msg = qt.QMessageBox(self)
+            msg.setIcon(qt.QMessageBox.Critical)
+            msg.setText("Cannot load mask from file. " + message)
             msg.exec_()
 
     def save(self, filename, kind):
@@ -963,17 +1008,24 @@ class MaskToolsWidget(qt.QWidget):
 
         :param str filename: The file where to save to mask
         :param str kind: The kind of file to save in 'edf', 'tif', 'npy'
-        :return: True if save succeeded, False otherwise
+        :raise Exception: Raised if the process fails
         """
-        return self._mask.save(filename, kind)
+        self._mask.save(filename, kind)
 
     def _saveMask(self):
         """Open Save mask dialog"""
         dialog = qt.QFileDialog(self)
         dialog.setWindowTitle("Save Mask")
         dialog.setModal(1)
-        dialog.setNameFilters(
-            ['EDF  *.edf', 'TIFF *.tif', 'NumPy binary file *.npy'])
+        filters = [
+            'EDF (*.edf)',
+            'TIFF (*.tif)',
+            'NumPy binary file (*.npy)',
+            # Fit2D mask is displayed anyway fabio is here or not
+            # to show to the user that the option exists
+            'Fit2D mask (*.msk)',
+        ]
+        dialog.setNameFilters(filters)
         dialog.setFileMode(qt.QFileDialog.AnyFile)
         dialog.setAcceptMode(qt.QFileDialog.AcceptSave)
         dialog.setDirectory(self.maskFileDir)
@@ -981,7 +1033,8 @@ class MaskToolsWidget(qt.QWidget):
             dialog.close()
             return
 
-        extension = dialog.selectedNameFilter().split()[-1][1:]
+        # convert filter name to extension name with the .
+        extension = dialog.selectedNameFilter().split()[-1][2:-1]
         filename = dialog.selectedFiles()[0]
         dialog.close()
 
@@ -1000,10 +1053,12 @@ class MaskToolsWidget(qt.QWidget):
                 return
 
         self.maskFileDir = os.path.dirname(filename)
-        if not self.save(filename, extension[1:]):
+        try:
+            self.save(filename, extension[1:])
+        except Exception as e:
             msg = qt.QMessageBox(self)
             msg.setIcon(qt.QMessageBox.Critical)
-            msg.setText("Cannot save file %s\n" % filename)
+            msg.setText("Cannot save file %s\n%s" % (filename, e.args[0]))
             msg.exec_()
 
     def getCurrentMaskColor(self):
