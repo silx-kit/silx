@@ -534,7 +534,7 @@ class _StackView(DataView):
         return 90
 
 
-class _RawView(DataView):
+class _ScalarView(DataView):
     """View displaying data using text"""
 
     def createWidget(self, parent):
@@ -715,7 +715,7 @@ class DataViewer(qt.QFrame):
         self.__useAxisSelection = False
 
         rawViewers = [
-            _RawView(self, self.RAW_SCALAR_MODE),
+            _ScalarView(self, self.RAW_SCALAR_MODE),
             _ArrayView(self, self.RAW_ARRAY_MODE),
             _RecordView(self, self.RAW_RECORD_MODE),
         ]
