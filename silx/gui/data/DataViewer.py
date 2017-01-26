@@ -630,6 +630,8 @@ class _RecordView(DataView):
         return ["data"]
 
     def getDataPriority(self, data, info):
+        if info.isRecord:
+            return 40
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
         if info.dim == 1:
@@ -854,7 +856,7 @@ class DataViewer(qt.QFrame):
         self.__numpySelection.clear()
         info = DataInfo(self.__data)
         axisNames = self.__currentView.axesNames(self.__data, info)
-        if self.__data is not None and len(axisNames) > 0:
+        if info.isArray and self.__data is not None and len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
