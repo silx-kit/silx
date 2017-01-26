@@ -98,7 +98,8 @@ def get_opencl_code(name):
 def concatenate_cl_kernel(filenames):
     """Concatenates all the kernel from the list of files
     
-    :param list filenames: filenames containing the various kernels to read and concatenate
+    :param list filenames: filenames containing the various kernels to read and
+                           concatenate
     :return 
     """
     kernel = os.linesep.join(get_opencl_code(filename) for filename in filenames)
