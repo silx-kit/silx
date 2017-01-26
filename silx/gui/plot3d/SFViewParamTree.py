@@ -33,6 +33,7 @@ __license__ = "MIT"
 __date__ = "10/01/2017"
 
 import logging
+import sys
 
 import numpy
 
@@ -635,6 +636,10 @@ class QColorEditor(qt.QWidget):
 
     def __showColorDialog(self):
         dialog = qt.QColorDialog(parent=self)
+        if sys.platform == 'darwin':
+            # Use of native color dialog on macos might cause problems
+            dialog.setOption(qt.QColorDialog.DontUseNativeDialog, True)
+
         self.__previousColor = self.__color
         dialog.setAttribute(qt.Qt.WA_DeleteOnClose)
         dialog.setModal(True)
@@ -1215,6 +1220,8 @@ class TreeView(qt.QTreeView):
     def __init__(self, parent=None):
         super(TreeView, self).__init__(parent)
         self.__openedIndex = None
+
+        self.setIconSize(qt.QSize(16, 16))
 
         header = self.header()
         if hasattr(header, 'setSectionResizeMode'):  # Qt5
