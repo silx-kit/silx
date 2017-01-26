@@ -32,9 +32,10 @@ __authors__ = ["Jérôme Kieffer", "Pierre Paleo"]
 __contact__ = "jerome.kieffer@esrf.eu"
 __license__ = "MIT"
 __copyright__ = "European Synchrotron Radiation Facility, Grenoble, France"
-__date__ = "29/11/2016"
-__status__ = "beta"
+__date__ = "23/01/2017"
+__status__ = "Production" 
 
+import os
 import numpy
 from ..resources import resource_filename
 from math import log, ceil
@@ -80,7 +81,7 @@ def get_opencl_code(name):
     """Read the kernel source code  and return it.
 
     :param str name: Filename of the kernel source,
-    :return: Corresponding surce code
+    :return: Corresponding source code
     :raises: ValueError when name is not known
     """
     if not name.endswith(".cl"):
@@ -92,3 +93,14 @@ def get_opencl_code(name):
     with open(filename, "r") as fileobj:
         res = fileobj.read()
     return res.strip()
+
+
+def concatenate_cl_kernel(filenames):
+    """Concatenates all the kernel from the list of files
+    
+    :param list filenames: filenames containing the various kernels to read and
+                           concatenate
+    :return 
+    """
+    kernel = os.linesep.join(get_opencl_code(filename) for filename in filenames)
+    return kernel

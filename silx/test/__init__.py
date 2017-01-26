@@ -32,7 +32,7 @@ It will skip all tests from :mod:`silx.test.gui`.
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "09/12/2016"
+__date__ = "23/01/2017"
 
 
 import logging
@@ -52,7 +52,7 @@ def suite():
     from ..image import test as test_image
     from ..gui import test as test_gui
     from ..utils import test as test_utils
-
+    from ..opencl import test as test_ocl
     test_suite = unittest.TestSuite()
     # test sx first cause qui tests load ipython module
     test_suite.addTest(test_sx.suite())
@@ -64,6 +64,7 @@ def suite():
     test_suite.addTest(test_io.suite())
     test_suite.addTest(test_math.suite())
     test_suite.addTest(test_image.suite())
+    test_suite.addTest(test_ocl.suite())
     return test_suite
 
 
