@@ -29,7 +29,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "25/01/2017"
+__date__ = "26/01/2017"
 
 import numpy
 import numbers
@@ -53,7 +53,7 @@ _logger = logging.getLogger(__name__)
 def _normalizeData(data):
     """Returns a normalized data.
 
-    If the data embbed a numpy data or a dataset it is returned.
+    If the data embed a numpy data or a dataset it is returned.
     Else returns the input data."""
     if isinstance(data, H5Node):
         return data.h5py_object
@@ -101,7 +101,7 @@ class DataInfo(object):
         self.dim = len(self.shape)
 
     def normalizeData(self, data):
-        """Returns a normalized data if the embbed a numpy or a dataset.
+        """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
 
@@ -113,7 +113,7 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
-    def __init__(self, parent, modeId):
+    def __init__(self, parent, modeId=None):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
@@ -127,7 +127,7 @@ class DataView(object):
         return self.__modeId
 
     def normalizeData(self, data):
-        """Returns a normalized data if the embbed a numpy or a dataset.
+        """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
 
@@ -219,7 +219,7 @@ class CompositeDataView(DataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
-    def __init__(self, parent, modeId, views=None):
+    def __init__(self, parent, modeId=None):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
@@ -227,9 +227,6 @@ class CompositeDataView(DataView):
         super(CompositeDataView, self).__init__(parent, modeId)
         self.__views = {}
         self.__currentView = None
-        if views is not None:
-            for v in views:
-                self.addView(v)
 
     def addView(self, dataView):
         """Add a new dataview to the available list."""
@@ -309,6 +306,9 @@ class CompositeDataView(DataView):
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
 
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.EMPTY_MODE)
+
     def axesNames(self, data, info):
         return []
 
@@ -322,8 +322,8 @@ class _EmptyView(DataView):
 class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot1dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot1dView, self).__init__(parent, modeId=DataViewer.PLOT1D_MODE)
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
@@ -363,8 +363,8 @@ class _Plot1dView(DataView):
 class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot2dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot2dView, self).__init__(parent, modeId=DataViewer.PLOT2D_MODE)
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
@@ -405,8 +405,8 @@ class _Plot2dView(DataView):
 class _Plot3dView(DataView):
     """View displaying data using a 3d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot3dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot3dView, self).__init__(parent, modeId=DataViewer.PLOT3D_MODE)
         try:
             import silx.gui.plot3d
         except ImportError:
@@ -462,6 +462,9 @@ class _Plot3dView(DataView):
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_ARRAY_MODE)
+
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
         widget = ArrayTableWidget(parent)
@@ -491,8 +494,8 @@ class _ArrayView(DataView):
 class _StackView(DataView):
     """View displaying data using a stack of images"""
 
-    def __init__(self, parent, modeId):
-        super(_StackView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_StackView, self).__init__(parent, modeId=DataViewer.STACK_MODE)
         self.__resetZoomNextTime = True
 
     def customAxisNames(self):
@@ -538,6 +541,9 @@ class _StackView(DataView):
 class _ScalarView(DataView):
     """View displaying data using text"""
 
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_SCALAR_MODE)
+
     def createWidget(self, parent):
         widget = qt.QTextEdit(parent)
         widget.setTextInteractionFlags(qt.Qt.TextSelectableByMouse)
@@ -569,6 +575,9 @@ class _ScalarView(DataView):
 
 class _RecordView(DataView):
     """View displaying data using text"""
+
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_RECORD_MODE)
 
     def createWidget(self, parent):
         from .RecordTableView import RecordTableView
@@ -606,6 +615,9 @@ class _RecordView(DataView):
 class _Hdf5View(DataView):
     """View displaying data using text"""
 
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.HDF5_MODE)
+
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
         widget = qt.QTableView()
@@ -636,6 +648,20 @@ class _Hdf5View(DataView):
             return 1
         else:
             return DataView.UNSUPPORTED
+
+
+class _RawView(CompositeDataView):
+    """View displaying data as raw data.
+
+    This implementation use a 2d-array view, or a record array view, or a
+    raw tetx output.
+    """
+
+    def __init__(self, parent):
+        CompositeDataView.__init__(self, parent, modeId=DataViewer.RAW_MODE)
+        self.addView(_ScalarView(parent))
+        self.addView(_ArrayView(parent))
+        self.addView(_RecordView(parent))
 
 
 class DataViewer(qt.QFrame):
@@ -715,27 +741,22 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
-        rawViewers = [
-            _ScalarView(self, self.RAW_SCALAR_MODE),
-            _ArrayView(self, self.RAW_ARRAY_MODE),
-            _RecordView(self, self.RAW_RECORD_MODE),
-        ]
-
         views = [
-            (_EmptyView, [self.EMPTY_MODE]),
-            (_Hdf5View, [self.HDF5_MODE]),
-            (_Plot1dView, [self.PLOT1D_MODE]),
-            (_Plot2dView, [self.PLOT2D_MODE]),
-            (_Plot3dView, [self.PLOT3D_MODE]),
-            (CompositeDataView, [self.RAW_MODE, rawViewers]),
-            (_StackView, [self.STACK_MODE]),
+            _EmptyView,
+            _Hdf5View,
+            _Plot1dView,
+            _Plot2dView,
+            _Plot3dView,
+            _RawView,
+            _StackView,
         ]
         self.__views = OrderedDict()
-        for viewData in views:
-            viewClass, params = viewData
+        for viewClass in views:
             try:
-                view = viewClass(self.__stack, *params)
-            except:
+                view = viewClass(self.__stack)
+            except Exception:
+                _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)
+                _logger.debug("Backtrace", exc_info=True)
                 continue
             self.__views[view.modeId()] = view
 
@@ -749,7 +770,7 @@ class DataViewer(qt.QFrame):
         self.setData(None)
 
     def normalizeData(self, data):
-        """Returns a normalized data if the embbed a numpy or a dataset.
+        """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
         return _normalizeData(data)
 
