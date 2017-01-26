@@ -28,13 +28,14 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "26/01/2017"
 
 
 import logging
 
 from silx.gui import qt
 from silx.gui.plot.Colors import rgba
+from silx.gui.plot3d import Plot3DActions
 from .._utils import convertArrayToQImage
 
 from .glutils import gl
@@ -102,6 +103,8 @@ class Plot3DWidget(qt.QGLWidget):
         self.setMouseTracking(True)
 
         self.setFocusPolicy(qt.Qt.StrongFocus)
+        self._copyAction = Plot3DActions.CopyAction(parent=self, plot3d=self)
+        self.addAction(self._copyAction)
         self.setFocus(qt.Qt.OtherFocusReason)
 
         self._updating = False  # True if an update is requested

@@ -29,7 +29,7 @@ from __future__ import absolute_import
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "26/01/2017"
 
 
 from silx.gui import qt
@@ -55,6 +55,7 @@ class Plot3DWindow(qt.QMainWindow):
         toolbar = Plot3DToolBar(parent=self)
         toolbar.setPlot3DWidget(self._plot3D)
         self.addToolBar(toolbar)
+        self.addActions(toolbar.actions())
 
     def getPlot3DWidget(self):
         """Get the :class:`Plot3DWidget` of this window"""
