@@ -355,6 +355,11 @@ class PlotWindow(PlotWidget):
                                   dock_widget)
 
     # getters for dock widgets
+    @property
+    @deprecated
+    def legendsDockWidget(self):
+        return self.getLegendsDockWidget()
+
     def getLegendsDockWidget(self):
         """DockWidget with Legend panel"""
         if self._legendsDockWidget is None:
@@ -362,6 +367,11 @@ class PlotWindow(PlotWidget):
             self._legendsDockWidget.hide()
             self._introduceNewDockWidget(self._legendsDockWidget)
         return self._legendsDockWidget
+
+    @property
+    @deprecated
+    def curvesROIDockWidget(self):
+        return self.getCurvesRoiDockWidget()
 
     def getCurvesRoiDockWidget(self):
         """DockWidget with curves' ROI panel (lazy-loaded)."""
@@ -371,6 +381,11 @@ class PlotWindow(PlotWidget):
             self._curvesROIDockWidget.hide()
             self._introduceNewDockWidget(self._curvesROIDockWidget)
         return self._curvesROIDockWidget
+
+    @property
+    @deprecated
+    def maskToolsDockWidget(self):
+        return self.getMaskToolsDockWidget()
 
     def getMaskToolsDockWidget(self):
         """DockWidget with image mask panel (lazy-loaded)."""
@@ -420,6 +435,11 @@ class PlotWindow(PlotWidget):
             self._crosshairAction = PlotActions.CrosshairAction(self, color='red')
         return self._crosshairAction
 
+    @property
+    @deprecated
+    def maskAction(self):
+        return self.getMaskAction()
+
     def getMaskAction(self):
         """QAction toggling image mask dock widget
 
@@ -440,6 +460,11 @@ class PlotWindow(PlotWidget):
         if self._panWithArrowKeysAction is None:
             self._panWithArrowKeysAction = PlotActions.PanWithArrowKeysAction(self)
         return self._panWithArrowKeysAction
+
+    @property
+    @deprecated
+    def roiAction(self):
+        return self.getRoiAction()
 
     def getRoiAction(self):
         """QAction toggling curve ROI dock widget
