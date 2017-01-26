@@ -159,14 +159,17 @@ class Platform(object):
     """
     Simple class that contains the structure of an OpenCL platform
     """
-    def __init__(self, name="None", vendor="None", version=None, extensions=None, idx=0):
+    def __init__(self, name="None", vendor="None", version=None,
+        extensions=None, idx=0):
         """
-        Class containing all descriptions of a platform and all devices description within that platform.
+        Class containing all descriptions of a platform and all devices
+        description within that platform.
 
         :param name: platform name
         :param vendor: name of the brand/vendor
         :param version:
-        :param extension: list of the extension provided by the platform to all of its devices
+        :param extension: list of the extension provided by the platform to all
+                          of its devices
         :param idx: index of the platform
         """
         self.name = name.strip()
@@ -210,7 +213,8 @@ class Platform(object):
 def _measure_workgroup_size(device_or_context, fast=False):
     """Mesure the maximal work group size of the given device
 
-    :param device: instance of pyopencl.Device or pyopencl.Context or 2-tuple (platformid,deviceid)
+    :param device: instance of pyopencl.Device or pyopencl.Context or 2-tuple
+                   (platformid,deviceid)
     :param fast: ask the kernel the valid value, don't probe it
     :return: maximum size for the workgroup
     """
@@ -221,7 +225,8 @@ def _measure_workgroup_size(device_or_context, fast=False):
         ctx = device_or_context
         device = device_or_context.devices[0]
     elif isinstance(device_or_context, (tuple, list)) and len(device_or_context) == 2:
-        ctx = ocl.create_context(platformid=device_or_context[0], deviceid=device_or_context[1])
+        ctx = ocl.create_context(platformid=device_or_context[0],
+                                 deviceid=device_or_context[1])
         device = ctx.devices[0]
     else:
         raise RuntimeError("""given parameter device_or_context is not an
@@ -272,6 +277,8 @@ class OpenCL(object):
     This is a static class.
     ocl should be the only instance and shared among all python modules.
     """
+    def _is_nvidia_gpu(vendor, devtype) : return (vendor == "NVIDIA Corporation") and (devtype == "GPU")
+    
     platforms = []
     nb_devices = 0
     context_cache = {}  # key: 2-tuple of int, value: context
@@ -294,7 +301,7 @@ class OpenCL(object):
                     devtype = "CPU"
                 if len(devtype) > 3:
                     devtype = devtype[:3]
-                if (pypl.vendor == "NVIDIA Corporation") and (devtype == "GPU") and "compute_capability_major_nv" in dir(device):
+                if _is_nvidia_gpu(pypl.vendor, devtype) and "compute_capability_major_nv" in dir(device):
                     comput_cap = device.compute_capability_major_nv, device.compute_capability_minor_nv
                     flop_core = NVIDIA_FLOP_PER_CORE.get(comput_cap, min(NVIDIA_FLOP_PER_CORE.values()))
                 elif (pypl.vendor == "Advanced Micro Devices, Inc.") and (devtype == "GPU"):
@@ -321,7 +328,9 @@ class OpenCL(object):
     def __repr__(self):
         out = ["OpenCL devices:"]
         for platformid, platform in enumerate(self.platforms):
-            out.append("[%s] %s: " % (platformid, platform.name) + ", ".join(["(%s,%s) %s" % (platformid, deviceid, dev.name) for deviceid, dev in enumerate(platform.devices)]))
+            deviceids = ["(%s,%s) %s" % (platformid, deviceid, dev.name) \
+                for deviceid, dev in enumerate(platform.devices)]
+            out.append("[%s] %s: " % (platformid, platform.name) + ", ".join(deviceids))
         return os.linesep.join(out)
 
     def get_platform(self, key):
@@ -380,14 +389,16 @@ class OpenCL(object):
         if best_found:
             return best_found[0], best_found[1]
 
-    def create_context(self, devicetype="ALL", useFp64=False, platformid=None, deviceid=None, cached=True):
+    def create_context(self, devicetype="ALL", useFp64=False, platformid=None,
+        deviceid=None, cached=True):
         """
         Choose a device and initiate a context.
 
         Devicetypes can be GPU,gpu,CPU,cpu,DEF,ACC,ALL.
         Suggested are GPU,CPU.
         For each setting to work there must be such an OpenCL device and properly installed.
-        E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail. The AMD SDK kit is required for CPU via OpenCL.
+        E.g.: If Nvidia driver is installed, GPU will succeed but CPU will fail.
+              The AMD SDK kit is required for CPU via OpenCL.
         :param devicetype: string in ["cpu","gpu", "all", "acc"]
         :param useFp64: boolean specifying if double precision will be used
         :param platformid: integer
@@ -483,7 +494,10 @@ def allocate_cl_buffers(buffers, device=None, context=None):
     logger.info("%.3fMB are needed on device which has %.3fMB",
                 ualloc / 1.0e6, memory / 1.0e6)
     if ualloc >= memory:
-        raise MemoryError("Fatal error in allocate_buffers. Not enough device memory for buffers (%lu requested, %lu available)" % (ualloc, memory))  # noqa
+        memError = "Fatal error in allocate_buffers."
+        memError += "Not enough device memory for buffers"
+        memError += "(%lu requested, %lu available)" % (ualloc, memory)
+        raise MemoryError(memError)  # noqa
 
     # do the allocation
     try:
@@ -545,7 +559,8 @@ class OpenclProcessing(object):
 
     This class provides:
     * Generation of the context, queues, profiling mode
-    * Additional function to allocate/free all buffers declared as static attributes of the class
+    * Additional function to allocate/free all buffers declared as static
+        attributes of the class
     * Functions to compile kernels, cache them and clean them
     * helper functions to clone the object
     """
@@ -555,18 +570,20 @@ class OpenclProcessing(object):
     # list of kernel source files to be concatenated before compilation of the program
     kernel_files = []
 
-    def __init__(self, ctx=None, devicetype="all", platformid=None, deviceid=None,
-                 block_size=None, profile=False):
+    def __init__(self, ctx=None, devicetype="all", platformid=None,
+                 deviceid=None, block_size=None, profile=False):
         """Constructor of the abstract OpenCL processing class
 
         :param ctx: actual working context, left to None for automatic
                     initialization from device type or platformid/deviceid
         :param devicetype: type of device, can be "CPU", "GPU", "ACC" or "ALL"
-        :param platformid: integer with the platform_identifier, as given by clinfo
+        :param platformid: integer with the platform_identifier, as given by
+                           clinfo
         :param deviceid: Integer with the device identifier, as given by clinfo
-        :param block_size: preferred workgroup size, may vary depending on the outpcome of the compilation
-        :param profile: switch on profiling to be able to profile at the kernel level,
-                        store profiling elements (makes code slower)
+        :param block_size: preferred workgroup size, may vary depending on the
+                           outpcome of the compilation
+        :param profile: switch on profiling to be able to profile at the kernel
+                        level, store profiling elements (makes code slower)
         """
         self.sem = threading.Semaphore()
         self.profile = bool(profile)
@@ -577,8 +594,10 @@ class OpenclProcessing(object):
         if ctx:
             self.ctx = ctx
         else:
-            self.ctx = ocl.create_context(devicetype=devicetype, platformid=platformid, deviceid=deviceid)
-            
+            self.ctx = ocl.create_context(devicetype=devicetype,
+                                          platformid=platformid,
+                                          deviceid=deviceid)
+
         device_name = self.ctx.devices[0].name.strip()
         platform_name = self.ctx.devices[0].platform.name.strip()
         platform = ocl.get_platform(platform_name)
@@ -586,7 +605,9 @@ class OpenclProcessing(object):
         # self.device = platform.id, device.id
 
         if profile:
-            self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+            self.queue = pyopencl.CommandQueue(
+                self.ctx,
+               properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
         else:
             self.queue = pyopencl.CommandQueue(self.ctx)
 

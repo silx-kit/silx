@@ -59,7 +59,9 @@ class TestAddition(unittest.TestCase):
             cls.ctx = ocl.create_context()
             if logger.getEffectiveLevel() <= logging.INFO:
                 cls.PROFILE = True
-                cls.queue = pyopencl.CommandQueue(cls.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
+                cls.queue = pyopencl.CommandQueue(
+                                cls.ctx,
+                                properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
             else:
                 cls.PROFILE = False
                 cls.queue = pyopencl.CommandQueue(cls.ctx)
