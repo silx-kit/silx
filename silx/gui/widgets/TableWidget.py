@@ -483,4 +483,3 @@ if __name__ == "__main__":
     tableview.show()
 
     app.exec_()
-

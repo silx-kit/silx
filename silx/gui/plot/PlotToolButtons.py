@@ -34,7 +34,7 @@ The following QToolButton are available:
 
 __authors__ = ["V. Valls", "H. Payno"]
 __license__ = "MIT"
-__date__ = "05/01/2016"
+__date__ = "26/01/2017"
 
 
 import logging
@@ -278,4 +278,3 @@ class ProfileToolButton(PlotToolButton):
 
     def computeProfileIn2D(self):
         self._profileDimensionChanged(2)
-
