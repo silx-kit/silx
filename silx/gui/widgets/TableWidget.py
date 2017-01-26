@@ -50,7 +50,7 @@ creating the widgets, or later by calling their :meth:`enableCut` and
 
 __authors__ = ["P. Knobel"]
 __license__ = "MIT"
-__date__ = "23/11/2016"
+__date__ = "26/01/2017"
 
 
 import sys
@@ -90,7 +90,7 @@ class CopySelectedCellsAction(qt.QAction):
         super(CopySelectedCellsAction, self).__init__(table)
         self.setText("Copy selection")
         self.setToolTip("Copy selected cells into the clipboard.")
-        self.setShortcut(qt.QKeySequence('Ctrl+C'))
+        self.setShortcut(qt.QKeySequence.Copy)
         self.triggered.connect(self.copyCellsToClipboard)
         self.table = table
         self.cut = False
@@ -207,7 +207,7 @@ class CutSelectedCellsAction(CopySelectedCellsAction):
     def __init__(self, table):
         super(CutSelectedCellsAction, self).__init__(table)
         self.setText("Cut selection")
-        self.setShortcut(qt.QKeySequence('Ctrl+X'))
+        self.setShortcut(qt.QKeySequence.Cut)
         # cutting is already implemented in CopySelectedCellsAction (but
         # it is disabled), we just need to enable it
         self.cut = True
@@ -270,7 +270,7 @@ class PasteCellsAction(qt.QAction):
         super(PasteCellsAction, self).__init__(table)
         self.table = table
         self.setText("Paste")
-        self.setShortcut(qt.QKeySequence('Ctrl+V'))
+        self.setShortcut(qt.QKeySequence.Paste)
         self.setToolTip("Paste data. The selected cell is the top-left" +
                         "corner of the paste area.")
         self.triggered.connect(self.pasteCellFromClipboard)
