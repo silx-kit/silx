@@ -780,10 +780,8 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
-        self.__views = OrderedDict()
         views = self.createDefaultViews()
-        for view in views:
-            self.__views[view.modeId()] = view
+        self.__views = list(views)
 
         # store stack index for each views
         self.__index = {}
@@ -905,6 +903,17 @@ class DataViewer(qt.QFrame):
         self.__stack.setCurrentIndex(stackIndex)
         self.displayedViewChanged.emit(view)
 
+    def getViewFromModeId(self, modeId):
+        """Returns the first available view which have the requested modeId.
+
+        :param int modeId: Requested mode id
+        :rtype: DataView
+        """
+        for view in self.__views:
+            if view.modeId() == modeId:
+                return view
+        return view
+
     def setDisplayMode(self, modeId):
         """Set the displayed view using display mode.
 
@@ -921,7 +930,7 @@ class DataViewer(qt.QFrame):
             - `HDF5_MODE`: display the data as an image
         """
         try:
-            view = self.__views[modeId]
+            view = self.getViewFromModeId(modeId)
         except KeyError:
             raise ValueError("Display mode %s is unknown" % modeId)
         self.setDisplayedView(view)
@@ -939,8 +948,8 @@ class DataViewer(qt.QFrame):
 
         # sort available views according to priority
         info = DataInfo(data)
-        priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
-        views = zip(priorities, self.__views.values())
+        priorities = [v.getDataPriority(data, info) for v in self.__views]
+        views = zip(priorities, self.__views)
         views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
 
@@ -971,7 +980,7 @@ class DataViewer(qt.QFrame):
             view = available[0]
         else:
             # else returns the empty view
-            view = self.__views[DataViewer.EMPTY_MODE]
+            view = self.getViewFromModeId(DataViewer.EMPTY_MODE)
         return view
 
     def __setCurrentAvailableViews(self, availableViews):
@@ -994,7 +1003,7 @@ class DataViewer(qt.QFrame):
 
         :rtype: List[DataView]
         """
-        return self.__views.values()
+        return self.__views
 
     def setData(self, data):
         """Set the data to view.
