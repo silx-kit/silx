@@ -77,6 +77,7 @@ from ._utils import applyZoomToPlot as _applyZoomToPlot
 from silx.third_party.EdfFile import EdfFile
 from silx.third_party.TiffIO import TiffIO
 from silx.math.histogram import Histogramnd
+from silx.image.filter import median
 
 from silx.io.utils import save1D, savespec
 
@@ -1280,3 +1281,120 @@ class PixelIntensitiesHistoAction(PlotAction):
         """Return the histogram displayed in the HistogramPlotWiget
         """
         return self._histo
+
+class MedianFilterAction(PlotAction):
+    """QAction to plot the pixels intensities diagram
+
+    :param plot: :class:`.PlotWidget` instance on which to operate
+    :param parent: See :class:`QAction`
+    """
+
+    def __init__(self, plot, parent=None):
+        PlotAction.__init__(self,
+                            plot,
+                            icon='median-filter',
+                            text='median filter',
+                            tooltip='Apply a median filter on the image',
+                            triggered=self._triggered,
+                            parent=parent)
+        self._originalImage = None
+        self._filtredImage = None
+        self._popup = MedianFilterDialog(parent=None)
+        self._popup.sigFilterOptChanged.connect(self._updateFilter)
+        self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
+        self._updateActiveImage()
+
+    def _triggered(self, checked):
+        """Update the plot of the histogram visibility status
+
+        :param bool checked: status  of the action button
+        """
+        self._popup.show()
+
+    def _updateActiveImage(self):
+        """Set _activeImageLegend and _originalImage from the active image"""
+        self._activeImageLegend = self.plot.getActiveImage(just_legend=True)
+        if self._activeImageLegend is None:
+            self._originalImage = None
+        else:
+            self._originalImage = self.plot.getImage(self._activeImageLegend)[0]
+
+    def _updateFilter(self, kernelWidth, conditionnal=False):
+        if self._originalImage is None:
+            return
+
+        self.plot.sigActiveImageChanged.disconnect( self._updateActiveImage)
+        filtredImage = self._getFiltredImage(kernelWidth, conditionnal)
+        self.plot.addImage(data=filtredImage,
+                           legend=self._originalImage,
+                           replace=True)
+        self.plot.sigActiveImageChanged.connect( self._updateActiveImage)
+
+    def _getFiltredImage(self, kernelWidth, conditionnal):
+        raise NotImplemented('MedianFilterAction is a an abstract class')
+
+
+class MedianFilter1DAction(MedianFilterAction):
+    """Define the MedianFilterAction for 1D
+    """
+    def __init__(self, plot, parent=None):
+        MedianFilterAction.__init__(self,
+                        plot,
+                        parent=parent)
+
+    def _getFiltredImage(self, kernelWidth, conditionnal):
+        assert(self.plot is not None)
+        return median.medfilt1d(self._originalImage,
+                                kernelWidth,
+                                conditionnal )
+
+
+class MedianFilter2DAction(MedianFilterAction):
+    """Define the MedianFilterAction for 2D
+    """
+    def __init__(self, plot, parent=None):
+        MedianFilterAction.__init__(self,
+                        plot,
+                        parent=parent)
+
+    def _getFiltredImage(self, kernelWidth, conditionnal):
+        assert(self.plot is not None)
+        print(self._originalImage.shape)
+        return median.medfilt2d(self._originalImage,
+                                kernelWidth,
+                                conditionnal )
+
+
+class MedianFilterDialog(qt.QDialog):
+    """QDialog window featuring a :class:`BackgroundWidget`"""
+    sigFilterOptChanged = qt.Signal(int, bool)
+
+    def __init__(self, parent=None):
+        qt.QDialog.__init__(self, parent)
+
+        self.setWindowTitle("Median filter options")
+        self.mainLayout = qt.QHBoxLayout(self)
+        self.setLayout(self.mainLayout)
+
+        # filter width GUI
+        self.mainLayout.addWidget(qt.QLabel('filter width:', parent = self))
+        self._filterWidth = qt.QSpinBox(parent=self)
+        self._filterWidth.setMinimum(1)
+        self._filterWidth.setValue(1)
+        widthTooltip = """radius width of the pixel including in the filter
+                        for each pixel"""
+        self._filterWidth.setToolTip(widthTooltip)
+        self._filterWidth.valueChanged.connect(self._filterOptionChanged)
+        self.mainLayout.addWidget(self._filterWidth)
+
+        # filter option GUI
+        self._filterOption = qt.QCheckBox('Conditionnal', parent=self)
+        conditionnalTooltip = """if check, implement a conditionnal filter"""
+        self._filterOption.stateChanged.connect(self._filterOptionChanged)
+        self.mainLayout.addWidget(self._filterOption)
+
+    def _filterOptionChanged(self):
+        """Call back used when the filter values are changed"""
+        nbVoxel = 1 + ((self._filterWidth.value() -1) * 2)
+        self.sigFilterOptChanged.emit(nbVoxel, self._filterOption.isChecked())
+

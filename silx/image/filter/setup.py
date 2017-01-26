@@ -22,28 +22,38 @@
 #
 # ############################################################################*/
 
-__authors__ = ["J. Kieffer"]
+__authors__ = ["H. Payno"]
 __license__ = "MIT"
-__date__ = "18/07/2016"
+__date__ = "25/01/2017"
 
+import os.path
+import numpy
 from numpy.distutils.misc_util import Configuration
 
-
 def configuration(parent_package='', top_path=None):
-    config = Configuration('image', parent_package, top_path)
-    config.add_subpackage('test')
-    config.add_extension('bilinear',
-                         sources=["bilinear.pyx"],
-                         language='c')
-    config.add_extension('shapes',
-                         sources=["shapes.pyx"],
-                         language='c')
-    config.add_subpackage('sift')
-    config.add_subpackage('filter')
+    config = Configuration('filter', parent_package, top_path)
+
+    # =====================================
+    # median tools
+    # =====================================
+    config.add_extension('mediantools',
+                         sources=["mediantools.c", 'medianfilter.c'],
+                         language='c')    
+
+    # # =====================================
+    # # median filter
+    # # =====================================
+
+    # config.add_extension('medianfilter',
+    #                      sources=['mediantools.c', 'medianfilter.c'],
+    #                      libraries='mediantools',
+    #                      include_dirs=["/users/payno/Documents/dev/esrf/silx/paynoSilx/silx/build/lib.linux-x86_64-2.7//silx/image/filter/"],
+    #                      language='c')
 
     return config
 
 
 if __name__ == "__main__":
     from numpy.distutils.core import setup
+
     setup(configuration=configuration)

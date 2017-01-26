@@ -174,6 +174,14 @@ class PlotWindow(PlotWidget):
             PlotActions.PixelIntensitiesHistoAction(self))
         self._intensityHistoAction.setVisible(False)
 
+        self._medianFilter2D = self.group.addAction(
+            PlotActions.MedianFilter2DAction(self))
+        self._medianFilter2D.setVisible(False)
+
+        self._medianFilter1D = self.group.addAction(
+            PlotActions.MedianFilter1DAction(self))
+        self._medianFilter1D.setVisible(False)
+
         self._separator = qt.QAction('separator', self)
         self._separator.setSeparator(True)
         self.group.addAction(self._separator)
@@ -622,6 +630,14 @@ class PlotWindow(PlotWidget):
         :rtype: PlotActions.PlotAction
         """
         return self.fitAction
+
+    def getMedianFilter1D(self):
+        """Return the action toggling the 1D median filter"""
+        return self._medianFilter1D
+
+    def getMedianFilter2D(self):
+        """Return the action toggling the 2D median filter"""
+        return self._medianFilter2D
 
 
 class Plot1D(PlotWindow):
