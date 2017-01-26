@@ -33,7 +33,6 @@ __date__ = "26/01/2017"
 
 import weakref
 import functools
-import silx.gui.icons
 from silx.gui import qt
 from silx.gui.data.DataViewer import DataViewer
 import silx.utils.weakref
@@ -72,22 +71,10 @@ class DataViewerSelector(qt.QWidget):
 
         iconSize = qt.QSize(16, 16)
 
-        buttonStyle = {}
-        buttonStyle[DataViewer.HDF5_MODE] = ("HDF5", "view-hdf5")
-        buttonStyle[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
-        buttonStyle[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
-        buttonStyle[DataViewer.PLOT3D_MODE] = ("Cube", "view-3d")
-        buttonStyle[DataViewer.RAW_MODE] = ("Raw", "view-raw")
-        buttonStyle[DataViewer.STACK_MODE] = ("Image stack", "view-2d-stack")
-
         for view in self.__dataViewer.availableViews():
-            if view.modeId() in buttonStyle:
-                text, iconName = buttonStyle[view.modeId()]
-                icon = silx.gui.icons.getQIcon(iconName)
-            else:
-                text = view.__class__.__name__
-                icon = qt.QIcon(self)
-            button = qt.QPushButton(text)
+            label = view.label()
+            icon = view.icon()
+            button = qt.QPushButton(label)
             button.setIcon(icon)
             button.setIconSize(iconSize)
             button.setCheckable(True)

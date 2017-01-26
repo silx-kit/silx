@@ -37,6 +37,7 @@ import logging
 from collections import OrderedDict
 
 import silx.io
+from silx.gui import icons
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.data.TextFormatter import TextFormatter
@@ -113,7 +114,7 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
-    def __init__(self, parent, modeId=None):
+    def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
@@ -121,6 +122,20 @@ class DataView(object):
         self.__parent = parent
         self.__widget = None
         self.__modeId = modeId
+        if label is None:
+            label = self.__class__.__name__
+        self.__label = label
+        if icon is None:
+            icon = qt.QIcon()
+        self.__icon = icon
+
+    def icon(self):
+        """Returns the default icon"""
+        return self.__icon
+
+    def label(self):
+        """Returns the default label"""
+        return self.__label
 
     def modeId(self):
         """Returns the mode id"""
@@ -219,12 +234,12 @@ class CompositeDataView(DataView):
     """Data view which can display a data using different view according to
     the kind of the data."""
 
-    def __init__(self, parent, modeId=None):
+    def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
         """
-        super(CompositeDataView, self).__init__(parent, modeId)
+        super(CompositeDataView, self).__init__(parent, modeId, icon, label)
         self.__views = {}
         self.__currentView = None
 
@@ -323,7 +338,11 @@ class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
     def __init__(self, parent):
-        super(_Plot1dView, self).__init__(parent, modeId=DataViewer.PLOT1D_MODE)
+        super(_Plot1dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT1D_MODE,
+            label="Curve",
+            icon=icons.getQIcon("view-1d"))
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
@@ -364,7 +383,11 @@ class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
     def __init__(self, parent):
-        super(_Plot2dView, self).__init__(parent, modeId=DataViewer.PLOT2D_MODE)
+        super(_Plot2dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT2D_MODE,
+            label="Image",
+            icon=icons.getQIcon("view-2d"))
         self.__resetZoomNextTime = True
 
     def createWidget(self, parent):
@@ -406,9 +429,13 @@ class _Plot3dView(DataView):
     """View displaying data using a 3d plot"""
 
     def __init__(self, parent):
-        super(_Plot3dView, self).__init__(parent, modeId=DataViewer.PLOT3D_MODE)
+        super(_Plot3dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT3D_MODE,
+            label="Cube",
+            icon=icons.getQIcon("view-3d"))
         try:
-            import silx.gui.plot3d
+            import silx.gui.plot3d  #noqa
         except ImportError:
             _logger.warning("Plot3dView is not available")
             _logger.debug("Backtrace", exc_info=True)
@@ -495,7 +522,11 @@ class _StackView(DataView):
     """View displaying data using a stack of images"""
 
     def __init__(self, parent):
-        super(_StackView, self).__init__(parent, modeId=DataViewer.STACK_MODE)
+        super(_StackView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.STACK_MODE,
+            label="Image stack",
+            icon=icons.getQIcon("view-2d-stack"))
         self.__resetZoomNextTime = True
 
     def customAxisNames(self):
@@ -616,7 +647,11 @@ class _Hdf5View(DataView):
     """View displaying data using text"""
 
     def __init__(self, parent):
-        DataView.__init__(self, parent, modeId=DataViewer.HDF5_MODE)
+        super(_Hdf5View, self).__init__(
+            parent=parent,
+            modeId=DataViewer.HDF5_MODE,
+            label="HDF5",
+            icon=icons.getQIcon("view-hdf5"))
 
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
@@ -658,7 +693,11 @@ class _RawView(CompositeDataView):
     """
 
     def __init__(self, parent):
-        CompositeDataView.__init__(self, parent, modeId=DataViewer.RAW_MODE)
+        super(_RawView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.RAW_MODE,
+            label="Raw",
+            icon=icons.getQIcon("view-raw"))
         self.addView(_ScalarView(parent))
         self.addView(_ArrayView(parent))
         self.addView(_RecordView(parent))
