@@ -33,7 +33,6 @@ __date__ = "26/01/2017"
 
 import logging
 import os
-import sys
 import weakref
 
 import numpy
