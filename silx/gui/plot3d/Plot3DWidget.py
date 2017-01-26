@@ -105,7 +105,6 @@ class Plot3DWidget(qt.QGLWidget):
         self.setFocusPolicy(qt.Qt.StrongFocus)
         self._copyAction = Plot3DActions.CopyAction(parent=self, plot3d=self)
         self.addAction(self._copyAction)
-        self.setFocus(qt.Qt.OtherFocusReason)
 
         self._updating = False  # True if an update is requested
 
