@@ -564,6 +564,12 @@ class PeriodicTable(qt.QWidget):
         :param list(str) symbols: List of symbols of elements to be selected
             (e.g. *["Fe", "Hg", "Li"]*)
         """
+        # accept list of PeriodicTableItems as input, because getSelection
+        # returns these objects and it makes sense to have getter and setter
+        # use same type of data
+        if isinstance(symbols[0], PeriodicTableItem):
+            symbols = [elmt.symbol for elmt in symbols]
+
         for (e, b) in self._eltButtons.items():
             b.setSelected(e in symbols)
         self.sigSelectionChanged.emit(self.getSelection())
@@ -644,6 +650,9 @@ class PeriodicCombo(qt.QComboBox):
 
         :param symbol: Symbol of element to be selected
         """
+        # accept PeriodicTableItem for getter/setter consistency
+        if isinstance(symbol, PeriodicTableItem):
+            symbol = symbol.symbol
         symblist = [elmt.symbol for elmt in _defaultTableItems]
         self.setCurrentIndex(symblist.index(symbol))
 
@@ -721,12 +730,15 @@ class PeriodicList(qt.QTreeWidget):
         return [_defaultTableItems[idx] for idx in range(len(self.tree_items))
                 if self.tree_items[idx].isSelected()]
 
-    # setSelection is a bad idea (name of a QTreeWidget method)
+    # setSelection is a bad name (name of a QTreeWidget method)
     def setSelectedElements(self, symbolList):
         """
 
         :param symbolList: List of atomic symbols ["H", "He", "Li"...]
             to be selected in the widget
         """
+        # accept PeriodicTableItem for getter/setter consistency
+        if isinstance(symbolList[0], PeriodicTableItem):
+            symbolList = [elmt.symbol for elmt in symbolList]
         for idx in range(len(self.tree_items)):
             self.tree_items[idx].setSelected(_defaultTableItems[idx].symbol in symbolList)
