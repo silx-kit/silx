@@ -28,6 +28,11 @@ override_dh_auto_build:
 override_dh_install:
 	dh_numpy
 	dh_numpy3
+
+	# remove all py/pyc/egg-info files from dbg packages
+	find debian/python-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
+	find debian/python3-silx-dbg/usr -type f \( -not -name "*.so" \) -delete
+
 	dh_install
 
 override_dh_auto_test:
