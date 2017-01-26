@@ -92,7 +92,7 @@ class DataViewerSelector(qt.QWidget):
             button.setIconSize(iconSize)
             button.setCheckable(True)
             # the weak objects are needed to be able to destroy the widget safely
-            weakView = weakref.proxy(view)
+            weakView = weakref.ref(view)
             weakMethod = silx.utils.weakref.WeakMethodProxy(self.__setDisplayedView)
             callback = functools.partial(weakMethod, weakView)
             button.clicked.connect(callback)
@@ -142,13 +142,16 @@ class DataViewerSelector(qt.QWidget):
         selectedButton = self.__buttons.get(view, self.__buttonDummy)
         selectedButton.setChecked(True)
 
-    def __setDisplayedView(self, view, clickEvent=None):
+    def __setDisplayedView(self, refView, clickEvent=None):
         """Display a data using the requested view
 
         :param DataView view: Requested view
         :param clickEvent: Event sent by the clicked event
         """
         if self.__dataViewer is None:
+            return
+        view = refView()
+        if view is None:
             return
         self.__dataViewer.setDisplayedView(view)
 
