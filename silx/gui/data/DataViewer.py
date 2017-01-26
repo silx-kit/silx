@@ -601,7 +601,7 @@ class _ScalarView(DataView):
             return DataView.UNSUPPORTED
         if silx.io.is_group(data):
             return DataView.UNSUPPORTED
-        return 0
+        return 2
 
 
 class _RecordView(DataView):
