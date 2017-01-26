@@ -594,7 +594,7 @@ class ProfileToolBar(qt.QToolBar):
             self.profileWindow.addImage(profile,
                                         legend=profileName,
                                         xlabel=xLabel,
-                                        ylabel="Image index",
+                                        ylabel="Frame index (depth)",
                                         colormap=colorMap)
         else:
             coords = numpy.arange(len(profile[0]), dtype=numpy.float32)
@@ -633,6 +633,11 @@ class ProfileToolBar(qt.QToolBar):
                         max(0, winGeom.left() - profileWindowWidth), winGeom.top())
 
         self.profileWindow.show()
+
+    def hideProfileWindow(self):
+        """Hide profile window.
+        """
+        self.profileWindow.hide()
 
 
 class Profile3DAction(PlotAction):
@@ -720,20 +725,35 @@ class Profile3DToolBar(ProfileToolBar):
         self.profile3dAction.sigDimensionChanged.connect(self._setProfileDimension)
         self._setProfileDimension(self._profileDimension)
 
-    def eventFilter(self, qobject, event):
-        """Observe when the show and hide events of the parent plotWidget append
-        (_profileWindow1D and _profileWindow2D)
-
-        :param qobject: the object observe
-        :param event: the event received by qobject
-        """
-        if event.type() == qt.QEvent.Hide:
+    def _browseActionTriggered(self, checked):
+        """Handle browse action mode triggered by user.
+        This is overloaded from :class:`ProfileToolBar` to hide
+        :attr:`ndProfileWindow` instead of :attr:`profileWindow`."""
+        if checked:
+            self.clearProfile()
+            self.plot.setInteractiveMode('zoom', source=self)
             self.ndProfileWindow.hide()
 
-        if event.type() == qt.QEvent.Show:
-            self.ndProfileWindow.show()
+    def eventFilter(self, qobject, event):
+        """Observe the show and hide events of the widgets related to
+        the profile plot (a container widget, a Plot1D and a Plot2D)
 
-        return ProfileToolBar.eventFilter(self, qobject, event)
+        :param qobject: the observed object
+        :param event: the event received by qobject
+        """
+        if event.type() in (qt.QEvent.Close, qt.QEvent.Hide):
+            # when the container widget is closed/hidden, clear the profile
+            if qobject is self.ndProfileWindow:
+                self.clearProfile()
+
+            # else if both the plot windows are closed/hidden,
+            # make sure the container widget is hidden as well
+            elif (qobject is self._profileWindow1D and self._profileWindow2D.isHidden() or
+                  qobject is self._profileWindow2D and self._profileWindow1D.isHidden()):
+                    self.ndProfileWindow.hide()
+
+
+        return qt.QToolBar.eventFilter(self, qobject, event)
 
     def setChildVisibility(self):
         if self._profileDimension is 1:
@@ -759,14 +779,13 @@ class Profile3DToolBar(ProfileToolBar):
             if profileIsVisible:
                 self._profileWindow2D.hide()
                 self._profileWindow1D.show()
-
         self.updateProfile()
 
     def _setActiveProfileWindow(self, dimension):
         """Set the active profile window depending on the dimension of
         the profile
 
-        :param int dimesion: dimension of the profile"""
+        :param int dimension: dimension of the profile"""
         self._profileDimension = dimension
         if dimension is 2:
             self.profileWindow = self._profileWindow2D
@@ -809,6 +828,11 @@ class Profile3DToolBar(ProfileToolBar):
         self.setChildVisibility()
         self.ndProfileWindow.show()
         super(Profile3DToolBar, self)._showProfileWindow()
+
+    def hideProfileWindow(self):
+        """Hide container window for profile windows.
+        """
+        self.ndProfileWindow.hide()
 
     def getProfileWindow1D(self):
         """Plot window used to display 1D profile curve.
