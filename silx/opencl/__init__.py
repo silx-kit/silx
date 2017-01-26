@@ -576,18 +576,14 @@ class OpenclProcessing(object):
         self.cl_kernel_args = {}  # dict with all kernel arguments
         if ctx:
             self.ctx = ctx
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            self.device = platform.get_device(device_name)
-            # self.device = platform.id, device.id
         else:
             self.ctx = ocl.create_context(devicetype=devicetype, platformid=platformid, deviceid=deviceid)
-            device_name = self.ctx.devices[0].name.strip()
-            platform_name = self.ctx.devices[0].platform.name.strip()
-            platform = ocl.get_platform(platform_name)
-            self.device = platform.get_device(device_name)
-            # self.device = platform.id, device.id
+            
+        device_name = self.ctx.devices[0].name.strip()
+        platform_name = self.ctx.devices[0].platform.name.strip()
+        platform = ocl.get_platform(platform_name)
+        self.device = platform.get_device(device_name)
+        # self.device = platform.id, device.id
 
         if profile:
             self.queue = pyopencl.CommandQueue(self.ctx, properties=pyopencl.command_queue_properties.PROFILING_ENABLE)
