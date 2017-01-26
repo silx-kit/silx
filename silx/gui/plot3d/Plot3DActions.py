@@ -28,7 +28,7 @@ from __future__ import absolute_import, division
 
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
-__date__ = "10/01/2017"
+__date__ = "26/01/2017"
 
 
 import logging
@@ -92,6 +92,7 @@ class CopyAction(Plot3DAction):
         self.setToolTip('Copy a snapshot of the 3D scene to the clipboard')
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Copy)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
         self.triggered[bool].connect(self._triggered)
 
     def _triggered(self, checked=False):
@@ -118,6 +119,7 @@ class SaveAction(Plot3DAction):
         self.setToolTip('Save a snapshot of the 3D scene')
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Save)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
         self.triggered[bool].connect(self._triggered)
 
     def _triggered(self, checked=False):
@@ -171,6 +173,7 @@ class PrintAction(Plot3DAction):
         self.setToolTip('Print a snapshot of the 3D scene')
         self.setCheckable(False)
         self.setShortcut(qt.QKeySequence.Print)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
         self.triggered[bool].connect(self._triggered)
 
     def getPrinter(self):

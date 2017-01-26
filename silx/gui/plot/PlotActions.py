@@ -51,7 +51,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "25/11/2016"
+__date__ = "26/01/2017"
 
 
 from collections import OrderedDict
@@ -171,6 +171,7 @@ class ZoomInAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.ZoomIn)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def _actionTriggered(self, checked=False):
         _applyZoomToPlot(self.plot, 1.1)
@@ -190,6 +191,7 @@ class ZoomOutAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.ZoomOut)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def _actionTriggered(self, checked=False):
         _applyZoomToPlot(self.plot, 1. / 1.1)
@@ -559,6 +561,7 @@ class SaveAction(PlotAction):
             triggered=self._actionTriggered,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Save)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def _errorMessage(self, informativeText=''):
         """Display an error message."""
@@ -865,6 +868,7 @@ class PrintAction(PlotAction):
             triggered=self.printPlot,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Print)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     @property
     def printer(self):
@@ -959,6 +963,7 @@ class CopyAction(PlotAction):
             triggered=self.copyPlot,
             checkable=False, parent=parent)
         self.setShortcut(qt.QKeySequence.Copy)
+        self.setShortcutContext(qt.Qt.WidgetShortcut)
 
     def copyPlot(self):
         """Copy plot content to the clipboard as a bitmap."""
