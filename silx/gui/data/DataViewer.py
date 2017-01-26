@@ -34,6 +34,7 @@ __date__ = "25/01/2017"
 import numpy
 import numbers
 import logging
+from collections import OrderedDict
 
 import silx.io
 from silx.gui import qt
@@ -675,8 +676,8 @@ class DataViewer(qt.QFrame):
     STACK_MODE = 50
     HDF5_MODE = 60
 
-    displayModeChanged = qt.Signal(int)
-    """Emitted when the display mode changes"""
+    displayedViewChanged = qt.Signal(object)
+    """Emitted when the displayed view changes"""
 
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
@@ -729,7 +730,7 @@ class DataViewer(qt.QFrame):
             (CompositeDataView, [self.RAW_MODE, rawViewers]),
             (_StackView, [self.STACK_MODE]),
         ]
-        self.__views = {}
+        self.__views = OrderedDict()
         for viewData in views:
             viewClass, params = viewData
             try:
@@ -814,7 +815,7 @@ class DataViewer(qt.QFrame):
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
 
-    def __setDisplayedView(self, view):
+    def setDisplayedView(self, view):
         """Set the displayed view.
 
         Change the displayed view according to the view itself.
@@ -831,7 +832,7 @@ class DataViewer(qt.QFrame):
         if self.__currentView is not None:
             self.__currentView.select()
         self.__stack.setCurrentIndex(stackIndex)
-        self.displayModeChanged.emit(view.modeId())
+        self.displayedViewChanged.emit(view)
 
     def setDisplayMode(self, modeId):
         """Set the displayed view using display mode.
@@ -843,14 +844,23 @@ class DataViewer(qt.QFrame):
             - `EMPTY_MODE`: display nothing
             - `PLOT1D_MODE`: display the data as a curve
             - `PLOT2D_MODE`: display the data as an image
-            - `TEXT_MODE`: display the data as a text
-            - `ARRAY_MODE`: display the data as a table
+            - `PLOT3D_MODE`: display the data as an image
+            - `RAW_MODE`: display the data as a table
+            - `STACK_MODE`: display the data as an image
+            - `HDF5_MODE`: display the data as an image
         """
         try:
             view = self.__views[modeId]
         except KeyError:
             raise ValueError("Display mode %s is unknown" % modeId)
-        self.__setDisplayedView(view)
+        self.setDisplayedView(view)
+
+    def displayedView(self):
+        """Returns the current displayed view.
+
+        :rtype: DataView
+        """
+        return self.__currentView
 
     def __updateView(self):
         """Display the data using the widget which fit the best"""
@@ -874,7 +884,7 @@ class DataViewer(qt.QFrame):
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
-        self.__setDisplayedView(view)
+        self.setDisplayedView(view)
 
     def getDefaultViewFromAvailableViews(self, data, available):
         """Returns the default view which will be used according to available
