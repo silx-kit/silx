@@ -780,7 +780,22 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
-        views = [
+        self.__views = OrderedDict()
+        views = self.createDefaultViews()
+        for view in views:
+            self.__views[view.modeId()] = view
+
+        # store stack index for each views
+        self.__index = {}
+
+        self.setDisplayMode(self.EMPTY_MODE)
+
+    def createDefaultViews(self):
+        """Create and returns available views which can be displayed by default
+        by the data viewer.
+
+        :rtype: list[DataView]"""
+        viewClasses = [
             _EmptyView,
             _Hdf5View,
             _Plot1dView,
@@ -789,20 +804,16 @@ class DataViewer(qt.QFrame):
             _RawView,
             _StackView,
         ]
-        self.__views = OrderedDict()
-        for viewClass in views:
+        views = []
+        for viewClass in viewClasses:
             try:
                 view = viewClass(self.__stack)
+                views.append(view)
             except Exception:
                 _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)
                 _logger.debug("Backtrace", exc_info=True)
-                continue
-            self.__views[view.modeId()] = view
 
-        # store stack index for each views
-        self.__index = {}
-
-        self.setDisplayMode(self.EMPTY_MODE)
+        return views
 
     def clear(self):
         """Clear the widget"""
