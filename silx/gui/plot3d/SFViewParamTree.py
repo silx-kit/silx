@@ -1221,6 +1221,8 @@ class TreeView(qt.QTreeView):
         super(TreeView, self).__init__(parent)
         self.__openedIndex = None
 
+        self.setIconSize(qt.QSize(16, 16))
+
         header = self.header()
         if hasattr(header, 'setSectionResizeMode'):  # Qt5
             header.setSectionResizeMode(qt.QHeaderView.ResizeToContents)
