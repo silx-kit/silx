@@ -27,7 +27,7 @@ data module to format data as text in the same way."""
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "26/01/2017"
 
 import numpy
 import numbers
@@ -180,6 +180,10 @@ class TextFormatter(qt.QObject):
             text = [self.toString(d) for d in data]
             return "[" + " ".join(text) + "]"
         elif isinstance(data, numpy.void):
+            dtype = data.dtype
+            if data.dtype.fields is not None:
+                text = [self.toString(data[f]) for f in dtype.fields]
+                return "(" + " ".join(text) + ")"
             return "0x" + binascii.hexlify(data).decode("ascii")
         elif isinstance(data, (numpy.string_, numpy.object_, bytes)):
             # This have to be done before checking python string inheritance
