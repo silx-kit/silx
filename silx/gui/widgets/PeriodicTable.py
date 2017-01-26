@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -75,7 +75,7 @@ Example of usage
 
 __authors__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "26/01/2017"
 
 from collections import OrderedDict
 import logging
@@ -547,7 +547,8 @@ class PeriodicTable(qt.QWidget):
         self.sigElementClicked.emit(item)
 
     def getSelection(self):
-        """Return a list of symbols for selected elements
+        """Return a list of selected elements, as a list of :class:`PeriodicTableItem`
+        objects.
 
         :return: Selected items
         :rtype: list(PeriodicTableItem)
@@ -634,8 +635,7 @@ class PeriodicCombo(qt.QComboBox):
         """Get selected element
 
         :return: Selected element
-        :rtype: :class:`PeriodicTableItem` object. This object can be unpacked as a list
-            ``[symbol, Z, col, row, name, mass]``
+        :rtype: PeriodicTableItem
         """
         return _defaultTableItems[self.currentIndex()]
 
@@ -714,7 +714,10 @@ class PeriodicList(qt.QTreeWidget):
 
     def getSelection(self):
         """Get a list of selected elements, as a list of :class:`PeriodicTableItem`
-        objects."""
+        objects.
+
+        :return: Selected elements
+        :rtype: list(PeriodicTableItem)"""
         return [_defaultTableItems[idx] for idx in range(len(self.tree_items))
                 if self.tree_items[idx].isSelected()]
 
