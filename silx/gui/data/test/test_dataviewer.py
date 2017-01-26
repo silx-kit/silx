@@ -92,7 +92,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.setData(data)
         availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
         try:
-            import OpenGL  # noqa
+            import silx.gui.plot3d  # noqa
             self.assertIn(DataViewer.PLOT3D_MODE, availableModes)
         except ImportError:
             self.assertIn(DataViewer.STACK_MODE, availableModes)
