@@ -31,11 +31,12 @@ from __future__ import division
 import itertools
 import numpy
 from silx.gui import qt
+import silx.io
 from .TextFormatter import TextFormatter
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "26/01/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -151,6 +152,7 @@ class RecordTableModel(qt.QAbstractTableModel):
         qt.QAbstractTableModel.__init__(self, parent)
 
         self.__data = None
+        self.__is_array = False
         self.__fields = None
         self.__formatter = None
         self.__editFormatter = None
@@ -164,6 +166,8 @@ class RecordTableModel(qt.QAbstractTableModel):
         """Returns number of rows to be displayed in table"""
         if self.__data is None:
             return 0
+        elif not self.__is_array:
+            return 1
         else:
             return len(self.__data)
 
@@ -183,9 +187,14 @@ class RecordTableModel(qt.QAbstractTableModel):
         if self.__data is None:
             return None
 
-        if index.row() >= len(self.__data):
-            return None
-        data = self.__data[index.row()]
+        if self.__is_array:
+            if index.row() >= len(self.__data):
+                return None
+            data = self.__data[index.row()]
+        else:
+            if index.row() > 0:
+                return None
+            data = self.__data
 
         if self.__fields is not None:
             if index.column() >= len(self.__fields):
@@ -210,7 +219,10 @@ class RecordTableModel(qt.QAbstractTableModel):
 
         if role == qt.Qt.DisplayRole:
             if orientation == qt.Qt.Vertical:
-                return str(section)
+                if not self.__is_array:
+                    return "Scalar"
+                else:
+                    return str(section)
             if orientation == qt.Qt.Horizontal:
                 if self.__fields is None:
                     if section == 0:
@@ -250,6 +262,14 @@ class RecordTableModel(qt.QAbstractTableModel):
             self.beginResetModel()
 
         self.__data = data
+        if isinstance(data, numpy.ndarray):
+            self.__is_array = True
+        elif silx.io.is_dataset(data) and data.shape != tuple():
+            self.__is_array = True
+        else:
+            self.__is_array = False
+
+
         self.__fields = []
         if data is not None:
             if data.dtype.fields is not None:
