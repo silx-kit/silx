@@ -28,6 +28,8 @@
 Example of usage
 ----------------
 
+This example uses the widgets with the standard builtin elements list.
+
 .. code-block:: python
 
     from silx.gui import qt
@@ -70,6 +72,49 @@ Example of usage
     w.show()
     a.exec_()
 
+
+The second example explains how to define custom elements.
+
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.widgets.PeriodicTable import PeriodicTable, \
+        PeriodicCombo, PeriodicList
+    from silx.gui.widgets.PeriodicTable import PeriodicTableItem
+
+    # subclass PeriodicTableItem
+    class MyPeriodicTableItem(PeriodicTableItem):
+        "New item with added mass number and number of protons"
+        def __init__(self, symbol, Z, A, col, row, name, mass,
+                     subcategory="", bgcolor=None):
+            PeriodicTableItem.__init__(
+                    self, symbol, Z, col, row, name, mass,
+                    subcategory, bgcolor)
+
+            self.A = A
+            "Mass number (neutrons + protons)"
+
+            self.num_neutrons = A - Z
+            "Number of neutrons"
+
+    # build your list of elements
+    my_elements = [MyPeriodicTableItem("H", 1, 1, 1, 1, "hydrogen",
+                                       1.00800, "diatomic nonmetal"),
+                   MyPeriodicTableItem("He", 2, 4, 18, 1, "helium",
+                                        4.0030, "noble gas"),
+                   # etc ...
+                   ]
+
+    app = qt.QApplication([])
+
+    ptable = PeriodicTable(elements=my_elements, selectable=True)
+    ptable.show()
+
+    def click_table(item):
+        print("New table click, mass number:", item.A)
+
+    ptable.sigElementClicked.connect(click_table)
+    app.exec_()
 
 """
 
