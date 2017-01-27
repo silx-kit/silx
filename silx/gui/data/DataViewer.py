@@ -39,6 +39,7 @@ from silx.gui import icons
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.data.TextFormatter import TextFormatter
+from silx.gui.widgets.TableWidget import TableView
 from silx.gui.hdf5 import H5Node
 
 try:
@@ -655,7 +656,7 @@ class _Hdf5View(DataView):
 
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
-        widget = qt.QTableView()
+        widget = TableView()
         widget.setModel(Hdf5TableModel(widget))
         return widget
 
