@@ -479,6 +479,8 @@ class _Plot3dView(DataView):
             return DataView.UNSUPPORTED
         if info.dim < 3:
             return DataView.UNSUPPORTED
+        if min(data.shape) < 2:
+            return DataView.UNSUPPORTED
         if info.dim == 3:
             return 100
         else:
