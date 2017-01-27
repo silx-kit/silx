@@ -30,7 +30,7 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "27/01/2017"
 
 from silx.gui import qt
 import os.path
@@ -216,15 +216,44 @@ class Hdf5TableModel(qt.QAbstractTableModel):
             self.__properties.append(_Property("shape", lambda x: x.shape))
         if hasattr(obj, "size"):
             self.__properties.append(_Property("size", lambda x: x.size))
-        if hasattr(obj, "compression"):
-            self.__properties.append(_Property("compression", lambda x: x.compression))
-        if hasattr(obj, "compression_opts"):
-            self.__properties.append(_Property("compression_opts", lambda x: x.compression_opts))
+        if hasattr(obj, "chunks") and obj.chunks is not None:
+            self.__properties.append(_Property("chunks", lambda x: x.chunks))
+
+        # relative to compression
+        # h5py expose compression, compression_opts but are not initialized
+        # for external plugins, then we use id
+        # h5py also expose fletcher32 and shuffle attributes, but it is also
+        # part of the filters
+        if hasattr(obj, "shape") and hasattr(obj, "id"):
+            dcpl = obj.id.get_create_plist()
+            if dcpl.get_nfilters() > 0:
+                self.__properties.append(_Property("compression", lambda x: "True (see filters)"))
+            for index in range(dcpl.get_nfilters()):
+                name = "filters[%d]" % index
+                self.__properties.append(_Property(name, lambda x: self.__get_filter_info(x, index)))
 
         if hasattr(obj, "attrs"):
             for key in sorted(obj.attrs.keys()):
                 name = "attrs[%s]" % key
                 self.__properties.append(_Property(name, lambda x: self.__formatter.toString(x.attrs[key])))
+
+    def __get_filter_info(self, dataset, filterIndex):
+        """Get a tuple of readable info from dataset filters
+
+        :param h5py.Dataset dataset: A h5py dataset
+        :param int filterId:
+        """
+        try:
+            dcpl = dataset.id.get_create_plist()
+            info = dcpl.get_filter(filterIndex)
+            filterId, _flags, cdValues, name = info
+            options = " ".join([self.__formatter.toString(i) for i in cdValues])
+            if options is "":
+                return "%s (filter id: %d)" % (name, filterId)
+            return "%s (filter id: %d, options: %s)" % (name, filterId, options)
+        except Exception:
+            _logger.debug("Backtrace", exc_info=True)
+        return ""
 
     def object(self):
         """Returns the internal object modelized.
