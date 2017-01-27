@@ -28,5 +28,10 @@ Data model
 ++++++++++
 
 .. autoclass:: silx.gui.widgets.PeriodicTable.PeriodicTableItem
-   :members:
+    :members:
+
+
+.. autoclass:: silx.gui.widgets.PeriodicTable.ColoredPeriodicTableItem
+    :members:
+    :show-inheritance:
 

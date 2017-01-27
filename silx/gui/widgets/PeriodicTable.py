@@ -24,6 +24,20 @@
 # ###########################################################################*/
 """Periodic table widgets
 
+Classes
+-------
+
+Widgets:
+
+ - :class:`PeriodicTable`
+ - :class:`PeriodicList`
+ - :class:`PeriodicCombo`
+
+Data model:
+
+ - :class:`PeriodicTableItem`
+ - :class:`ColoredPeriodicTableItem`
+
 
 Example of usage
 ----------------
@@ -86,10 +100,10 @@ The second example explains how to define custom elements.
     class MyPeriodicTableItem(PeriodicTableItem):
         "New item with added mass number and number of protons"
         def __init__(self, symbol, Z, A, col, row, name, mass,
-                     subcategory="", bgcolor=None):
+                     subcategory=""):
             PeriodicTableItem.__init__(
                     self, symbol, Z, col, row, name, mass,
-                    subcategory, bgcolor)
+                    subcategory)
 
             self.A = A
             "Mass number (neutrons + protons)"
@@ -111,6 +125,7 @@ The second example explains how to define custom elements.
     ptable.show()
 
     def click_table(item):
+        "Callback function printing the mass number of clicked element"
         print("New table click, mass number:", item.A)
 
     ptable.sigElementClicked.connect(click_table)
@@ -239,20 +254,6 @@ _elements = [("H", 1, 1, 1, "hydrogen", 1.00800, "diatomic nonmetal"),
              ("Hs", 108, 8, 7, "hassium", 269, "transition metal"),
              ("Mt", 109, 9, 7, "meitnerium", 268)]
 
-COLORS = {
-    "diatomic nonmetal": qt.QColor("#7FFF00"),       # chartreuse
-    "noble gas": qt.QColor("#00FFFF"),               # cyan
-    "alkali metal": qt.QColor("#FFE4B5"),            # Moccasin
-    "alkaline earth metal": qt.QColor("#FFA500"),    # orange
-    "polyatomic nonmetal": qt.QColor("#7FFFD4"), 	 # aquamarine
-    "transition metal": qt.QColor("#FFA07A"),        # light salmon
-    "metalloid": qt.QColor("#8FBC8F"),               # Dark Sea Green
-    "post transition metal": qt.QColor("#D3D3D3"),   # light gray
-    "lanthanide": qt.QColor("#FFB6C1"),              # light pink
-    "actinide": qt.QColor("#F08080"),                # Light Coral
-    "": qt.QColor("#FFFFFF"),                        # white
-}
-
 
 class PeriodicTableItem(object):
     """Periodic table item, used as generic item in :class:`PeriodicTable`,
@@ -278,11 +279,9 @@ class PeriodicTableItem(object):
     :param float mass: Atomic mass (gram per mol)
     :param str subcategory: Subcategory, based on physical properties
         (e.g. "alkali metal", "noble gas"...)
-    :param QColor bgcolor: Custom background color for element in
-        periodic table
     """
     def __init__(self, symbol, Z, col, row, name, mass,
-                 subcategory="", bgcolor=None):
+                 subcategory=""):
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
         self.Z = Z
@@ -299,14 +298,6 @@ class PeriodicTableItem(object):
         """Subcategory, based on physical properties
         (e.g. "alkali metal", "noble gas"...)"""
 
-        self.bgcolor = COLORS.get(subcategory, qt.QColor("#FFFFFF"))
-        """Background color of element in the periodic table,
-        based on its subcategory."""
-
-        # possible custom color
-        if bgcolor is not None:
-            self.bgcolor = bgcolor
-
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
         if idx == 6:
@@ -321,7 +312,48 @@ class PeriodicTableItem(object):
     def __len__(self):
         return 6
 
-_defaultTableItems = [PeriodicTableItem(*info) for info in _elements]
+
+class ColoredPeriodicTableItem(PeriodicTableItem):
+    """:class:`PeriodicTableItem` with an added :attr:`bgcolor`.
+    The background color can be passed as a parameter to the constructor.
+    If it is not specified, it will be defined based on
+    :attr:`subcategory`.
+
+    :param str bgcolor: Custom background color for element in
+        periodic table, as a RGB string *#RRGGBB*"""
+    COLORS = {
+        "diatomic nonmetal": "#7FFF00",  # chartreuse
+        "noble gas": "#00FFFF",  # cyan
+        "alkali metal": "#FFE4B5",  # Moccasin
+        "alkaline earth metal": "#FFA500",  # orange
+        "polyatomic nonmetal": "#7FFFD4",  # aquamarine
+        "transition metal": "#FFA07A",  # light salmon
+        "metalloid": "#8FBC8F",  # Dark Sea Green
+        "post transition metal": "#D3D3D3",  # light gray
+        "lanthanide": "#FFB6C1",  # light pink
+        "actinide": "#F08080",  # Light Coral
+        "": "#FFFFFF"  # white
+    }
+    """Dictionary defining RGB colors for each subcategory."""
+
+    def __init__(self, symbol, Z, col, row, name, mass,
+                 subcategory="", bgcolor=None):
+        PeriodicTableItem.__init__(self, symbol, Z, col, row, name, mass,
+                                   subcategory)
+
+        self.bgcolor = self.COLORS.get(subcategory, "#FFFFFF")
+        """Background color of element in the periodic table,
+        based on its subcategory. This should be a string of a hexadecimal
+        RGB code, with the format *#RRGGBB*.
+        If the subcategory is unknown, use white (*#FFFFFF*)
+        """
+
+        # possible custom color
+        if bgcolor is not None:
+            self.bgcolor = bgcolor
+
+
+_defaultTableItems = [ColoredPeriodicTableItem(*info) for info in _elements]
 
 
 class _ElementButton(qt.QPushButton):
@@ -360,8 +392,12 @@ class _ElementButton(qt.QPushButton):
         self.current_color = qt.QColor(qt.Qt.gray)
         self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
 
-        # default colors
-        self.bgcolor = item.bgcolor
+        # element colors
+
+        if hasattr(item, "bgcolor"):
+            self.bgcolor = qt.QColor(item.bgcolor)
+        else:
+            self.bgcolor = qt.QColor("#FFFFFF")
 
         self.brush = qt.QBrush()
         self.__setBrush()
