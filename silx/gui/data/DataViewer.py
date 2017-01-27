@@ -965,7 +965,28 @@ class DataViewer(qt.QFrame):
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
-        self.setDisplayedView(view)
+        try:
+            self.setDisplayedView(view)
+        except Exception as e:
+            # in case there is a problem to read the data, try to use a safe
+            # view
+            view = self.getSafeViewFromAvailableViews(data, available)
+            self.setDisplayedView(view)
+            raise e
+
+    def getSafeViewFromAvailableViews(self, data, available):
+        """Returns a view which is sure to display something without failing
+        on rendering.
+
+        :param object data: data which will be displayed
+        :param list[view] available: List of available views, from highest
+            priority to lowest.
+        :rtype: DataView
+        """
+        hdf5View = self.getViewFromModeId(DataViewer.HDF5_MODE)
+        if hdf5View in available:
+            return hdf5View
+        return self.getViewFromModeId(DataViewer.EMPTY_MODE)
 
     def getDefaultViewFromAvailableViews(self, data, available):
         """Returns the default view which will be used according to available
