@@ -44,8 +44,7 @@ try:
     import hdf5plugin  # noqa
 except ImportError:
     message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
-        + " compressions. You can install it from"\
-        + " https://github.com/silx-kit/hdf5plugin"
+        + " compressions. You can install it using \"pip install hdf5plugin\"."
     _logger.warning(message)
 import h5py
 
