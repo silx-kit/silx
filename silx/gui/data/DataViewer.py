@@ -29,18 +29,17 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "27/01/2017"
 
 import numpy
 import numbers
 import logging
-from collections import OrderedDict
-
 import silx.io
 from silx.gui import icons
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.data.TextFormatter import TextFormatter
+from silx.gui.widgets.TableWidget import TableView
 from silx.gui.hdf5 import H5Node
 
 try:
@@ -480,6 +479,8 @@ class _Plot3dView(DataView):
             return DataView.UNSUPPORTED
         if info.dim < 3:
             return DataView.UNSUPPORTED
+        if min(data.shape) < 2:
+            return DataView.UNSUPPORTED
         if info.dim == 3:
             return 100
         else:
@@ -657,7 +658,7 @@ class _Hdf5View(DataView):
 
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
-        widget = qt.QTableView()
+        widget = TableView()
         widget.setModel(Hdf5TableModel(widget))
         return widget
 
@@ -966,7 +967,28 @@ class DataViewer(qt.QFrame):
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
-        self.setDisplayedView(view)
+        try:
+            self.setDisplayedView(view)
+        except Exception as e:
+            # in case there is a problem to read the data, try to use a safe
+            # view
+            view = self.getSafeViewFromAvailableViews(data, available)
+            self.setDisplayedView(view)
+            raise e
+
+    def getSafeViewFromAvailableViews(self, data, available):
+        """Returns a view which is sure to display something without failing
+        on rendering.
+
+        :param object data: data which will be displayed
+        :param list[view] available: List of available views, from highest
+            priority to lowest.
+        :rtype: DataView
+        """
+        hdf5View = self.getViewFromModeId(DataViewer.HDF5_MODE)
+        if hdf5View in available:
+            return hdf5View
+        return self.getViewFromModeId(DataViewer.EMPTY_MODE)
 
     def getDefaultViewFromAvailableViews(self, data, available):
         """Returns the default view which will be used according to available

@@ -30,12 +30,23 @@
     to install it if you don't already have it.
 """
 
-import h5py
 import logging
 import sys
 import tempfile
-
 import numpy
+
+logging.basicConfig()
+_logger = logging.getLogger("hdf5widget")
+"""Module logger"""
+
+try:
+    # it should be loaded before h5py
+    import hdf5plugin  # noqa
+except ImportError:
+    message = "Module 'hdf5plugin' is not installed. It supports some hdf5"\
+        + " compressions. You can install it using \"pip install hdf5plugin\"."
+    _logger.warning(message)
+import h5py
 
 import silx.gui.hdf5
 import silx.utils.html
@@ -47,11 +58,6 @@ try:
     import fabio
 except ImportError:
     fabio = None
-
-
-_logger = logging.getLogger(__name__)
-"""Module logger"""
-
 
 _file_cache = {}
 

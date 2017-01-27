@@ -33,10 +33,11 @@ import numpy
 from silx.gui import qt
 import silx.io
 from .TextFormatter import TextFormatter
+from silx.gui.widgets.TableWidget import CopySelectedCellsAction
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "27/01/2017"
 
 
 class _MultiLineItem(qt.QItemDelegate):
@@ -385,6 +386,11 @@ class RecordTableView(qt.QTableView):
         self.setModel(model)
         self.__multilineView = _MultiLineItem(self)
         self.setEditTriggers(qt.QAbstractItemView.AllEditTriggers)
+        self._copyAction = CopySelectedCellsAction(self)
+        self.addAction(self._copyAction)
+
+    def copy(self):
+        self._copyAction.trigger()
 
     def setArrayData(self, data):
         self.model().sourceModel().setArrayData(data)
