@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2004-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2004-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,25 @@
 # ###########################################################################*/
 """Periodic table widgets
 
+Classes
+-------
+
+Widgets:
+
+ - :class:`PeriodicTable`
+ - :class:`PeriodicList`
+ - :class:`PeriodicCombo`
+
+Data model:
+
+ - :class:`PeriodicTableItem`
+ - :class:`ColoredPeriodicTableItem`
+
 
 Example of usage
 ----------------
+
+This example uses the widgets with the standard builtin elements list.
 
 .. code-block:: python
 
@@ -71,11 +87,55 @@ Example of usage
     a.exec_()
 
 
+The second example explains how to define custom elements.
+
+.. code-block:: python
+
+    from silx.gui import qt
+    from silx.gui.widgets.PeriodicTable import PeriodicTable, \
+        PeriodicCombo, PeriodicList
+    from silx.gui.widgets.PeriodicTable import PeriodicTableItem
+
+    # subclass PeriodicTableItem
+    class MyPeriodicTableItem(PeriodicTableItem):
+        "New item with added mass number and number of protons"
+        def __init__(self, symbol, Z, A, col, row, name, mass,
+                     subcategory=""):
+            PeriodicTableItem.__init__(
+                    self, symbol, Z, col, row, name, mass,
+                    subcategory)
+
+            self.A = A
+            "Mass number (neutrons + protons)"
+
+            self.num_neutrons = A - Z
+            "Number of neutrons"
+
+    # build your list of elements
+    my_elements = [MyPeriodicTableItem("H", 1, 1, 1, 1, "hydrogen",
+                                       1.00800, "diatomic nonmetal"),
+                   MyPeriodicTableItem("He", 2, 4, 18, 1, "helium",
+                                        4.0030, "noble gas"),
+                   # etc ...
+                   ]
+
+    app = qt.QApplication([])
+
+    ptable = PeriodicTable(elements=my_elements, selectable=True)
+    ptable.show()
+
+    def click_table(item):
+        "Callback function printing the mass number of clicked element"
+        print("New table click, mass number:", item.A)
+
+    ptable.sigElementClicked.connect(click_table)
+    app.exec_()
+
 """
 
 __authors__ = ["E. Papillon", "V.A. Sole", "P. Knobel"]
 __license__ = "MIT"
-__date__ = "05/12/2016"
+__date__ = "26/01/2017"
 
 from collections import OrderedDict
 import logging
@@ -194,20 +254,6 @@ _elements = [("H", 1, 1, 1, "hydrogen", 1.00800, "diatomic nonmetal"),
              ("Hs", 108, 8, 7, "hassium", 269, "transition metal"),
              ("Mt", 109, 9, 7, "meitnerium", 268)]
 
-COLORS = {
-    "diatomic nonmetal": qt.QColor("#7FFF00"),       # chartreuse
-    "noble gas": qt.QColor("#00FFFF"),               # cyan
-    "alkali metal": qt.QColor("#FFE4B5"),            # Moccasin
-    "alkaline earth metal": qt.QColor("#FFA500"),    # orange
-    "polyatomic nonmetal": qt.QColor("#7FFFD4"), 	 # aquamarine
-    "transition metal": qt.QColor("#FFA07A"),        # light salmon
-    "metalloid": qt.QColor("#8FBC8F"),               # Dark Sea Green
-    "post transition metal": qt.QColor("#D3D3D3"),   # light gray
-    "lanthanide": qt.QColor("#FFB6C1"),              # light pink
-    "actinide": qt.QColor("#F08080"),                # Light Coral
-    "": qt.QColor("#FFFFFF"),                        # white
-}
-
 
 class PeriodicTableItem(object):
     """Periodic table item, used as generic item in :class:`PeriodicTable`,
@@ -233,11 +279,9 @@ class PeriodicTableItem(object):
     :param float mass: Atomic mass (gram per mol)
     :param str subcategory: Subcategory, based on physical properties
         (e.g. "alkali metal", "noble gas"...)
-    :param QColor bgcolor: Custom background color for element in
-        periodic table
     """
     def __init__(self, symbol, Z, col, row, name, mass,
-                 subcategory="", bgcolor=None):
+                 subcategory=""):
         self.symbol = symbol
         """Atomic symbol (e.g. H, He, Li...)"""
         self.Z = Z
@@ -254,14 +298,6 @@ class PeriodicTableItem(object):
         """Subcategory, based on physical properties
         (e.g. "alkali metal", "noble gas"...)"""
 
-        self.bgcolor = COLORS.get(subcategory, qt.QColor("#FFFFFF"))
-        """Background color of element in the periodic table,
-        based on its subcategory."""
-
-        # possible custom color
-        if bgcolor is not None:
-            self.bgcolor = bgcolor
-
     # pymca compatibility (elements used to be stored as a list of lists)
     def __getitem__(self, idx):
         if idx == 6:
@@ -276,7 +312,48 @@ class PeriodicTableItem(object):
     def __len__(self):
         return 6
 
-_defaultTableItems = [PeriodicTableItem(*info) for info in _elements]
+
+class ColoredPeriodicTableItem(PeriodicTableItem):
+    """:class:`PeriodicTableItem` with an added :attr:`bgcolor`.
+    The background color can be passed as a parameter to the constructor.
+    If it is not specified, it will be defined based on
+    :attr:`subcategory`.
+
+    :param str bgcolor: Custom background color for element in
+        periodic table, as a RGB string *#RRGGBB*"""
+    COLORS = {
+        "diatomic nonmetal": "#7FFF00",  # chartreuse
+        "noble gas": "#00FFFF",  # cyan
+        "alkali metal": "#FFE4B5",  # Moccasin
+        "alkaline earth metal": "#FFA500",  # orange
+        "polyatomic nonmetal": "#7FFFD4",  # aquamarine
+        "transition metal": "#FFA07A",  # light salmon
+        "metalloid": "#8FBC8F",  # Dark Sea Green
+        "post transition metal": "#D3D3D3",  # light gray
+        "lanthanide": "#FFB6C1",  # light pink
+        "actinide": "#F08080",  # Light Coral
+        "": "#FFFFFF"  # white
+    }
+    """Dictionary defining RGB colors for each subcategory."""
+
+    def __init__(self, symbol, Z, col, row, name, mass,
+                 subcategory="", bgcolor=None):
+        PeriodicTableItem.__init__(self, symbol, Z, col, row, name, mass,
+                                   subcategory)
+
+        self.bgcolor = self.COLORS.get(subcategory, "#FFFFFF")
+        """Background color of element in the periodic table,
+        based on its subcategory. This should be a string of a hexadecimal
+        RGB code, with the format *#RRGGBB*.
+        If the subcategory is unknown, use white (*#FFFFFF*)
+        """
+
+        # possible custom color
+        if bgcolor is not None:
+            self.bgcolor = bgcolor
+
+
+_defaultTableItems = [ColoredPeriodicTableItem(*info) for info in _elements]
 
 
 class _ElementButton(qt.QPushButton):
@@ -315,8 +392,12 @@ class _ElementButton(qt.QPushButton):
         self.current_color = qt.QColor(qt.Qt.gray)
         self.selected_current_color = qt.QColor(qt.Qt.darkYellow)
 
-        # default colors
-        self.bgcolor = item.bgcolor
+        # element colors
+
+        if hasattr(item, "bgcolor"):
+            self.bgcolor = qt.QColor(item.bgcolor)
+        else:
+            self.bgcolor = qt.QColor("#FFFFFF")
 
         self.brush = qt.QBrush()
         self.__setBrush()
@@ -547,7 +628,8 @@ class PeriodicTable(qt.QWidget):
         self.sigElementClicked.emit(item)
 
     def getSelection(self):
-        """Return a list of symbols for selected elements
+        """Return a list of selected elements, as a list of :class:`PeriodicTableItem`
+        objects.
 
         :return: Selected items
         :rtype: list(PeriodicTableItem)
@@ -563,6 +645,12 @@ class PeriodicTable(qt.QWidget):
         :param list(str) symbols: List of symbols of elements to be selected
             (e.g. *["Fe", "Hg", "Li"]*)
         """
+        # accept list of PeriodicTableItems as input, because getSelection
+        # returns these objects and it makes sense to have getter and setter
+        # use same type of data
+        if isinstance(symbols[0], PeriodicTableItem):
+            symbols = [elmt.symbol for elmt in symbols]
+
         for (e, b) in self._eltButtons.items():
             b.setSelected(e in symbols)
         self.sigSelectionChanged.emit(self.getSelection())
@@ -634,8 +722,7 @@ class PeriodicCombo(qt.QComboBox):
         """Get selected element
 
         :return: Selected element
-        :rtype: :class:`PeriodicTableItem` object. This object can be unpacked as a list
-            ``[symbol, Z, col, row, name, mass]``
+        :rtype: PeriodicTableItem
         """
         return _defaultTableItems[self.currentIndex()]
 
@@ -644,6 +731,9 @@ class PeriodicCombo(qt.QComboBox):
 
         :param symbol: Symbol of element to be selected
         """
+        # accept PeriodicTableItem for getter/setter consistency
+        if isinstance(symbol, PeriodicTableItem):
+            symbol = symbol.symbol
         symblist = [elmt.symbol for elmt in _defaultTableItems]
         self.setCurrentIndex(symblist.index(symbol))
 
@@ -714,16 +804,22 @@ class PeriodicList(qt.QTreeWidget):
 
     def getSelection(self):
         """Get a list of selected elements, as a list of :class:`PeriodicTableItem`
-        objects."""
+        objects.
+
+        :return: Selected elements
+        :rtype: list(PeriodicTableItem)"""
         return [_defaultTableItems[idx] for idx in range(len(self.tree_items))
                 if self.tree_items[idx].isSelected()]
 
-    # setSelection is a bad idea (name of a QTreeWidget method)
+    # setSelection is a bad name (name of a QTreeWidget method)
     def setSelectedElements(self, symbolList):
         """
 
         :param symbolList: List of atomic symbols ["H", "He", "Li"...]
             to be selected in the widget
         """
+        # accept PeriodicTableItem for getter/setter consistency
+        if isinstance(symbolList[0], PeriodicTableItem):
+            symbolList = [elmt.symbol for elmt in symbolList]
         for idx in range(len(self.tree_items)):
             self.tree_items[idx].setSelected(_defaultTableItems[idx].symbol in symbolList)
