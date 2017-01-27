@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -48,10 +48,10 @@ class TestPeriodicTable(TestCaseQt):
         self.assertTrue(pt.selectable)
 
     def testCustomElements(self):
-        PTI = PeriodicTable.PeriodicTableItem
+        PTI = PeriodicTable.ColoredPeriodicTableItem
         my_items = [
             PTI("Xx", 42, 43, 44, "xaxatorium", 1002.2,
-                bgcolor=qt.QColor(qt.Qt.red)),
+                bgcolor="#FF0000"),
             PTI("Yy", 25, 22, 44, "yoyotrium", 8.8)
         ]
 
@@ -64,7 +64,7 @@ class TestPeriodicTable(TestCaseQt):
         self.assertEqual(selection[0].Z, 42)
         self.assertEqual(selection[0].col, 43)
         self.assertAlmostEqual(selection[0].mass, 1002.2)
-        self.assertEqual(selection[0].bgcolor,
+        self.assertEqual(qt.QColor(selection[0].bgcolor),
                          qt.QColor(qt.Qt.red))
 
         self.assertTrue(pt.isElementSelected("Xx"))
