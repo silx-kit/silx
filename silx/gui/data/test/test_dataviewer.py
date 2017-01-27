@@ -24,7 +24,7 @@
 # ###########################################################################*/
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "26/01/2017"
 
 import os
 import tempfile
@@ -92,7 +92,7 @@ class AbstractDataViewerTests(TestCaseQt):
         widget.setData(data)
         availableModes = set([v.modeId() for v in widget.currentAvailableViews()])
         try:
-            import OpenGL  # noqa
+            import silx.gui.plot3d  # noqa
             self.assertIn(DataViewer.PLOT3D_MODE, availableModes)
         except ImportError:
             self.assertIn(DataViewer.STACK_MODE, availableModes)
@@ -103,28 +103,28 @@ class AbstractDataViewerTests(TestCaseQt):
         data.shape = [3] * 1
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayedView().modeId())
 
     def test_array_2d_data(self):
         data = numpy.array(["aaa"] * (3 ** 2))
         data.shape = [3] * 2
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayedView().modeId())
 
     def test_array_4d_data(self):
         data = numpy.array(["aaa"] * (3 ** 4))
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.ARRAY_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayedView().modeId())
 
     def test_record_4d_data(self):
         data = numpy.zeros(3 ** 4, dtype='3int8, float32, (2,3)float64')
         data.shape = [3] * 4
         widget = self.create_widget()
         widget.setData(data)
-        self.assertEqual(DataViewer.RECORD_MODE, widget.displayMode())
+        self.assertEqual(DataViewer.RAW_MODE, widget.displayedView().modeId())
 
     def test_3d_h5_dataset(self):
         if h5py is None:
@@ -145,11 +145,12 @@ class AbstractDataViewerTests(TestCaseQt):
     def test_display_mode_event(self):
         listener = SignalListener()
         widget = self.create_widget()
-        widget.displayModeChanged.connect(listener)
+        widget.displayedViewChanged.connect(listener)
         widget.setData(10)
         widget.setData(None)
-        modes = listener.arguments(argumentIndex=0)
+        modes = [v.modeId() for v in listener.arguments(argumentIndex=0)]
         self.assertEquals(modes, [DataViewer.RAW_MODE, DataViewer.EMPTY_MODE])
+        listener.clear()
 
     def test_change_display_mode(self):
         data = numpy.arange(10 ** 4)
@@ -157,15 +158,13 @@ class AbstractDataViewerTests(TestCaseQt):
         widget = self.create_widget()
         widget.setData(data)
         widget.setDisplayMode(DataViewer.PLOT1D_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.PLOT1D_MODE)
+        self.assertEquals(widget.displayedView().modeId(), DataViewer.PLOT1D_MODE)
         widget.setDisplayMode(DataViewer.PLOT2D_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.PLOT2D_MODE)
-        widget.setDisplayMode(DataViewer.ARRAY_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.ARRAY_MODE)
+        self.assertEquals(widget.displayedView().modeId(), DataViewer.PLOT2D_MODE)
         widget.setDisplayMode(DataViewer.RAW_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.RAW_MODE)
+        self.assertEquals(widget.displayedView().modeId(), DataViewer.RAW_MODE)
         widget.setDisplayMode(DataViewer.EMPTY_MODE)
-        self.assertEquals(widget.displayMode(), DataViewer.EMPTY_MODE)
+        self.assertEquals(widget.displayedView().modeId(), DataViewer.EMPTY_MODE)
 
 
 class TestDataViewer(AbstractDataViewerTests):

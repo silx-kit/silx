@@ -29,11 +29,10 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "20/01/2017"
+__date__ = "26/01/2017"
 
-from collections import OrderedDict
+import weakref
 import functools
-import silx.gui.icons
 from silx.gui import qt
 from silx.gui.data.DataViewer import DataViewer
 import silx.utils.weakref
@@ -50,36 +49,43 @@ class DataViewerSelector(qt.QWidget):
         """
         super(DataViewerSelector, self).__init__(parent)
 
+        self.__group = None
         self.__buttons = {}
+        self.__buttonDummy = None
         self.__dataViewer = None
+
+        if dataViewer is not None:
+            self.setDataViewer(dataViewer)
+
+    def __updateButtons(self):
+        if self.__group is not None:
+            self.__group.deleteLater()
+        self.__buttons = {}
+        self.__buttonDummy = None
+
         self.__group = qt.QButtonGroup(self)
         self.setLayout(qt.QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
+        if self.__dataViewer is None:
+            return
 
         iconSize = qt.QSize(16, 16)
 
-        buttons = OrderedDict()
-        buttons[DataViewer.HDF5_MODE] = ("HDF5", "view-hdf5")
-        buttons[DataViewer.PLOT1D_MODE] = ("Curve", "view-1d")
-        buttons[DataViewer.PLOT2D_MODE] = ("Image", "view-2d")
-        buttons[DataViewer.PLOT3D_MODE] = ("Cube", "view-3d")
-        buttons[DataViewer.RAW_MODE] = ("Raw", "view-text")
-        buttons[DataViewer.ARRAY_MODE] = ("Raw", "view-raw")
-        buttons[DataViewer.RECORD_MODE] = ("Raw", "view-raw")
-        buttons[DataViewer.STACK_MODE] = ("Image stack", "view-2d-stack")
-
-        for modeId, state in buttons.items():
-            text, iconName = state
-            button = qt.QPushButton(text)
-            button.setIcon(silx.gui.icons.getQIcon(iconName))
+        for view in self.__dataViewer.availableViews():
+            label = view.label()
+            icon = view.icon()
+            button = qt.QPushButton(label)
+            button.setIcon(icon)
             button.setIconSize(iconSize)
             button.setCheckable(True)
-            # the weakmethod is needed to be able to destroy the widget safely
-            callback = functools.partial(silx.utils.weakref.WeakMethodProxy(self.__setDisplayMode), modeId)
+            # the weak objects are needed to be able to destroy the widget safely
+            weakView = weakref.ref(view)
+            weakMethod = silx.utils.weakref.WeakMethodProxy(self.__setDisplayedView)
+            callback = functools.partial(weakMethod, weakView)
             button.clicked.connect(callback)
             self.layout().addWidget(button)
             self.__group.addButton(button)
-            self.__buttons[modeId] = button
+            self.__buttons[view] = button
 
         button = qt.QPushButton("Dummy")
         button.setCheckable(True)
@@ -90,8 +96,8 @@ class DataViewerSelector(qt.QWidget):
 
         self.layout().addStretch(1)
 
-        if dataViewer is not None:
-            self.setDataViewer(dataViewer)
+        self.__updateButtonsVisibility()
+        self.__displayedViewChanged(self.__dataViewer.displayedView())
 
     def setDataViewer(self, dataViewer):
         """Define the dataviewer connected to this status bar
@@ -101,14 +107,13 @@ class DataViewerSelector(qt.QWidget):
         if self.__dataViewer is dataViewer:
             return
         if self.__dataViewer is not None:
-            self.__dataViewer.dataChanged.disconnect(self.__dataChanged)
-            self.__dataViewer.displayModeChanged.disconnect(self.__displayModeChanged)
+            self.__dataViewer.dataChanged.disconnect(self.__updateButtonsVisibility)
+            self.__dataViewer.displayedViewChanged.disconnect(self.__displayedViewChanged)
         self.__dataViewer = dataViewer
         if self.__dataViewer is not None:
-            self.__dataViewer.dataChanged.connect(self.__dataChanged)
-            self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
-            self.__displayModeChanged(self.__dataViewer.displayMode())
-        self.__dataChanged()
+            self.__dataViewer.dataChanged.connect(self.__updateButtonsVisibility)
+            self.__dataViewer.displayedViewChanged.connect(self.__displayedViewChanged)
+        self.__updateButtons()
 
     def setFlat(self, isFlat):
         """Set the flat state of all the buttons.
@@ -119,28 +124,30 @@ class DataViewerSelector(qt.QWidget):
             b.setFlat(isFlat)
         self.__buttonDummy.setFlat(isFlat)
 
-    def __displayModeChanged(self, mode):
-        """Called on display mode changed"""
-        selectedButton = self.__buttons.get(mode, self.__buttonDummy)
+    def __displayedViewChanged(self, view):
+        """Called on displayed view changeS"""
+        selectedButton = self.__buttons.get(view, self.__buttonDummy)
         selectedButton.setChecked(True)
 
-    def __setDisplayMode(self, modeId, clickEvent=None):
-        """Display a data using requested mode
+    def __setDisplayedView(self, refView, clickEvent=None):
+        """Display a data using the requested view
 
-        :param int modeId: Requested mode id
+        :param DataView view: Requested view
         :param clickEvent: Event sent by the clicked event
         """
         if self.__dataViewer is None:
             return
-        self.__dataViewer.setDisplayMode(modeId)
+        view = refView()
+        if view is None:
+            return
+        self.__dataViewer.setDisplayedView(view)
 
-    def __dataChanged(self):
+    def __updateButtonsVisibility(self):
         """Called on data changed"""
         if self.__dataViewer is None:
             for b in self.__buttons.values():
                 b.setVisible(False)
         else:
-            availableViews = self.__dataViewer.currentAvailableViews()
-            availableModes = set([v.modeId() for v in availableViews])
-            for modeId, button in self.__buttons.items():
-                button.setVisible(modeId in availableModes)
+            availableViews = set(self.__dataViewer.currentAvailableViews())
+            for view, button in self.__buttons.items():
+                button.setVisible(view in availableViews)

@@ -27,7 +27,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "17/01/2017"
+__date__ = "25/01/2017"
 
 from silx.gui import qt
 from .DataViewer import DataViewer
@@ -54,11 +54,11 @@ class DataViewerFrame(qt.QWidget):
 
     """
 
-    displayModeChanged = qt.Signal(int)
-    """Emitted when the display mode change"""
+    displayedViewChanged = qt.Signal(object)
+    """Emitted when the displayed view changes"""
 
     dataChanged = qt.Signal()
-    """Emitted when the data changed"""
+    """Emitted when the data changes"""
 
     def __init__(self, parent=None):
         """
@@ -82,15 +82,15 @@ class DataViewerFrame(qt.QWidget):
         self.setLayout(layout)
 
         self.__dataViewer.dataChanged.connect(self.__dataChanged)
-        self.__dataViewer.displayModeChanged.connect(self.__displayModeChanged)
+        self.__dataViewer.displayedViewChanged.connect(self.__displayedViewChanged)
 
     def __dataChanged(self):
         """Called when the data is changed"""
         self.dataChanged.emit()
 
-    def __displayModeChanged(self, modeId):
-        """Called when the display mode changed"""
-        self.displayModeChanged.emit(modeId)
+    def __displayedViewChanged(self, view):
+        """Called when the displayed view changes"""
+        self.displayedViewChanged.emit(view)
 
     def currentAvailableViews(self):
         """Returns the list of available views for the current data
@@ -112,6 +112,12 @@ class DataViewerFrame(qt.QWidget):
     def data(self):
         """Returns the data"""
         return self.__dataViewer.data()
+
+    def setDisplayedView(self, view):
+        self.__dataViewer.setDisplayedView(view)
+
+    def displayedView(self):
+        return self.__dataViewer.displayedView()
 
     def displayMode(self):
         return self.__dataViewer.displayMode()

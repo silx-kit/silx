@@ -29,13 +29,15 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "24/01/2017"
+__date__ = "26/01/2017"
 
 import numpy
 import numbers
 import logging
+from collections import OrderedDict
 
 import silx.io
+from silx.gui import icons
 from silx.gui import qt
 from silx.gui.data.NumpyAxesSelector import NumpyAxesSelector
 from silx.gui.data.TextFormatter import TextFormatter
@@ -49,10 +51,21 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
+def _normalizeData(data):
+    """Returns a normalized data.
+
+    If the data embed a numpy data or a dataset it is returned.
+    Else returns the input data."""
+    if isinstance(data, H5Node):
+        return data.h5py_object
+    return data
+
+
 class DataInfo(object):
     """Store extracted information from a data"""
 
     def __init__(self, data):
+        data = self.normalizeData(data)
         self.isArray = False
         self.interpretation = None
         self.isNumeric = False
@@ -88,6 +101,11 @@ class DataInfo(object):
             self.shape = tuple()
         self.dim = len(self.shape)
 
+    def normalizeData(self, data):
+        """Returns a normalized data if the embed a numpy or a dataset.
+        Else returns the data."""
+        return _normalizeData(data)
+
 
 class DataView(object):
     """Holder for the data view."""
@@ -96,11 +114,7 @@ class DataView(object):
     """Priority returned when the requested data can't be displayed by the
     view."""
 
-    SUPPORTED_IF_NOTHING_BETTER = 0
-    """Priority returned when the requested data can be displayed, but is
-    really not convenient."""
-
-    def __init__(self, parent, modeId):
+    def __init__(self, parent, modeId=None, icon=None, label=None):
         """Constructor
 
         :param qt.QWidget parent: Parent of the hold widget
@@ -108,21 +122,29 @@ class DataView(object):
         self.__parent = parent
         self.__widget = None
         self.__modeId = modeId
+        if label is None:
+            label = self.__class__.__name__
+        self.__label = label
+        if icon is None:
+            icon = qt.QIcon()
+        self.__icon = icon
+
+    def icon(self):
+        """Returns the default icon"""
+        return self.__icon
+
+    def label(self):
+        """Returns the default label"""
+        return self.__label
 
     def modeId(self):
         """Returns the mode id"""
         return self.__modeId
 
     def normalizeData(self, data):
-        """Returns a normalized data if the embbed a numpy or a dataset.
+        """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
-        if isinstance(data, H5Node):
-            return data.h5py_object
-        return data
-
-    def axesNames(self):
-        """Returns names of the expected axes of the view"""
-        return []
+        return _normalizeData(data)
 
     def customAxisNames(self):
         """Returns names of axes which can be custom by the user and provided
@@ -137,6 +159,16 @@ class DataView(object):
         :param int value: Value of the custom axis
         """
         pass
+
+    def isWidgetInitialized(self):
+        """Returns true if the widget is already initialized.
+        """
+        return self.__widget is not None
+
+    def select(self):
+        """Called when the view is selected to display the data.
+        """
+        return
 
     def getWidget(self):
         """Returns the widget hold in the view and displaying the data.
@@ -167,12 +199,22 @@ class DataView(object):
         """
         return None
 
+    def axesNames(self, data, info):
+        """Returns names of the expected axes of the view, according to the
+        input data.
+
+        :param data: Data to display
+        :type data: numpy.ndarray or h5py.Dataset
+        :param DataInfo info: Pre-computed information on the data
+        :rtpye: list[str]
+        """
+        return []
+
     def getDataPriority(self, data, info):
         """
         Returns the priority of using this view according to a data.
 
         - `UNSUPPORTED` means this view can't display this data
-        - `SUPPORTED_IF_NOTHING_BETTER` means this view can display the data if there is no other choices
         - `1` means this view can display the data
         - `100` means this view should be used for this data
         - `1000` max value used by the views provided by silx
@@ -188,10 +230,101 @@ class DataView(object):
         return str(self) < str(other)
 
 
+class CompositeDataView(DataView):
+    """Data view which can display a data using different view according to
+    the kind of the data."""
+
+    def __init__(self, parent, modeId=None, icon=None, label=None):
+        """Constructor
+
+        :param qt.QWidget parent: Parent of the hold widget
+        """
+        super(CompositeDataView, self).__init__(parent, modeId, icon, label)
+        self.__views = {}
+        self.__currentView = None
+
+    def addView(self, dataView):
+        """Add a new dataview to the available list."""
+        self.__views[dataView] = None
+
+    def getBestView(self, data, info):
+        """Returns the best view according to priorities."""
+        info = DataInfo(data)
+        views = [(v.getDataPriority(data, info), v) for v in self.__views.keys()]
+        views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
+        views = sorted(views, reverse=True)
+
+        if len(views) == 0:
+            return None
+        elif views[0][0] == DataView.UNSUPPORTED:
+            return None
+        else:
+            return views[0][1]
+
+    def customAxisNames(self):
+        if self.__currentView is None:
+            return
+        return self.__currentView.customAxisNames()
+
+    def setCustomAxisValue(self, name, value):
+        if self.__currentView is None:
+            return
+        self.__currentView.setCustomAxisValue(name, value)
+
+    def __updateDisplayedView(self):
+        widget = self.getWidget()
+        if self.__currentView is None:
+            return
+
+        # load the widget if it is not yet done
+        index = self.__views[self.__currentView]
+        if index is None:
+            w = self.__currentView.getWidget()
+            index = widget.addWidget(w)
+            self.__views[self.__currentView] = index
+        if widget.currentIndex() != index:
+            widget.setCurrentIndex(index)
+            self.__currentView.select()
+
+    def select(self):
+        self.__updateDisplayedView()
+        if self.__currentView is not None:
+            self.__currentView.select()
+
+    def createWidget(self, parent):
+        return qt.QStackedWidget()
+
+    def clear(self):
+        for v in self.__views.keys():
+            v.clear()
+
+    def setData(self, data):
+        if self.__currentView is None:
+            return
+        self.__updateDisplayedView()
+        self.__currentView.setData(data)
+
+    def axesNames(self, data, info):
+        view = self.getBestView(data, info)
+        self.__currentView = view
+        return view.axesNames(data, info)
+
+    def getDataPriority(self, data, info):
+        view = self.getBestView(data, info)
+        self.__currentView = view
+        if view is None:
+            return DataView.UNSUPPORTED
+        else:
+            return view.getDataPriority(data, info)
+
+
 class _EmptyView(DataView):
     """Dummy view to display nothing"""
 
-    def axesNames(self):
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.EMPTY_MODE)
+
+    def axesNames(self, data, info):
         return []
 
     def createWidget(self, parent):
@@ -204,12 +337,13 @@ class _EmptyView(DataView):
 class _Plot1dView(DataView):
     """View displaying data using a 1d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot1dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot1dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT1D_MODE,
+            label="Curve",
+            icon=icons.getQIcon("view-1d"))
         self.__resetZoomNextTime = True
-
-    def axesNames(self):
-        return ["y"]
 
     def createWidget(self, parent):
         from silx.gui import plot
@@ -226,6 +360,9 @@ class _Plot1dView(DataView):
                                   y=data,
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = True
+
+    def axesNames(self, data, info):
+        return ["y"]
 
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
@@ -245,12 +382,13 @@ class _Plot1dView(DataView):
 class _Plot2dView(DataView):
     """View displaying data using a 2d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot2dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot2dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT2D_MODE,
+            label="Image",
+            icon=icons.getQIcon("view-2d"))
         self.__resetZoomNextTime = True
-
-    def axesNames(self):
-        return ["y", "x"]
 
     def createWidget(self, parent):
         from silx.gui import plot
@@ -271,6 +409,9 @@ class _Plot2dView(DataView):
                                   resetzoom=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
+    def axesNames(self, data, info):
+        return ["y", "x"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
@@ -287,25 +428,26 @@ class _Plot2dView(DataView):
 class _Plot3dView(DataView):
     """View displaying data using a 3d plot"""
 
-    def __init__(self, parent, modeId):
-        super(_Plot3dView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_Plot3dView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.PLOT3D_MODE,
+            label="Cube",
+            icon=icons.getQIcon("view-3d"))
         try:
-            import silx.gui.plot3d
+            import silx.gui.plot3d  #noqa
         except ImportError:
             _logger.warning("Plot3dView is not available")
             _logger.debug("Backtrace", exc_info=True)
             raise
         self.__resetZoomNextTime = True
 
-    def axesNames(self):
-        return ["z", "y", "x"]
-
     def createWidget(self, parent):
         from silx.gui.plot3d import ScalarFieldView
         from silx.gui.plot3d import SFViewParamTree
 
         plot = ScalarFieldView.ScalarFieldView(parent)
-        plot.setAxesLabels(*reversed(self.axesNames()))
+        plot.setAxesLabels(*reversed(self.axesNames(None, None)))
         plot.addIsosurface(
             lambda data: numpy.mean(data) + numpy.std(data), '#FF0000FF')
 
@@ -330,6 +472,9 @@ class _Plot3dView(DataView):
         plot.setData(data)
         self.__resetZoomNextTime = False
 
+    def axesNames(self, data, info):
+        return ["z", "y", "x"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
@@ -344,8 +489,8 @@ class _Plot3dView(DataView):
 class _ArrayView(DataView):
     """View displaying data using a 2d table"""
 
-    def axesNames(self):
-        return ["col", "row"]
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_ARRAY_MODE)
 
     def createWidget(self, parent):
         from silx.gui.data.ArrayTableWidget import ArrayTableWidget
@@ -360,6 +505,9 @@ class _ArrayView(DataView):
         data = self.normalizeData(data)
         self.getWidget().setArrayData(data)
 
+    def axesNames(self, data, info):
+        return ["col", "row"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or info.isRecord:
             return DataView.UNSUPPORTED
@@ -373,12 +521,13 @@ class _ArrayView(DataView):
 class _StackView(DataView):
     """View displaying data using a stack of images"""
 
-    def __init__(self, parent, modeId):
-        super(_StackView, self).__init__(parent, modeId)
+    def __init__(self, parent):
+        super(_StackView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.STACK_MODE,
+            label="Image stack",
+            icon=icons.getQIcon("view-2d-stack"))
         self.__resetZoomNextTime = True
-
-    def axesNames(self):
-        return ["depth", "y", "x"]
 
     def customAxisNames(self):
         return ["depth"]
@@ -393,7 +542,7 @@ class _StackView(DataView):
         from silx.gui import plot
         widget = plot.StackView(parent=parent)
         widget.setKeepDataAspectRatio(True)
-        widget.setLabels(self.axesNames())
+        widget.setLabels(self.axesNames(None, None))
         # hide default option panel
         widget.setOptionVisible(False)
         return widget
@@ -407,6 +556,9 @@ class _StackView(DataView):
         self.getWidget().setStack(stack=data, reset=self.__resetZoomNextTime)
         self.__resetZoomNextTime = False
 
+    def axesNames(self, data, info):
+        return ["depth", "y", "x"]
+
     def getDataPriority(self, data, info):
         if data is None or not info.isArray or not info.isNumeric:
             return DataView.UNSUPPORTED
@@ -417,11 +569,11 @@ class _StackView(DataView):
         return 90
 
 
-class _RawView(DataView):
+class _ScalarView(DataView):
     """View displaying data using text"""
 
-    def axesNames(self):
-        return []
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_SCALAR_MODE)
 
     def createWidget(self, parent):
         widget = qt.QTextEdit(parent)
@@ -440,17 +592,23 @@ class _RawView(DataView):
         text = self.__formatter.toString(data)
         self.getWidget().setText(text)
 
+    def axesNames(self, data, info):
+        return []
+
     def getDataPriority(self, data, info):
+        data = self.normalizeData(data)
         if data is None:
             return DataView.UNSUPPORTED
-        return DataView.SUPPORTED_IF_NOTHING_BETTER
+        if silx.io.is_group(data):
+            return DataView.UNSUPPORTED
+        return 2
 
 
 class _RecordView(DataView):
     """View displaying data using text"""
 
-    def axesNames(self):
-        return ["data"]
+    def __init__(self, parent):
+        DataView.__init__(self, parent, modeId=DataViewer.RAW_RECORD_MODE)
 
     def createWidget(self, parent):
         from .RecordTableView import RecordTableView
@@ -468,7 +626,12 @@ class _RecordView(DataView):
         widget.resizeRowsToContents()
         widget.resizeColumnsToContents()
 
+    def axesNames(self, data, info):
+        return ["data"]
+
     def getDataPriority(self, data, info):
+        if info.isRecord:
+            return 40
         if data is None or not info.isArray:
             return DataView.UNSUPPORTED
         if info.dim == 1:
@@ -485,8 +648,12 @@ class _RecordView(DataView):
 class _Hdf5View(DataView):
     """View displaying data using text"""
 
-    def axesNames(self):
-        return []
+    def __init__(self, parent):
+        super(_Hdf5View, self).__init__(
+            parent=parent,
+            modeId=DataViewer.HDF5_MODE,
+            label="HDF5",
+            icon=icons.getQIcon("view-hdf5"))
 
     def createWidget(self, parent):
         from .Hdf5TableModel import Hdf5TableModel
@@ -509,12 +676,33 @@ class _Hdf5View(DataView):
         setResizeMode(1, qt.QHeaderView.Stretch)
         header.setStretchLastSection(True)
 
+    def axesNames(self, data, info):
+        return []
+
     def getDataPriority(self, data, info):
         widget = self.getWidget()
         if widget.model().isSupportedObject(data):
             return 1
         else:
             return DataView.UNSUPPORTED
+
+
+class _RawView(CompositeDataView):
+    """View displaying data as raw data.
+
+    This implementation use a 2d-array view, or a record array view, or a
+    raw tetx output.
+    """
+
+    def __init__(self, parent):
+        super(_RawView, self).__init__(
+            parent=parent,
+            modeId=DataViewer.RAW_MODE,
+            label="Raw",
+            icon=icons.getQIcon("view-raw"))
+        self.addView(_ScalarView(parent))
+        self.addView(_ArrayView(parent))
+        self.addView(_RecordView(parent))
 
 
 class DataViewer(qt.QFrame):
@@ -545,17 +733,18 @@ class DataViewer(qt.QFrame):
     """
 
     EMPTY_MODE = 0
-    PLOT1D_MODE = 1
-    PLOT2D_MODE = 2
-    PLOT3D_MODE = 3
-    RAW_MODE = 4
-    ARRAY_MODE = 5
-    STACK_MODE = 6
-    RECORD_MODE = 7
-    HDF5_MODE = 8
+    PLOT1D_MODE = 10
+    PLOT2D_MODE = 20
+    PLOT3D_MODE = 30
+    RAW_MODE = 40
+    RAW_ARRAY_MODE = 41
+    RAW_RECORD_MODE = 42
+    RAW_SCALAR_MODE = 43
+    STACK_MODE = 50
+    HDF5_MODE = 60
 
-    displayModeChanged = qt.Signal(int)
-    """Emitted when the display mode changes"""
+    displayedViewChanged = qt.Signal(object)
+    """Emitted when the displayed view changes"""
 
     dataChanged = qt.Signal()
     """Emitted when the data changes"""
@@ -593,41 +782,47 @@ class DataViewer(qt.QFrame):
         self.__data = None
         self.__useAxisSelection = False
 
-        views = [
-            (_EmptyView, self.EMPTY_MODE),
-            (_Hdf5View, self.HDF5_MODE),
-            (_Plot1dView, self.PLOT1D_MODE),
-            (_Plot2dView, self.PLOT2D_MODE),
-            (_Plot3dView, self.PLOT3D_MODE),
-            (_RawView, self.RAW_MODE),
-            (_ArrayView, self.ARRAY_MODE),
-            (_StackView, self.STACK_MODE),
-            (_RecordView, self.RECORD_MODE),
-        ]
-        self.__views = {}
-        for viewData in views:
-            viewClass, modeId = viewData
-            try:
-                view = viewClass(self.__stack, modeId)
-            except:
-                continue
-            self.__views[view.modeId()] = view
+        views = self.createDefaultViews()
+        self.__views = list(views)
 
         # store stack index for each views
         self.__index = {}
 
         self.setDisplayMode(self.EMPTY_MODE)
 
+    def createDefaultViews(self):
+        """Create and returns available views which can be displayed by default
+        by the data viewer.
+
+        :rtype: list[DataView]"""
+        viewClasses = [
+            _EmptyView,
+            _Hdf5View,
+            _Plot1dView,
+            _Plot2dView,
+            _Plot3dView,
+            _RawView,
+            _StackView,
+        ]
+        views = []
+        for viewClass in viewClasses:
+            try:
+                view = viewClass(self.__stack)
+                views.append(view)
+            except Exception:
+                _logger.warning("%s instantiation failed. View is ignored" % viewClass.__name__)
+                _logger.debug("Backtrace", exc_info=True)
+
+        return views
+
     def clear(self):
         """Clear the widget"""
         self.setData(None)
 
     def normalizeData(self, data):
-        """Returns a normalized data if the embbed a numpy or a dataset.
+        """Returns a normalized data if the embed a numpy or a dataset.
         Else returns the data."""
-        if isinstance(data, H5Node):
-            return data.h5py_object
-        return data
+        return _normalizeData(data)
 
     def __getStackIndex(self, view):
         """Get the stack index containing the view.
@@ -659,8 +854,9 @@ class DataViewer(qt.QFrame):
         """
         previous = self.__numpySelection.blockSignals(True)
         self.__numpySelection.clear()
-        axisNames = self.__currentView.axesNames()
-        if len(axisNames) > 0:
+        info = DataInfo(self.__data)
+        axisNames = self.__currentView.axesNames(self.__data, info)
+        if info.isArray and self.__data is not None and len(axisNames) > 0:
             self.__useAxisSelection = True
             self.__numpySelection.setAxisNames(axisNames)
             self.__numpySelection.setCustomAxis(self.__currentView.customAxisNames())
@@ -690,7 +886,7 @@ class DataViewer(qt.QFrame):
     def __setDataInView(self):
         self.__currentView.setData(self.__displayedData)
 
-    def __setDisplayedView(self, view):
+    def setDisplayedView(self, view):
         """Set the displayed view.
 
         Change the displayed view according to the view itself.
@@ -704,8 +900,21 @@ class DataViewer(qt.QFrame):
         self.__updateNumpySelectionAxis()
         self.__updateDataInView()
         stackIndex = self.__getStackIndex(self.__currentView)
+        if self.__currentView is not None:
+            self.__currentView.select()
         self.__stack.setCurrentIndex(stackIndex)
-        self.displayModeChanged.emit(view.modeId())
+        self.displayedViewChanged.emit(view)
+
+    def getViewFromModeId(self, modeId):
+        """Returns the first available view which have the requested modeId.
+
+        :param int modeId: Requested mode id
+        :rtype: DataView
+        """
+        for view in self.__views:
+            if view.modeId() == modeId:
+                return view
+        return view
 
     def setDisplayMode(self, modeId):
         """Set the displayed view using display mode.
@@ -717,14 +926,23 @@ class DataViewer(qt.QFrame):
             - `EMPTY_MODE`: display nothing
             - `PLOT1D_MODE`: display the data as a curve
             - `PLOT2D_MODE`: display the data as an image
-            - `TEXT_MODE`: display the data as a text
-            - `ARRAY_MODE`: display the data as a table
+            - `PLOT3D_MODE`: display the data as an image
+            - `RAW_MODE`: display the data as a table
+            - `STACK_MODE`: display the data as an image
+            - `HDF5_MODE`: display the data as an image
         """
         try:
-            view = self.__views[modeId]
+            view = self.getViewFromModeId(modeId)
         except KeyError:
             raise ValueError("Display mode %s is unknown" % modeId)
-        self.__setDisplayedView(view)
+        self.setDisplayedView(view)
+
+    def displayedView(self):
+        """Returns the current displayed view.
+
+        :rtype: DataView
+        """
+        return self.__currentView
 
     def __updateView(self):
         """Display the data using the widget which fit the best"""
@@ -732,9 +950,9 @@ class DataViewer(qt.QFrame):
 
         # sort available views according to priority
         info = DataInfo(data)
-        priorities = [v.getDataPriority(data, info) for v in self.__views.values()]
-        views = zip(priorities, self.__views.values())
-        views = filter(lambda t: t[0] >= DataView.SUPPORTED_IF_NOTHING_BETTER, views)
+        priorities = [v.getDataPriority(data, info) for v in self.__views]
+        views = zip(priorities, self.__views)
+        views = filter(lambda t: t[0] > DataView.UNSUPPORTED, views)
         views = sorted(views, reverse=True)
 
         # store available views
@@ -742,16 +960,13 @@ class DataViewer(qt.QFrame):
             self.__setCurrentAvailableViews([])
             available = []
         else:
-            if views[0][0] != 0:
-                # remove 0-priority, if other are available
-                views = list(filter(lambda t: t[0] != DataView.SUPPORTED_IF_NOTHING_BETTER, views))
             available = [v[1] for v in views]
             self.__setCurrentAvailableViews(available)
 
         # display the view with the most priority (the default view)
         view = self.getDefaultViewFromAvailableViews(data, available)
         self.__clearCurrentView()
-        self.__setDisplayedView(view)
+        self.setDisplayedView(view)
 
     def getDefaultViewFromAvailableViews(self, data, available):
         """Returns the default view which will be used according to available
@@ -767,7 +982,7 @@ class DataViewer(qt.QFrame):
             view = available[0]
         else:
             # else returns the empty view
-            view = self.__views[DataViewer.EMPTY_MODE]
+            view = self.getViewFromModeId(DataViewer.EMPTY_MODE)
         return view
 
     def __setCurrentAvailableViews(self, availableViews):
@@ -790,7 +1005,7 @@ class DataViewer(qt.QFrame):
 
         :rtype: List[DataView]
         """
-        return self.__views.values()
+        return self.__views
 
     def setData(self, data):
         """Set the data to view.
