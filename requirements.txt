@@ -6,6 +6,7 @@
 --only-binary h5py,PyQt4,PyQt5,PySide
 
 numpy
+fabio                     # For silx.io
 h5py                      # For silx.io
 pyopencl                  # For silx.opencl
 Mako                      # For pyopencl reduction
@@ -14,7 +15,7 @@ qtconsole                 # For silx.gui.console
 matplotlib >= 1.2.0       # For silx.gui.plot
 PyOpenGL                  # For silx.gui.plot3d
 # PyQt4, PyQt5 or PySide  # For silx.gui
-
+# scipy                   # For silx.math.fit demo, silx.image.sift demo, silx.image.sift.test
 
 # Try to install a Qt binding from a wheel
 # This is no available for all configurations

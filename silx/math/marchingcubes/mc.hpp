@@ -490,9 +490,7 @@ MarchingCubes<FloatIn, FloatOut>::process_edge(const FloatIn value0,
                                                const FloatIn * current,
                                                const FloatIn * next)
 {
-    assert(previous != NULL);
     assert(current != NULL);
-    assert(next != NULL);
 
     if ((value0 <= this->isolevel) ^ (value <= this->isolevel)) {
 
