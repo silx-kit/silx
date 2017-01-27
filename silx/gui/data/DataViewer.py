@@ -29,13 +29,11 @@ from __future__ import division
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "26/01/2017"
+__date__ = "27/01/2017"
 
 import numpy
 import numbers
 import logging
-from collections import OrderedDict
-
 import silx.io
 from silx.gui import icons
 from silx.gui import qt
