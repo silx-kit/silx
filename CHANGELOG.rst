@@ -1,8 +1,26 @@
 Change Log
 ==========
 
-Unreleased
-----------
+0.4.0: 2017/02/01
+-----------------
+
+ * Added plot3D package (include visualization of 3-dimensional scalar fields)
+ * Added data viewer (it can handle n-dimensional data)
+ * Added StackView (ex. Visualization of stack of images)
+ * Added depth profile calculation (ex. extract profile of a stack of images)
+ * Added periodic table widget
+ * Added ArrayTableWidget
+ * Added pixel intensity histogram action
+ * Added histogram parameter to addCurve
+ * Refactoring. Create silx.gui.data (include widgets for data)
+ * Refactoring. Rename utils.load as silx.io.open 
+ * Change active curve behavior in Plot. No default active curve is set by default
+ * Fit Action. Add polynomial functions and background customization
+ * PlotWindow. Provide API to access toolbar actions
+ * Handle SPEC, HDF5 and image formats through an unified API
+ * hdf5widget example. Inspect and visualize any datasets
+ * Improve mask tool
+
 
 0.3.0: 2016/10/12
 -----------------
