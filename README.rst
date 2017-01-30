@@ -10,10 +10,9 @@ The current version provides :
 * reading `HDF5 <https://www.hdfgroup.org/HDF5/>`_  file format (with support of `SPEC <https://certif.com/spec.html>`_ file format)
 * histogramming
 * fitting
-* curves
+* 1D and 2D visualization.
 * image plot widget with a set of associated tools (See `changelog file <https://github.com/silx-kit/silx/blob/master/CHANGELOG.rst>`_).
-* HDF5 browser
-* isosurface rendering (using marching cubes)
+* Unified browser for HDF5, SPEC and image file formats supporting inspection and visualization of n-dimensional datasets.
 * OpenGL-based widget to display 3D scalar field with isosurface and cutting plane.
 * image alignement (sift - OpenCL implementation)
 
@@ -31,13 +30,12 @@ To install silx locally, run::
 On Linux, to install silx with pip, you must install numpy first.
 
 Unofficial Debian8 packages are available at http://www.silx.org/pub/debian/
-A CentOS rpm package is provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
-An Arch Linux (AUR) package is also available: https://aur.archlinux.org/packages/python-silx
+CentOS rpm packages are provided by Max IV at the following url: http://pubrepo.maxiv.lu.se/rpm/el7/x86_64/
+Arch Linux (AUR) packages are also available: https://aur.archlinux.org/packages/python-silx
 
 On Windows, pre-compiled binaries (aka Python wheels) are available for Python 2.7 and 3.5.
 
 On Mac OS X, pre-compiled binaries (aka Python wheels) are available for Python 2.7.
-
 
 The latest development version can be obtained from the git repository::
 
@@ -48,7 +46,7 @@ The latest development version can be obtained from the git repository::
 Dependencies
 ------------
 
-* `Python <https://www.python.org/>`_ 2.7, 3.4 and 3.5.
+* `Python <https://www.python.org/>`_ 2.7, 3.4 or 3.5.
 * `numpy <http://www.numpy.org>`_
 
 The GUI widgets of the silx package depend on the following extra packages:
