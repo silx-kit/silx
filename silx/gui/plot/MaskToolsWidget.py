@@ -607,6 +607,7 @@ class MaskToolsWidget(qt.QWidget):
             ' <b>B</b>')
         self.browseAction.setCheckable(True)
         self.browseAction.triggered.connect(self._activeBrowseMode)
+        self.addAction(self.browseAction)
 
         self.rectAction = qt.QAction(
             icons.getQIcon('shape-rectangle'), 'Rectangle selection', None)
@@ -615,6 +616,7 @@ class MaskToolsWidget(qt.QWidget):
         self.rectAction.setShortcut(qt.QKeySequence(qt.Qt.Key_R))
         self.rectAction.setCheckable(True)
         self.rectAction.triggered.connect(self._activeRectMode)
+        self.addAction(self.rectAction)
 
         self.polygonAction = qt.QAction(
             icons.getQIcon('shape-polygon'), 'Polygon selection', None)
@@ -625,6 +627,7 @@ class MaskToolsWidget(qt.QWidget):
             'Right-click to place the last corner')
         self.polygonAction.setCheckable(True)
         self.polygonAction.triggered.connect(self._activePolygonMode)
+        self.addAction(self.polygonAction)
 
         self.pencilAction = qt.QAction(
             icons.getQIcon('draw-pencil'), 'Pencil tool', None)
@@ -633,6 +636,7 @@ class MaskToolsWidget(qt.QWidget):
             'Pencil tool: (Un)Mask using a pencil <b>P</b>')
         self.pencilAction.setCheckable(True)
         self.pencilAction.triggered.connect(self._activePencilMode)
+        self.addAction(self.polygonAction)
 
         self.drawActionGroup = qt.QActionGroup(self)
         self.drawActionGroup.setExclusive(True)

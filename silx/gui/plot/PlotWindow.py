@@ -30,7 +30,7 @@ It provides the plot API fully defined in :class:`.Plot`.
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "25/01/2017"
+__date__ = "26/01/2017"
 
 import collections
 import logging
@@ -115,6 +115,7 @@ class PlotWindow(PlotWidget):
 
         self.resetZoomAction = self.group.addAction(PlotActions.ResetZoomAction(self))
         self.resetZoomAction.setVisible(resetzoom)
+        self.addAction(self.resetZoomAction)
 
         self.zoomInAction = PlotActions.ZoomInAction(self)
         self.addAction(self.zoomInAction)
@@ -125,28 +126,35 @@ class PlotWindow(PlotWidget):
         self.xAxisAutoScaleAction = self.group.addAction(
             PlotActions.XAxisAutoScaleAction(self))
         self.xAxisAutoScaleAction.setVisible(autoScale)
+        self.addAction(self.xAxisAutoScaleAction)
 
         self.yAxisAutoScaleAction = self.group.addAction(
             PlotActions.YAxisAutoScaleAction(self))
         self.yAxisAutoScaleAction.setVisible(autoScale)
+        self.addAction(self.yAxisAutoScaleAction)
 
         self.xAxisLogarithmicAction = self.group.addAction(
             PlotActions.XAxisLogarithmicAction(self))
         self.xAxisLogarithmicAction.setVisible(logScale)
+        self.addAction(self.xAxisLogarithmicAction)
 
         self.yAxisLogarithmicAction = self.group.addAction(
             PlotActions.YAxisLogarithmicAction(self))
         self.yAxisLogarithmicAction.setVisible(logScale)
+        self.addAction(self.yAxisLogarithmicAction)
 
         self.gridAction = self.group.addAction(
             PlotActions.GridAction(self, gridMode='both'))
         self.gridAction.setVisible(grid)
+        self.addAction(self.gridAction)
 
         self.curveStyleAction = self.group.addAction(PlotActions.CurveStyleAction(self))
         self.curveStyleAction.setVisible(curveStyle)
+        self.addAction(self.curveStyleAction)
 
         self.colormapAction = self.group.addAction(PlotActions.ColormapAction(self))
         self.colormapAction.setVisible(colormap)
+        self.addAction(self.colormapAction)
 
         self.keepDataAspectRatioButton = PlotToolButtons.AspectToolButton(
             parent=self, plot=self)
@@ -172,15 +180,19 @@ class PlotWindow(PlotWidget):
 
         self.copyAction = self.group.addAction(PlotActions.CopyAction(self))
         self.copyAction.setVisible(copy)
+        self.addAction(self.copyAction)
 
         self.saveAction = self.group.addAction(PlotActions.SaveAction(self))
         self.saveAction.setVisible(save)
+        self.addAction(self.saveAction)
 
         self.printAction = self.group.addAction(PlotActions.PrintAction(self))
         self.printAction.setVisible(print_)
+        self.addAction(self.printAction)
 
         self.fitAction = self.group.addAction(PlotActions.FitAction(self))
         self.fitAction.setVisible(fit)
+        self.addAction(self.fitAction)
 
         # lazy loaded actions needed by the controlButton menu
         self._consoleAction = None
