@@ -34,6 +34,7 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "12/01/2017"
 
+import sys
 from silx.gui import qt
 from silx.gui.plot import PlotWindow
 from silx.gui.plot.PlotActions import PlotAction
