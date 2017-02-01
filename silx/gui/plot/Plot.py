@@ -736,7 +736,7 @@ class Plot(object):
     def _computeEdges(x, histogramType):
         """Compute the edges from a set of xs and a rule to generate the edges
 
-        :param x: the x value of the curve to tranform in an histogram
+        :param x: the x value of the curve to transform into an histogram
         :param histogramType: the type of histogram we wan't to generate.
              This define the way to center the histogram values compared to the
              curve value. Possible values can be::
@@ -771,8 +771,8 @@ class Plot(object):
     def _getHistogramValue(x, y, histogramType):
         """Returns the x and y value of a curve corresponding to the histogram
 
-        :param x: the x value of the curve to tranform in an histogram
-        :param y: the y value of the curve to tranform in an histogram
+        :param x: the x value of the curve to transform in an histogram
+        :param y: the y value of the curve to transform in an histogram
         :param histogramType: the type of histogram we wan't to generate.
              This define the way to center the histogram values compared to the 
              curve value. Possible values can be::
@@ -1711,7 +1711,7 @@ class Plot(object):
         It returns None in case of not having an active image.
 
         Default output has the form: [data, legend, info, pixmap, params]
-        where params is a dictionnary containing image parameters.
+        where params is a dictionary containing image parameters.
 
         Warning: Returned values MUST not be modified.
         Make a copy if you need to modify them.
@@ -1831,7 +1831,7 @@ class Plot(object):
         :param str legend:
             The legend identifying the curve.
             If not provided or None (the default), the active curve is returned
-            or if there is no active curve, the lastest updated curve that is
+            or if there is no active curve, the latest updated curve that is
             not hidden.
             is returned if there are curves in the plot.
         :return: None or list [x, y, legend, info, parameters]
@@ -1897,9 +1897,9 @@ class Plot(object):
         :param str legend:
             The legend identifying the image.
             If not provided or None (the default), the active image is returned
-            or if there is no active image, the lastest updated image
+            or if there is no active image, the latest updated image
             is returned if there are images in the plot.
-        :return: None or list [image, legend, info, pixmap, info, params]
+        :return: None or list [image, legend, info, pixmap, params]
         """
         if legend is None:
             legend = self.getActiveImage(just_legend=True)
@@ -2403,7 +2403,7 @@ class Plot(object):
 
         Limitation: Only one listener at a time.
 
-        :param callbackFunction: function accepting a dictionnary as input
+        :param callbackFunction: function accepting a dictionary as input
                                  to handle the graph events
                                  If None (default), use a default listener.
         """
@@ -2416,7 +2416,7 @@ class Plot(object):
     def graphCallback(self, ddict=None):
         """This callback is going to receive all the events from the plot.
 
-        Those events will consist on a dictionnary and among the dictionnary
+        Those events will consist on a dictionary and among the dictionary
         keys the key 'event' is mandatory to describe the type of event.
         This default implementation only handles setting the active curve.
         """
@@ -2980,7 +2980,7 @@ class Plot(object):
         If flag is False, only item selection is enabled.
 
         Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultanelously.
+        simultaneously.
 
         :param bool flag: True to enable drawing and disable zoom and select.
         :param str shape: Type of item to be drawn in:
@@ -3010,7 +3010,7 @@ class Plot(object):
 
         Return the draw mode parameters as a dict of None.
 
-        It returns None if the interactive moed is not a drawing mode,
+        It returns None if the interactive mode is not a drawing mode,
         otherwise, it returns a dict containing the drawing mode parameters
         as provided to :meth:`setDrawModeEnabled`.
         """
@@ -3033,7 +3033,7 @@ class Plot(object):
         Set the zoom mode if flag is True, else item selection is enabled.
 
         Warning: Zoom and drawing are not compatible and cannot be enabled
-        simultanelously
+        simultaneously
 
         :param bool flag: If True, enable zoom and select mode.
         :param color: The color to use to draw the selection area.
