@@ -2,7 +2,7 @@
 # coding: utf8
 # /*##########################################################################
 #
-# Copyright (c) 2015-2016 European Synchrotron Radiation Facility
+# Copyright (c) 2015-2017 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -82,7 +82,7 @@ def get_version():
 
 def get_readme():
     dirname = os.path.dirname(os.path.abspath(__file__))
-    with open(os.path.join(dirname, "README.rst"), "r") as fp:
+    with io.open(os.path.join(dirname, "README.rst"), "r", encoding="utf-8") as fp:
         long_description = fp.read()
     return long_description
 
