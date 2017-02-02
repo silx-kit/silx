@@ -89,6 +89,9 @@ test_script:
     # Install h5py for silx.io tests
     - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ h5py"
 
+    # Install fabio
+    - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ fabio"
+
     # Install scipy for silx.image.sift tests
     - "pip install --pre --trusted-host www.silx.org --find-links http://www.silx.org/pub/wheelhouse/ scipy"
 
