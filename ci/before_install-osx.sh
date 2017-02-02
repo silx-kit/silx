@@ -13,3 +13,8 @@ then
     $PYTHON_EXE -m venv $VENV_DIR
     source $VENV_DIR/bin/activate
 fi
+
+# Alternative python installation using miniconda
+#curl -o miniconda_installer.sh "https://repo.continuum.io/miniconda/Miniconda$PYTHON_VERSION-latest-MacOSX-x86_64.sh"
+#bash miniconda_installer.sh -b -p miniconda
+#export PATH="`pwd`/miniconda/bin":$PATH
