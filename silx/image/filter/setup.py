@@ -40,16 +40,6 @@ def configuration(parent_package='', top_path=None):
                          sources=["mediantools.c", 'medianfilter.c'],
                          language='c')    
 
-    # # =====================================
-    # # median filter
-    # # =====================================
-
-    # config.add_extension('medianfilter',
-    #                      sources=['mediantools.c', 'medianfilter.c'],
-    #                      libraries='mediantools',
-    #                      include_dirs=["/users/payno/Documents/dev/esrf/silx/paynoSilx/silx/build/lib.linux-x86_64-2.7//silx/image/filter/"],
-    #                      language='c')
-
     return config
 
 
