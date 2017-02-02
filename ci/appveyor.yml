@@ -25,6 +25,10 @@ environment:
         VENV_TEST_DIR: "venv_test"
 
     matrix:
+        # Python 3.6
+        - PYTHON_DIR: "C:\\Python36-x64"
+          QT_BINDINGS: "PyQt5"
+  
         # Python 3.5
         - PYTHON_DIR: "C:\\Python35-x64"
           QT_BINDINGS: "PyQt5"
