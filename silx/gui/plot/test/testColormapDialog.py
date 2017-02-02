@@ -51,6 +51,7 @@ def _tearDownQt(docTest):
     dialogWidget.setAttribute(qt.Qt.WA_DeleteOnClose)
     dialogWidget.close()
     del dialogWidget
+    _qapp.processEvents()
 
 
 cmapDocTestSuite = doctest.DocTestSuite(ColormapDialog, tearDown=_tearDownQt)

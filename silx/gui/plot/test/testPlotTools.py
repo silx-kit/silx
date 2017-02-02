@@ -105,6 +105,7 @@ class TestPositionInfo(TestCaseQt):
         with TestLogging(PlotTools.__name__, **kwargs):
             # Move mouse to center
             self.mouseMove(self.plot)
+            self.mouseMove(self.plot, pos=(1,1))
             self.qapp.processEvents()
             self.qWait(100)
 
