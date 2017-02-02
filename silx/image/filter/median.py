@@ -33,23 +33,24 @@ from numpy import asarray
 def medfilt2d(input_data, kernel_size=None, conditional=0):
     """Median filter for 2-dimensional arrays.
 
-  Description:
-
     Apply a median filter to the input array using a local window-size
     given by kernel_size (must be odd).
 
-  Inputs:
 
-    in -- An 2 dimensional input array.
-    kernel_size -- A scalar or an length-2 list giving the size of the
-                   median filter window in each dimension.  Elements of
-                   kernel_size should be odd.  If kernel_size is a scalar,
-                   then this scalar is used as the size in each dimension.
-    conditional -- If different from 0 implements a conditional median filter.
+    :param input_data: An 2 dimensional input array.
+    :param kernel_size: A scalar or an length-2 list giving the size of the
+        median filter window in each dimension.  Elements of kernel_size should
+        be odd. If kernel_size is a scalar, then this scalar is used as the size
+        in each dimension.
+    :param conditional: If different from 0 implements a conditional median
+        filter. In this case the rank of the central pixel is used to determine
+        the output of the filter. If this rank is higher or equal than some
+        higher threshold value or  lower or  equal  than  some  lower threshold
+        value, the output of the filter would be the median value, otherwise the
+        pixel remains unchanged. (for more details
+          http://www.eurasip.org/Proceedings/Eusipco/Eusipco2007/Papers/c4p-h06.pdf)
 
-  Outputs: (out,)
-
-    out -- An array the same size as input containing the median filtered
+    :return: An array the same size as input containing the median filtered
            result.
 
     """
@@ -70,24 +71,21 @@ def medfilt2d(input_data, kernel_size=None, conditional=0):
 def medfilt1d(input_data, kernel_size=None, conditional=0):
     """Median filter 1-dimensional arrays.
 
-  Description:
-
     Apply a median filter to the input array using a local window-size
     given by kernel_size (must be odd).
 
   Inputs:
 
-    in -- An 1-dimensional input array.
-    kernel_size -- A scalar or an length-2 list giving the size of the
-                   median filter window in each dimension.  Elements of
-                   kernel_size should be odd.  If kernel_size is a scalar,
-                   then this scalar is used as the size in each dimension.
-    conditional -- If different from 0 implements a conditional median filter.
+    :param input_data: An 1-dimensional input array.
+    :param kernel_size: A scalar or an length-2 list giving the size of the
+        median filter window in each dimension.  Elements of kernel_size should
+        be odd. If kernel_size is a scalar, then this scalar is used as the size
+        in each dimension.
+    :param conditional: If different from 0 implements a conditional median
+        filter.
 
-  Outputs: (out,)
-
-    out -- An array the same size as input containing the median filtered
-           result.
+    :return :An array the same size as input containing the median filtered
+        result.
 
     """
     image = asarray(input_data)
