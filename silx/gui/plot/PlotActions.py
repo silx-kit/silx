@@ -1359,7 +1359,6 @@ class MedianFilter2DAction(MedianFilterAction):
 
     def _getFiltredImage(self, kernelWidth, conditionnal):
         assert(self.plot is not None)
-        print(self._originalImage.shape)
         return median.medfilt2d(self._originalImage,
                                 kernelWidth,
                                 conditionnal )
@@ -1381,6 +1380,7 @@ class MedianFilterDialog(qt.QDialog):
         self._filterWidth = qt.QSpinBox(parent=self)
         self._filterWidth.setMinimum(1)
         self._filterWidth.setValue(1)
+        self._filterWidth.setSingleStep(2);
         widthTooltip = """radius width of the pixel including in the filter
                         for each pixel"""
         self._filterWidth.setToolTip(widthTooltip)
@@ -1395,6 +1395,8 @@ class MedianFilterDialog(qt.QDialog):
 
     def _filterOptionChanged(self):
         """Call back used when the filter values are changed"""
-        nbVoxel = 1 + ((self._filterWidth.value() -1) * 2)
-        self.sigFilterOptChanged.emit(nbVoxel, self._filterOption.isChecked())
+        if self.value()%2 == 0:
+            logging.warning('median filter only accept odd values')
+        else:
+            self.sigFilterOptChanged.emit(self._filterWidth.value(), self._filterOption.isChecked())
 
