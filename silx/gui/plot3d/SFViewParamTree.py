@@ -453,7 +453,7 @@ class IsoSurfaceRootItem(SubjectItem):
         self.setCheckState((visible and qt.Qt.Checked) or qt.Qt.Unchecked)
 
         nameItem = qt.QStandardItem('Level')
-        sliderItem = IsoSufaceLevelSlider(self.subject)
+        sliderItem = IsoSurfaceLevelSlider(self.subject)
         self.appendRow([nameItem, sliderItem])
 
         nameItem = qt.QStandardItem('Color')
@@ -525,6 +525,7 @@ class _IsoLevelSlider(qt.QSlider):
         self.sliderReleased.connect(self.__sliderReleased)
 
         self.subject.sigLevelChanged.connect(self.setLevel)
+        self.subject.parent().sigDataChanged.connect(self.__dataChanged)
 
     def setLevel(self, level):
         """Set slider from iso-surface level"""
@@ -537,6 +538,10 @@ class _IsoLevelSlider(qt.QSlider):
                 sliderPosition = sliderWidth * (level - dataRange[0]) / width
                 self.setValue(sliderPosition)
 
+    def __dataChanged(self):
+        """Handles data update to refresh slider range if needed"""
+        self.setLevel(self.subject.getLevel())
+
     def __sliderReleased(self):
         value = self.value()
         dataRange = self.subject.parent().getDataRange()
@@ -546,7 +551,7 @@ class _IsoLevelSlider(qt.QSlider):
         self.subject.setLevel(level)
 
 
-class IsoSufaceLevelSlider(IsoSurfaceLevelItem):
+class IsoSurfaceLevelSlider(IsoSurfaceLevelItem):
     """
     Isosurface level item with a slider editor.
     """
