@@ -100,6 +100,7 @@ class ColormapMesh3D(Geometry):
         self._data = data
         self._texture = None
         self._update_texture = True
+        self._update_texture_filter = False
         self._alpha = 1.
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
@@ -129,8 +130,8 @@ class ColormapMesh3D(Geometry):
     def interpolation(self, interpolation):
         assert interpolation in ('linear', 'nearest')
         self._interpolation = interpolation
-        # TODO improve, now reload texture to change filter parameters
-        self._update_texture = True
+        self._update_texture_filter = True
+        self.notify()
 
     @property
     def alpha(self):
@@ -160,11 +161,21 @@ class ColormapMesh3D(Geometry):
             else:
                 filter_ = gl.GL_LINEAR
             self._update_texture = False
+            self._update_texture_filter = False
             self._texture = glutils.Texture(
                 gl.GL_R32F, self._data, gl.GL_RED,
                 minFilter=filter_,
                 magFilter=filter_,
                 wrap=gl.GL_CLAMP_TO_EDGE)
+
+        if self._update_texture_filter:
+            if self.interpolation == 'nearest':
+                filter_ = gl.GL_NEAREST
+            else:
+                filter_ = gl.GL_LINEAR
+            self._texture.minFilter = filter_
+            self._texture.magFilter = filter_
+
         super(ColormapMesh3D, self).prepareGL2(ctx)
 
     def renderGL2(self, ctx):
@@ -214,6 +225,7 @@ class CutPlane(PlaneInGroup):
         self._data = None
         self._mesh = None
         self._alpha = 1.
+        self._interpolation = 'linear'
         self._colormap = Colormap()
         super(CutPlane, self).__init__(point, normal)
 
@@ -248,6 +260,19 @@ class CutPlane(PlaneInGroup):
     def colormap(self):
         return self._colormap
 
+    @property
+    def interpolation(self):
+        """The texture interpolation mode: 'linear' (default) or 'nearest'"""
+        return self._interpolation
+
+    @interpolation.setter
+    def interpolation(self, interpolation):
+        assert interpolation in ('nearest', 'linear')
+        if interpolation != self.interpolation:
+            self._interpolation = interpolation
+            if self._mesh is not None:
+                self._mesh.interpolation = interpolation
+
     def prepareGL2(self, ctx):
         if self.isValid:
             if self._mesh is None and self._data is not None:
@@ -258,6 +283,7 @@ class CutPlane(PlaneInGroup):
                                             mode='fan',
                                             colormap=self.colormap)
                 self._mesh.alpha = self._alpha
+                self._interpolation = self.interpolation
                 self._children.insert(0, self._mesh)
 
             if self._mesh is not None:

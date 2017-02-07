@@ -398,6 +398,12 @@ class CutPlane(qt.QObject):
     This signal provides the new colormap.
     """
 
+    sigInterpolationChanged = qt.Signal(str)
+    """Signal emitted when the cut plane interpolation has changed
+
+    This signal provides the new interpolation mode.
+    """
+
     def __init__(self, sfView):
         super(CutPlane, self).__init__(parent=sfView)
 
@@ -524,6 +530,27 @@ class CutPlane(qt.QObject):
         :return: An object containing the 2D data slice and information
         """
         return _CutPlaneImage(self)
+
+    # Interpolation
+
+    def getInterpolation(self):
+        """Returns the interpolation used to display to cut plane.
+
+        :return: 'nearest' or 'linear'
+        :rtype: str
+        """
+        return self._plane.interpolation
+
+    def setInterpolation(self, interpolation):
+        """Set the interpolation used to display to cut plane
+
+        The default interpolation is 'linear'
+
+        :param str interpolation: 'nearest' or 'linear'
+        """
+        if interpolation != self.getInterpolation():
+            self._plane.interpolation = interpolation
+            self.sigInterpolationChanged.emit(interpolation)
 
     # Colormap
 
