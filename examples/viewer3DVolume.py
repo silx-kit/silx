@@ -86,7 +86,7 @@ def load(filename):
 
             data = numpy.array(data, order='C', dtype='float32')
 
-    elif filename.lower().endswith('.npy'):
+    elif magic[:6] == b'\x93NUMPY':
         data = numpy.load(filename)
 
     else:
