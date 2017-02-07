@@ -988,7 +988,7 @@ class ScalarFieldView(Plot3DWindow):
             self._planeAction.setChecked(True)
         elif mode == 'camera':
             self.getPlot3DWidget().eventHandler = interaction.CameraControl(
-                self.getPlot3DWidget().viewport, orbitAroundOrigin=True,
+                self.getPlot3DWidget().viewport, orbitAroundCenter=False,
                 mode='position', scaleTransform=sceneScale,
                 selectCB=None)
             self._cameraAction.setChecked(True)

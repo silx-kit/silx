@@ -130,9 +130,9 @@ class ClickOrDrag(StateMachine):
 class CameraRotate(ClickOrDrag):
     """Camera rotation using an arcball-like interaction."""
 
-    def __init__(self, viewport, orbitAroundOrigin=True, button=RIGHT_BTN):
+    def __init__(self, viewport, orbitAroundCenter=True, button=RIGHT_BTN):
         self._viewport = viewport
-        self._orbitAroundOrigin = orbitAroundOrigin
+        self._orbitAroundCenter = orbitAroundCenter
         self._reset()
         super(CameraRotate, self).__init__(button)
 
@@ -144,23 +144,20 @@ class CameraRotate(ClickOrDrag):
         pass  # No interaction yet
 
     def beginDrag(self, x, y):
-        if self._orbitAroundOrigin:
-            bounds = self._viewport.scene.bounds(transformed=True)
-            center = 0.5 * (bounds[0] + bounds[1])
-            self._center = transform.Translate(*center)
-        else:
-            # TODO find a better position?
-            # Using picked position if any
-            ndcz = self._viewport._pickNdcZGL(x, y)
-            if ndcz == 1.:
-                # Hit the far plane, change to center of scene
-                self._center = transform.Translate(0., 0., 0.)
-            else:
-                center = self._viewport._getXZYGL(x, y)  # Can return None
-                if center is not None:
-                    center = transform.Translate(*center)
-                self._center = center
+        centerPos = None
+        if not self._orbitAroundCenter:
+            # Try to use picked object position as center of rotation
+            ndcZ = self._viewport._pickNdcZGL(x, y)
+            if ndcZ != 1.:
+                # Hit an object, use picked point as center
+                centerPos = self._viewport._getXZYGL(x, y)  # Can return None
 
+        if centerPos is None:
+            # Not using picked position, use scene center
+            bounds = self._viewport.scene.bounds(transformed=True)
+            centerPos = 0.5 * (bounds[0] + bounds[1])
+
+        self._center = transform.Translate(*centerPos)
         self._origin = x, y
         self._startExtrinsic = self._viewport.camera.extrinsic.copy()
 
@@ -446,12 +443,12 @@ class FocusManager(StateMachine):
 class CameraControl(FocusManager):
     """Combine wheel, selectPan and rotate state machine."""
     def __init__(self, viewport,
-                 orbitAroundOrigin=True,
+                 orbitAroundCenter=False,
                  mode='center', scaleTransform=None,
                  selectCB=None):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     CameraSelectPan(viewport, LEFT_BTN, selectCB),
-                    CameraRotate(viewport, orbitAroundOrigin, RIGHT_BTN))
+                    CameraRotate(viewport, orbitAroundCenter, RIGHT_BTN))
         super(CameraControl, self).__init__(handlers)
 
 
@@ -650,6 +647,6 @@ class PanPlaneRotateCameraControl(FocusManager):
         handlers = (CameraWheel(viewport, mode, scaleTransform),
                     PlanePan(viewport, plane, LEFT_BTN),
                     CameraRotate(viewport,
-                                 orbitAroundOrigin=True,
+                                 orbitAroundCenter=False,
                                  button=RIGHT_BTN))
         super(PanPlaneRotateCameraControl, self).__init__(handlers)

@@ -126,7 +126,7 @@ class Plot3DWidget(qt.QGLWidget):
         self.window.viewports = [self.viewport, self.overview]
 
         self.eventHandler = interaction.CameraControl(
-            self.viewport, orbitAroundOrigin=True,
+            self.viewport, orbitAroundCenter=False,
             mode='position', scaleTransform=sceneScale,
             selectCB=None)
 
