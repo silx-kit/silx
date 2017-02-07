@@ -532,9 +532,10 @@ class _IsoLevelSlider(qt.QSlider):
 
         if dataRange is not None and None not in dataRange:
             width = dataRange[1] - dataRange[0]
-            sliderWidth = self.maximum() - self.minimum()
-            sliderPosition = sliderWidth * (level - dataRange[0]) / width
-            self.setValue(sliderPosition)
+            if width > 0:
+                sliderWidth = self.maximum() - self.minimum()
+                sliderPosition = sliderWidth * (level - dataRange[0]) / width
+                self.setValue(sliderPosition)
 
     def __sliderReleased(self):
         value = self.value()
