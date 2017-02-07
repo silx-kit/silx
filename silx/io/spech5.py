@@ -748,7 +748,8 @@ class SpecH5Dataset(object):
     def __getattribute__(self, item):
         if item in ["value", "name", "parent", "file", "attrs",
                     "shape", "dtype", "size", "h5py_class",
-                    "chunks", "compression", "compression_opts"]:
+                    "chunks", "compression", "compression_opts",
+                    "target"]:
             return object.__getattribute__(self, item)
 
         if hasattr(self.value, item):
@@ -1366,7 +1367,7 @@ class SpecH5Group(object):
         if instrument_pattern.match(self.name):
             return static_items["scan/instrument"] + mca_list
 
-    def visit(self, func):
+    def visit(self, func, follow_links=False):
         """Recursively visit all names in this group and subgroups.
 
         :param func: Callable (function, method or callable object)
@@ -1394,25 +1395,26 @@ class SpecH5Group(object):
         for member_name in self.keys():
             member = self[member_name]
             ret = None
-            if not is_link_to_dataset(member.name) and\
-               not is_link_to_group(member.name):
+            if (not is_link_to_dataset(member.name) and
+                    not is_link_to_group(member.name)) or follow_links:
                 ret = func(member.name)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
-                self[member_name].visit(func)
+            if isinstance(member, SpecH5Group):
+                if not isinstance(member, SpecH5LinkToGroup) or follow_links:
+                    self[member_name].visit(func, follow_links)
 
-    def visititems(self, func):
+    def visititems(self, func, follow_links=False):
         """Recursively visit names and objects in this group.
 
         :param func: Callable (function, method or callable object)
         :type func: function
 
         You supply a callable (function, method or callable object); it
-        will be called exactly once for each link in this group and every
-        group below it. Your callable must conform to the signature:
+        will be called exactly once for each
+        member in this group and every group below it. Your callable must
+        conform to the signature:
 
             ``func(<member name>, <object>) => <None or return value>``
 
@@ -1436,14 +1438,15 @@ class SpecH5Group(object):
         for member_name in self.keys():
             member = self[member_name]
             ret = None
-            if not is_link_to_dataset(member.name):
+            if (not is_link_to_dataset(member.name) and
+                    not is_link_to_group(member.name)) or follow_links:
                 ret = func(member.name, member)
             if ret is not None:
                 return ret
             # recurse into subgroups
-            if isinstance(self[member_name], SpecH5Group) and\
-               not isinstance(self[member_name], SpecH5LinkToGroup):
-                self[member_name].visititems(func)
+            if isinstance(self[member_name], SpecH5Group):
+                if not isinstance(self[member_name], SpecH5LinkToGroup) or follow_links:
+                    self[member_name].visititems(func, follow_links)
 
 
 class SpecH5LinkToGroup(SpecH5Group):
