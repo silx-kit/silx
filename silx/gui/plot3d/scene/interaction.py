@@ -232,8 +232,6 @@ class CameraSelectPan(ClickOrDrag):
         ndcZ = self._viewport._pickNdcZGL(x, y)
         # ndcZ is the panning plane
         if ndc is not None and ndcZ is not None:
-            if ndcZ == 1.:  # Hit the far plane, change panning plane
-                ndcZ = 0.5  # TODO find a better guess...
             self._lastPosNdc = numpy.array((ndc[0], ndc[1], ndcZ, 1.),
                                            dtype=numpy.float32)
         else:
