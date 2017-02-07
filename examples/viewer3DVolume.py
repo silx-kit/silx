@@ -65,7 +65,9 @@ def load(filename):
     if not os.path.isfile(filename.split('::')[0]):
         raise IOError('No input file: %s' % filename)
 
-    if '.h5' in filename.lower():
+    with open(filename.split('::')[0], 'rb') as f:
+        magic = f.read(8)
+    if magic == b'\211HDF\r\n\032\n':
         import h5py
 
         if '::' not in filename:
