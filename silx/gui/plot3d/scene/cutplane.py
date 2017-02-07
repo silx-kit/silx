@@ -169,6 +169,7 @@ class ColormapMesh3D(Geometry):
                 wrap=gl.GL_CLAMP_TO_EDGE)
 
         if self._update_texture_filter:
+            self._update_texture_filter = False
             if self.interpolation == 'nearest':
                 filter_ = gl.GL_NEAREST
             else:
