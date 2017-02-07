@@ -982,6 +982,35 @@ class PlaneOrientationItem(SubjectItem):
         return True
 
 
+class PlaneInterpolationItem(SubjectItem):
+    """Toggle cut plane interpolation method: nearest or linear.
+
+    Item is checkable
+    """
+
+    def _init(self):
+        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        self.setCheckable(True)
+        self.setCheckState(
+            qt.Qt.Checked if interpolation == 'linear' else qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
+
+    def getSignals(self):
+        return [self.subject.getCutPlanes()[0].sigInterpolationChanged]
+
+    def leftClicked(self):
+        checked = self.checkState() == qt.Qt.Checked
+        self._setInterpolation('linear' if checked else 'nearest')
+
+    def _pullData(self):
+        interpolation = self.subject.getCutPlanes()[0].getInterpolation()
+        self._setInterpolation(interpolation)
+        return interpolation[0].upper() + interpolation[1:]
+
+    def _setInterpolation(self, interpolation):
+        self.subject.getCutPlanes()[0].setInterpolation(interpolation)
+
+
 class PlaneColormapItem(ColormapBase):
     """
     colormap name item.
@@ -1033,6 +1062,7 @@ class PlaneAutoScaleItem(ColormapBase):
         self.setCheckable(True)
         self.setCheckState((colorMap.isAutoscale() and qt.Qt.Checked)
                            or qt.Qt.Unchecked)
+        self.setData(self._pullData(), role=qt.Qt.DisplayRole, pushData=False)
 
     def leftClicked(self):
         checked = (self.checkState() == qt.Qt.Checked)
@@ -1127,6 +1157,11 @@ class PlaneGroup(SubjectItem):
         nameItem = qt.QStandardItem('Orientation')
         nameItem.setEditable(False)
         valueItem = PlaneOrientationItem(self.subject)
+        self.appendRow([nameItem, valueItem])
+
+        nameItem = qt.QStandardItem('Interpolation')
+        nameItem.setEditable(False)
+        valueItem = PlaneInterpolationItem(self.subject)
         self.appendRow([nameItem, valueItem])
 
         nameItem = qt.QStandardItem('Autoscale')
