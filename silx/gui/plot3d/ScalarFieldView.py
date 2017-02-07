@@ -262,7 +262,6 @@ class Isosurface(qt.QObject):
                                          normals=normals,
                                          mode='triangles',
                                          indices=indices)
-                mesh.culling = 'back'
                 self._group.children = [mesh]
 
 
